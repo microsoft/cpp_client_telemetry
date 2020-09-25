@@ -1,4 +1,18 @@
-// Copyright (c) Microsoft. All rights reserved.
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+//
+// This code is licensed under the MIT License (MIT).
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
 #ifndef IHTTPCLIENT_HPP
 #define IHTTPCLIENT_HPP
 
@@ -13,7 +27,7 @@
 #include <vector>
 
 ///@cond INTERNAL_DOCS
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     /// The HttpHeaders class contains a set of HTTP headers.
@@ -518,7 +532,7 @@ namespace ARIASDK_NS_BEGIN
         /// returning to the caller. Do not access the request object in any
         /// way after this invocation, and do not delete it.
         /// The callback object is always called, even if the request is 
-        /// cancel led, or if an error occurs immediately during sending. In the
+        /// cancelled, or if an error occurs immediately during sending. In the
         /// latter case, the OnHttpResponse() callback is called before this
         /// method returns. You must keep the callback object alive until its
         /// OnHttpResponse() callback is called. It will never be used twice, so
@@ -544,6 +558,6 @@ namespace ARIASDK_NS_BEGIN
 
     /// @endcond
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

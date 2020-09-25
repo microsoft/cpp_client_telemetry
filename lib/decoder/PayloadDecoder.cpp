@@ -21,7 +21,7 @@
 
 /* Bond definition of CsProtocol::Record is auto-generated and could be different for each SDK version */
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 
 #include "zlib.h"
@@ -58,7 +58,7 @@ namespace clienttelemetry {
                         {
                             if (j + 2 < length)
                             {
-                                if (test[j + 1] == '3' && test[j + 2] == '.')
+                                if (test[j + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && test[j + 2] == '.')
                                 {
                                     found = true;
                                     break;
@@ -226,6 +226,10 @@ namespace clienttelemetry {
                                                         { "ticketKeys",  r.extProtocol[0].ticketKeys },
                                                         { "devMake",     r.extProtocol[0].devMake },
                                                         { "devModel",    r.extProtocol[0].devModel }
+#ifdef HAVE_CS4
+                                                        ,
+                                                        { "msp",         r.extProtocol[0].msp }
+#endif
                                                     }
                                                 },
                                                 { "user" ,                                           // 22: optional vector<User> extUser
@@ -244,7 +248,11 @@ namespace clienttelemetry {
                                                         { "id",          r.extDevice[0].id },
                                                         { "localId",     r.extDevice[0].localId },
                                                         { "make",        r.extDevice[0].make },
-                                                        { "model",       r.extDevice[0].model },
+                                                        { "model",       r.extDevice[0].model }
+#ifdef HAVE_CS4
+                                                        ,
+                                                        { "authIdEnt",   r.extDevice[0].authIdEnt }
+#endif
                                                      }
                                                 },
                                                 { "os",                                              // 24: optional vector<Os> extOs
@@ -266,6 +274,10 @@ namespace clienttelemetry {
                                                         { "ver",     r.extApp[0].ver },
                                                         { "locale",  r.extApp[0].locale },
                                                         { "name",    r.extApp[0].name }
+#ifdef HAVE_CS4
+                                                        ,
+                                                        { "sesId",   r.extApp[0].sesId }
+#endif
                                                      }
                                                 },
                     /*
@@ -285,7 +297,11 @@ namespace clienttelemetry {
                                                      {
                                                         { "epoch",     r.extSdk[0].epoch },
                                                         { "installId", r.extSdk[0].installId },
+#ifdef HAVE_CS4
+                                                        { "ver",       r.extSdk[0].ver }
+#else
                                                         { "libVer",    r.extSdk[0].libVer}
+#endif
                                                      }
                                                 }
                     /*
@@ -295,6 +311,17 @@ namespace clienttelemetry {
                                             }
                                         }
                 };
+
+#ifdef HAVE_CS4
+                if (r.extM365a.size())
+                {
+                    j["ext"]["m365"] = json
+                    {
+                        {"enrolledTenantId", r.extM365a[0].enrolledTenantId},
+                        {"msp", r.extM365a[0].msp }
+                    };
+                }
+#endif
 
                 if (r.ext.size())
                 {
@@ -467,8 +494,8 @@ namespace clienttelemetry {
                 z_stream zs;
                 memset(&zs, 0, sizeof(zs));
 
-                // [MG]: must call inflateInit2 with -9 because otherwise
-                // it'd be searching for non-existing gzip header...
+                // Must call inflateInit2 with -9 because otherwise
+                // it'd be searching for non-existing gzip header.
                 if (inflateInit2(&zs, -9) != Z_OK)
                 {
                     return false;
@@ -507,7 +534,7 @@ namespace clienttelemetry {
 
 using namespace clienttelemetry::data::v3;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     namespace exporters {
 
@@ -566,4 +593,4 @@ namespace ARIASDK_NS_BEGIN {
 
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

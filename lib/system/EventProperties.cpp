@@ -1,6 +1,6 @@
 #include "pal/PAL.hpp"
 
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "EventProperty.hpp"
 #include "EventProperties.hpp"
 #include "EventPropertiesStorage.hpp"
@@ -17,7 +17,7 @@
 using namespace std;
 using namespace MAT;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     const char* const DefaultEventName = "undefined";
 
@@ -160,6 +160,7 @@ namespace ARIASDK_NS_BEGIN {
         if (priority >= EventPriority_Low)
         {
             // TODO: 1438270 - [v3][1DS] Direct upload to respect low priority
+            // Any changes to this method needs corresponding fixes in Java code.
             m_storage->eventLatency = EventLatency_Normal;
             m_storage->eventPersistence = EventPersistence_Normal;
         }
@@ -421,7 +422,6 @@ namespace ARIASDK_NS_BEGIN {
             break;
         case TYPE_GUID:
             lhs.value.as_guid = new evt_guid_t();
-            // TODO: copy from GUID_t to aria_guid_t
             break;
 #if 0
         case TYPE_STRING_ARRAY:
@@ -579,5 +579,5 @@ namespace ARIASDK_NS_BEGIN {
     }
 #endif /* end of MAT_C_API */
 
-} ARIASDK_NS_END
+} MAT_NS_END
 

@@ -4,7 +4,7 @@
 
 #include "Version.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     ///@cond INTERNAL_DOCS
@@ -27,5 +27,5 @@ namespace ARIASDK_NS_BEGIN
 
     /// @endcond
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

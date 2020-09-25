@@ -8,7 +8,7 @@
 
 #include "ctmacros.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     struct EventPropertiesStorage
     {
@@ -67,4 +67,4 @@ namespace ARIASDK_NS_BEGIN {
        }
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END

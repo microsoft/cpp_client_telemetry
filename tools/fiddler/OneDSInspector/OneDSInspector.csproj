@@ -65,8 +65,6 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="bond_const_types.cs" />
-    <Compile Include="CSProtocol_types.cs" />
     <Compile Include="EventInspector.cs" />
     <Compile Include="PayloadViewer.cs">
       <SubType>UserControl</SubType>
@@ -75,7 +73,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="bond\CSProtocol.bond" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -84,6 +81,7 @@
   <ItemGroup>
     <EmbeddedResource Include="PayloadViewer.resx" />
   </ItemGroup>
+  <Import Project="..\..\decoder\decoder.projitems" Label="Shared" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Import Project="..\packages\Bond.NET.3.0.48\build\Bond.NET.targets" Condition="Exists('..\packages\Bond.NET.3.0.48\build\Bond.NET.props')" />
   <PropertyGroup>

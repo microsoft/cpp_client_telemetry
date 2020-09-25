@@ -1,4 +1,5 @@
 @echo off
+
 cd %~dp0
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
@@ -36,12 +37,16 @@ msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true 
 msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug.vs2015.MT-sqlite /p:Platform=x64 %CUSTOM_PROPS%
 msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release.vs2015.MT-sqlite /p:Platform=x64 %CUSTOM_PROPS%
 
+if NOT DEFINED SKIP_ARM_BUILD (
 REM ARM DLL build
 call tools\vcvars-ext.cmd arm
 msbuild %SOLUTION% /target:zlib,sqlite-uwp,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM %CUSTOM_PROPS%
 msbuild %SOLUTION% /target:zlib,sqlite-uwp,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM %CUSTOM_PROPS%
+)
 
+if NOT DEFINED SKIP_ARM64_BUILD (
 REM ARM64 DLL build
 call tools\vcvars-ext.cmd arm64
 msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM64 %CUSTOM_PROPS%
 msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM64 %CUSTOM_PROPS%
+)

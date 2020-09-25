@@ -4,6 +4,8 @@
 
 #ifdef HAVE_MAT_JSONHPP
 #include "json.hpp"
+#endif
+
 #include "utils/Utils.hpp"
 
 #include <mutex>
@@ -11,77 +13,29 @@
 
 using namespace MAT;
 using namespace std;
-using nlohmann::json;
 
 #ifdef _WIN32
 #include <windows.h> // for EXCEPTION_ACCESS_VIOLATION
 #include <excpt.h>
 #endif
 
-/// <summary>
-/// Default JSON config for Transmit Profiles
-/// </summary>
-static const char* const defaultProfiles = R"(
-[{
-    "name": "REAL_TIME",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ 16,  8,  4 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ 16,  8,  4 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [  8,  4,  2 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [  8,  4,  2 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [  4,  2,  1 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [  8,  4,  2 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [  8,  4,  2 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [  4,  2,  1 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}, {
-    "name": "NEAR_REAL_TIME",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ -1, 24, 12 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ -1, 24, 12 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ -1, 18,  9 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [ 24, 12,  6 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [ 12,  6,  3 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}, {
-    "name": "BEST_EFFORT",
-    "rules": [
-    { "netCost": "restricted",                              "timers": [ -1, -1, -1 ] },
-    { "netCost": "high",        "powerState": "unknown",    "timers": [ -1, 72, 36 ] },
-    { "netCost": "high",        "powerState": "battery",    "timers": [ -1, 72, 36 ] },
-    { "netCost": "high",        "powerState": "charging",   "timers": [ -1, 54, 27 ] },
-    { "netCost": "low",         "powerState": "unknown",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "low",         "powerState": "battery",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "low",         "powerState": "charging",   "timers": [ 36, 18,  9 ] },
-    { "netCost": "unknown",     "powerState": "unknown",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "unknown",     "powerState": "battery",    "timers": [ 72, 36, 18 ] },
-    { "netCost": "unknown",     "powerState": "charging",   "timers": [ 36, 18,  9 ] },
-    {                                                       "timers": [ -1, -1, -1 ] }
-    ]
-}]
-)";
+static const char* const defaultRealTimeProfileName = "REAL_TIME";
+static const char* const defaultNearRealTimeProfileName = "NEAR_REAL_TIME";
+static const char* const defaultBestEffortProfileName = "BEST_EFFORT";
 
-static set<string, std::greater<string>> defaultProfileNames = {
-    "REAL_TIME",
-    "NEAR_REAL_TIME",
-    "BEST_EFFORT"
+static const set<string, std::greater<string>> defaultProfileNames = {
+    string{defaultRealTimeProfileName},
+    string{defaultNearRealTimeProfileName},
+    string{defaultBestEffortProfileName}
 };
 
-static const char* DEFAULT_PROFILE = "REAL_TIME";
+static const char* DEFAULT_PROFILE = defaultRealTimeProfileName;
 
 /// <summary>
-/// Compile-time map of text fields to struct fields and their types.
+/// Runtime map of text fields to struct fields and their types.
 /// This map greatly helps to simplify the serialization from JSON to binary.
 /// </summary>
+#ifdef HAVE_MAT_JSONHPP
 static std::map<std::string, int > transmitProfileNetCost;
 static std::map<std::string, int > transmitProfilePowerState;
 
@@ -101,14 +55,11 @@ static void initTransmitProfileFields()
     transmitProfilePowerState["battery"] = (PowerSource_Battery);
     transmitProfilePowerState["charging"] = (PowerSource_Charging);
 };
+#endif
 
 #define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx)
 
-namespace ARIASDK_NS_BEGIN {
-
-
-    static const char* ATTR_NAME = "name";     /// <summary>name  attribute</summary>
-    static const char* ATTR_RULES = "rules";    /// <summary>rules attribute</summary>
+namespace MAT_NS_BEGIN {
 
     static std::recursive_mutex profiles_mtx;
     map<string, TransmitProfileRules>      TransmitProfiles::profiles;
@@ -116,7 +67,7 @@ namespace ARIASDK_NS_BEGIN {
     size_t      TransmitProfiles::currRule = 0;
     NetworkCost TransmitProfiles::currNetCost = NetworkCost::NetworkCost_Any;
     PowerSource TransmitProfiles::currPowState = PowerSource::PowerSource_Any;
-    std::atomic<bool> TransmitProfiles::isTimerUpdated(true);
+    bool        TransmitProfiles::isTimerUpdated = true;
 
     /// <summary>
     /// Get current transmit profile name
@@ -208,13 +159,13 @@ namespace ARIASDK_NS_BEGIN {
 
 	 void TransmitProfiles::EnsureDefaultProfiles() noexcept
 	 {
-         LOCK_PROFILES;
+        LOCK_PROFILES;
         if (profiles.size() == 0)
         {
             LOG_TRACE("Loading default profiles...");
             reset();
         }
-	 }
+    }
 
     /// <summary>
     /// Parse JSON configration describing transmit profiles
@@ -222,12 +173,16 @@ namespace ARIASDK_NS_BEGIN {
     /// <param name="profiles_json"></param>
     /// <param name="profiles"></param>
     /// <returns></returns>
+#ifdef HAVE_MAT_JSONHPP
     size_t TransmitProfiles::parse(const std::string& profiles_json)
     {
+        static const char* attributeName = "name";
+        static const char* attributeRules = "rules";
         size_t numProfilesParsed = 0;
         // Temporary storage for the new profiles that we use before we copy to current profiles
         std::vector<TransmitProfileRules> newProfiles;
 
+        using nlohmann::json;
         try
         {
             json temp = json::parse(profiles_json.c_str());
@@ -247,10 +202,10 @@ namespace ARIASDK_NS_BEGIN {
                     json rulesObj = it.value();
                     if (rulesObj.is_object())
                     {
-                        std::string name = rulesObj[ATTR_NAME];
+                        std::string name = rulesObj[attributeName];
 
                         profile.name = name;
-                        json rules = rulesObj[ATTR_RULES];
+                        json rules = rulesObj[attributeRules];
 
                         if (rules.is_array())
                         {
@@ -325,6 +280,12 @@ namespace ARIASDK_NS_BEGIN {
         }
         return numProfilesParsed;
     }
+#else
+    size_t TransmitProfiles::parse(const std::string&)
+    {
+        return size_t { 0 };
+    }
+#endif // HAVE_MAT_JSONHPP
 
     /// <summary>
     /// Load customer supplied transmit profiles
@@ -390,7 +351,52 @@ namespace ARIASDK_NS_BEGIN {
     /// Reset transmit profiles to defaults.
     /// </summary>
     void TransmitProfiles::reset() {
-        parse(defaultProfiles);
+        const TransmitProfileRules realTimeProfile{ std::string{ defaultRealTimeProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {16, 8, 4} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {16, 8, 4} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {4, 2, 1} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {8, 4, 2} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {4, 2, 1} },
+            { {-1, -1, -1} }
+        }};
+
+        const TransmitProfileRules nearRealTimeProfile{ std::string{ defaultNearRealTimeProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {-1, 24, 12} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {-1, 24, 12} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {-1, 18, 9} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {24, 12, 6} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {12, 6, 3} },
+            { {-1, -1, -1} }
+        }};
+
+        const TransmitProfileRules bestEffortProfile{ std::string{ defaultBestEffortProfileName },
+        {
+            { NetworkCost::NetworkCost_Roaming, {-1, -1, -1} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Unknown, {-1, 72, 36} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Battery, {-1, 72, 36} },
+            { NetworkCost::NetworkCost_Metered, PowerSource::PowerSource_Charging, {-1, 54, 27} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Unknown, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Battery, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unmetered, PowerSource::PowerSource_Charging, {36, 18, 9} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Unknown, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Battery, {72, 36, 18} },
+            { NetworkCost::NetworkCost_Unknown, PowerSource::PowerSource_Charging, {36, 18, 9} },
+            { {-1, -1, -1} }
+        }};
+
+        UpdateProfiles({realTimeProfile, nearRealTimeProfile, bestEffortProfile});
     }
 
     bool TransmitProfiles::setDefaultProfile(const TransmitProfile profileName)
@@ -491,6 +497,7 @@ namespace ARIASDK_NS_BEGIN {
     /// </summary>
     bool TransmitProfiles::isTimerUpdateRequired()
     {
+        LOCK_PROFILES;
         return isTimerUpdated;
     }
 
@@ -548,37 +555,12 @@ namespace ARIASDK_NS_BEGIN {
 
     TransmitProfiles::TransmitProfiles()
     {
+#ifdef HAVE_MAT_JSONHPP
         initTransmitProfileFields();
-    }
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:6320)
-#endif
-    TransmitProfiles::~TransmitProfiles()
-    {
-#ifdef _WIN32
-        // This silly code is required for vs2013 compiler workaround
-        // https://connect.microsoft.com/VisualStudio/feedback/details/800104/
-        __try {
-            transmitProfileNetCost.clear();
-            transmitProfilePowerState.clear();
-        }
-        __except (EXCEPTION_EXECUTE_HANDLER)
-        {
-            // This compiler bug costed me good relationship with OneDrive team :(
-        }
 #endif
     }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     // Make sure we populate transmitProfileFields dynamically before start
     static TransmitProfiles __profiles;
 
-} ARIASDK_NS_END
-
-#else
-#include "TransmitProfilesStub.hpp"
-#endif
+} MAT_NS_END

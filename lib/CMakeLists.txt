@@ -39,14 +39,21 @@ set(SRCS decorators/BaseDecorator.cpp
   stats/Statistics.cpp
   stats/MetaStats.cpp
   offline/StorageObserver.cpp
+  offline/OfflineStorageFactory.cpp
   offline/MemoryStorage.cpp
   offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
+  offline/LogSessionDataProvider.cpp
   backoff/IBackoff.cpp
   pal/PAL.cpp
   pal/TaskDispatcher_CAPI.cpp
   pal/WorkerThread.cpp
 )
+
+# Support for Azure Monitor / Application Insights
+if(BUILD_AZMON)
+  include(modules/azmon/CMakeLists.txt OPTIONAL)
+endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   list(APPEND SRCS
@@ -62,7 +69,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   )
 endif()
 
-if(EXISTS "modules/dataviewer/")
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
   list(APPEND SRCS
     modules/dataviewer/DefaultDataViewer.cpp
     modules/dataviewer/OnDisableNotificationCollection.cpp
@@ -72,7 +79,7 @@ endif()
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(APPLE)
     list(APPEND SRCS
-      pal/posix/sysinfo_utils_apple.mm
+      pal/posix/sysinfo_utils_apple.cpp
     )
     if(BUILD_IOS)
       list(APPEND SRCS
@@ -80,7 +87,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       )
     else()
       list(APPEND SRCS
-        pal/posix/sysinfo_utils_mac.cpp
+        pal/posix/sysinfo_utils_mac.mm
       )
     endif()
   endif()
@@ -105,7 +112,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     if(BUILD_IOS)
       list(APPEND SRCS
         pal/posix/NetworkInformationImpl.mm
-        pal/posix/Reachability.m
+        pal/posix/ODWReachability.m
       )
     else()
       list(APPEND SRCS
@@ -128,12 +135,17 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 	  ../wrappers/obj-c/ODWLogConfiguration.mm
 	  ../wrappers/obj-c/ODWSemanticContext.mm
 	  )
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
+  		list(APPEND SRCS
+		  ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
+  		)
+	endif()
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
-add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DARIASDK_PLATFORM_WINDOWS=1 -DARIASDK_SHARED_LIB=1 -D_ARIA_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
+add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
@@ -143,8 +155,9 @@ remove_definitions(-D_MBCS)
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
     pal/desktop/WindowsEnvironmentInfo.hpp
     pal/desktop/NetworkDetector.cpp
+    utils/StringConversion.cpp
   )
-  
+
   # UTC module
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/utc)
     list(APPEND SRCS

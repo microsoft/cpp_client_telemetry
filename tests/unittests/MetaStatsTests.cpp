@@ -60,7 +60,7 @@ TEST_F(MetaStatsTests, GenerateStartEvent)
     stats.updateOnRecordsDropped(DROPPED_REASON_RETRY_EXCEEDED, dropCount);
 
     // Expect 2 events for builds with per-tenant stats enabled
-    size_t expectedCount = (runtimeConfigMock["stats"]["split"]) ? 2 : 1;
+    size_t expectedCount = (runtimeConfigMock[CFG_MAP_METASTATS_CONFIG]["split"]) ? 2 : 1;
     auto events = stats.generateStatsEvent(ACT_STATS_ROLLUP_KIND_START);
     ASSERT_THAT(events, SizeIs(expectedCount));
 }

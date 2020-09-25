@@ -40,7 +40,8 @@ To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_
   | Ubuntu 14.04.1 LTS            | GCC 5.x.x                        |
   | Ubuntu 16.04 LTS              | GCC 5.x.x (armv7l)               |
   | Windows 10                    | Android Studio/Gradle            |
-  | Windows Server 2016           | Visual Studio 2017               |
+  | Windows Server 2016           | Visual Studio 2017 (vc141)       |
+  | Windows Server 2019           | Visual Studio 2019 (vc142)       |
 </details>
 
 <details>
@@ -48,17 +49,20 @@ To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_
   
   | Target Platform                | Supported          | Covered by CI      |
   | ------------------------------ | ------------------ | ------------------ |
-  | Android                        | partial&dagger;    |                    |
+  | Android                        | partial&dagger;    | :white_check_mark: |
+  | iOS 10+ (simulator)            | :white_check_mark: | :white_check_mark: |
+  | iOS 10+ (arm64, arm64e)        | :white_check_mark: |                    |
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
   | Mac OS X 10.11+                | :white_check_mark: |                    |
   | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |
   | Ubuntu 14.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
   | Windows 7.1                    | :white_check_mark: |                    |
-  | Windows 8.1                    | :white_check_mark: | :white_check_mark: |
+  | Windows 8.1                    | :white_check_mark: |                    |
   | Windows 10.x                   | :white_check_mark: |                    |
   | Windows Server 2012            | :white_check_mark: |                    |
   | Windows Server 2016            | :white_check_mark: | :white_check_mark: |
+  | Windows Server 2019            | :white_check_mark: |                    |
   
   * **Supported** - these platforms are known to work well with the SDK in
     production.

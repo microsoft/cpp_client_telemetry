@@ -115,12 +115,12 @@ evt_status_t mat_open_core(
         moduleName += std::to_string(code);
         clients[code].config =
         {
-            { "name", moduleName },
+            { CFG_STR_FACTORY_NAME, moduleName },
             { "version", "1.0.0" },
-            { "config",
+            { CFG_MAP_FACTORY_CONFIG,
                 {
-                    { "host", "*" },
-                    { "scope", CONTEXT_SCOPE_NONE }
+                    { CFG_STR_FACTORY_HOST, "*" },
+                    { CFG_STR_CONTEXT_SCOPE, CONTEXT_SCOPE_NONE }
                 }
             },
             { CFG_STR_PRIMARY_TOKEN, config }
@@ -254,8 +254,8 @@ evt_status_t mat_log(evt_context_t *ctx)
     // should not be able to capture the host's context vars.
     std::string scope = CONTEXT_SCOPE_NONE;
     {
-        MAT::VariantMap &config_map = config["config"];
-        const auto & it = config_map.find("scope");
+        MAT::VariantMap &config_map = config[CFG_MAP_FACTORY_CONFIG];
+        const auto & it = config_map.find(CFG_STR_CONTEXT_SCOPE);
         if (it != config_map.cend())
         {
             scope = static_cast<const char *>(it->second);
@@ -277,7 +277,6 @@ evt_status_t mat_log(evt_context_t *ctx)
     }
     else
     {
-        // TODO: [MG] - verify guest configuration and decide if we need to overwrite
         logger->SetParentContext(nullptr);
         logger->LogEvent(props);
         ctx->result = EOK;
@@ -395,7 +394,7 @@ extern "C" {
                 break;
 
             case EVT_OP_VERSION:
-                // TODO: [MG] - add handling of ctx->data passed by caller inline stub.
+                // TODO: add handling of ctx->data passed by caller inline stub :
                 // If there is API version mismatch between the stub and lib impl, then
                 // depending on version passed down to SDK - lib may need to figure out
                 // how to handle the mismatch. For now the onus of verifying for SDK

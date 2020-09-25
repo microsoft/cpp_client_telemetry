@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-
+using System.Linq;
+using CsProtocol;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace CommonSchema
 {
@@ -36,15 +39,15 @@ namespace CommonSchema
                 {
                     // Dump request information with headers
                     seq++;
-                    ILogger loggerReq = loggerFactory.CreateLogger("REQ-" + seq);
-                    ILogger loggerDec = loggerFactory.CreateLogger("DEC-" + seq);
+                    ILogger requestLogger = loggerFactory.CreateLogger("REQ-" + seq);
+                    ILogger decoderLogger = loggerFactory.CreateLogger("DEC-" + seq);
 
-                    string headers = "";
+                    string headersStr = "";
                     foreach (var entry in context.Request.Headers)
                     {
-                        headers += entry.Key + ": " + entry.Value.ToString() + "\n";
+                        headersStr += entry.Key + ": " + entry.Value.ToString() + "\n";
                     }
-                    loggerReq.LogInformation(headers);
+                    requestLogger.LogInformation(headersStr);
 
                     try
                     {
@@ -56,18 +59,53 @@ namespace CommonSchema
 
                             // Read body fully before decoding it
                             byte[] buffer = reader.ReadBytes(length);
-                            Decoder decoder = new Decoder(loggerDec, context.Request.Headers, buffer);
+
+                            Dictionary<string, string> headers = new Dictionary<string, string>();
+                            foreach (KeyValuePair<string, StringValues> entry in context.Request.Headers)
+                            {
+                                // Our decoder only needs to know the 1st header value, do not need a multimap
+                                headers[entry.Key] = entry.Value.ElementAt(0);
+                            };
+                            Decoder decoder = new Decoder(headers, buffer);
+                            // Supply the logger
+                            decoder.Logger = decoderLogger;
                             string result = decoder.ToJson(false, true, 2);
 
                             // Echo the body converted to JSON array
                             context.Response.StatusCode = 200;
-                            loggerReq.LogInformation(result);
+                            requestLogger.LogInformation(result);
                             await context.Response.WriteAsync(result);
                         } else
+                        /* Azure Monitor / Application Insights -compatible server */
+                        if (path.StartsWith("/v2/track"))
+                        {
+                            int length = Int32.Parse(context.Request.Headers["Content-Length"]);
+                            BinaryReader reader = new BinaryReader(context.Request.Body);
+
+                            // Read body fully before decoding it
+                            byte[] buffer = reader.ReadBytes(length);
+
+                            if (context.Request.Headers["Content-Encoding"] == "gzip")
+                            {
+                                buffer = Decoder.Gunzip(buffer);
+                            } else
+                            if (context.Request.Headers["Content-Encoding"] == "deflate")
+                            {
+                                buffer = Decoder.Inflate(buffer);
+                            }
+
+                            string result = System.Text.Encoding.UTF8.GetString(buffer);
+
+                            // Echo the body converted to JSON array
+                            context.Response.StatusCode = 200;
+                            requestLogger.LogInformation(result);
+                            await context.Response.WriteAsync(result);
+                        }
+                        else
                         if (path.StartsWith("/admin/stop"))
                         {
                             // Stop web-server
-                            loggerReq.LogInformation("Stopping web-server...");
+                            requestLogger.LogInformation("Stopping web-server...");
                             context.Response.StatusCode = 200;
                             await context.Response.WriteAsync("Server stopped.");
                             Environment.Exit(0);
@@ -78,7 +116,7 @@ namespace CommonSchema
                         // Handle all error conditions here
                         string result = "400 Bad Request";
                         context.Response.StatusCode = 400;
-                        loggerReq.LogError("Exception: {ex}", ex);
+                        requestLogger.LogError("Exception: {ex}", ex);
                         await context.Response.WriteAsync(result);
                     }
                 });

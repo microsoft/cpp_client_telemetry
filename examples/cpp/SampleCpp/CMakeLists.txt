@@ -24,20 +24,21 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -gdwarf-2 -std=c++11")
 
 find_package (Threads)
 
-set(MAT_SDK_INCLUDE /usr/local/include/mat)
+set(MAT_SDK_INCLUDE	/usr/local/include/mat)
 
-# Aria SDK to include dirs
+# 1DS SDK to include dirs
 include_directories( . ${MAT_SDK_INCLUDE} )
 
 # Link main.cpp to executable
 add_executable(SampleCpp main.cpp DebugCallback.cpp demo.c)
 source_group(" " REGULAR_EXPRESSION "")
 
+# NOTE: modify this sample if necessary to use vcpkg-provided sqlite library
 # Prefer linking to more recent local sqlite3
 if(EXISTS "/usr/local/lib/libsqlite3.a")
-  set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
+set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
 else()
-  set (SQLITE3_LIB "sqlite3")
+set (SQLITE3_LIB "sqlite3")
 endif()
 
 set (PLATFORM_LIBS "")
@@ -54,6 +55,5 @@ endif()
 #tcmalloc turned off by default
 #target_link_libraries(SampleCpp ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
 
-# Static:
-# target_link_libraries(SampleCpp ${MAT_SDK_LIB_STATIC} curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
+# TODO: use add_library to allow linking against ${LIBMAT_STATIC}
 target_link_libraries(SampleCpp ${LIBMAT} curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)

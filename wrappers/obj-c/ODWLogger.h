@@ -51,7 +51,7 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @brief Logs a failure event (such as an application exception), taking a signature, failure details, and event properties.
  @param signature A string that identifies the bucket of the failure.
  @param detail A string that contains a description of the failure.
- @param properties Properties of the failure event, encapsulated within an ODWEventProperties object.
+ @param properties Properties of the failure event, encapsulated within an ODWEventProperties object. <b>Note:</b> This value can be null.
  */
 -(void)logFailureWithSignature:(NSString *)signature
                          detail:(NSString *)detail
@@ -118,11 +118,9 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
             eventProperties:(ODWEventProperties *)properties;
 
 /*!
-@brief Get a pointer to the semantic context for this ODWLogger
-@return A pointer to the semantic context
+Semantic context for this ODWLogger
  */
--(ODWSemanticContext*)getSemanticContext;
-
+@property (NS_NONATOMIC_IOSONLY, readonly, strong, nonnull) ODWSemanticContext* semanticContext;
 
 @end
 

@@ -308,10 +308,13 @@ int main()
     printf("Teardown time: %d\n", int(config[CFG_INT_MAX_TEARDOWN_TIME]) );
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
+#ifdef _WIN32
     // Code snippet showing how to perform MS Root certificate check for v10 end-point.
     // Most other end-points are Baltimore CA-rooted. But v10 is MS CA-rooted.
     config["http"]["msRootCheck"] = true;
     config[CFG_STR_COLLECTOR_URL] = "https://v10.events.data.microsoft.com/OneCollector/1.0/";
+#endif
+
     logger = LogManager::Initialize(API_KEY);
 
     logPiiMark();   // Direct upload
@@ -362,7 +365,8 @@ int main()
         event.SetProperty("random", rand());
         event.SetProperty("secret", 5.6872);
         event.SetProperty("seq", (uint64_t)i); 
-        event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i+1) );
+        event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, static_cast<int64_t>(i + 1));
+        event.SetProperty(COMMONFIELDS_EVENT_LEVEL, static_cast<uint8_t>(i + 1));
         event.SetLatency(latency); 
         logger->LogEvent(event);
 
@@ -372,7 +376,8 @@ int main()
                 { "random", rand() },
                 { "secret", 5.6872 },
                 { "seq", (uint64_t)i },
-                { COMMONFIELDS_EVENT_PRIVTAGS, (int64_t)(i + 1) }
+                {COMMONFIELDS_EVENT_PRIVTAGS, static_cast<int64_t>(i + 1)},
+                {COMMONFIELDS_EVENT_LEVEL, static_cast<uint8_t>(i + 1)}
             });
         logger->LogEvent(event2);
     }

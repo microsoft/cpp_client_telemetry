@@ -19,15 +19,19 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+        token:  ${{ secrets.GIT_PULL_TOKEN }}
     - name: Build and Test
       uses: reactivecircus/android-emulator-runner@v2
       with:
         api-level: 29
-        ndk: 21.0.6113669
+        ndk: 21.1.6352462
         cmake: 3.10.2.4988404
         working-directory: ./lib/android_build
         script: ./testandlog
     - name: Upload
+      if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
         name: logcat

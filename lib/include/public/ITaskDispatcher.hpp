@@ -1,4 +1,18 @@
-// Copyright (c) Microsoft. All rights reserved.
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+//
+// This code is licensed under the MIT License (MIT).
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
 #ifndef ITASKDISPATCHER_HPP
 #define ITASKDISPATCHER_HPP
 
@@ -11,7 +25,7 @@
 #include <vector>
 
 ///@cond INTERNAL_DOCS
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     /// The Task class represents a single executable task that can be dispatched to an asynchronous worker
@@ -123,6 +137,6 @@ namespace ARIASDK_NS_BEGIN
 
     /// @endcond
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // ITASKDISPATCHER_HPP

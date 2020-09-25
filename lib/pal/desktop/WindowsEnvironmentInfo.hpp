@@ -6,7 +6,7 @@
 #include <string>
 #include <stdint.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class WindowsEnvironmentInfo
     {
@@ -42,8 +42,8 @@ namespace ARIASDK_NS_BEGIN {
             }
             else
             {
-                // TODO: [MG] - fix this benign compiler warning
-                // Warning	C6102	Using 'timeZone' from failed function call at line '46'
+                // TODO: [MG] - ref. https://docs.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-gettimezoneinformation
+                // Need to handle the case when API return TIME_ZONE_ID_UNKNOWN. Otherwise we may be reporting invalid timeZone.Bias
                 return TimeZoneBiasToISO8601(timeZone.Bias + timeZone.StandardBias);
             }
         };
@@ -61,5 +61,5 @@ namespace ARIASDK_NS_BEGIN {
         }
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

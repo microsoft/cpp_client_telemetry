@@ -4,7 +4,7 @@
 #include "pal/NetworkInformationImpl.hpp"
 
 #import <Network/Network.h>
-#import "Reachability.h"
+#import "ODWReachability.h"
 
 namespace PAL_NS_BEGIN {
 
@@ -68,7 +68,7 @@ namespace PAL_NS_BEGIN {
         nw_path_monitor_t m_monitor = nil;
 
         // iOS 11 and older
-        Reachability* m_reach = nil;
+        ODWReachability* m_reach = nil;
         id m_notificationId = nil;
     };
 
@@ -156,7 +156,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            m_reach = [Reachability reachabilityForInternetConnection];
+            m_reach = [ODWReachability reachabilityForInternetConnection];
             void (^block)(NSNotification*) = ^(NSNotification*)
             {
                 auto strong_this = weak_this.lock();
