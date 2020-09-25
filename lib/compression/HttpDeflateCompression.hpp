@@ -6,7 +6,7 @@
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     class HttpDeflateCompression {
@@ -19,10 +19,11 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
         IRuntimeConfig& m_config;
+        int m_windowBits;
 
     public:
         RouteSource<EventsUploadContextPtr const&>                              compressionFailed;
         RoutePassThrough<HttpDeflateCompression, EventsUploadContextPtr const&> compress{ this, &HttpDeflateCompression::handleCompress };
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END

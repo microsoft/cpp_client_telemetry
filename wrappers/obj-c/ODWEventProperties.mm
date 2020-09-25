@@ -84,6 +84,28 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
     [self setPiiTag:name withPiiKind:piiKind];
 }
 
+-(void)setProperty:(NSString*)name withUInt8Value:(uint8_t)value
+{
+    [_properties setValue:@(value) forKey:name];
+}
+
+-(void)setProperty:(NSString*)name withUInt8Value:(uint8_t)value withPiiKind:(ODWPiiKind)piiKind
+{
+    [self setProperty:name withUInt8Value:value];
+    [self setPiiTag:name withPiiKind:piiKind];
+}
+
+-(void)setProperty:(NSString*)name withUInt64Value:(uint64_t)value
+{
+    [_properties setValue:@(value) forKey:name];
+}
+
+-(void)setProperty:(NSString*)name withUInt64Value:(uint64_t)value withPiiKind:(ODWPiiKind)piiKind
+{
+    [self setProperty:name withUInt64Value:value];
+    [self setPiiTag:name withPiiKind:piiKind];
+}
+
 -(void)setProperty:(NSString*)name withBoolValue:(BOOL)value
 {
     [_properties setValue:@(value) forKey:name];
@@ -115,6 +137,12 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 {
     [self setProperty:name withDateValue:value];
     [self setPiiTag:name withPiiKind:piiKind];
+}
+
+-(void)setPrivacyMetadata:(ODWPrivacyDataType)privTags withODWDiagLevel:(ODWDiagLevel)privLevel
+{
+    [self setProperty:@"EventInfo.PrivTags" withUInt64Value:privTags];
+    [self setProperty:@"EventInfo.Level" withUInt8Value:privLevel];
 }
 
 @end

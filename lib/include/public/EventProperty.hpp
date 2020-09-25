@@ -1,4 +1,18 @@
-// Copyright (c) Microsoft. All rights reserved.
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+//
+// This code is licensed under the MIT License (MIT).
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
 #ifndef MAT_EVENTPROPERTY_HPP
 #define MAT_EVENTPROPERTY_HPP
 
@@ -26,7 +40,7 @@
 #endif
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -238,41 +252,43 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// This anonymous enumeration contains a set of values that specify the types
         /// that are supported by events collector.
+        ///
+        /// <b>Note:</b> These enum values should be in sync with Java enum com.microsoft.applications.events.EventPropertyType
         /// </summary>
         enum
         {
             /// <summary>
             /// A string.
             /// </summary>
-            TYPE_STRING,
+            TYPE_STRING = 0,
             /// <summary>
             /// A 64-bit signed integer.
             /// </summary>
-            TYPE_INT64,
+            TYPE_INT64 = 1,
             /// <summary>
             /// A double.
             /// </summary>
-            TYPE_DOUBLE,
+            TYPE_DOUBLE = 2,
             /// <summary>
             /// A date/time object represented in .NET ticks.
             /// </summary>
-            TYPE_TIME,
+            TYPE_TIME = 3,
             /// <summary>
             /// A boolean.
             /// </summary>
-            TYPE_BOOLEAN,
+            TYPE_BOOLEAN = 4,
             /// <summary>
             /// A GUID.
             /// </summary>
-            TYPE_GUID,
+            TYPE_GUID = 5,
             /// <summary>String</summary>
-            TYPE_STRING_ARRAY,
+            TYPE_STRING_ARRAY = 6,
             /// <summary>64-bit signed integer</summary>
-            TYPE_INT64_ARRAY,
+            TYPE_INT64_ARRAY = 7,
             /// <summary>double</summary>
-            TYPE_DOUBLE_ARRAY,
+            TYPE_DOUBLE_ARRAY = 8,
             /// <summary>GUID</summary>
-            TYPE_GUID_ARRAY,
+            TYPE_GUID_ARRAY = 9,
         } type;
 
         /// <summary>
@@ -516,6 +532,6 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

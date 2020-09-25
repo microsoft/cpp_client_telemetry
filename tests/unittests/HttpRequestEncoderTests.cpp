@@ -52,7 +52,7 @@ protected:
 
 TEST_F(HttpRequestEncoderTests, SetsAllParameters)
 {
-    EventsUploadContextPtr ctx = new EventsUploadContext();
+    EventsUploadContextPtr ctx = std::make_shared<EventsUploadContext>();
     ctx->compressed = false;
     ctx->body = { 1, 127, 255 };
     ctx->packageIds["tenant1-token"] = 0;
@@ -77,7 +77,7 @@ TEST_F(HttpRequestEncoderTests, SetsAllParameters)
 
 TEST_F(HttpRequestEncoderTests, AddsCompressionHeader)
 {
-    EventsUploadContextPtr ctx = new EventsUploadContext();
+    EventsUploadContextPtr ctx = std::make_shared<EventsUploadContext>();
 
     ctx->compressed = false;
     encoder.encode(ctx);
@@ -94,7 +94,7 @@ TEST_F(HttpRequestEncoderTests, AddsCompressionHeader)
 
 TEST_F(HttpRequestEncoderTests, BuildsApiKeyCorrectly)
 {
-    EventsUploadContextPtr ctx = new EventsUploadContext();
+    EventsUploadContextPtr ctx = std::make_shared<EventsUploadContext>();
 
     encoder.encode(ctx);
     ASSERT_THAT(ctx->httpRequestId, Eq("HttpRequestEncoderTests"));
@@ -117,7 +117,7 @@ TEST_F(HttpRequestEncoderTests, BuildsApiKeyCorrectly)
 
 TEST_F(HttpRequestEncoderTests, DispatchDataViewerEventCorrectly)
 {
-    EventsUploadContextPtr ctx = new EventsUploadContext();
+    EventsUploadContextPtr ctx = std::make_shared<EventsUploadContext>();
     ctx->body = { 1, 127, 255 };
 
     MockHttpRequestEncoder mockEncoder(system, mockHttpClient);

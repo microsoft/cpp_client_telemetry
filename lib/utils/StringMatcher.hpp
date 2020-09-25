@@ -2,7 +2,7 @@
 #ifndef STRINGMATCHER_HPP
 #define STRINGMATCHER_HPP
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     /// Simple class to cheaply manage string matches. Note that we currently
@@ -121,5 +121,5 @@ namespace ARIASDK_NS_BEGIN
         }
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

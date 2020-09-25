@@ -4,96 +4,79 @@
 #pragma once
 #include "api/IRuntimeConfig.hpp"
 
-
-namespace ARIASDK_NS_BEGIN {
-
-    static ILogConfiguration defaultRuntimeConfig
-    {
-        { CFG_INT_TRACE_LEVEL_MIN,          ACTTraceLevel::ACTTraceLevel_Error },
-        { CFG_INT_SDK_MODE,                 SdkModeTypes::SdkModeTypes_CS },
-        { CFG_BOOL_ENABLE_ANALYTICS,        false },
-        { CFG_INT_CACHE_FILE_SIZE,          3145728 },
-        { CFG_INT_RAM_QUEUE_SIZE,           524288 },
-        { CFG_BOOL_ENABLE_MULTITENANT,      true },
-        { CFG_BOOL_ENABLE_DB_DROP_IF_FULL,   false },
-        { CFG_INT_MAX_TEARDOWN_TIME,        1 },
-        { CFG_INT_MAX_PENDING_REQ,          4 },
-        { CFG_INT_RAM_QUEUE_BUFFERS,        3 },
-        { CFG_INT_TRACE_LEVEL_MASK,         0 },
-        { CFG_BOOL_ENABLE_TRACE,            true },
-        { CFG_STR_COLLECTOR_URL,            COLLECTOR_URL_PROD },
-        { CFG_INT_STORAGE_FULL_PCT,         75 },
-        { CFG_INT_RAMCACHE_FULL_PCT,        75 },
-        { CFG_BOOL_ENABLE_NET_DETECT,       true },
-        { "stats",
-            {
-                /* Parameter that allows to split stats events by tenant */
-                { "split",               false },
-                { "interval",            1800 },
-                { "tokenProd",           STATS_TOKEN_PROD },
-                { "tokenInt",            STATS_TOKEN_INT }
-            }
-        },
+namespace MAT_NS_BEGIN
+{
+    static ILogConfiguration defaultRuntimeConfig{
+        {CFG_INT_TRACE_LEVEL_MIN, ACTTraceLevel::ACTTraceLevel_Error},
+        {CFG_INT_SDK_MODE, SdkModeTypes::SdkModeTypes_CS},
+        {CFG_BOOL_ENABLE_ANALYTICS, false},
+        {CFG_INT_CACHE_FILE_SIZE, 3145728},
+        {CFG_INT_RAM_QUEUE_SIZE, 524288},
+        {CFG_BOOL_ENABLE_MULTITENANT, true},
+        {CFG_BOOL_ENABLE_DB_DROP_IF_FULL, false},
+        {CFG_INT_MAX_TEARDOWN_TIME, 1},
+        {CFG_INT_MAX_PENDING_REQ, 4},
+        {CFG_INT_RAM_QUEUE_BUFFERS, 3},
+        {CFG_INT_TRACE_LEVEL_MASK, 0},
+        {CFG_BOOL_ENABLE_TRACE, true},
+        {CFG_STR_COLLECTOR_URL, COLLECTOR_URL_PROD},
+        {CFG_INT_STORAGE_FULL_PCT, 75},
+        {CFG_INT_STORAGE_FULL_CHECK_TIME, 5000},
+        {CFG_INT_RAMCACHE_FULL_PCT, 75},
+        {CFG_BOOL_ENABLE_NET_DETECT, true},
+        {CFG_MAP_METASTATS_CONFIG,
+         {/* Parameter that allows to split stats events by tenant */
+          {"split", false},
+          {"interval", 1800},
+          {"tokenProd", STATS_TOKEN_PROD},
+          {"tokenInt", STATS_TOKEN_INT}}},
         {"utc",
-            {
+         {
 #ifdef HAVE_MAT_UTC
-                { "providerGroupId",            "780dddc8-18a1-5781-895a-a690464fa89c" },
-                {CFG_BOOL_UTC_ENABLED,          true},
-                {CFG_BOOL_UTC_ACTIVE,           false},
-                {CFG_BOOL_UTC_LARGE_PAYLOADS,   false}
+             {"providerGroupId", "780dddc8-18a1-5781-895a-a690464fa89c"},
+             {CFG_BOOL_UTC_ENABLED, true},
+             {CFG_BOOL_UTC_ACTIVE, false},
+             {CFG_BOOL_UTC_LARGE_PAYLOADS, false}
 #else
-                {CFG_BOOL_UTC_ENABLED,          false}
+             {CFG_BOOL_UTC_ENABLED, false}
 #endif
-            }
-        },
-        { "http",
-            {
+         }},
+        {CFG_MAP_HTTP,
+         {
 #ifdef HAVE_MAT_ZLIB
-                { "compress",            true }
+             {CFG_BOOL_HTTP_COMPRESSION, true}
 #else
-                { "compress",            false }
+             {CFG_BOOL_HTTP_COMPRESSION, false}
 #endif
-            ,
-                /* Optional parameter to require Microsoft Root CA */
-                { "msRootCheck",         false }
-            }
-        },
-        { "tpm",
-            {
-                { "maxBlobSize",        2097152 },
-                { "maxRetryCount",      5},
-                { "clockSkewEnabled",   true},
-                { "backoffConfig",      "E,3000,300000,2,1" },
-            }
-        },
-        { "compat",
-            {
-                { "dotType",            true } // false: v1 backwards-compat: event.SetType("My.Custom.Type") => custom.my_custom_type
-            }
-        },
-        {
-            "sample",
-            {
-                { "rate",               0 }
-            }
-        }
-    };
+             ,
+             {"contentEncoding", "deflate"},
+             /* Optional parameter to require Microsoft Root CA */
+             {CFG_BOOL_HTTP_MS_ROOT_CHECK, false}}},
+        {CFG_MAP_TPM,
+         {
+             {CFG_INT_TPM_MAX_BLOB_BYTES, 2097152},
+             {CFG_INT_TPM_MAX_RETRY, 5},
+             {CFG_BOOL_TPM_CLOCK_SKEW_ENABLED, true},
+             {CFG_STR_TPM_BACKOFF, "E,3000,300000,2,1"},
+         }},
+        {CFG_MAP_COMPAT,
+         {
+             {CFG_BOOL_COMPAT_DOTS, true}  // false: v1 backwards-compat: event.SetType("My.Custom.Type") => custom.my_custom_type
+         }},
+        {"sample",
+         {{"rate", 0}}}};
 
-    // TODO: [MG] - add ability to re-Configure with new custom config on-demand
-    
-/// <summary>
-/// This class overlays a custom configuration provided by the customer
-/// on top of default configuration above (defaultRuntimeConfig)
-/// </summary>
-/// <seealso cref="IRuntimeConfig" />
-    class RuntimeConfig_Default : public IRuntimeConfig {
-
-    protected:
-
+    /// <summary>
+    /// This class overlays a custom configuration provided by the customer
+    /// on top of default configuration above (defaultRuntimeConfig)
+    /// </summary>
+    /// <seealso cref="IRuntimeConfig" />
+    class RuntimeConfig_Default : public IRuntimeConfig
+    {
+       protected:
         ILogConfiguration& config;
 
-    public:
-
+       public:
         RuntimeConfig_Default(ILogConfiguration& customConfig) :
             config(customConfig)
         {
@@ -102,12 +85,11 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual ~RuntimeConfig_Default()
         {
-
         }
 
         virtual std::string GetCollectorUrl() override
         {
-            const char * url = config[CFG_STR_COLLECTOR_URL];
+            const char* url = config[CFG_STR_COLLECTOR_URL];
             return std::string(url);
         }
 
@@ -127,13 +109,13 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual std::string GetMetaStatsTenantToken() override
         {
-            const char* token = config["stats"]["tokenProd"];
+            const char* token = config[CFG_MAP_METASTATS_CONFIG]["tokenProd"];
             return std::string(token);
         };
 
         virtual unsigned GetMetaStatsSendIntervalSec() override
         {
-            return config["stats"]["interval"];
+            return config[CFG_MAP_METASTATS_CONFIG]["interval"];
         }
 
         virtual unsigned GetOfflineStorageMaximumSizeBytes() override
@@ -143,39 +125,41 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual unsigned GetOfflineStorageResizeThresholdPct() override
         {
-            // FIXME: [MG] - add parameter for that
             return 99;
         }
 
         virtual unsigned GetMaximumRetryCount() override
         {
-            return config["tpm"]["maxRetryCount"];
+            return config[CFG_MAP_TPM][CFG_INT_TPM_MAX_RETRY];
         }
 
         virtual std::string GetUploadRetryBackoffConfig() override
         {
-            return config["tpm"]["backoffConfig"];
+            return config[CFG_MAP_TPM][CFG_STR_TPM_BACKOFF];
         }
 
         virtual bool IsHttpRequestCompressionEnabled() override
         {
-            return config["http"]["compress"];
+            return config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION];
+        }
+
+        virtual const std::string& GetHttpRequestContentEncoding() const override
+        {
+            return config[CFG_MAP_HTTP]["contentEncoding"];
         }
 
         virtual unsigned GetMinimumUploadBandwidthBps() override
         {
-            // FIXME: [MG] - add parameter for that
             return 0;
         }
 
         virtual unsigned GetMaximumUploadSizeBytes() override
         {
-            return config["tpm"]["maxBlobSize"];
+            return config[CFG_MAP_TPM][CFG_INT_TPM_MAX_BLOB_BYTES];
         }
 
         virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) override
         {
-            // TODO: [MG] - currently we don't allow to override the event latency via ECS or runtime config tree
             UNREFERENCED_PARAMETER(tenantId);
             UNREFERENCED_PARAMETER(eventName);
             UNREFERENCED_PARAMETER(latency);
@@ -183,7 +167,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool IsClockSkewEnabled() override
         {
-            return config["tpm"]["clockSkewEnabled"];
+            return config[CFG_MAP_TPM][CFG_BOOL_TPM_CLOCK_SKEW_ENABLED];
         }
 
         uint32_t GetTeardownTime() override
@@ -196,16 +180,16 @@ namespace ARIASDK_NS_BEGIN {
             return config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID];
         }
 
-        virtual Variant & operator[](const char* key) override
+        virtual Variant& operator[](const char* key) override
         {
-            return config[key]; // FIXME: [MG] - Error #116: LEAK 32 bytes
+            return config[key];
         }
 
         virtual bool HasConfig(const char* key) override
         {
             return config.HasConfig(key);
         }
-
     };
 
-} ARIASDK_NS_END
+}
+MAT_NS_END

@@ -12,7 +12,7 @@
 #include "utils/Utils.hpp"
 #include "HttpClient_Curl.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     static std::string NextReqId() {
         static std::atomic<uint64_t> seq(0);
@@ -134,6 +134,6 @@ namespace ARIASDK_NS_BEGIN {
         m_requests[request->GetId()] = request;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

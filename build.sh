@@ -1,7 +1,6 @@
 #!/bin/bash
+
 export PATH=/usr/local/bin:$PATH
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $DIR
 
 if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
   rm -rf lib/modules
@@ -13,22 +12,24 @@ if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
   git clone https://${GIT_PULL_TOKEN}:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
 fi
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo "Current directory: $DIR"
+cd $DIR
 export NOROOT=$NOROOT
 
 if [ "$1" == "clean" ]; then
-  rm -f CMakeCache.txt *.cmake
-  rm -rf out
-  rm -rf .buildtools
-  # make clean
+ rm -f CMakeCache.txt *.cmake
+ rm -rf out
+ rm -rf .buildtools
+# make clean
 fi
 
-# Don't elevate, don't deploy package
-if [ "$1" == "noroot" ] || [ "$2" == "noroot" ]; then
-  export NOROOT=true
+if [ "$1" == "noroot" ] || [ "$2" == "noroot" ] || [ "$3" == "noroot" ]; then
+export NOROOT=true
 fi
 
 # Build release bits
-if [ "$1" == "release" ] || [ "$2" == "release" ]; then
+if [ "$1" == "release" ] || [ "$2" == "release" ] || [ "$3" == "release" ]; then
   BUILD_TYPE="Release"
 else
   BUILD_TYPE="Debug"
@@ -39,7 +40,7 @@ CMAKE_OPTS="${CMAKE_OPTS:-DBUILD_SHARED_LIBS=OFF}"
 while getopts "h?vl:D:" opt; do
     case "$opt" in
     h|\?)
-        echo "Usage: build.sh [clean] [noroot] [release] [-h|-?] [-l (static|shared)] [-D CMAKE_OPTION]"
+        echo "Usage: build.sh [clean] [arm64|universal] [CUSTOM_CMAKE_CXX_FLAGS=x] [noroot] [release] [-h|-?] [-l (static|shared)] [-D CMAKE_OPTION]"
         echo "                                                                                         "
         echo "options:                                                                                 "
         echo "                                                                                         "
@@ -47,8 +48,9 @@ while getopts "h?vl:D:" opt; do
         echo " -l [static|shared]  - build static (default) or shared library.                         "
         echo " -D [CMAKE_OPTION]   - additional option to pass to cmake.                               "
         echo "                                                                                         "
-        echo "cmake options can be passed using CMAKE_OPTS environment variable.                       "
+        echo "cmake options can be also passed using CMAKE_OPTS environment variable.                  "
         echo "                                                                                         "
+        echo "NOTE: [arm64|universal] are for Apple platform builds only.                              "
         exit 0
         ;;
     :)  echo "Invalid option: $OPTARG requires an argument" 1>&2
@@ -67,6 +69,26 @@ shift $((OPTIND -1))
 if [ "$LINK_TYPE" == "shared" ]; then
   CMAKE_OPTS="$CMAKE_OPTS -DBUILD_SHARED_LIBS=ON"
 fi
+
+if [ "$1" == "arm64" ] || [ "$2" == "arm64" ] || [ "$3" == "arm64" ]; then
+MAC_ARCH="arm64"
+elif [ "$1" == "universal" ] || [ "$2" == "universal" ] || [ "$3" == "universal" ]; then
+MAC_ARCH="universal"
+else
+MAC_ARCH="x86_64"
+fi
+
+CUSTOM_CMAKE_CXX_FLAG=""
+if [[ $1 == CUSTOM_BUILD_FLAGS* ]] || [[ $2 == CUSTOM_BUILD_FLAGS* ]] || [[ $3 == CUSTOM_BUILD_FLAGS* ]]; then
+  if [[ $1 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${1:19:999}\""
+  elif [[ $2 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${2:19:999}\""
+  elif [[ $3 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${3:19:999}\""
+  fi
+fi
+echo "custom build flags="$CUSTOM_CMAKE_CXX_FLAG
 
 # Set target MacOS minver
 export MACOSX_DEPLOYMENT_TARGET=10.10
@@ -115,8 +137,10 @@ fi
 # Fail on error
 set -e
 
-# TODO: pass custom build flags?
-cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE $CMAKE_OPTS ..
+# TODO: should this be improved to verify if the platform is Apple? Right now we unconditionally pass -DMAC_ARCH even if building for Windows or Linux.
+cmake_cmd="cmake -DMAC_ARCH=$MAC_ARCH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="${CUSTOM_CMAKE_CXX_FLAG}" $CMAKE_OPTS .."
+echo $cmake_cmd
+eval $cmake_cmd
 # TODO: strip symbols to minimize (release-only)
 
 # Build all

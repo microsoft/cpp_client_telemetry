@@ -16,14 +16,14 @@
 
 #define ENABLE_LOCKING      // Enable DB locking for flush
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class SqliteDB;
 
     class OfflineStorage_SQLite : public IOfflineStorage
     {
     public:
-        OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory = false);
+        OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory=false);
 
         virtual ~OfflineStorage_SQLite() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
@@ -31,6 +31,7 @@ namespace ARIASDK_NS_BEGIN {
         virtual void Flush() override {};
         virtual void Execute(std::string command);
         virtual bool StoreRecord(StorageRecord const& record) override;
+        virtual size_t StoreRecords(std::vector<StorageRecord> & records) override;
         virtual bool GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
         virtual bool IsLastReadFromMemory() override;
         virtual unsigned LastReadRecordCount() override;
@@ -50,13 +51,12 @@ namespace ARIASDK_NS_BEGIN {
         bool initializeDatabase();
         bool recreate(unsigned failureCode);
 
-        std::vector<uint8_t> packageIdList(std::vector<std::string> const& ids);
+        std::vector<uint8_t> packageIdList(
+            std::vector<std::string>::const_iterator const & begin,
+            std::vector<std::string>::const_iterator const & end) const;
 
         // Debug routine to print record count in the DB
         void printRecordCount();
-
-        // Perform DB full check once a minute
-        const size_t                DB_FULL_CHECK_TIME_MS = 5000;
 
     protected:
         mutable std::recursive_mutex m_lock {};
@@ -85,6 +85,7 @@ namespace ARIASDK_NS_BEGIN {
         size_t                      m_stmtTrimEvents_percent {};
         size_t                      m_stmtDeleteEvents_ids {};
         size_t                      m_stmtReleaseExpiredEvents {};
+        size_t                      m_stmtDeleteEvents_tenants {};
         size_t                      m_stmtSelectEvents {};
         size_t                      m_stmtSelectEventAtShutdown {};
         size_t                      m_stmtSelectEventsMinlatency {};
@@ -99,6 +100,7 @@ namespace ARIASDK_NS_BEGIN {
         unsigned                    m_lastReadCount {};
         std::string                 m_offlineStorageFileName {};
         unsigned                    m_DbSizeNotificationLimit {};
+        uint64_t                    m_DbSizeNotificationInterval {};
         size_t                      m_DbSizeHeapLimit {};
         size_t                      m_DbSizeLimit {};
         std::atomic<size_t>         m_DbSizeEstimate {};
@@ -112,5 +114,5 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

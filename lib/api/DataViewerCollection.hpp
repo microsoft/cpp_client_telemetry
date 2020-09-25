@@ -9,7 +9,7 @@
 #include <mutex>
 #include <vector>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class DataViewerCollection : public IDataViewerCollection
     {
@@ -26,17 +26,19 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual bool IsViewerEnabled() const noexcept override;
 
+        virtual bool IsViewerRegistered(const char* viewerName) const override;
+
         virtual ~DataViewerCollection() noexcept {};
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-        mutable std::mutex m_dataViewerMapLock;
+        mutable std::recursive_mutex m_dataViewerMapLock;
 
     protected:
-        bool IsViewerInCollection(const char* viewerName) const;
+        std::shared_ptr<IDataViewer> GetViewerFromCollection(const char* viewerName) const;
         std::vector<std::shared_ptr<IDataViewer>> m_dataViewerCollection;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

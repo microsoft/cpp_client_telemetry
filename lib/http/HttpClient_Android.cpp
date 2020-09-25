@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 constexpr static auto Tag = "HttpClient_Android";
 
@@ -103,6 +103,13 @@ void HttpClient_Android::SendRequestAsync(IHttpRequest* request,
 				{
 					r = u;
 					r->m_callback = callback;
+					bool valid = r->m_state == RequestState::early || r->m_state == RequestState::cancel;
+					if (!valid) {
+						MATSDK_THROW(std::logic_error("neither early nor cancel"));
+					}
+					if (r->m_state == RequestState::early) {
+						r->m_state = RequestState::preparing;
+					}
 				}
 				break;
 			}
@@ -113,6 +120,7 @@ void HttpClient_Android::SendRequestAsync(IHttpRequest* request,
 	{
 		return;
 	}
+
 	HttpHeaders const& headers = r->GetHeaders();
 
 	size_t total_size = 0;
@@ -153,13 +161,23 @@ void HttpClient_Android::SendRequestAsync(IHttpRequest* request,
 	auto java_id = env->NewStringUTF(request->GetId().c_str());
 	auto url_id = env->NewStringUTF(r->m_url.c_str());
 	auto method_id = env->NewStringUTF(r->m_method.c_str());
-	auto result = env->CallObjectMethod(m_client, m_create_id,
-		url_id,
-		method_id,
-		body,
-		java_id,
-		header_lengths,
-		header_buffer);
+	bool proceed = true;
+	{
+		std::lock_guard<std::mutex> lock(m_requestsMutex);
+		proceed = r->m_state == RequestState::preparing;
+	}
+	jobject result = nullptr;
+	if (proceed) {
+		result = env->CallObjectMethod(
+			m_client,
+			m_create_id,
+			url_id,
+			method_id,
+			body,
+			java_id,
+			header_lengths,
+			header_buffer);
+	}
 	if (pushed == JNI_OK)
 	{
         result = env->PopLocalFrame(result);
@@ -172,13 +190,18 @@ void HttpClient_Android::SendRequestAsync(IHttpRequest* request,
 		{
 			if (u->m_id == target_id)
 			{
-				u->m_callback = callback;
-				u->m_java_request = env->NewGlobalRef(result);
-				if (!result || u->m_cancel_request)
+				if (u->m_callback != callback) {
+					MATSDK_THROW(std::logic_error("callback"));
+				}
+				if (!result || u->m_state != RequestState::preparing)
 				{
 					cancel_me = u;
 					u = m_requests.back();
 					m_requests.pop_back();
+				}
+				else {
+					u->m_java_request = env->NewGlobalRef(result);
+					u->m_state = RequestState::running;
 				}
 				break;
 			}
@@ -223,26 +246,31 @@ void HttpClient_Android::CancelRequestAsync(std::string const& id)
 		{
 			if (u->m_id == id)
 			{
-				if (u->m_cancel_request)
-				{
-					return; // someone already called cancel for this request
+				switch (u->m_state) {
+					case RequestState::cancel:
+						return; // SendRequestAsync will cancel this request
+					case RequestState::preparing:
+					case RequestState::early:
+						// tell SendRequestAsync to cancel this request
+						u->m_state = RequestState::cancel;
+						return;
+					case RequestState::running:
+						// SendRequestAsync will not cancel this request
+						// We won the race with DispatchCallback
+						cancel_me = u;
+						u = m_requests.back();
+						m_requests.pop_back();
+						break;
+					default:
+						MATSDK_THROW(std::logic_error("request state"));
 				}
-				if (u->m_callback)
-				{
-					cancel_me = u;
-				}
-				else
-				{
-					u->m_cancel_request = true;
-				}
-				break;
 			}
 		}
 	}
 
 	if (cancel_me)
 	{
-		CallbackForCancel(env, std::move(cancel_me));
+		CallbackForCancel(env, cancel_me);
 	}
 }
 
@@ -253,37 +281,33 @@ void HttpClient_Android::CancelAllRequests()
 	{
 		return;
 	}
-
-	// We will cancel, notify, and destroy all requests, so swap
-	// them into a local vector inside the mutex.
-
-	std::vector<HttpRequest *> local_requests;
+	std::vector<HttpRequest *> toCancel;
 	{
 		std::lock_guard<std::mutex> lock(m_requestsMutex);
-		local_requests.swap(m_requests);
+		std::vector<HttpRequest *>::iterator first_cancel = std::partition(m_requests.begin(), m_requests.end(), [](HttpRequest * request)-> bool
+		{
+			switch(request->m_state) {
+				// return false for running requests to move them to the end of the vector
+				case RequestState::cancel:
+					return true;
+				case RequestState::early:
+				case RequestState::preparing:
+					request->m_state = RequestState::cancel;
+					return true;
+				case RequestState::running:
+					return false;
+				default:
+					return true;
+			}
+		});
+		if (first_cancel != m_requests.end()) {
+			// move running requests to the toCancel vector, remove from m_requests
+			toCancel.assign(first_cancel, m_requests.end());
+			m_requests.erase(first_cancel, m_requests.end());
+		}
 	}
-	jclass request_class = nullptr;
-	jmethodID cancel_method = nullptr;
-	for (const auto& u : local_requests)
-	{
-		if (u->m_java_request)
-		{
-			if (!request_class)
-			{
-				request_class = env->GetObjectClass(u->m_java_request);
-			}
-			if (!cancel_method)
-			{
-				cancel_method = env->GetMethodID(request_class, "cancel", "(Z)Z");
-			}
-			jboolean interrupt_yes = JNI_TRUE;
-			env->CallBooleanMethod(u->m_java_request, cancel_method, interrupt_yes);
-		}
-		if (u->m_callback)
-		{
-			auto failure = new HttpResponse(u->m_id);
-			u->m_callback->OnHttpResponse(failure);
-		}
+	for (auto const & request : toCancel) {
+		CallbackForCancel(env, request);
 	}
 }
 
@@ -318,14 +342,17 @@ void HttpClient_Android::EraseRequest(HttpRequest* request)
 	}
 }
 
-HttpClient_Android::HttpRequest* HttpClient_Android::GetRequest(std::string id)
+HttpClient_Android::HttpRequest* HttpClient_Android::GetAndRemoveRequest(std::string id)
 {
 	std::lock_guard<std::mutex> lock(m_requestsMutex);
 	for (auto&& u : m_requests)
 	{
 		if (u->m_id == id)
 		{
-			return u;
+			auto r = u;
+			u = m_requests.back();
+			m_requests.pop_back();
+			return r;
 		}
 	}
 	return nullptr;
@@ -392,7 +419,7 @@ HttpClient_Android::GetClientInstance()
 std::shared_ptr<HttpClient_Android> HttpClient_Android::s_client;
 std::string HttpClient_Android::s_cache_file_path;
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 extern "C"
 JNIEXPORT void
@@ -445,7 +472,7 @@ Java_com_microsoft_applications_events_HttpClient_dispatchCallback(
 	env->ReleaseStringUTFChars(id, id_utf);
 	using HttpClient_Android = Microsoft::Applications::Events::HttpClient_Android;
 	auto client = HttpClient_Android::GetClientInstance();
-	auto request = client->GetRequest(id_string);
+	auto request = client->GetAndRemoveRequest(id_string);
 	if (!request)
 	{
 		return;

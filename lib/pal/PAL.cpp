@@ -41,6 +41,10 @@
 #include <oacr.h>
 #endif
 
+#ifdef ANDROID
+#include <android/log.h>
+#endif
+
 #include <ctime>
 
 namespace PAL_NS_BEGIN {
@@ -164,6 +168,28 @@ namespace PAL_NS_BEGIN {
 #endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
+#if defined(ANDROID) && !defined(ANDROID_SUPPRESS_LOGCAT)
+            {
+                static android_LogPriority androidPriorities[] = {
+                    ANDROID_LOG_UNKNOWN,
+                    ANDROID_LOG_ERROR,
+                    ANDROID_LOG_WARN,
+                    ANDROID_LOG_INFO,
+                    ANDROID_LOG_DEBUG
+                };
+                android_LogPriority prio = ANDROID_LOG_ERROR;
+                if (level > 0 && level < 5) {
+                    prio = androidPriorities[level];
+                }
+                va_list ap;
+                va_start(ap, fmt);
+                __android_log_vprint(prio,
+                                     component,
+                                     fmt,
+                                     ap);
+                va_end(ap);
+            }
+#endif
 #ifdef HAVE_MAT_LOGGING
             if (!isLoggingInited)
                 return;
@@ -316,10 +342,16 @@ namespace PAL_NS_BEGIN {
         // number of days from beginning to 1601 multiplied by ticks per day
         return ticks + 0x701ce1722770000ULL;
 #else
-        // FIXME: [MG] - add millis remainder to ticks
-        std::time_t now = time(0);
-        MAT::time_ticks_t ticks(&now);
-        return ticks.ticks;
+        // On Un*x systems system_clock de-facto contains UTC time. Ref:
+        // https://en.cppreference.com/w/cpp/chrono/system_clock
+        // This UTC epoch contract has been signed in blood since C++20
+        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+        auto duration = now.time_since_epoch();
+        auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        uint64_t ticks = millis;
+        ticks *= 10000; // convert millis to ticks (1 tick = 100ns)
+        ticks += 0x89F7FF5F7B58000ULL; // UTC time 0 in .NET ticks
+        return ticks;
 #endif
     }
 

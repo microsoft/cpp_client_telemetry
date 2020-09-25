@@ -24,27 +24,6 @@ namespace testing {
 
     }
 
-    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
-    {
-        z_stream zs;
-        memset(&zs, 0, sizeof(zs));
-        // [MG]: must call inflateInit2 with -9 because otherwise
-        // it'd be searching for non-existing gzip header...
-        EXPECT_EQ(inflateInit2(&zs, -9), Z_OK);
-        zs.next_in = (Bytef *)in.data();
-        zs.avail_in = (uInt)in.size();
-        int ret;
-        char outbuffer[32768] = { 0 };
-        do {
-            zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
-            zs.avail_out = sizeof(outbuffer);
-            ret = inflate(&zs, Z_NO_FLUSH);
-            out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
-        } while (ret == Z_OK);
-        EXPECT_EQ(ret, Z_STREAM_END);
-        inflateEnd(&zs);
-    }
-
 }
 
 class HttpDeflateCompressionTests : public StrictMock<Test> {
@@ -73,8 +52,8 @@ static std::vector<uint8_t> testPayload = { 1, 2, 3, 3, 3, 3, 3, 3, 3, 3 };
 
 TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 {
-    config["http"]["compress"] = false;
-    EventsUploadContextPtr event = new EventsUploadContext();
+    config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;
+    EventsUploadContextPtr event = std::make_shared<EventsUploadContext>();
     EXPECT_THAT(event->compressed, false);
     event->body = testPayload;
 
@@ -87,8 +66,8 @@ TEST_F(HttpDeflateCompressionTests, DoesNothingWhenTurnedOff)
 
 TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 {
-    config["http"]["compress"] = true;
-    EventsUploadContextPtr event = new EventsUploadContext();
+    config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
+    EventsUploadContextPtr event = std::make_shared<EventsUploadContext>();
     EXPECT_THAT(event->compressed, false);
     event->body = testPayload;
 
@@ -104,8 +83,8 @@ TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
 
 TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
 {
-    config["http"]["compress"] = true;
-    EventsUploadContextPtr event = new EventsUploadContext();
+    config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
+    EventsUploadContextPtr event = std::make_shared<EventsUploadContext>();
     EXPECT_THAT(event->compressed, false);
     event->body = {};
     EXPECT_CALL(*this, resultSucceeded(event)).Times(1);
@@ -114,7 +93,7 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
     EXPECT_THAT(event->compressed, true);
 
     {
-        EventsUploadContextPtr event2 = new EventsUploadContext();
+        EventsUploadContextPtr event2 = std::make_shared<EventsUploadContext>();
         EXPECT_THAT(event2->compressed, false);
         event2->body = testPayload;
         EXPECT_CALL(*this, resultSucceeded(event2)).Times(1);
@@ -128,7 +107,7 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
 
     {
         std::vector<uint8_t> testPayload2 = {};
-        EventsUploadContextPtr event3 = new EventsUploadContext();
+        EventsUploadContextPtr event3 = std::make_shared<EventsUploadContext>();
         EXPECT_THAT(event3->compressed, false);
         event3->body = testPayload2;
         EXPECT_CALL(*this, resultSucceeded(event3)).Times(1);
@@ -164,7 +143,7 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
 #pragma warning( pop ) 
     size_t const size = sizeof(bond) - 1;
 
-    EventsUploadContextPtr event = new EventsUploadContext();
+    EventsUploadContextPtr event = std::make_shared<EventsUploadContext>();
     EXPECT_THAT(event->compressed, false);
     event->body.assign(reinterpret_cast<uint8_t const*>(bond), reinterpret_cast<uint8_t const*>(bond) + size);
     EXPECT_CALL(*this, resultSucceeded(event)).Times(1);
@@ -173,3 +152,22 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
     EXPECT_THAT(event->compressed, true);
 }
 #pragma warning(pop)
+
+TEST_F(HttpDeflateCompressionTests, CompressesGzipCorrectly)
+{
+    config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
+    config[CFG_MAP_HTTP]["contentEncoding"] = "gzip";
+    EventsUploadContextPtr event = std::make_shared<EventsUploadContext>();
+    EXPECT_THAT(event->compressed, false);
+    event->body = testPayload;
+
+    std::unique_ptr<HttpDeflateCompression> gzipCompression = std::make_unique<HttpDeflateCompression>(config);
+    gzipCompression->compress(event);
+
+    std::vector<uint8_t> inflated;
+    testing::InflateVector(event->body, inflated, true);
+
+    EXPECT_THAT(inflated, Eq(testPayload));
+    EXPECT_THAT(event->compressed, true);
+    config[CFG_MAP_HTTP]["contentEncoding"] = "deflate";
+}
