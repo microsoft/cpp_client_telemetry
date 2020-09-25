@@ -404,4 +404,4 @@ zlib/contrib/vstudio/vc14/x64/
 build/.cmake/api/v1/query/client-vscode/query.json
 
 #Test files generated locally.
-/test.ses
+*.ses
