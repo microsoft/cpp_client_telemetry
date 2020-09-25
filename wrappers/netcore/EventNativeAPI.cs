@@ -19,9 +19,8 @@ namespace Microsoft
         {
             public class Constants
             {
-                public const string LIBRARY_NAME_POSIX = "libmat";
-                public const string LIBRARY_NAME_WIN32 = "ClientTelemetry.dll";
-                public const string VERSION = "3.3.0-netcore";
+                public const string LIBRARY_NAME = "ClientTelemetry";
+                public const string VERSION = "3.4.0-netcore";
             }
 
             public enum EventCallType : UInt32
@@ -392,7 +391,7 @@ namespace Microsoft
             {
                 // Conditional compilation: pass different library name depending on target OS
 
-                [DllImport(Constants.LIBRARY_NAME_POSIX, EntryPoint = "evt_api_call_default")]
+                [DllImport(Constants.LIBRARY_NAME, EntryPoint = "evt_api_call_default")]
                 internal static extern UInt32 evt_api_call([In, Out] ref EventContextType context);
 
                 /**
