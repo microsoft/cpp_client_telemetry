@@ -266,6 +266,11 @@ namespace MAT_NS_BEGIN
     /// <summary>
     /// IDecorator override module
     /// </summary>
+    static constexpr const char* const CFG_MODULE_PRIVACY_GUARD = "privacy_guard";
+
+    /// <summary>
+    /// IDecorator override module
+    /// </summary>
     static constexpr const char* const CFG_MODULE_OFFLINE_STORAGE = "offlineStorage";
 
     /// <summary>

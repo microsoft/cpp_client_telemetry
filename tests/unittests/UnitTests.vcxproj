@@ -96,6 +96,7 @@
     <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\filter\filter.vcxitems')" Project="..\..\lib\modules\filter\filter.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\privacyguard\privacyguard.vcxitems')" Project="..\..\lib\modules\privacyguard\privacyguard.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\azmon\azmon.vcxitems')" Project="..\..\lib\modules\azmon\azmon.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
@@ -456,6 +457,7 @@
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />
     <ClCompile Include="$(ProjectDir)\PackagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\PrivacyGuardTests.cpp" />
     <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />

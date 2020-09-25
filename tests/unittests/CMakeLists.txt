@@ -57,6 +57,13 @@ if (APPLE)
   endif()
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+  add_definitions(-DHAVE_MAT_PRIVACYGUARD)
+  list(APPEND SRCS
+    PrivacyGuardFuncTests.cpp
+  )
+endif()
+
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
