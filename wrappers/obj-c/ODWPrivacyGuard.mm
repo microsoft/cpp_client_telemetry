@@ -12,8 +12,6 @@ using namespace MAT;
 
 std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
-+(struct ODWCommonDataContexts) 
-
 +(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContexts *)commonDataContextsObject
 {
     
