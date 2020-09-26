@@ -53,19 +53,19 @@ typedef NS_ENUM(NSUInteger, ODWDataConcernType)
  @brief Set Privacy Guard Enabled state.
  @param enabled A boolean representing the enabled state for Privacy Guard.
  */
-+(void)SetEnabled:(bool)enabled;
++(void)setEnabled:(bool)enabled;
 
 /*!
  @brief Check whether Privacy Guard is enabled.
  @return True if Privacy Guard is enabled, false otherwise.
 */
-+(bool)IsEnabled;
++(bool)enabled;
 
 /*!
  @brief Append fresh Common Data Contexts to the existing instance of Privacy Guard.
  @param freshCommonDataContext Fresh Common Data Contexts instance.
  */
-+(void)AppendCommonDataContext:(ODWCommonDataContexts *) freshCommonDataContext;
++(void)appendCommonDataContext:(ODWCommonDataContexts *) freshCommonDataContext;
 
 /*!
  @brief Add ignored concern to prevent generation of notification signals when this
@@ -74,7 +74,7 @@ typedef NS_ENUM(NSUInteger, ODWDataConcernType)
  @param FieldName Field that the ignored concern should apply to.
  @param IgnoredConcern The concern that is expected and should be ignored.
  */
-+(void)AddIgnoredConcern:(NSString *) EventName withNSString:(NSString *)FieldName withODWDataConcernType:(ODWDataConcernType)IgnoredConcern;
++(void)addIgnoredConcern:(NSString *) EventName withNSString:(NSString *)FieldName withODWDataConcernType:(ODWDataConcernType)IgnoredConcern;
 
 @end
 
