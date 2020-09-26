@@ -12,6 +12,8 @@ using namespace MAT;
 
 std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
++(struct ODWCommonDataContexts) 
+
 +(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContexts *)commonDataContextsObject
 {
     
@@ -45,7 +47,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
 }
 
-+(void)SetEnabled:(bool)enabled
++(void)setEnabled:(bool)enabled
 {
     if(_privacyGuardPtr != nullptr)
     {
@@ -53,12 +55,12 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     }
 }
 
-+(bool)IsEnabled
++(bool)enabled
 {
     return _privacyGuardPtr != nullptr && _privacyGuardPtr->IsEnabled();
 }
 
-+(void)AppendCommonDataContext:(ODWCommonDataContexts *) freshCommonDataContexts
++(void)appendCommonDataContext:(ODWCommonDataContexts *) freshCommonDataContexts
 {
     auto cdc = std::make_unique<CommonDataContexts>();
     cdc->DomainName = [freshCommonDataContexts.DomainName UTF8String];
@@ -96,7 +98,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
  @param FieldName Field that the ignored concern should apply to.
  @param IgnoredConcern The concern that is expected and should be ignored.
  */
-+(void)AddIgnoredConcern:(NSString *) EventName withNSString:(NSString *)FieldName withODWDataConcernType:(ODWDataConcernType)IgnoredConcern
++(void)addIgnoredConcern:(NSString *) EventName withNSString:(NSString *)FieldName withODWDataConcernType:(ODWDataConcernType)IgnoredConcern
 {
     const std::string eventName = [EventName UTF8String];
     const std::string fieldName = [FieldName UTF8String];
