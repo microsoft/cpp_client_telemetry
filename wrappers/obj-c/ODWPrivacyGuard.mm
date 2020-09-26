@@ -12,34 +12,40 @@ using namespace MAT;
 
 std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
++(CommonDataContexts)convertToNativeCommonDataContexts:(ODWCommonDataContexts *)odwCDC
+{
+    CommonDataContexts cdc;
+    cdc.DomainName = [odwCDC.DomainName UTF8String];
+    cdc.MachineName = [odwCDC.MachineName UTF8String];
+    cdc.UserName = [odwCDC.UserName UTF8String];
+    cdc.UserAlias = [odwCDC.UserAlias UTF8String];
+
+    for(NSString* ipAddress in odwCDC.IpAddresses)
+    {
+        cdc.IpAddresses.push_back([ipAddress UTF8String]);
+    }
+
+    for(NSString* languageIdentifiers in odwCDC.LanguageIdentifiers)
+    {
+        cdc.LanguageIdentifiers.push_back([languageIdentifiers UTF8String]);
+    }
+
+    for(NSString* machineIds in odwCDC.MachineIds)
+    {
+        cdc.MachineIds.push_back([machineIds UTF8String]);
+    }
+
+    for(NSString* outOfScopeIdentifiers in odwCDC.OutOfScopeIdentifiers)
+    {
+        cdc.OutOfScopeIdentifiers.push_back([outOfScopeIdentifiers UTF8String]);
+    }
+
+    return cdc;
+}
+
 +(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContexts *)commonDataContextsObject
 {
-    
-    auto cdc = std::make_unique<CommonDataContexts>();
-    cdc->DomainName = [commonDataContextsObject.DomainName UTF8String];
-    cdc->MachineName = [commonDataContextsObject.MachineName UTF8String];
-    cdc->UserName = [commonDataContextsObject.UserName UTF8String];
-    cdc->UserAlias = [commonDataContextsObject.UserAlias UTF8String];
-
-    for(NSString* ipAddress in commonDataContextsObject.IpAddresses)
-    {
-        cdc->IpAddresses.push_back([ipAddress UTF8String]);
-    }
-
-    for(NSString* languageIdentifiers in commonDataContextsObject.LanguageIdentifiers)
-    {
-        cdc->LanguageIdentifiers.push_back([languageIdentifiers UTF8String]);
-    }
-
-    for(NSString* machineIds in commonDataContextsObject.MachineIds)
-    {
-        cdc->MachineIds.push_back([machineIds UTF8String]);
-    }
-
-    for(NSString* outOfScopeIdentifiers in commonDataContextsObject.OutOfScopeIdentifiers)
-    {
-        cdc->OutOfScopeIdentifiers.push_back([outOfScopeIdentifiers UTF8String]);
-    }
+    auto cdc = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject]);
 
     _privacyGuardPtr = std::make_shared<PrivacyGuard> (logger, std::move(cdc));
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
@@ -60,31 +66,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
 +(void)appendCommonDataContext:(ODWCommonDataContexts *) freshCommonDataContexts
 {
-    auto cdc = std::make_unique<CommonDataContexts>();
-    cdc->DomainName = [freshCommonDataContexts.DomainName UTF8String];
-    cdc->MachineName = [freshCommonDataContexts.MachineName UTF8String];
-    cdc->UserName = [freshCommonDataContexts.UserName UTF8String];
-    cdc->UserAlias = [freshCommonDataContexts.UserAlias UTF8String];
-
-    for(NSString* ipAddress in freshCommonDataContexts.IpAddresses)
-    {
-        cdc->IpAddresses.push_back([ipAddress UTF8String]);
-    }
-
-    for(NSString* languageIdentifiers in freshCommonDataContexts.LanguageIdentifiers)
-    {
-        cdc->LanguageIdentifiers.push_back([languageIdentifiers UTF8String]);
-    }
-
-    for(NSString* machineIds in freshCommonDataContexts.MachineIds)
-    {
-        cdc->MachineIds.push_back([machineIds UTF8String]);
-    }
-
-    for(NSString* outOfScopeIdentifiers in freshCommonDataContexts.OutOfScopeIdentifiers)
-    {
-        cdc->OutOfScopeIdentifiers.push_back([outOfScopeIdentifiers UTF8String]);
-    }
+    auto cdc = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:freshCommonDataContexts]);
 
     _privacyGuardPtr->AppendCommonDataContext(std::move(cdc));
 }
