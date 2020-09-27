@@ -15,3 +15,6 @@
 #define HAVE_MAT_NETDETECT
 #endif
 */
+#define HAVE_CS3
+//#define HAVE_CS4
+//#define HAVE_CS4_FULL

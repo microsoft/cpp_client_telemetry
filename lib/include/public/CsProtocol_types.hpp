@@ -25,7 +25,18 @@
 //------------------------------------------------------------------------------
 
 #pragma once
+
+// In order to enable Common Schema 4.x the products using shared library build MUST
+// #define HAVE_CS4 or add -DHAVE_CS4 to their build flags.
+
+// For statically linked SDK the header below is available and determines whether the
+// build includes Common Schema 3.x or 4.x implementation of the protocol.
+#if defined __has_include
+#if __has_include("mat/config.h")
 #include "mat/config.h"
+#endif
+#endif
+
 #include <cstdint>
 #include <string>
 #include <vector>

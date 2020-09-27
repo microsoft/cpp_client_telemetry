@@ -11,3 +11,6 @@
 /* #define HAVE_MAT_NETDETECT  */
 /* #define HAVE_MAT_SHORT_NS   */
 #define HAVE_MAT_DEFAULT_HTTP_CLIENT
+#define HAVE_CS3
+//#define HAVE_CS4
+//#define HAVE_CS4_FULL
