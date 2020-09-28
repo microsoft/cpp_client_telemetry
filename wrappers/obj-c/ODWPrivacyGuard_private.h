@@ -1,5 +1,6 @@
 #include "objc_begin.h"
 #include "ILogger.hpp"
+#import "ODWPrivacyGuard.h"
 #import "ODWCommonDataContext.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -7,7 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  The <b>ODWPrivacyGuard</b> class represents Privacy Guard Hook.
 */
-@interface ODWPrivacyGuard : NSObject
+@interface ODWPrivacyGuard (Private)
 
 #pragma mark Initialization methods
 

@@ -1,6 +1,8 @@
 #include <stdexcept>
-#include "LogManager.hpp"
-#include "PrivacyGuard.hpp"
+#include "/Users/sidahiy/GitRepos/cpp_client_telemetry/lib/include/public/ILogger.hpp"
+#include "/Users/sidahiy/GitRepos/cpp_client_telemetry/lib/include/public/LogManager.hpp"
+#include "/Users/sidahiy/GitRepos/cpp_client_telemetry/lib/include/public/IDataInspector.hpp"
+#include "/Users/sidahiy/GitRepos/cpp_client_telemetry/lib/modules/privacyguard/PrivacyGuard.hpp"
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
 #import "ODWPrivacyGuard.h"
@@ -15,29 +17,56 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 +(CommonDataContexts)convertToNativeCommonDataContexts:(ODWCommonDataContext *)odwCDC
 {
     CommonDataContexts cdc;
-    cdc.DomainName = [odwCDC.DomainName UTF8String];
-    cdc.MachineName = [odwCDC.MachineName UTF8String];
-    cdc.UserName = [odwCDC.UserName UTF8String];
-    cdc.UserAlias = [odwCDC.UserAlias UTF8String];
-
-    for(NSString* ipAddress in odwCDC.IpAddresses)
+    if([ [odwCDC DomainName] length] != 0)
     {
-        cdc.IpAddresses.push_back([ipAddress UTF8String]);
+        cdc.DomainName = [[odwCDC DomainName] UTF8String];
+    }
+    
+    if([[odwCDC MachineName] length] != 0)
+    {
+        cdc.MachineName = [[odwCDC MachineName] UTF8String];
+    }
+    
+    if([[odwCDC UserName] length] != 0)
+    {
+        cdc.UserName = [[odwCDC UserName] UTF8String];
+    }
+    
+    if([[odwCDC UserAlias] length] != 0)
+    {
+        cdc.UserAlias = [[odwCDC UserAlias] UTF8String];
     }
 
-    for(NSString* languageIdentifiers in odwCDC.LanguageIdentifiers)
+    if([odwCDC IpAddresses] != nil && [[odwCDC IpAddresses] count] != 0)
     {
-        cdc.LanguageIdentifiers.push_back([languageIdentifiers UTF8String]);
+        for(NSString* ipAddress in [odwCDC IpAddresses])
+        {
+            cdc.IpAddresses.push_back([ipAddress UTF8String]);
+        }
     }
 
-    for(NSString* machineIds in odwCDC.MachineIds)
+    if([odwCDC LanguageIdentifiers] != nil && [[odwCDC LanguageIdentifiers] count] != 0)
     {
-        cdc.MachineIds.push_back([machineIds UTF8String]);
+        for(NSString* languageIdentifiers in [odwCDC LanguageIdentifiers])
+        {
+            cdc.LanguageIdentifiers.push_back([languageIdentifiers UTF8String]);
+        }
+    }
+    
+    if([odwCDC MachineIds] != nil && [[odwCDC MachineIds] count] != 0)
+    {
+        for(NSString* machineIds in [odwCDC MachineIds])
+        {
+            cdc.MachineIds.push_back([machineIds UTF8String]);
+        }
     }
 
-    for(NSString* outOfScopeIdentifiers in odwCDC.OutOfScopeIdentifiers)
+    if([odwCDC OutOfScopeIdentifiers] != nil && [[odwCDC OutOfScopeIdentifiers] count] != 0)
     {
-        cdc.OutOfScopeIdentifiers.push_back([outOfScopeIdentifiers UTF8String]);
+        for(NSString* outOfScopeIdentifiers in [odwCDC OutOfScopeIdentifiers])
+        {
+            cdc.OutOfScopeIdentifiers.push_back([outOfScopeIdentifiers UTF8String]);
+        }
     }
 
     return cdc;
