@@ -3,8 +3,8 @@
 #include "PrivacyGuard.hpp"
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
-#import "ODWLogger.h"
 #import "ODWPrivacyGuard.h"
+#import "ODWPrivacyGuard_private.h"
 
 using namespace MAT;
 
@@ -12,7 +12,7 @@ using namespace MAT;
 
 std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
-+(CommonDataContexts)convertToNativeCommonDataContexts:(ODWCommonDataContexts *)odwCDC
++(CommonDataContexts)convertToNativeCommonDataContexts:(ODWCommonDataContext *)odwCDC
 {
     CommonDataContexts cdc;
     cdc.DomainName = [odwCDC.DomainName UTF8String];
@@ -43,7 +43,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     return cdc;
 }
 
-+(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContexts *)commonDataContextsObject
++(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
 {
     auto cdc = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject]);
 
@@ -64,7 +64,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     return _privacyGuardPtr != nullptr && _privacyGuardPtr->IsEnabled();
 }
 
-+(void)appendCommonDataContext:(ODWCommonDataContexts *) freshCommonDataContexts
++(void)appendCommonDataContext:(ODWCommonDataContext *) freshCommonDataContexts
 {
     auto cdc = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:freshCommonDataContexts]);
 
