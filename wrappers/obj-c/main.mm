@@ -32,9 +32,10 @@ int main(int argc, char** argv){
         [[cdc OutOfScopeIdentifiers] addObject:@"e1b2ece8-2451-4ea9-997a-6f37b50be8de"];
         
         if(myLogger){
-            [myLogger logEventWithName: @"Simple_ObjC_Event"];
-
+            //If you have the logger, initializePrivacyGuard before logging data to ensure everything is inspected.
             [myLogger initializePrivacyGuardWithODWCommonDataContext: cdc];
+
+            [myLogger logEventWithName: @"Simple_ObjC_Event"];
         }
         [ODWLogManager uploadNow];
 
