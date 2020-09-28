@@ -1375,6 +1375,11 @@ class Logger implements ILogger {
     clearNative();
   }
 
+  public void InitializePrivacyGuard(CommonDataContext dataContext)
+  {
+      PrivacyGuard.InitializePrivacyGuard(m_nativePtr, dataContext);
+  }
+
   public synchronized void clearNative() {
     m_nativePtr = 0;
   }
