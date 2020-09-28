@@ -2,15 +2,23 @@
 #import "ODWLogManager.h"
 #import "ODWLogger.h"
 #import "ODWEventProperties.h"
+#import "ODWPrivacyGuard.h"
+#import "ODWCommonDataContext.h"
 
 int main(int argc, char** argv){
     @autoreleasepool{
         // 1DSCppSdkTest sandbox key. Replace with your own iKey!
         NSString* token = @"7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991";
-        
+        [NSThread sleepForTimeInterval:30.f];
         ODWLogger* myLogger = [ODWLogManager loggerWithTenant: token];
+
+        ODWCommonDataContext foo;
+        foo.DomainName = @"TestDomain";
+
         if(myLogger){
             [myLogger logEventWithName: @"Simple_ObjC_Event"];
+
+            [myLogger initializePrivacyGuardWithODWCommonDataContext: &foo];
         }
         [ODWLogManager uploadNow];
 

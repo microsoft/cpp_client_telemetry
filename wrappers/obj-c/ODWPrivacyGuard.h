@@ -1,6 +1,6 @@
 #include "objc_begin.h"
-#import "ODWCommonDataContexts.h"
-#import "ODWLogger.h"
+#include "ILogger.hpp"
+#import "ODWCommonDataContext.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -40,14 +40,6 @@ typedef NS_ENUM(NSUInteger, ODWDataConcernType)
 */
 @interface ODWPrivacyGuard : NSObject
 
-#pragma mark Initialization methods
-
-/*!
- @brief Initializes Data Viewer with an specified machine identifier.
- @param machineIdentifier  A string that contains the machine identifier.
- */
-+(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContexts *)commonDataContextsObject;
-
 #pragma mark Behavior methods
 /*!
  @brief Set Privacy Guard Enabled state.
@@ -65,7 +57,7 @@ typedef NS_ENUM(NSUInteger, ODWDataConcernType)
  @brief Append fresh Common Data Contexts to the existing instance of Privacy Guard.
  @param freshCommonDataContext Fresh Common Data Contexts instance.
  */
-+(void)appendCommonDataContext:(ODWCommonDataContexts *) freshCommonDataContext;
++(void)appendCommonDataContext:(ODWCommonDataContext *) freshCommonDataContext;
 
 /*!
  @brief Add ignored concern to prevent generation of notification signals when this
