@@ -1,8 +1,8 @@
 #include <stdexcept>
-#include "/Users/sidahiy/GitRepos/cpp_client_telemetry/lib/include/public/ILogger.hpp"
-#include "/Users/sidahiy/GitRepos/cpp_client_telemetry/lib/include/public/LogManager.hpp"
-#include "/Users/sidahiy/GitRepos/cpp_client_telemetry/lib/include/public/IDataInspector.hpp"
-#include "/Users/sidahiy/GitRepos/cpp_client_telemetry/lib/modules/privacyguard/PrivacyGuard.hpp"
+#include "ILogger.hpp"
+#include "LogManager.hpp"
+#include "IDataInspector.hpp"
+#include "PrivacyGuard.hpp"
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
 #import "ODWPrivacyGuard.h"
