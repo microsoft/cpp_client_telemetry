@@ -96,6 +96,14 @@ if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
         )
 endif()
 
+if(EXISTS ${SDK_ROOT}/lib/modules/privacyguard/)
+        list(APPEND SRCS
+                ${SDK_ROOT}/lib/jni/PrivacyGuard_jni.cpp
+                ${SDK_ROOT}/lib/modules/privacyguard/PrivacyGuard.cpp
+                ${SDK_ROOT}/lib/modules/privacyguard/RegisteredFileTypes.cpp
+        )
+endif()
+
 if (USE_ROOM)
         add_definitions("-DUSE_ROOM")
         list(APPEND SRCS ${SDK_ROOT}/lib/offline/OfflineStorage_Room.cpp)
