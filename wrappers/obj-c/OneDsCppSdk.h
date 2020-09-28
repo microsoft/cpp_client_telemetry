@@ -1,6 +1,7 @@
 #ifndef OneDsCppSdk_h
 #define OneDsCppSdk_h
 
+#import "ODWCommonDataContext.h"
 #import "ODWDiagnosticDataViewer.h"
 #import "ODWEventProperties.h"
 #import "ODWLogConfiguration.h"

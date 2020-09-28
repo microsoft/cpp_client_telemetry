@@ -148,8 +148,9 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 		  ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
   		)
 	endif()
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/)
           list(APPEND SRCS
+          ../wrappers/obj-c/ODWCommonDataContext.mm
           ../wrappers/obj-c/ODWPrivacyGuard.mm
           )
     endif()
