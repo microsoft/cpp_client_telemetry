@@ -7,7 +7,7 @@ using System;
 using Android.App;
 #endif
 
-namespace OneDsCppSdk.Bindings.Tests.Shared
+namespace OneDsCppSdk.Bindings.Tests
 {
     [TestFixture]
     public class LoggerTests
@@ -15,7 +15,7 @@ namespace OneDsCppSdk.Bindings.Tests.Shared
         private const string Token = "fake-token";
         private const string TestEventName = "eventname";
 
-        private readonly EventProperties TestEventProperties = new EventProperties(TestEventName);
+        private EventProperties TestEventProperties;
 
         private ILogger logger;
 
@@ -27,16 +27,12 @@ namespace OneDsCppSdk.Bindings.Tests.Shared
 #elif __IOS__
             logger = LogManager.Initialize(Token);
 #endif
+
+            TestEventProperties = new EventProperties(TestEventName);
         }
 
         [TearDown]
         public void Tear() { }
-
-        [Test]
-        public void InstantiateLogger()
-        {
-            Assert.NotNull(logger);
-        }
 
         [Test]
         public void GetSemanticContext()
