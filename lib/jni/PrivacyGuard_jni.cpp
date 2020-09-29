@@ -1,7 +1,7 @@
-#include <jni.h>
-#include "modules/privacyguard/PrivacyGuard.hpp"
+//#include <jni.h>
 #include "JniConvertors.hpp"
-#include "LogManager.hpp"
+#include "modules/privacyguard/PrivacyGuard.hpp"
+#include "WrapperLogManager.hpp"
 
 using namespace MAT;
 
@@ -18,7 +18,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 
     auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
     spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, nullptr);
-    LogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
+    WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
 
@@ -49,7 +49,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                                                                     outOfScopeIdentifiers));
 
     spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, std::move(cdc));
-    LogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
+    WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
 
@@ -61,7 +61,7 @@ JNIEXPORT jboolean JNICALL
         return false;
     }
 
-    LogManager::GetInstance()->SetDataInspector(nullptr);
+    WrapperLogManager::GetInstance()->SetDataInspector(nullptr);
     spPrivacyGuard.reset();
 
     return true;
