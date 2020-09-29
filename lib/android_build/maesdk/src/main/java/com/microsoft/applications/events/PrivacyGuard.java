@@ -20,7 +20,7 @@ public class PrivacyGuard {
      * Initialize Privacy Guard from Logger
      * @param loggerInstance Logger instance that will be used to send data concerns to
      * @param dataContext Common Data Context to initialize Privacy Guard with.
-     * @return True if Privacy Guard has not been initialized before, False otherwise.
+     * @return true if Privacy Guard is successfully initialized, false otherwise. Try UnInit before re-init.
      * @throws IllegalArgumentException if loggerInstance is null.
      */
     public static boolean initializePrivacyGuard(Logger loggerInstance, final CommonDataContext dataContext)
