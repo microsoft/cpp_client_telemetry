@@ -185,12 +185,13 @@ std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const
         {
             stringVector.push_back(stringValue);
         }
+        env->DeleteLocalRef(jStringValue);
     }
 
     return stringVector;
 }
 
-    CommonDataContexts GenerateCommonDataContextObject(JNIEnv *env,
+CommonDataContexts GenerateCommonDataContextObject(JNIEnv *env,
                                                        jstring domainName,
                                                        jstring machineName,
                                                        jstring userName,
@@ -199,18 +200,16 @@ std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const
                                                        jobjectArray languageIdentifiers,
                                                        jobjectArray machineIds,
                                                        jobjectArray outOfScopeIdentifiers) {
-        CommonDataContexts cdc;
-        cdc.DomainName = JStringToStdString(env, domainName);
-        cdc.MachineName = JStringToStdString(env, machineName);
-        cdc.UserName = JStringToStdString(env, userName);
-        cdc.UserAlias = JStringToStdString(env, userAlias);
-        cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
-        cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
-        cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
-        cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
-
-        return cdc;
-    }
-
+    CommonDataContexts cdc;
+    cdc.DomainName = JStringToStdString(env, domainName);
+    cdc.MachineName = JStringToStdString(env, machineName);
+    cdc.UserName = JStringToStdString(env, userName);
+    cdc.UserAlias = JStringToStdString(env, userAlias);
+    cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
+    cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
+    cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
+    cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
+    return cdc;
+}
 
 } MAT_NS_END

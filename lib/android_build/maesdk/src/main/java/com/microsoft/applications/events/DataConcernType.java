@@ -1,11 +1,14 @@
 package com.microsoft.applications.events;
 
+/**
+ * The Data Concern Type enum lists the known concerns that the Privacy Guard Service
+ * is able to detect and notify on. The most up-to-date list is available here: https://aka.ms/privacyguard/issuetypes
+ */
 public enum DataConcernType {
     /**
      * DefaultValue
      */
     None(0),
-
     /**
      *  Formatted text: HTML, MIME, RTF, Xml, etc.
      */
