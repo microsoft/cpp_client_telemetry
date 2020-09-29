@@ -172,6 +172,16 @@ namespace MAT_NS_BEGIN
     }
 
     /**
+     * Delete all records 
+     *
+     * Not Implemented 
+     */
+    void OfflineStorage_Room::DeleteAllRecords()
+    {
+        MATSDK_THROW(std::logic_error("DeleteAllRecords not implemented"));
+    }
+
+    /**
      * Delete records matching a set of WHERE equality conditions
      * 
      * Only implements equality-on-tenantToken.
@@ -738,7 +748,7 @@ namespace MAT_NS_BEGIN
      * @param[in] name The key to delete from the database.
      */
 
-    void OfflineStorage_Room::DeleteSetting(std::string const& name)
+    bool OfflineStorage_Room::DeleteSetting(std::string const& name)
     {
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
@@ -748,6 +758,7 @@ namespace MAT_NS_BEGIN
         ThrowRuntime(env, "newstring");
         env->CallVoidMethod(m_room, delete_method, jName);
         ThrowLogic(env, "exception in delete setting");
+        return true;
     }
 
     /**
@@ -762,8 +773,7 @@ namespace MAT_NS_BEGIN
     {
         if (value.size() == 0)
         {
-            DeleteSetting(name);
-            return true;
+            return DeleteSetting(name);
         }
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
