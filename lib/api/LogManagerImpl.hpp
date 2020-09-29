@@ -26,6 +26,7 @@
 
 #include "AllowedLevelsCollection.hpp"
 
+#include "IDataInspector.hpp"
 #include "offline/LogSessionDataProvider.hpp"
 
 #include <mutex>
@@ -273,6 +274,7 @@ namespace MAT_NS_BEGIN
 
         virtual IDataViewerCollection& GetDataViewerCollection() override;
         virtual const IDataViewerCollection& GetDataViewerCollection() const override;
+        virtual status_t DeleteData() override;
 
         /// <summary>
         /// Get a reference to this log manager diagnostic level filter
@@ -289,6 +291,10 @@ namespace MAT_NS_BEGIN
         }
 
         static size_t GetDeadLoggerCount();
+
+        virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) override;
+
+        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept override;
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
@@ -327,6 +333,8 @@ namespace MAT_NS_BEGIN
         EventFilterCollection m_filters;
         std::vector<std::unique_ptr<IModule>> m_modules;
         DataViewerCollection m_dataViewerCollection;
+        std::shared_ptr<IDataInspector> m_dataInspector;
+        std::mutex m_dataInspectorGuard;
     };
 
 }

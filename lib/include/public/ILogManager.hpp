@@ -21,9 +21,11 @@
 #include <climits>
 #include <cstdint>
 #include <string>
+#include <functional>
 
 #include "Enums.hpp"
 #include "IAuthTokensController.hpp"
+#include "IDataInspector.hpp"
 #include "IDataViewerCollection.hpp"
 #include "IEventFilterCollection.hpp"
 #include "ILogger.hpp"
@@ -126,6 +128,12 @@ namespace MAT_NS_BEGIN
         /// Gets the name of the current transmit profile.
         /// </summary>
         virtual const std::string& GetTransmitProfileName() = 0;
+
+        /// <summary>
+        /// Delete local data
+        /// </summary>
+        virtual status_t DeleteData() = 0;
+
     };
 
     /// <summary>
@@ -370,6 +378,18 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>A const reference to the IDataViewerCollection instance</returns>
         virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
+
+        /// <summary>
+        /// Set the current instance of IDataInspector
+        /// </summary>
+        /// <param name="dataInspector">Shared Ptr to an instance of IDataInspector</param>
+        virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) = 0;
+
+        /// <summary>
+        /// Get the current instance of IDataInspector
+        /// </summary>
+        /// <returns>Current instance of IDataInspector if set, nullptr otherwise.</returns>
+        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept = 0;
     };
 
 }
