@@ -15,17 +15,24 @@ public class PrivacyGuard {
             Object[] outOfScopeIdentifiers);
 
     private static native boolean nativeInitializePrivacyGuardWithoutCommonDataContext(long iLoggerNativePtr);
+
     /**
      * Initialize Privacy Guard from Logger
-     * @param loggerNativePtr Native Ptr to ILogger, only accessible in Logger.
+     * @param loggerInstance Logger instance that will be used to get the native ILogger*
      * @param dataContext Common Data Context to initialize Privacy Guard with.
      * @return True if Privacy Guard has not been initialized before, False otherwise.
+     * @throws IllegalArgumentException if loggerInstance is null.
      */
-    /*package-private*/ static boolean initializePrivacyGuardFromLogger(long loggerNativePtr, final CommonDataContext dataContext)
+    public static boolean initializePrivacyGuard(Logger loggerInstance, final CommonDataContext dataContext)
     {
+        if(loggerInstance == null)
+        {
+            throw new IllegalArgumentException(("loggerInstance cannot be null."));
+        }
+
         if(dataContext != null)
         {
-            return nativeInitializePrivacyGuard(loggerNativePtr,
+            return nativeInitializePrivacyGuard(loggerInstance.GetNativeILoggerPtr(),
                     dataContext.domainName,
                     dataContext.machineName,
                     dataContext.userName,
@@ -36,7 +43,7 @@ public class PrivacyGuard {
                     dataContext.outOfScopeIdentifiers.toArray());
         } else
         {
-            return nativeInitializePrivacyGuardWithoutCommonDataContext(loggerNativePtr);
+            return nativeInitializePrivacyGuardWithoutCommonDataContext(loggerInstance.GetNativeILoggerPtr());
         }
     }
 
