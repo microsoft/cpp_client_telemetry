@@ -185,7 +185,7 @@ std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const
         auto stringValue = JStringToStdString(env, jStringValue);
         if(!stringValue.empty())
         {
-            stringVector.push_back(stringValue);
+            stringVector.emplace_back(std::move(stringValue));
         }
         env->DeleteLocalRef(jStringValue);
     }
