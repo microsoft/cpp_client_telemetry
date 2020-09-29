@@ -385,5 +385,5 @@ public interface ILogger extends AutoCloseable {
      * All Data Concerns will be sent to this logger.
      * @param dataContext (Optional) Common Data Context to provide additional information to look for.
      */
-    public void InitializePrivacyGuard(CommonDataContext dataContext);
+    public void initializePrivacyGuard(final CommonDataContext dataContext);
 }

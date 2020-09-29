@@ -1,6 +1,7 @@
 #include <jni.h>
 #include "modules/privacyguard/PrivacyGuard.hpp"
 #include "JniConvertors.hpp"
+#include "LogManager.hpp"
 
 using namespace MAT;
 
@@ -8,18 +9,20 @@ extern "C"
 {
 std::shared_ptr<PrivacyGuard> spPrivacyGuard;
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuardWithoutCommonDataContext(
         JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr) {
     if (spPrivacyGuard != nullptr) {
-        return;
+        return false;
     }
 
     auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
     spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, nullptr);
+    LogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
+    return true;
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard(
         JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr,
         jstring domainName,
@@ -31,7 +34,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         jobjectArray machineIds,
         jobjectArray outOfScopeIdentifiers) {
     if (spPrivacyGuard != nullptr) {
-        return;
+        return false;
     }
 
     auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
@@ -46,6 +49,22 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                                                                     outOfScopeIdentifiers));
 
     spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, std::move(cdc));
+    LogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
+    return true;
+}
+
+JNIEXPORT jboolean JNICALL
+        Java_com_microsoft_applications_events_PrivacyGuard_uninitializePrivacyGuard(JNIEnv *env, jclass /*this*/)
+{
+    if(spPrivacyGuard == nullptr)
+    {
+        return false;
+    }
+
+    LogManager::GetInstance()->SetDataInspector(nullptr);
+    spPrivacyGuard.reset();
+
+    return true;
 }
 
 JNIEXPORT void JNICALL
@@ -61,7 +80,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(JNIEnv *env, jclas
     return spPrivacyGuard != nullptr && spPrivacyGuard->IsEnabled();
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContext(
         JNIEnv *env, jclass /* this */,
         jstring domainName,
@@ -73,7 +92,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
         jobjectArray machineIds,
         jobjectArray outOfScopeIdentifiers) {
     if (spPrivacyGuard == nullptr) {
-        return;
+        return false;
     }
 
     auto cdc = std::make_unique<CommonDataContexts>(GenerateCommonDataContextObject(env,
@@ -87,6 +106,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
                                                                                     outOfScopeIdentifiers));
 
     spPrivacyGuard->AppendCommonDataContext(std::move(cdc));
+
+    return true;
 }
 
 JNIEXPORT void JNICALL

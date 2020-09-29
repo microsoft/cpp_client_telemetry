@@ -1376,7 +1376,7 @@ class Logger implements ILogger {
   }
 
   @Override
-  public void InitializePrivacyGuard(CommonDataContext dataContext)
+  public void initializePrivacyGuard(final CommonDataContext dataContext)
   {
       PrivacyGuard.initializePrivacyGuardFromLogger(m_nativePtr, dataContext);
   }
