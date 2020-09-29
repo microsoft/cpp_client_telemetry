@@ -19,7 +19,7 @@ public class PrivacyGuard {
      * Initialize Privacy Guard from Logger
      * @param loggerNativePtr Native Ptr to ILogger, only accessible in Logger.
      * @param dataContext Common Data Context to initialize Privacy Guard with.
-     * @return True if Privacy Guard has not been initalized before, False otherwise.
+     * @return True if Privacy Guard has not been initialized before, False otherwise.
      */
     /*package-private*/ static boolean initializePrivacyGuardFromLogger(long loggerNativePtr, final CommonDataContext dataContext)
     {
