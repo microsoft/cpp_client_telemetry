@@ -18,7 +18,7 @@ public class PrivacyGuard {
 
     /**
      * Initialize Privacy Guard from Logger
-     * @param loggerInstance Logger instance that will be used to get the native ILogger*
+     * @param loggerInstance Logger instance that will be used to send data concerns to
      * @param dataContext Common Data Context to initialize Privacy Guard with.
      * @return True if Privacy Guard has not been initialized before, False otherwise.
      * @throws IllegalArgumentException if loggerInstance is null.
@@ -32,7 +32,7 @@ public class PrivacyGuard {
 
         if(dataContext != null)
         {
-            return nativeInitializePrivacyGuard(loggerInstance.GetNativeILoggerPtr(),
+            return nativeInitializePrivacyGuard(loggerInstance.getNativeILoggerPtr(),
                     dataContext.domainName,
                     dataContext.machineName,
                     dataContext.userName,
@@ -43,7 +43,7 @@ public class PrivacyGuard {
                     dataContext.outOfScopeIdentifiers.toArray());
         } else
         {
-            return nativeInitializePrivacyGuardWithoutCommonDataContext(loggerInstance.GetNativeILoggerPtr());
+            return nativeInitializePrivacyGuardWithoutCommonDataContext(loggerInstance.getNativeILoggerPtr());
         }
     }
 
@@ -57,8 +57,9 @@ public class PrivacyGuard {
     /**
      * Set the Enabled state for Privacy Guard
      * @param isEnabled New Enabled value
+     * @return True if Privacy Guard was initialized and the enabled state update was conveyed, False otherwise.
      */
-    public static native void setEnabled(final boolean isEnabled);
+    public static native boolean setEnabled(final boolean isEnabled);
 
     /**
      * Get the Enabled state for Privacy Guard

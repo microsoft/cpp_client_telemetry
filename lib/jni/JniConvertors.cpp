@@ -177,6 +177,8 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
 std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const jobjectArray& jArrayToConvert)
 {
     std::vector<std::string> stringVector;
+    stringVector.reserve(env->GetArrayLength(jArrayToConvert));
+
     for(int i = 0; i < env->GetArrayLength(jArrayToConvert); i++)
     {
         auto jStringValue = static_cast<jstring>(env->GetObjectArrayElement(jArrayToConvert, i));
