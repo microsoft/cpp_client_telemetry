@@ -1375,10 +1375,13 @@ class Logger implements ILogger {
     clearNative();
   }
 
-  @Override
-  public void initializePrivacyGuard(final CommonDataContext dataContext)
+  /**
+   * Package-private method to get the native pointer for ILogger*
+   * @return long representing the native pointer for ILogger *
+   */
+  long GetNativeILoggerPtr()
   {
-      PrivacyGuard.initializePrivacyGuardFromLogger(m_nativePtr, dataContext);
+    return m_nativePtr;
   }
 
   public synchronized void clearNative() {
