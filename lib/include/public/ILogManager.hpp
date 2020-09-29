@@ -128,6 +128,12 @@ namespace MAT_NS_BEGIN
         /// Gets the name of the current transmit profile.
         /// </summary>
         virtual const std::string& GetTransmitProfileName() = 0;
+
+        /// <summary>
+        /// Delete local data
+        /// </summary>
+        virtual status_t DeleteData() = 0;
+
     };
 
     /// <summary>
