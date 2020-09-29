@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
+option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 
 string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
@@ -96,7 +97,7 @@ if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
         )
 endif()
 
-if(EXISTS ${SDK_ROOT}/lib/modules/privacyguard/)
+if(EXISTS ${SDK_ROOT}/lib/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
         list(APPEND SRCS
                 ${SDK_ROOT}/lib/jni/PrivacyGuard_jni.cpp
                 ${SDK_ROOT}/lib/modules/privacyguard/PrivacyGuard.cpp
