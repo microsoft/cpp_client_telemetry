@@ -379,4 +379,11 @@ public interface ILogger extends AutoCloseable {
      * @param level Diagnostic level.
      */
     public void setLevel(final DiagnosticLevel level);
+
+    /**
+     * Initialize an instance of Privacy Guard with this logger instance.
+     * All Data Concerns will be sent to this logger.
+     * @param dataContext (Optional) Common Data Context to provide additional information to look for.
+     */
+    public void InitializePrivacyGuard(CommonDataContext dataContext);
 }
