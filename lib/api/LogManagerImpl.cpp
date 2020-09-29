@@ -755,6 +755,17 @@ namespace MAT_NS_BEGIN
         return m_dataViewerCollection;
     }
 
+    void LogManagerImpl::SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector)
+    {
+        LOCKGUARD(m_dataInspectorGuard);
+        m_dataInspector = dataInspector;
+    }
+
+    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector() noexcept
+    {
+        return m_dataInspector;
+    }
+
     status_t LogManagerImpl::DeleteData()
     {
         // cleanup offline storage
