@@ -3,7 +3,7 @@ package com.microsoft.applications.events;
 public class PrivacyGuard {
 
     //Initialize PG
-    private static native void nativeInitializePrivacyGuard(
+    private static native boolean nativeInitializePrivacyGuard(
             long iLoggerNativePtr,
             String domainName,
             String machineName,
@@ -14,17 +14,18 @@ public class PrivacyGuard {
             Object[] machineIds,
             Object[] outOfScopeIdentifiers);
 
-    private static native void nativeInitializePrivacyGuardWithoutCommonDataContext(long iLoggerNativePtr);
+    private static native boolean nativeInitializePrivacyGuardWithoutCommonDataContext(long iLoggerNativePtr);
     /**
      * Initialize Privacy Guard from Logger
      * @param loggerNativePtr Native Ptr to ILogger, only accessible in Logger.
      * @param dataContext Common Data Context to initialize Privacy Guard with.
+     * @return True if Privacy Guard has not been initalized before, False otherwise.
      */
-    /*package-private*/ static void initializePrivacyGuardFromLogger(long loggerNativePtr, CommonDataContext dataContext)
+    /*package-private*/ static boolean initializePrivacyGuardFromLogger(long loggerNativePtr, final CommonDataContext dataContext)
     {
         if(dataContext != null)
         {
-            nativeInitializePrivacyGuard(loggerNativePtr,
+            return nativeInitializePrivacyGuard(loggerNativePtr,
                     dataContext.domainName,
                     dataContext.machineName,
                     dataContext.userName,
@@ -35,15 +36,22 @@ public class PrivacyGuard {
                     dataContext.outOfScopeIdentifiers.toArray());
         } else
         {
-            nativeInitializePrivacyGuardWithoutCommonDataContext(loggerNativePtr);
+            return nativeInitializePrivacyGuardWithoutCommonDataContext(loggerNativePtr);
         }
     }
+
+    /**
+     * Uninitialize the current instance of Privacy Guard
+     * This is useful if the app would like to change the logger associated with the instance of Privacy Guard.
+     * @return True if Privacy Guard was uninitialized, false if Privacy Guard had not been initialized before.
+     */
+    public static native boolean uninitializePrivacyGuard();
 
     /**
      * Set the Enabled state for Privacy Guard
      * @param isEnabled New Enabled value
      */
-    public static native void setEnabled(boolean isEnabled);
+    public static native void setEnabled(final boolean isEnabled);
 
     /**
      * Get the Enabled state for Privacy Guard
@@ -51,7 +59,7 @@ public class PrivacyGuard {
      */
     public static native boolean isEnabled();
 
-    private static native void nativeAppendCommonDataContext(
+    private static native boolean nativeAppendCommonDataContext(
             String domainName,
             String machineName,
             String userName,
@@ -64,15 +72,17 @@ public class PrivacyGuard {
     /**
      * Append fresh common data context to current instance of Privacy Guard
      * @param freshDataContext Fresh set of Common Data Context.
+     * @return False if either data is null or Privacy Guard has not been initialized yet. True otherwise.
+     * @throws IllegalArgumentException if freshDataContext value is null.
      */
-    public static void appendCommonDataContext(CommonDataContext freshDataContext)
+    public static boolean appendCommonDataContext(final CommonDataContext freshDataContext)
     {
         if(freshDataContext == null)
         {
-            return;
+            throw new IllegalArgumentException("Passed Common Data Context is null");
         }
 
-        nativeAppendCommonDataContext(
+        return nativeAppendCommonDataContext(
                 freshDataContext.domainName,
                 freshDataContext.machineName,
                 freshDataContext.userName,
@@ -83,7 +93,7 @@ public class PrivacyGuard {
                 freshDataContext.outOfScopeIdentifiers.toArray());
     }
 
-    private static native void nativeAddIgnoredConcern(String eventName, String fieldName, int dataConcern);
+    private static native void nativeAddIgnoredConcern(final String eventName, final String fieldName, final int dataConcern);
 
     /**
      * Add a known concern to be ignored.
@@ -91,7 +101,7 @@ public class PrivacyGuard {
      * @param fieldName FieldName that might contain a concern.
      * @param dataConcern Specific DataConcernType you wish to ignore for the given event and field combination.
      */
-    public static void addIgnoredConcern(String eventName, String fieldName, DataConcernType dataConcern)
+    public static void addIgnoredConcern(final String eventName, final String fieldName, final DataConcernType dataConcern)
     {
         nativeAddIgnoredConcern(eventName, fieldName, dataConcern.getValue());
     }
