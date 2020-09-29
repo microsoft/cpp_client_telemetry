@@ -9,6 +9,17 @@ extern "C"
 std::shared_ptr<PrivacyGuard> spPrivacyGuard;
 
 JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuardWithoutCommonDataContext(
+        JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr) {
+    if (spPrivacyGuard != nullptr) {
+        return;
+    }
+
+    auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
+    spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, nullptr);
+}
+
+JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard(
         JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr,
         jstring domainName,
@@ -38,15 +49,15 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 }
 
 JNIEXPORT void JNICALL
-Java_com_microsoft_applications_events_PrivacyGuard_nativeSetEnabled(JNIEnv *env, jclass /*this*/,
-                                                                     jboolean isEnabled) {
+Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jclass /*this*/,
+                                                               jboolean isEnabled) {
     if (spPrivacyGuard != nullptr) {
         spPrivacyGuard->SetEnabled(static_cast<bool>(isEnabled));
     }
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_PrivacyGuard_nativeIsEnabled(JNIEnv *env, jclass /*this*/) {
+Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(JNIEnv *env, jclass /*this*/) {
     return spPrivacyGuard != nullptr && spPrivacyGuard->IsEnabled();
 }
 
@@ -80,12 +91,11 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
 
 JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIEnv *env,
-                                                                            jclass /* this */,
-                                                                            jstring eventName,
-                                                                            jstring fieldName,
-                                                                            jint dataConcern) {
-    if(spPrivacyGuard == nullptr)
-    {
+        jclass /* this */,
+        jstring eventName,
+        jstring fieldName,
+        jint dataConcern) {
+    if (spPrivacyGuard == nullptr) {
         return;
     }
 

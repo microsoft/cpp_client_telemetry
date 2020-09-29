@@ -14,46 +14,42 @@ public class PrivacyGuard {
             Object[] machineIds,
             Object[] outOfScopeIdentifiers);
 
+    private static native void nativeInitializePrivacyGuardWithoutCommonDataContext(long iLoggerNativePtr);
     /**
      * Initialize Privacy Guard from Logger
      * @param loggerNativePtr Native Ptr to ILogger, only accessible in Logger.
      * @param dataContext Common Data Context to initialize Privacy Guard with.
      */
-    public static void InitializePrivacyGuardFromLogger(long loggerNativePtr, CommonDataContext dataContext)
+    /*package-private*/ static void initializePrivacyGuardFromLogger(long loggerNativePtr, CommonDataContext dataContext)
     {
-        nativeInitializePrivacyGuard(loggerNativePtr,
-                dataContext.DomainName,
-                dataContext.MachineName,
-                dataContext.UserName,
-                dataContext.UserAlias,
-                dataContext.IpAddresses.toArray(),
-                dataContext.LanguageIdentifiers.toArray(),
-                dataContext.MachineIds.toArray(),
-                dataContext.OutOfScopeIdentifiers.toArray());
-
+        if(dataContext != null)
+        {
+            nativeInitializePrivacyGuard(loggerNativePtr,
+                    dataContext.domainName,
+                    dataContext.machineName,
+                    dataContext.userName,
+                    dataContext.userAlias,
+                    dataContext.ipAddresses.toArray(),
+                    dataContext.languageIdentifiers.toArray(),
+                    dataContext.machineIds.toArray(),
+                    dataContext.outOfScopeIdentifiers.toArray());
+        } else
+        {
+            nativeInitializePrivacyGuardWithoutCommonDataContext(loggerNativePtr);
+        }
     }
-
-    private static native void nativeSetEnabled(boolean isEnabled);
 
     /**
      * Set the Enabled state for Privacy Guard
      * @param isEnabled New Enabled value
      */
-    public static void SetEnabled(boolean isEnabled)
-    {
-        nativeSetEnabled(isEnabled);
-    }
-
-    private static native boolean nativeIsEnabled();
+    public static native void setEnabled(boolean isEnabled);
 
     /**
      * Get the Enabled state for Privacy Guard
      * @return `true` is Privacy Guard is initialized and enabled, `false` otherwise.
      */
-    public static boolean IsEnabled()
-    {
-        return nativeIsEnabled();
-    }
+    public static native boolean isEnabled();
 
     private static native void nativeAppendCommonDataContext(
             String domainName,
@@ -69,17 +65,22 @@ public class PrivacyGuard {
      * Append fresh common data context to current instance of Privacy Guard
      * @param freshDataContext Fresh set of Common Data Context.
      */
-    public static void AppendCommonDataContext(CommonDataContext freshDataContext)
+    public static void appendCommonDataContext(CommonDataContext freshDataContext)
     {
+        if(freshDataContext == null)
+        {
+            return;
+        }
+
         nativeAppendCommonDataContext(
-                freshDataContext.DomainName,
-                freshDataContext.MachineName,
-                freshDataContext.UserName,
-                freshDataContext.UserAlias,
-                freshDataContext.IpAddresses.toArray(),
-                freshDataContext.LanguageIdentifiers.toArray(),
-                freshDataContext.MachineIds.toArray(),
-                freshDataContext.OutOfScopeIdentifiers.toArray());
+                freshDataContext.domainName,
+                freshDataContext.machineName,
+                freshDataContext.userName,
+                freshDataContext.userAlias,
+                freshDataContext.ipAddresses.toArray(),
+                freshDataContext.languageIdentifiers.toArray(),
+                freshDataContext.machineIds.toArray(),
+                freshDataContext.outOfScopeIdentifiers.toArray());
     }
 
     private static native void nativeAddIgnoredConcern(String eventName, String fieldName, int dataConcern);
@@ -90,7 +91,7 @@ public class PrivacyGuard {
      * @param fieldName FieldName that might contain a concern.
      * @param dataConcern Specific DataConcernType you wish to ignore for the given event and field combination.
      */
-    public static void AddIgnoredConcern(String eventName, String fieldName, DataConcernType dataConcern)
+    public static void addIgnoredConcern(String eventName, String fieldName, DataConcernType dataConcern)
     {
         nativeAddIgnoredConcern(eventName, fieldName, dataConcern.getValue());
     }
