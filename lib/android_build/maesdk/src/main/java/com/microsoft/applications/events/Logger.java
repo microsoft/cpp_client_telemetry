@@ -1379,7 +1379,7 @@ class Logger implements ILogger {
    * Package-private method to get the native pointer for ILogger*
    * @return long representing the native pointer for ILogger *
    */
-  long GetNativeILoggerPtr()
+  long getNativeILoggerPtr()
   {
     return m_nativePtr;
   }

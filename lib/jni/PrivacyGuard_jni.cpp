@@ -1,4 +1,3 @@
-//#include <jni.h>
 #include "JniConvertors.hpp"
 #include "modules/privacyguard/PrivacyGuard.hpp"
 #include "WrapperLogManager.hpp"
@@ -67,12 +66,14 @@ JNIEXPORT jboolean JNICALL
     return true;
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jclass /*this*/,
                                                                jboolean isEnabled) {
-    if (spPrivacyGuard != nullptr) {
-        spPrivacyGuard->SetEnabled(static_cast<bool>(isEnabled));
+    if (spPrivacyGuard == nullptr) {
+        return false;
     }
+    spPrivacyGuard->SetEnabled(static_cast<bool>(isEnabled));
+    return true;
 }
 
 JNIEXPORT jboolean JNICALL
