@@ -26,6 +26,7 @@ jobs:
       with:
         ref: ${{ github.head_ref }}
         submodules: 'recursive'
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
