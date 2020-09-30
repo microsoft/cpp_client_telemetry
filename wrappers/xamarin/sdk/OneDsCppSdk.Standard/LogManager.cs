@@ -1,7 +1,9 @@
-﻿namespace Microsoft.Applications.Events
+﻿using System;
+
+namespace Microsoft.Applications.Events
 {
     public class LogManager
     {
-        public static void Flush() { }
+        public static Status Flush() { throw new NotImplementedException(); }
     }
 }

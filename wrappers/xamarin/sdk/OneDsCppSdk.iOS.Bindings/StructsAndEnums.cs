@@ -76,4 +76,14 @@ namespace Microsoft.Applications.Events
 		NearRealTime = 1,
 		BestEffort = 2
 	}
+
+	public enum Status : long
+	{
+		Ealready,
+		Efail,
+		Enosys,
+		Enotsup,
+		Eperm,
+		Success
+	}
 }

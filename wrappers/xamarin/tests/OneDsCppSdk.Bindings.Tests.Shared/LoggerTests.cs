@@ -1,10 +1,13 @@
-﻿using Foundation;
-using Microsoft.Applications.Events;
+﻿using Microsoft.Applications.Events;
 using NUnit.Framework;
 using System;
 
 #if __ANDROID__
 using Android.App;
+#endif
+
+#if __IOS__
+using Foundation;
 #endif
 
 namespace OneDsCppSdk.Bindings.Tests

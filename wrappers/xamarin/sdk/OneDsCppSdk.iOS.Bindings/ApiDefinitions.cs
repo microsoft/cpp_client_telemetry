@@ -340,7 +340,7 @@ namespace Microsoft.Applications.Events
 		// +(void)flush;
 		[Static]
 		[Export ("flush")]
-		void Flush ();
+		Status Flush ();
 
 		// +(void)setTransmissionProfile:(ODWTransmissionProfile)profile;
 		[Static]
