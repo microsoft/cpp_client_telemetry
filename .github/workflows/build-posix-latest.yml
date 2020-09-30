@@ -27,4 +27,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
+         - name: include stub submodule to base repo
+      run: | 
+        git submodule update --init
       run: ./build-tests.sh ${{ matrix.config }}
