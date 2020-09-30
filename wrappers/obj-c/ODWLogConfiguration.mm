@@ -15,16 +15,28 @@ using namespace Microsoft::Applications::Events;
     config[CFG_STR_COLLECTOR_URL] = eventCollectorUri;
 }
 
-+(void)setCacheMemorySizeLimitInBytes:(int)cacheMemorySizeLimitInBytes;
++(void)setCacheMemorySizeLimitInBytes:(unsigned int)cacheMemorySizeLimitInBytes
 {
     auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_RAM_QUEUE_SIZE] = cacheMemorySizeLimitInBytes;
 }
 
-+(void)setCacheFileSizeLimitInBytes:(int)cacheFileSizeLimitInBytes;
++(unsigned int)cacheMemorySizeLimitInBytes
+{
+    auto& config = LogManager::GetLogConfiguration();
+    return config[CFG_INT_RAM_QUEUE_SIZE];
+}
+
++(void)setCacheFileSizeLimitInBytes:(unsigned int)cacheFileSizeLimitInBytes
 {
     auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_CACHE_FILE_SIZE] = cacheFileSizeLimitInBytes;
+}
+
++(unsigned int)cacheFileSizeLimitInBytes
+{
+    auto& config = LogManager::GetLogConfiguration();
+    return config[CFG_INT_CACHE_FILE_SIZE];
 }
 
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec

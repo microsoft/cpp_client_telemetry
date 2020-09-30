@@ -7,7 +7,6 @@
 #import "ODWPrivacyGuard_private.h"
 
 #include "EventProperties.hpp"
-#include "LogSessionData.hpp"
 
 using namespace MAT;
 
@@ -234,16 +233,6 @@ using namespace MAT;
 }
 
 -(void)setContextWithName:(nonnull NSString*)name
-              stringValue:(nonnull NSString*)value
-                  piiKind:(enum ODWPiiKind)piiKind
-{
-    std::string strName = std::string([name UTF8String]);
-    PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
-    });
-}
-
--(void)setContextWithName:(nonnull NSString*)name
                 boolValue:(BOOL)value
 {
     std::string strName = std::string([name UTF8String]);
@@ -253,31 +242,12 @@ using namespace MAT;
 }
 
 -(void)setContextWithName:(nonnull NSString*)name
-                boolValue:(BOOL)value
-                  piiKind:(enum ODWPiiKind)piiKind
-{
-    std::string strName = std::string([name UTF8String]);
-    PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
-    });
-}
-
--(void)setContextWithName:(nonnull NSString*)name
                 dateValue:(nonnull NSDate*)value
 {
     std::string strName = std::string([name UTF8String]);
+    time_ticks_t ticks { static_cast<uint64_t>((static_cast<NSDate*>(value).timeIntervalSince1970 * ticksPerSecond) + ticksUnixEpoch) };
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value);
-    });
-}
-
--(void)setContextWithName:(nonnull NSString*)name
-                dateValue:(nonnull NSDate*)value
-                  piiKind:(enum ODWPiiKind)piiKind
-{
-    std::string strName = std::string([name UTF8String]);
-    PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
+        _wrappedLogger->SetContext(strName, ticks);
     });
 }
 
@@ -291,16 +261,6 @@ using namespace MAT;
 }
 
 -(void)setContextWithName:(nonnull NSString*)name
-              doubleValue:(double)value
-                  piiKind:(enum ODWPiiKind)piiKind
-{
-    std::string strName = std::string([name UTF8String]);
-    PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
-    });
-}
-
--(void)setContextWithName:(nonnull NSString*)name
                 longValue:(int64_t)value
 {
     std::string strName = std::string([name UTF8String]);
@@ -310,31 +270,15 @@ using namespace MAT;
 }
 
 -(void)setContextWithName:(nonnull NSString*)name
-                longValue:(int64_t)value
-                  piiKind:(enum ODWPiiKind)piiKind
-{
-    std::string strName = std::string([name UTF8String]);
-    PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
-    });
-}
-
--(void)setContextWithName:(nonnull NSString*)name
                 UUIDValue:(nonnull NSUUID*)value
 {
     std::string strName = std::string([name UTF8String]);
+    uuid_t uuidBytes;
+    NSUUID* nsuuid = (NSUUID*)value;
+    [nsuuid getUUIDBytes:uuidBytes];
+    GUID_t guid { uuidBytes, true /*bigEndian*/ };
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value);
-    });
-}
-
--(void)setContextWithName:(nonnull NSString*)name
-                UUIDValue:(nonnull NSUUID*)value
-                  piiKind:(enum ODWPiiKind)piiKind
-{
-    std::string strName = std::string([name UTF8String]);
-    PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
+        _wrappedLogger->SetContext(strName, guid);
     });
 }
 
