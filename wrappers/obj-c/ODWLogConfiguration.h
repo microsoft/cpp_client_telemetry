@@ -13,15 +13,25 @@
 
 /*!
 @brief Sets the RAM queue size limit in bytes.
-@param cacheMemorySizeLimitInBytes  An integer for memory size limit in bytes.
+@param cacheMemorySizeLimitInBytes  A long value for memory size limit in bytes.
 */
-+(void)setCacheMemorySizeLimitInBytes:(int)cacheMemorySizeLimitInBytes;
++(void)setCacheMemorySizeLimitInBytes:(unsigned int)cacheMemorySizeLimitInBytes;
+
+/*!
+@brief return the RAM queue size limit in bytes.
+*/
++(unsigned int)cacheMemorySizeLimitInBytes;
 
 /*!
 @brief Sets the size limit of the disk file used to cache events on the client side.
-@param cacheFileSizeLimitInBytes  A n integer value for cache file size limit.
+@param cacheFileSizeLimitInBytes  A long value for cache file size limit.
 */
-+(void)setCacheFileSizeLimitInBytes:(int)cacheFileSizeLimitInBytes;
++(void)setCacheFileSizeLimitInBytes:(unsigned int)cacheFileSizeLimitInBytes;
+
+/*!
+@brief Returns the size limit of the disk file used to cache events on the client side.
+*/
++(unsigned int)cacheFileSizeLimitInBytes;
 
 /*!
 @brief Sets max teardown upload time in seconds.
