@@ -128,8 +128,8 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param name A string that contains the name of the context property.
  @param value A string that contains the context property value.
  */
--(void)setContext:(NSString *)name
-  withStringValue:(NSString *)value;
+-(void)setContextWithName:(nonnull NSString *)name
+              stringValue:(nonnull NSString *)value;
 
 /*!
  @brief Sets a string context property for an event.
@@ -137,17 +137,17 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param value A string that contains the context property value.
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
 */
-- (void)setContext:(NSString*)name
-   withStringValue:(NSString *)value
-       withPiiKind:(ODWPiiKind)piiKind;
+- (void)setContextWithName:(nonnull NSString*)name
+               stringValue:(nonnull NSString *)value
+                   piiKind:(ODWPiiKind)piiKind;
 
 /*!
  @brief Sets a double context property for an event.
  @param name A string that contains the name of the context property.
  @param value A double that contains the context property value.
  */
--(void)setContext:(NSString*)name
-  withDoubleValue:(double)value;
+-(void)setContextWithName:(nonnull NSString*)name
+              doubleValue:(double)value;
 
 /*!
  @brief Sets a double context property for an event.
@@ -155,35 +155,17 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param value A double that contains the context property value.
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
  */
--(void)setContext:(NSString*)name
-  withDoubleValue:(double)value
-      withPiiKind:(ODWPiiKind)piiKind;
+-(void)setContextWithName:(nonnull NSString*)name
+              doubleValue:(double)value
+                  piiKind:(ODWPiiKind)piiKind;
 
 /*!
  @brief Sets an integer context property for an event.
  @param name A string that contains the name of the context property.
  @param value An integer that contains the context property value.
  */
--(void)setContext:(NSString*)name
-   withInt64Value:(int64_t)value;
-
-/*!
- @brief Sets an integer context property for an event.
- @param name A string that contains the name of the context property.
- @param value An integer that contains the context property value.
- @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
- */
--(void)setContext:(NSString*)name
-   withInt64Value:(int64_t)value
-      withPiiKind:(ODWPiiKind)piiKind;
-
-/*!
- @brief Sets an integer context property for an event.
- @param name A string that contains the name of the context property.
- @param value An integer that contains the context property value.
- */
--(void)setContext:(NSString*)name
-   withInt32Value:(int32_t)value;
+-(void)setContextWithName:(nonnull NSString*)name
+               int64Value:(int64_t)value;
 
 /*!
  @brief Sets an integer context property for an event.
@@ -191,17 +173,35 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param value An integer that contains the context property value.
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
  */
--(void)setContext:(NSString*)name
-   withInt32Value:(int32_t)value
-      withPiiKind:(ODWPiiKind)piiKind;
+-(void)setContextWithName:(nonnull NSString*)name
+               int64Value:(int64_t)value
+                  piiKind:(ODWPiiKind)piiKind;
+
+/*!
+ @brief Sets an integer context property for an event.
+ @param name A string that contains the name of the context property.
+ @param value An integer that contains the context property value.
+ */
+-(void)setContextWithName:(nonnull NSString*)name
+               int32Value:(int32_t)value;
+
+/*!
+ @brief Sets an integer context property for an event.
+ @param name A string that contains the name of the context property.
+ @param value An integer that contains the context property value.
+ @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
+ */
+-(void)setContextWithName:(nonnull NSString*)name
+               int32Value:(int32_t)value
+                  piiKind:(ODWPiiKind)piiKind;
 
 /*!
  @brief Sets a BOOL context property for an event.
  @param name A string that contains the name of the context property.
  @param value A BOOL that contains the context property value.
  */
--(void)setContext:(NSString*)name
-    withBoolValue:(BOOL)value;
+-(void)setContextWithName:(nonnull NSString*)name
+                boolValue:(BOOL)value;
 
 /*!
  @brief Sets a BOOL context property for an event.
@@ -209,17 +209,17 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param value A BOOL that contains the context property value.
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
  */
--(void)setContext:(NSString*)name
-    withBoolValue:(BOOL)value
-      withPiiKind:(ODWPiiKind)piiKind;
+-(void)setContextWithName:(nonnull NSString*)name
+                boolValue:(BOOL)value
+                  piiKind:(ODWPiiKind)piiKind;
 
 /*!
  @brief Sets a UUID context property for an event.
  @param name A string that contains the name of the context property.
  @param value A UUID that contains the context property value.
  */
--(void)setContext:(NSString*)name
-    withUUIDValue:(NSUUID*)value;
+-(void)setContextWithName:(nonnull NSString*)name
+                UUIDValue:(nonnull NSUUID*)value;
 
 /*!
  @brief Sets a UUID context property for an event.
@@ -227,17 +227,17 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param value A UUID that contains the context property value.
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
  */
--(void)setContext:(NSString*)name
-    withUUIDValue:(NSUUID*)value
-      withPiiKind:(ODWPiiKind)piiKind;
+-(void)setContextWithName:(nonnull NSString*)name
+                UUIDValue:(nonnull NSUUID*)value
+                  piiKind:(ODWPiiKind)piiKind;
 
 /*!
  @brief Sets a date context property for an event.
  @param name A string that contains the name of the context property.
  @param value A date that contains the context property value.
  */
--(void)setContext:(NSString*)name
-    withDateValue:(NSDate*)value;
+-(void)setContextWithName:(nonnull NSString*)name
+                dateValue:(nonnull NSDate*)value;
 
 /*!
  @brief Sets a date context property for an event.
@@ -245,9 +245,9 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @param value A date that contains the context property value.
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
  */
--(void)setContext:(NSString*)name
-    withDateValue:(NSDate*)value
-      withPiiKind:(ODWPiiKind)piiKind;
+-(void)setContextWithName:(nonnull NSString*)name
+                dateValue:(nonnull NSDate*)value
+                  piiKind:(ODWPiiKind)piiKind;
 
 /*!
 Semantic context for this ODWLogger
