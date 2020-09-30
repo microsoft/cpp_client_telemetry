@@ -1,6 +1,7 @@
 #include "objc_begin.h"
 #import "ODWEventProperties.h"
 #import "ODWSemanticContext.h"
+#import "ODWCommonDataContext.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -116,6 +117,11 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  */
 -(void)logSessionWithState:(enum ODWSessionState)state
             eventProperties:(ODWEventProperties *)properties;
+
+/*!
+ @brief Initialize and get an instance of Privacy Guard.
+ */
+-(void)initializePrivacyGuardWithODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject;
 
 /*!
 Semantic context for this ODWLogger

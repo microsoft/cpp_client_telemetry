@@ -4,6 +4,7 @@
 #import "ODWLogConfiguration.h"
 #import "ODWSemanticContext.h"
 #import "ODWSemanticContext_private.h"
+#import "ODWPrivacyGuard_private.h"
 
 #include "EventProperties.hpp"
 
@@ -249,6 +250,11 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
         }
         [ODWLogger traceException: e.what()];
     }
+}
+
+-(void)initializePrivacyGuardWithODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
+{    
+    [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWCommonDataContext:commonDataContextsObject];
 }
 
 @end
