@@ -9,6 +9,24 @@ using namespace Microsoft::Applications::Events;
     static bool _enableTrace;
     static bool _surfaceCppExceptions;
 
++(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_STR_COLLECTOR_URL] = eventCollectorUri;
+}
+
++(void)setCacheMemorySizeLimitInBytes:(int)cacheMemorySizeLimitInBytes;
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_INT_RAM_QUEUE_SIZE] = cacheMemorySizeLimitInBytes;
+}
+
++(void)setCacheFileSizeLimitInBytes:(int)cacheFileSizeLimitInBytes;
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_INT_CACHE_FILE_SIZE] = cacheFileSizeLimitInBytes;
+}
+
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec
 {
     auto& config = LogManager::GetLogConfiguration();

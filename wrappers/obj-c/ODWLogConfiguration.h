@@ -6,6 +6,24 @@
 @interface ODWLogConfiguration : NSObject
 
 /*!
+@brief Sets the URI of the event collector.
+@param eventCollectorUri A string for event collector uri.
+*/
++(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri;
+
+/*!
+@brief Sets the RAM queue size limit in bytes.
+@param cacheMemorySizeLimitInBytes  An integer for memory size limit in bytes.
+*/
++(void)setCacheMemorySizeLimitInBytes:(int)cacheMemorySizeLimitInBytes;
+
+/*!
+@brief Sets the size limit of the disk file used to cache events on the client side.
+@param cacheFileSizeLimitInBytes  A n integer value for cache file size limit.
+*/
++(void)setCacheFileSizeLimitInBytes:(int)cacheFileSizeLimitInBytes;
+
+/*!
 @brief Sets max teardown upload time in seconds.
 @param maxTeardownUploadTimeInSec An integer that time in seconds.
 */
