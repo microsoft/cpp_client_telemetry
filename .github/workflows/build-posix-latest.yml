@@ -24,6 +24,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: include submodule to base repo
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
       run: git submodule update --init
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       env:
