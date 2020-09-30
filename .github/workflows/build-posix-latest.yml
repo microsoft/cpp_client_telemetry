@@ -29,4 +29,4 @@ jobs:
         GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
       run: | 
         git submodule update --init
-      run: ./build-tests.sh ${{ matrix.config }}
+       ./build-tests.sh ${{ matrix.config }}
