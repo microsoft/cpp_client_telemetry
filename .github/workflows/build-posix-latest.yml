@@ -23,8 +23,9 @@ jobs:
     
     steps:
     - uses: actions/checkout@v2
-    - name: include submodule to base repo
-      run: git submodule update --init
+      with:
+        ref: ${{ github.head_ref }}
+        submodules: 'recursive'
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
