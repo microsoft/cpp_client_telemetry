@@ -35,13 +35,13 @@ using namespace Microsoft::Applications::Events;
     return config[CFG_INT_RAM_QUEUE_SIZE];
 }
 
-+(void)setCacheFileSizeLimitInBytes:(unsigned int)cacheFileSizeLimitInBytes
++(void)setCacheFileSizeLimitInBytes:(uint64_t)cacheFileSizeLimitInBytes
 {
     auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_CACHE_FILE_SIZE] = cacheFileSizeLimitInBytes;
 }
 
-+(unsigned int)cacheFileSizeLimitInBytes
++(uint64_t)cacheFileSizeLimitInBytes
 {
     auto& config = LogManager::GetLogConfiguration();
     return config[CFG_INT_CACHE_FILE_SIZE];
