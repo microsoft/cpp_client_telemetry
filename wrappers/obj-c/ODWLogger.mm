@@ -22,7 +22,7 @@ using namespace MAT;
     self = [super init];
     if(self){
         _wrappedLogger = logger;
-		if([ODWLogConfiguration enableTrace])
+		if([ODWLogConfiguration enableConsoleLogging])
 		{
 	        NSLog(@"Logger initialized successfully");
 		}
@@ -38,7 +38,7 @@ using namespace MAT;
     PerformActionWithCppExceptionsCatch(^(void) {
         _wrappedLogger->LogEvent(event);
     });
-	if([ODWLogConfiguration enableTrace])
+	if([ODWLogConfiguration enableConsoleLogging])
 	{
 	    NSLog(@"Log event with name: %@",name);
 	}
@@ -99,7 +99,7 @@ using namespace MAT;
     PerformActionWithCppExceptionsCatch(^(void) {
         _wrappedLogger->LogEvent(event);
     });
-    if([ODWLogConfiguration enableTrace])
+    if([ODWLogConfiguration enableConsoleLogging])
     {
         NSLog(@"Log event with name: %@",[properties name]);
     }
@@ -118,7 +118,7 @@ using namespace MAT;
     PerformActionWithCppExceptionsCatch(^(void) {
         _wrappedLogger->LogFailure(strSignature, strDetail, event);
     });
-    if([ODWLogConfiguration enableTrace])
+    if([ODWLogConfiguration enableConsoleLogging])
     {
         NSLog(@"Log failure with signature: %@, detail: %@ and name: %@",signature, detail, [properties name]);
     }
@@ -141,7 +141,7 @@ using namespace MAT;
     PerformActionWithCppExceptionsCatch(^(void) {
         _wrappedLogger->LogFailure(strSignature, strDetail, strCategory, strId, event);
     });
-    if([ODWLogConfiguration enableTrace])
+    if([ODWLogConfiguration enableConsoleLogging])
     {
         NSLog(@"Log failure with signature %@, detail %@, category: %@, id: %@ and name: %@",signature, detail, category, identifier, [properties name]);
     }
@@ -160,7 +160,7 @@ using namespace MAT;
     PerformActionWithCppExceptionsCatch(^(void) {
         _wrappedLogger->LogPageView(strId, strPageName, event);
     });
-    if([ODWLogConfiguration enableTrace])
+    if([ODWLogConfiguration enableConsoleLogging])
     {
         NSLog(@"Log page view with id: %@, page name: %@ and name %@", identifier, pageName, [properties name]);
     }
@@ -185,7 +185,7 @@ using namespace MAT;
     PerformActionWithCppExceptionsCatch(^(void) {
         _wrappedLogger->LogPageView(strId, strPageName, strCategory, strUri, strReferrerUri, event);
     });
-    if([ODWLogConfiguration enableTrace])
+    if([ODWLogConfiguration enableConsoleLogging])
     {
         NSLog(@"Log page view with id: %@, page name: %@, category: %@, uri: %@, referrer uri: %@ and name %@", identifier, pageName, category, uri, referrerUri, [properties name]);
     }
@@ -203,7 +203,7 @@ using namespace MAT;
     PerformActionWithCppExceptionsCatch(^(void) {
         _wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
     });
-    if([ODWLogConfiguration enableTrace])
+    if([ODWLogConfiguration enableConsoleLogging])
     {
         NSLog(@"Log trace with level: %@, message: %@, name: %@", @(traceLevel), message, [properties name]);
     }
@@ -217,7 +217,7 @@ using namespace MAT;
     PerformActionWithCppExceptionsCatch(^(void) {
         _wrappedLogger->LogSession((SessionState)state, event);
     });
-    if([ODWLogConfiguration enableTrace])
+    if([ODWLogConfiguration enableConsoleLogging])
     {
         NSLog(@"Log session with state: %@, name: %@", @(state), [properties name]);
     }
@@ -225,7 +225,7 @@ using namespace MAT;
 
 +(void)traceException:(const char *)message
 {
-    if([ODWLogConfiguration enableTrace])
+    if([ODWLogConfiguration enableConsoleLogging])
     {
         NSLog(EXCEPTION_TRACE_FORMAT, message);
     }

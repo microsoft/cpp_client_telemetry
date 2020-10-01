@@ -7,6 +7,7 @@ using namespace Microsoft::Applications::Events;
 
 @implementation ODWLogConfiguration
     static bool _enableTrace;
+    static bool _enableConsoleLogging;
     static bool _surfaceCppExceptions;
 
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec
@@ -22,6 +23,11 @@ using namespace Microsoft::Applications::Events;
     _enableTrace = enableTrace;
 }
 
++(void)setConsoleLoggingEnabled:(bool)enableConsoleLogging
+{
+    _enableConsoleLogging = enableConsoleLogging;
+}
+
 +(void)setTraceLevel:(int)traceLevel
 {
     auto& config = LogManager::GetLogConfiguration();
@@ -31,6 +37,11 @@ using namespace Microsoft::Applications::Events;
 +(bool)enableTrace
 {
     return _enableTrace;
+}
+
++(bool)enableConsoleLogging
+{
+    return _enableConsoleLogging;
 }
 
 +(void)setSurfaceCppExceptions:(bool)surfaceCppExceptions
