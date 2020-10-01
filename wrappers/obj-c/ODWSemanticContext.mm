@@ -43,10 +43,14 @@ using namespace MAT;
     _wrappedSemanticContext->SetUserId(strUserId);
 }
 
--(void) setUntaggedUserId:(nonnull NSString*)userId
+-(void) setUserId:(nonnull NSString*)userId
+                  piiKind:(enum ODWPiiKind)pii
 {
-    std::string strUserId = std::string([userId UTF8String]);
-    _wrappedSemanticContext->SetUserId(strUserId, PiiKind_None);
+    if (pii == ODWPiiKindNone || pii == ODWPiiKindIdentity) {
+        PiiKind piiValue = PiiKind(pii);
+        std::string strUserId = std::string([userId UTF8String]);
+        _wrappedSemanticContext->SetUserId(strUserId, piiValue);
+    }
 }
 
 -(void) setDeviceId:(nonnull NSString*)deviceId
