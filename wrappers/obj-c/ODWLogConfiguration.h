@@ -18,6 +18,12 @@
 +(void)setEnableTrace:(bool)enableTrace;
 
 /*!
+@brief Sets if console logging is enabled.
+@param enableConsoleLogging True if logging is enabled.
+*/
++(void)setConsoleLoggingEnabled:(bool)enableConsoleLogging;
+
+/*!
 @brief Sets the internal SDK debugging trace level.
 @param one of the ACTTraceLevel values.
 */
@@ -27,6 +33,11 @@
 @brief Returns true if tracing is enabled.
 */
 +(bool)enableTrace;
+
+/*!
+@brief Returns true if console logging is enabled.
+*/
++(bool)enableConsoleLogging;
 
 /*!
 @brief Sets if inner C++ exceptions should be surfaced to Wrapper consumers.
