@@ -11,17 +11,25 @@ using namespace Microsoft::Applications::Events;
 
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
 {
+    std::string strCollectorUri = std::string([eventCollectorUri UTF8String]);
     auto& config = LogManager::GetLogConfiguration();
-    config[CFG_STR_COLLECTOR_URL] = eventCollectorUri;
+    config[CFG_STR_COLLECTOR_URL] = strCollectorUri;
 }
 
-+(void)setCacheMemorySizeLimitInBytes:(unsigned int)cacheMemorySizeLimitInBytes
++(nullable NSString *)eventCollectorUri
+{
+    auto& config = LogManager::GetLogConfiguration();
+    std::string strCollectorUri = config[CFG_STR_COLLECTOR_URL];
+    return [NSString stringWithUTF8String:strCollectorUri.c_str()];
+}
+
++(void)setCacheMemorySizeLimitInBytes:(uint64_t)cacheMemorySizeLimitInBytes
 {
     auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_RAM_QUEUE_SIZE] = cacheMemorySizeLimitInBytes;
 }
 
-+(unsigned int)cacheMemorySizeLimitInBytes
++(uint64_t)cacheMemorySizeLimitInBytes
 {
     auto& config = LogManager::GetLogConfiguration();
     return config[CFG_INT_RAM_QUEUE_SIZE];

@@ -34,7 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 -(void)setUserId:(nonnull NSString *)userId;
 
 /*!
- @brief Set the userId context information of telemetry event.Set the default Pii to PiiKind_None.
+ @brief Set the userId context information with PiiKind tag of PiiKind_None of telemetry event.
  @param userId Identifier that uniquely identifies a user in the application-specific user namespace.
  */
 -(void) setUntaggedUserId:(nonnull NSString*)userId;
