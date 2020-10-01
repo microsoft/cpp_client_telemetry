@@ -12,13 +12,13 @@
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec;
 
 /*!
-@brief Sets if tracing is enabled.
+@brief Sets if trace logging to file is enabled.
 @param enableTrace True if tracing is enabled.
 */
 +(void)setEnableTrace:(bool)enableTrace;
 
 /*!
-@brief Sets if console logging is enabled.
+@brief Sets if console logging from the iOS wrapper is enabled.
 @param enableConsoleLogging True if logging is enabled.
 */
 +(void)setEnableConsoleLogging:(bool)enableConsoleLogging;
