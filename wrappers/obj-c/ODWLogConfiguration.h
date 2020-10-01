@@ -12,15 +12,20 @@
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri;
 
 /*!
+@brief Returns the URI of the event collector.
+*/
++(nullable NSString *)eventCollectorUri;
+
+/*!
 @brief Sets the RAM queue size limit in bytes.
 @param cacheMemorySizeLimitInBytes  A long value for memory size limit in bytes.
 */
-+(void)setCacheMemorySizeLimitInBytes:(unsigned int)cacheMemorySizeLimitInBytes;
++(void)setCacheMemorySizeLimitInBytes:(uint64_t)cacheMemorySizeLimitInBytes;
 
 /*!
 @brief return the RAM queue size limit in bytes.
 */
-+(unsigned int)cacheMemorySizeLimitInBytes;
++(uint64_t)cacheMemorySizeLimitInBytes;
 
 /*!
 @brief Sets the size limit of the disk file used to cache events on the client side.
