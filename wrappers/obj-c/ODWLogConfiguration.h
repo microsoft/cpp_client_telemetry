@@ -21,7 +21,7 @@
 @brief Sets if console logging is enabled.
 @param enableConsoleLogging True if logging is enabled.
 */
-+(void)setConsoleLoggingEnabled:(bool)enableConsoleLogging;
++(void)setEnableConsoleLogging:(bool)enableConsoleLogging;
 
 /*!
 @brief Sets the internal SDK debugging trace level.

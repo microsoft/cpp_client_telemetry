@@ -23,7 +23,7 @@ using namespace Microsoft::Applications::Events;
     _enableTrace = enableTrace;
 }
 
-+(void)setConsoleLoggingEnabled:(bool)enableConsoleLogging
++(void)setEnableConsoleLogging:(bool)enableConsoleLogging
 {
     _enableConsoleLogging = enableConsoleLogging;
 }
