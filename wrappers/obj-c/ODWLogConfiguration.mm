@@ -20,7 +20,11 @@ using namespace Microsoft::Applications::Events;
 {
     auto& config = LogManager::GetLogConfiguration();
     std::string strCollectorUri = config[CFG_STR_COLLECTOR_URL];
-    return [NSString stringWithUTF8String:strCollectorUri.c_str()];
+    if (strCollectorUri.empty())
+    {
+        return nil;
+    }
+    return [NSString stringWithCString:strCollectorUri.c_str() encoding:NSUTF8StringEncoding];
 }
 
 +(void)setCacheMemorySizeLimitInBytes:(uint64_t)cacheMemorySizeLimitInBytes

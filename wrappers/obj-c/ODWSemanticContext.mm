@@ -39,17 +39,18 @@ using namespace MAT;
 
 -(void)setUserId:(nonnull NSString *)userId
 {
-    std::string strUserId = std::string([userId UTF8String]);
-    _wrappedSemanticContext->SetUserId(strUserId);
+    [self setUserId:userId piiKind:ODWPiiKindIdentity];
 }
 
 -(void) setUserId:(nonnull NSString*)userId
-                  piiKind:(enum ODWPiiKind)pii
+          piiKind:(enum ODWPiiKind)pii
 {
     if (pii == ODWPiiKindNone || pii == ODWPiiKindIdentity) {
         PiiKind piiValue = PiiKind(pii);
         std::string strUserId = std::string([userId UTF8String]);
         _wrappedSemanticContext->SetUserId(strUserId, piiValue);
+    } else {
+        [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"Invalid Pii type is passed. Expected ODWPiiKindNone or ODWPiiKindIdentity only."]];
     }
 }
 
