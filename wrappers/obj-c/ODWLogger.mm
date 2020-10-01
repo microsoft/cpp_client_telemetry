@@ -234,8 +234,11 @@ using namespace MAT;
                   piiKind:(enum ODWPiiKind)piiKind
 {
     std::string strName = std::string([name UTF8String]);
+    std::string strValue = std::string([value UTF8String]);
+    PiiKind contextPiiKind = PiiKind(piiKind);
+
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
+        _wrappedLogger->SetContext(strName, strValue, contextPiiKind);
     });
 }
 
@@ -250,8 +253,11 @@ using namespace MAT;
                   piiKind:(enum ODWPiiKind)piiKind
 {
     std::string strName = std::string([name UTF8String]);
+    bool boolValue = bool(value);
+    PiiKind contextPiiKind = PiiKind(piiKind);
+
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
+        _wrappedLogger->SetContext(strName, boolValue, contextPiiKind);
     });
 }
 
@@ -266,9 +272,11 @@ using namespace MAT;
                   piiKind:(enum ODWPiiKind)piiKind
 {
     std::string strName = std::string([name UTF8String]);
-    time_ticks_t ticks { static_cast<uint64_t>((static_cast<NSDate*>(value).timeIntervalSince1970 * ticksPerSecond) + ticksUnixEpoch) };
+    time_ticks_t ticks = [ODWLogger castNSDateToTicks:value];
+    PiiKind contextPiiKind = PiiKind(piiKind);
+
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, ticks, (PiiKind)piiKind);
+        _wrappedLogger->SetContext(strName, ticks, contextPiiKind);
     });
 }
 
@@ -283,24 +291,46 @@ using namespace MAT;
                   piiKind:(enum ODWPiiKind)piiKind
 {
     std::string strName = std::string([name UTF8String]);
+    PiiKind contextPiiKind = PiiKind(piiKind);
+
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
+        _wrappedLogger->SetContext(strName, value, contextPiiKind);
     });
 }
 
 -(void)setContextWithName:(nonnull NSString*)name
-                longValue:(int64_t)value
+                int32Value:(int32_t)value
 {
-    [self setContextWithName:name longValue:value piiKind:ODWPiiKindNone];
+    [self setContextWithName:name int32Value:value piiKind:ODWPiiKindNone];
 }
 
 -(void)setContextWithName:(nonnull NSString*)name
-                longValue:(int64_t)value
+                int32Value:(int32_t)value
                   piiKind:(enum ODWPiiKind)piiKind
 {
     std::string strName = std::string([name UTF8String]);
+    PiiKind contextPiiKind = PiiKind(piiKind);
+
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
+        _wrappedLogger->SetContext(strName, value, contextPiiKind);
+    });
+}
+
+-(void)setContextWithName:(nonnull NSString*)name
+                int64Value:(int64_t)value
+{
+    [self setContextWithName:name int64Value:value piiKind:ODWPiiKindNone];
+}
+
+-(void)setContextWithName:(nonnull NSString*)name
+                int64Value:(int64_t)value
+                  piiKind:(enum ODWPiiKind)piiKind
+{
+    std::string strName = std::string([name UTF8String]);
+    PiiKind contextPiiKind = PiiKind(piiKind);
+
+    PerformActionWithCppExceptionsCatch(^(void) {
+        _wrappedLogger->SetContext(strName, value, contextPiiKind);
     });
 }
 
@@ -315,13 +345,24 @@ using namespace MAT;
                   piiKind:(enum ODWPiiKind)piiKind
 {
     std::string strName = std::string([name UTF8String]);
-    uuid_t uuidBytes;
-    NSUUID* nsuuid = (NSUUID*)value;
-    [nsuuid getUUIDBytes:uuidBytes];
-    GUID_t guid { uuidBytes, true /*bigEndian*/ };
+    PiiKind contextPiiKind = PiiKind(piiKind);
+    GUID_t contextValue = [ODWLogger castNSUUIDToUUID:value];
+
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, (PiiKind)piiKind);
+        _wrappedLogger->SetContext(strName, contextValue, contextPiiKind);
     });
+}
+
++(time_ticks_t)castNSDateToTicks:(nonnull NSDate*)value
+{
+    return { static_cast<uint64_t>((value.timeIntervalSince1970 * ticksPerSecond) + ticksUnixEpoch) };
+}
+
++(GUID_t)castNSUUIDToUUID:(nonnull NSUUID*)value
+{
+    uuid_t uuidBytes;
+    [value getUUIDBytes:uuidBytes];
+    return { uuidBytes, true /*bigEndian*/ };
 }
 
 +(void)traceException:(const char *)message

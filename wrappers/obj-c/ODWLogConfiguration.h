@@ -31,12 +31,12 @@
 @brief Sets the size limit of the disk file used to cache events on the client side.
 @param cacheFileSizeLimitInBytes  A long value for cache file size limit.
 */
-+(void)setCacheFileSizeLimitInBytes:(unsigned int)cacheFileSizeLimitInBytes;
++(void)setCacheFileSizeLimitInBytes:(uint64_t)cacheFileSizeLimitInBytes;
 
 /*!
 @brief Returns the size limit of the disk file used to cache events on the client side.
 */
-+(unsigned int)cacheFileSizeLimitInBytes;
++(uint64_t)cacheFileSizeLimitInBytes;
 
 /*!
 @brief Sets max teardown upload time in seconds.
