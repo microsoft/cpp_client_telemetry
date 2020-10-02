@@ -194,6 +194,30 @@ namespace MAT_NS_BEGIN {
         return static_cast<unsigned>(m_lastReadCount);
     }
 
+    void MemoryStorage::DeleteAllRecords()
+    {
+        {
+            LOCKGUARD(m_reserved_lock);
+            if (m_reserved_records.size())
+            {
+                m_reserved_records.clear();
+            }
+        }
+        {
+            LOCKGUARD(m_records_lock);
+            for (unsigned latency = EventLatency_Off; (latency <= EventLatency_Max); latency++)
+            {
+                auto& records = m_records[latency];
+                if (records.size()) {
+                    records.clear();
+                }
+            }
+            m_size = 0;
+            m_lastReadCount = 0;
+        }
+
+    }
+
     void MemoryStorage::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
         auto matcher = [&](const StorageRecord &r, const std::map<std::string, std::string> & whereFilter)
@@ -399,6 +423,19 @@ namespace MAT_NS_BEGIN {
 
         LOG_WARN("Not implemented!");
         return std::string();
+    }
+
+    /// <summary>
+    /// Deleting settings from RAM storage is not supported
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    bool MemoryStorage::DeleteSetting(std::string const & name)
+    {
+        UNREFERENCED_PARAMETER(name);
+
+        LOG_WARN("Not implemented!");
+        return false;
     }
     
     /// <summary>
