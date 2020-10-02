@@ -1375,6 +1375,15 @@ class Logger implements ILogger {
     clearNative();
   }
 
+  /**
+   * Package-private method to get the native pointer for ILogger*
+   * @return long representing the native pointer for ILogger *
+   */
+  long getNativeILoggerPtr()
+  {
+    return m_nativePtr;
+  }
+
   public synchronized void clearNative() {
     m_nativePtr = 0;
   }

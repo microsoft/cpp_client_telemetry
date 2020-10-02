@@ -35,10 +35,12 @@ namespace MAT_NS_BEGIN {
 
         virtual void DeleteRecords(const std::map<std::string, std::string> & whereFilter) override;
         virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
+        virtual void DeleteAllRecords() override;
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
 
         virtual bool StoreSetting(std::string const& name, std::string const& value) override;
         virtual std::string GetSetting(std::string const& name) override;
+        virtual bool DeleteSetting(std::string const& name) override;
 
         virtual size_t GetSize() override;
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;

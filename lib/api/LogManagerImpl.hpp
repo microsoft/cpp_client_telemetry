@@ -274,6 +274,7 @@ namespace MAT_NS_BEGIN
 
         virtual IDataViewerCollection& GetDataViewerCollection() override;
         virtual const IDataViewerCollection& GetDataViewerCollection() const override;
+        virtual status_t DeleteData() override;
 
         /// <summary>
         /// Get a reference to this log manager diagnostic level filter

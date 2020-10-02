@@ -148,6 +148,12 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 		  ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
   		)
 	endif()
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+          list(APPEND SRCS
+          ../wrappers/obj-c/ODWCommonDataContext.mm
+          ../wrappers/obj-c/ODWPrivacyGuard.mm
+          )
+    endif()
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.

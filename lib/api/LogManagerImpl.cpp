@@ -803,5 +803,19 @@ namespace MAT_NS_BEGIN
         return m_dataInspector;
     }
 
+    status_t LogManagerImpl::DeleteData()
+    {
+        // cleanup offline storage
+        if (m_offlineStorage) {
+            m_offlineStorage->DeleteAllRecords();
+        }
+        //cleanup log session ( UUID ).
+        if (m_logSessionDataProvider) 
+        {
+            m_logSessionDataProvider->DeleteLogSessionData();
+        }
+        return STATUS_SUCCESS;
+    }
+
 }
 MAT_NS_END
