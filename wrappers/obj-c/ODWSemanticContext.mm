@@ -25,10 +25,45 @@ using namespace MAT;
     _wrappedSemanticContext->SetAppId(strAppId);
 }
 
+-(void) setAppVersion:(nonnull NSString*)appVersion
+{
+    std::string strAppVersion = std::string([appVersion UTF8String]);
+    _wrappedSemanticContext->SetAppVersion(strAppVersion);
+}
+
+-(void) setAppLanguage:(nonnull NSString*)appLanguage
+{
+    std::string strAppLanguage = std::string([appLanguage UTF8String]);
+    _wrappedSemanticContext->SetAppLanguage(strAppLanguage);
+}
+
 -(void)setUserId:(nonnull NSString *)userId
 {
-    std::string strUserId = std::string([userId UTF8String]);
-    _wrappedSemanticContext->SetUserId(strUserId);
+    [self setUserId:userId piiKind:ODWPiiKindIdentity];
+}
+
+-(void) setUserId:(nonnull NSString*)userId
+          piiKind:(enum ODWPiiKind)pii
+{
+    if (pii == ODWPiiKindNone || pii == ODWPiiKindIdentity) {
+        PiiKind piiValue = PiiKind(pii);
+        std::string strUserId = std::string([userId UTF8String]);
+        _wrappedSemanticContext->SetUserId(strUserId, piiValue);
+    } else {
+        [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"Invalid Pii type is passed. Expected ODWPiiKindNone or ODWPiiKindIdentity only."]];
+    }
+}
+
+-(void) setDeviceId:(nonnull NSString*)deviceId
+{
+    std::string strDeviceId = std::string([deviceId UTF8String]);
+    _wrappedSemanticContext->SetDeviceId(strDeviceId);
+}
+
+-(void) setUserTimeZone:(nonnull NSString*)userTimeZone
+{
+    std::string strUserTimeZone = std::string([userTimeZone UTF8String]);
+    _wrappedSemanticContext->SetUserTimeZone(strUserTimeZone);
 }
 
 -(void)setUserAdvertisingId:(nonnull NSString *)userAdvertisingId
