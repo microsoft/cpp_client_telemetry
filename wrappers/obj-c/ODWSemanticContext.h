@@ -1,3 +1,5 @@
+#import "ODWEventProperties.h"
+
 #include "objc_begin.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -14,10 +16,44 @@ NS_ASSUME_NONNULL_BEGIN
 -(void)setAppId:(NSString *)appId;
 
 /*!
+ @brief Set the application version context information of telemetry event.
+ @param appVersion Version of the application, retrieved programmatically where possible and is app/platform specific.
+ */
+-(void) setAppVersion:(nonnull NSString*)appVersion;
+
+/*!
+ @brief Set the application language context information of telemetry event.
+ @param appLanguage A string that contains the spoken/written language used in the application.
+ */
+-(void) setAppLanguage:(nonnull NSString*)appLanguage;
+
+/*!
  @brief Specifies a unique user id to be included with every event
  @param userId A string that contains the unique user identifier.
  */
 -(void)setUserId:(nonnull NSString *)userId;
+
+/*!
+ @brief Set the userId context information of telemetry event.
+ @details <b>Note:</b> You can set the pii value to ODWPiiKindNone and ODWPiiKindIdentity only.
+ Setting other pii values produces a <i>no-op</i>.
+ @param userId Identifier that uniquely identifies a user in the application-specific user namespace.
+ @param pii PIIKind of the userId. Set it to PiiKind_None to denote it as non-PII.
+ */
+-(void) setUserId:(nonnull NSString*)userId
+          piiKind:(enum ODWPiiKind)pii;
+
+/*!
+ @brief Set the device identifier context information of telemetry event.
+ @param deviceId A unique device identifier, retrieved programmatically where possible and is app/platform specific.
+ */
+-(void) setDeviceId:(nonnull NSString*)deviceId;
+
+/*!
+ @brief Set the user time zone context information of telemetry event.
+ @param userTimeZone user's time zone relative to UTC, in ISO 8601 time zone format
+ */
+-(void) setUserTimeZone:(nonnull NSString*)userTimeZone;
 
 /*!
  @brief Specifies a unique user advertising id to be included with every event
