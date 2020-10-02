@@ -25,8 +25,10 @@ class MockIOfflineStorage : public MAT::IOfflineStorage {
     MOCK_METHOD4(ReleaseRecords, void(std::vector<MAT::StorageRecordId> const &, bool, MAT::HttpHeaders, bool&));
     MOCK_METHOD2(StoreSetting, bool(std::string const &, std::string const &));
     MOCK_METHOD1(GetSetting, std::string(std::string const &));
+    MOCK_METHOD1(DeleteSetting, bool(std::string const &));
     MOCK_METHOD0(GetSize, size_t());
     MOCK_METHOD1(DeleteRecords, void(const std::map<std::string, std::string> &));
+    MOCK_METHOD0(DeleteAllRecords, void());
     MOCK_CONST_METHOD1(GetRecordCount, size_t(MAT::EventLatency));
     MOCK_METHOD3(GetRecords, std::vector<MAT::StorageRecord>(bool, MAT::EventLatency, unsigned));
 	MOCK_METHOD0(ResizeDb, bool());
