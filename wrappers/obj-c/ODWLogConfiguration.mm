@@ -7,6 +7,7 @@ using namespace Microsoft::Applications::Events;
 
 @implementation ODWLogConfiguration
     static bool _enableTrace;
+    static bool _enableConsoleLogging;
     static bool _surfaceCppExceptions;
 
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
@@ -64,6 +65,11 @@ using namespace Microsoft::Applications::Events;
     _enableTrace = enableTrace;
 }
 
++(void)setEnableConsoleLogging:(bool)enableConsoleLogging
+{
+    _enableConsoleLogging = enableConsoleLogging;
+}
+
 +(void)setTraceLevel:(int)traceLevel
 {
     auto& config = LogManager::GetLogConfiguration();
@@ -73,6 +79,11 @@ using namespace Microsoft::Applications::Events;
 +(bool)enableTrace
 {
     return _enableTrace;
+}
+
++(bool)enableConsoleLogging
+{
+    return _enableConsoleLogging;
 }
 
 +(void)setSurfaceCppExceptions:(bool)surfaceCppExceptions

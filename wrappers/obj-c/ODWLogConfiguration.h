@@ -45,10 +45,16 @@
 +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec;
 
 /*!
-@brief Sets if tracing is enabled.
+@brief Sets if trace logging to file is enabled.
 @param enableTrace True if tracing is enabled.
 */
 +(void)setEnableTrace:(bool)enableTrace;
+
+/*!
+@brief Sets if console logging from the iOS wrapper is enabled.
+@param enableConsoleLogging True if logging is enabled.
+*/
++(void)setEnableConsoleLogging:(bool)enableConsoleLogging;
 
 /*!
 @brief Sets the internal SDK debugging trace level.
@@ -60,6 +66,11 @@
 @brief Returns true if tracing is enabled.
 */
 +(bool)enableTrace;
+
+/*!
+@brief Returns true if console logging is enabled.
+*/
++(bool)enableConsoleLogging;
 
 /*!
 @brief Sets if inner C++ exceptions should be surfaced to Wrapper consumers.
