@@ -10,7 +10,7 @@ if "%ANDROID_SDK_ROOT%"== "" (
   echo Set default Android SDK path ...
   set "ANDROID_SDK_ROOT=C:\Android\android-sdk"
   set "ANDROID_HOME=%ANDROID_SDK_ROOT%"
-  set "ANDROID_NDK=%ANDROID_SDK_ROOT%"\ndk\20.0.5594570"
+  set "ANDROID_NDK=%ANDROID_SDK_ROOT%\ndk\21.1.6352462"
   set "ANDROID_NDK_HOME=%ANDROID_NDK%"
 )
 
