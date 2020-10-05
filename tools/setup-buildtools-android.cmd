@@ -29,4 +29,5 @@ if exist ".buildtools" (
   echo y | call sdkmanager.bat --install --include_obsolete --verbose --sdk_root=%ANDROID_SDK_ROOT% "ndk-bundle" "cmake;3.10.2.4988404" "ndk;21.1.6352462"
   popd
   popd
+  copy NUL .buildtools
 )
