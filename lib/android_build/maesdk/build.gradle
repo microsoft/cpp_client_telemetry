@@ -5,14 +5,10 @@ plugins {
 
 apply plugin: 'com.android.library'
 
+apply from: "$rootProject.projectDir/tools.gradle"
+
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
-
-
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
