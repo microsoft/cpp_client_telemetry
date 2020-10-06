@@ -410,6 +410,16 @@ namespace MAT_NS_BEGIN
             return STATUS_EPERM;  // Permission denied
         }
 
+        // <summary>
+        // Delete local strorage data
+        static status_t DeleteData()
+        {
+            if (isHost())
+                LM_SAFE_CALL(GetLogController()->DeleteData);
+            return STATUS_EPERM;  // Permission denied
+        }
+
+
 #endif
 
         /// <summary>Get profile name based on built-in profile enum<summary>
