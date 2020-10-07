@@ -1,4 +1,8 @@
-﻿#define LOG_MODULE DBG_DLLLOAD
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
+#define LOG_MODULE DBG_DLLLOAD
 // Including SDKDDKVer.h defines the highest available Windows platform.
 
 // If you wish to build your application for a previous Windows platform, include WinSDKVer.h and
@@ -33,3 +37,4 @@ BOOL APIENTRY DllMain(HMODULE /* hModule */, DWORD ul_reason_for_call, LPVOID /*
     }
     return TRUE;
 }
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "api/LogManagerImpl.hpp"
 #include "common/Common.hpp"
 
@@ -149,3 +152,4 @@ TEST(LogManagerImplTests, Constructor_DataViewerCollectionIsNotNullptr_DataViewe
     TestLogManagerImpl logManager{configuration, true};
     ASSERT_NO_THROW(logManager.GetDataViewerCollection());
 }
+
