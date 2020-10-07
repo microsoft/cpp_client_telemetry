@@ -81,7 +81,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         IBandwidthController*            m_bandwidthController;
 
         std::recursive_mutex             m_backoffMutex;
-        std::string                      m_backoffConfig { DefaultBackoffConfig }; // TODO: [MG] - move to config
+        std::string                      m_backoffConfig { DefaultBackoffConfig };
         std::unique_ptr<IBackoff>        m_backoff;
         DeviceStateHandler               m_deviceStateHandler;
 

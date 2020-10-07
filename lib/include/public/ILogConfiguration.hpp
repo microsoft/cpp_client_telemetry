@@ -264,6 +264,16 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_MODULE_DECORATOR = "decorator";
 
     /// <summary>
+    /// IDecorator override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_PRIVACY_GUARD = "privacy_guard";
+
+    /// <summary>
+    /// IDecorator override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_OFFLINE_STORAGE = "offlineStorage";
+
+    /// <summary>
     /// Pointer to the Android app's JavaVM
     /// </summary>
     static constexpr const char* const CFG_PTR_ANDROID_JVM = "android_jvm";

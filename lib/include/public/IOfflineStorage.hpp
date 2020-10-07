@@ -1,11 +1,25 @@
-// Copyright (c) Microsoft. All rights reserved.
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+//
+// This code is licensed under the MIT License (MIT).
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+///////////////////////////////////////////////////////////////////////////////
 #ifndef IOFFLINESTORAGE_HPP
 #define IOFFLINESTORAGE_HPP
 
-#include "pal/PAL.hpp"
 #include "Enums.hpp"
 #include "IHttpClient.hpp"
 #include "ctmacros.hpp"
+#include "ILogManager.hpp"
 
 #include <functional>
 #include <string>
@@ -118,8 +132,11 @@ namespace MAT_NS_BEGIN {
         virtual void OnStorageRecordsSaved(size_t numRecords) = 0;
     };
 
-    class IOfflineStorage {
+    class IOfflineStorage
+    {
     public:
+
+        IOfflineStorage() noexcept = default;
         virtual ~IOfflineStorage() noexcept = default;
 
         /// <summary>
@@ -224,6 +241,11 @@ namespace MAT_NS_BEGIN {
         virtual unsigned LastReadRecordCount() = 0;
 
         /// <summary>
+        /// Delete all records from storage
+        /// </summary>
+        virtual void DeleteAllRecords() = 0;
+
+        /// <summary>
         /// Bulk delete records using "where" clause.
         /// Specify condition using key-value pairs in the map.
         /// </summary>
@@ -255,6 +277,16 @@ namespace MAT_NS_BEGIN {
         /// <param name="incrementRetryCount">Determines whether the retry
         /// counter should be incremented for the records</param>
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) = 0;
+
+        /// <summary>
+        /// Delete value of an auxiliary persistent configuration value
+        /// </summary>
+        /// <remarks>
+        /// If a setting with the specified name does not exist, success is returned.
+        /// </remarks>
+        /// <param name="name">Name of the setting to retrieve</param>
+        /// <returns>Status of operation</returns>
+        virtual bool DeleteSetting(std::string const& name) = 0;
 
         /// <summary>
         /// Set value of an auxiliary persistent configuration value
@@ -316,6 +348,11 @@ namespace MAT_NS_BEGIN {
 
         virtual void ReleaseAllRecords() {};
 
+    };
+
+    // IOfflineStorage as Module. External offline storage implementations need to inherit from it.
+    class IOfflineStorageModule : public IOfflineStorage, public IModule
+    {
     };
 
 

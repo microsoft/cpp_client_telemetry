@@ -57,8 +57,10 @@ vcpkg install gtest:x64-windows
 vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
 vcpkg install ms-gsl:x64-windows
 
-REM Required for LLVM Clang build on Windows
-call install-llvm.cmd
+if DEFINED INSTALL_LLVM (
+  REM Required for LLVM Clang build on Windows
+  call install-llvm.cmd
+)
 
 popd
 exit /b 0

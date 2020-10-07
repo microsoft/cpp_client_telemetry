@@ -73,7 +73,6 @@ namespace MAT_NS_BEGIN {
         uint32_t ramSizeLimit = m_config[CFG_INT_RAM_QUEUE_SIZE];
         m_DbSizeHeapLimit = ramSizeLimit;
 
-        // TODO: [MG] - this needs to be moved into constant
         const char* skipSqliteInit = m_config["skipSqliteInitAndShutdown"];
         if (skipSqliteInit != nullptr)
         {
@@ -139,7 +138,6 @@ namespace MAT_NS_BEGIN {
         // TODO: [MG] - this works, but may not play nicely with several LogManager instances
         // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
 
-        // TODO: [MG] - verify this codepath
         if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
@@ -260,7 +258,6 @@ namespace MAT_NS_BEGIN {
 #endif
             SqliteStatement releaseStmt(*m_db, m_stmtReleaseExpiredEvents);
 
-            // FIXME: [MG] - add error checking here
             if (!releaseStmt.execute(PAL::getUtcSystemTimeMs()))
                 LOG_ERROR("Failed to release expired reserved events: Database error occurred");
             else {
@@ -377,6 +374,13 @@ namespace MAT_NS_BEGIN {
             }
         }
         return records;
+    }
+
+    void OfflineStorage_SQLite::DeleteAllRecords()
+    {
+        std::string sql = "DELETE FROM "  TABLE_NAME_EVENTS ;
+        Execute(sql);
+
     }
 
     void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
@@ -621,6 +625,31 @@ namespace MAT_NS_BEGIN {
         return result;
     }
 
+    bool OfflineStorage_SQLite::DeleteSetting(std::string const& name)
+    {
+        if (name.empty()) {
+            LOG_ERROR("Failed to delete setting \"%s\": Name cannot be empty", name.c_str());
+            return false;
+        }
+        if (!isOpen()) {
+            LOG_ERROR("Oddly closed");
+            return false;
+        }
+#ifdef ENABLE_LOCKING
+        DbTransaction transaction(m_db.get());
+        if (!transaction.locked)
+        {
+            LOG_WARN("Failed to delete setting \"%s\"", name.c_str());
+            return false;
+        }
+#endif
+        if(!SqliteStatement(*m_db, m_stmtDeleteSetting_name).execute(name))
+        {
+            LOG_ERROR("Failed to delete setting \"%s\": Database error occurred, recreating database", name.c_str());
+            return false;
+        }
+        return true;
+    }
 
     bool OfflineStorage_SQLite::recreate(unsigned failureCode)
     {
@@ -656,8 +685,7 @@ namespace MAT_NS_BEGIN {
             std::ostringstream tempPragma;
             tempPragma << "PRAGMA temp_store_directory = '" << GetTempDirectory() << "'";
             SqliteStatement(*m_db, tempPragma.str().c_str()).select();
-            const char * result = sqlite3_temp_directory;
-            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", result);
+            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", sqlite3_temp_directory);
         }
 
         int openedDbVersion;
@@ -686,7 +714,6 @@ namespace MAT_NS_BEGIN {
             }
         }
 
-        // FIXME: [MG] - migration code is missing for this scenario since we renamed property to latency!!!
         if (!SqliteStatement(*m_db,
             "CREATE TABLE IF NOT EXISTS " TABLE_NAME_EVENTS " ("
             "record_id"      " TEXT,"

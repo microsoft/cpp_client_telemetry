@@ -1,6 +1,8 @@
 message("--- unittests")
 
 set(SRCS
+  AIJsonSerializerTests.cpp
+  AITelemetrySystemTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
   ClockSkewManagerTests.cpp
@@ -42,6 +44,9 @@ set(SRCS
   TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
   UtilsTests.cpp
+  ECSClientTests.cpp
+  ECSClientUtilsTests.cpp
+  ECSConfigCacheTests.cpp
 )
 
 if (APPLE)
@@ -50,6 +55,13 @@ if (APPLE)
   else()
     list(APPEND SRCS SysInfoUtilsTests_Mac.cpp)
   endif()
+endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+  add_definitions(-DHAVE_MAT_PRIVACYGUARD)
+  list(APPEND SRCS
+    PrivacyGuardFuncTests.cpp
+  )
 endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
@@ -117,6 +129,7 @@ else()
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
@@ -124,6 +137,7 @@ else()
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
