@@ -814,6 +814,10 @@ namespace MAT_NS_BEGIN
         {
             m_logSessionDataProvider->DeleteLogSessionData();
         }
+
+        if (GetSystem()) {
+            GetSystem()->abort();
+        }
         return STATUS_SUCCESS;
     }
 
