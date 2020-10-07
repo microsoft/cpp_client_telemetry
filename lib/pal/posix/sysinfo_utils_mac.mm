@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "sysinfo_utils_apple.hpp"
 #include <sys/sysctl.h>
@@ -79,3 +82,4 @@ std::string GetDeviceOsRelease()
     // GetDeviceOsVersion() returns string in this same format
     return GetDeviceOsVersion();
 }
+

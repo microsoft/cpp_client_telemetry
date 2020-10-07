@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifdef _MSC_VER
 // evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
 #pragma warning(disable : 4459)
@@ -819,3 +822,4 @@ namespace MAT_NS_BEGIN
 
 }
 MAT_NS_END
+
