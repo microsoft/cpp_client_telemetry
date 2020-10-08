@@ -805,9 +805,9 @@ namespace MAT_NS_BEGIN
 
     status_t LogManagerImpl::DeleteData()
     {
-
         // cleanup pending http requests
-        if (GetSystem()) {
+        if (GetSystem()) 
+        {
             GetSystem()->abort();
         }
     
