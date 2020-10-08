@@ -806,18 +806,21 @@ namespace MAT_NS_BEGIN
     status_t LogManagerImpl::DeleteData()
     {
 
-        if (m_logSessionDataProvider) 
-        {
-            m_logSessionDataProvider->DeleteLogSessionData();
-        }
-
+        // cleanup pending http requests
         if (GetSystem()) {
             GetSystem()->abort();
         }
-
+    
+        // cleanup log session ( UUID)
         if (m_logSessionDataProvider)
         {
             m_logSessionDataProvider->DeleteLogSessionData();
+        }
+    
+        // cleanup offline storage ( this will also cleanup retry queue for http requests
+        if (m_offlineStorage) 
+        {	
+            m_offlineStorage->DeleteAllRecords();	
         }
 
         return STATUS_SUCCESS;
