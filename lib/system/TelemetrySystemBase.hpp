@@ -109,7 +109,7 @@ namespace MAT_NS_BEGIN {
             {
                 if (m_isPaused.exchange(false))
                 {
-                    onPause();
+                    onAbort();
                 }
             }
         };
