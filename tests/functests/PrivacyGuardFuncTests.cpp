@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 
 #if defined __has_include && defined(HAVE_MAT_PRIVACYGUARD)
@@ -953,3 +956,4 @@ TEST_F(PrivacyGuardFuncTests, PrivacyGuardDisabled_IdentifyEmail_NothingFound)
     ASSERT_FALSE(privacyConcernLogCalled);
 }
 #endif
+

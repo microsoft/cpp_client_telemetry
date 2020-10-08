@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "DataViewerCollection.hpp"
 #include <algorithm>
 #include <mutex>
@@ -109,3 +113,4 @@ namespace MAT_NS_BEGIN {
         return nullptr;
     }
 } MAT_NS_END
+

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package main
 
 import (
@@ -48,8 +52,8 @@ func main() {
 	// trap SIGABRT and SIGTERM
 	registerSignalHandler()
 
-    // 1DSCppSdkTest sandbox key
-	token  := "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
+	// 1DSCppSdkTest sandbox key
+	token  := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-xxxx"
 
 	fmt.Println("Hello from Microsoft Telemetry-Go!\n")
 	logger := EventLogger.NewEventLogger()
