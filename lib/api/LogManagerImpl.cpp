@@ -805,11 +805,7 @@ namespace MAT_NS_BEGIN
 
     status_t LogManagerImpl::DeleteData()
     {
-        // cleanup offline storage
-        if (m_offlineStorage) {
-            m_offlineStorage->DeleteAllRecords();
-        }
-        //cleanup log session ( UUID ).
+
         if (m_logSessionDataProvider) 
         {
             m_logSessionDataProvider->DeleteLogSessionData();
@@ -818,6 +814,12 @@ namespace MAT_NS_BEGIN
         if (GetSystem()) {
             GetSystem()->abort();
         }
+
+        if (m_logSessionDataProvider)
+        {
+            m_logSessionDataProvider->DeleteLogSessionData();
+        }
+
         return STATUS_SUCCESS;
     }
 
