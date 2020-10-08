@@ -81,8 +81,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FuncTests", "..\tests\funct
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win10-lib", "win10-lib\win10-lib.vcxproj", "{7A75748D-5D6B-48A5-83CB-F5F439133D59}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tracing-api", "..\lib\tracing\api\tracing-api.vcxitems", "{4DA18A2A-8752-45EA-A2F1-212A959619F4}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32-mini-dll", "win32-mini-dll\win32-mini-dll.vcxproj", "{216A8E97-21F7-4BEF-9E52-7F772C177C33}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32-mini-lib", "win32-mini-lib\win32-mini-lib.vcxproj", "{1DC6B38A-B390-34CE-907F-4958807A3D43}"
@@ -198,7 +196,6 @@ Global
 		..\lib\pal\universal\universal.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		..\lib\shared\Shared.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
-		..\lib\tracing\api\tracing-api.vcxitems*{4da18a2a-8752-45ea-a2f1-212a959619f4}*SharedItemsImports = 9
 		..\lib\modules\azmon\azmon.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		..\lib\modules\dataviewer\dataviewer.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		..\lib\modules\exp\exp.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4

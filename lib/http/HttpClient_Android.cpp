@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "HttpClient_Android.hpp"
 #include <algorithm>
 #include <jni.h>
@@ -501,3 +505,4 @@ Java_com_microsoft_applications_events_HttpClient_dispatchCallback(
 	// callback will own response
 	callback->OnHttpResponse(response);
 }
+

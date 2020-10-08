@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -1404,3 +1408,4 @@ TEST(APITest, Custom_Decorator)
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)
+
