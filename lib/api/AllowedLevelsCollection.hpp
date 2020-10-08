@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef ALLOWEDLEVELSCOLLECTION_HPP
 #define ALLOWEDLEVELSCOLLECTION_HPP
 
@@ -33,3 +36,4 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif // ALLOWEDLEVELSCOLLECTION_HPP
+

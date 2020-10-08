@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 // clang-format off
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
@@ -257,3 +261,4 @@ namespace PAL_NS_BEGIN {
 } PAL_NS_END
 
 #endif
+

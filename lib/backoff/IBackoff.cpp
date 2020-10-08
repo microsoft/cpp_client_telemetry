@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "IBackoff.hpp"
 #include "Backoff_ExponentialWithJitter.hpp"
@@ -39,3 +42,4 @@ std::unique_ptr<IBackoff> IBackoff::createFromConfig(std::string const& config)
 
 
 } MAT_NS_END
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
@@ -343,3 +346,4 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
 
 }
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
+

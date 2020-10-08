@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef OFFLINESTORAGEFACTORY_HPP
 #define OFFLINESTORAGEFACTORY_HPP
 
@@ -19,3 +22,4 @@ MAT_NS_END
 #endif // HAVE_MAT_STORAGE
 
 #endif  // HTTPCLIENTFACTORY_HPP
+

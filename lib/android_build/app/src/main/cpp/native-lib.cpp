@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "gtest/gtest.h"
 #include <android/log.h>
 #include <jni.h>
@@ -161,3 +165,4 @@ Java_com_microsoft_applications_events_maesdktest_SDKUnitNativeTest_nativeGetDat
     auto property = GetEventProperty(env, jProperty);
     return static_cast<int>(property.dataCategory);
 }
+

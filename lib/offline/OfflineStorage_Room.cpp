@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "OfflineStorage_Room.hpp"
 #include <cmath>
 #include <exception>
@@ -1047,3 +1051,4 @@ Java_com_microsoft_applications_events_OfflineRoom_connectContext(
 {
     ::Microsoft::Applications::Events::OfflineStorage_Room::ConnectJVM(env, context);
 }
+

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include <jni.h>
 #include <include/public/EventProperties.hpp>
 #include <include/public/IDataInspector.hpp>
@@ -47,3 +51,4 @@ namespace MAT_NS_BEGIN
                                                        jobjectArray outOfScopeIdentifiers);
 
 } MAT_NS_END
+
