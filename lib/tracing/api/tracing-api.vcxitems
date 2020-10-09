@@ -16,7 +16,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)DebugLogger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DebugProviders.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)sha1.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)/../../../../third_party/sha1/sha1.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)sha1-wincrypt.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -24,7 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)sha1-wincrypt.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)sha1.c">
+    <ClCompile Include="$(MSBuildThisFileDirectory)/../../../../third_party/sha1/sha1.c">
       <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
   </ItemGroup>

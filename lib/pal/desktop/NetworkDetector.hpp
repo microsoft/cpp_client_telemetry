@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef NETWORKDETECTOR_HPP
 #define NETWORKDETECTOR_HPP
 #include "mat/config.h"

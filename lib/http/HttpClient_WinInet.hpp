@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef HTTPCLIENT_WININET_HPP
 #define HTTPCLIENT_WININET_HPP
 
@@ -48,3 +51,4 @@ class HttpClient_WinInet : public IHttpClient {
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENT_WININET_HPP
+
