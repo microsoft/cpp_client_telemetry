@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef WIN10_CS
 /* This module is compiled only for .NET 4.x managed build */
 #include "pch.h"
