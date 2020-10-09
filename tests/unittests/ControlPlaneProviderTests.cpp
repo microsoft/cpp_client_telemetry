@@ -1,5 +1,8 @@
 #if 0
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "IControlPlane.hpp"
@@ -44,3 +47,4 @@ TEST(ControlPlaneProviderTests, GetControlPlane_ConfigHasV0Size_ConfigHasCachePa
     ASSERT_NE(nullptr, ControlPlaneProvider::GetControlPlane(config));
 }
 #endif
+

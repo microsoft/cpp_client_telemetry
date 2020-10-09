@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import java.util.ArrayList;
@@ -380,3 +384,4 @@ public interface ILogger extends AutoCloseable {
      */
     public void setLevel(final DiagnosticLevel level);
 }
+

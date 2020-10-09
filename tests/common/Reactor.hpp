@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef REACTOR_HPP
 #define REACTOR_HPP
 
@@ -87,4 +90,5 @@ class Reactor : protected Thread
 }
 
 #endif
+
 

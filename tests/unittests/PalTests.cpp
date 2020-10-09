@@ -1,5 +1,8 @@
 #if 0
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "common/MockISemanticContext.hpp"
@@ -474,3 +477,4 @@ TEST_F(PalTests, SdkVersion)
     EXPECT_THAT(PAL::getSdkVersion(), Eq(v));
 }
 #endif
+
