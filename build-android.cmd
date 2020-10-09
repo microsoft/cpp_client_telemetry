@@ -18,12 +18,12 @@ set "PATH=%ANDROID_SDK_ROOT%\cmake\%ANDROID_CMAKE_VERSION%\bin;%ANDROID_NDK%;%PA
 
 echo Building SDK
 pushd .\lib\android_build
-call .\gradlew.bat assemble
+call .\gradlew.bat assemble %*
 popd
 
 echo Building Tests
 pushd .\lib\android_build
-call .\gradlew.bat maesdk:test
+call .\gradlew.bat maesdk:test %*
 popd
 
 popd
