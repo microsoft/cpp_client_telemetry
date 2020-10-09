@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 #ifdef HAVE_MAT_STORAGE
 
@@ -970,3 +973,4 @@ namespace MAT_NS_BEGIN {
     
 } MAT_NS_END
 #endif
+

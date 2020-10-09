@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef DEBUGLOGGER_HPP
 #define DEBUGLOGGER_HPP
 /// <summary>
@@ -792,3 +796,4 @@ constexpr const char* const BASENAME(const char * const path)
 #define __FILENAME__ (const char * const)(__FILE__+CONST_UINT32_T(basename_index_const(__FILE__)))
 
 #endif
+

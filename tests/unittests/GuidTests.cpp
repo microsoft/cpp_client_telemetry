@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "utils/Utils.hpp"
@@ -53,3 +56,4 @@ TEST(GuidTests, Ctor_InputIsTooLong_IgnoresExtraData)
     GUID_t guid("{9D016D64-372E-4DCE-9FA3-0D0772217C54CoCougs");
     ASSERT_EQ("9D016D64-372E-4DCE-9FA3-0D0772217C54", guid.to_string());
 }
+

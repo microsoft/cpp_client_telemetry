@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include "IOfflineStorage.hpp"
@@ -22,3 +25,4 @@ class MockIOfflineStorageObserver : public MAT::IOfflineStorageObserver {
 
 
 } // namespace testing
+
