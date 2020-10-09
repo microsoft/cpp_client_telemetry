@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "MetaStats.hpp"
 
@@ -627,3 +630,4 @@ namespace MAT_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_CLASS(RecordStats, "EventsSDK.RecordStats", "RecordStats");
 
 } MAT_NS_END
+
