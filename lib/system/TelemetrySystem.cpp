@@ -135,7 +135,7 @@ namespace MAT_NS_BEGIN {
             return tpm.start();
         };
 
-        onAbort = [this](void)
+        onCleanup = [this](void)
         {
             bool result = true;
             hcm.cancelAllRequests();

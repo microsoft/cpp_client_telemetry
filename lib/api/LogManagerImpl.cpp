@@ -806,9 +806,12 @@ namespace MAT_NS_BEGIN
     status_t LogManagerImpl::DeleteData()
     {
         // cleanup pending http requests
-        if (GetSystem()) 
         {
-            GetSystem()->abort();
+            LOCKGUARD(m_lock);
+            if (GetSystem()) 
+            {
+                GetSystem()->cleanup();
+            }
         }
     
         // cleanup log session ( UUID)
