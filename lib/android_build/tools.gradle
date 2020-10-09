@@ -1,0 +1,17 @@
+android {
+
+    compileSdkVersion    = 29
+
+    buildToolsVersion    = "29.0.3"
+
+    ndkVersion           = System.getenv("ANDROID_NDK_VERSION") ?: "21.1.6352462"
+
+    defaultConfig {
+        minSdkVersion    = 19
+        targetSdkVersion = 29
+    }
+}
+
+if (file('tools.gradle.user').exists()) {
+  apply from: 'tools.gradle.user'
+}
