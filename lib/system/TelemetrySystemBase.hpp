@@ -37,7 +37,7 @@ namespace MAT_NS_BEGIN {
             onStop   = []() { return true; };
             onPause  = []() { return true; };
             onResume = []() { return true; };
-            onAbort  = []() { return true; };
+            onCleanup  = []() { return true; };
         };
         
         /// <summary>
@@ -103,13 +103,13 @@ namespace MAT_NS_BEGIN {
         /// <summary>
         /// Aborts events upload
         /// </summary>
-        virtual void abort() override
+        virtual void cleanup() override
         {
             if (m_isStarted)
             {
                 if (m_isPaused.exchange(false))
                 {
-                    onAbort();
+                    onCleanup();
                 }
             }
         };
@@ -186,7 +186,7 @@ namespace MAT_NS_BEGIN {
         std::function<bool(void)>                                  onStop;
         std::function<bool(void)>                                  onPause;
         std::function<bool(void)>                                  onResume;
-        std::function<bool(void)>                                  onAbort;
+        std::function<bool(void)>                                  onCleanup;
 
     // TODO: [MG] - clean this up - get rid of RouteSource
     public:
