@@ -17,6 +17,21 @@ The Room database implementation adds one additional initialization requirement,
 
 If you are building on Windows, this helper script [build-android.cmd](../build-android.cmd) is provided to illustrate how to deploy the necessary SDK and NDK dependencies. Once you installed the necessary dependencies, you may use Android Studio IDE for local builds. See [ide.cmd](../lib/android_build/ide.cmd) that shows how to build the project from IDE. The `app` project (`maesdktest`) allows to build and run all SDK tests on either emulator or real Android device. While the tests are running, you can monitor the test results in logcat output.
 
+Default environment variables used by `build-android.cmd` script:
+
+```console
+
+set "ANDROID_NDK_VERSION=21.1.6352462"
+set "ANDROID_CMAKE_VERSION=3.10.2.4988404"
+set "ANDROID_SDK_ROOT=C:\Android\android-sdk"
+set "ANDROID_HOME=%ANDROID_SDK_ROOT%"
+set "ANDROID_NDK=%ANDROID_SDK_ROOT%\ndk\%ANDROID_NDK_VERSION%"
+set "ANDROID_NDK_HOME=%ANDROID_NDK%"
+
+```
+
+You can specify your own versions of dependencies as needed.
+
 ## 3. Integrate the SDK into your C++ project
 
 If you use the lib/android_build Gradle files, they build the SDK into maesdk.aar in the output folders of the maesdk module in lib/android. You can package or consume this AAR in your applications modules, just as you would any other AAR.
