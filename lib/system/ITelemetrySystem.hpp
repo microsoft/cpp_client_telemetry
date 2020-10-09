@@ -29,7 +29,7 @@ namespace MAT_NS_BEGIN {
         virtual void pause() = 0;
         virtual void resume() = 0;
         virtual bool upload() = 0;
-        virtual void abort() = 0;
+        virtual void cleanup() = 0;
 
         // Access to common core components
         virtual ILogManager& getLogManager() = 0;
