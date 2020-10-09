@@ -15,7 +15,7 @@ On Android, there are two database implementations to choose from. By default (t
 
 The Room database implementation adds one additional initialization requirement, since it needs a pointer to the JVM and an object reference to the application context. See below (4.5) for the required call to either ```connectContext``` (in Java) or ```ConnectJVM``` (in C++) to set this up.
 
-If you are building on Windows, a helper script [build-android.cmd](../build-android.cmd) is provided to illustrate how to deploy the necessary SDK and NDK dependencies. Once you installed the necessary dependencies, you may use Android Studio IDE for local builds. See [ide.cmd](../lib/android_build/ide.cmd).
+If you are building on Windows, this helper script [build-android.cmd](../build-android.cmd) is provided to illustrate how to deploy the necessary SDK and NDK dependencies. Once you installed the necessary dependencies, you may use Android Studio IDE for local builds. See [ide.cmd](../lib/android_build/ide.cmd) that shows how to build the project from IDE. The `app` project (`maesdktest`) allows to build and run all SDK tests on either emulator or real Android device. While the tests are running, you can monitor the test results in logcat output.
 
 ## 3. Integrate the SDK into your C++ project
 
