@@ -1,9 +1,14 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -12,75 +17,76 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
-class TrimTransaction implements Callable<Long>
-{
-    OfflineRoom m_room = null;
-    long m_byteLimit = 0;
-
-    public TrimTransaction(OfflineRoom room, long byteLimit)
+@Keep
+public class OfflineRoom implements AutoCloseable {
+    class TrimTransaction implements Callable<Long>
     {
-        m_room = room;
-        m_byteLimit = byteLimit;
-    }
+        OfflineRoom m_room = null;
+        long m_byteLimit = 0;
 
-    protected long vacuum(long pre) {
-        try (Cursor c = m_room.m_db.query("VACUUM", null)) {};
-        long post = m_room.totalSize();
-        Log.i("MAE", String.format(
+        public TrimTransaction(OfflineRoom room, long byteLimit)
+        {
+            m_room = room;
+            m_byteLimit = byteLimit;
+        }
+
+        protected long vacuum(long pre) {
+            try (Cursor c = m_room.m_db.query("VACUUM", null)) {};
+            long post = m_room.totalSize();
+            Log.i("MAE", String.format(
                 "Vacuum: %d before, %d after",
                 pre,
                 post));
-        return post;
-    }
-
-    public Long call()
-    {
-        if (m_room == null || m_byteLimit == 0) {
-            return null;
-        }
-        long currentSize = m_room.totalSize();
-        if (currentSize <= m_byteLimit) {
-            return new Long(0);
-        }
-        long postVacuum = currentSize;
-        try {
-            postVacuum = vacuum(currentSize);
-        } catch (Exception e) {
-            Log.e("MAE", "Exception in VACUUM", e);
-            postVacuum = currentSize;
-        }
-        if (postVacuum <= m_byteLimit) {
-            return new Long(0);
+            return post;
         }
 
-        long records = m_room.m_srDao.totalRecordCount();
-        double fraction = 0.25; // fraction of current to be dropped
-        if (m_byteLimit > m_room.m_pageSize) {
-            double dLimit = m_byteLimit;
-            double dCurrent = postVacuum;
-            fraction = Math.max(0.25, 1.0 - (dLimit / dCurrent));
-        }
-        long to_drop = (long) Math.ceil(fraction * records);
-        if (to_drop <= 0) {
-            return new Long(0);
-        }
-        long recordsDropped = m_room.m_srDao.trim(to_drop);
-        long postDrop = m_room.totalSize();
-        long reVacuum = postDrop;
-        if (postDrop > m_byteLimit) {
-            reVacuum = vacuum(postDrop);
-        }
-        Log.i(
+        public Long call()
+        {
+            if (m_room == null || m_byteLimit == 0) {
+                return null;
+            }
+            long currentSize = m_room.totalSize();
+            if (currentSize <= m_byteLimit) {
+                return new Long(0);
+            }
+            long postVacuum = currentSize;
+            try {
+                postVacuum = vacuum(currentSize);
+            } catch (Exception e) {
+                Log.e("MAE", "Exception in VACUUM", e);
+                postVacuum = currentSize;
+            }
+            if (postVacuum <= m_byteLimit) {
+                return new Long(0);
+            }
+
+            long records = m_room.m_srDao.totalRecordCount();
+            double fraction = 0.25; // fraction of current to be dropped
+            if (m_byteLimit > m_room.m_pageSize) {
+                double dLimit = m_byteLimit;
+                double dCurrent = postVacuum;
+                fraction = Math.max(0.25, 1.0 - (dLimit / dCurrent));
+            }
+            long to_drop = (long) Math.ceil(fraction * records);
+            if (to_drop <= 0) {
+                return new Long(0);
+            }
+            long recordsDropped = m_room.m_srDao.trim(to_drop);
+            long postDrop = m_room.totalSize();
+            long reVacuum = postDrop;
+            if (postDrop > m_byteLimit) {
+                reVacuum = vacuum(postDrop);
+            }
+            Log.i(
                 "MAE", String.format(
-                "Trim: dropped %d records, new size %d bytes",
-                recordsDropped,
-                reVacuum));
-        return new Long(recordsDropped);
+                    "Trim: dropped %d records, new size %d bytes",
+                    recordsDropped,
+                    reVacuum));
+            return new Long(recordsDropped);
 
+        }
     }
-}
 
-public class OfflineRoom implements AutoCloseable {
     OfflineRoomDatabase m_db = null;
     StorageRecordDao m_srDao = null;
     StorageSettingDao m_settingDao = null;
@@ -295,3 +301,4 @@ public class OfflineRoom implements AutoCloseable {
 
     public static native void connectContext(Context context);
 }
+

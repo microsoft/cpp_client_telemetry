@@ -14,7 +14,13 @@
     <ClCompile Include="BondDecoderTests.cpp" />
     <ClCompile Include="EventDecoderListener.cpp" />
     <ClCompile Include="LogSessionDataFuncTests.cpp" />
+    <ClInclude Include="ECSClientCommon.hpp" />
+    <ClCompile Include="ECSConfigCacheFuncTests.cpp" />
+    <ClCompile Include="ECSClientFuncTests.cpp" />
+    <ClCompile Include="ECSClientRealworldFuncTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
+    <ClCompile Include="AISendTests.cpp" />
+    <ClCompile Include="PrivacyGuardFuncTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">

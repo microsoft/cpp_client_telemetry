@@ -1,6 +1,11 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "common/Common.hpp"
 #include <functional>
 #include <LogSessionData.hpp>
+#include "offline/LogSessionDataProvider.hpp"
 #include "utils/FileUtils.hpp"
 #include "utils/StringUtils.hpp"
 
@@ -29,13 +34,6 @@ class LogSessionDataFuncTests : public ::testing::Test
     {
         CleanupLocalSessionFile();
     }
-};
-
-class TestLogSessionData : public LogSessionData
-{
-public:
-    TestLogSessionData(const std::string& cacheFilePath)
-        : LogSessionData(cacheFilePath) { }
 };
 
 void ConstructSesFile(const char* sessionFile, const std::string& contents)
@@ -71,43 +69,55 @@ std::pair<unsigned long long, std::string> ReadPropertiesFromSessionFile(const c
     return std::make_pair(std::stoull(sessionFirstTime), skuID);
 }
 
-TEST_F(LogSessionDataFuncTests, Constructor_SessionFile_FileCreated)
+TEST(LogSessionDataFuncTests, Constructor_SessionFile_FileCreated)
 {
-    LogSessionData logSessionData{ SessionFileArgument };
+    auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
+    logSessionDataProvider.CreateLogSessionData();
+    auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+    UNREFERENCED_PARAMETER(logSessionData);
     ASSERT_TRUE(MAT::FileExists(SessionFile));
 }
 
-TEST_F(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToExistingFile)
+TEST(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToExistingFile)
 {
     const std::string validSessionFirstTime{ "123456" };
     const std::string validSkuId{ "abc123" };
     ConstructSesFile(SessionFile, validSessionFirstTime, validSkuId);
-    LogSessionData logSessionData{ SessionFileArgument };
 
-    ASSERT_EQ(logSessionData.getSessionFirstTime(), 123456ull);
-    ASSERT_EQ(logSessionData.getSessionSDKUid(), validSkuId);
+    auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
+    logSessionDataProvider.CreateLogSessionData();
+    auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+
+    ASSERT_EQ(logSessionData->getSessionFirstTime(), 123456ull);
+    ASSERT_EQ(logSessionData->getSessionSDKUid(), validSkuId);
 }
 
-TEST_F(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_MembersRegenerated)
+TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_MembersRegenerated)
 {
     const std::string invalidSessionFirstTime{ "not-a-number" };
     const std::string validSkuId{ "abc123" };
     ConstructSesFile(SessionFile, invalidSessionFirstTime, validSkuId);
-    LogSessionData logSessionData{ SessionFileArgument };
 
-    ASSERT_NE(logSessionData.getSessionFirstTime(), 123456ull);
-    ASSERT_NE(logSessionData.getSessionSDKUid(), validSkuId);
+    auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
+    logSessionDataProvider.CreateLogSessionData();
+    auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+
+    ASSERT_NE(logSessionData->getSessionFirstTime(), 123456ull);
+    ASSERT_NE(logSessionData->getSessionSDKUid(), validSkuId);
 }
 
-TEST_F(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWritten)
+TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWritten)
 {
     const std::string invalidSessionFirstTime{ "not-a-number" };
     const std::string validSkuId{ "abc123" };
     ConstructSesFile(SessionFile, invalidSessionFirstTime, validSkuId);
-    LogSessionData logSessionData{ SessionFileArgument };
 
+    auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
+    logSessionDataProvider.CreateLogSessionData();
+    auto logSessionData =  logSessionDataProvider.GetLogSessionData();
     auto properties = ReadPropertiesFromSessionFile(SessionFile);
 
-    ASSERT_EQ(logSessionData.getSessionFirstTime(), properties.first);
-    ASSERT_EQ(logSessionData.getSessionSDKUid(), properties.second);
+    ASSERT_EQ(logSessionData->getSessionFirstTime(), properties.first);
+    ASSERT_EQ(logSessionData->getSessionSDKUid(), properties.second);
 }
+

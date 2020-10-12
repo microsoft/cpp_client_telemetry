@@ -1,0 +1,32 @@
+name: SDK with exp - Build and Run Unit/Functional tests on Windows
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+    - buildme/*
+  pull_request:
+    branches:
+    - master
+  schedule:
+  - cron: 0 2 * * 1-5
+
+jobs:
+  test:
+    name: Test on Windows ${{ matrix.arch }}-${{ matrix.config }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        arch: [Win32, x64]
+        config: [Release, Debug]
+        os: [windows-2016]
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Test ${{ matrix.arch }} ${{ matrix.config }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
+      shell: cmd
+      run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.config }} %CD%\Solutions\build.compact-exp.props

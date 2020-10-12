@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef MAT_VARIANT_HPP
 #define MAT_VARIANT_HPP
 
@@ -35,7 +38,7 @@ public ref class VariantLockGuard { public: static Object ^ lock = gcnew Object(
 #endif
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class Variant;
 
@@ -59,6 +62,7 @@ namespace ARIASDK_NS_BEGIN
 
     // Shortcut for VariantArray constructor
     // const auto ARR = Variant::from_array;
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
+

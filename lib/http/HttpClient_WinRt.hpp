@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef HTTPCLIENT_WINRT_HPP
 #define HTTPCLIENT_WINRT_HPP
 
@@ -21,7 +24,7 @@ using namespace ::Windows::Web::Http;
 using namespace ::Windows::Web::Http::Filters;
 using namespace ::Windows::Web::Http::Headers;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 class WinRtRequestWrapper;
 
@@ -47,8 +50,9 @@ class HttpClient_WinRt : public IHttpClient {
     friend class WinRtRequestWrapper;
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENT_WINRT_HPP
+

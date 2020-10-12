@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 
@@ -17,6 +20,7 @@
 #include "http/HttpResponseDecoder.hpp"
 
 #include "offline/StorageObserver.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 #include "IOfflineStorage.hpp"
 #include "ITaskDispatcher.hpp"
 
@@ -25,7 +29,7 @@
 #include "tpm/TransmissionPolicyManager.hpp"
 #include "ClockSkewDelta.h"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class NullCompression
     {
@@ -44,7 +48,8 @@ namespace ARIASDK_NS_BEGIN {
             IOfflineStorage& offlineStorage,
             IHttpClient& httpClient,
             ITaskDispatcher& taskDispatcher,
-            IBandwidthController* bandwidthController
+            IBandwidthController* bandwidthController,
+            LogSessionDataProvider& logSessionDataProvider
         );
 
         ~TelemetrySystem();
@@ -75,4 +80,5 @@ namespace ARIASDK_NS_BEGIN {
         RouteSink<TelemetrySystem, IncomingEventContextPtr const&> incomingEventPrepared{ this, &TelemetrySystem::handleIncomingEventPrepared };
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

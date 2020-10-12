@@ -1,9 +1,13 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "StringUtils.hpp"
 
 using std::string;
 using std::vector;
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     void StringUtils::SplitString(const string& s, const char separator, vector<string>& parts)
     {
@@ -32,4 +36,4 @@ namespace ARIASDK_NS_BEGIN
         return (stringToTest.find_first_not_of(whitelist) == string::npos);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END

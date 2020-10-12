@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft. All rights reserved.
-
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "BandwidthController_ResourceManager.hpp"
 #include "ResourceManager/RMPublic_BitStream.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
 BandwidthController_ResourceManager::BandwidthController_ResourceManager(::resource_manager2::ResourceManagerPtr const& rm)
@@ -55,4 +57,5 @@ unsigned BandwidthController_ResourceManager::GetProposedBandwidthBps()
 }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

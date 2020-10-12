@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef HTTPCLIENTFACTORY_HPP
 #define HTTPCLIENTFACTORY_HPP
 
@@ -7,7 +10,7 @@
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 class HttpClientFactory
 {
@@ -18,7 +21,7 @@ private:
     MATSDK_LOG_DECL_COMPONENT_CLASS();
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 // TODO: [maxgolov] - remove this once there is a better way to pass HTTP client configuration
 #if defined(MATSDK_PAL_WIN32) && !defined(_WINRT_DLL)

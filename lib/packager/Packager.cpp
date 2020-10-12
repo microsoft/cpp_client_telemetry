@@ -1,11 +1,14 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "Packager.hpp"
 #include "ILogManager.hpp"
 #include "utils/Utils.hpp"
 #include <algorithm>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     Packager::Packager(IRuntimeConfig& runtimeConfig)
         : m_config(runtimeConfig)
@@ -17,17 +20,13 @@ namespace ARIASDK_NS_BEGIN {
         }
     }
 
-    Packager::~Packager()
-    {
-    }
-
     void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, StorageRecord const& record, bool& wantMore)
     {
         try {
             if (ctx->maxUploadSize == 0) {
                 ctx->maxUploadSize = m_config.GetMaximumUploadSizeBytes();
             }
-            if (ctx->splicer.getSizeEstimate() + record.blob.size() > ctx->maxUploadSize) {
+            if (ctx->splicer->getSizeEstimate() + record.blob.size() > ctx->maxUploadSize) {
                 wantMore = false;
                 if (!ctx->recordIdsAndTenantIds.empty()) {
                     LOG_TRACE("Maximum upload size %u bytes exceeded, not adding the next event (ID %s, size %u bytes)",
@@ -53,16 +52,10 @@ namespace ARIASDK_NS_BEGIN {
             auto it = ctx->packageIds.lower_bound(tenantToken);
             if (it == ctx->packageIds.end() || it->first != tenantToken)
             {
-                DataPackage package;
-                package.Type = "Client";
-                package.Source = "act_default_source"; // from ReferenceSDK
-                package.Version = BUILD_VERSION_STR;
-                package.DataPackageId = PAL::generateUuidString();
-                package.Timestamp = PAL::getUtcSystemTimeMs();
-                it = ctx->packageIds.insert(it, { tenantToken, ctx->splicer.addDataPackage(tenantToken, package) });
+                it = ctx->packageIds.insert(it, { tenantToken, ctx->splicer->addTenantToken(tenantToken) });
             }
 
-            ctx->splicer.addRecord(it->second, record.blob);
+            ctx->splicer->addRecord(it->second, record.blob);
 
             ctx->recordIdsAndTenantIds[record.id] = record.tenantToken;
             ctx->recordTimestamps.push_back(record.timestamp);
@@ -81,11 +74,12 @@ namespace ARIASDK_NS_BEGIN {
             return;
         }
 
-        ctx->body = ctx->splicer.splice();
-        ctx->splicer.clear();
+        ctx->body = ctx->splicer->splice();
+        ctx->splicer->clear();
 
         packagedEvents(ctx);
     }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

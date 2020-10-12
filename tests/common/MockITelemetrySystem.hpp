@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include <system/ITelemetrySystem.hpp>
@@ -34,6 +37,11 @@ namespace testing {
             static RuntimeConfig_Default testConfig(config);
             return testConfig;
         }
+        
+        EventsUploadContextPtr createEventsUploadContext() override
+        {
+            return std::make_shared<EventsUploadContext>();
+        }
 
         MOCK_METHOD0(getContext, ISemanticContext&());
         MOCK_METHOD1(DispatchEvent, bool(DebugEvent evt));
@@ -49,3 +57,4 @@ namespace testing {
     };
 
 }  // namespace MAT_NS_BEGIN
+

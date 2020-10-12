@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "sysinfo_utils_apple.hpp"
 #import <Foundation/Foundation.h>
@@ -38,3 +41,18 @@ std::string GetDeviceId()
         }
     }
 }
+
+std::string GetDeviceOsVersion()
+{
+    // Previous implementation pointed to "ProductVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
+    // systemVersion returns string in this same format
+    return std::string { [[[UIDevice currentDevice] systemVersion] UTF8String] };
+}
+
+std::string GetDeviceOsRelease()
+{
+    // Previous implementation pointed to "ProductUserVisibleVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
+    // systemVersion returns string in this same format
+    return std::string { [[[UIDevice currentDevice] systemVersion] UTF8String] };
+}
+

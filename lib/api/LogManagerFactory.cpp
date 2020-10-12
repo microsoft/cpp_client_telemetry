@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "LogManagerFactory.hpp"
 #include "LogManagerImpl.hpp"
 
@@ -13,7 +17,7 @@
 
 #include <ctime>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     // This mutex has to be recursive because we allow both
     // Destroy and destrutor to lock it. destructor could be
@@ -119,7 +123,7 @@ namespace ARIASDK_NS_BEGIN
             {
                 exclusive[name] = {{name}, Create(c)};
             }
-            c["hostMode"] = true;
+            c[CFG_BOOL_HOST_MODE] = true;
             return exclusive[name].instance;
         }
 
@@ -129,7 +133,7 @@ namespace ARIASDK_NS_BEGIN
             // There are some items already. This guest doesn't care
             // where to go, so it goes to the first host's pool.
             shared[shared.begin()->first].names.insert(name);
-            c["hostMode"] = false;
+            c[CFG_BOOL_HOST_MODE] = false;
             return shared[shared.begin()->first].instance;
         }
 
@@ -153,9 +157,8 @@ namespace ARIASDK_NS_BEGIN
             shared[host].names.insert(name);
         }
 
-        // TODO: [MG] - if there was no module configuration supplied
-        // explicitly, then do we treat the client as host or guest?
-        c["hostMode"] = (name == host);
+        // If there was no module configuration supplied explicitly, then do we treat the client as host or guest?
+        c[CFG_BOOL_HOST_MODE] = (name == host);
         return shared[host].instance;
     }
 
@@ -250,4 +253,5 @@ namespace ARIASDK_NS_BEGIN
     }
 
 }
-ARIASDK_NS_END
+MAT_NS_END
+

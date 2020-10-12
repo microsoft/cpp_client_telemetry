@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "TelemetrySystem.hpp"
 #include "utils/Utils.hpp"
@@ -6,7 +9,7 @@
 
 #include "mat/config.h"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 /// <summary>
 /// Initializes a new instance of the <see cref="TelemetrySystem"/> class.
@@ -23,7 +26,8 @@ namespace ARIASDK_NS_BEGIN {
         IOfflineStorage& offlineStorage,
         IHttpClient& httpClient,
         ITaskDispatcher& taskDispatcher,
-        IBandwidthController* bandwidthController)
+        IBandwidthController* bandwidthController,
+        LogSessionDataProvider& logSessionDataProvider)
         :
         TelemetrySystemBase(logManager, runtimeConfig, taskDispatcher),
         compression(runtimeConfig),
@@ -34,14 +38,17 @@ namespace ARIASDK_NS_BEGIN {
         packager(runtimeConfig),
         tpm(*this, taskDispatcher, bandwidthController)
     {
-        
+
         // Handler for start
-        onStart = [this](void)
+        onStart = [this, &logSessionDataProvider](void)
         {
             bool result = true;
             result&=storage.start();
             result&=tpm.start();
-            result&=stats.onStart(); // TODO: [MG]- readd this
+            // TODO: clarify how UTC subsystem initializes LogSessionData m_storageType=SessionStorageType::FileStore ?
+            // We may not necessarily compile in SQLite support for UTC min-build. For now we assume nullptr.
+            logSessionDataProvider.CreateLogSessionData();
+            result&=stats.onStart();
             return result;
         };
 
@@ -189,7 +196,7 @@ namespace ARIASDK_NS_BEGIN {
         size_t recordCount = storage.GetRecordCount();
         if (recordCount)
         {
-            tpm.scheduleUpload(0, EventLatency_Normal, true);
+            tpm.scheduleUpload(std::chrono::milliseconds {}, EventLatency_Normal, true);
             return true;
         }
 
@@ -198,7 +205,7 @@ namespace ARIASDK_NS_BEGIN {
 
     void TelemetrySystem::handleIncomingEventPrepared(IncomingEventContextPtr const& event)
     {
-        uint32_t maxBlobSize = m_config["tpm"]["maxBlobSize"];
+        uint32_t maxBlobSize = m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_BLOB_BYTES];
         if (event->record.blob.size() > maxBlobSize)
         {
             DebugEvent evt;
@@ -219,4 +226,5 @@ namespace ARIASDK_NS_BEGIN {
         signalDone();
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

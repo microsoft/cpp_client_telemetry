@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef MAT_ENUMS_HPP
 #define MAT_ENUMS_HPP
 
@@ -12,7 +15,7 @@
 #include <sys/errno.h>
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -68,7 +71,9 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>Backward compatibility transmission mode.</summary>
         SdkModeTypes_UTCBackCompat = 1,
         /// <summary>Common schema transmission mode.</summary>
-        SdkModeTypes_UTCCommonSchema = 2
+        SdkModeTypes_UTCCommonSchema = 2,
+        /// <summary>Transmission to AppInsights endpoint.</summary>
+        SdkModeTypes_AI = 3
     };
 
     /// <summary>
@@ -563,6 +568,7 @@ namespace ARIASDK_NS_BEGIN
 
     constexpr const static unsigned gc_NumDroppedReasons = DROPPED_REASON_COUNT;
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif //EVENTPRIORITY_H
+

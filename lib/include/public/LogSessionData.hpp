@@ -1,52 +1,46 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef LOGSESSIONDATA_HPP
 #define LOGSESSIONDATA_HPP
 
 #include "Version.hpp"
 
 #include <string>
+#include <cstdint>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
-
-    /// <summary>
-    /// The LogSessionData class represents the session cache.
-    /// </summary>
     class LogSessionData
     {
     public:
-        /// <summary>
-        /// The LogSessionData constructor, taking a cache file path.
-        /// </summary>
-        LogSessionData(std::string const& cacheFilePath);
+
+        LogSessionData(
+            uint64_t sessionFirstTimeLaunch,
+            std::string sessionSDKUid)
+            :
+            m_sessionFirstTimeLaunch(sessionFirstTimeLaunch),
+            m_sessionSDKUid(sessionSDKUid)
+        {
+        }
 
         /// <summary>
         /// Gets the time that this session began.
         /// </summary>
         /// <returns>A 64-bit integer that contains the time.</returns>
-        unsigned long long getSessionFirstTime() const
-        {
-            return m_sessionFirstTimeLaunch;
-        }
+        uint64_t getSessionFirstTime() const;
 
         /// <summary>
         /// Gets the SDK unique identifier.
         /// </summary>
-        std::string getSessionSDKUid() const
-        {
-            return m_sessionSDKUid;
-        }
+        std::string getSessionSDKUid() const;
 
     protected:
-
-        void open(const std::string& path);
-
-        bool parse(const std::string& cacheContents);
-
-        std::string                         m_sessionSDKUid;
-        unsigned long long                  m_sessionFirstTimeLaunch;
+        const uint64_t                m_sessionFirstTimeLaunch{0ull};
+        const std::string             m_sessionSDKUid;
     };
 
-
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
+

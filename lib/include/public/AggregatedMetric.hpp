@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef AGGREGATEDMETRIC_HPP
 #define AGGREGATEDMETRIC_HPP
 
@@ -6,7 +9,7 @@
 
 #include "ILogger.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     namespace Models {
@@ -72,5 +75,5 @@ namespace ARIASDK_NS_BEGIN
 
     } // Models
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif

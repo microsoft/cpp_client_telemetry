@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "HttpClientManager.hpp"
 #include "utils/Utils.hpp"
@@ -22,7 +25,7 @@
 // Linux and Mac OS X with libcurl require an async handler for now
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
     class HttpClientManager::HttpCallback : public IHttpResponseCallback
@@ -63,7 +66,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual ~HttpCallback()
         {
-            LOG_TRACE("destroy HTTP callback=%p ctx=%p", this, m_ctx);
+            LOG_TRACE("destroy HTTP callback=%p ctx=%p", this, m_ctx.get());
         }
 
     public:
@@ -152,4 +155,5 @@ namespace ARIASDK_NS_BEGIN {
 
     // start async cancellation
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

@@ -1,4 +1,7 @@
-/* Copyright (c) Microsoft. All rights reserved. */
+/*
+ * Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #ifndef MAT_COMMONFIELDS_H
 #define MAT_COMMONFIELDS_H
 
@@ -14,12 +17,12 @@
 
 #define COMMONFIELDS_APP_EXPERIMENTIDS                       "AppInfo.ExperimentIds"
 #define COMMONFIELDS_APP_EXPERIMENTETAG                      "AppInfo.ETag"
-#define COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID            "AppInfo.ImpressionId"
 
 #define COMMONFIELDS_DEVICE_ID                               "DeviceInfo.Id"
 #define COMMONFIELDS_DEVICE_MAKE                             "DeviceInfo.Make"
 #define COMMONFIELDS_DEVICE_MODEL                            "DeviceInfo.Model"
 #define COMMONFIELDS_DEVICE_CLASS                            "DeviceInfo.Class"
+#define COMMONFIELDS_DEVICE_ORGID                            "DeviceInfo.OrgId"
 
 #define COMMONFIELDS_NETWORK_PROVIDER                        "DeviceInfo.NetworkProvider"
 #define COMMONFIELDS_NETWORK_TYPE                            "DeviceInfo.NetworkType"
@@ -57,6 +60,7 @@
 #define SESSION_FIRST_TIME                                   "Session.FirstLaunchTime"
 #define SESSION_STATE                                        "Session.State"
 #define SESSION_ID                                           "Session.Id"
+#define SESSION_IMPRESSION_ID                                "Session.ImpressionId"
 #define SESSION_DURATION                                     "Session.Duration"
 #define SESSION_DURATION_BUCKET                              "Session.DurationBucket"
 #define SESSION_ID_LEGACY                                    "act_session_id"
@@ -107,7 +111,6 @@
 #define DIAG_LEVEL_DEFAULT_MAX                          DIAG_LEVEL_OPTIONAL
 #endif
 
-/* TODO: [MG] - this field does not exist in Common Schema. Move it away from DeviceInfo namespace */
 #define SESSION_SDKUID                                  "DeviceInfo.SDKUid"
 
 #define SETTER_METHOD(NAME) Set ## NAME

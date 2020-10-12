@@ -1,21 +1,19 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
-#include "IOfflineStorage.hpp"
-#include "LogConfiguration.hpp"
-
 #include "api/IRuntimeConfig.hpp"
 
-#include "DataPackage.hpp"
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class Packager {
     public:
         Packager(IRuntimeConfig& runtimeConfig);
-        ~Packager();
 
     protected:
         void handleAddEventToPackage(EventsUploadContextPtr const& ctx, StorageRecord const& record, bool& wantMore);
@@ -23,7 +21,7 @@ namespace ARIASDK_NS_BEGIN {
 
     protected:
         IRuntimeConfig & m_config;
-        std::string           m_forcedTenantToken;
+        std::string      m_forcedTenantToken;
 
     public:
         RouteSink<Packager, EventsUploadContextPtr const&, StorageRecord const&, bool&> addEventToPackage{ this, &Packager::handleAddEventToPackage };
@@ -34,4 +32,5 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

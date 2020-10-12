@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "FileUtils.hpp"
 #include "Utils.hpp"
 
@@ -6,7 +9,7 @@
 #include <fstream>
 #include <streambuf>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /**
@@ -166,4 +169,5 @@ namespace ARIASDK_NS_BEGIN
 #endif
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

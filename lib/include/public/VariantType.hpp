@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef MAT_VARIANTTYPE_HPP
 #define MAT_VARIANTTYPE_HPP
 
@@ -186,7 +189,49 @@ public:
         return assign(other);
     }
 
-    // Bolean
+    Variant & move(Variant && other) {
+        assert(this != &ConstNull());
+        type = other.type;
+        switch (other.type) {
+            case TYPE_NULL:
+                iV = 0;
+                break;
+            case TYPE_INT:
+                iV = other.iV;
+                break;
+            case TYPE_DOUBLE:
+                dV = other.dV;
+                break;
+
+            case TYPE_STRING:
+                type = TYPE_STRING2;
+                SV = (other.sV) ? other.sV : "";
+                break;
+
+            case TYPE_STRING2:
+                SV = std::move(other.SV);
+                break;
+
+            case TYPE_BOOL:
+                bV = other.bV;
+                break;
+
+            case TYPE_PTR:
+                pV = other.pV;
+                break;
+
+            case TYPE_OBJ:
+                mV.swap(other.mV);
+                break;
+
+            case TYPE_ARR:
+                aV.swap(other.aV);
+                break;
+        }
+        return *this;
+    }
+
+    // Boolean
     VARIANT_PROP(bool, bV, TYPE_BOOL);
 
     // Object (or map)
@@ -198,6 +243,12 @@ public:
             mV[kv.first] = kv.second;
         }
     };
+
+    Variant(VariantMap && m) :
+        type(TYPE_OBJ)
+    {
+        mV.swap(m);
+    }
 
     // C++11 initializer list support for maps
     Variant(const std::initializer_list<std::pair<std::string, Variant> >& l) : type(TYPE_OBJ)
@@ -212,6 +263,10 @@ public:
     // Array (or vector)
     Variant(VariantArray& a) :
         aV(a),
+        type(TYPE_ARR) {};
+
+    Variant(VariantArray && a) :
+        aV(std::move(a)),
         type(TYPE_ARR) {};
 
     // Destroy all elements
@@ -239,7 +294,14 @@ public:
         type(TYPE_STRING2)
     {
         sV = SV.c_str();
-    };
+    }
+
+    Variant(std::string && v) :
+        SV(std::move(v)),
+        type(TYPE_STRING2)
+    {
+        sV = SV.c_str();
+    }
 
     /**
      *
@@ -467,3 +529,4 @@ public:
 };
 
 #endif
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef DEBUGEVENTS_HPP
 #define DEBUGEVENTS_HPP
 
@@ -35,7 +38,7 @@ public:
 #include <cstdio>
 #include <cstdlib>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -117,8 +120,12 @@ namespace ARIASDK_NS_BEGIN
 
         /// <summary>Network state change.</summary>
         EVT_NET_CHANGED         = 0x0D000000,
+        
         /// <summary>Storage full.</summary>
         EVT_STORAGE_FULL        = 0x0E000000,
+        /// <summary>Storage failed.</summary>
+        EVT_STORAGE_FAILED      = 0x0E000001,
+
         /// <summary>Ticket Expired</summary>
         EVT_TICKET_EXPIRED      = 0x0F000000,
         /// <summary>Unknown error.</summary>
@@ -239,6 +246,7 @@ namespace ARIASDK_NS_BEGIN
 #pragma warning( pop )
 #endif
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
+

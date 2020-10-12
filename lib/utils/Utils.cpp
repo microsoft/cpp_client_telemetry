@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "pal/PAL.hpp"
 
 #include "Utils.hpp"
@@ -31,11 +34,11 @@
 #include <locale>
 #include <codecvt>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_NS("MATSDK", "MS App Telemetry client");
-} ARIASDK_NS_END
+} MAT_NS_END
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     void sleep(unsigned delayMs)
     {
@@ -323,4 +326,5 @@ namespace ARIASDK_NS_BEGIN {
         return (unsigned)(!str[h] ? 5381 : ((unsigned long long)hashCode(str, h + 1) * (unsigned)33) ^ str[h]);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

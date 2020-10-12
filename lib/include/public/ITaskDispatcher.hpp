@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef ITASKDISPATCHER_HPP
 #define ITASKDISPATCHER_HPP
 
@@ -11,7 +14,7 @@
 #include <vector>
 
 ///@cond INTERNAL_DOCS
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     /// The Task class represents a single executable task that can be dispatched to an asynchronous worker
@@ -123,6 +126,7 @@ namespace ARIASDK_NS_BEGIN
 
     /// @endcond
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // ITASKDISPATCHER_HPP
+

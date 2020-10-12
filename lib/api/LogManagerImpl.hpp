@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef LOGMANAGERIMPL_HPP
 #define LOGMANAGERIMPL_HPP
 
@@ -7,37 +10,39 @@
 
 #include "system/Contexts.hpp"
 
+#include "IDecorator.hpp"
 #include "IHttpClient.hpp"
 #include "ILogManager.hpp"
 #include "IModule.hpp"
 #include "ITaskDispatcher.hpp"
 
-#include "api/Logger.hpp"
 #include "api/ContextFieldsProvider.hpp"
+#include "api/Logger.hpp"
 
 #include "DebugEvents.hpp"
 #include <memory>
 
 #include "IBandwidthController.hpp"
 #include "api/AuthTokensController.hpp"
-#include "filter/EventFilterCollection.hpp"
 #include "api/DataViewerCollection.hpp"
+#include "filter/EventFilterCollection.hpp"
 
 #include "AllowedLevelsCollection.hpp"
 
-#include "LogSessionData.hpp"
+#include "IDataInspector.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 
 #include <mutex>
 #include <set>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
-
     class ITelemetrySystem;
 
-    class DiagLevelFilter final {
-    public:
-        DiagLevelFilter():
+    class DiagLevelFilter final
+    {
+       public:
+        DiagLevelFilter() :
             m_levelMin(DIAG_LEVEL_DEFAULT_MIN),
             m_levelMax(DIAG_LEVEL_DEFAULT_MAX),
             m_level(DIAG_LEVEL_DEFAULT),
@@ -82,7 +87,7 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         void SetFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
         {
-            m_level    = defaultLevel;
+            m_level = defaultLevel;
             m_levelMin = levelMin;
             m_levelMax = levelMax;
         }
@@ -94,21 +99,27 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         void SetFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels)
         {
-            m_level    = defaultLevel;
+            m_level = defaultLevel;
             m_levelSet = allowedLevels;
         }
 
-    private:
-        uint8_t                                m_levelMin;
-        uint8_t                                m_levelMax;
-        uint8_t                                m_level;
-        std::set<uint8_t>                      m_levelSet;
+       private:
+        uint8_t m_levelMin;
+        uint8_t m_levelMax;
+        uint8_t m_level;
+        std::set<uint8_t> m_levelSet;
     };
 
-    class ILogManagerInternal : public ILogManager {
-    public:
-        static std::recursive_mutex     managers_lock;
-        static std::set<ILogManager*>   managers;
+    class ILogManagerInternal : public ILogManager
+    {
+       public:
+        static std::recursive_mutex managers_lock;
+        static std::set<ILogManager*> managers;
+
+        /// <summary>
+        /// Optional decorator runs on event before passing it to sendEvent
+        /// </summary>
+        std::shared_ptr<IDecoratorModule> m_customDecorator;
 
         virtual void sendEvent(IncomingEventContextPtr const& event) = 0;
         virtual const ContextFieldsProvider& GetContext() = 0;
@@ -117,10 +128,21 @@ namespace ARIASDK_NS_BEGIN
 
     class Logger;
 
-    class LogManagerImpl : public ILogManagerInternal {
+    using LoggerMap = std::map<std::string, std::unique_ptr<Logger>>;
 
-    public:
+    class DeadLoggers
+    {
+       public:
+        void AddMap(LoggerMap&& source);
+        size_t GetDeadLoggerCount() const noexcept;
 
+        std::vector<std::unique_ptr<Logger>> m_deadLoggers;
+        mutable std::mutex m_deadLoggersMutex;
+    };
+
+    class LogManagerImpl : public ILogManagerInternal
+    {
+       public:
         LogManagerImpl(ILogConfiguration& configuration);
         LogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart);
 
@@ -155,21 +177,46 @@ namespace ARIASDK_NS_BEGIN
 
         virtual status_t SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None) override;
 
-        virtual inline status_t SetContext(const std::string& name, const char *value, PiiKind piiKind = PiiKind_None) override { const std::string val(value); return SetContext(name, val, piiKind); };
+        virtual inline status_t SetContext(const std::string& name, const char* value, PiiKind piiKind = PiiKind_None) override
+        {
+            const std::string val(value);
+            return SetContext(name, val, piiKind);
+        };
 
-        virtual inline status_t SetContext(const std::string& name, int8_t  value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, int8_t value, PiiKind piiKind = PiiKind_None) override
+        {
+            return SetContext(name, (int64_t)value, piiKind);
+        }
 
-        virtual inline status_t SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None) override
+        {
+            return SetContext(name, (int64_t)value, piiKind);
+        }
 
-        virtual inline status_t SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None) override
+        {
+            return SetContext(name, (int64_t)value, piiKind);
+        }
 
-        virtual inline status_t SetContext(const std::string& name, uint8_t  value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, uint8_t value, PiiKind piiKind = PiiKind_None) override
+        {
+            return SetContext(name, (int64_t)value, piiKind);
+        }
 
-        virtual inline status_t SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None) override
+        {
+            return SetContext(name, (int64_t)value, piiKind);
+        }
 
-        virtual inline status_t SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None) override
+        {
+            return SetContext(name, (int64_t)value, piiKind);
+        }
 
-        virtual inline status_t SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) override { return SetContext(name, (int64_t)value, piiKind); }
+        virtual inline status_t SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None) override
+        {
+            return SetContext(name, (int64_t)value, piiKind);
+        }
 
         virtual status_t SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None) override;
 
@@ -177,13 +224,13 @@ namespace ARIASDK_NS_BEGIN
 
         virtual status_t SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None) override;
 
-        virtual ILogConfiguration & GetLogConfiguration() override;
+        virtual ILogConfiguration& GetLogConfiguration() override;
 
         virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scopeId = std::string()) override;
 
         LogSessionData* GetLogSessionData() override;
 
-        ILogController *GetLogController(void) override;
+        ILogController* GetLogController(void) override;
 
         IAuthTokensController* GetAuthTokensController() override;
 
@@ -196,14 +243,14 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="listener">The listener.</param>
-        virtual void AddEventListener(DebugEventType type, DebugEventListener &listener) override;
+        virtual void AddEventListener(DebugEventType type, DebugEventListener& listener) override;
 
         /// <summary>
         /// Removes the event listener.
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="listener">The listener.</param>
-        virtual void RemoveEventListener(DebugEventType type, DebugEventListener &listener) override;
+        virtual void RemoveEventListener(DebugEventType type, DebugEventListener& listener) override;
 
         /// <summary>
         /// Dispatches the event.
@@ -213,12 +260,10 @@ namespace ARIASDK_NS_BEGIN
         virtual bool DispatchEvent(DebugEvent evt) override;
 
         ///
-        virtual bool AttachEventSource(DebugEventSource & other) override;
+        virtual bool AttachEventSource(DebugEventSource& other) override;
 
         ///
-        virtual bool DetachEventSource(DebugEventSource & other) override;
-
-
+        virtual bool DetachEventSource(DebugEventSource& other) override;
 
         /// <summary>
         /// Adds the incoming event.
@@ -232,6 +277,7 @@ namespace ARIASDK_NS_BEGIN
 
         virtual IDataViewerCollection& GetDataViewerCollection() override;
         virtual const IDataViewerCollection& GetDataViewerCollection() const override;
+        virtual status_t DeleteData() override;
 
         /// <summary>
         /// Get a reference to this log manager diagnostic level filter
@@ -247,45 +293,55 @@ namespace ARIASDK_NS_BEGIN
             return m_context;
         }
 
-protected:
+        static size_t GetDeadLoggerCount();
+
+        virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) override;
+
+        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept override;
+
+       protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
         void InitializeModules() noexcept;
         void TeardownModules() noexcept;
 
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
-        std::recursive_mutex                                   m_lock;
-        std::map<std::string, std::unique_ptr<Logger>>         m_loggers;
-        ContextFieldsProvider                                  m_context;
+        static DeadLoggers s_deadLoggers;
+        std::recursive_mutex m_lock;
+        LoggerMap m_loggers;
+        ContextFieldsProvider m_context;
 
-        std::shared_ptr<IHttpClient>                           m_httpClient;
-        std::shared_ptr<ITaskDispatcher>                       m_taskDispatcher;
-        std::shared_ptr<IDataViewer>                           m_dataViewer;
+        std::shared_ptr<IHttpClient> m_httpClient;
+        std::shared_ptr<ITaskDispatcher> m_taskDispatcher;
+        std::shared_ptr<IDataViewer> m_dataViewer;
 
-        std::unique_ptr<IRuntimeConfig>                        m_config;
-        ILogConfiguration&                                     m_logConfiguration;
+        std::unique_ptr<IRuntimeConfig> m_config;
+        ILogConfiguration& m_logConfiguration;
 
-        IBandwidthController*                                  m_bandwidthController;
-        std::unique_ptr<IBandwidthController>                  m_ownBandwidthController;
+        IBandwidthController* m_bandwidthController;
+        std::unique_ptr<IBandwidthController> m_ownBandwidthController;
 
-        AuthTokensController                                   m_authTokensController;
+        AuthTokensController m_authTokensController;
 
-        std::unique_ptr<IOfflineStorage>                       m_offlineStorage;
-        std::unique_ptr<LogSessionData>                        m_logSessionData;
-        bool                                                   m_isSystemStarted {};
-        std::unique_ptr<ITelemetrySystem>                      m_system;
+        std::unique_ptr<IOfflineStorage> m_offlineStorage;
+        std::unique_ptr<LogSessionDataProvider> m_logSessionDataProvider;
+        bool m_isSystemStarted{};
+        std::unique_ptr<ITelemetrySystem> m_system;
 
-        bool                                                   m_alive;
+        bool m_alive;
 
-        DebugEventSource                                       m_debugEventSource;
-        DiagLevelFilter                                        m_diagLevelFilter;
+        DebugEventSource m_debugEventSource;
+        DiagLevelFilter m_diagLevelFilter;
 
-        EventFilterCollection                                  m_filters;
-        std::vector<std::unique_ptr<IModule>>                  m_modules;
-        DataViewerCollection                                   m_dataViewerCollection;
+        EventFilterCollection m_filters;
+        std::vector<std::unique_ptr<IModule>> m_modules;
+        DataViewerCollection m_dataViewerCollection;
+        std::shared_ptr<IDataInspector> m_dataInspector;
+        std::mutex m_dataInspectorGuard;
     };
 
-
-} ARIASDK_NS_END
+}
+MAT_NS_END
 
 #endif
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "Enums.hpp"
@@ -12,29 +15,11 @@ using namespace MAT;
 
 class ShadowBondSplicer : protected MAT::BondSplicer
 {
-  protected:
-    std::map<size_t, std::string>            m_packageIdToTenantToken;
-    std::map<std::string, DataPackage>       m_TokenToDataPackagesMap;
-
   public:
-    size_t addDataPackage(std::string const& tenantToken, DataPackage const& dataPackage)
-    {
-        m_TokenToDataPackagesMap[tenantToken] = dataPackage;
-
-        size_t index = MAT::BondSplicer::addDataPackage(tenantToken, dataPackage);
-        assert(index == m_TokenToDataPackagesMap.size() - 1);
-
-        m_packageIdToTenantToken[index] = tenantToken;
-
-        return index;
-    }
+    using MAT::BondSplicer::addTenantToken;
 
     void addRecord(size_t dataPackageIndex, ::CsProtocol::Record& record)
     {
-        assert(dataPackageIndex < m_TokenToDataPackagesMap.size());
-
-        m_TokenToDataPackagesMap[m_packageIdToTenantToken[dataPackageIndex]].Records.push_back(record);
-
         std::vector<uint8_t> recordBlob;
         {
             bond_lite::CompactBinaryProtocolWriter writer(recordBlob);
@@ -43,18 +28,10 @@ class ShadowBondSplicer : protected MAT::BondSplicer
         MAT::BondSplicer::addRecord(dataPackageIndex, recordBlob);
     }
 
-    FullDumpBinaryBlob splice() const
+    std::vector<uint8_t> splice() const override
     {
         FullDumpBinaryBlob output;
         static_cast<std::vector<uint8_t>&>(output) = MAT::BondSplicer::splice();
-        return output;
-    }
-
-    FullDumpBinaryBlob serialize() const
-    {
-        FullDumpBinaryBlob output;
-        bond_lite::CompactBinaryProtocolWriter writer(output);
-        //bond_lite::Serialize(writer, m_shadow);
         return output;
     }
 };
@@ -67,173 +44,102 @@ class BondSplicerTests : public Test
     ShadowBondSplicer bs;
 };
 
-TEST_F(BondSplicerTests, Empty)
+TEST_F(BondSplicerTests, addTenantToken_EmptyString_Returns0)
 {
-    EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
+   EXPECT_EQ(bs.addTenantToken(std::string { }), size_t { 0 });
 }
 
-TEST_F(BondSplicerTests, OneEmptyDataPackage)
+TEST_F(BondSplicerTests, addTenantToken_TestString_Returns0)
 {
-    DataPackage dp;
-    bs.addDataPackage("tenant1", dp);
-    EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test" }), size_t { 0 });
 }
 
-TEST_F(BondSplicerTests, OneDataPackageWithOneEmptyRecord)
+TEST_F(BondSplicerTests, addTenantToken_TwoDifferentStrings_Returns0And1)
 {
-/*    DataPackage dp;
-    dp.Source = "source";
-    dp.Ids["abc"] = "def";
-    dp.DataPackageId = "dpid";
-    dp.Timestamp = 1234567890;
-    dp.SchemaVersion = 31;
-    size_t dpIndex = bs.addDataPackage("tenant1", dp);
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test" }), size_t { 0 });
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test2" }), size_t { 1 });
+}
 
+TEST_F(BondSplicerTests, addTenantToken_TwoSameStrings_Returns0And1)
+{
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test" }), size_t { 0 });
+   EXPECT_EQ(bs.addTenantToken(std::string { "Test" }), size_t { 1 });
+}
+
+TEST_F(BondSplicerTests, splice_Empty_SizeZero)
+{
+    EXPECT_EQ(bs.splice().size(), size_t { 0 });
+}
+
+TEST_F(BondSplicerTests, splice_OneEmptyTenantToken_SizeZero)
+{
+    bs.addTenantToken("tenant1");
+    EXPECT_EQ(bs.splice().size(), size_t { 0 });
+}
+
+TEST_F(BondSplicerTests, splice_OnePackageWithOneEmptyRecord_SizeOne)
+{
     ::CsProtocol::Record r; 
-    ::CsProtocol::Data d; 
-    r.data.push_back(d);
-    bs.addRecord(dpIndex, r);
+    bs.addRecord(bs.addTenantToken("tenant1"), r);
 
-    EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
-    */
+    EXPECT_THAT(bs.splice().size(), size_t { 1 });
 }
 
-TEST_F(BondSplicerTests, MultipleDataPackagesWithRecords)
+TEST_F(BondSplicerTests, splice_OnePackageWithOneNonEmptyRecord_SizeNine)
 {
- /*   DataPackage dp1;
-    dp1.Source = "source1";
-    dp1.Ids["abc"] = "def";
-    dp1.DataPackageId = "dpid1";
-    dp1.Timestamp = 1234567890;
-    dp1.SchemaVersion = 31;
-    size_t dp1Index = bs.addDataPackage("tenant1", dp1);
+   ::CsProtocol::Record r;
+   r.name = std::string { "Record" };
+   bs.addRecord(bs.addTenantToken("tenant1"), r);
 
-    ::CsProtocol::Record r1a;
-    r1a.name = "r1a";
-    bs.addRecord(dp1Index, r1a);
-
-    DataPackage dp2;
-    dp1.Source = "source2";
-    dp1.Ids["ghi"] = "jkl";
-    dp1.DataPackageId = "dpid2";
-    dp1.Timestamp = 987654321;
-    dp1.SchemaVersion = 32;
-    size_t dp2Index = bs.addDataPackage("tenant2", dp2);
-
-    ::CsProtocol::Record r2a;
-    r2a.name = "r2a";
-    bs.addRecord(dp2Index, r2a);
-
-    ::CsProtocol::Record r1b;
-    r1b.name = "r1b";
-    bs.addRecord(dp1Index, r1b);
-
-    ::CsProtocol::Record r2b;
-    r2b.name = "r2b";
-    bs.addRecord(dp2Index, r2b);
-
-    EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
-    */
+   EXPECT_THAT(bs.splice().size(), size_t { 9 });
 }
 
-TEST_F(BondSplicerTests, MultipleEverything)
+TEST_F(BondSplicerTests, splice_OneDataPackageWithTwoEmptyRecords_SizeTwo)
 {
-/*    DataPackage dp1;
-    dp1.Source = "source1";
-    dp1.Ids["abc"] = "def";
-    dp1.DataPackageId = "dpid1";
-    dp1.Timestamp = 1234567890;
-    dp1.SchemaVersion = 31;
-    size_t dp1index = bs.addDataPackage("tenant1", dp1);
+   ::CsProtocol::Record r;
+   ::CsProtocol::Record r2;
+   auto tokenIndex = bs.addTenantToken("tenant1");
+   bs.addRecord(tokenIndex, r);
+   bs.addRecord(tokenIndex, r2);
 
-    {
-        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d);
-        r.name = "r1a";
-        r.time = 111111;
-        ::CsProtocol::Value temp;
-        temp.stringValue = "b";
-        r.data[0].properties["a"] = temp;
+   EXPECT_THAT(bs.splice().size(), size_t { 2 });
+}
 
-        ::CsProtocol::Value temp1;
-        temp1.stringValue = "a@b.c";
+TEST_F(BondSplicerTests, splice_OneDataPackageWithTwoNonEmptyRecords_SizeTwenty)
+{
+   ::CsProtocol::Record r;
+   r.name = std::string { "Record1" };
+   ::CsProtocol::Record r2;
+   r2.name = std::string { "Record2" };
+   auto tokenIndex = bs.addTenantToken("tenant1");
+   bs.addRecord(tokenIndex, r);
+   bs.addRecord(tokenIndex, r2);
 
-        ::CsProtocol::PII pii;
-        pii.Kind = ::CsProtocol::PIIKind::Identity;
-        ::CsProtocol::Attributes att;
-        att.pii.push_back(pii);
+   EXPECT_THAT(bs.splice().size(), size_t { 20 });
+}
 
+TEST_F(BondSplicerTests, splice_TwoDataPackagesWithOneEmptyRecordEach_SizeTwo)
+{
+   ::CsProtocol::Record r;
+   ::CsProtocol::Record r2;
+   auto firstTokenIndex = bs.addTenantToken("tenant1");
+   auto secondTokenIndex = bs.addTenantToken("tenant2");
+   bs.addRecord(firstTokenIndex, r);
+   bs.addRecord(secondTokenIndex, r2);
 
-        temp1.attributes.push_back(att);
-        r.data[0].properties["c"] = temp1;
-        bs.addRecord(dp1index, r);
-    }
+   EXPECT_THAT(bs.splice().size(), size_t { 2 });
+}
 
-    {
-        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d);
-        r.name = "r1b";
-        r.time = 222222;
-        ::CsProtocol::Value temp;
-        temp.stringValue = "d";
-        r.data[0].properties["c"] = temp;
+TEST_F(BondSplicerTests, splice_TwoDataPackagesWithOneNonEmptyRecordEach_SizeTwenty)
+{
+   ::CsProtocol::Record r;
+   r.name = std::string { "Record1" };
+   ::CsProtocol::Record r2;
+   r2.name = std::string { "Record2" };
+   auto firstTokenIndex = bs.addTenantToken("tenant1");
+   auto secondTokenIndex = bs.addTenantToken("tenant2");
+   bs.addRecord(firstTokenIndex, r);
+   bs.addRecord(secondTokenIndex, r2);
 
-        ::CsProtocol::Value temp1;
-        temp1.stringValue = "c@d.e";
-
-        ::CsProtocol::PII pii;
-        pii.Kind = ::CsProtocol::PIIKind::Identity;
-        ::CsProtocol::Attributes att;
-        att.pii.push_back(pii);
-
-        temp1.attributes.push_back(att);
-        r.data[0].properties["e"] = temp1;
-
-        bs.addRecord(dp1index, r);
-    }
-
-    DataPackage dp2;
-    dp1.Source = "source2";
-    dp1.Ids["ghi"] = "jkl";
-    dp1.DataPackageId = "dpid2";
-    dp1.Timestamp = 987654321;
-    dp1.SchemaVersion = 32;
-    size_t dp2index = bs.addDataPackage("tenant2", dp2);
-
-    {
-        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d); 
-
-        r.name = "r2a";
-        r.time = 333333;
-        ::CsProtocol::Value temp2;
-        temp2.stringValue = "h.g.f";
-        r.data[0].properties["f.g.h"] = temp2;
-        bs.addRecord(dp2index, r);
-    }
-
-    {
-        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d);
-        r.name = "r2b";
-        r.time = 444444;
-        ::CsProtocol::Value temp3;
-        temp3.stringValue = "k_j_i";
-        r.data[0].properties["i_j_k"] = temp3;
-        bs.addRecord(dp2index, r);
-    }
-
-    {
-        ::CsProtocol::Record r; ::CsProtocol::Data d; r.data.push_back(d);
-        r.name = "r2c";
-        ::CsProtocol::Value temp5;
-
-        ::CsProtocol::PII pii;
-        pii.Kind = ::CsProtocol::PIIKind::Identity;
-        ::CsProtocol::Attributes att;
-        att.pii.push_back(pii);
-        temp5.stringValue = "z@z.z";
-        temp5.attributes.push_back(att);
-        r.data[0].properties["e"] = temp5;        
-        bs.addRecord(dp2index, r);
-    }
-
-    EXPECT_THAT(bs.splice(), FullDumpBinaryEq(bs.serialize()));
-    */
+   EXPECT_THAT(bs.splice().size(), size_t { 20 });
 }

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef IDATAVIEWERCOLLECTION_HPP
 #define IDATAVIEWERCOLLECTION_HPP
 
@@ -7,7 +10,7 @@
 
 #include <memory>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     /// This interface allows SDK users to register a data viewer
@@ -63,6 +66,7 @@ namespace ARIASDK_NS_BEGIN
         virtual bool IsViewerRegistered(const char* viewerName) const = 0;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
+

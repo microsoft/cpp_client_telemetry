@@ -1,4 +1,8 @@
-﻿#define LOG_MODULE DBG_API
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
+#define LOG_MODULE DBG_API
 
 #include "pch.h"
 #include "LogManagerCX.hpp"
@@ -19,7 +23,7 @@
 
 #include "LogManager.hpp"
 
-namespace ARIASDK_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } ARIASDK_NS_END
+namespace MAT_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } MAT_NS_END
 
 namespace MATW_NS_BEGIN {
 
@@ -175,8 +179,7 @@ namespace MATW_NS_BEGIN {
         if (!isInited)
         {
             transmitProfiles = json;
-            // [MG] - note that in this delay-loading scenario we cannot verify
-            // that the profile supplied by the customer is valid!
+            // Caller must ensure that the supplied JSON string is valid.
             return true;
         }
 

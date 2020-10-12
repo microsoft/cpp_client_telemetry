@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 public enum DataCategory {
@@ -16,7 +20,8 @@ public enum DataCategory {
         m_value = value;
     }
 
-    int getValue() {
+    public int getValue() {
         return m_value;
     }
 }
+

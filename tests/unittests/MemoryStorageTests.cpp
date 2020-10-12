@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "common/Common.hpp"
 #include "utils/Utils.hpp"
 
@@ -31,6 +35,10 @@ class TestObserver : public IOfflineStorageObserver
         UNREFERENCED_PARAMETER(type);
     }
     virtual void OnStorageFailed(std::string const & reason) override
+    {
+        UNREFERENCED_PARAMETER(reason);
+    }
+    virtual void OnStorageOpenFailed(std::string const & reason) override
     {
         UNREFERENCED_PARAMETER(reason);
     }
@@ -176,6 +184,26 @@ TEST(MemoryStorageTests, GetRecordsDeletesRecords)
     EXPECT_THAT(records.size(), num_iterations * 4); // 4 latencies
 }
 
+TEST(MemoryStorageTests, DeleteAllRecords)
+{
+    MemoryStorage storage(testLogManager, testConfig);
+
+    std::vector<StorageRecordId> ids;
+
+    // Add some events to storage
+    auto total_db_size = addEvents(storage);
+    EXPECT_THAT(storage.GetSize(), total_db_size);
+
+    // Retrieve those into records
+    storage.DeleteAllRecords();
+
+    // Storage size is "zero" because all records are fetched
+    EXPECT_THAT(storage.GetSize(), 0);
+    EXPECT_THAT(storage.GetRecordCount(), 0);
+    EXPECT_THAT(storage.GetReservedCount(), 0);
+}
+
+
 TEST(MemoryStorageTests, ReleaseRecords)
 {
     MemoryStorage storage(testLogManager, testConfig);
@@ -297,9 +325,19 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
         }));
     }
 
-    while (threadCount.load()!=MAX_STRESS_THREADS)
+    // The issue here is that clang-libc++ Mac OS X runtime can schedule
+    // the main thread to continue running BEFORE propagating the spawned
+    // thread(s) into joinable state, i.e. the thread is created, but not
+    // assigned a native handle yet. What that in essence means that the
+    // logic that waits for completion of all workers may run into race
+    // condition with one of threads not being in joinable state YET...
+    // Means rather than waiting for completion - we actually skip a thread
+    // that is about to get scheduled!! Solution is to use the threadCount
+    // to yield until each thread is guaranteed spawned, assigned a native
+    // handle, after that we  can iterate and wait for completion.
+    while (threadCount.load() != MAX_STRESS_THREADS)
     {
-    std::this_thread::yield();
+        std::this_thread::yield();
     }
 
     // Wait for completion of all worker threads
@@ -315,3 +353,4 @@ TEST(MemoryStorageTests, MultiThreadPerfTest)
     EXPECT_THAT(storage.GetSize(), 0);
 
 }
+

@@ -1,54 +1,74 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
+#include "offline/LogSessionDataProvider.hpp"
 #include <LogSessionData.hpp>
 
 using namespace testing;
 using namespace Microsoft::Applications::Events;
 
-class TestLogSessionData : public LogSessionData
+class TestLogSessionDataProvider : public LogSessionDataProvider
 {
 public:
-   TestLogSessionData(const std::string& cacheFilePath)
-      : LogSessionData(cacheFilePath) { }
-
-   using LogSessionData::parse;
+    TestLogSessionDataProvider(const std::string &str): LogSessionDataProvider(str) {}
+    using LogSessionDataProvider::parse;
 };
 
 const char* const PathToTestSesFile = "";
+std::string sessionSDKUid;
+uint64_t sessionFirstTimeLaunch;
+
 
 TEST(LogSessionDataTests, parse_EmptyString_ReturnsFalse)
-{
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
-   ASSERT_FALSE(sessionData.parse(std::string {}));
+{   
+   TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
+   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+   ASSERT_FALSE(logSessionDataProvider.parse(std::string {}, sessionFirstTimeLaunch, sessionSDKUid));
+   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_OneLine_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
-   ASSERT_FALSE(sessionData.parse(std::string {"foo" }));
+
+   TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
+   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+   ASSERT_FALSE(logSessionDataProvider.parse(std::string {"foo" }, sessionFirstTimeLaunch, sessionSDKUid));
+   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_ThreeLines_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
-   ASSERT_FALSE(sessionData.parse(std::string { "foo\nbar\n\baz" }));
+   TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
+   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+   ASSERT_FALSE(logSessionDataProvider.parse(std::string { "foo\nbar\n\baz" }, sessionFirstTimeLaunch, sessionSDKUid));
+   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_TwoLinesFirstLaunchNotNumber_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
-   ASSERT_FALSE(sessionData.parse(std::string { "foo\nbar" }));
+   TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
+   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+   ASSERT_FALSE(logSessionDataProvider.parse(std::string { "foo\nbar" }, sessionFirstTimeLaunch, sessionSDKUid));
+   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_TwoLinesFirstLaunchTooLarge_ReturnsFalse)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
-   ASSERT_FALSE(sessionData.parse(std::string { "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\nbar" }));
+   TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
+   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+   ASSERT_FALSE(logSessionDataProvider.parse(std::string { "1111111111111111111111111111111111111111111111111111111111111111111\nbar" },
+               sessionFirstTimeLaunch, sessionSDKUid));
+   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_ValidInput_ReturnsTrue)
 {
-   TestLogSessionData sessionData { std::string { PathToTestSesFile } };
-   ASSERT_TRUE(sessionData.parse(std::string { "1234567890\nbar" }));
+   TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
+   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+   ASSERT_TRUE(logSessionDataProvider.parse(std::string { "1234567890\nbar" }, sessionFirstTimeLaunch, sessionSDKUid));
+   UNREFERENCED_PARAMETER(logSessionData);
 }
+
