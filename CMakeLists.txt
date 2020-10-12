@@ -245,20 +245,29 @@ if (PAL_IMPLEMENTATION STREQUAL "CPP11")
     add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
     # Use libcurl for HTTP stack
     if (BUILD_ANDROID)
-      set(CURL_DIR          "${ANDROID_OS_EXTRA_LIBS}/curl/${TARGET_ARCH}")
-      set(OPENSSL_DIR       "${ANDROID_OS_EXTRA_LIBS}/openssl/${TARGET_ARCH}")
-      set(OPENSSL_LIBS      "${OPENSSL_DIR}/lib/libcrypto.a ${OPENSSL_DIR}/lib/libssl.a")
-      set(CURL_LIBRARY      "${CURL_DIR}/lib/libcurl.a")
-      set(CURL_INCLUDE_DIRS "${CURL_DIR}/include")
-      set(CURL_LIBRARIES    "${CURL_LIBRARY} ${OPENSSL_LIBS}")
-      if(NOT EXISTS "${CURL_DIR}")
-        message (FATAL_ERROR "libcurl not found at ${CURL_DIR}!")
-      endif()
-      message("-- using Android OS libcurl:")
-      message("-- CURL_INCLUDE_DIRS = ${CURL_INCLUDE_DIRS}")
-      message("-- CURL_LIBRARY      = ${CURL_LIBRARY}")
-      message("-- OPENSSL_LIBS      = ${OPENSSL_LIBS}")
-    else()
+      if (USE_CUSTOM_CURL)
+        # Build libcurl+deps from source. Example parameter:
+        # - Windows: -DANDROID_OS_EXTRA_LIBS=A:/openssl-curl-android/build
+        # - Linux:   -DANDROID_OS_EXTRA_LIBS=/android/openssl-curl-android/build
+        # Native HTTP stack dependencies could be obtained from here:
+        # https://github.com/maxgolov/openssl-curl-android
+        set(CURL_DIR          "${ANDROID_OS_EXTRA_LIBS}/curl/${TARGET_ARCH}")
+        set(OPENSSL_DIR       "${ANDROID_OS_EXTRA_LIBS}/openssl/${TARGET_ARCH}")
+        set(OPENSSL_LIBS      "${OPENSSL_DIR}/lib/libcrypto.a ${OPENSSL_DIR}/lib/libssl.a")
+        set(CURL_LIBRARY      "${CURL_DIR}/lib/libcurl.a")
+        set(CURL_INCLUDE_DIRS "${CURL_DIR}/include")
+        set(CURL_LIBRARIES    "${CURL_LIBRARY} ${OPENSSL_LIBS}")
+        if(NOT EXISTS "${CURL_DIR}")
+          message (FATAL_ERROR "libcurl not found at ${CURL_DIR}!")
+        endif()
+     else()
+        # Reuse libcurl platform build
+        set(CURL_DIR          "${ANDROID_BUILD_TOP}/external/curl")
+        set(CURL_INCLUDE_DIRS "${CURL_DIR}/include")
+        message("-- using Android OS libcurl:")
+        message("-- CURL_INCLUDE_DIRS = ${CURL_INCLUDE_DIRS}")
+     endif()
+   else()
       include(FindCURL)
       find_package(CURL REQUIRED)
       # Fail if curl is not found

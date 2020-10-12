@@ -48,7 +48,6 @@ REM -DANDROID_PLATFORM=android-%MINSDKVERSION% ^
 	-DANDROID_NATIVE_API_LEVEL=android-%MINSDKVERSION% ^
         -DANDROID_BUILD_TOP=A:/aosp ^
         -DANDROID_PRODUCT_NAME=generic_x86_64 ^
-        -DANDROID_OS_EXTRA_LIBS=A:/openssl-curl-android/build ^
 	..
   ninja
 
