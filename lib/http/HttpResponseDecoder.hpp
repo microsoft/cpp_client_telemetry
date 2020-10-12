@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef HTTPRESPONSEDECODER_HPP
 #define HTTPRESPONSEDECODER_HPP
 
@@ -8,7 +11,7 @@
 #include "system/Contexts.hpp"
 #include "system/ITelemetrySystem.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     typedef enum
     {
@@ -41,5 +44,6 @@ namespace ARIASDK_NS_BEGIN {
         virtual bool DispatchEvent(DebugEvent evt) override;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
+

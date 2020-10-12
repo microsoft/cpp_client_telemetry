@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 #include "DebugEvents.hpp"
 #include "utils/Utils.hpp"
@@ -5,7 +9,7 @@
 
 #include <atomic>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     /// <summary>Add event listener for specific debug event type.</summary>
     void DebugEventSource::AddEventListener(DebugEventType type, DebugEventListener &listener)
@@ -79,4 +83,5 @@ namespace ARIASDK_NS_BEGIN {
         return (cascaded.erase(&other)!=0);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef CORRELATIONVECTOR_HPP
 #define CORRELATIONVECTOR_HPP
 
@@ -8,7 +11,7 @@
 #include <mutex>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     // Implementation of the Common Schema standard vector clock type.
     // Class methods are thread-safe.
@@ -142,5 +145,6 @@ namespace ARIASDK_NS_BEGIN
         size_t GetDigitCount(size_t value);
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
+

@@ -1,10 +1,13 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "MetaStats.hpp"
 
 #include <utils/Utils.hpp>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     /// <summary>
     /// Lock metaStats counts when rejected events come in via a separate thread
@@ -150,7 +153,7 @@ namespace ARIASDK_NS_BEGIN {
         m_telemetryStats.resourceManagerEnabled = false;
         m_telemetryStats.ecsClientEnabled = false;
 
-        m_enableTenantStats = static_cast<bool>(m_config["stats"]["split"]);
+        m_enableTenantStats = static_cast<bool>(m_config[CFG_MAP_METASTATS_CONFIG]["split"]);
         m_sessionId = PAL::generateUuidString();
     }
 
@@ -626,4 +629,5 @@ namespace ARIASDK_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(RecordStats, "EventsSDK.RecordStats", "RecordStats");
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

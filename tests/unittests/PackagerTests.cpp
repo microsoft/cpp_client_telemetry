@@ -5,7 +5,7 @@
 #include "utils/Utils.hpp"
 #include "packager/Packager.hpp"
 #include "bond/All.hpp"
-#include "bond/generated/CsProtocol_types.hpp"
+#include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
 
 using namespace testing;
@@ -35,7 +35,7 @@ class PackagerTests : public StrictMock<Test> {
 
 TEST_F(PackagerTests, EmptyInputResultsInEmptyPackage)
 {
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     EXPECT_CALL(*this, resultEmptyPackage(ctx))
         .WillOnce(Return());
     packager.finalizePackage(ctx);
@@ -43,7 +43,7 @@ TEST_F(PackagerTests, EmptyInputResultsInEmptyPackage)
 
 TEST_F(PackagerTests, PackagesEventsByTenant)
 {
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
@@ -68,7 +68,7 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
     EXPECT_THAT(ctx->packageIds, Contains(Key("tenant1-token")));
 
 
-    ctx = new EventsUploadContext();
+    ctx = std::make_shared<EventsUploadContext>();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
@@ -99,7 +99,7 @@ TEST_F(PackagerTests, PackagesEventsByTenant)
 
 TEST_F(PackagerTests, UsesPriorityOfTheFirstEvent)
 {
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
@@ -116,7 +116,7 @@ TEST_F(PackagerTests, HonorsMaximumPackageSize)
     unsigned const MaxSize  = 100000;
     unsigned const PartSize = (MaxSize - 200) / 3;
 
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(MaxSize))
         .RetiresOnSaturation();
@@ -143,7 +143,7 @@ TEST_F(PackagerTests, PackagesAtLeastOneEventEvenIfOverSizeLimit)
 {
     unsigned const MaxSize = 10000;
 
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(MaxSize))
         .RetiresOnSaturation();
@@ -162,7 +162,7 @@ TEST_F(PackagerTests, PackagesAtLeastOneEventEvenIfOverSizeLimit)
 
 TEST_F(PackagerTests, SetsRequestBondFieldsCorrectly)
 {
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();
@@ -208,7 +208,7 @@ TEST_F(PackagerTests, ForcedTenantIsForced)
     Packager packagerF(runtimeConfigMock);
     packagerF.packagedEvents >> packagedEvents;
 
-    auto ctx = new EventsUploadContext();
+    auto ctx = std::make_shared<EventsUploadContext>();
     EXPECT_CALL(runtimeConfigMock, GetMaximumUploadSizeBytes())
         .WillOnce(Return(100000))
         .RetiresOnSaturation();

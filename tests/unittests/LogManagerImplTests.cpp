@@ -1,40 +1,56 @@
-// Copyright (c) Microsoft. All rights reserved.
-#include "common/Common.hpp"
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "api/LogManagerImpl.hpp"
+#include "common/Common.hpp"
 
 using namespace testing;
 using namespace MAT;
 
 class TestLogManagerImpl : public LogManagerImpl
 {
-public:
-   TestLogManagerImpl(ILogConfiguration& configuration)
-      : TestLogManagerImpl(configuration, false) { }
-   TestLogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart)
-      : LogManagerImpl(configuration, deferSystemStart) { }
+   public:
+    TestLogManagerImpl(ILogConfiguration& configuration) :
+        TestLogManagerImpl(configuration, false)
+    {
+    }
+    TestLogManagerImpl(ILogConfiguration& configuration, bool deferSystemStart) :
+        LogManagerImpl(configuration, deferSystemStart)
+    {
+    }
 
-   using LogManagerImpl::m_httpClient;
-   // using LogManagerImpl::m_ownHttpClient;
-   using LogManagerImpl::m_modules;
-   using LogManagerImpl::TeardownModules;
-   using LogManagerImpl::InitializeModules;
+    using LogManagerImpl::m_httpClient;
+    // using LogManagerImpl::m_ownHttpClient;
+    using LogManagerImpl::InitializeModules;
+    using LogManagerImpl::m_modules;
+    using LogManagerImpl::TeardownModules;
 };
 
 class TestHttpClient : public IHttpClient
 {
-   virtual IHttpRequest* CreateRequest() override { return nullptr; }
-   virtual void SendRequestAsync(IHttpRequest*, IHttpResponseCallback*) override { }
-   virtual void CancelRequestAsync(std::string const&) override { }
+   public:
+    IHttpRequest* theOnlyRequest = nullptr;
+    virtual IHttpRequest* CreateRequest() override
+    {
+        return theOnlyRequest;
+    }
+    virtual void SendRequestAsync(IHttpRequest*, IHttpResponseCallback*) override
+    {
+    }
+    virtual void CancelRequestAsync(std::string const&) override
+    {
+    }
 };
 
 TEST(LogManagerImplTests, Constructor_HttpClientIsNullptr_ConstructsOwnHttpClient)
 {
-   ILogConfiguration configuration;
+    ILogConfiguration configuration;
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-   TestLogManagerImpl logManager { configuration };
-   ASSERT_NE(logManager.m_httpClient, nullptr);
+    TestLogManagerImpl logManager{configuration};
+    ASSERT_NE(logManager.m_httpClient, nullptr);
 #else
-   EXPECT_THROW(TestLogManagerImpl { configuration }, std::invalid_argument);
+    EXPECT_THROW(TestLogManagerImpl{configuration}, std::invalid_argument);
 #endif
 }
 
@@ -45,20 +61,37 @@ TEST(LogManagerImplTests, Constructor_HttpClientIsNotNullptr_HttpClientIsSet)
     // ASSERT_EQ(logManager.m_httpClient, &httpClient);
     auto httpClient = std::make_shared<TestHttpClient>();
     configuration.AddModule(CFG_MODULE_HTTP_CLIENT, httpClient);
-    TestLogManagerImpl logManager { configuration, true };
+    TestLogManagerImpl logManager{configuration, true};
     ASSERT_EQ(logManager.m_httpClient, httpClient);
+}
+
+TEST(LogManagerImplTests, DeadLoggersAreDead)
+{
+    ILogConfiguration configuration;
+    auto httpClient = std::make_shared<TestHttpClient>();
+    httpClient->theOnlyRequest = new SimpleHttpRequest("fred");
+    configuration.AddModule(CFG_MODULE_HTTP_CLIENT, httpClient);
+    size_t onEntry = LogManagerImpl::GetDeadLoggerCount();
+    TestLogManagerImpl logManager{configuration};
+    logManager.PauseTransmission();
+    ASSERT_EQ(onEntry, LogManagerImpl::GetDeadLoggerCount());
+    auto logger = logManager.GetLogger("fred");
+    logManager.FlushAndTeardown();
+    ASSERT_EQ(onEntry + 1, LogManagerImpl::GetDeadLoggerCount());
+    logger->LogEvent("DeadLoggerEvent");
 }
 
 class LogManagerModuleTests : public ::testing::Test
 {
-public:
+   public:
     class TestModule : public IModule
     {
-    public:
+       public:
         TestModule(bool& initialzeCalled, bool& teardownCalled, const ILogManager*& pointerPassedToInitialize) noexcept
-            : initializeCalled(initialzeCalled)
-            , teardownCalled(teardownCalled)
-            , addressPassedToInitialize(pointerPassedToInitialize) { }
+            :
+            initializeCalled(initialzeCalled), teardownCalled(teardownCalled), addressPassedToInitialize(pointerPassedToInitialize)
+        {
+        }
 
         virtual void Initialize(ILogManager* parentManager) noexcept override
         {
@@ -77,7 +110,7 @@ public:
     };
 
     ILogConfiguration configuration;
-    TestLogManagerImpl logManager{ configuration };
+    TestLogManagerImpl logManager{configuration};
     const ILogManager* AddressPassedToInitialize{};
     bool InitializeCalled{};
     bool TeardownCalled{};
@@ -109,13 +142,14 @@ TEST_F(LogManagerModuleTests, TeardownModules_OneModuleRegistered_UnregisterCall
 TEST_F(LogManagerModuleTests, TeardownModules_OneModuleRegistered_SizeOfModulesIsZero)
 {
     logManager.TeardownModules();
-    ASSERT_EQ(logManager.m_modules.size(), size_t{ 0 });
+    ASSERT_EQ(logManager.m_modules.size(), size_t{0});
 }
 
 TEST(LogManagerImplTests, Constructor_DataViewerCollectionIsNotNullptr_DataViewerCollectionIsSet)
 {
     ILogConfiguration configuration;
     TestHttpClient httpClient;
-    TestLogManagerImpl logManager { configuration, true };
+    TestLogManagerImpl logManager{configuration, true};
     ASSERT_NO_THROW(logManager.GetDataViewerCollection());
 }
+

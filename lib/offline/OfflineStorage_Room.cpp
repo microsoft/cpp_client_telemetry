@@ -1,9 +1,13 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "OfflineStorage_Room.hpp"
 #include <cmath>
 #include <exception>
 #include <jni.h>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /**
      * Java virtual machine
@@ -104,6 +108,7 @@ namespace ARIASDK_NS_BEGIN
         {
             percent = DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE;
         }
+        m_storageFullNotifyInterval = m_config[CFG_INT_STORAGE_FULL_CHECK_TIME];
         m_notify_fraction = static_cast<double>(percent) / 100.0;
     }
 
@@ -168,6 +173,16 @@ namespace ARIASDK_NS_BEGIN
             return;
         }
         s_context = env->NewGlobalRef(appContext);
+    }
+
+    /**
+     * Delete all records 
+     *
+     * Not Implemented 
+     */
+    void OfflineStorage_Room::DeleteAllRecords()
+    {
+        MATSDK_THROW(std::logic_error("DeleteAllRecords not implemented"));
     }
 
     /**
@@ -321,6 +336,9 @@ namespace ARIASDK_NS_BEGIN
         ThrowRuntime(env, "Call getAndReserve");
         size_t index;
         size_t limit = env->GetArrayLength(selected);
+        if (limit == 0) {
+            return false;
+        }
         // we don't collect these here because GetObjectClass is
         // less fragile than FindClass
         jclass record_class = nullptr;
@@ -339,6 +357,7 @@ namespace ARIASDK_NS_BEGIN
         int persist_lb = static_cast<int>(EventPersistence_Normal);
         int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
 
+        size_t collected = 0;
         for (index = 0; index < limit; ++index)
         {
             env.pushLocalFrame(32);
@@ -402,6 +421,7 @@ namespace ARIASDK_NS_BEGIN
             {
                 break;
             }
+            collected += 1;
         }
         if (index < limit)
         {
@@ -411,7 +431,7 @@ namespace ARIASDK_NS_BEGIN
             ThrowRuntime(env, "call ru");
         }
         m_lastReadCount.store(std::min(index, static_cast<size_t>(INT32_MAX)));
-        return true;
+        return collected > 0;
     }
 
     /**
@@ -709,7 +729,7 @@ namespace ARIASDK_NS_BEGIN
             if (m_notify_fraction <= ratio)
             {
                 auto now = PAL::getMonotonicTimeMs();
-                if (now > m_storageFullNotifyTime + DB_FULL_CHECK_TIME_MS)
+                if (now > m_storageFullNotifyTime + m_storageFullNotifyInterval)
                 {
                     m_storageFullNotifyTime = now;
                     DebugEvent evt;
@@ -732,7 +752,7 @@ namespace ARIASDK_NS_BEGIN
      * @param[in] name The key to delete from the database.
      */
 
-    void OfflineStorage_Room::DeleteSetting(std::string const& name)
+    bool OfflineStorage_Room::DeleteSetting(std::string const& name)
     {
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
@@ -742,6 +762,7 @@ namespace ARIASDK_NS_BEGIN
         ThrowRuntime(env, "newstring");
         env->CallVoidMethod(m_room, delete_method, jName);
         ThrowLogic(env, "exception in delete setting");
+        return true;
     }
 
     /**
@@ -756,8 +777,7 @@ namespace ARIASDK_NS_BEGIN
     {
         if (value.size() == 0)
         {
-            DeleteSetting(name);
-            return true;
+            return DeleteSetting(name);
         }
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
@@ -1021,7 +1041,7 @@ namespace ARIASDK_NS_BEGIN
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_Room, "EventsSDK.RoomStorage", "Offline Storage: Android Room database")
 
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_OfflineRoom_connectContext(
@@ -1031,3 +1051,4 @@ Java_com_microsoft_applications_events_OfflineRoom_connectContext(
 {
     ::Microsoft::Applications::Events::OfflineStorage_Room::ConnectJVM(env, context);
 }
+

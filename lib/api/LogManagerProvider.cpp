@@ -1,8 +1,12 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "LogManagerProvider.hpp"
 
 #include "LogManagerFactory.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     ILogManager * LogManagerProvider::Get(
         ILogConfiguration & config,
@@ -40,4 +44,5 @@ namespace ARIASDK_NS_BEGIN {
         return LogManagerFactory::Release(config);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

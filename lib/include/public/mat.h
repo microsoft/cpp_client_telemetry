@@ -1,4 +1,7 @@
-/* Copyright (c) Microsoft. All rights reserved. */
+/*
+ * Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #ifndef TELEMETRY_EVENTS_H
 #define TELEMETRY_EVENTS_H
 
@@ -304,7 +307,7 @@ extern "C" {
 #define PII_TIME(key, val, kind) { key, TYPE_TIME,      _TIME2({ NULL }, val), kind }
 */
 #else
-#pragma message "C89 compiler does not support passing DOUBLE and TIME values via C API"
+#pragma message ("C89 compiler does not support passing DOUBLE and TIME values via C API")
 #endif
 
 #define _STR(key, val)           { key, TYPE_STRING,    { (uint64_t)((char *)val) } }
@@ -341,7 +344,11 @@ extern "C" {
 
     typedef evt_status_t(EVTSDK_LIBABI_CDECL *evt_app_call_t)(evt_context_t *);
 
-    EVTSDK_LIBABI evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t *ctx);
+#ifdef HAVE_DYNAMIC_C_LIB
+#define evt_api_call_default NULL
+#else
+    EVTSDK_LIBABI evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t* ctx);
+#endif
 
 #ifdef _MSC_VER
     /* User of the library may delay-load the invocation of __impl_evt_api_call to assign their own implementation */

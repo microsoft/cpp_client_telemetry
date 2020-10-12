@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef EVENTSCLIENT_HPP
 #define EVENTSCLIENT_HPP
 //
@@ -14,7 +17,7 @@
 #undef evt_log
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     class CAPIClient
@@ -51,7 +54,6 @@ namespace ARIASDK_NS_BEGIN
             return evt_configure(handle, config);
         }
 
-        // TODO: [MG] - header-only EventProperties class?
         evt_status_t log(evt_prop* evt)
         {
             return evt_log(handle, evt);
@@ -89,6 +91,7 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
+

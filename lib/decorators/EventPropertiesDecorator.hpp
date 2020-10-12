@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef EVENTPROPERTIESDECORATOR_HPP
 #define EVENTPROPERTIESDECORATOR_HPP
 
@@ -11,7 +14,7 @@
 #include <map>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 // Bit remapping has to happen on bits passed via API surface.
 // Ref CS2.1+ : https://osgwiki.com/wiki/CommonSchema/flags
@@ -22,12 +25,20 @@ namespace ARIASDK_NS_BEGIN {
 // #define MICROSOFT_EVENTTAG_DROP_PII 0x02000000
 #define RECORD_FLAGS_EVENTTAG_DROP_PII 0x00200000
 
-    class EventPropertiesDecorator : public DecoratorBase {
+    class EventPropertiesDecorator : public IDecorator
+    {
+    protected:
         std::string randomLocalId;
+
+        ILogManager& m_owner;
+        bool decorate(::CsProtocol::Record&) override
+        {
+            return false;
+        }
 
     public:
         EventPropertiesDecorator(ILogManager& owner) :
-            DecoratorBase(owner)
+            m_owner(owner)
         {
             //
             // Random local deviceId must be used for events tagged with Pii DROP EventTag.
@@ -428,7 +439,7 @@ namespace ARIASDK_NS_BEGIN {
                 {
                     LOG_TRACE("CorrelationVector value type is invalid %u", cvValue.type);
                 }
-                    ext.erase(CorrelationVector::PropertyName);
+                ext.erase(CorrelationVector::PropertyName);
             }
 
             // scrub if MICROSOFT_EVENTTAG_DROP_PII is set
@@ -442,5 +453,6 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
+

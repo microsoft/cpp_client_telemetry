@@ -1,4 +1,8 @@
 //
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
+//
 // Created by maharrim on 5/18/2020.
 //
 #ifdef ANDROID
@@ -15,6 +19,10 @@
 #include "NullObjects.hpp"
 #include <functional>
 #include <string>
+#include <fstream>
+#ifdef ANDROID
+#include <http/HttpClient_Android.hpp>
+#endif
 
 namespace MAE = ::Microsoft::Applications::Events;
 
@@ -84,6 +92,7 @@ public:
     {
         offlineStorage->Shutdown();
     }
+
     void DeleteAllRecords() {
         auto records = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
         if (records.empty()) {
@@ -138,6 +147,53 @@ public:
         }
     }
 };
+
+TEST_P(OfflineStorageTestsRoom, TestBadFile)
+{
+    auto path = GetTempDirectory();
+
+    switch (implementation) {
+        case StorageImplementation::Memory:
+            return;
+        case StorageImplementation::Room:
+            path = path.substr(0, path.length() - 6) + "databases/BadDatabase.db";
+            break;
+        case StorageImplementation::SQLite:
+            path = path + "BadDatabase.db";
+            break;
+    }
+    auto badFile = std::ofstream(path);
+    badFile << "this is a BAD database" << std::endl;
+    badFile.close();
+
+    std::unique_ptr<MAE::IOfflineStorage> badStorage;
+    switch (implementation) {
+#ifdef ANDROID
+        case StorageImplementation::Room:
+            configMock[CFG_STR_CACHE_FILE_PATH] = "BadDatabase.db";
+            badStorage = std::make_unique<MAE::OfflineStorage_Room>(nullLogManager, configMock);
+            EXPECT_CALL(observerMock, OnStorageOpened("Room/Init"))
+                .RetiresOnSaturation();
+            break;
+#endif
+        case StorageImplementation::SQLite:
+            configMock[CFG_STR_CACHE_FILE_PATH] = path.c_str();
+            badStorage = std::make_unique<MAE::OfflineStorage_SQLite>(nullLogManager, configMock);
+            EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Clean"))
+                .RetiresOnSaturation();
+            EXPECT_CALL(observerMock, OnStorageFailed("1")).RetiresOnSaturation();
+            break;
+        default:
+            return;
+    }
+    badStorage->Initialize(observerMock);
+    std::atomic<size_t> found(0);
+    EXPECT_FALSE(badStorage->GetAndReserveRecords( [&found](StorageRecord && record)->bool {
+      found += 1;
+      return true;
+    }, 5));
+    badStorage->Shutdown();
+}
 
 TEST_P(OfflineStorageTestsRoom, TestStoreRecords)
 {
@@ -527,3 +583,4 @@ INSTANTIATE_TEST_CASE_P(Storage,
     s << info.param;
     return s.str();
 });
+

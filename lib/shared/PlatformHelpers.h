@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef PLATFORMHELPERS_HPP
 #define PLATFORMHELPERS_HPP
 
@@ -65,14 +69,14 @@ typedef IDictionary<String^, double> EditableMeasurementMap;
 
 using namespace std;
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
     class EventProperties;
     class ILogger;
     class LogManager;
     class ISemanticContext;
     class LogConfiguration;
     struct EventProperty;
-} ARIASDK_NS_END;
+} MAT_NS_END;
 
 namespace Microsoft {
     namespace Applications {

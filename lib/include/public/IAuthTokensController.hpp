@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef MAT_IAUTHTOKENS_HPP
 #define MAT_IAUTHTOKENS_HPP
 
@@ -6,7 +9,7 @@
 #include "ctmacros.hpp"
 #include "Enums.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     const char* const TICKETS_PREPEND_STRING = "1000";
 
@@ -66,6 +69,6 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif //MAT_IAUTHTOKENS_HPP

@@ -43,8 +43,11 @@ See:
 * [CMake build system](https://cmake.org/download/)
 * [LLVM compiler toolchain for Visual Studio](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain)
 
-- Start elevated cmd.exe shell (Run As Administrator)
-- Launch **tools\setup-buildtools.cmd** to install all dependencies
+Installing dependencies:
+
+1. Start elevated `cmd.exe` shell (Run As Administrator...)
+2. `SET INSTALL_LLVM=1` or invoke `tools\install-llvm.cmd` to download and install LLVM. You may skip this step if you already have it installed.
+3. Launch `tools\setup-buildtools.cmd` script to install all other build dependencies.
 
 Make sure you can build a simple "Hello World" using CMake before proceeding to the next step.
 

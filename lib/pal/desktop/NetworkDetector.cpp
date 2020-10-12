@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "Version.hpp"
 #include "mat/config.h"
 #ifdef HAVE_MAT_NETDETECT
@@ -26,7 +30,7 @@ DEFINE_GUID(IID_INetworkCostManager2, 0xdcb00008, 0x570f, 0x4a9b, 0x8d, 0x69, 0x
 
 #define NETDETECTOR_COM_SETTLE_MS   1000
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     namespace Windows {
 
@@ -94,7 +98,7 @@ namespace ARIASDK_NS_BEGIN
                 m_currentNetworkCost = _GetCurrentNetworkCost();
             }
             //******************************************************************************************************************************
-            // XXX: Bug in Visual Studio debug host:
+            // This code is required as a workaround for an issue in Visual Studio debug host mode: crash in W.N.C.dll
             //
             // onecoreuap\net\netprofiles\winrt\networkinformation\lib\handlemanager.cpp(132)\Windows.Networking.Connectivity.dll!0FBCFB9E:
             // (caller: 0FBCEE2C) ReturnHr(1) tid(4584) 80070426 The service has not been started.
@@ -703,6 +707,6 @@ namespace ARIASDK_NS_BEGIN
 
     } // ::Windows
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

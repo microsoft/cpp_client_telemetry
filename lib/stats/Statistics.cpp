@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "pal/PAL.hpp"
 
@@ -7,7 +10,7 @@
 #include "utils/Utils.hpp"
 #include <oacr.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     Statistics::Statistics(ITelemetrySystem& telemetrySystem, ITaskDispatcher& taskDispatcher) :
         m_metaStats(telemetrySystem.getConfig()),
@@ -269,4 +272,5 @@ namespace ARIASDK_NS_BEGIN {
         return true;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

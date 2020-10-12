@@ -11,52 +11,67 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 #set(CMAKE_CXX_FLAGS -m32)
 # End of i386 build
 
+# We ask for 14, but we may get C++11 on older gcc-4.x and gcc-5.x
+set(CMAKE_CXX_STANDARD 14)
+
 if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
 # Enable ARC for obj-c on Apple
 if(APPLE)
+  message("-- BUILD_IOS:              ${BUILD_IOS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
-endif()
 
-# iOS build options
-option(BUILD_IOS           "Build for iOS"               NO)
+  # iOS build options
+  option(BUILD_IOS           "Build for iOS"               NO)
 
-if(BUILD_IOS)
-  set(TARGET_ARCH "APPLE")
-  set(IOS True)
-  set(APPLE True)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+  if(BUILD_IOS)
+    set(TARGET_ARCH "APPLE")
+    set(IOS True)
+    set(APPLE True)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
 
-  if(${IOS_ARCH} STREQUAL "x86_64")
-    set(IOS_PLATFORM "iphonesimulator")
-    set(CMAKE_SYSTEM_PROCESSOR x86_64)
-  elseif(${IOS_ARCH} STREQUAL "arm64")
-    set(IOS_PLATFORM "iphoneos")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
-    set(CMAKE_SYSTEM_PROCESSOR arm64)
-  elseif(${IOS_ARCH} STREQUAL "arm64e")
-    set(IOS_PLATFORM "iphoneos")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
-    set(CMAKE_SYSTEM_PROCESSOR arm64e)
+    if(${IOS_ARCH} STREQUAL "x86_64")
+      set(IOS_PLATFORM "iphonesimulator")
+      set(CMAKE_SYSTEM_PROCESSOR x86_64)
+    elseif(${IOS_ARCH} STREQUAL "arm64")
+      set(IOS_PLATFORM "iphoneos")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+      set(CMAKE_SYSTEM_PROCESSOR arm64)
+    elseif(${IOS_ARCH} STREQUAL "arm64e")
+      set(IOS_PLATFORM "iphoneos")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
+      set(CMAKE_SYSTEM_PROCESSOR arm64e)
+    else()
+      message(FATAL_ERROR "Unrecognized iOS architecture '${IOS_ARCH}'")
+    endif()
+
+    execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} Path
+      OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message("-- CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
+    message("-- IOS_ARCH:               ${IOS_ARCH}")
   else()
-    message(FATAL_ERROR "Unrecognized iOS architecture '${IOS_ARCH}'")
+    if(${MAC_ARCH} STREQUAL "x86_64")
+      set(CMAKE_SYSTEM_PROCESSOR x86_64)
+    elseif(${MAC_ARCH} STREQUAL "arm64")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+      set(CMAKE_SYSTEM_PROCESSOR arm64)
+    else()
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
+    endif()
+    message("-- MAC_ARCH:               ${MAC_ARCH}")
   endif()
-
-  execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} Path
-    OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message("-- CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
 endif()
 
-message("-- BUILD_IOS:              ${BUILD_IOS}")
-message("-- IOS_ARCH:               ${IOS_ARCH}")
 message("-- CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
 message("-- CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
 message("-- CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -150,7 +165,7 @@ endif()
 set(SDK_VERSION_PREFIX "EVT")
 add_definitions("-DMATSDK_VERSION_PREFIX=\"${SDK_VERSION_PREFIX}\"")
 
-set(MATSDK_API_VERSION "3.3")
+set(MATSDK_API_VERSION "3.4")
 string(TIMESTAMP DAYNUMBER "%j")
 string(REGEX REPLACE "^00" "" DAYNUMBER ${DAYNUMBER})
 string(REGEX REPLACE "^0"  "" DAYNUMBER ${DAYNUMBER})
@@ -198,6 +213,10 @@ option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
+option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
+
+# Enable Azure Monitor / Application Insights end-point support
+option(BUILD_AZMON        "Build for Azure Monitor" YES)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef MAT_LOGMANAGER_PROVIDER_HPP
 #define MAT_LOGMANAGER_PROVIDER_HPP
 
@@ -8,7 +11,7 @@
 #include "ITaskDispatcher.hpp"
 #include "NullObjects.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -183,6 +186,7 @@ namespace ARIASDK_NS_BEGIN
     /// </summary>
     capi_client * capi_get_client(evt_handle_t handle);
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif //MAT_LOGMANAGER_PROVIDER_HPP
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "common/MockIRuntimeConfig.hpp"
@@ -60,7 +63,7 @@ TEST_F(MetaStatsTests, GenerateStartEvent)
     stats.updateOnRecordsDropped(DROPPED_REASON_RETRY_EXCEEDED, dropCount);
 
     // Expect 2 events for builds with per-tenant stats enabled
-    size_t expectedCount = (runtimeConfigMock["stats"]["split"]) ? 2 : 1;
+    size_t expectedCount = (runtimeConfigMock[CFG_MAP_METASTATS_CONFIG]["split"]) ? 2 : 1;
     auto events = stats.generateStatsEvent(ACT_STATS_ROLLUP_KIND_START);
     ASSERT_THAT(events, SizeIs(expectedCount));
 }
@@ -120,3 +123,4 @@ TEST_F(MetaStatsTests, NoNewDataOrMetastatsOnlyGenerateNoEvents)
     //EXPECT_THAT(events[0].Extension, Contains(Pair("records_received_count",   "4")));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("requests_acked_succeeded", "1")));
 }
+

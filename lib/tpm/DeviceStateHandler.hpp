@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef DEVICESTATEHANDLER_HPP
 #define DEVICESTATEHANDLER_HPP
 #include "Enums.hpp"
@@ -11,7 +15,7 @@
 #include <map>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 class DeviceStateHandler
     : public PAL::IPropertyChangedCallback
@@ -42,6 +46,7 @@ private:
 
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // DEVICESTATEHANDLER_HPP
+

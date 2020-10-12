@@ -15,6 +15,23 @@ On Android, there are two database implementations to choose from. By default (t
 
 The Room database implementation adds one additional initialization requirement, since it needs a pointer to the JVM and an object reference to the application context. See below (4.5) for the required call to either ```connectContext``` (in Java) or ```ConnectJVM``` (in C++) to set this up.
 
+If you are building on Windows, this helper script [build-android.cmd](../build-android.cmd) is provided to illustrate how to deploy the necessary SDK and NDK dependencies. Once you installed the necessary dependencies, you may use Android Studio IDE for local builds. See [ide.cmd](../lib/android_build/ide.cmd) that shows how to build the project from IDE. The `app` project (`maesdktest`) allows to build and run all SDK tests on either emulator or real Android device. While the tests are running, you can monitor the test results in logcat output.
+
+Default environment variables used by `build-android.cmd` script:
+
+```console
+
+set "ANDROID_NDK_VERSION=21.1.6352462"
+set "ANDROID_CMAKE_VERSION=3.10.2.4988404"
+set "ANDROID_SDK_ROOT=C:\Android\android-sdk"
+set "ANDROID_HOME=%ANDROID_SDK_ROOT%"
+set "ANDROID_NDK=%ANDROID_SDK_ROOT%\ndk\%ANDROID_NDK_VERSION%"
+set "ANDROID_NDK_HOME=%ANDROID_NDK%"
+
+```
+
+You can specify your own versions of dependencies as needed.
+
 ## 3. Integrate the SDK into your C++ project
 
 If you use the lib/android_build Gradle files, they build the SDK into maesdk.aar in the output folders of the maesdk module in lib/android. You can package or consume this AAR in your applications modules, just as you would any other AAR.
@@ -111,3 +128,15 @@ You're done! You can now compile and run your app, and it will send a telemetry 
 Note that it is possible to use more than one log manager. See [examples/cpp/SampleCppLogManagers](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/SampleCppLogManagers) for a sample implementation.
 
 Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/). The lib/android_build gradle wrappers will use the Android gradle plugin, and that in turn will use CMake/nmake to build C++ object files.
+
+## 4. Device File Locations
+You may find these helpful for debugging. All device files will be found under the path `/data/data/`*app-name*`/` on the device, where *app-name* is the application’s name (such as `com.microsoft.applications.events.maesdktest`).
+
+### 1. Log Files
+`.../cache/mat-debug-10782.log`: one log file per session
+
+### 2. Database Files
+`.../cache/`*dbname*`.db`: database file (if using OfflineStorage_SQLite), where *dbname* is the database name.
+`.../databases/`*dbname*`.db`: database file (if using OfflineStorage_Room).
+
+One should be able to examine (or modify) the contents of these database files with SQLite on any platform, in theory (if anyone does this, please confirm whether or not it works).

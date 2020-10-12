@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef ALLOWEDLEVELSCOLLECTION_HPP
 #define ALLOWEDLEVELSCOLLECTION_HPP
 
@@ -10,7 +13,7 @@
 #include "Version.hpp"
 #include "ctmacros.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     class AllowedLevelsCollection
@@ -30,6 +33,7 @@ namespace ARIASDK_NS_BEGIN
         std::vector<uint8_t> m_allowedLevels;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // ALLOWEDLEVELSCOLLECTION_HPP
+

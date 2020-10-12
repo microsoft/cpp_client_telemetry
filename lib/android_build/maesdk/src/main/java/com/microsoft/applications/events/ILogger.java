@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import java.util.ArrayList;
@@ -5,7 +9,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-public interface ILogger {
+public interface ILogger extends AutoCloseable {
 
     /**
      * Gets an ISemanticContext interface through which you can specify the semantic context for this logger instance.
@@ -380,3 +384,4 @@ public interface ILogger {
      */
     public void setLevel(final DiagnosticLevel level);
 }
+

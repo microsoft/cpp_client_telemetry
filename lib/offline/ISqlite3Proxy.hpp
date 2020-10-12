@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef ISQLITE3PROXY_HPP
 #define ISQLITE3PROXY_HPP
 
@@ -13,7 +16,7 @@ struct sqlite3_stmt;
 struct sqlite3_vfs;
 
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 
 class ISqlite3Proxy {
@@ -57,5 +60,6 @@ class ISqlite3Proxy {
 extern ISqlite3Proxy* g_sqlite3Proxy;
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include "pal/PAL.hpp"
@@ -16,7 +19,7 @@
 #include "KillSwitchManager.hpp"
 #include "ClockSkewManager.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
     {
@@ -35,10 +38,12 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void DeleteRecords(const std::map<std::string, std::string> & whereFilter) override;
         virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
+        virtual void DeleteAllRecords() override;
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
 
         virtual bool StoreSetting(std::string const& name, std::string const& value) override;
         virtual std::string GetSetting(std::string const& name) override;
+        virtual bool DeleteSetting(std::string const& name) override;
 
         virtual size_t GetSize() override;
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;
@@ -48,6 +53,7 @@ namespace ARIASDK_NS_BEGIN {
 
         virtual void OnStorageOpened(std::string const& type) override;
         virtual void OnStorageFailed(std::string const& reason) override;
+        virtual void OnStorageOpenFailed(std::string const& reason) override;
         virtual void OnStorageTrimmed(std::map<std::string, size_t> const& numRecords) override;
         virtual void OnStorageRecordsDropped(std::map<std::string, size_t> const& numRecords) override;
         virtual void OnStorageRecordsRejected(std::map<std::string, size_t> const& numRecords) override;
@@ -75,7 +81,7 @@ namespace ARIASDK_NS_BEGIN {
         PAL::Event                             m_flushComplete;
 
         std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
-        std::unique_ptr<IOfflineStorage>       m_offlineStorageDisk;
+        std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
         bool                                   m_readFromMemory;
         unsigned                               m_lastReadCount;
@@ -91,4 +97,5 @@ namespace ARIASDK_NS_BEGIN {
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef ISEMANTICCONTEXT_HPP
 #define ISEMANTICCONTEXT_HPP
 
@@ -12,11 +15,7 @@
 #include <string>
 #include <cassert>
 
-#ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4100 ) // unreferenced formal parameter
-#endif
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     class  MATSDK_LIBABI ISemanticContext
@@ -75,13 +74,13 @@ namespace ARIASDK_NS_BEGIN
         /// Set the application experimentation impression id information of telemetry event.
         /// </summary>
         /// <param name="appExperimentIds">List of expementation IDs which are app/platform specific</param>
-        DECLARE_COMMONFIELD(AppExperimentImpressionId, COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID);
+        DECLARE_COMMONFIELD(AppExperimentImpressionId, SESSION_IMPRESSION_ID);
 
         /// <summary>
         /// Set the experiment IDs information of the specified telemetry event.
         /// </summary>
         /// <param name="appVersion">list of IDs of experimentations into which the application is enlisted</param>
-        virtual void  SetEventExperimentIds(std::string const& eventName, std::string const& experimentIds) {};
+        virtual void  SetEventExperimentIds(std::string const& /*eventName*/, std::string const& /*experimentIds*/) {};
 
         /// <summary>
         /// Clear the experiment IDs information.
@@ -111,6 +110,12 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="deviceClass">Device class.</param>
         DECLARE_COMMONFIELD(DeviceClass, COMMONFIELDS_DEVICE_CLASS);
+
+          /// <summary>
+        /// Set the device orgId context information of telemetry event.
+        /// </summary>
+        /// <param name="deviceClass">Device orgId</param>
+        DECLARE_COMMONFIELD(DeviceOrgId, COMMONFIELDS_DEVICE_ORGID);
 
         /// <summary>
         /// Set the network cost context information of telemetry event.
@@ -269,12 +274,10 @@ namespace ARIASDK_NS_BEGIN
         /// </summary>
         /// <param name="type">Ticket type</param>
         /// <param name="ticketValue">Ticket value.</param>
-        virtual void SetTicket(TicketType type, std::string const& ticketValue) {};
+        virtual void SetTicket(TicketType /*type*/, std::string const& /*ticketValue*/) {};
     };
 
-} ARIASDK_NS_END
-#ifdef _MSC_VER
-#pragma warning( pop )
-#endif
+} MAT_NS_END
 
 #endif //ISEMANTICCONTEXT_H
+
