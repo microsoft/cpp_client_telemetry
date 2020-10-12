@@ -1,5 +1,8 @@
 // clang-format off
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
@@ -17,7 +20,7 @@
 #include <vector>
 #include <oacr.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 class WinInetRequestWrapper
 {
@@ -557,7 +560,8 @@ bool HttpClient_WinInet::IsMsRootCheckRequired()
     return m_msRootCheck;
 }
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #pragma warning(pop)
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 // clang-format on
+

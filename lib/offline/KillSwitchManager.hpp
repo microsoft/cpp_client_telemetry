@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef KILLSWITCHMANAGER_HPP
 #define KILLSWITCHMANAGER_HPP
 
@@ -10,7 +13,7 @@
 
 #include <atomic>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class KillSwitchManager
     {
@@ -159,5 +162,6 @@ namespace ARIASDK_NS_BEGIN {
         int64_t         m_retryAfterExpiryTime;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
+

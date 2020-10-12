@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef IHTTPCLIENT_HPP
 #define IHTTPCLIENT_HPP
 
@@ -13,7 +16,7 @@
 #include <vector>
 
 ///@cond INTERNAL_DOCS
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /// <summary>
     /// The HttpHeaders class contains a set of HTTP headers.
@@ -518,7 +521,7 @@ namespace ARIASDK_NS_BEGIN
         /// returning to the caller. Do not access the request object in any
         /// way after this invocation, and do not delete it.
         /// The callback object is always called, even if the request is 
-        /// cancel led, or if an error occurs immediately during sending. In the
+        /// cancelled, or if an error occurs immediately during sending. In the
         /// latter case, the OnHttpResponse() callback is called before this
         /// method returns. You must keep the callback object alive until its
         /// OnHttpResponse() callback is called. It will never be used twice, so
@@ -544,6 +547,7 @@ namespace ARIASDK_NS_BEGIN
 
     /// @endcond
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
+

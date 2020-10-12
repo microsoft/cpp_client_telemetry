@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "pal/PAL.hpp"
 
 #include "TransmitProfiles.hpp"
@@ -8,7 +12,7 @@
 #include <stdio.h>
 #include <math.h>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 using namespace std;
 using namespace PAL;
@@ -142,4 +146,5 @@ void DeviceStateHandler::OnChanged(
 	 //do we need to stop current timer?? and restart
  }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

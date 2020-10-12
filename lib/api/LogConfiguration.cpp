@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 #include "LogConfiguration.hpp"
 
@@ -6,7 +10,7 @@
 using json = nlohmann::json;
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     static ILogConfiguration currentConfig {
         { CFG_INT_TRACE_LEVEL_MIN,          ACTTraceLevel::ACTTraceLevel_Error },
@@ -23,6 +27,7 @@ namespace ARIASDK_NS_BEGIN {
         { CFG_INT_TRACE_LEVEL_MASK,         0 },
         { CFG_STR_COLLECTOR_URL,            COLLECTOR_URL_PROD },
         { CFG_INT_STORAGE_FULL_PCT,         75 },
+        { CFG_INT_STORAGE_FULL_CHECK_TIME,  5000 },
         { CFG_INT_RAMCACHE_FULL_PCT,        75 },
         { CFG_BOOL_ENABLE_NET_DETECT,       true },
     };
@@ -54,10 +59,11 @@ namespace ARIASDK_NS_BEGIN {
             { CFG_STR_COLLECTOR_URL,        src.eventCollectorUri.c_str() },
 
             { CFG_INT_STORAGE_FULL_PCT,     75 }, // v1 had these parameters inside STL map.
-            { CFG_INT_RAMCACHE_FULL_PCT,    75 }  // Customers transitioning from v1 configuration to v3
+            { CFG_INT_RAMCACHE_FULL_PCT,    75 }, // Customers transitioning from v1 configuration to v3
                                                   // and using these two parameters (e.g. OTEL) should use
                                                   // ILogConfiguration class directly. It provides modern
                                                   // C++11 initializer list-based config tree.
+            { CFG_INT_STORAGE_FULL_CHECK_TIME,  5000 },
         };
         return result;
     }
@@ -116,4 +122,5 @@ namespace ARIASDK_NS_BEGIN {
         return result;
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

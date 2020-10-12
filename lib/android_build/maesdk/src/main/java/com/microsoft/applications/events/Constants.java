@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 public class Constants {
@@ -15,7 +19,6 @@ public class Constants {
 
     public static final String COMMONFIELDS_APP_EXPERIMENTIDS                       = "AppInfo.ExperimentIds";
     public static final String COMMONFIELDS_APP_EXPERIMENTETAG                      = "AppInfo.ETag";
-    public static final String COMMONFIELDS_APP_EXPERIMENT_IMPRESSION_ID            = "AppInfo.ImpressionId";
 
     public static final String COMMONFIELDS_DEVICE_ID                               = "DeviceInfo.Id";
     public static final String COMMONFIELDS_DEVICE_MAKE                             = "DeviceInfo.Make";
@@ -58,6 +61,7 @@ public class Constants {
     public static final String SESSION_FIRST_TIME                                   = "Session.FirstLaunchTime";
     public static final String SESSION_STATE                                        = "Session.State";
     public static final String SESSION_ID                                           = "Session.Id";
+    public static final String SESSION_IMPRESSION_ID                                = "Session.ImpressionId";
     public static final String SESSION_DURATION                                     = "Session.Duration";
     public static final String SESSION_DURATION_BUCKET                              = "Session.DurationBucket";
     public static final String SESSION_ID_LEGACY                                    = "act_session_id";
@@ -75,3 +79,4 @@ public class Constants {
     public static final String CONTEXT_SCOPE_ALL                            = "*";  /* Inherit all parent context props    */
     public static final String CONTEXT_SCOPE_NONE                           = "-";  /* Do not inherit parent context props */
 }
+

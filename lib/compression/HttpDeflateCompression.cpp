@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 
 #include "HttpDeflateCompression.hpp"
@@ -8,12 +11,15 @@
 #include <zlib.h>
 #endif
 
-namespace ARIASDK_NS_BEGIN {
-
+namespace MAT_NS_BEGIN {
 
     HttpDeflateCompression::HttpDeflateCompression(IRuntimeConfig& runtimeConfig)
         : m_config(runtimeConfig)
     {
+        // Plain "deflate": negative -MAX_WBITS argument which makes zlib use "raw deflate"
+        // without zlib header, as required by IIS.
+        // "gzip": Add 16 to windowBits to write a simple gzip header
+        m_windowBits = m_config.GetHttpRequestContentEncoding() == "gzip" ? (MAX_WBITS | 16) : -MAX_WBITS;
     }
 
     HttpDeflateCompression::~HttpDeflateCompression()
@@ -34,10 +40,7 @@ namespace ARIASDK_NS_BEGIN {
         z_stream stream;
         memset(&stream, 0, sizeof(stream));
 
-        // All values are defaults as would be used by a plain deflate(), except
-        // for the negative -MAX_WBITS argument which makes zlib use "raw deflate"
-        // without zlib header, as required by IIS.
-        int result = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -MAX_WBITS, 8 /*DEF_MEM_LEVEL*/, Z_DEFAULT_STRATEGY);
+        int result = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, m_windowBits, 8 /*DEF_MEM_LEVEL*/, Z_DEFAULT_STRATEGY);
         if (result != Z_OK) {
             LOG_WARN("HTTP request compressing failed, error=%u/%u (%s)", 1, result, stream.msg);
             compressionFailed(ctx);
@@ -87,4 +90,5 @@ namespace ARIASDK_NS_BEGIN {
     }
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

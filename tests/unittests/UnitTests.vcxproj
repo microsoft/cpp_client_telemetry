@@ -33,6 +33,9 @@
     <ProjectReference Include="..\..\googletest\googletest\msvc\gtest.vcxproj">
       <Project>{c8f6c172-56f2-4e76-b5fa-c3b423b31be7}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\Solutions\win32-lib\win32-lib.vcxproj">
+      <Project>{216a8e97-21f7-4bef-9e52-7f772c177c32}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
       <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
     </ProjectReference>
@@ -93,6 +96,8 @@
     <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\filter\filter.vcxitems')" Project="..\..\lib\modules\filter\filter.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\privacyguard\privacyguard.vcxitems')" Project="..\..\lib\modules\privacyguard\privacyguard.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\azmon\azmon.vcxitems')" Project="..\..\lib\modules\azmon\azmon.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -442,6 +447,7 @@
     <ClCompile Include="$(ProjectDir)\HttpServerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogManagerImplTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogSessionDataTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LogSessionDataDBTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
@@ -451,6 +457,7 @@
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />
     <ClCompile Include="$(ProjectDir)\PackagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\PrivacyGuardTests.cpp" />
     <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
@@ -458,6 +465,11 @@
     <ClCompile Include="$(ProjectDir)\TransmitProfileRuleTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmitProfilesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSClientUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSConfigCacheTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />

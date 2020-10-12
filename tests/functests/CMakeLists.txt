@@ -1,6 +1,3 @@
-include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googletest/include ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googlemock/include ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite )
-
-
 message("--- functests")
 
 set(SRCS
@@ -9,7 +6,18 @@ set(SRCS
   LogSessionDataFuncTests.cpp
   Main.cpp
   MultipleLogManagersTests.cpp
+  ECSClientFuncTests.cpp
+  ECSClientRealworldFuncTests.cpp
+  ECSConfigCacheFuncTests.cpp
+
 )
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+  add_definitions(-DHAVE_MAT_PRIVACYGUARD)
+  list(APPEND SRCS
+    PrivacyGuardFuncTests.cpp
+  )
+endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
@@ -76,6 +84,7 @@ else()
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
@@ -83,6 +92,7 @@ else()
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )

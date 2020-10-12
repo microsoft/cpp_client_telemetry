@@ -1,6 +1,9 @@
 #include "mat/config.h"
 #ifdef HAVE_MAT_STORAGE
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include "IOfflineStorage.hpp"
@@ -18,7 +21,7 @@
 
 #define ENABLE_LOCKING  // Enable DB locking for flush
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     class OfflineStorage_Room : public IOfflineStorage
     {
@@ -72,11 +75,12 @@ namespace ARIASDK_NS_BEGIN
 
         void DeleteRecords(const std::map<std::string, std::string>& whereFilter) override;
         void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders, bool&) override;
+        virtual void DeleteAllRecords() override;
         void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders, bool&) override;
 
         bool StoreSetting(std::string const& name, std::string const& value) override;
-        void DeleteSetting(std::string const& name);
         std::string GetSetting(std::string const& name) override;
+        bool DeleteSetting(std::string const& name) override;
         size_t GetSize() override;
         size_t GetRecordCount(EventLatency latency) const override;
         StorageRecordVector GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
@@ -98,7 +102,7 @@ namespace ARIASDK_NS_BEGIN
         size_t m_size_limit = 3 * 1024 * 1024;  // 3 MB
         double m_notify_fraction = 0.75;
         uint64_t m_storageFullNotifyTime = 0;
-        constexpr static uint64_t DB_FULL_CHECK_TIME_MS = 5000;
+        uint64_t m_storageFullNotifyInterval = DB_FULL_CHECK_INTERVAL_DEFAULT_MS;
         std::atomic<size_t> m_checkAfterInsertCounter;
         std::atomic<unsigned> m_lastReadCount;
         std::mutex m_jniThreadsMutex;
@@ -111,5 +115,6 @@ namespace ARIASDK_NS_BEGIN
     };
 
 }
-ARIASDK_NS_END
+MAT_NS_END
 #endif
+

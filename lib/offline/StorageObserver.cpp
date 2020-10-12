@@ -1,8 +1,11 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "StorageObserver.hpp"
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     StorageObserver::StorageObserver(ITelemetrySystem& system, IOfflineStorage& offlineStorage)
         :
@@ -46,7 +49,7 @@ namespace ARIASDK_NS_BEGIN {
             return wantMore;
         };
 
-        // TODO: [MG] - expose 120000 as a constant
+        // TODO: [MG] - expose 120000 as a configuration parameter
         if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
         {
             ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
@@ -126,6 +129,21 @@ namespace ARIASDK_NS_BEGIN {
         failed(&ctx);
     }
 
+    void StorageObserver::OnStorageOpenFailed(std::string const& reason)
+    {
+        StorageNotificationContext ctx;
+        ctx.str = reason;
+        failed(&ctx);
+        {
+            DebugEvent evt;
+            evt.type = EVT_STORAGE_FAILED;
+            evt.data = static_cast<void *>(const_cast<char *>(reason.c_str()));
+            evt.size = reason.length();
+            DispatchEvent(evt);
+        }
+    }
+
+
     void StorageObserver::OnStorageTrimmed(std::map<std::string, size_t> const& numRecords)
     {
         StorageNotificationContext ctx;
@@ -196,4 +214,5 @@ namespace ARIASDK_NS_BEGIN {
         DispatchEvent(evt);
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

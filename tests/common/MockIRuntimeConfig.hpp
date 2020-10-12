@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include "api/IRuntimeConfig.hpp"
@@ -39,14 +42,13 @@ namespace testing {
         MOCK_METHOD0(GetTeardownTime, uint32_t());
         MOCK_METHOD0(IsClockSkewEnabled, bool());
 
-        // FIXME: [MG] - Google Mock doesn't support mocking operators
         virtual MAT::Variant & operator[](const char* key)
         {
             return config[key];
-            // return (*this)[key];
         };
 
     };
 
 
 } // namespace testing
+

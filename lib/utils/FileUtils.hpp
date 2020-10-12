@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef LIB_FILEUTILS_HPP
 #define LIB_FILEUTILS_HPP
 // Cross-platform C-style file utils that work well with UTF-8 filenames
@@ -6,7 +9,7 @@
 #include "Version.hpp"
 #include "pal/PAL.hpp"
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     size_t      FileGetSize(const char* filename);
     int         FileDelete(const char* filename);
@@ -16,6 +19,7 @@ namespace ARIASDK_NS_BEGIN
     bool        FileWrite(const char* filename, const char* contents);
     bool        FileExists(const char* name);
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
+

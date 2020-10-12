@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef INETWORKINFORMATION_HPP
 #define INETWORKINFORMATION_HPP
 
@@ -69,3 +72,4 @@ namespace PAL_NS_BEGIN {
 
 } PAL_NS_END
 #endif
+

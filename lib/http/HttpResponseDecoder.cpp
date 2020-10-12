@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "HttpResponseDecoder.hpp"
 #include "ILogManager.hpp"
@@ -11,7 +14,7 @@
 #include "json.hpp"
 #endif
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     HttpResponseDecoder::HttpResponseDecoder(ITelemetrySystem& system)
         :
@@ -36,7 +39,7 @@ namespace ARIASDK_NS_BEGIN {
     void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
     {
 #ifndef NDEBUG
-        // XXX: [MG] - debug accessing object that's been already freed
+        // Debug only for Visual Studio: check if accessing object that's been already freed
         uint64_t ptr = (uint64_t)(ctx->httpResponse);
         assert(ptr != 0x00000000dddddddd);
         assert(ptr != 0xdddddddddddddddd);
@@ -231,4 +234,5 @@ namespace ARIASDK_NS_BEGIN {
 #endif
     }
 
-} ARIASDK_NS_END
+} MAT_NS_END
+

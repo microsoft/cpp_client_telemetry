@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import android.annotation.SuppressLint;
@@ -16,6 +20,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -24,9 +29,13 @@ import java.io.BufferedInputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -171,6 +180,21 @@ class Request implements Runnable {
 public class HttpClient {
     private static final int MAX_HTTP_THREADS = 2; // Collector wants no more than 2 at a time
 
+    /**
+     * Shim FutureTask: we would like to @Keep the cancel method for JNI
+     */
+    class FutureShim extends FutureTask<Boolean> {
+        FutureShim(Request inner) {
+            super(inner, true);
+        }
+
+        @Keep
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return super.cancel(mayInterruptIfRunning);
+        }
+    }
+
     public HttpClient(Context context)
     {
         m_context = context;
@@ -207,6 +231,14 @@ public class HttpClient {
         return locale.toString().replace('_', '-');
     }
 
+    private static String getTimeZone() 
+    {
+        Date currentLocalTime = Calendar.getInstance(TimeZone.getTimeZone("GMT"), Locale.getDefault()).getTime();
+        String timeZone = new SimpleDateFormat("Z", Locale.getDefault()).format(currentLocalTime);
+        int length = timeZone.length();
+        return timeZone.substring(0, length-2) + ':' + timeZone.substring(length-2);
+    }
+
     private void calculateAndSetSystemInfo(android.content.Context context)
     {
         String app_id = context.getPackageName();
@@ -222,12 +254,14 @@ public class HttpClient {
         }
         String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
 
+        String time_zone = getTimeZone();
+
         String os_major_version = Build.VERSION.RELEASE;
         if (os_major_version == null) {
             os_major_version = "GECOS III"; // unexpected except in Java unit tests
         }
         String os_full_version = String.format("%s %s", os_major_version, Build.VERSION.INCREMENTAL);
-        setSystemInfo(String.format("A:%s", app_id), app_version, app_language, os_major_version, os_full_version);
+        setSystemInfo(String.format("A:%s", app_id), app_version, app_language, os_major_version, os_full_version, time_zone);
     }
 
     private String calculateID(android.content.Context context)
@@ -293,21 +327,24 @@ public class HttpClient {
         String app_version,
         String app_language,
         String os_major_version,
-        String os_full_version
+        String os_full_version,
+        String time_zone
     );
 
     public native void dispatchCallback(String id, int response, Object[] headers, byte[] body);
 
+    @Keep
     public FutureTask<Boolean> createTask(String url, String method, byte[] body, String request_id, int[] header_index,
             byte[] header_buffer) {
         try {
             Request r = new Request(this, url, method, body, request_id, header_index, header_buffer);
-            return new FutureTask<>(r, true);
+            return new FutureShim(r);
         } catch (Exception e) {
             return null;
         }
     }
 
+    @Keep
     public void executeTask(FutureTask<Boolean> t) {
         m_executor.execute(t);
     }
@@ -318,3 +355,4 @@ public class HttpClient {
     private PowerInfoReceiver m_power_receiver;
     private final Context m_context;
 }
+

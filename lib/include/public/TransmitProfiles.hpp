@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef TRANSMITPROFILES_HPP
 #define TRANSMITPROFILES_HPP
 
@@ -16,7 +19,7 @@
 
 /// @cond INTERNAL_DOCS
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     /// <summary>
@@ -156,7 +159,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// A boolean value that indicates whether the timer was updated.
         /// </summary>
-        static std::atomic<bool> isTimerUpdated;
+        static bool isTimerUpdated;
 
         static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
 
@@ -173,7 +176,7 @@ namespace ARIASDK_NS_BEGIN
         /// <summary>
         /// The TransmitProfiles destructor.
         /// </summary>
-        virtual ~TransmitProfiles();
+        virtual ~TransmitProfiles() noexcept = default;
 
         /// <summary>
         /// Prints transmit profiles to the debug log.
@@ -269,7 +272,8 @@ namespace ARIASDK_NS_BEGIN
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 /// @endcond
 #endif
+

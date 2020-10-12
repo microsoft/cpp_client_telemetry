@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef NETWORKDETECTOR_HPP
 #define NETWORKDETECTOR_HPP
 #include "mat/config.h"
@@ -62,7 +66,7 @@ using namespace ABI::Windows::Networking::Connectivity;
 
 using namespace std;
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
             namespace Windows {
 
@@ -272,7 +276,7 @@ namespace ARIASDK_NS_BEGIN
                 };
 
             }
-} ARIASDK_NS_END
+} MAT_NS_END
 
 namespace MATW = MAT::Windows;
 

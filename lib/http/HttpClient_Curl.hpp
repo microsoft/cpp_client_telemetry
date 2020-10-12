@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef HTTPCLIENTCURL_HPP
 #define HTTPCLIENTCURL_HPP
 
@@ -33,7 +37,7 @@
 #undef TRACE
 #define TRACE(...)	// printf
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
 /**
  * Curl-based HTTP client
@@ -520,8 +524,9 @@ protected:
 
 };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENTCURL_HPP
+

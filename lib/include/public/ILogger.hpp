@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef MAT_ILOGGER_HPP
 #define MAT_ILOGGER_HPP
 
@@ -15,7 +18,7 @@
 #include <vector>
 #include <map>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
 /* Data Type Flags */
@@ -621,6 +624,7 @@ Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on t
     };
 
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
+

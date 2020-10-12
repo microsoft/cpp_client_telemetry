@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import android.content.BroadcastReceiver;
@@ -32,6 +36,7 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -174,7 +179,8 @@ public class EventsUnitTest {
             String app_version,
             String app_language,
             String os_major_version,
-            String os_full_version
+            String os_full_version,
+            String time_zone
         )
         {
             assertEquals("A:com.microsoft.nemotronics.doodad", app_id);
@@ -182,6 +188,7 @@ public class EventsUnitTest {
             assertEquals("foobar", app_language);
             assertEquals("GECOS III", os_major_version);
             assertEquals("GECOS III null", os_full_version);
+            assertTrue(Pattern.matches("^([-+])\\d\\d:\\d\\d", time_zone));
         }
     }
 

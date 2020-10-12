@@ -22,6 +22,7 @@
     <ClCompile Include="$(ProjectDir)\HttpResponseDecoderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogManagerImplTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogSessionDataTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LogSessionDataDBTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />
@@ -30,6 +31,7 @@
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />
     <ClCompile Include="$(ProjectDir)\PackagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\PrivacyGuardTests.cpp" />
     <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
@@ -50,6 +52,11 @@
     <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
     <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSClientUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ECSConfigCacheTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">

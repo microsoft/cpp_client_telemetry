@@ -1,10 +1,13 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "StringConversion.hpp"
 
 #include <codecvt>
 #include <locale>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     /** \brief Convert UTF-8 to UTF-16
     */
@@ -22,4 +25,5 @@ namespace ARIASDK_NS_BEGIN
         return converter.to_bytes(in);
     }
 }
-ARIASDK_NS_END
+MAT_NS_END
+

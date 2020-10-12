@@ -1,18 +1,15 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "Version.hpp"
 #include "Contexts.hpp"
 #include "CommonFields.h"
 #include <vector>
 #include <string>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
-    const char* const ARIA_EXT_TEXT = "ext";
-    const char* const ARIA_DATA_TEXT = "data";
-    const char* const ARIA_EXT_EXTAPP_TEXT = "extApp";
-    const char* const ARIA_EXT_EXTOS_TEXT = "os";
-    const char* const ARIA_EXT_EXTNET_TEXT = "extNet";
-    const char* const ARIA_EXT_EXTMETADATA_TEXT = "metadata";
-
     class MATSDK_LIBABI JsonFormatter
     {
     public:
@@ -23,4 +20,4 @@ namespace ARIASDK_NS_BEGIN
         std::string getJsonFormattedEvent(IncomingEventContextPtr const& event);
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END

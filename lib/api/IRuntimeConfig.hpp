@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef IRUNTIMECONFIG_HPP
 #define IRUNTIMECONFIG_HPP
 
@@ -10,7 +13,7 @@
 #include <string>
 #include <map>
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
     ///@cond INTERNAL_DOCS
 
@@ -130,6 +133,12 @@ namespace ARIASDK_NS_BEGIN
         virtual bool IsHttpRequestCompressionEnabled() = 0;
 
         /// <summary>
+        /// Returns content encoding method for http request
+        /// </summary>
+        /// <returns>A string value (<i>deflate</i>) or (<i>gzip</i>).</returns>
+        virtual const std::string& GetHttpRequestContentEncoding() const = 0;
+
+        /// <summary>
         /// Gets the minimum bandwidth necessary to start an upload.
         /// </summary>
         /// <remarks>
@@ -188,5 +197,6 @@ namespace ARIASDK_NS_BEGIN
 
     /// @endcond
 
-} ARIASDK_NS_END
+} MAT_NS_END
 #endif
+

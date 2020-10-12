@@ -19,6 +19,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+        token:  ${{ secrets.GIT_PULL_TOKEN }}
     - name: Build and Test
       uses: reactivecircus/android-emulator-runner@v2
       with:

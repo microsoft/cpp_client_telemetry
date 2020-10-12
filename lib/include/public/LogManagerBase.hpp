@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef MAT_LOGMANAGER_HPP
 #define MAT_LOGMANAGER_HPP
 
@@ -11,7 +14,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4459 4100 4121 4068)
+#pragma warning(disable : 4459 4121 4068)
 #endif
 
 #pragma clang diagnostic push
@@ -98,7 +101,7 @@ ref class LogManagerLock
     std::lock_guard<std::recursive_mutex> TOKENPASTE2(__guard_, __LINE__)(macro_mutex);
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 #if (HAVE_EXCEPTIONS)
     class LogManagerNotInitializedException : public std::runtime_error
@@ -111,13 +114,6 @@ namespace ARIASDK_NS_BEGIN
         }
     };
 #endif
-
-    /// <summary>
-    /// This configuration flag is populated by SDK to indicate if this singleton instance
-    /// is running in "host" mode and all LogController methods should be accessible to the
-    /// caller.
-    /// </summary>
-    static constexpr const char* HOST_MODE = "hostMode";
 
     /// <summary>
     /// This class is used to manage the Events  logging system
@@ -166,7 +162,7 @@ namespace ARIASDK_NS_BEGIN
 
         static inline bool isHost()
         {
-            return GetLogConfiguration()[HOST_MODE];
+            return GetLogConfiguration()[CFG_BOOL_HOST_MODE];
         }
 
         /// <summary>
@@ -402,6 +398,16 @@ namespace ARIASDK_NS_BEGIN
                 LM_SAFE_CALL(GetLogController()->ResetTransmitProfiles);
             return STATUS_EPERM;  // Permission denied
         }
+
+        // <summary>
+        // Delete local strorage data
+        static status_t DeleteData()
+        {
+            if (isHost())
+                LM_SAFE_CALL(GetLogController()->DeleteData);
+            return STATUS_EPERM;  // Permission denied
+        }
+
 
 #endif
 
@@ -683,6 +689,16 @@ namespace ARIASDK_NS_BEGIN
             return nullLogManager.GetDataViewerCollection();
 #endif
         }
+
+        /// <summary>
+        /// Obtain a raw pointer to the ILogManager singleton instance.
+        /// NOTE: this API should not be used concurrently with Initialize or FlushAndTeardown API calls.
+        /// </summary>
+        static ILogManager* GetInstance() noexcept
+        {
+            LM_LOCKGUARD(stateLock());
+            return instance;
+        }
     };
 
     // Implements LogManager<T> singleton template static  members
@@ -706,7 +722,7 @@ namespace ARIASDK_NS_BEGIN
 #endif
 
 }
-ARIASDK_NS_END
+MAT_NS_END
 
 #pragma clang diagnostic pop
 
@@ -715,3 +731,4 @@ ARIASDK_NS_END
 #endif
 
 #endif
+

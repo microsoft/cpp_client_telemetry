@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include <cstdint>
@@ -184,7 +187,7 @@ class CompactBinaryProtocolReader {
 
     bool ReadWString(std::string const& value)
     {
-		UNREFERENCED_PARAMETER(value);
+        UNREFERENCED_PARAMETER(value);
         uint32_t length;
         if (!ReadUInt32(length)) {
             return false;
@@ -268,3 +271,4 @@ class CompactBinaryProtocolReader {
 };
 
 } // namespace bond_lite
+

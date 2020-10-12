@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef PAYLOADDECODER_HPP
 #define PAYLOADDECODER_HPP
 
@@ -19,7 +22,7 @@ namespace CsProtocol
     struct Record;
 };
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     namespace exporters {
 
@@ -46,6 +49,7 @@ namespace ARIASDK_NS_BEGIN {
 
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif
+

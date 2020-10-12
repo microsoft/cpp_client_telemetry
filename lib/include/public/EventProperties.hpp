@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef EVENTPROPERTIES_HPP
 #define EVENTPROPERTIES_HPP
 
@@ -19,7 +22,7 @@
 #include "mat.h"
 #endif
 
-namespace ARIASDK_NS_BEGIN
+namespace MAT_NS_BEGIN
 {
 
     struct EventPropertiesStorage; 
@@ -349,6 +352,6 @@ namespace ARIASDK_NS_BEGIN
         EventPropertiesStorage* m_storage;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif

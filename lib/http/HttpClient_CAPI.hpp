@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef HTTPCLIENT_CAPI_HPP
 #define HTTPCLIENT_CAPI_HPP
 
@@ -8,7 +11,7 @@
 
 #include <string>
 
-namespace ARIASDK_NS_BEGIN {
+namespace MAT_NS_BEGIN {
 
     class HttpClient_CAPI : public IHttpClient {
     public:
@@ -25,6 +28,6 @@ namespace ARIASDK_NS_BEGIN {
         std::mutex        m_requestsMutex;
     };
 
-} ARIASDK_NS_END
+} MAT_NS_END
 
 #endif // HTTPCLIENT_CAPI_HPP
