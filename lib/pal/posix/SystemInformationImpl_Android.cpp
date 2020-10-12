@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include <jni.h>
 #include "pal/PAL.hpp"
@@ -204,3 +207,4 @@ extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpCli
         PAL::AndroidSystemInformationConnector::s_time_zone,
         time_zone);
 }
+

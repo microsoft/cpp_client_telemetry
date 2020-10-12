@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 
 // Assume that if we are compiling with MSVC, then we prefer to use Windows HTTP stack,
@@ -137,3 +140,4 @@ namespace MAT_NS_BEGIN {
 } MAT_NS_END
 
 #endif
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "common/Common.hpp"
 #include "CheckForExceptionOrAbort.hpp"
 
@@ -447,3 +450,4 @@ TEST(DefaultDataViewerTests, EnableRemoteViewer_SendRequestTakes20Seconds_Transm
     ASSERT_TRUE(viewer.IsTransmissionEnabled());
 }
 #endif
+

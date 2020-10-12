@@ -1,6 +1,9 @@
 #ifndef TYPENAME_HPP
 #define TYPENAME_HPP
-// Copyright (c) Microsoft Corporation. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include <string>
 #include <typeinfo>
 
@@ -32,3 +35,4 @@ __inline static std::string demangle(const char* name) {
 #endif
 
 #endif
+

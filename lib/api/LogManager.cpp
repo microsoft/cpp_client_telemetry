@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #if ENABLE_LOGMANAGER_V1
 
 // Enable v1-style LogManager singleton in the build

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events.maesdktest;
 
 import static org.hamcrest.Matchers.is;
@@ -241,3 +245,4 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
     assertThat(roundTrip, is(DataCategory.PartB.getValue()));
   }
 }
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "common/MockIRuntimeConfig.hpp"
@@ -120,3 +123,4 @@ TEST_F(MetaStatsTests, NoNewDataOrMetastatsOnlyGenerateNoEvents)
     //EXPECT_THAT(events[0].Extension, Contains(Pair("records_received_count",   "4")));
     //EXPECT_THAT(events[0].Extension, Contains(Pair("requests_acked_succeeded", "1")));
 }
+

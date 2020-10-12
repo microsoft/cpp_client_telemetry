@@ -1,4 +1,8 @@
 //
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
+//
 // Created by maharrim on 5/18/2020.
 //
 #ifdef ANDROID
@@ -579,3 +583,4 @@ INSTANTIATE_TEST_CASE_P(Storage,
     s << info.param;
     return s.str();
 });
+

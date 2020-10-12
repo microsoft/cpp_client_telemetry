@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "EventDecoderListener.hpp"
 #include "PayloadDecoder.hpp"
 
@@ -166,3 +170,4 @@ void EventDecoderListener::OnDebugEvent(DebugEvent &evt)
     };
 
 };
+

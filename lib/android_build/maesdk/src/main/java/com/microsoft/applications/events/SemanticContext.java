@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 class SemanticContext implements ISemanticContext {
@@ -420,3 +424,4 @@ class SemanticContext implements ISemanticContext {
         nativeSetTicket(m_nativeISemanticContextPtr, ticketType.getValue(), ticketValue);
     }
 }
+
