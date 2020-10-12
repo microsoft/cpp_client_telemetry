@@ -5,7 +5,7 @@
 #ifndef OFFLINESTORAGEFACTORY_HPP
 #define OFFLINESTORAGEFACTORY_HPP
 
-#ifdef HAVE_MAT_STORAGE
+#include <memory>
 #include "IOfflineStorage.hpp"
 #include "api/IRuntimeConfig.hpp"
 
@@ -19,7 +19,5 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 
-#endif // HAVE_MAT_STORAGE
-
-#endif  // HTTPCLIENTFACTORY_HPP
+#endif // OFFLINESTORAGEFACTORY_HPP
 

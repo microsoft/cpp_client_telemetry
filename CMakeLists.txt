@@ -1,6 +1,25 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(MSTelemetry)
 
+################################################################################################
+# User options
+################################################################################################
+option(BUILD_HEADERS      "Build API headers"       YES)
+option(BUILD_LIBRARY      "Build library"           YES)
+option(BUILD_TEST_TOOL    "Build console test tool" YES)
+option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
+option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
+option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
+option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
+option(BUILD_PACKAGE      "Build package"           YES)
+option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
+# Enable Azure Monitor / Application Insights end-point support
+option(BUILD_AZMON        "Build for Azure Monitor" YES)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
+endif()
+################################################################################################
+
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
@@ -18,13 +37,42 @@ if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
+  message("-- Building for Android OS...")
+  set(ANDROID 1)
+  option(BUILD_ANDROID	"Build for Android"	YES)
+endif()
+
+if(BUILD_ANDROID)
+  message("-- BUILD_ANDROID:          ${BUILD_ANDROID}")
+  add_definitions(-DCONFIG_CUSTOM_H="config-android-os.h")
+
+  # Detect Android build top
+  if ($ENV{ANDROID_BUILD_TOP})
+    set(ANDROID_BUILD_TOP $ENV{ANDROID_BUILD_TOP})
+  endif()
+  message("-- ANDROID_BUILD_TOP:      ${ANDROID_BUILD_TOP}")
+
+  # Detect Android product name
+  if ($ENV{ANDROID_PRODUCT_NAME})
+    set(ANDROID_PRODUCT_NAME $ENV{ANDROID_PRODUCT_NAME})
+  endif()
+  message("-- ANDROID_PRODUCT_NAME:   ${ANDROID_PRODUCT_NAME}")
+
+  # TODO: currently we search in /system/lib64 then /system/lib/ and assume that our sqlite3.h C header is compatible with version built in OS
+  # Locate Android libsqlite.so
+  find_library(sqlite NAMES libsqlite HINTS "${ANDROID_BUILD_TOP}/out/target/product/${ANDROID_PRODUCT_NAME}/system/lib64/" "${ANDROID_BUILD_TOP}/out/target/product/${ANDROID_PRODUCT_NAME}/system/lib/" )
+  # Use built-in sqlite header
+  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sqlite/")
+endif()
+
 # Enable ARC for obj-c on Apple
 if(APPLE)
   message("-- BUILD_IOS:              ${BUILD_IOS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
 
   # iOS build options
-  option(BUILD_IOS           "Build for iOS"               NO)
+  option(BUILD_IOS	"Build for iOS"		NO)
 
   if(BUILD_IOS)
     set(TARGET_ARCH "APPLE")
@@ -189,45 +237,46 @@ message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 # Only use custom curl if compiling with CPP11 PAL
 if (PAL_IMPLEMENTATION STREQUAL "CPP11")
-  
-  if(NOT BUILD_IOS)
-    include(FindCURL)
-    find_package(CURL REQUIRED)
-    if (NOT CURL_FOUND)
-      message (FATAL_ERROR "libcurl not found! Have you installed deps?")
-    endif (NOT CURL_FOUND)
-    include_directories(CURL_INCLUDE_DIRS)
-    set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
+  if(BUILD_APPLE_HTTP)
+    # Prefer Apple HTTP stack on Apple platforms
+    add_definitions(-DAPPLE_HTTP=1)
+  elseif( (NOT (BUILD_IOS)) OR (USE_CURL) )
+    # Fallback to libcurl
+    add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
+    # Use libcurl for HTTP stack
+    if (BUILD_ANDROID)
+      set(CURL_DIR          "${ANDROID_OS_EXTRA_LIBS}/curl/${TARGET_ARCH}")
+      set(OPENSSL_DIR       "${ANDROID_OS_EXTRA_LIBS}/openssl/${TARGET_ARCH}")
+      set(OPENSSL_LIBS      "${OPENSSL_DIR}/lib/libcrypto.a ${OPENSSL_DIR}/lib/libssl.a")
+      set(CURL_LIBRARY      "${CURL_DIR}/lib/libcurl.a")
+      set(CURL_INCLUDE_DIRS "${CURL_DIR}/include")
+      set(CURL_LIBRARIES    "${CURL_LIBRARY} ${OPENSSL_LIBS}")
+      if(NOT EXISTS "${CURL_DIR}")
+        message (FATAL_ERROR "libcurl not found at ${CURL_DIR}!")
+      endif()
+      message("-- using Android OS libcurl:")
+      message("-- CURL_INCLUDE_DIRS = ${CURL_INCLUDE_DIRS}")
+      message("-- CURL_LIBRARY      = ${CURL_LIBRARY}")
+      message("-- OPENSSL_LIBS      = ${OPENSSL_LIBS}")
+    else()
+      include(FindCURL)
+      find_package(CURL REQUIRED)
+      # Fail if curl is not found
+      if (NOT CURL_FOUND)
+        message (FATAL_ERROR "libcurl not found! Have you installed deps?")
+      endif()
+    endif()
+    # Include curl
+    include_directories(${CURL_INCLUDE_DIRS})
     list(APPEND LIBS "${CURL_LIBRARIES}")
   endif()
-endif()
-
-################################################################################################
-# User options
-################################################################################################
-option(BUILD_HEADERS      "Build API headers"       YES)
-option(BUILD_LIBRARY      "Build library"           YES)
-option(BUILD_TEST_TOOL    "Build console test tool" YES)
-option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
-option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
-option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
-option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
-option(BUILD_PACKAGE      "Build package"           YES)
-option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
-
-# Enable Azure Monitor / Application Insights end-point support
-option(BUILD_AZMON        "Build for Azure Monitor" YES)
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
 endif()
 
 if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
     message("Adding gtest")
     add_library(gtest STATIC IMPORTED GLOBAL)
     message("Adding gmock")
-    add_library(gmock STATIC IMPORTED GLOBAL)
-    
+    add_library(gmock STATIC IMPORTED GLOBAL)    
 #    message("Building libraries! - Path: ${CMAKE_CURRENT_SOURCE_DIR} ")
 #    message("Building gtest")
 #    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/)
@@ -235,20 +284,10 @@ if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
 #    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googlemock/)
 endif()
 
-if(BUILD_APPLE_HTTP)
-  add_definitions(-DAPPLE_HTTP=1)
-endif()
-
 # Bond Lite subdirectories
 include_directories(bondlite/include)
 
 include_directories(lib/pal)
-
-#if(BUILD_UNIT_TESTS)
-#  message("Adding bondlite tests")
-#  enable_testing()
-#  add_subdirectory(bondlite/tests)
-#endif()
 
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)
@@ -259,30 +298,30 @@ if(BUILD_LIBRARY)
   add_subdirectory(lib)
 endif()
 
-if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
-  message("Building tests")
-  enable_testing()
-  add_subdirectory(tests)
-endif()
-
-################################################################################################
-# Packaging
-################################################################################################
-
-if (BUILD_PACKAGE)
-  if (${CMAKE_PACKAGE_TYPE} STREQUAL "deb")
-    # FIXME: hardcode it for 64-bit Linux for now
-    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
-    include(tools/MakeDeb.cmake)
+if(NOT BUILD_ANDROID)
+  if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
+    message("Building tests")
+    enable_testing()
+    add_subdirectory(tests)
   endif()
-  if (${CMAKE_PACKAGE_TYPE} STREQUAL "rpm")
-    # TODO: [MG] - fix path
-    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
-    include(tools/MakeRpm.cmake)
-  endif()
-  if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
-    # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
-    # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
-    include(tools/MakeTgz.cmake)
+  ################################################################################################
+  # Packaging
+  ################################################################################################
+  if (BUILD_PACKAGE)
+    if (${CMAKE_PACKAGE_TYPE} STREQUAL "deb")
+      # FIXME: hardcode it for 64-bit Linux for now
+      set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
+      include(tools/MakeDeb.cmake)
+    endif()
+    if (${CMAKE_PACKAGE_TYPE} STREQUAL "rpm")
+      # TODO: [MG] - fix path
+      set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
+      include(tools/MakeRpm.cmake)
+    endif()
+    if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
+      # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
+      # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
+      include(tools/MakeTgz.cmake)
+    endif()
   endif()
 endif()
