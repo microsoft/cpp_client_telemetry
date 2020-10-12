@@ -1,2 +1,6 @@
 include ':app', ':maesdk'
 rootProject.name='EventsTest'
+
+if (file('settings.gradle.user').exists()) {
+  apply from: 'settings.gradle.user'
+}

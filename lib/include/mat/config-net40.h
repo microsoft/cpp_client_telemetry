@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #define EVTSDK_VERSION_PREFIX "EVT"
 /*
 #if defined(_WIN32)
@@ -15,3 +19,7 @@
 #define HAVE_MAT_NETDETECT
 #endif
 */
+#define HAVE_CS3
+//#define HAVE_CS4
+//#define HAVE_CS4_FULL
+

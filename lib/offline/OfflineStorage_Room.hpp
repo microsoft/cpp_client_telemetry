@@ -1,6 +1,9 @@
 #include "mat/config.h"
 #ifdef HAVE_MAT_STORAGE
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include "IOfflineStorage.hpp"
@@ -72,11 +75,12 @@ namespace MAT_NS_BEGIN
 
         void DeleteRecords(const std::map<std::string, std::string>& whereFilter) override;
         void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders, bool&) override;
+        virtual void DeleteAllRecords() override;
         void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders, bool&) override;
 
         bool StoreSetting(std::string const& name, std::string const& value) override;
-        void DeleteSetting(std::string const& name);
         std::string GetSetting(std::string const& name) override;
+        bool DeleteSetting(std::string const& name) override;
         size_t GetSize() override;
         size_t GetRecordCount(EventLatency latency) const override;
         StorageRecordVector GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
@@ -113,3 +117,4 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 #endif
+

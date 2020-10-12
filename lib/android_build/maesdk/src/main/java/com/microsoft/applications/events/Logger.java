@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import java.util.ArrayList;
@@ -1375,7 +1379,17 @@ class Logger implements ILogger {
     clearNative();
   }
 
+  /**
+   * Package-private method to get the native pointer for ILogger*
+   * @return long representing the native pointer for ILogger *
+   */
+  long getNativeILoggerPtr()
+  {
+    return m_nativePtr;
+  }
+
   public synchronized void clearNative() {
     m_nativePtr = 0;
   }
 }
+

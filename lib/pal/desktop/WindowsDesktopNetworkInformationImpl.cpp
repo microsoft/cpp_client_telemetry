@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifdef _WIN32
 #define LOG_MODULE DBG_PAL
 #include "pal/NetworkInformationImpl.hpp"
@@ -108,3 +112,4 @@ namespace PAL_NS_BEGIN {
     }
 } PAL_NS_END
 #endif
+
