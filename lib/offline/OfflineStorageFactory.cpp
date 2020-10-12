@@ -5,7 +5,7 @@
 #include "mat/config.h"
 
 #include "OfflineStorageFactory.hpp"
-#include "PAL.hpp"
+#include "pal/PAL.hpp"
 
 #ifdef HAVE_MAT_STORAGE
 #ifdef USE_ROOM
