@@ -3,12 +3,16 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "mat/config.h"
-#include "OfflineStorageFactory.hpp"
 
+#include "OfflineStorageFactory.hpp"
+#include "PAL.hpp"
+
+#ifdef HAVE_MAT_STORAGE
 #ifdef USE_ROOM
 #include "offline/OfflineStorage_Room.hpp"
 #else
 #include "offline/OfflineStorage_SQLite.hpp"
+#endif
 #endif
 
 namespace MAT_NS_BEGIN

@@ -13,7 +13,7 @@ LOCAL_C_INCLUDES	+= \
 	$(LOCAL_PATH)/../include	\
 	$(LOCAL_PATH)/../public
 
-LOCAL_SHARED_LIBRARIES += libc libbinder liblog libutils libcutils liblog
+#LOCAL_SHARED_LIBRARIES += libc libbinder liblog libutils libcutils liblog
 LOCAL_LDLIBS		:= -lutils -lcutils -lm -ldl -lc -lbinder -llog -lcutils -lutils -llog
 LOCAL_LDFLAGS		:= -L$(ANDROID_SYSTEM_LIBS)
 
