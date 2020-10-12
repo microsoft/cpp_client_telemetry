@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef SOCKETTOOLS_HPP
 #define SOCKETTOOLS_HPP
 
@@ -455,4 +458,5 @@ struct SocketData
 
 }
 #endif
+
 
