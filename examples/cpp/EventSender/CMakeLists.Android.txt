@@ -1,0 +1,41 @@
+set(APP_STL c++_static)
+
+if (NOT TARGET_ARCH)
+  # TODO: use ${CMAKE_ANDROID_ARCH_ABI} ?
+  set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
+# Building this example for Android OS requires the following variables:
+# - ${ANDROID_BUILD_TOP}     - path to Android OS build top dir (e.g. /android/aosp )
+# - ${ANDROID_PRODUCT_NAME}  - name of the product built in Android OS build tree
+# - ${ANDROID_OS_EXTRA_LIBS} - path to CURL (libcurl.a) and OpenSSL (libssl.a, libcrypto.a) build
+message("-- Building for Android OS...")
+set(ANDROID 1)
+
+# Detect Android build top
+if ($ENV{ANDROID_BUILD_TOP})
+  set(ANDROID_BUILD_TOP $ENV{ANDROID_BUILD_TOP})
+endif()
+message("-- ANDROID_BUILD_TOP:      ${ANDROID_BUILD_TOP}")
+
+# Detect Android product name
+if ($ENV{ANDROID_PRODUCT_NAME})
+  set(ANDROID_PRODUCT_NAME $ENV{ANDROID_PRODUCT_NAME})
+endif()
+message("-- ANDROID_PRODUCT_NAME:   ${ANDROID_PRODUCT_NAME}")
+
+set(ANDROID_SYSTEM_LIBS "${ANDROID_BUILD_TOP}/out/target/product/${ANDROID_PRODUCT_NAME}/symbols/system/lib64/")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${ANDROID_SYSTEM_LIBS}")
+
+# Find libsqlite.so
+add_library(sqlite SHARED IMPORTED)
+set_target_properties(sqlite PROPERTIES IMPORTED_LOCATION "${ANDROID_BUILD_TOP}/out/target/product/${ANDROID_PRODUCT_NAME}/symbols/system/lib64/libsqlite.so")
+set(SQLITE3_LIB sqlite)
+
+# See `build-android.cmd os` or `build-android.sh os` script in top folder of 1DS SDK
+set(MATSDK_LIB ${CMAKE_CURRENT_SOURCE_DIR}/../../../out/lib/libmat.a)
+
+# Use public SDK headers from this build tree
+set(MAT_SDK_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../../../lib/include/public)
+
+target_link_libraries(EventSender curl crypto ssl z log utils ${CMAKE_THREAD_LIBS_INIT} dl ${MATSDK_LIB} ${SQLITE3_LIB})
