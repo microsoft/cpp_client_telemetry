@@ -35,7 +35,7 @@
 #import <netdb.h>
 
 
-NSString *const kReachabilityChangedNotification = @"kReachabilityChangedNotification";
+NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityChangedNotification";
 
 
 @interface ODWReachability ()
