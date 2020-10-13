@@ -2,9 +2,33 @@
 
 This tutorial guides you through the process of integrating the 1DS SDK into Android OS Platform as native module.
 
-It assumes that your system is configued with the necessary Android essential build tools, compilers, CMake, clang, SDK, NDK.
+It assumes that your system is configued with the necessary recent versions of the tools:
+- Android essential build tools (SDK, NDK)
+- Android Product (e.g. AOSP) build tree
+- C++ compilers
+- CMake
+- Ninja
 
-Best experience is achieved using Linux or WSL. Windows machine may be used as well with remotely mounted Android OS build root.
+Best experience is achieved using Linux machine. WSL2 may work too. For example, Windows Subsystem for Linux (WSL1 or WSL2) both work well with remotely (SMB-mounted or SSHFS-mounted) Android OS build root tree.
+
+You can map remote Linux build machine as follows:
+
+## Assuming your remote Linux network share is mapped to `A:` drive (WSL1), map using WSL1 `drvfs`:
+```console
+mkdir /mnt/a
+mount -t drvfs A: /mnt/a
+```
+
+## Assuming you map your remote Linux machine over sshfs, map using WSL2 `sshfs` filesystem:
+```console
+mkdir /android
+sshfs -p 22 YOUR_LOGIN_NAME@192.168.2.176:/android /android/ -o follow_symlinks
+```
+
+At this point your machine contains remotely-mapped `ANDROID_BUILD_TOP` directory. You need to set environment variable to point your build system to it
+```console
+export ANDROID_BUILD_TOP=/android/aosp
+```
 
 ## 1. Clone the repository
 
@@ -12,61 +36,32 @@ Run `git clone https://github.com/microsoft/cpp_client_telemetry.git --recurse-s
 
 ## 2. Build SDK
 
-Please review the `build-android.cmd` build script that sets up the necessary paths to AOSP (Platform OS or Product) build tree:
+Please review the `build-android-os.cmd` and `build-android-os.sh` build scripts that set up the necessary paths to AOSP (Platform OS or Product) build tree.
+
+Feel free to locally modify the build scripts to specify your machine-specific paths and SDK/NDK versions.
+
+Windows build:
 
 ```console
-build-android.cmd os
+build-android-os.cmd
 ```
 
-Let's dissect an equivalent example of Linux or Mac shell script:
+This produces the following output:
+- static SDK library in `out\static\lib\libmat.a`
+- shared SDK library in `out\shared\lib\libmat.so`
+
+or
+
+Linux build:
 
 ```console
-
-# Setup paths to Android SDK, Android NDK, Android OS Build top
-
-export ANDROID_SDK_ROOT=/android/sdk
-export ANDROID_NDK_VERSION=21.3.6528147
-export ANDROID_CMAKE_VERSION=3.10.2.4988404
-export ANDROID_HOME=$ANDROID_SDK_ROOT
-export ANDROID_NDK=${ANDROID_SDK_ROOT}/ndk/${ANDROID_NDK_VERSION}
-export ANDROID_NDK_HOME=${ANDROID_NDK}
-
-# Please specify your product target platform. This example is for x86_64 Emulator:
-export ABI=x86_64
-export MINSDKVERSION=23
-
-# This is the root folder of the platform build tree
-export ANDROID_BUILD_TOP=/android/aosp/
-
-mkdir out
-cd out
-
-# We ninja generator - for Ninja bundled with NDK, but make should work too.
-# Note the product name - `generic_x86_64` (Emulator).
-
-cmake -GNinja	\
-	-DCMAKE_SYSTEM_PROCESSOR=$ABI	\
-	-DCMAKE_SYSTEM_NAME=Android	\
-	-DANDROID_ABI=$ABI	\
-	-DCMAKE_ANDROID_ARCH_ABI=$ABI	\
-	-DCMAKE_ANDROID_NDK=$ANDROID_NDK	\
-	-DCMAKE_ANDROID_STL_TYPE=c++_static	\
-	-DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake	\
-	-DANDROID_TOOLCHAIN_NAME=x86_64-linux-android	\
-	-DCMAKE_MAKE_PROGRAM=${ANDROID_SDK_ROOT}/cmake/${ANDROID_CMAKE_VERSION}/bin/ninja	\
-	-DCMAKE_SYSTEM_PROCESSOR=$ABI	\
-	-DANDROID_NATIVE_API_LEVEL=android-${MINSDKVERSION}	\
-	-DANDROID_BUILD_TOP=${ANDROID_BUILD_TOP}	\
-	-DANDROID_PRODUCT_NAME=generic_x86_64	\
-	..
-
-# Make sure ninja from Android NDK bundle is in the path
-
-ninja
+build-android-os.sh
 ```
 
-This will build a static SDK library and place the output in `out/lib/libmat.a` 
+This produces the following output:
+- static SDK library in `out/static/lib/libmat.a`
+- shared SDK library in `out/shared/lib/libmat.so`
 
 ## 3. Integrate the SDK into your C++ project
 
-Please refer to [examples/cpp/EventSender](../examples/cpp/EventSender) example that hows how to build native binary targeting Android OS (Platform layer) using NDK and cmake.
+Please refer to [examples/cpp/EventSender](../examples/cpp/EventSender) example that hows how to build native C/C++ binary targeting Android OS (Platform layer) using Android NDK and CMake.
