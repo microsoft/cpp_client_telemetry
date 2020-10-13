@@ -213,10 +213,12 @@ if(BUILD_SHARED_LIBS STREQUAL "ON")
     find_package(CURL REQUIRED)
     # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
     # SQLite3
-    find_package(sqlite3 REQUIRED)
     if (BUILD_STATIC_SQLITE STREQUAL "ON")
-      add_library(sqlite3 STATIC IMPORTED GLOBAL)
+      # Use prebuilt libsqlite3.a
+      list(APPEND LIBS libsqlite3.a)
     else()
+      # Find shared library from OS
+      find_package(sqlite3 REQUIRED)
       add_library(sqlite3 SHARED IMPORTED GLOBAL)
     endif()
   endif()
@@ -242,21 +244,12 @@ else()
     target_link_libraries(mat PUBLIC ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   else()
     if(NOT BUILD_ANDROID)
-      # SQLite3
-      find_package(sqlite3 REQUIRED)
-      if (BUILD_STATIC_SQLITE STREQUAL "ON")
-        list(APPEND LIBS libsqlite3.a)
-        # add_library(sqlite3 STATIC IMPORTED GLOBAL)
-      endif()
+      list(APPEND LIBS libsqlite3.a)
     endif()
-
-    # TODO: usually we get these libraries in OS. Confirm if customers are linking these to their EXE
-    # We should not need to bring it in here.
+    ## Don't generally need to add sqlite3 and z libraries to static build
     # add_library(sqlite3 STATIC IMPORTED GLOBAL)
     # add_library(z STATIC IMPORTED GLOBAL)
-
     # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-    # TODO: do we need to add libz.a ?
     target_link_libraries(mat PRIVATE ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
   endif()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
