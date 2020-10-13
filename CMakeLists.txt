@@ -43,6 +43,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
   option(BUILD_ANDROID	"Build for Android"	YES)
 endif()
 
+#
+# Android OS - platform module build
+#
 if(BUILD_ANDROID)
   message("-- BUILD_ANDROID:          ${BUILD_ANDROID}")
   add_definitions(-DCONFIG_CUSTOM_H="config-android-os.h")
@@ -59,13 +62,32 @@ if(BUILD_ANDROID)
   endif()
   message("-- ANDROID_PRODUCT_NAME:   ${ANDROID_PRODUCT_NAME}")
 
-  # TODO: currently we search in /system/lib64 then /system/lib/ and assume that our sqlite3.h C header is compatible with version built in OS
-  # Locate Android libsqlite.so
-  find_library(sqlite NAMES libsqlite HINTS "${ANDROID_BUILD_TOP}/out/target/product/${ANDROID_PRODUCT_NAME}/system/lib64/" "${ANDROID_BUILD_TOP}/out/target/product/${ANDROID_PRODUCT_NAME}/system/lib/" )
-  # Use built-in sqlite header
+  # Specify path to lookup system libraries from
+  set(ANDROID_SYSTEM_LIBS "${ANDROID_BUILD_TOP}/out/target/product/${ANDROID_PRODUCT_NAME}/symbols/system/lib64/")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -L${ANDROID_SYSTEM_LIBS}")
+
+  # Use system shared libsqlite.so
+  set(BUILD_STATIC_SQLITE "OFF")
+
+  # Find libsqlite.so
+  # TODO: is there a need to ever allow linking against our local static build of sqlite3 on Android OS?
+  add_library(sqlite SHARED IMPORTED)
+  set_target_properties(sqlite PROPERTIES IMPORTED_LOCATION "${ANDROID_SYSTEM_LIBS}/libsqlite.so")
+  add_library(sqlite3 ALIAS sqlite)
+  # We use current snapshot for sqlite3.h header. If it's compatible, then linker is happy.
+  # TODO: consider using one from Android build tree
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/sqlite/")
+
+  if (BUILD_SHARED_LIBS STREQUAL "ON")
+    # Default platform libraries needed for Android shared library build
+    list(APPEND LIBS log utils)
+  endif()
+
 endif()
 
+#
+# Apple OS build (Mac, iOS, iPadOS)
+#
 # Enable ARC for obj-c on Apple
 if(APPLE)
   message("-- BUILD_IOS:              ${BUILD_IOS}")
@@ -245,6 +267,7 @@ if (PAL_IMPLEMENTATION STREQUAL "CPP11")
     add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
     # Use libcurl for HTTP stack
     if (BUILD_ANDROID)
+      # Android libcurl
       if (USE_CUSTOM_CURL)
         # Build libcurl+deps from source. Example parameter:
         # - Windows: -DANDROID_OS_EXTRA_LIBS=A:/openssl-curl-android/build
@@ -260,14 +283,17 @@ if (PAL_IMPLEMENTATION STREQUAL "CPP11")
         if(NOT EXISTS "${CURL_DIR}")
           message (FATAL_ERROR "libcurl not found at ${CURL_DIR}!")
         endif()
-     else()
+        message("-- using custom libcurl:")
+      else()
         # Reuse libcurl platform build
         set(CURL_DIR          "${ANDROID_BUILD_TOP}/external/curl")
         set(CURL_INCLUDE_DIRS "${CURL_DIR}/include")
         message("-- using Android OS libcurl:")
-        message("-- CURL_INCLUDE_DIRS = ${CURL_INCLUDE_DIRS}")
-     endif()
-   else()
+        set(CURL_LIBRARIES	curl crypto ssl)
+      endif()
+    else()
+      # Other POSIX libcurl
+      message("-- using system libcurl:")
       include(FindCURL)
       find_package(CURL REQUIRED)
       # Fail if curl is not found
@@ -275,7 +301,11 @@ if (PAL_IMPLEMENTATION STREQUAL "CPP11")
         message (FATAL_ERROR "libcurl not found! Have you installed deps?")
       endif()
     endif()
-    # Include curl
+    #
+    # Include curl + openssl if necessary
+    #
+    message("-- CURL_INCLUDE_DIRS = ${CURL_INCLUDE_DIRS}")
+    message("-- CURL_LIBRARIES    = ${CURL_LIBRARIES}")
     include_directories(${CURL_INCLUDE_DIRS})
     list(APPEND LIBS "${CURL_LIBRARIES}")
   endif()

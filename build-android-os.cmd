@@ -47,8 +47,11 @@ set "PATH=C:\Program Files\CMake\bin;%PATH%"
 
 REM TODO: delete 'out' directory to recreate cmake files in case if configuration changed
 mkdir out 2>NUL
-cd out
+mkdir out\static 2>NUL
+mkdir out\shared 2>NUL
 
+echo Building shared library...
+pushd out\shared
 cmake -GNinja ^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
       -DCMAKE_SYSTEM_PROCESSOR=%ANDROID_ABI% ^
@@ -65,7 +68,28 @@ cmake -GNinja ^
       -DANDROID_PRODUCT_NAME=%ANDROID_PRODUCT_NAME% ^
       -DBUILD_SHARED_LIBS=ON ^
       %* ^
-      ..
+      ..\..
+start cmd.exe /c ninja
+popd
 
-ninja
+echo Building static library...
+pushd out\static
+cmake -GNinja ^
+      -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
+      -DCMAKE_SYSTEM_PROCESSOR=%ANDROID_ABI% ^
+      -DCMAKE_SYSTEM_NAME=Android ^
+      -DANDROID_ABI=%ANDROID_ABI% ^
+      -DCMAKE_ANDROID_ARCH_ABI=%ANDROID_ABI% ^
+      -DCMAKE_ANDROID_NDK=%ANDROID_NDK% ^
+      -DCMAKE_ANDROID_STL_TYPE=c++_static ^
+      -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK%/build/cmake/android.toolchain.cmake ^
+      -DANDROID_TOOLCHAIN_NAME=%ANDROID_TOOLCHAIN% ^
+      -DCMAKE_MAKE_PROGRAM=%ANDROID_SDK_ROOT%/cmake/%ANDROID_CMAKE_VERSION%/bin/ninja.exe ^
+      -DANDROID_NATIVE_API_LEVEL=android-%MINSDKVERSION% ^
+      -DANDROID_BUILD_TOP=%ANDROID_BUILD_TOP% ^
+      -DANDROID_PRODUCT_NAME=%ANDROID_PRODUCT_NAME% ^
+      -DBUILD_SHARED_LIBS=OFF ^
+      %* ^
+      ..\..
+start cmd.exe /c ninja
 popd
