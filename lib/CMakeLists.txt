@@ -206,12 +206,20 @@ endif()
 
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
-  
-  # include(FindCURL)
-  # find_package(CURL REQUIRED)
-  # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
 
-  # find_package(sqlite3 REQUIRED)
+  if(NOT BUILD_ANDROID)
+    # Curl
+    include(FindCURL)
+    find_package(CURL REQUIRED)
+    # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
+    # SQLite3
+    find_package(sqlite3 REQUIRED)
+    if (BUILD_STATIC_SQLITE STREQUAL "ON")
+      add_library(sqlite3 STATIC IMPORTED GLOBAL)
+    else()
+      add_library(sqlite3 SHARED IMPORTED GLOBAL)
+    endif()
+  endif()
 
   add_library(mat SHARED ${SRCS})
 
@@ -225,40 +233,40 @@ if(BUILD_SHARED_LIBS STREQUAL "ON")
   #
   # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
   #
-  if (BUILD_STATIC_SQLITE STREQUAL "ON")
-    # Build dynamic library, but prefer statically linking sqlite3 and zlib
-    add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    add_library(z STATIC IMPORTED GLOBAL)
-    target_link_libraries(mat PRIVATE sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
-  else()
-    # Prefer shared libraries for sqlite3 and zlib
-    add_library(sqlite3 SHARED IMPORTED GLOBAL)
-    add_library(z SHARED IMPORTED GLOBAL)
-    target_link_libraries(mat PUBLIC sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
-  endif()
-
-  # target_link_libraries(mat PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+  target_link_libraries(mat PRIVATE sqlite3 z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
   install(TARGETS mat EXPORT mat LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 else()
   message("-- Building static SDK library")
   add_library(mat STATIC ${SRCS})
   if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-    target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    target_link_libraries(mat PUBLIC ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   else()
-    add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    add_library(z STATIC IMPORTED GLOBAL)
-    #
+    if(NOT BUILD_ANDROID)
+      # SQLite3
+      find_package(sqlite3 REQUIRED)
+      if (BUILD_STATIC_SQLITE STREQUAL "ON")
+        list(APPEND LIBS libsqlite3.a)
+        # add_library(sqlite3 STATIC IMPORTED GLOBAL)
+      endif()
+    endif()
+
+    # TODO: usually we get these libraries in OS. Confirm if customers are linking these to their EXE
+    # We should not need to bring it in here.
+    # add_library(sqlite3 STATIC IMPORTED GLOBAL)
+    # add_library(z STATIC IMPORTED GLOBAL)
+
     # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-    #
-    target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    # TODO: do we need to add libz.a ?
+    target_link_libraries(mat PRIVATE ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
   endif()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()
 
 message("-- Library will be installed to ${INSTALL_LIB_DIR}")
-
-#if(PAL_IMPLEMENTATION STREQUAL "CPP11")
-#  #target_link_libraries(mat PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-#  #target_link_libraries(mat PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-#endif()
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  if(BUILD_SHARED_LIBS STREQUAL "ON")
+    message("-- Library symbols will be stripped.")
+    set_target_properties(mat PROPERTIES LINK_FLAGS_RELEASE -s)
+  endif()
+endif()
 
