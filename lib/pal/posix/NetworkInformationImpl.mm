@@ -191,7 +191,7 @@ namespace PAL_NS_BEGIN {
             {
                 m_notificationId =
                     [[NSNotificationCenter defaultCenter]
-                    addObserverForName: kReachabilityChangedNotification
+                    addObserverForName: kNetworkReachabilityChangedNotification
                     object: nil
                     queue: nil
                     usingBlock: block];
