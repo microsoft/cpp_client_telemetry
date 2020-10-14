@@ -100,4 +100,10 @@ using namespace Microsoft::Applications::Events;
     return _surfaceCppExceptions;
 }
 
++(void)setEnableSessionReset:(bool)enableSessionReset
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_BOOL_SESSION_RESET_ENABLED] = enableSessionReset;
+}
+
 @end
