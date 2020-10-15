@@ -1,5 +1,9 @@
-#include <com/microsoft/telemetry/BpTelemetryAgent.h>
-#include <com/microsoft/telemetry/ITelemetryAgent.h>
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
+#include "ITelemetryAgent.h"
+#include "BpTelemetryAgent.h"
 
 namespace com
 {
@@ -14,9 +18,9 @@ namespace com
     }  // namespace microsoft
 
 }  // namespace com
+
 #include <android-base/macros.h>
 #include <binder/Parcel.h>
-#include <com/microsoft/telemetry/BpTelemetryAgent.h>
 
 namespace com
 {
@@ -636,8 +640,8 @@ namespace com
     }  // namespace microsoft
 
 }  // namespace com
+#include "BnTelemetryAgent.h"
 #include <binder/Parcel.h>
-#include <com/microsoft/telemetry/BnTelemetryAgent.h>
 
 namespace com
 {

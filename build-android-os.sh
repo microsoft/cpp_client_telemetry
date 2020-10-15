@@ -29,7 +29,7 @@ export ANDROID_CMAKE_VERSION=${ANDROID_CMAKE_VERSION:-3.10.2.4988404}
 export ANDROID_HOME=${ANDROID_SDK_ROOT}
 # In this case the NDK is extracted into /usr/lib/android-sdk!
 export ANDROID_NDK=${ANDROID_SDK_ROOT}/android-ndk-r21d
-zexport ANDROID_NDK_HOME=${ANDROID_NDK}
+export ANDROID_NDK_HOME=${ANDROID_NDK}
 export ANDROID_PRODUCT_NAME=generic_x86_64
 export ANDROID_TOOLCHAIN=x86_64-linux-android
 

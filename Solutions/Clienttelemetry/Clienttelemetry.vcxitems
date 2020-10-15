@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -20,6 +20,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\capi.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\CorrelationVector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\EvtPropConverter.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogConfiguration.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.cpp" />
@@ -71,6 +72,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AllowedLevelsCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\EvtPropConverter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\IRuntimeConfig.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.hpp" />
@@ -85,7 +87,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\CompactBinaryProtocolWriter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\BondConstTypes.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_readers.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_types.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\bond\generated\CsProtocol_writers.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\config\RuntimeConfig_Default.hpp" />
@@ -115,7 +116,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\ISystemInformation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\json.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\oacr.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\TransmitProfiles.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CompliantByDefaultFilterApi.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CsProtocol_types.hpp" />

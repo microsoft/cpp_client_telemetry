@@ -32,6 +32,7 @@ set(SRCS
         ${SDK_ROOT}/lib/api/ContextFieldsProvider.cpp
         ${SDK_ROOT}/lib/api/CorrelationVector.cpp
         ${SDK_ROOT}/lib/api/DataViewerCollection.cpp
+        ${SDK_ROOT}/lib/api/EvtPropConverter.cpp
         ${SDK_ROOT}/lib/api/ILogConfiguration.cpp
         ${SDK_ROOT}/lib/api/LogConfiguration.cpp
         ${SDK_ROOT}/lib/api/LogManager.cpp

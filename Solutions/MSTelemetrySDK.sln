@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.645
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite", "..\sqlite\sqlite.vcxproj", "{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}"
 EndProject
@@ -38,38 +38,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "managed", "..\lib\shared\Shared.vcxitems", "{EF859326-2A11-481C-AE8C-03D754F1C412}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{553836FF-B1FD-4B70-AC81-AEC7752F9284}"
-	ProjectSection(SolutionItems) = preProject
-		..\lib\include\public\AggregatedMetric.hpp = ..\lib\include\public\AggregatedMetric.hpp
-		..\lib\include\public\CommonFields.h = ..\lib\include\public\CommonFields.h
-		..\lib\include\public\CsProtocol_types.hpp = ..\lib\include\public\CsProtocol_types.hpp
-		..\lib\include\public\ctmacros.hpp = ..\lib\include\public\ctmacros.hpp
-		..\lib\include\public\DebugEvents.hpp = ..\lib\include\public\DebugEvents.hpp
-		..\lib\include\public\Enums.hpp = ..\lib\include\public\Enums.hpp
-		..\lib\include\public\EventProperties.hpp = ..\lib\include\public\EventProperties.hpp
-		..\lib\include\public\EventProperty.hpp = ..\lib\include\public\EventProperty.hpp
-		..\lib\include\public\IAFDClient.hpp = ..\lib\include\public\IAFDClient.hpp
-		..\lib\include\public\IDataInspector.hpp = ..\lib\include\public\IDataInspector.hpp
-		..\lib\include\public\IDataViewer.hpp = ..\lib\include\public\IDataViewer.hpp
-		..\lib\include\public\IDataViewerCollection.hpp = ..\lib\include\public\IDataViewerCollection.hpp
-		..\lib\include\public\IDecorator.hpp = ..\lib\include\public\IDecorator.hpp
-		..\lib\include\public\IECSClient.hpp = ..\lib\include\public\IECSClient.hpp
-		..\lib\include\public\IEventFilter.hpp = ..\lib\include\public\IEventFilter.hpp
-		..\lib\include\public\IEventFilterCollection.hpp = ..\lib\include\public\IEventFilterCollection.hpp
-		..\lib\include\public\IHttpClient.hpp = ..\lib\include\public\IHttpClient.hpp
-		..\lib\include\public\ILogConfiguration.hpp = ..\lib\include\public\ILogConfiguration.hpp
-		..\lib\include\public\ILogger.hpp = ..\lib\include\public\ILogger.hpp
-		..\lib\include\public\ILogManager.hpp = ..\lib\include\public\ILogManager.hpp
-		..\lib\include\public\IModule.hpp = ..\lib\include\public\IModule.hpp
-		..\lib\include\public\IOfflineStorage.hpp = ..\lib\include\public\IOfflineStorage.hpp  
-		..\lib\include\public\ISemanticContext.hpp = ..\lib\include\public\ISemanticContext.hpp
-		..\lib\include\public\ITaskDispatcher.hpp = ..\lib\include\public\ITaskDispatcher.hpp
-		..\lib\include\public\LogManager.hpp = ..\lib\include\public\LogManager.hpp
-		..\lib\include\public\LogSessionData.hpp = ..\lib\include\public\LogSessionData.hpp
-		..\lib\include\public\mat.h = ..\lib\include\public\mat.h
-		..\lib\include\public\PayloadDecoder.hpp = ..\lib\include\public\PayloadDecoder.hpp
-		..\lib\include\public\Version.hpp = ..\lib\include\public\Version.hpp
-		..\lib\include\public\Version.hpp.template = ..\lib\include\public\Version.hpp.template
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win32-lib", "win32-lib\win32-lib.vcxproj", "{1DC6B38A-B390-34CE-907F-4958807A3D42}"
 EndProject
@@ -156,6 +124,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "privacyguard", "..\lib\modules\privacyguard\privacyguard.vcxitems", "{E1F6CA48-3BBF-4378-8D1E-6BBF4869DB5B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "azmon", "..\lib\modules\azmon\azmon.vcxitems", "{6DC5AB1D-3D64-4C52-8D8E-D9A8B0C16F14}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "android", "android", "{7A0C973C-5D07-465B-A792-3FE288BFC44B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "atelemetry", "..\examples\android\atelemetry\atelemetry.vcxproj", "{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -1251,6 +1223,48 @@ Global
 		{7DBFBA1F-520D-4C93-A33E-DD92FD4F9222}.Release|Win32.Build.0 = Release|Win32
 		{7DBFBA1F-520D-4C93-A33E-DD92FD4F9222}.Release|x64.ActiveCfg = Release|x64
 		{7DBFBA1F-520D-4C93-A33E-DD92FD4F9222}.Release|x64.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.static|ARM.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.static|ARM.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.static|ARM64.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.static|ARM64.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.static|Win32.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.static|Win32.Build.0 = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.static|x64.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.static|x64.Build.0 = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.vs2015.MT-sqlite|ARM.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.vs2015.MT-sqlite|ARM.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.vs2015.MT-sqlite|ARM64.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.vs2015.MT-sqlite|ARM64.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.vs2015.MT-sqlite|Win32.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.vs2015.MT-sqlite|Win32.Build.0 = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.vs2015.MT-sqlite|x64.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug.vs2015.MT-sqlite|x64.Build.0 = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug|ARM.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug|ARM64.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug|Win32.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug|x64.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Debug|x64.Build.0 = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.static|ARM.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.static|ARM.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.static|ARM64.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.static|ARM64.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.static|Win32.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.static|Win32.Build.0 = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.static|x64.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.static|x64.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.vs2015.MT-sqlite|ARM.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.vs2015.MT-sqlite|ARM.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.vs2015.MT-sqlite|ARM64.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.vs2015.MT-sqlite|ARM64.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.vs2015.MT-sqlite|Win32.ActiveCfg = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.vs2015.MT-sqlite|Win32.Build.0 = Debug|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.vs2015.MT-sqlite|x64.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release.vs2015.MT-sqlite|x64.Build.0 = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release|ARM.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release|ARM64.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release|Win32.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release|x64.ActiveCfg = Release|x64
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1285,6 +1299,8 @@ Global
 		{835E544D-A6FB-4C1C-B603-D848C4A6B315} = {D31B3404-AE47-4D0A-9A59-C321164F945C}
 		{E1F6CA48-3BBF-4378-8D1E-6BBF4869DB5B} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{6DC5AB1D-3D64-4C52-8D8E-D9A8B0C16F14} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
+		{7A0C973C-5D07-465B-A792-3FE288BFC44B} = {250EFB82-2F0E-4781-94BB-8313201ABDF0}
+		{B5C07778-D9A9-49EF-B4BB-97A20C5DDA43} = {7A0C973C-5D07-465B-A792-3FE288BFC44B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EE8585B-C10F-4DAC-BDAF-3726EDF8FCD7}

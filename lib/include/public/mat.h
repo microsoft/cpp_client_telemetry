@@ -617,7 +617,14 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
+#ifdef HAVE_CAPI_CLIENT
+/* Header-only slim C++ client on top of C API. This header is needed only if for some odd
+ * ABI compat reason the app cannot utilize the full-fledged C++ API. Most C++ apps should
+ * rebuild the SDK from source and use the full-featured C++ API surface. Most C apps use
+ * the plain C API above.
+ */
 #include "CAPIClient.hpp"
+#endif
 #endif
 
 #endif
