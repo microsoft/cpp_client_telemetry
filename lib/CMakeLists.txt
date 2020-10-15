@@ -27,6 +27,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/LogManagerFactory.cpp
   api/capi.cpp
   api/DataViewerCollection.cpp
+  api/EvtPropConverter.cpp
   utils/FileUtils.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp

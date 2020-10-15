@@ -34,6 +34,8 @@
 
 #include "http/HttpClientFactory.hpp"
 
+#include "api/EvtPropConverter.hpp"
+
 #include <list>
 
 using namespace MAT;
@@ -739,6 +741,50 @@ TEST(APITest, C_API_Test)
     evt_close(handle);
     ASSERT_EQ(capi_get_client(handle), nullptr);
 }
+
+#ifdef HAVE_EVTPROP_CONVERTER
+/**
+ * Test C API event property converter (MessagePack-alike Serializer/Deserializer)
+ */
+TEST(APITest, C_API_Serialization_Test)
+{
+    evt_prop event[] = TELEMETRY_EVENT(
+        // Part A/B fields
+        _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),                  // Event name
+        _DBL("popSample", 100.0),                                          // Effective sample rate
+        _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                               // iKey to send this event to
+        // Customer Data fields go as part of userdata
+        _STR("strKey", "value1"),
+        _INT("intKey", 12345),
+        _DBL("dblKey", 3.14),
+        _BOOL("boolKey", true),
+        _TIME("timeKey", 12345)
+    );
+
+    // Serialize evt_prop into byte buffer
+    std::vector<uint8_t> eventData;
+    EvtPropConverter::serialize(event, eventData);
+
+    // Deserialize back into array of evt_prop
+    std::vector<evt_prop> eventProps;
+    EvtPropConverter::deserialize(eventData, eventProps);
+
+    // Verify if deserialized event contents match
+    size_t i = 0;
+    for (const auto& prop : eventProps)
+    {
+        ASSERT_STREQ(event[i].name, prop.name);
+        if (event[i].type == TYPE_STRING)
+            ASSERT_STREQ(event[i].value.as_string, prop.value.as_string);
+        else
+            ASSERT_EQ(event[i].value.as_int64, prop.value.as_int64);
+        i++;
+    }
+
+    // Release C-string memory allocated on plain struct
+    EvtPropConverter::clear(eventProps);
+}
+#endif
 
 #ifdef HAVE_MAT_JSONHPP
 #if defined(_WIN32)

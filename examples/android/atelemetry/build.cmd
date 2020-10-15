@@ -1,5 +1,27 @@
-set ANDROID_HOME=C:/Android/android-sdk
-set ANDROID_NDK_HOME=C:/Android/android-ndk-r21d
+@echo off
+if "%BUILD_TYPE%"              == "" set "BUILD_TYPE=Release"
+if "%ANDROID_ABI%"             == "" set "ANDROID_ABI=x86_64"
+if "%ANDROID_SDK_VERSION%"     == "" set "ANDROID_SDK_VERSION=23"
+if "%ANDROID_SDK_ROOT%"        == "" set "ANDROID_SDK_ROOT=C:\Android\android-sdk"
+if "%ANDROID_NDK_VERSION%"     == "" set "ANDROID_NDK_VERSION=21.3.6528147"
+if "%ANDROID_CMAKE_VERSION%"   == "" set "ANDROID_CMAKE_VERSION=3.10.2.4988404"
+if "%ANDROID_HOME%"            == "" set "ANDROID_HOME=%ANDROID_SDK_ROOT%"
+if "%ANDROID_NDK%"             == "" set "ANDROID_NDK=%ANDROID_SDK_ROOT%\ndk\%ANDROID_NDK_VERSION%"
+if "%ANDROID_NDK_HOME%"        == "" set "ANDROID_NDK_HOME=%ANDROID_NDK%"
+if "%ANDROID_PRODUCT_NAME%"    == "" set "ANDROID_PRODUCT_NAME=generic_x86_64"
+if "%ANDROID_TOOLCHAIN%"       == "" set "ANDROID_TOOLCHAIN=x86_64-linux-android"
+
+echo ANDROID_ABI             = %ANDROID_ABI%
+echo ANDROID_SDK_VERSION     = %ANDROID_SDK_VERSION%
+echo ANDROID_SDK_ROOT        = %ANDROID_SDK_ROOT%
+echo ANDROID_NDK_VERSION     = %ANDROID_NDK_VERSION%
+echo ANDROID_CMAKE_VERSION   = %ANDROID_CMAKE_VERSION%
+echo ANDROID_HOME            = %ANDROID_HOME%
+echo ANDROID_NDK             = %ANDROID_NDK%
+echo ANDROID_NDK_HOME        = %ANDROID_NDK_HOME%
+echo ANDROID_PRODUCT_NAME    = %ANDROID_PRODUCT_NAME%
+echo ANDROID_TOOLCHAIN       = %ANDROID_TOOLCHAIN%
+
 set ANDROID_BUILD_TOP=A:/aosp
 set ANDROID_SYSROOT_ABI=x86_64
 set ANDROID_PRODUCT_NAME=generic_x86_64
