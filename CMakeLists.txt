@@ -347,17 +347,17 @@ if(NOT BUILD_ANDROID)
   # Packaging
   ################################################################################################
   if (BUILD_PACKAGE)
-    if (${CMAKE_PACKAGE_TYPE} STREQUAL "deb")
+    if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "deb")
       # FIXME: hardcode it for 64-bit Linux for now
       set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
       include(tools/MakeDeb.cmake)
     endif()
-    if (${CMAKE_PACKAGE_TYPE} STREQUAL "rpm")
+    if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "rpm")
       # TODO: [MG] - fix path
       set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
       include(tools/MakeRpm.cmake)
     endif()
-    if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
+    if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "tgz")
       # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
       # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
       include(tools/MakeTgz.cmake)
