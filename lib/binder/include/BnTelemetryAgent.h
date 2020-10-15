@@ -2,7 +2,8 @@
 #define AIDL_GENERATED_COM_MICROSOFT_TELEMETRY_BN_TELEMETRY_AGENT_H_
 
 #include <binder/IInterface.h>
-#include <com/microsoft/telemetry/ITelemetryAgent.h>
+
+#include "ITelemetryAgent.h"
 
 namespace com
 {

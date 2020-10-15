@@ -3,8 +3,9 @@
 
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
-#include <com/microsoft/telemetry/ITelemetryAgent.h>
 #include <utils/Errors.h>
+
+#include "ITelemetryAgent.h"
 
 namespace com
 {
