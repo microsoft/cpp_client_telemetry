@@ -204,12 +204,14 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
+  # Set default PAL implementation to avoid including POSIX and Curl
+  set(DEFAULT_PAL_IMPLEMENTATION WIN32)
 endif()
 
 include(tools/Utils.cmake)
 
 if (NOT DEFAULT_PAL_IMPLEMENTATION)
-# Linux, Mac OS X, MinGW, etc.
+  # Linux, Mac OS X, MinGW, etc.
   set(DEFAULT_PAL_IMPLEMENTATION CPP11)
 endif()
 
