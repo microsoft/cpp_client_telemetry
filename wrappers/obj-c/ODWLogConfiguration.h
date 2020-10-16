@@ -87,6 +87,17 @@
 */
 +(bool)surfaceCppExceptions;
 
+/*!
+@brief Sets if session timestamp should be reset after a session ends
+@param enableSessionReset True if session should be reset on session end.
+*/
++(void)setEnableSessionReset:(bool)enableSessionReset;
+
+/*!
+@brief Returns true if session will be reset on session end.
+*/
++(bool)enableSessionReset;
+
 @end
 
 #include "objc_end.h"
