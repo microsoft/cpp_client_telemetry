@@ -12,6 +12,7 @@ using namespace Microsoft::Applications::Events;
 @implementation ODWLogConfiguration
     static bool _enableTrace;
     static bool _enableConsoleLogging;
+    static bool _enableSessionReset;
     static bool _surfaceCppExceptions;
 
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
@@ -104,6 +105,12 @@ using namespace Microsoft::Applications::Events;
 {
     auto& config = LogManager::GetLogConfiguration();
     config[CFG_BOOL_SESSION_RESET_ENABLED] = enableSessionReset;
+    _enableSessionReset = enableSessionReset;
+}
+
++(bool)enableSessionReset
+{
+    return _enableSessionReset;
 }
 
 @end

@@ -93,6 +93,11 @@
 */
 +(void)setEnableSessionReset:(bool)enableSessionReset;
 
+/*!
+@brief Returns true if session will be reset on session end.
+*/
++(bool)enableSessionReset;
+
 @end
 
 #include "objc_end.h"
