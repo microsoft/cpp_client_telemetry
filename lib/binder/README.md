@@ -51,7 +51,7 @@ On Windows 10 - SDK uses ETW events to pass event data to agent, whereas on Andr
 
 ## Serialization format
 
-Compact Binary protocol assumes that events do not necesarily have to be subsequently re-decorated by Telemetry Agent. Events originating in apps may be sent as-is.
+Compact Binary protocol assumes that events do not necessarily have to be subsequently re-decorated by Telemetry Agent. Events originating in apps may be sent as-is.
 
 Whereas MessagePack encoding used by C API allows to express events that could be easily redecorated by Telemetry Agent.
 
