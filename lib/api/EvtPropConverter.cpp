@@ -26,33 +26,13 @@
 #include <string.h>
 
 #ifndef LOG_DEBUG
-#define LOG_DEBUG(fmt_, ...)    printf(fmt_ "\n", ##__VA_ARGS__)
-//#define LOG_DEBUG(...)
+//#define LOG_DEBUG(fmt_, ...)    printf(fmt_ "\n", ##__VA_ARGS__)
+#define LOG_DEBUG(...)
 #endif
 
 #ifndef ASSERT
 #define ASSERT  assert
 #endif
-
-#define MAX_VALUE_LENGTH 524288
-#if _POSIX_C_SOURCE >= 200809L
-#pragma message "Compiling with POSIX strnlen support..."
-#else
-static size_t strnlen(const char* s, size_t maxsize)
-{
-    if (s == NULL)
-    {
-        return 0;
-    }
-    size_t count = 0;
-    while (*s++ && maxsize--)
-    {
-        count++;
-    }
-    return count;
-}
-#endif
-#define strlen(s) strnlen(s, MAX_VALUE_LENGTH)
 
 void EvtPropConverter::dump(evt_prop* evt, const size_t size)
 {
