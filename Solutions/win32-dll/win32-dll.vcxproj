@@ -193,7 +193,7 @@
       </ForcedIncludeFiles>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
       <OmitFramePointers Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</OmitFramePointers>
-      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MinimalRebuild>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</MinimalRebuild>
       <SmallerTypeCheck Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</SmallerTypeCheck>
       <SmallerTypeCheck Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</SmallerTypeCheck>
       <SmallerTypeCheck Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</SmallerTypeCheck>
