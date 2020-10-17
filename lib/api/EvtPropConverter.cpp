@@ -26,8 +26,12 @@
 #include <string.h>
 
 #ifndef LOG_DEBUG
-//#define LOG_DEBUG(fmt_, ...)    printf(fmt_ "\n", ##__VA_ARGS__)
+#ifdef __ANDROID__
+// Turn on extra debugging for Android only for now (since it's not stable yet)
+#define LOG_DEBUG(fmt_, ...)    printf(fmt_ "\n", ##__VA_ARGS__)
+#else
 #define LOG_DEBUG(...)
+#endif
 #endif
 
 #ifndef ASSERT
@@ -142,7 +146,7 @@ void EvtPropConverter::serialize(/* in */ const evt_prop* evt, /* out */ std::ve
 
         case TYPE_BOOLEAN:
             currType = static_cast<uint8_t>((evt->value.as_bool) ? FieldTypeCode::FT_BOOL_TRUE : FieldTypeCode::FT_BOOL_FALSE);
-            ss.write(reinterpret_cast<const char*>(currType), sizeof(currType));
+            ss.write(reinterpret_cast<const char*>(&currType), sizeof(currType));
             break;
         default:
             break;
@@ -259,9 +263,21 @@ void EvtPropConverter::deserialize(/* in */ const std::vector<uint8_t>& buffer, 
             break;
 
         default:
+            // TODO: this is an error. We could not decode the encoded event:
+            // - Debug builds should crash at ASSERT below.
+            // - Release builds skip decoding once they hit a property that can't be decoded. 
+            goto deserialize_stop;
             break;
         }
         numElements++;
     };
+deserialize_stop:
+    result.push_back(evt_prop());
+    // NULL-terminator property in flexible-length array
+    evt_prop& nullProp = result.back();
+    nullProp.name = 0;
+    nullProp.type = TYPE_NULL;
+    nullProp.value.as_string = nullptr;
+
     ASSERT(size_t(totalLen) == buffer.size());
 };

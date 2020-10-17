@@ -742,7 +742,6 @@ TEST(APITest, C_API_Test)
     ASSERT_EQ(capi_get_client(handle), nullptr);
 }
 
-#ifdef HAVE_EVTPROP_CONVERTER
 /**
  * Test C API event property converter (MessagePack-alike Serializer/Deserializer)
  */
@@ -773,6 +772,8 @@ TEST(APITest, C_API_Serialization_Test)
     size_t i = 0;
     for (const auto& prop : eventProps)
     {
+        if (event[i].type == TYPE_NULL)
+            break;
         ASSERT_STREQ(event[i].name, prop.name);
         if (event[i].type == TYPE_STRING)
             ASSERT_STREQ(event[i].value.as_string, prop.value.as_string);
@@ -784,7 +785,6 @@ TEST(APITest, C_API_Serialization_Test)
     // Release C-string memory allocated on plain struct
     EvtPropConverter::clear(eventProps);
 }
-#endif
 
 #ifdef HAVE_MAT_JSONHPP
 #if defined(_WIN32)
