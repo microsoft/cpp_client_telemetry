@@ -81,8 +81,9 @@ class TelemetryAgent : public BnTelemetryAgent, public ITelemetryAgentDefault
         INFO("TelemetryAgentServer::writeEvent");
 
         std::vector<evt_prop> event;
-        INFO("TelemetryAgentServer::writeEvent - rcv data. size=%u", data.size());
+        INFO("TelemetryAgentServer::writeEvent - rcv data. size=%zu", data.size());
         EvtPropConverter::deserialize(data, event);
+        EvtPropConverter::dump(event.data(), event.size());
         evt_log(id, event.data());
         EvtPropConverter::clear(event);
 
