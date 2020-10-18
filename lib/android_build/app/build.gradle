@@ -1,12 +1,10 @@
 apply plugin: 'com.android.application'
 
+apply from: "$rootProject.projectDir/tools.gradle"
+
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "com.microsoft.applications.events.maesdktest"
-        minSdkVersion 19
-        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

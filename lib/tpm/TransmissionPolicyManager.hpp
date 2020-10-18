@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef TRANSMISSIONPOLICYMANAGER_HPP
 #define TRANSMISSIONPOLICYMANAGER_HPP
 
@@ -155,3 +158,4 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
 } MAT_NS_END
 
 #endif // TRANSMISSIONPOLICYMANAGER_HPP
+

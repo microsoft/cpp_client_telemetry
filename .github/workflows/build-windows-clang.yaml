@@ -22,6 +22,7 @@ jobs:
     - name: Setup Tools
       env:
         VSTOOLS_VERSION: vs2019
+        INSTALL_LLVM: 1
       shell: cmd
       run: tools\setup-buildtools.cmd
 

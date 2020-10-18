@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "OfflineStorageHandler.hpp"
 #include "OfflineStorageFactory.hpp"
@@ -357,6 +360,22 @@ namespace MAT_NS_BEGIN {
     }
 
     /**
+     * Delete all records locally".
+     */
+
+    void OfflineStorageHandler::DeleteAllRecords() 
+    {
+        for (const auto storagePtr : { m_offlineStorageMemory.get() , m_offlineStorageDisk.get() })
+        {
+            if (storagePtr != nullptr)
+            {
+                storagePtr->DeleteAllRecords();
+            }
+        }
+
+    }
+
+    /**
      * Perform scrub of both memory queue and offline storage.
      */
     /// <summary>
@@ -466,6 +485,15 @@ namespace MAT_NS_BEGIN {
         return "";
     }
 
+    bool OfflineStorageHandler::DeleteSetting(std::string const& name)
+    {
+        if (nullptr != m_offlineStorageDisk)
+        {
+            return m_offlineStorageDisk->DeleteSetting(name);
+        }
+        return false;
+    }
+
     void OfflineStorageHandler::OnStorageOpened(std::string const& type)
     {
         m_observer->OnStorageOpened(type);
@@ -502,3 +530,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+
