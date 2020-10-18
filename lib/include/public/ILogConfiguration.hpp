@@ -362,6 +362,11 @@ namespace MAT_NS_BEGIN
     /// </summary>
     static constexpr const char* const CFG_BOOL_TPM_CLOCK_SKEW_ENABLED = "clockSkewEnabled";
 
+    /// <summary>
+    /// When enabled, the session timer is reset after session is completed, allowing for several session events in the duration of the SDK lifecycle
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_SESSION_RESET_ENABLED = "sessionResetEnabled";
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4251)
