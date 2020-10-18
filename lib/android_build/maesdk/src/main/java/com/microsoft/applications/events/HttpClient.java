@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import android.annotation.SuppressLint;
@@ -351,3 +355,4 @@ public class HttpClient {
     private PowerInfoReceiver m_power_receiver;
     private final Context m_context;
 }
+

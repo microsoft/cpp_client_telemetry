@@ -1,12 +1,7 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="EventInspector.cs" company="Microsoft">
-//   2016 Microsoft Corporation
-// </copyright>
-// <summary>
-//   Fiddler inspector extension to view Aria events.
-// </summary>
-// --------------------------------------------------------------------------------------------------------------------
-
+﻿//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 using Bond.IO.Unsafe;
 
 using Newtonsoft.Json;

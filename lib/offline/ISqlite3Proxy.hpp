@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef ISQLITE3PROXY_HPP
 #define ISQLITE3PROXY_HPP
 
@@ -59,3 +62,4 @@ extern ISqlite3Proxy* g_sqlite3Proxy;
 
 } MAT_NS_END
 #endif
+

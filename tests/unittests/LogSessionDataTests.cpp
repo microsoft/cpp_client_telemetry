@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "offline/LogSessionDataProvider.hpp"
@@ -68,3 +71,4 @@ TEST(LogSessionDataTests, parse_ValidInput_ReturnsTrue)
    ASSERT_TRUE(logSessionDataProvider.parse(std::string { "1234567890\nbar" }, sessionFirstTimeLaunch, sessionSDKUid));
    UNREFERENCED_PARAMETER(logSessionData);
 }
+

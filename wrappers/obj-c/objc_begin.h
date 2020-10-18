@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 /*
 	If the source file or header file is contaminated by Windows headers,
 	Wrap the pure Objective-C part with #include <objc_begin.h> and #include <objc_end.h>.
@@ -39,3 +43,4 @@
 #if defined(BOOL)
 	#undef BOOL
 #endif
+

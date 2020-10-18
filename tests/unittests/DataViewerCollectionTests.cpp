@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 
 #include "common/Common.hpp"
@@ -260,3 +263,4 @@ TEST(DataViewerCollectionTests, IsViewerEnabledNoParam_MultipleViewersRegistered
     dataViewerCollection.GetCollection().push_back(viewer3);
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled());
 }
+

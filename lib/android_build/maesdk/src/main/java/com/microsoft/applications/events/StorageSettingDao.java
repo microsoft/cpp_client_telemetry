@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import androidx.room.Dao;
@@ -23,3 +27,4 @@ public interface StorageSettingDao {
     @Query("SELECT count(*) FROM StorageSetting")
     long totalSettingCount();
 }
+

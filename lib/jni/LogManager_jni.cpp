@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
@@ -836,3 +840,4 @@ Java_com_microsoft_applications_events_LogManager_00024LogConfigurationImpl_roun
     ConfigConstructor builder(env);
     return builder.mapTranslate(*logConfiguration);
 }
+

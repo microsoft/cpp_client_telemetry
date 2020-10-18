@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include <DebugEvents.hpp>
@@ -213,4 +216,5 @@ TEST(DebugEventSourceTests, DispatchEvent_OneEventToCascadedAndToSource_Listener
    source.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
    ASSERT_EQ(sequenceNumberToCountMap[1], uint64_t { 2 });
 }
+
 

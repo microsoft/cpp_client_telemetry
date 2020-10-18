@@ -1,9 +1,11 @@
 //
-//  ODWLogConfigurationTests.mm
-//  Tests
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
 //
-//  Created by David Brown on 7/29/20.
-//  Copyright © 2020 Microsoft. All rights reserved.
+// ODWLogConfigurationTests.mm
+// Tests
+//
+// Created by David Brown on 7/29/20.
 //
 
 #import <XCTest/XCTest.h>

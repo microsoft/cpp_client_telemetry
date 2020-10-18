@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef LOGMANAGERIMPL_HPP
 #define LOGMANAGERIMPL_HPP
 
@@ -274,6 +277,7 @@ namespace MAT_NS_BEGIN
 
         virtual IDataViewerCollection& GetDataViewerCollection() override;
         virtual const IDataViewerCollection& GetDataViewerCollection() const override;
+        virtual status_t DeleteData() override;
 
         /// <summary>
         /// Get a reference to this log manager diagnostic level filter
@@ -340,3 +344,4 @@ namespace MAT_NS_BEGIN
 MAT_NS_END
 
 #endif
+

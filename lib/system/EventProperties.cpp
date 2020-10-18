@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "pal/PAL.hpp"
 
 #include "CsProtocol_types.hpp"
@@ -580,4 +584,5 @@ namespace MAT_NS_BEGIN {
 #endif /* end of MAT_C_API */
 
 } MAT_NS_END
+
 
