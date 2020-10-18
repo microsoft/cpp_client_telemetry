@@ -95,12 +95,14 @@ namespace MAT_NS_BEGIN
         m_semanticContextDecorator(logManager, m_context),
         m_semanticApiDecorators(logManager),
         m_sessionStartTime(0),
-        m_allowDotsInType(false)
+        m_allowDotsInType(false),
+        m_resetSessionOnEnd(false)
     {
         std::string tenantId = tenantTokenToId(m_tenantToken);
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
         m_allowDotsInType = m_config[CFG_MAP_COMPAT][CFG_BOOL_COMPAT_DOTS];
+        m_resetSessionOnEnd = m_config[CFG_BOOL_SESSION_RESET_ENABLED];
 
         // Special scope "-" - means opt-out from parent context variables auto-capture.
         // It allows to detach the logger from its parent context.
@@ -825,6 +827,12 @@ namespace MAT_NS_BEGIN
                 return;
             }
             sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
+
+            if (m_resetSessionOnEnd) 
+            {
+                m_sessionStartTime = 0;
+            }
+
             break;
         }
         }

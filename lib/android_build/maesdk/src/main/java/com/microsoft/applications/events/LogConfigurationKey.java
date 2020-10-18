@@ -148,7 +148,9 @@ public enum LogConfigurationKey {
 
   CFG_STR_TPM_BACKOFF("backoffConfig", String.class),
 
-  CFG_INT_TPM_MAX_BLOB_BYTES("maxBlobSize", Long.class);
+  CFG_INT_TPM_MAX_BLOB_BYTES("maxBlobSize", Long.class),
+
+  CFG_BOOL_SESSION_RESET_ENABLED("sessionResetEnabled", Boolean.class);
 
   private String key;
   private Class valueType;
