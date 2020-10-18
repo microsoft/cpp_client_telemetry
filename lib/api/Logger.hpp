@@ -263,6 +263,7 @@ namespace MAT_NS_BEGIN
         std::string m_sessionId;
 
         bool m_allowDotsInType;
+        bool m_resetSessionOnEnd;
         EventFilterCollection m_filters;
 
         /// m_shutdown_mutex protects shut-down state
