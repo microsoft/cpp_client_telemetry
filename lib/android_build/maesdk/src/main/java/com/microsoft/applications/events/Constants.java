@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 public class Constants {
@@ -75,3 +79,4 @@ public class Constants {
     public static final String CONTEXT_SCOPE_ALL                            = "*";  /* Inherit all parent context props    */
     public static final String CONTEXT_SCOPE_NONE                           = "-";  /* Do not inherit parent context props */
 }
+

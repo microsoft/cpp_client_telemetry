@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef LIB_FILEUTILS_HPP
 #define LIB_FILEUTILS_HPP
 // Cross-platform C-style file utils that work well with UTF-8 filenames
@@ -19,3 +22,4 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
+

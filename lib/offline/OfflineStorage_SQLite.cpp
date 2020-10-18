@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 #ifdef HAVE_MAT_STORAGE
 
@@ -376,6 +379,13 @@ namespace MAT_NS_BEGIN {
         return records;
     }
 
+    void OfflineStorage_SQLite::DeleteAllRecords()
+    {
+        std::string sql = "DELETE FROM "  TABLE_NAME_EVENTS ;
+        Execute(sql);
+
+    }
+
     void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
         UNREFERENCED_PARAMETER(whereFilter);
@@ -618,6 +628,31 @@ namespace MAT_NS_BEGIN {
         return result;
     }
 
+    bool OfflineStorage_SQLite::DeleteSetting(std::string const& name)
+    {
+        if (name.empty()) {
+            LOG_ERROR("Failed to delete setting \"%s\": Name cannot be empty", name.c_str());
+            return false;
+        }
+        if (!isOpen()) {
+            LOG_ERROR("Oddly closed");
+            return false;
+        }
+#ifdef ENABLE_LOCKING
+        DbTransaction transaction(m_db.get());
+        if (!transaction.locked)
+        {
+            LOG_WARN("Failed to delete setting \"%s\"", name.c_str());
+            return false;
+        }
+#endif
+        if(!SqliteStatement(*m_db, m_stmtDeleteSetting_name).execute(name))
+        {
+            LOG_ERROR("Failed to delete setting \"%s\": Database error occurred, recreating database", name.c_str());
+            return false;
+        }
+        return true;
+    }
 
     bool OfflineStorage_SQLite::recreate(unsigned failureCode)
     {
@@ -938,3 +973,4 @@ namespace MAT_NS_BEGIN {
     
 } MAT_NS_END
 #endif
+
