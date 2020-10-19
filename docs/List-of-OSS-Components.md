@@ -37,15 +37,14 @@ Google's C++ benchmarking framework. Used only for tests and not included in pro
 ## [Tony Million Reachability Framework](https://github.com/tonymillion/Reachability)
 
 Reachability is a drop-in replacement for Apple's Reachability class. It is ARC-compatible, and it uses the new GCD methods to notify of network interface changes.
-SDK maintains its own snapshot of the mainline `tonymillion/Reachability` [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/third_party/Reachability)
-This code is not used nor included in the build of non-Apple OS.
+SDK maintains its own snapshot of the mainline `tonymillion/Reachability` [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/third_party/Reachability). This code is not used nor included in the build of non-Apple OS.
 
 ## SHA-1 by Steve Reid
 
 Classic implementation of SHA-1 (Public Domain).
 SDK maintains its own snapshot of it [here](https://github.com/microsoft/cpp_client_telemetry/blob/master/third_party/sha1/sha1.c).
-Note that this component is not included or comppiled into any of the shipable bits of SDK. It is included for internal developer debug builds only.
-For example, SHA-1 may be used to calculate destination ETW Provider GUID based on ETW Provider name on Windows OS in developer trace tooling/ instrumentation.
+Note that this component is not included or compiled into any of the shipable bits of SDK. It is included for internal developer debug builds only.
+For example, SHA-1 may be used to calculate destination ETW Provider GUID based on ETW Provider name on Windows OS in developer trace tooling / instrumentation.
 
 ## Other components and systems
 
@@ -61,5 +60,5 @@ Please refer to original development platform SDKs for the original source code 
 - [Apple SDK](https://developer.apple.com/)
 - [Android SDK and NDK](https://developer.android.com/studio)
 
-Please reach out to [1ds.sdk.cpp DL](mailto:1ds.sdk.cpp@service.microsoft.com) if you identified OSS component used by SDK and has not been listed here.
+Please reach out to [1ds.sdk.cpp DL](mailto:1ds.sdk.cpp@service.microsoft.com) if you identified OSS component used by SDK that has not been listed.
 It will be added to this list.
