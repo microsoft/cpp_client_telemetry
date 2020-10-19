@@ -24,9 +24,6 @@ LOGMANAGER_INSTANCE
 +(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
                   source:(nonnull NSString *)source
 {
-    static const BOOL initialized = [ODWLogManager initializeLogManager:tenantToken];
-    if(!initialized) return nil;
-    
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = nullptr;
@@ -48,19 +45,41 @@ LOGMANAGER_INSTANCE
     return [[ODWLogger alloc] initWithILogger: logger];
 }
 
-+(BOOL)initializeLogManager:(nonnull NSString *)tenantToken
++(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
 {
     ILogger* logger = nullptr;
 
     try
     {
-        // Turn off statistics
-        auto& config = LogManager::GetLogConfiguration();
-        config[CFG_MAP_METASTATS_CONFIG]["interval"] = 0;
+        ILogConfiguration logManagerConfig;
+        if (config)
+        {
+            NSError *error;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:config
+                                                               options:0
+                                                                 error:&error];
+            NSString *jsonString;
+            if (jsonData)
+            {
+                jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                logManagerConfig = MAT::FromJSON([jsonString UTF8String]);
+            }
+            else
+            {
+                [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"%@", error.localizedDescription]];
+            }
+        }
+        else
+        {
+            // Turn off statistics
+            auto& defaultConfig = LogManager::GetLogConfiguration();
+            defaultConfig[CFG_MAP_METASTATS_CONFIG]["interval"] = 0;
+            logManagerConfig = defaultConfig;
+        }
 
         // Initialize SDK Log Manager
         std::string strToken = std::string([tenantToken UTF8String]);
-        logger = LogManager::Initialize(strToken);
+        logger = LogManager::Initialize(strToken, logManagerConfig);
     
         // Obtain semantics values
         NSBundle* bundle = [NSBundle mainBundle];
@@ -103,7 +122,12 @@ LOGMANAGER_INSTANCE
         [ODWLogger traceException: e.what()];
     }
     
-    return logger != NULL;
+    return [[ODWLogger alloc] initWithILogger: logger];
+}
+
++(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken
+{
+    return [ODWLogManager initForTenant:tenantToken withConfig:nil];
 }
 
 +(nullable ODWLogger *)loggerForSource:(nonnull NSString *)source
@@ -176,4 +200,27 @@ LOGMANAGER_INSTANCE
     });
 }
 
++(void)setContextWithName:(nonnull NSString*)name
+              stringValue:(nonnull NSString*)value
+{
+    PerformActionWithCppExceptionsCatch(^(void) {
+        std::string strKey = std::string([name UTF8String]);
+        std::string strValue = std::string([value UTF8String]);
+        
+        LogManager::SetContext(strKey, strValue);
+    });
+}
+
++(void)setContextWithName:(nonnull NSString*)name
+              stringValue:(nonnull NSString*)value
+                  piiKind:(enum ODWPiiKind)piiKind
+{
+    PerformActionWithCppExceptionsCatch(^(void) {
+        std::string strKey = std::string([name UTF8String]);
+        std::string strValue = std::string([value UTF8String]);
+        PiiKind piiValue = PiiKind(piiKind);
+
+        LogManager::SetContext(strKey, strValue, piiValue);
+    });
+}
 @end
