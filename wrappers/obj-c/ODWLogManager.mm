@@ -57,6 +57,12 @@ static BOOL initialized = false;
     try
     {
         ILogConfiguration logManagerConfig;
+
+        // Initializing logManager config with default configuration
+        auto& defaultConfig = LogManager::GetLogConfiguration();
+        logManagerConfig = defaultConfig;
+
+        // Update logManager config when custom configuration is provided.
         if (config != nil && config.count > 0)
         {
             NSError *error;
@@ -73,13 +79,9 @@ static BOOL initialized = false;
                 [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"%@", error.localizedDescription]];
             }
         }
-        else
-        {
-            // Turn off statistics
-            auto& defaultConfig = LogManager::GetLogConfiguration();
-            defaultConfig[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;
-            logManagerConfig = defaultConfig;
-        }
+
+        // Turn off statistics
+        logManagerConfig[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;
 
         // Initialize SDK Log Manager
         std::string strToken = std::string([tenantToken UTF8String]);
@@ -126,6 +128,8 @@ static BOOL initialized = false;
         [ODWLogger traceException: e.what()];
     }
     initialized = logger != nil;
+
+    if(!logger) return nil;
     return [[ODWLogger alloc] initWithILogger: logger];
 }
 
