@@ -30,12 +30,21 @@
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
 
+#include "utils/StringUtils.hpp"
+
 #define HTTP_CONN_TIMEOUT       5L
 #define HTTP_STATUS_REGEXP		"HTTP\\/\\d\\.\\d (\\d+)\\ .*"
 #define HTTP_HEADER_REGEXP      "(.*)\\: (.*)\\n*"
 
+#ifdef __ANDROID__
+// Turn on extra debugging for Android for now. Output is printed to logcat.
+#include <android/log.h>
+#define LOG_TAG "HttpClient_Curl"
+#define TRACE(fmt_, ...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, fmt_, ##__VA_ARGS__)
+#else
 #undef TRACE
 #define TRACE(...)	// printf
+#endif
 
 namespace MAT_NS_BEGIN {
 
@@ -106,7 +115,7 @@ public:
             isAborted(false),
             nread(0)
     {
-        TRACE("--------------------------------------------------------------------------------------------------\n");
+        TRACE("--------------------------------------------------------------------------------------------------");
         response.memory = nullptr;
         response.size = 0;
 
@@ -114,7 +123,7 @@ public:
         curl = curl_easy_init();
         if(!curl)
         {
-            TRACE("libcurl failed to init!\n");
+            TRACE("libcurl failed to init!");
             res = CURLE_FAILED_INIT;
             DispatchEvent(OnCreateFailed);
             return;
@@ -125,6 +134,32 @@ public:
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #else
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
+#endif
+
+#ifdef __ANDROID__
+        // TODO: allow adjusting this via ILogConfiguration and LogManager::Configure
+        // At the moment we allow the caller to specify the proxy as follows:
+        // ...
+        // export http_proxy=http://10.0.2.2:8888
+        // ./testapp
+        // ...
+        // This will route traffic thru developer box (localhost) Fiddler proxy.
+        std::string proxy(getenv("http_proxy"));
+        if (proxy.c_str() != nullptr)
+        {
+            std::vector<std::string> parts;
+            StringUtils::SplitString(proxy, ':', parts);
+            if (parts.size() == 2)
+            {
+                TRACE("http_proxy = %s", proxy.c_str());
+                TRACE("host       = %s", parts.at(0).c_str());
+                TRACE("port       = %s", parts.at(1).c_str());
+                int port = std::stoi(parts.at(1).c_str());
+                // curl_setopt(curl, CURLOPT_HTTPPROXYTUNNEL, 1) 
+                curl_easy_setopt(curl, CURLOPT_PROXY, parts.at(0).c_str());
+                curl_easy_setopt(curl, CURLOPT_PROXYPORT, long(port));
+            }
+        };
 #endif
 
         // Specify target URL
@@ -147,7 +182,7 @@ public:
         {
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_headersChunk);
         }
-        TRACE("method=%s, url=%s\n", this->m_method.c_str(), this->m_url.c_str());
+        TRACE("method=%s, url=%s", this->m_method.c_str(), this->m_url.c_str());
 
         DispatchEvent(OnCreated);
     }
@@ -175,7 +210,7 @@ public:
      */
     long Send()
     {
-        TRACE("method=%s\n", this->m_method.c_str());
+        TRACE("method=%s", this->m_method.c_str());
 
         ReleaseResponse();
         // Request buffer
@@ -199,7 +234,7 @@ public:
         if(CURLE_OK != res)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 1
-            TRACE("Error #1: %s\n", curl_easy_strerror(res));
+            TRACE("Error #1: %s", curl_easy_strerror(res));
             goto cleanup;
         }
 
@@ -211,7 +246,7 @@ public:
         if(CURLE_OK != res)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
-            TRACE("Error #2: %s\n", curl_easy_strerror(res));
+            TRACE("Error #2: %s", curl_easy_strerror(res));
             goto cleanup;
         }
 
@@ -219,7 +254,7 @@ public:
         sockfd = sockextr;
         if( !WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) || isAborted)
         {
-            TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
+            TRACE("Error #3: timeout, aborted=%u", isAborted.load() );
             res = CURLE_OPERATION_TIMEDOUT;
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 3
             goto cleanup;
@@ -253,7 +288,7 @@ public:
             // GET
         } else
         {
-            TRACE("Error #4: unsupported method %s\n", m_method.c_str());
+            TRACE("Error #4: unsupported method %s", m_method.c_str());
             res = CURLE_UNSUPPORTED_PROTOCOL;
             goto cleanup;
         }
@@ -265,7 +300,7 @@ public:
         if(CURLE_OK != res)
         {
             DispatchEvent(OnSendFailed);
-            TRACE("Error: %s\n", curl_easy_strerror(res));
+            TRACE("Error: %s", curl_easy_strerror(res));
             goto cleanup;
         }
 
@@ -283,7 +318,7 @@ public:
         /* libcurl is nice enough to parse the response code itself: */
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &res);
         // We got some response from server. Dump the contents.
-        TRACE("HTTP response code %d\n", res);
+        TRACE("HTTP response code %d", res);
         DispatchEvent(OnResponse);
 
 cleanup:
@@ -492,7 +527,7 @@ protected:
         mem->memory = (char *)(realloc(mem->memory, mem->size + realsize + 1));
         if(mem->memory == NULL) {
           /* out of memory! */
-          TRACE("not enough memory (realloc returned NULL)\n");
+          TRACE("not enough memory (realloc returned NULL)");
           return 0;
         }
 
@@ -529,4 +564,3 @@ protected:
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENTCURL_HPP
-
