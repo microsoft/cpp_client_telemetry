@@ -125,7 +125,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       )
     else()
       list(APPEND SRCS
-        pal/posix/NetworkInformationImpl.cpp
+        pal/posix/NetworkInformationImpl.mm
       )
     endif()
   else()
