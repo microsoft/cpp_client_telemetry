@@ -27,15 +27,20 @@
 
 #ifndef LOG_DEBUG
 #ifdef __ANDROID__
-// Turn on extra debugging for Android only for now (since it's not stable yet)
-#define LOG_DEBUG(fmt_, ...)    printf(fmt_ "\n", ##__VA_ARGS__)
+// Turn on extra debugging for Android for now. Output is printed to logcat.
+#include <android/log.h>
+#define LOG_TAG "EvtPropConverter"
+#define LOG_DEBUG(fmt_, ...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, fmt_, ##__VA_ARGS__)
 #else
+// Don't print anything by default
 #define LOG_DEBUG(...)
+// Example how to print to console:
+// #define LOG_DEBUG(fmt_, ...)    printf(fmt_ "\n", ##__VA_ARGS__)
 #endif
 #endif
 
 #ifndef ASSERT
-#define ASSERT  assert
+#define ASSERT assert
 #endif
 
 void EvtPropConverter::dump(evt_prop* evt, const size_t size)
@@ -49,21 +54,24 @@ void EvtPropConverter::dump(evt_prop* evt, const size_t size)
             LOG_DEBUG("[string] %s", evt->value.as_string);
             break;
         case TYPE_INT64:
-            LOG_DEBUG("[int64] %" PRId64 "\n", evt->value.as_int64);
+            LOG_DEBUG("[int64] %" PRId64, evt->value.as_int64);
             break;
         case TYPE_DOUBLE:
-            LOG_DEBUG("[double] %f" "\n", evt->value.as_double);
+            LOG_DEBUG(
+                "[double] %f",
+                evt->value.as_double);
             break;
         case TYPE_TIME:
-            LOG_DEBUG("[time] %" PRId64 "\n", evt->value.as_int64);
+            LOG_DEBUG("[time] %" PRId64, evt->value.as_int64);
             break;
         case TYPE_BOOLEAN:
             LOG_DEBUG("[bool] %d\n", evt->value.as_bool);
             break;
-/*      case TYPE_GUID:
- *          LOG_DEBUG("[GUID] %" PRId64 "\n", evt->value.as_int64);
- *          break;
- */
+#if 0  // TODO: add support for TYPE_GUID
+        case TYPE_GUID:
+            LOG_DEBUG("[GUID] %" PRId64, evt->value.as_int64);
+            break;
+#endif
         default:
             break;
         }
@@ -97,7 +105,7 @@ void EvtPropConverter::serialize(/* in */ const evt_prop* evt, /* out */ std::ve
     std::stringstream ss(std::ios::out | std::ios::binary);
     for (size_t i = 0; evt->type != TYPE_NULL; i++, evt++)
     {
-        uint8_t  currType = 0;  // current property type
+        uint8_t currType = 0;   // current property type
         uint64_t currSize = 0;  // current property (key name or value) size in bytes
 
         // Write key
@@ -123,7 +131,7 @@ void EvtPropConverter::serialize(/* in */ const evt_prop* evt, /* out */ std::ve
         case TYPE_INT64:
             currType = static_cast<uint8_t>(FieldTypeCode::FT_INT64);
             ss.write(reinterpret_cast<const char*>(&currType), sizeof(currType));
-            currSize = sizeof(evt->value.as_int64); // TODO: allow arrays!
+            currSize = sizeof(evt->value.as_int64);  // TODO: allow arrays!
             ss.write(reinterpret_cast<const char*>(&currSize), sizeof(currSize));
             ss.write(reinterpret_cast<const char*>(&(evt->value.as_int64)), currSize);
             break;
@@ -131,7 +139,7 @@ void EvtPropConverter::serialize(/* in */ const evt_prop* evt, /* out */ std::ve
         case TYPE_DOUBLE:
             currType = static_cast<uint8_t>(FieldTypeCode::FT_DOUBLE);
             ss.write(reinterpret_cast<const char*>(&currType), sizeof(currType));
-            currSize = sizeof(evt->value.as_double); // TODO: allow arrays!
+            currSize = sizeof(evt->value.as_double);  // TODO: allow arrays!
             ss.write(reinterpret_cast<const char*>(&currSize), sizeof(currSize));
             ss.write(reinterpret_cast<const char*>(&(evt->value.as_double)), currSize);
             break;
@@ -139,7 +147,7 @@ void EvtPropConverter::serialize(/* in */ const evt_prop* evt, /* out */ std::ve
         case TYPE_TIME:
             currType = static_cast<uint8_t>(FieldTypeCode::FT_TIME);
             ss.write(reinterpret_cast<const char*>(&currType), sizeof(currType));
-            currSize = sizeof(evt->value.as_int64); // TODO: allow arrays!
+            currSize = sizeof(evt->value.as_int64);  // TODO: allow arrays!
             ss.write(reinterpret_cast<const char*>(&currSize), sizeof(currSize));
             ss.write(reinterpret_cast<const char*>(&(evt->value.as_int64)), currSize);
             break;
@@ -154,7 +162,7 @@ void EvtPropConverter::serialize(/* in */ const evt_prop* evt, /* out */ std::ve
     };
     const std::string s = ss.str();
     result = std::vector<uint8_t>((uint8_t*)(s.c_str()), (uint8_t*)(s.c_str() + s.size()));
-    LOG_DEBUG("Total size: %u", result.size());
+    LOG_DEBUG("Total size: %zu", result.size());
 }
 
 /**
@@ -196,7 +204,7 @@ void EvtPropConverter::deserialize(/* in */ const std::vector<uint8_t>& buffer, 
     size_t numElements = 0;
     while ((ss.tellg() != -1) && (size_t(ss.tellg()) < buffer.size()))
     {
-        uint8_t  currType = 0;
+        uint8_t currType = 0;
         uint64_t currSize = 0;
 
         // Read key
@@ -209,7 +217,7 @@ void EvtPropConverter::deserialize(/* in */ const std::vector<uint8_t>& buffer, 
         currSize = 0;
         // Read key name size
         totalLen += ss.readsome(reinterpret_cast<char*>(&currSize), sizeof(currSize));
-        currProp.name = static_cast<const char*>(calloc(1, 1 + size_t(currSize))); // include 0-terminator
+        currProp.name = static_cast<const char*>(calloc(1, 1 + size_t(currSize)));  // include 0-terminator
         // Read key name
         totalLen += ss.readsome(const_cast<char*>(currProp.name), currSize);
         LOG_DEBUG("... reading %s, pos %zu\n", currProp.name, (size_t)totalLen);
@@ -224,7 +232,7 @@ void EvtPropConverter::deserialize(/* in */ const std::vector<uint8_t>& buffer, 
             totalLen += ss.readsome(reinterpret_cast<char*>(&currSize), sizeof(currSize));
             // Read Value
             currProp.type = TYPE_STRING;
-            currProp.value.as_string = static_cast<const char*>(calloc(1, 1 + size_t(currSize))); // include 0-terminator
+            currProp.value.as_string = static_cast<const char*>(calloc(1, 1 + size_t(currSize)));  // include 0-terminator
             totalLen += ss.readsome(const_cast<char*>(currProp.value.as_string), currSize);
             break;
 
@@ -265,12 +273,13 @@ void EvtPropConverter::deserialize(/* in */ const std::vector<uint8_t>& buffer, 
         default:
             // TODO: this is an error. We could not decode the encoded event:
             // - Debug builds should crash at ASSERT below.
-            // - Release builds skip decoding once they hit a property that can't be decoded. 
+            // - Release builds skip decoding once they hit a property that can't be decoded.
             goto deserialize_stop;
             break;
         }
         numElements++;
     };
+
 deserialize_stop:
     result.push_back(evt_prop());
     // NULL-terminator property in flexible-length array
