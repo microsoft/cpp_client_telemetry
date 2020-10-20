@@ -26,9 +26,10 @@ static BOOL initialized = false;
 +(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
                   source:(nonnull NSString *)source
 {
-    if (!initialized)
+    // If log manager is not initialized, try initializing it. If that fails, return nil else return the logger.
+    if (!initialized && ![ODWLogManager initializeLogManager:tenantToken withConfig:nil])
     {
-        [ODWLogManager initForTenant:tenantToken];
+        return nil;
     }
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
@@ -52,6 +53,21 @@ static BOOL initialized = false;
 }
 
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
+{
+    ILogger *logger = [ODWLogManager initializeLogManager:tenantToken withConfig:config];
+    initialized = logger != NULL;
+
+    if (!logger) return nil;
+
+    return [[ODWLogger alloc] initWithILogger: logger];
+}
+
++(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken
+{
+    return [ODWLogManager initForTenant:tenantToken withConfig:nil];
+}
+
++(nullable ILogger *)initializeLogManager:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
 {
     ILogger* logger = nullptr;
     try
@@ -127,15 +143,7 @@ static BOOL initialized = false;
         }
         [ODWLogger traceException: e.what()];
     }
-    initialized = logger != nil;
-
-    if(!logger) return nil;
-    return [[ODWLogger alloc] initWithILogger: logger];
-}
-
-+(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken
-{
-    return [ODWLogManager initForTenant:tenantToken withConfig:nil];
+    return logger;
 }
 
 +(nullable ODWLogger *)loggerForSource:(nonnull NSString *)source
