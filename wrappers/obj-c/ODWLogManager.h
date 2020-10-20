@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "objc_begin.h"
 #import "ODWLogger.h"
 
@@ -34,14 +38,14 @@ NS_ASSUME_NONNULL_BEGIN
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config;
 
 /*!
- @brief Retrieves a new instance of ODWLogger for logging telemetry events. It requires to previously initialize LogManager.
+ @brief Retrieves a new instance of ODWLogger for logging telemetry events. Initializes the telemetry logging system, if not already initialized, with the default configuration using the specified tenant token.
  @param tenantToken A string that contains the tenant token.
  @return An ODWLogger instance
  */
 +(nullable ODWLogger *)loggerWithTenant:(NSString *)tenantToken;
 
 /*!
- @brief Retrieves a new instance of ODWLogger for logging telemetry events. It requires to previously initialize LogManager.
+ @brief Retrieves a new instance of ODWLogger for logging telemetry events. Initializes the telemetry logging system, if not already initialized, with the default configuration using the specified tenant token and source.
  @param tenantToken A string that contains the tenant token.
  @param source A string that contains the name of the source of events.
  @return An ODWLogger pointer that points to the logger for the specified tenantToken and source.
@@ -50,7 +54,7 @@ NS_ASSUME_NONNULL_BEGIN
                   source:(NSString *)source;
 
 /*!
- @brief Retrieves a new instance of ODWLogger for logging telemetry events. It requires to previously initialize LogManager.
+ @brief Retrieves a new instance of ODWLogger for logging telemetry events. It requires to previously call "loggerWithTenant" method
  @param source A string that contains the name of the source of events sent by this logger instance.
  @return An ODWLogger instance that points to the logger for source.
  */

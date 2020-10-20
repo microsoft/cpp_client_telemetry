@@ -16,6 +16,8 @@ LOGMANAGER_INSTANCE
 
 @implementation ODWLogManager
 
+static BOOL initialized = false;
+
 +(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
 {
     return [ODWLogManager loggerWithTenant:tenantToken source:@""];
@@ -24,6 +26,10 @@ LOGMANAGER_INSTANCE
 +(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
                   source:(nonnull NSString *)source
 {
+    if (!initialized)
+    {
+        [ODWLogManager initForTenant:tenantToken];
+    }
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = nullptr;
@@ -48,20 +54,18 @@ LOGMANAGER_INSTANCE
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
 {
     ILogger* logger = nullptr;
-
     try
     {
         ILogConfiguration logManagerConfig;
-        if (config)
+        if (config != nil && config.count > 0)
         {
             NSError *error;
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:config
                                                                options:0
                                                                  error:&error];
-            NSString *jsonString;
             if (jsonData)
             {
-                jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                 logManagerConfig = MAT::FromJSON([jsonString UTF8String]);
             }
             else
@@ -73,14 +77,14 @@ LOGMANAGER_INSTANCE
         {
             // Turn off statistics
             auto& defaultConfig = LogManager::GetLogConfiguration();
-            defaultConfig[CFG_MAP_METASTATS_CONFIG]["interval"] = 0;
+            defaultConfig[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;
             logManagerConfig = defaultConfig;
         }
 
         // Initialize SDK Log Manager
         std::string strToken = std::string([tenantToken UTF8String]);
         logger = LogManager::Initialize(strToken, logManagerConfig);
-    
+        
         // Obtain semantics values
         NSBundle* bundle = [NSBundle mainBundle];
         NSLocale* locale = [NSLocale currentLocale];
@@ -121,7 +125,7 @@ LOGMANAGER_INSTANCE
         }
         [ODWLogger traceException: e.what()];
     }
-    
+    initialized = logger != nil;
     return [[ODWLogger alloc] initWithILogger: logger];
 }
 
@@ -169,6 +173,7 @@ LOGMANAGER_INSTANCE
 {
     PerformActionWithCppExceptionsCatch(^(void) {
         LogManager::FlushAndTeardown();
+        initialized = false;
     });
 }
 
