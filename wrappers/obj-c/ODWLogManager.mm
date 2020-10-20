@@ -16,7 +16,7 @@ LOGMANAGER_INSTANCE
 
 @implementation ODWLogManager
 
-static BOOL initialized = false;
+static BOOL _initialized = false;
 
 +(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
 {
@@ -27,7 +27,7 @@ static BOOL initialized = false;
                   source:(nonnull NSString *)source
 {
     // If log manager is not initialized, try initializing it. If that fails, return nil else return the logger.
-    if (!initialized && ![ODWLogManager initializeLogManager:tenantToken withConfig:nil])
+    if (!_initialized && ![ODWLogManager initializeLogManager:tenantToken withConfig:nil])
     {
         return nil;
     }
@@ -55,7 +55,7 @@ static BOOL initialized = false;
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
 {
     ILogger *logger = [ODWLogManager initializeLogManager:tenantToken withConfig:config];
-    initialized = logger != NULL;
+    _initialized = logger != NULL;
 
     if (!logger) return nil;
 
@@ -102,7 +102,7 @@ static BOOL initialized = false;
         // Initialize SDK Log Manager
         std::string strToken = std::string([tenantToken UTF8String]);
         logger = LogManager::Initialize(strToken, logManagerConfig);
-        
+
         // Obtain semantics values
         NSBundle* bundle = [NSBundle mainBundle];
         NSLocale* locale = [NSLocale currentLocale];
@@ -185,7 +185,7 @@ static BOOL initialized = false;
 {
     PerformActionWithCppExceptionsCatch(^(void) {
         LogManager::FlushAndTeardown();
-        initialized = false;
+        _initialized = false;
     });
 }
 
