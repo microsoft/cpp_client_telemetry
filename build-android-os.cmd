@@ -12,6 +12,7 @@ if "%ANDROID_BUILD_TOP%" == "" (
   echo ==                                                                                     ==
   echo == where `A:/aosp` - is a top-level directory you are executing `lunch` command from.  ==
   popd ==                                                                                     ==
+  popd ==  set PARALLEL_BUILD=1		- to enable parallel build of static and shared libs  ==
   exit
 )
 
@@ -69,7 +70,11 @@ cmake -GNinja ^
       -DBUILD_SHARED_LIBS=ON ^
       %* ^
       ..\..
-start cmd.exe /c ninja
+if DEFINED PARALLEL_BUILD (
+  start cmd.exe /c ninja
+) else (
+  ninja
+)
 popd
 
 echo Building static library...
@@ -91,5 +96,9 @@ cmake -GNinja ^
       -DBUILD_SHARED_LIBS=OFF ^
       %* ^
       ..\..
-start cmd.exe /c ninja
+if DEFINED PARALLEL_BUILD (
+  start cmd.exe /c ninja
+) else (
+  ninja
+)
 popd
