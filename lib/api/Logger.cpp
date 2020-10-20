@@ -830,7 +830,13 @@ namespace MAT_NS_BEGIN
 
             if (m_resetSessionOnEnd) 
             {
+                // reset the time of the session to 0 and get a new sessionId
                 m_sessionStartTime = 0;
+                if (logSessionData!=nullptr)
+                {
+                    logSessionData->CreateLogSessionData();
+                    LOG_TRACE("Resetting session data on session end");
+                }
             }
 
             break;
