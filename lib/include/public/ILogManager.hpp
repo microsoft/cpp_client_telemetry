@@ -37,6 +37,11 @@ namespace MAT_NS_BEGIN
         virtual LogSessionData* GetLogSessionData() = 0;
 
         /// <summary>
+        /// Resets the log session data.
+        /// </summary>
+        virtual void ResetLogSessionData() = 0;
+
+        /// <summary>
         /// Set the Auth ticket controller
         /// </summary>
         virtual IAuthTokensController* GetAuthTokensController() = 0;
@@ -319,6 +324,11 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
         virtual LogSessionData* GetLogSessionData() override = 0;
+
+        /// <summary>
+        /// Resets the log session data.
+        /// </summary>
+        virtual void ResetLogSessionData() override = 0;
 
         /// <summary>
         /// Retrieves the ILogController interface of LogManager to control transmission pipe.

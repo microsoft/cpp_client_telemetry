@@ -834,7 +834,7 @@ namespace MAT_NS_BEGIN
                 m_sessionStartTime = 0;
                 if (logSessionData!=nullptr)
                 {
-                    logSessionData->CreateLogSessionData();
+                    m_logManager.ResetLogSessionData();
                     LOG_TRACE("Resetting session data on session end");
                 }
             }
@@ -890,6 +890,17 @@ namespace MAT_NS_BEGIN
         }
 
         return m_logManager.GetLogSessionData();
+    }
+
+    void Logger::ResetLogSessionData()
+    {
+        ActiveLoggerCall active(*this);
+        if (active.LoggerIsDead())
+        {
+            return nullManager.ResetLogSessionData();
+        }
+
+        return m_logManager.ResetLogSessionData();
     }
 
     IAuthTokensController* Logger::GetAuthTokensController()
