@@ -67,7 +67,7 @@ else()
     if(BUILD_IOS)
       set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit -framework Network -framework SystemConfiguration")
     else()
-      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework IOKit")
+      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework IOKit -framework Network -framework SystemConfiguration")
     endif()
   endif()
 
