@@ -1,3 +1,4 @@
+# Getting Started - Linux
 
 This tutorial guides you through the process of integrating the 1DS SDK into your existing C++ Linux app or service.
 
@@ -28,36 +29,36 @@ SDK package contains headers and library installed at the following locations:
 
 1DS SDK is built using cmake, but you can explore building it with any other build system of your choice.
 
-
 ## 4. Instrument your code to send a telemetry event
 
-1. Include the main 1DS SDK header file in your main.cpp by adding the following statement to the top of your app's implementation file.
+### 1. Include the main 1DS SDK header file in your main.cpp by adding the following statement to the top of your app's implementation file
 
-	```
-    #include "LogManager.hpp"
-	```
-    
-2. Use namespace by adding the following statement after your include statements at the top of your app's implementation file.
+```cpp
+#include "LogManager.hpp"
+```
 
-    ```
-    using namespace Microsoft::Applications::Events; 
-    ```
+### 2. Use namespace by adding the following statement after your include statements at the top of your app's implementation file
 
-3. Create the default LogManager instance for your project using the following macro in your main file:
+```cpp
+using namespace Microsoft::Applications::Events;
+```
 
-	```
-    LOGMANAGER_INSTANCE
-    ```
+### 3. Create the default LogManager instance for your project using the following macro in your main file
 
-4. Initialize the SDK, create and send a telemetry event, and then flush the event queue and shut down the telemetry
+```cpp
+LOGMANAGER_INSTANCE
+```
+
+### 4. Initialize the SDK, create and send a telemetry event, and then flush the event queue and shut down the telemetry
+
 logging system by adding the following statements to your main() function.
 
-    ```
-    ILogger* logger = LogManager::Initialize("0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
-    logger->LogEvent("My Telemetry Event");
-    ...
-    LogManager::FlushAndTeardown();
-    ```
+```cpp
+ILogger* logger = LogManager::Initialize("0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
+logger->LogEvent("My Telemetry Event");
+...
+LogManager::FlushAndTeardown();
+```
 
 You're done! You can now compile and run your app, and it will send a telemetry event using your ingestion key to your tenant.
 

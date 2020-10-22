@@ -6,7 +6,7 @@ vcpkg is a Microsoft cross-platform open source C++ package manager. Onboarding 
 
 The following command can be used to install the public open source release:
 
-```
+```console
 vcpkg install mstelemetry
 ```
 
@@ -18,7 +18,7 @@ See instructions below to build the SDK with additional Microsoft-proprietary mo
 
 `cmd.exe` command line prompt commands:
 
-```
+```console
 git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 cd cpp_client_telemetry
 vcpkg install --head --overlay-ports=%CD%\tools\ports mstelemetry
@@ -28,7 +28,7 @@ vcpkg install --head --overlay-ports=%CD%\tools\ports mstelemetry
 
 Shell commands:
 
-```
+```console
 git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 cd cpp_client_telemetry
 vcpkg install --head --overlay-ports=`pwd`/tools/ports mstelemetry
@@ -39,12 +39,14 @@ vcpkg install --head --overlay-ports=`pwd`/tools/ports mstelemetry
 vcpkg allows to consolidate parameters passed to vcpkg in a response file. All 3rd party dependencies needed for 1DS SDK can be described and installed via response file.
 
 Example for Mac:
-```
+
+```console
 vcpkg install @tools/ports/mstelemetry/response_file_mac.txt
 ```
 
 Example for Linux:
-```
+
+```console
 vcpkg install @tools/ports/mstelemetry/response_file_linux.txt
 ```
 
@@ -57,6 +59,7 @@ In order to enable custom build flags - vcpkg triplets and custom environment va
 ## Build with vcpkg dependencies
 
 This section needs to be updated with more detailed info. Default `CMakeLists.txt` in top-level directory utilize the following dependencies:
+
 - OS-provided `sqlite3` library.
 - OS-provided `zlib` library.
 - SDK-provided snapshot of `nlohmann-json` header-only library.
@@ -66,7 +69,8 @@ It is possible to adjust the build system to use vcpkg-installed dependencies in
 ### nlohmann-json
 
 The package `nlohmann-json` provides CMake targets:
-```
+
+```console
     find_package(nlohmann_json CONFIG REQUIRED)
     target_link_libraries(main PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
 ```
@@ -74,7 +78,8 @@ The package `nlohmann-json` provides CMake targets:
 ### sqlite3
 
 The package `sqlite3` provides CMake targets:
-```
+
+```console
     find_package(unofficial-sqlite3 CONFIG REQUIRED)
     target_link_libraries(main PRIVATE unofficial::sqlite3::sqlite3)
 ```
@@ -82,7 +87,8 @@ The package `sqlite3` provides CMake targets:
 ### zlib
 
 The package zlib is compatible with built-in CMake targets:
-```
+
+```console
     find_package(ZLIB REQUIRED)
     target_link_libraries(main PRIVATE ZLIB::ZLIB)
 ```
