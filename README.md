@@ -1,6 +1,5 @@
 # 1DS C/C++ SDK
 
-[![Join](https://img.shields.io/badge/Join%20the%20project-brightgreen)](https://repos.opensource.microsoft.com/microsoft/teams/client-telemetry-sdk/join/)
 [![spellcheck](https://github.com/microsoft/cpp_client_telemetry/workflows/spellcheck/badge.svg)](https://github.com/microsoft/cpp_client_telemetry/actions?query=workflow%3Aspellcheck)
 
 **1DS C/C++ SDK** enables cross-platform telemetry collection from various
@@ -17,8 +16,7 @@ pipeline, and set of tools for key scenarios for the entire company.
 data is uploaded to that subsequently routes the data to Microsoft internal
 data pipeline.
 
-
-# Getting Started
+## Getting Started
 
 The SDK is released as a [source package](https://github.com/microsoft/cpp_client_telemetry/releases)
 every month, following the [milestones](https://github.com/microsoft/cpp_client_telemetry/milestones).
@@ -26,9 +24,21 @@ There is no plan to release prebuilt binaries.
 
 ## Build
 
-To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_build_the_SDK).
-<details>
-  <summary>Build Environments (click to expand):</summary>
+Platform specific build instructions:
+
+* [Windows](docs/cpp-start-windows.md)
+* [Windows/clang](build-cmake-clang.cmd)
+* [Mac](docs/cpp-start-macosx.md)
+* [Linux](docs/cpp-start-linux.md). [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or [Docker](https://www.docker.com/products/docker-desktop) can be used to build for various Linux distros. Please refer to [build-docker.cmd](build-docker.cmd) script and [the list of supported containers](docker/). Docker build script accepts the container name as first argument.
+* [iOS/iPadOS](docs/cpp-start-ios.md)
+* [Android](docs/cpp-start-android.md)
+
+Other resources to learn how to setup the build system:
+
+* Review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure.
+* Check the build scripts located in workspace root.
+
+## Build Environments
   
   | Operating System              | Compiler                         |
   | ----------------------------- | -------------------------------- |
@@ -36,20 +46,18 @@ To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_
   | Mac OS X 10.12.6              | Clang Xcode 9.0, 9.1             |
   | Mac OS X 10.13.3              | Clang Xcode 9.2, 9.3, 10.0, 10.1 |
   | Raspbian GNU/Linux 8 (jessie) | GCC 4.9.2 (armv7l)               |
-  | Ubuntu 14.04.* LTS            | GCC 4.8.*, 4.9.4                 |
+  | Ubuntu 14.04.x LTS            | GCC 4.8.x, 4.9.4                 |
   | Ubuntu 14.04.1 LTS            | GCC 5.x.x                        |
   | Ubuntu 16.04 LTS              | GCC 5.x.x (armv7l)               |
   | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
   | Windows Server 2019           | Visual Studio 2019 (vc142)       |
-</details>
 
-<details>
-  <summary>Target Platforms (click to expand):</summary>
+## Target Platforms
   
   | Target Platform                | Supported          | Covered by CI      |
   | ------------------------------ | ------------------ | ------------------ |
-  | Android                        | partial&dagger;    | :white_check_mark: |
+  | Android                        | :white_check_mark: | :white_check_mark: |
   | iOS 10+ (simulator)            | :white_check_mark: | :white_check_mark: |
   | iOS 10+ (arm64, arm64e)        | :white_check_mark: |                    |
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
@@ -64,15 +72,14 @@ To build the SDK, please refer to [How to build the SDK](CONTRIBUTING.md#How_to_
   | Windows Server 2016            | :white_check_mark: | :white_check_mark: |
   | Windows Server 2019            | :white_check_mark: |                    |
   
-  * **Supported** - these platforms are known to work well with the SDK in
+* **Supported** - these platforms are known to work well with the SDK in
     production.
-  * **Covered by CI** - these platforms are tested as part of CI.
-  * &dagger; **Android** - supported for Office applications. oteldiscuss@Microsoft.com is a first point of contact.
-</details>
+* **Covered by CI** - these platforms are tested as part of CI.
 
 ## Test
 
 There are two sets of tests available:
+
 * [tests/unittests](tests/unittests) - unit tests that verify operation of
   each individual component.
 * [tests/functests](tests/functests) - functional tests that verify
@@ -83,15 +90,13 @@ These tests use Google Test / Google Mock framework and get built alongside
 the SDK. Launch `functests` and `unittests` binary executables to capture
 the test results.
 
-# Getting Support
+## Getting Support
 
-We recommend [GitHub issues](https://github.com/microsoft/cpp_client_telemetry/issues/new/choose)
+Microsoft products using SDK may use [GitHub issues](https://github.com/microsoft/cpp_client_telemetry/issues/new/choose)
 as the communication channel for both feature requests and issues.
 
-We are also available on email and community meeting, please refer to [CONTRIBUTING.md](CONTRIBUTING.md)
-for more details.
-
 **Note**:
+
 * Please refer to the supported [platforms](#build), anything not in the list
   should be treated as a feature request.
 * Only C and C++ API surface is supported - any other language wrappers are
@@ -99,15 +104,17 @@ for more details.
 * Build issues are in general out of the support scope due to the unlimited
   number of build flags combinations.
 
-# Contributing
+## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+This project does not accept *Public* contributions at this time.
 
-# Versioning
+**Microsoft-authorized contributors - please refer to contributing instructions [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
+
+## Versioning
 
 This library follows [Semantic Versioning](http://semver.org/).
 
-# License
+## License
 
 By contributing to 1DS C++ SDK repository, you agree that your contributions
 will be licensed under [Apache License 2.0](LICENSE).
