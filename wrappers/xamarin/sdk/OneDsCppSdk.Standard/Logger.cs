@@ -26,8 +26,6 @@ namespace Microsoft.Applications.Events
 
         public void LogSession(SessionState state, EventProperties properties) { }
 
-        public void InitializePrivacyGuard(CommonDataContext commonDataContextsObject) { }
-
         public void SetContext(string name, string value) { }
 
         public void SetContext(string name, string value, PiiKind piiKind) { }
