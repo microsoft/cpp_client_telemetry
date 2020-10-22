@@ -46,7 +46,7 @@ Other resources to learn how to setup the build system:
   | Mac OS X 10.12.6              | Clang Xcode 9.0, 9.1             |
   | Mac OS X 10.13.3              | Clang Xcode 9.2, 9.3, 10.0, 10.1 |
   | Raspbian GNU/Linux 8 (jessie) | GCC 4.9.2 (armv7l)               |
-  | Ubuntu 14.04.*LTS            | GCC 4.8.*, 4.9.4                 |
+  | Ubuntu 14.04.x LTS            | GCC 4.8.x, 4.9.4                 |
   | Ubuntu 14.04.1 LTS            | GCC 5.x.x                        |
   | Ubuntu 16.04 LTS              | GCC 5.x.x (armv7l)               |
   | Windows 10                    | Android Studio/Gradle            |
