@@ -9,6 +9,8 @@
     <Import_RootNamespace>OneDsCppSdk.Bindings.Tests.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DataTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EventPropertiesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LoggerTests.cs" />
   </ItemGroup>
 </Project>

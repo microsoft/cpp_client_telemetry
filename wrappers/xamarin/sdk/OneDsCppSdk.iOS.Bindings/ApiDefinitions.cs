@@ -8,312 +8,472 @@ using ObjCRuntime;
 
 namespace Microsoft.Applications.Events
 {
-	// @interface ODWDiagnosticDataViewer : NSObject
-	[BaseType (typeof(NSObject), Name = "ODWDiagnosticDataViewer")]
-	public interface DiagnosticDataViewer
-	{
-		// +(void)initializeViewerWithMachineIdentifier:(NSString * _Nonnull __strong)machineIdentifier;
-		[Static]
-		[Export ("initializeViewerWithMachineIdentifier:")]
-		void InitializeViewerWithMachineIdentifier (string machineIdentifier);
+    // @interface ODWCommonDataContext : NSObject
+    [BaseType (typeof(NSObject), Name = "ODWCommonDataContext")]
+    public interface CommonDataContext
+    {
+        // @property (readwrite, copy, nonatomic) NSString * _Nonnull DomainName;
+        [Export ("DomainName")]
+        string DomainName { get; set; }
 
-		// +(void)enableRemoteViewer:(NSString * _Nonnull __strong)endpoint completionWithResult:(void (^ _Nonnull __strong)(_Bool))completion;
-		[Static]
-		[Export ("enableRemoteViewer:completionWithResult:")]
-		void EnableRemoteViewer (string endpoint, Action<bool> completion);
+        // @property (readwrite, copy, nonatomic) NSString * _Nonnull MachineName;
+        [Export ("MachineName")]
+        string MachineName { get; set; }
 
-		// +(_Bool)enableRemoteViewer:(NSString * _Nonnull __strong)endpoint;
-		[Static]
-		[Export ("enableRemoteViewer:")]
-		bool EnableRemoteViewer (string endpoint);
+        // @property (readwrite, copy, nonatomic) NSString * _Nonnull UserName;
+        [Export ("UserName")]
+        string UserName { get; set; }
 
-		// +(void)disableViewer:(void (^ _Nonnull __strong)(_Bool))completion;
-		[Static]
-		[Export ("disableViewer:")]
-		void DisableViewer (Action<bool> completion);
+        // @property (readwrite, copy, nonatomic) NSString * _Nonnull UserAlias;
+        [Export ("UserAlias")]
+        string UserAlias { get; set; }
 
-		// +(_Bool)viewerEnabled;
-		[Static]
-		[Export ("viewerEnabled")]
-		//[Verify (MethodToProperty)]
-		bool ViewerEnabled { get; }
+        // @property (readwrite, copy, nonatomic) NSMutableArray * _Nonnull IpAddresses;
+        [Export ("IpAddresses", ArgumentSemantic.Copy)]
+        NSMutableArray IpAddresses { get; set; }
 
-		// +(NSString * _Nullable)currentEndpoint;
-		[Static]
-		[NullAllowed, Export ("currentEndpoint")]
-		//[Verify (MethodToProperty)]
-		string CurrentEndpoint { get; }
+        // @property (readwrite, copy, nonatomic) NSMutableArray * _Nonnull LanguageIdentifiers;
+        [Export ("LanguageIdentifiers", ArgumentSemantic.Copy)]
+        NSMutableArray LanguageIdentifiers { get; set; }
 
-		// +(void)registerOnDisableNotification:(void (^ _Nonnull __strong)(void))callback;
-		[Static]
-		[Export ("registerOnDisableNotification:")]
-		void RegisterOnDisableNotification (Action callback);
-	}
+        // @property (readwrite, copy, nonatomic) NSMutableArray * _Nonnull MachineIds;
+        [Export ("MachineIds", ArgumentSemantic.Copy)]
+        NSMutableArray MachineIds { get; set; }
 
-	// @interface ODWEventProperties : NSObject
-	[BaseType (typeof(NSObject), Name = "ODWEventProperties")]
-	[DisableDefaultCtor]
-	public interface EventProperties
-	{
-		// @property (readwrite, copy, nonatomic) NSString * _Nonnull name;
-		[Export ("name")]
-		string Name { get; set; }
+        // @property (readwrite, copy, nonatomic) NSMutableArray * _Nonnull OutOfScopeIdentifiers;
+        [Export ("OutOfScopeIdentifiers", ArgumentSemantic.Copy)]
+        NSMutableArray OutOfScopeIdentifiers { get; set; }
+    }
 
-		// @property (readwrite, nonatomic) ODWEventPriority priority;
-		[Export ("priority", ArgumentSemantic.Assign)]
-		EventPriority Priority { get; set; }
+    // @interface ODWDiagnosticDataViewer : NSObject
+    [BaseType (typeof(NSObject), Name = "ODWDiagnosticDataViewer")]
+    public interface DiagnosticDataViewer
+    {
+        // +(void)initializeViewerWithMachineIdentifier:(NSString * _Nonnull)machineIdentifier;
+        [Static]
+        [Export ("initializeViewerWithMachineIdentifier:")]
+        void InitializeViewerWithMachineIdentifier (string machineIdentifier);
 
-		// @property (readonly, copy, nonatomic) NSDictionary<NSString *,id> * _Nonnull properties;
-		[Export ("properties", ArgumentSemantic.Copy)]
-		NSDictionary<NSString, NSObject> Properties { get; }
+        // +(void)enableRemoteViewer:(NSString * _Nonnull)endpoint completionWithResult:(void (^ _Nonnull)(_Bool))completion;
+        [Static]
+        [Export ("enableRemoteViewer:completionWithResult:")]
+        void EnableRemoteViewer (string endpoint, Action<bool> completion);
 
-		// @property (readonly, copy, nonatomic) NSDictionary<NSString *,NSNumber *> * _Nonnull piiTags;
-		[Export ("piiTags", ArgumentSemantic.Copy)]
-		NSDictionary<NSString, NSNumber> PiiTags { get; }
+        // +(_Bool)enableRemoteViewer:(NSString * _Nonnull)endpoint;
+        [Static]
+        [Export ("enableRemoteViewer:")]
+        bool EnableRemoteViewer (string endpoint);
 
-		// -(instancetype _Nonnull)initWithName:(NSString * _Nonnull __strong)name __attribute__((ns_consumes_self)) __attribute__((ns_returns_retained));
-		[Export ("initWithName:")]
-		IntPtr Constructor (string name);
+        // +(void)disableViewer:(void (^ _Nonnull)(_Bool))completion;
+        [Static]
+        [Export ("disableViewer:")]
+        void DisableViewer (Action<bool> completion);
 
-		// -(instancetype _Nonnull)initWithName:(NSString * _Nonnull __strong)name properties:(NSDictionary<NSString *,id> * _Nonnull __strong)properties __attribute__((ns_consumes_self)) __attribute__((ns_returns_retained));
-		[Export ("initWithName:properties:")]
-		IntPtr Constructor (string name, NSDictionary<NSString, NSObject> properties);
+        // +(_Bool)viewerEnabled;
+        [Static]
+        [Export ("viewerEnabled")]
+        bool ViewerEnabled { get; }
 
-		// -(instancetype _Nonnull)initWithName:(NSString * _Nonnull __strong)name properties:(NSDictionary<NSString *,id> * _Nonnull __strong)properties piiTags:(NSDictionary<NSString *,NSNumber *> * _Nonnull __strong)piiTags __attribute__((objc_designated_initializer)) __attribute__((ns_consumes_self)) __attribute__((ns_returns_retained));
-		[Export ("initWithName:properties:piiTags:")]
-		[DesignatedInitializer]
-		IntPtr Constructor (string name, NSDictionary<NSString, NSObject> properties, NSDictionary<NSString, NSNumber> piiTags);
+        // +(NSString * _Nullable)currentEndpoint;
+        [Static]
+        [NullAllowed, Export ("currentEndpoint")]
+        string CurrentEndpoint { get; }
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withValue:(id  _Nonnull __strong)value;
-		[Export ("setProperty:withValue:")]
-		void SetProperty (string name, string value);
+        // +(void)registerOnDisableNotification:(void (^ _Nonnull)(void))callback;
+        [Static]
+        [Export ("registerOnDisableNotification:")]
+        void RegisterOnDisableNotification (Action callback);
+    }
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withValue:(id  _Nonnull __strong)value withPiiKind:(ODWPiiKind)piiKind;
-		[Export ("setProperty:withValue:withPiiKind:")]
-		void SetProperty (string name, string value, PiiKind piiKind);
+    // @interface ODWEventProperties : NSObject
+    [BaseType (typeof(NSObject), Name = "ODWEventProperties")]
+    [DisableDefaultCtor]
+    public interface EventProperties
+    {
+        // @property (readwrite, copy, nonatomic) NSString * _Nonnull name;
+        [Export ("name")]
+        string Name { get; set; }
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withDoubleValue:(double)value;
-		[Export ("setProperty:withDoubleValue:")]
-		void SetProperty (string name, double value);
+        // @property (readwrite, nonatomic) ODWEventPriority priority;
+        [Export ("priority", ArgumentSemantic.Assign)]
+        EventPriority Priority { get; set; }
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withDoubleValue:(double)value withPiiKind:(ODWPiiKind)piiKind;
-		[Export ("setProperty:withDoubleValue:withPiiKind:")]
-		void SetProperty (string name, double value, PiiKind piiKind);
+        // @property (readonly, copy, nonatomic) NSDictionary<NSString *,id> * _Nonnull properties;
+        [Export ("properties", ArgumentSemantic.Copy)]
+        NSDictionary<NSString, NSObject> Properties { get; }
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withInt64Value:(int64_t)value;
-		[Export ("setProperty:withInt64Value:")]
-		void SetProperty (string name, long value);
+        // @property (readonly, copy, nonatomic) NSDictionary<NSString *,NSNumber *> * _Nonnull piiTags;
+        [Export ("piiTags", ArgumentSemantic.Copy)]
+        NSDictionary<NSString, NSNumber> PiiTags { get; }
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withInt64Value:(int64_t)value withPiiKind:(ODWPiiKind)piiKind;
-		[Export ("setProperty:withInt64Value:withPiiKind:")]
-		void SetProperty (string name, long value, PiiKind piiKind);
+        // -(instancetype _Nonnull)initWithName:(NSString * _Nonnull)name;
+        [Export ("initWithName:")]
+        IntPtr Constructor (string name);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withUInt8Value:(uint8_t)value;
-		[Export ("setProperty:withUInt8Value:")]
-		void SetProperty (string name, byte value);
+        // -(instancetype _Nonnull)initWithName:(NSString * _Nonnull)name properties:(NSDictionary<NSString *,id> * _Nonnull)properties;
+        [Export ("initWithName:properties:")]
+        IntPtr Constructor (string name, NSDictionary<NSString, NSObject> properties);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withUInt8Value:(uint8_t)value withPiiKind:(ODWPiiKind)piiKind;
-		[Export ("setProperty:withUInt8Value:withPiiKind:")]
-		void SetProperty (string name, byte value, PiiKind piiKind);
+        // -(instancetype _Nonnull)initWithName:(NSString * _Nonnull)name properties:(NSDictionary<NSString *,id> * _Nonnull)properties piiTags:(NSDictionary<NSString *,NSNumber *> * _Nonnull)piiTags __attribute__((objc_designated_initializer));
+        [Export ("initWithName:properties:piiTags:")]
+        [DesignatedInitializer]
+        IntPtr Constructor (string name, NSDictionary<NSString, NSObject> properties, NSDictionary<NSString, NSNumber> piiTags);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withUInt64Value:(uint64_t)value;
-		[Export ("setProperty:withUInt64Value:")]
-		void SetProperty (string name, ulong value);
+        // -(void)setProperty:(NSString * _Nonnull)name withValue:(id _Nonnull)value;
+        [Export ("setProperty:withValue:")]
+        void SetProperty (string name, string value);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withUInt64Value:(uint64_t)value withPiiKind:(ODWPiiKind)piiKind;
-		[Export ("setProperty:withUInt64Value:withPiiKind:")]
-		void SetProperty (string name, ulong value, PiiKind piiKind);
+        // -(void)setProperty:(NSString * _Nonnull)name withValue:(id _Nonnull)value withPiiKind:(ODWPiiKind)piiKind;
+        [Export ("setProperty:withValue:withPiiKind:")]
+        void SetProperty (string name, string value, PiiKind piiKind);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withBoolValue:(BOOL)value;
-		[Export ("setProperty:withBoolValue:")]
-		void SetProperty (string name, bool value);
+        // -(void)setProperty:(NSString * _Nonnull)name withDoubleValue:(double)value;
+        [Export ("setProperty:withDoubleValue:")]
+        void SetProperty (string name, double value);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withBoolValue:(BOOL)value withPiiKind:(ODWPiiKind)piiKind;
-		[Export ("setProperty:withBoolValue:withPiiKind:")]
-		void SetProperty (string name, bool value, PiiKind piiKind);
+        // -(void)setProperty:(NSString * _Nonnull)name withDoubleValue:(double)value withPiiKind:(ODWPiiKind)piiKind;
+        [Export ("setProperty:withDoubleValue:withPiiKind:")]
+        void SetProperty (string name, double value, PiiKind piiKind);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withUUIDValue:(NSUUID * _Nonnull __strong)value;
-		[Export ("setProperty:withUUIDValue:")]
-		void SetProperty (string name, NSUuid value);
+        // -(void)setProperty:(NSString * _Nonnull)name withInt64Value:(int64_t)value;
+        [Export ("setProperty:withInt64Value:")]
+        void SetProperty (string name, long value);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withUUIDValue:(NSUUID * _Nonnull __strong)value withPiiKind:(ODWPiiKind)piiKind;
-		[Export ("setProperty:withUUIDValue:withPiiKind:")]
-		void SetProperty (string name, NSUuid value, PiiKind piiKind);
+        // -(void)setProperty:(NSString * _Nonnull)name withInt64Value:(int64_t)value withPiiKind:(ODWPiiKind)piiKind;
+        [Export ("setProperty:withInt64Value:withPiiKind:")]
+        void SetProperty (string name, long value, PiiKind piiKind);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withDateValue:(NSDate * _Nonnull __strong)value;
-		[Export ("setProperty:withDateValue:")]
-		void SetProperty (string name, NSDate value);
+        // -(void)setProperty:(NSString * _Nonnull)name withUInt8Value:(uint8_t)value;
+        [Export ("setProperty:withUInt8Value:")]
+        void SetProperty (string name, byte value);
 
-		// -(void)setPrivacyMetadata:(ODWPrivacyDataType)privTags withODWDiagLevel:(ODWDiagLevel)privLevel;
-		[Export ("setPrivacyMetadata:withODWDiagLevel:")]
-		void SetPrivacyMetadata (ulong privTags, DiagLevel privLevel);
+        // -(void)setProperty:(NSString * _Nonnull)name withUInt8Value:(uint8_t)value withPiiKind:(ODWPiiKind)piiKind;
+        [Export ("setProperty:withUInt8Value:withPiiKind:")]
+        void SetProperty (string name, byte value, PiiKind piiKind);
 
-		// -(void)setProperty:(NSString * _Nonnull __strong)name withDateValue:(NSDate * _Nonnull __strong)value withPiiKind:(ODWPiiKind)piiKind;
-		[Export ("setProperty:withDateValue:withPiiKind:")]
-		void SetProperty (string name, NSDate value, PiiKind piiKind);
-	}
+        // -(void)setProperty:(NSString * _Nonnull)name withUInt64Value:(uint64_t)value;
+        [Export ("setProperty:withUInt64Value:")]
+        void SetProperty (string name, ulong value);
 
-	// @interface ODWLogConfiguration : NSObject
-	[BaseType (typeof(NSObject), Name = "ODWLogConfiguration")]
-	[Protocol]
-	public interface LogConfiguration
-	{
-		// +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec;
-		[Static]
-		[Export ("setMaxTeardownUploadTimeInSec:")]
-		void SetMaxTeardownUploadTimeInSec (int maxTeardownUploadTimeInSec);
+        // -(void)setProperty:(NSString * _Nonnull)name withUInt64Value:(uint64_t)value withPiiKind:(ODWPiiKind)piiKind;
+        [Export ("setProperty:withUInt64Value:withPiiKind:")]
+        void SetProperty (string name, ulong value, PiiKind piiKind);
 
-		// +(void)setTraceLevel:(int)TraceLevel;
-		[Static]
-		[Export ("setTraceLevel:")]
-		void SetTraceLevel (int TraceLevel);
+        // -(void)setProperty:(NSString * _Nonnull)name withBoolValue:(BOOL)value;
+        [Export ("setProperty:withBoolValue:")]
+        void SetProperty (string name, bool value);
 
-		// +(_Bool)enableTrace;
-		// +(void)setEnableTrace:(_Bool)enableTrace;
-		[Static]
-		[Export ("enableTrace")]
-		bool EnableTrace { get; set; }
+        // -(void)setProperty:(NSString * _Nonnull)name withBoolValue:(BOOL)value withPiiKind:(ODWPiiKind)piiKind;
+        [Export ("setProperty:withBoolValue:withPiiKind:")]
+        void SetProperty (string name, bool value, PiiKind piiKind);
 
-		// +(_Bool)surfaceCppExceptions;
-		// +(void)setSurfaceCppExceptions:(_Bool)surfaceCppExceptions;
-		[Static]
-		[Export ("surfaceCppExceptions")]
-		bool SurfaceCppExceptions { get; set; }
-	}
+        // -(void)setProperty:(NSString * _Nonnull)name withUUIDValue:(NSUUID * _Nonnull)value;
+        [Export ("setProperty:withUUIDValue:")]
+        void SetProperty (string name, NSUuid value);
 
-	// @interface ODWSemanticContext : NSObject
-	[BaseType (typeof(NSObject), Name = "ODWSemanticContext")]
-	[Protocol]
-	public interface SemanticContext
-	{
-		// -(void)setAppId:(NSString * _Nonnull __strong)appId;
-		[Export ("setAppId:")]
-		void SetAppId (string appId);
+        // -(void)setProperty:(NSString * _Nonnull)name withUUIDValue:(NSUUID * _Nonnull)value withPiiKind:(ODWPiiKind)piiKind;
+        [Export ("setProperty:withUUIDValue:withPiiKind:")]
+        void SetProperty (string name, NSUuid value, PiiKind piiKind);
 
-		// -(void)setUserId:(NSString * _Nonnull __strong)userId;
-		[Export ("setUserId:")]
-		void SetUserId (string userId);
+        // -(void)setProperty:(NSString * _Nonnull)name withDateValue:(NSDate * _Nonnull)value;
+        [Export ("setProperty:withDateValue:")]
+        void SetProperty (string name, NSDate value);
 
-		// -(void)setUserAdvertisingId:(NSString * _Nonnull __strong)userAdvertisingId;
-		[Export ("setUserAdvertisingId:")]
-		void SetUserAdvertisingId (string userAdvertisingId);
+        // -(void)setPrivacyMetadata:(ODWPrivacyDataType)privTags withODWDiagLevel:(ODWDiagLevel)privLevel;
+        [Export ("setPrivacyMetadata:withODWDiagLevel:")]
+        void SetPrivacyMetadata (PrivacyDataType privTags, DiagLevel privLevel);
 
-		// -(void)setAppExperimentIds:(NSString * _Nonnull __strong)experimentIds;
-		[Export ("setAppExperimentIds:")]
-		void SetAppExperimentIds (string experimentIds);
+        // -(void)setProperty:(NSString * _Nonnull)name withDateValue:(NSDate * _Nonnull)value withPiiKind:(ODWPiiKind)piiKind;
+        [Export ("setProperty:withDateValue:withPiiKind:")]
+        void SetProperty (string name, NSDate value, PiiKind piiKind);
+    }
 
-		// -(void)setAppExperimentIds:(NSString * _Nonnull __strong)experimentIds forEvent:(NSString * _Nonnull __strong)eventName;
-		[Export ("setAppExperimentIds:forEvent:")]
-		void SetAppExperimentIds (string experimentIds, string eventName);
+    // @interface ODWLogConfiguration : NSObject
+    [BaseType (typeof(NSObject), Name = "ODWLogConfiguration")]
+    [Protocol]
+    public interface LogConfiguration
+    {
+        // +(NSString * _Nullable)eventCollectorUri;
+        // +(void)setEventCollectorUri:(NSString * _Nonnull)eventCollectorUri;
+        [Static]
+        [NullAllowed, Export ("eventCollectorUri")]
+        string EventCollectorUri { get; set; }
 
-		// -(void)setAppExperimentETag:(NSString * _Nonnull __strong)eTag;
-		[Export ("setAppExperimentETag:")]
-		void SetAppExperimentETag (string eTag);
+        // +(uint64_t)cacheMemorySizeLimitInBytes;
+        // +(void)setCacheMemorySizeLimitInBytes:(uint64_t)cacheMemorySizeLimitInBytes;
+        [Static]
+        [Export ("cacheMemorySizeLimitInBytes")]
+        ulong CacheMemorySizeLimitInBytes { get; set; }
 
-		// -(void)setAppExperimentImpressionId:(NSString * _Nonnull __strong)impressionId;
-		[Export ("setAppExperimentImpressionId:")]
-		void SetAppExperimentImpressionId (string impressionId);
-	}
+        // +(uint64_t)cacheFileSizeLimitInBytes;
+        // +(void)setCacheFileSizeLimitInBytes:(uint64_t)cacheFileSizeLimitInBytes;
+        [Static]
+        [Export ("cacheFileSizeLimitInBytes")]
+        ulong CacheFileSizeLimitInBytes { get; set; }
 
-	// @interface ODWLogger : NSObject
-	[BaseType (typeof(NSObject), Name = "ODWLogger")]
-	[Protocol]
-	public interface Logger
-	{
-		// -(void)logEventWithName:(NSString * _Nonnull __strong)name;
-		[Export ("logEventWithName:")]
-		void LogEvent (string name);
+        // +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec;
+        [Static]
+        [Export ("setMaxTeardownUploadTimeInSec:")]
+        void SetMaxTeardownUploadTimeInSec (int maxTeardownUploadTimeInSec);
 
-		// -(void)logEventWithEventProperties:(ODWEventProperties * _Nonnull __strong)properties;
-		[Export ("logEventWithEventProperties:")]
-		void LogEvent (EventProperties properties);
+        // +(void)setTraceLevel:(int)TraceLevel;
+        [Static]
+        [Export ("setTraceLevel:")]
+        void SetTraceLevel (int TraceLevel);
 
-		// -(void)logFailureWithSignature:(NSString * _Nonnull __strong)signature detail:(NSString * _Nonnull __strong)detail eventproperties:(ODWEventProperties * _Nonnull __strong)properties;
-		[Export ("logFailureWithSignature:detail:eventproperties:")]
-		void LogFailure (string signature, string detail, EventProperties properties);
+        // +(_Bool)enableTrace;
+        // +(void)setEnableTrace:(_Bool)enableTrace;
+        [Static]
+        [Export ("enableTrace")]
+        bool EnableTrace { get; set; }
 
-		// -(void)logFailureWithSignature:(NSString * _Nonnull __strong)signature detail:(NSString * _Nonnull __strong)detail category:(NSString * _Nonnull __strong)category id:(NSString * _Nonnull __strong)identifier eventProperties:(ODWEventProperties * _Nonnull __strong)properties;
-		[Export ("logFailureWithSignature:detail:category:id:eventProperties:")]
-		void LogFailure (string signature, string detail, string category, string identifier, EventProperties properties);
+        // +(_Bool)enableConsoleLogging;
+        // +(void)setEnableConsoleLogging:(_Bool)enableConsoleLogging;
+        [Static]
+        [Export ("enableConsoleLogging")]
+        bool EnableConsoleLogging { get; set; }
 
-		// -(void)logPageViewWithId:(NSString * _Nonnull __strong)identifier pageName:(NSString * _Nonnull __strong)pageName eventProperties:(ODWEventProperties * _Nonnull __strong)properties;
-		[Export ("logPageViewWithId:pageName:eventProperties:")]
-		void LogPageView (string identifier, string pageName, EventProperties properties);
+        // +(_Bool)surfaceCppExceptions;
+        // +(void)setSurfaceCppExceptions:(_Bool)surfaceCppExceptions;
+        [Static]
+        [Export ("surfaceCppExceptions")]
+        bool SurfaceCppExceptions { get; set; }
+    }
 
-		// -(void)logPageViewWithId:(NSString * _Nonnull __strong)identifier pageName:(NSString * _Nonnull __strong)pageName category:(NSString * _Nonnull __strong)category uri:(NSString * _Nonnull __strong)uri referrerUri:(NSString * _Nonnull __strong)referrerUri eventProperties:(ODWEventProperties * _Nonnull __strong)properties;
-		[Export ("logPageViewWithId:pageName:category:uri:referrerUri:eventProperties:")]
-		void LogPageView (string identifier, string pageName, string category, string uri, string referrerUri, EventProperties properties);
+    // @interface ODWSemanticContext : NSObject
+    [BaseType (typeof(NSObject), Name = "ODWSemanticContext")]
+    [Protocol]
+    public interface SemanticContext
+    {
+        // -(void)setAppId:(NSString * _Nonnull)appId;
+        [Export ("setAppId:")]
+        void SetAppId (string appId);
 
-		// -(void)logTraceWithTraceLevel:(enum ODWTraceLevel)traceLevel message:(NSString * _Nonnull __strong)message eventProperties:(ODWEventProperties * _Nonnull __strong)properties;
-		[Export ("logTraceWithTraceLevel:message:eventProperties:")]
-		void LogTrace (TraceLevel traceLevel, string message, EventProperties properties);
+        // -(void)setAppVersion:(NSString * _Nonnull)appVersion;
+        [Export ("setAppVersion:")]
+        void SetAppVersion (string appVersion);
 
-		// -(void)logSessionWithState:(enum ODWSessionState)state eventProperties:(ODWEventProperties * _Nonnull __strong)properties;
-		[Export ("logSessionWithState:eventProperties:")]
-		void LogSession (SessionState state, EventProperties properties);
+        // -(void)setAppLanguage:(NSString * _Nonnull)appLanguage;
+        [Export ("setAppLanguage:")]
+        void SetAppLanguage (string appLanguage);
 
-		// @property (readonly, nonatomic, strong) ODWSemanticContext * _Nonnull semanticContext;
-		[Export ("semanticContext", ArgumentSemantic.Strong)]
-		SemanticContext SemanticContext { get; }
-	}
+        // -(void)setUserId:(NSString * _Nonnull)userId;
+        [Export ("setUserId:")]
+        void SetUserId (string userId);
 
-	// @interface ODWLogManager : NSObject
-	[BaseType (typeof(NSObject), Name = "ODWLogManager")]
-	[Protocol]
-	interface LogManager
-	{
-		// +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull __strong)tenantToken;
-		[Static]
-		[Export("loggerWithTenant:")]
-		[return: NullAllowed]
-		Logger Initialize(string tenantToken);
+        // -(void)setUserId:(NSString * _Nonnull)userId piiKind:(enum ODWPiiKind)pii;
+        [Export ("setUserId:piiKind:")]
+        void SetUserId (string userId, PiiKind pii);
 
-		// +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull __strong)tenantToken source:(NSString * _Nonnull __strong)source;
-		[Static]
-		[Export ("loggerWithTenant:source:")]
-		[return: NullAllowed]
-		Logger LoggerWithTenant (string tenantToken, string source);
+        // -(void)setDeviceId:(NSString * _Nonnull)deviceId;
+        [Export ("setDeviceId:")]
+        void SetDeviceId (string deviceId);
 
-		// +(ODWLogger * _Nullable)loggerForSource:(NSString * _Nonnull __strong)source;
-		[Static]
-		[Export ("loggerForSource:")]
-		[return: NullAllowed]
-		Logger LoggerForSource (string source);
+        // -(void)setUserTimeZone:(NSString * _Nonnull)userTimeZone;
+        [Export ("setUserTimeZone:")]
+        void SetUserTimeZone (string userTimeZone);
 
-		// +(void)uploadNow;
-		[Static]
-		[Export ("uploadNow")]
-		void UploadNow ();
+        // -(void)setUserAdvertisingId:(NSString * _Nonnull)userAdvertisingId;
+        [Export ("setUserAdvertisingId:")]
+        void SetUserAdvertisingId (string userAdvertisingId);
 
-		// +(void)flush;
-		[Static]
-		[Export ("flush")]
-		void Flush ();
+        // -(void)setAppExperimentIds:(NSString * _Nonnull)experimentIds;
+        [Export ("setAppExperimentIds:")]
+        void SetAppExperimentIds (string experimentIds);
 
-		// +(void)setTransmissionProfile:(ODWTransmissionProfile)profile;
-		[Static]
-		[Export ("setTransmissionProfile:")]
-		void SetTransmissionProfile (TransmissionProfile profile);
+        // -(void)setAppExperimentIds:(NSString * _Nonnull)experimentIds forEvent:(NSString * _Nonnull)eventName;
+        [Export ("setAppExperimentIds:forEvent:")]
+        void SetAppExperimentIds (string experimentIds, string eventName);
 
-		// +(void)pauseTransmission;
-		[Static]
-		[Export ("pauseTransmission")]
-		void PauseTransmission ();
+        // -(void)setAppExperimentETag:(NSString * _Nonnull)eTag;
+        [Export ("setAppExperimentETag:")]
+        void SetAppExperimentETag (string eTag);
 
-		// +(void)resumeTransmission;
-		[Static]
-		[Export ("resumeTransmission")]
-		void ResumeTransmission ();
+        // -(void)setAppExperimentImpressionId:(NSString * _Nonnull)impressionId;
+        [Export ("setAppExperimentImpressionId:")]
+        void SetAppExperimentImpressionId (string impressionId);
+    }
 
-		// +(void)flushAndTeardown;
-		[Static]
-		[Export ("flushAndTeardown")]
-		void FlushAndTeardown ();
+    // @interface ODWLogger : NSObject
+    [BaseType (typeof(NSObject), Name = "ODWLogger")]
+    [Protocol]
+    public interface Logger
+    {
+        // -(void)logEventWithName:(NSString * _Nonnull __strong)name;
+        [Export ("logEventWithName:")]
+        void LogEvent (string name);
 
-		// +(void)resetTransmitProfiles;
-		[Static]
-		[Export ("resetTransmitProfiles")]
-		void ResetTransmitProfiles ();
-	}
+        // -(void)logEventWithEventProperties:(ODWEventProperties * _Nonnull)properties;
+        [Export ("logEventWithEventProperties:")]
+        void LogEvent (EventProperties properties);
+
+        // -(void)logFailureWithSignature:(NSString * _Nonnull)signature detail:(NSString * _Nonnull)detail eventproperties:(ODWEventProperties * _Nonnull)properties;
+        [Export ("logFailureWithSignature:detail:eventproperties:")]
+        void LogFailure (string signature, string detail, EventProperties properties);
+
+        // -(void)logFailureWithSignature:(NSString * _Nonnull)signature detail:(NSString * _Nonnull)detail category:(NSString * _Nonnull)category id:(NSString * _Nonnull)identifier eventProperties:(ODWEventProperties * _Nonnull)properties;
+        [Export ("logFailureWithSignature:detail:category:id:eventProperties:")]
+        void LogFailure (string signature, string detail, string category, string identifier, EventProperties properties);
+
+        // -(void)logPageViewWithId:(NSString * _Nonnull)identifier pageName:(NSString * _Nonnull)pageName eventProperties:(ODWEventProperties * _Nonnull)properties;
+        [Export ("logPageViewWithId:pageName:eventProperties:")]
+        void LogPageView (string identifier, string pageName, EventProperties properties);
+
+        // -(void)logPageViewWithId:(NSString * _Nonnull)identifier pageName:(NSString * _Nonnull)pageName category:(NSString * _Nonnull)category uri:(NSString * _Nonnull)uri referrerUri:(NSString * _Nonnull)referrerUri eventProperties:(ODWEventProperties * _Nonnull)properties;
+        [Export ("logPageViewWithId:pageName:category:uri:referrerUri:eventProperties:")]
+        void LogPageView (string identifier, string pageName, string category, string uri, string referrerUri, EventProperties properties);
+
+        // -(void)logTraceWithTraceLevel:(enum ODWTraceLevel)traceLevel message:(NSString * _Nonnull)message eventProperties:(ODWEventProperties * _Nonnull)properties;
+        [Export ("logTraceWithTraceLevel:message:eventProperties:")]
+        void LogTrace (TraceLevel traceLevel, string message, EventProperties properties);
+
+        // -(void)logSessionWithState:(enum ODWSessionState)state eventProperties:(ODWEventProperties * _Nonnull)properties;
+        [Export ("logSessionWithState:eventProperties:")]
+        void LogSession (SessionState state, EventProperties properties);
+
+        // -(void)initializePrivacyGuardWithODWCommonDataContext:(ODWCommonDataContext * _Nonnull)commonDataContextsObject;
+        [Export ("initializePrivacyGuardWithODWCommonDataContext:")]
+        void InitializePrivacyGuard (CommonDataContext commonDataContextsObject);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name stringValue:(NSString * _Nonnull)value;
+        [Export ("setContextWithName:stringValue:")]
+        void SetContext (string name, string value);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name stringValue:(NSString * _Nonnull)value piiKind:(enum ODWPiiKind)piiKind;
+        [Export ("setContextWithName:stringValue:piiKind:")]
+        void SetContext (string name, string value, PiiKind piiKind);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name boolValue:(BOOL)value;
+        [Export ("setContextWithName:boolValue:")]
+        void SetContext (string name, bool value);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name boolValue:(BOOL)value piiKind:(enum ODWPiiKind)piiKind;
+        [Export ("setContextWithName:boolValue:piiKind:")]
+        void SetContext (string name, bool value, PiiKind piiKind);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name dateValue:(NSDate * _Nonnull)value;
+        [Export ("setContextWithName:dateValue:")]
+        void SetContext (string name, NSDate value);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name dateValue:(NSDate * _Nonnull)value piiKind:(enum ODWPiiKind)piiKind;
+        [Export ("setContextWithName:dateValue:piiKind:")]
+        void SetContext (string name, NSDate value, PiiKind piiKind);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name doubleValue:(double)value;
+        [Export ("setContextWithName:doubleValue:")]
+        void SetContext (string name, double value);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name doubleValue:(double)value piiKind:(enum ODWPiiKind)piiKind;
+        [Export ("setContextWithName:doubleValue:piiKind:")]
+        void SetContext (string name, double value, PiiKind piiKind);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name int64Value:(int64_t)value;
+        [Export ("setContextWithName:int64Value:")]
+        void SetContext (string name, long value);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name int64Value:(int64_t)value piiKind:(enum ODWPiiKind)piiKind;
+        [Export ("setContextWithName:int64Value:piiKind:")]
+        void SetContext (string name, long value, PiiKind piiKind);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name int32Value:(int32_t)value;
+        [Export ("setContextWithName:int32Value:")]
+        void SetContext (string name, int value);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name int32Value:(int32_t)value piiKind:(enum ODWPiiKind)piiKind;
+        [Export ("setContextWithName:int32Value:piiKind:")]
+        void SetContext (string name, int value, PiiKind piiKind);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name UUIDValue:(NSUUID * _Nonnull)value;
+        [Export ("setContextWithName:UUIDValue:")]
+        void SetContext (string name, NSUuid value);
+
+        // -(void)setContextWithName:(NSString * _Nonnull)name UUIDValue:(NSUUID * _Nonnull)value piiKind:(enum ODWPiiKind)piiKind;
+        [Export ("setContextWithName:UUIDValue:piiKind:")]
+        void SetContext (string name, NSUuid value, PiiKind piiKind);
+
+        // @property (readonly, nonatomic, strong) ODWSemanticContext * _Nonnull semanticContext;
+        [Export ("semanticContext", ArgumentSemantic.Strong)]
+        SemanticContext SemanticContext { get; }
+    }
+
+    // @interface ODWLogManager : NSObject
+    [BaseType (typeof(NSObject), Name = "ODWLogManager")]
+    [Protocol]
+    interface LogManager
+    {
+        // +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull)tenantToken;
+        [Static]
+        [Export ("loggerWithTenant:")]
+        [return: NullAllowed]
+        Logger Initialize(string tenantToken);
+
+        // +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull)tenantToken source:(NSString * _Nonnull)source;
+        [Static]
+        [Export ("loggerWithTenant:source:")]
+        [return: NullAllowed]
+        Logger LoggerWithTenant (string tenantToken, string source);
+
+        // +(ODWLogger * _Nullable)loggerForSource:(NSString * _Nonnull)source;
+        [Static]
+        [Export ("loggerForSource:")]
+        [return: NullAllowed]
+        Logger LoggerForSource (string source);
+
+        // +(void)uploadNow;
+        [Static]
+        [Export ("uploadNow")]
+        void UploadNow ();
+
+        // +(void)flush;
+        [Static]
+        [Export ("flush")]
+        void Flush ();
+
+        // +(void)setTransmissionProfile:(ODWTransmissionProfile)profile;
+        [Static]
+        [Export ("setTransmissionProfile:")]
+        void SetTransmissionProfile (TransmissionProfile profile);
+
+        // +(void)pauseTransmission;
+        [Static]
+        [Export ("pauseTransmission")]
+        void PauseTransmission ();
+
+        // +(void)resumeTransmission;
+        [Static]
+        [Export ("resumeTransmission")]
+        void ResumeTransmission ();
+
+        // +(void)flushAndTeardown;
+        [Static]
+        [Export ("flushAndTeardown")]
+        void FlushAndTeardown ();
+
+        // +(void)resetTransmitProfiles;
+        [Static]
+        [Export ("resetTransmitProfiles")]
+        void ResetTransmitProfiles ();
+    }
+
+    // @interface ODWPrivacyGuard : NSObject
+    [BaseType (typeof(NSObject), Name = "ODWPrivacyGuard")]
+    [Protocol]
+    public interface PrivacyGuard
+    {
+        // +(_Bool)enabled;
+        // +(void)setEnabled:(_Bool)enabled;
+        [Static]
+        [Export ("enabled")]
+        bool Enabled { get; set; }
+
+        // +(void)appendCommonDataContext:(ODWCommonDataContext * _Nonnull)freshCommonDataContext;
+        [Static]
+        [Export ("appendCommonDataContext:")]
+        void AppendCommonDataContext (CommonDataContext freshCommonDataContext);
+
+        // +(void)addIgnoredConcern:(NSString * _Nonnull)EventName withNSString:(NSString * _Nonnull)FieldName withODWDataConcernType:(ODWDataConcernType)IgnoredConcern;
+        [Static]
+        [Export ("addIgnoredConcern:withNSString:withODWDataConcernType:")]
+        void AddIgnoredConcern (string EventName, string FieldName, DataConcernType IgnoredConcern);
+    }
 }
-
