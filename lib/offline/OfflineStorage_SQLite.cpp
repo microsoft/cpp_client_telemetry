@@ -864,7 +864,7 @@ namespace MAT_NS_BEGIN {
         }
         pageCountStmt.getRow(pageCount);
         pageCountStmt.reset();
-        return pageCount * m_pageSize;
+        return size_t(pageCount) * size_t(m_pageSize);
     }
 
     size_t OfflineStorage_SQLite::GetRecordCountUnsafe(EventLatency latency) const

@@ -1,9 +1,0 @@
-BuildId=3.1.18.1
-BuildLabPhone=32707
-BuildRemark=release
-ContactPeople=maxgolov;actlab
-Directory=\\aria-build-01.redmond.corp.microsoft.com\Releases\Windows\3.1.18.1\lib
-Project=ARIA
-Recursive=yes
-StatusMail=ariaesdks
-UserName=maxgolov

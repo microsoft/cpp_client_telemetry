@@ -127,17 +127,11 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       )
     endif()
 
-    if(BUILD_IOS)
-      list(APPEND SRCS
+    list(APPEND SRCS
         pal/posix/NetworkInformationImpl.mm
         # TODO: this unit below needs to be deprecated and removed
         ../third_party/Reachability/ODWReachability.m
-      )
-    else()
-      list(APPEND SRCS
-        pal/posix/NetworkInformationImpl.cpp
-      )
-    endif()
+    )
   else()
     list(APPEND SRCS
       http/HttpClient_Curl.cpp

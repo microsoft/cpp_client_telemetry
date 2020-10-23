@@ -14,11 +14,11 @@ Supported property list input formats are:
 
 - **Geneva-ETW** event key-value pairs - requires **env_** prefix for property names.
 
-- **JSONPath** in dotted notation - no special prefix property names, e.g. **ext.device.id** 
+- **JSONPath** in dotted notation - no special prefix property names, e.g. **ext.device.id**
 
 All of these notations could be converted to RFC6901 first. Then unflattened into JSON object:
 
-```
+```console
 +---------------+    +--------------+    +-------------+
 | Property List | => | RFC6091 List | => | JSON object |
 +---------------+    +--------------+    +-------------+
@@ -109,7 +109,8 @@ Separate implementation will be provided to transform to CsRecord on Bond (direc
 ## Handling of properties that include a reserved prefix
 
 Reserved prefixes are:
-```
+
+```console
 /       - JSON Pointer
 ext     - Common Schema extension
 env_    - Geneva Agent -specific alias for extension
@@ -123,17 +124,18 @@ Prefix allows to signify that a property is either top-level property or Part A/
 Properties that do not include a prefix, such as '/', 'ext.', 'env_' - get appended to user data (Part C) property bag.
 
 Note that from SDK API layer perspective, top-level elements can be expressed as:
-```
+
+```console
 /ver
 /time
-/name 
+/name
 ```
 
 SDK will subsequently transform those top-level properties into corresponding notation at exporter layer.
 
 For example, when those properties get passed to UTC, they'd be populated as:
 
-```
+```console
 PartA_ver
 PartA_time
 PartA_name
@@ -141,7 +143,7 @@ PartA_name
 
 Another possible alternative is to simply replace the 'PartA' prefix with '_' as follows:
 
-```
+```console
 _ver
 _time
 _name
@@ -189,11 +191,11 @@ std::string to_json_patch(const std::string& key, ListFormat fmt = ListFormat::J
 }
 ```
 
-# ETW (UTC) Event property names
+## ETW (UTC) Event property names
 
 This example is applicable to UTC flow.
 
-## Input event map
+### Input event map for ETW
 
 ```cpp
 // Convert from UTC key-value property list to JSON
@@ -208,7 +210,7 @@ auto j = to_json(m, ListFormat::UTC);
 cout << j.dump(2) << endl;
 ```
 
-## C++ code for each key flattening
+C++ code for each key flattening:
 
 ```cpp
 size_t ofs = (key.find("PartA_") == 0) ? 5 : 0;
@@ -217,7 +219,7 @@ std::replace(result.begin(), result.end(), '_', '/');
 return result;
 ```
 
-## Output after applying keys as JSON Patch
+Output: after applying keys as JSON Patch
 
 ```json
 {
@@ -233,11 +235,11 @@ return result;
 }
 ```
 
-# Geneva Event property names
+## Geneva Event property names
 
 This example is applicable to Geneva Agent flow.
 
-## Input event map
+### Input event map for Geneva
 
 ```cpp
 // Convert from Geneva key-value property list to JSON
@@ -252,7 +254,7 @@ auto j = to_json(m, ListFormat::Geneva);
 cout << j.dump(2) << endl;
 ```
 
-## C++ code for each key flattening
+C++ code for each key flattening:
 
 ```cpp
 size_t ofs = (key.find("env_") == 0) ? 4 : 0;
@@ -262,7 +264,7 @@ std::replace(result.begin(), result.end(), '_', '/');
 return result;
 ```
 
-## Output
+Output:
 
 ```json
 {
@@ -278,11 +280,11 @@ return result;
 }
 ```
 
-# JSONPath Event property names
+## JSONPath Event property names
 
 This example shows how JSONPath 'flat' property names can be converted to JSON object.
 
-## Input event map
+### Input event map for JSONPath
 
 ```cpp
 // Convert from JSONPath key-value property list to JSON
@@ -297,7 +299,7 @@ auto j = to_json(m, ListFormat::JSONPath);
 cout << j.dump(2) << endl;
 ```
 
-## C++ code for each key flattening
+C++ code for each key flattening:
 
 ```cpp
 std::string result("/");
@@ -306,7 +308,7 @@ std::replace(result.begin(), result.end(), '.', '/');
 return result;
 ```
 
-## Output
+Output:
 
 ```json
 {
@@ -322,7 +324,7 @@ return result;
 }
 ```
 
-# Complete code example
+## Complete code example
 
 ```cpp
 #include <iostream>
