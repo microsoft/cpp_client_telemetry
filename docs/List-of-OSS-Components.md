@@ -49,6 +49,7 @@ For example, SHA-1 may be used to calculate destination ETW Provider GUID based 
 ## Other components and systems
 
 Other Open Source components that may be indirectly included by Open Source build tooling, instrumentation and other SDKs (e.g. Apple SDK or Android SDK) used for a corresponding platform:
+
 - CMake
 - Gradle
 - Android NDK
@@ -57,6 +58,7 @@ Other Open Source components that may be indirectly included by Open Source buil
 SDK does not compile these components from source. It uses the mainstream prebuilt packages as  provided by corresponding development platform SDKs.
 
 Please refer to original development platform SDKs for the original source code packages:
+
 - [Apple SDK](https://developer.apple.com/)
 - [Android SDK and NDK](https://developer.android.com/studio)
 
