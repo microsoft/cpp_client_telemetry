@@ -22,6 +22,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneDsCppSdk.iOS.Bindings.Te
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "OneDsCppSdk.Bindings.Tests.Shared", "tests\OneDsCppSdk.Bindings.Tests.Shared\OneDsCppSdk.Bindings.Tests.Shared.shproj", "{399FBCE4-FCAB-4EC4-B805-449D87DFD4FC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assemblies", "Assemblies", "{73153873-885A-4BE6-8EEB-931202B27039}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Android", "Android", "{4184563D-6E23-4B9D-9740-E69CE94C1704}"
+	ProjectSection(SolutionItems) = preProject
+		sdk\OneDsCppSdk.Android.Bindings\bin\Release\Microsoft.Applications.Events.dll = sdk\OneDsCppSdk.Android.Bindings\bin\Release\Microsoft.Applications.Events.dll
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "iOS", "iOS", "{C6FCF35F-91C3-40C3-B6C4-DC38C2CD3388}"
+	ProjectSection(SolutionItems) = preProject
+		sdk\OneDsCppSdk.iOS.Bindings\bin\Release\Microsoft.Applications.Events.dll = sdk\OneDsCppSdk.iOS.Bindings\bin\Release\Microsoft.Applications.Events.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		tests\OneDsCppSdk.Bindings.Tests.Shared\OneDsCppSdk.Bindings.Tests.Shared.projitems*{1b31f588-729c-4e3a-b2fd-1b32876b9e17}*SharedItemsImports = 4
@@ -96,6 +108,9 @@ Global
 		{8F95A793-3FCE-429C-A41F-F3DA50695616} = {B22167C8-231D-435E-A84D-FA809209E9AF}
 		{1B31F588-729C-4E3A-B2FD-1B32876B9E17} = {B22167C8-231D-435E-A84D-FA809209E9AF}
 		{399FBCE4-FCAB-4EC4-B805-449D87DFD4FC} = {B22167C8-231D-435E-A84D-FA809209E9AF}
+		{73153873-885A-4BE6-8EEB-931202B27039} = {B22167C8-231D-435E-A84D-FA809209E9AF}
+		{4184563D-6E23-4B9D-9740-E69CE94C1704} = {73153873-885A-4BE6-8EEB-931202B27039}
+		{C6FCF35F-91C3-40C3-B6C4-DC38C2CD3388} = {73153873-885A-4BE6-8EEB-931202B27039}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B6D12F53-17B2-416D-8BB0-D771D5F77B10}
