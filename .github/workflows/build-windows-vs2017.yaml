@@ -19,6 +19,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
+    - name: Cache Windows Release output (vs2017)
+      id: cache-Win-Release
+      uses: actions/cache@v2
+      with:
+        path: Solutions/out/Release
+        key: ${{ runner.os }}-vs2017-${GITHUB_REF#refs/heads/}
+        restore-keys: |
+          ${{ runner.os }}-${GITHUB_REF#refs/heads/}
+          ${{ runner.os }}-master
+
     - name: Setup Tools
       shell: cmd
       run: tools\setup-buildtools.cmd
