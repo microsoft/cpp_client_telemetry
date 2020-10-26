@@ -30,7 +30,7 @@
 #define _GNU_SOURCE
 #endif
 #include <unistd.h>
-
+#include <time.h>
 #ifdef __linux__
 #include <sys/syscall.h>   /* For SYS_xxx definitions */
 #endif
@@ -224,9 +224,15 @@ namespace PAL_NS_BEGIN {
             int64_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
             auto in_time_t = std::chrono::system_clock::to_time_t(now);
             std::stringstream ss;
-
-            ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X"); // warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead
-            ss << "." << std::setfill('0') << std::setw(3) << (unsigned)(millis % 1000);
+            struct tm timeNow;
+            localtime_r(&in_time_t, &timeNow);
+            ss << std::setw(4) << (timeNow.tm_year + 1900) << '-';
+            ss << std::setfill('0') << std::setw(2) << (timeNow.tm_mon + 1) << '-';
+            ss << std::setfill('0') << std::setw(2) << timeNow.tm_mday << 'T';
+            ss << std::setfill('0') << std::setw(2) << timeNow.tm_hour << ':';
+            ss << std::setfill('0') << std::setw(2) << timeNow.tm_min << ':';
+            ss << std::setfill('0') << std::setw(2) << timeNow.tm_sec << '.';
+            ss << std::setfill('0') << std::setw(3) << unsigned(millis % 1000) << 'Z';
             ss << "|";
 
             ss << std::setfill('0') << std::setw(8) << gettid();
