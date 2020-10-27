@@ -43,7 +43,4 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
 endif()
 
-#tcmalloc turned off by default
-#target_link_libraries(EventSender ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
-
 target_link_libraries(EventSender ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)

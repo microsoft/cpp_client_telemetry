@@ -52,8 +52,5 @@ if (CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
   set (PLATFORM_LIBS "atomic")
 endif()
 
-#tcmalloc turned off by default
-#target_link_libraries(SampleCpp ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
-
 # TODO: use add_library to allow linking against ${LIBMAT_STATIC}
 target_link_libraries(SampleCpp ${LIBMAT} curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)

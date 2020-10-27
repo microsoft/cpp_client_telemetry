@@ -1,6 +1,6 @@
 include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/../lib/decoder ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite )
 
-if (BUILD_TCMALLOC)
+if (BUILD_TCMALLOC STREQUAL "YES")
   list(APPEND LIBS "${Tcmalloc_LIBRARIES}")
 endif()
 

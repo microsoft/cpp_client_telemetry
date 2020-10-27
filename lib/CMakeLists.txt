@@ -199,7 +199,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
-if (BUILD_TCMALLOC)
+if (BUILD_TCMALLOC STREQUAL "YES")
   list(APPEND LIBS "${Tcmalloc_LIBRARIES}")
 endif()
 
