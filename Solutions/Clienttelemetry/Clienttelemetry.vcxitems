@@ -66,6 +66,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringConversion.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\ZlibUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -195,6 +196,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringConversion.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\ZlibUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>

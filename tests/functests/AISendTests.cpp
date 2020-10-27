@@ -31,8 +31,9 @@ class AITestDebugEventListener : public DebugEventListener
     const size_t IDX_FAIL = 1;
     const size_t IDX_PART = 2;
     const size_t IDX_ERR = 3;
+    const size_t IDX_ADDED = 4;
 
-    std::atomic<size_t> counts[4];
+    std::atomic<size_t> counts[5];
 
    public:
 
@@ -42,6 +43,7 @@ class AITestDebugEventListener : public DebugEventListener
         counts[IDX_FAIL] = 0;
         counts[IDX_PART] = 0;
         counts[IDX_ERR] = 0;
+        counts[IDX_ADDED] = 0;
     }
 
     virtual void OnDebugEvent(DebugEvent &evt)
@@ -61,6 +63,9 @@ class AITestDebugEventListener : public DebugEventListener
                 counts[IDX_PART]++;
             }
             break;
+        case EVT_ADDED: 
+			counts[IDX_ADDED]++;
+            break;
         default:
             break;
         };
@@ -68,11 +73,12 @@ class AITestDebugEventListener : public DebugEventListener
 
     unsigned total()
     {
-        return counts[IDX_OK] + counts[IDX_FAIL] + counts[IDX_PART] + counts[IDX_ERR];
+        return counts[IDX_ADDED] + counts[IDX_OK] + counts[IDX_FAIL] + counts[IDX_PART] + counts[IDX_ERR];
     }
 
-    void expect(unsigned ok, unsigned failed, unsigned partial, unsigned error)
+    void expect(unsigned added, unsigned ok, unsigned failed, unsigned partial, unsigned error)
     {
+        EXPECT_EQ(added, counts[IDX_ADDED]);
         EXPECT_GE(ok, counts[IDX_OK]);
         EXPECT_EQ(failed, counts[IDX_FAIL]);
         EXPECT_EQ(partial, counts[IDX_PART]);
@@ -167,16 +173,20 @@ class AISendTests : public ::testing::Test,
         LogManager::AddEventListener(DebugEventType::EVT_HTTP_ERROR, debugListener);
         LogManager::AddEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
         LogManager::AddEventListener(DebugEventType::EVT_HTTP_STATE, debugListener);
+        LogManager::AddEventListener(DebugEventType::EVT_ADDED, debugListener);
 
         logger = LogManager::GetLogger(TEST_TOKEN);
     }
 
     virtual void FlushAndTeardown(DebugEventListener& debugListener)
     {
+        LogManager::Flush();
+
         LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_OK, debugListener);
         LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_ERROR, debugListener);
         LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
         LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_STATE, debugListener);
+        LogManager::RemoveEventListener(DebugEventType::EVT_ADDED, debugListener);
 
         LogManager::FlushAndTeardown();
 
@@ -199,6 +209,21 @@ class AISendTests : public ::testing::Test,
         if (request.uri.compare("/v2/track/500/") == 0)
         {
             return 500;
+        }
+
+        if (request.uri.compare("/v2/track/206/errors") == 0)
+        {
+            nlohmann::json errors = nlohmann::json::array({
+                { {"index", 0 }, {"statusCode", 500} }
+            });
+            nlohmann::json content = {
+                {"itemsReceived", 2},
+                {"itemsAccepted", 1}, 
+                {"errors", errors }
+            };
+            response.headers["Content-Type"] = "application/json";
+            response.content = content.dump();
+            return 206;
         }
 
         if (request.uri.compare("/v2/track/206/") == 0)
@@ -359,11 +384,11 @@ TEST_F(AISendTests, sendOneEvent)
     event.SetProperty("property", "value");
     logger->LogEvent(event);
     waitForEvents(5, 1, compression);
-    waitForResponse(5, 1, debugListener);
+    waitForResponse(5, 2, debugListener);
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
     validateRequest(event, compression);
-    debugListener.expect(1, 0, 0, 0);
+    debugListener.expect(1, 1, 0, 0, 0);
 }
 
 TEST_F(AISendTests, sendMultipleEvent)
@@ -385,11 +410,11 @@ TEST_F(AISendTests, sendMultipleEvent)
     logger->LogEvent(event3);
 
     waitForEvents(5, 3, compression);
-    waitForResponse(5, 1, debugListener);
+    waitForResponse(5, 4, debugListener);
     FlushAndTeardown(debugListener);
 
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
-    debugListener.expect(1, 0, 0, 0);
+    debugListener.expect(3, 1, 0, 0, 0);
 }
 
 TEST_F(AISendTests, receiveServerError)
@@ -404,12 +429,12 @@ TEST_F(AISendTests, receiveServerError)
     event.SetProperty("property", "value");
     logger->LogEvent(event);
     waitForEvents(5, 1, compression);
-    waitForResponse(5, 1, debugListener);
+    waitForResponse(5, 2, debugListener);
 
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
     validateRequest(event, compression);
-    debugListener.expect(0, 1, 0, 0);
+    debugListener.expect(1, 0, 1, 0, 0);
 }
 
 TEST_F(AISendTests, receivePartialSuccess)
@@ -424,12 +449,31 @@ TEST_F(AISendTests, receivePartialSuccess)
     event.SetProperty("property", "value");
     logger->LogEvent(event);
     waitForEvents(5, 1, compression);
-    waitForResponse(5, 1, debugListener);
+    waitForResponse(5, 2, debugListener);
+    FlushAndTeardown(debugListener);
+    EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
+    validateRequest(event, compression);
+    debugListener.expect(1, 0, 0, 1, 0);
+}
+
+TEST_F(AISendTests, receivePartialCompressedSuccess)
+{
+    AITestDebugEventListener debugListener;
+    bool compression = true;
+
+    CleanStorage();
+    Initialize(debugListener, "/206/errors", compression);
+
+    EventProperties event("ai_event");
+    event.SetProperty("property", "value");
+    logger->LogEvent(event);
+    waitForEvents(5, 1, compression);
+    waitForResponse(20, 3, debugListener);
 
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
     validateRequest(event, compression);
-    debugListener.expect(0, 0, 1, 0);
+    debugListener.expect(2, 0, 0, 1, 0);
 }
 
 TEST_F(AISendTests, receiveServerRejected)
@@ -444,12 +488,12 @@ TEST_F(AISendTests, receiveServerRejected)
     event.SetProperty("property", "value");
     logger->LogEvent(event);
     waitForEvents(5, 1, compression);
-    waitForResponse(5, 1, debugListener);
+    waitForResponse(5, 2, debugListener);
 
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
     validateRequest(event, compression);
-    debugListener.expect(0, 0, 0, 1);
+    debugListener.expect(1, 0, 0, 0, 1);
 }
 
 TEST_F(AISendTests, sendCompressedEvent)
@@ -464,11 +508,11 @@ TEST_F(AISendTests, sendCompressedEvent)
     event.SetProperty("property", "value");
     logger->LogEvent(event);
     waitForEvents(5, 1, compression);
-    waitForResponse(5, 1, debugListener);
+    waitForResponse(5, 2, debugListener);
     FlushAndTeardown(debugListener);
     EXPECT_GE(receivedRequests.size(), (size_t)1);  // at least 1 HTTP request with customer payload and stats
     validateRequest(event, compression);
-    debugListener.expect(1, 0, 0, 0);
+    debugListener.expect(1, 1, 0, 0, 0);
 }
 
 #endif  // HAVE_MAT_AI

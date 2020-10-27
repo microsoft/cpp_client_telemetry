@@ -19,7 +19,9 @@ namespace MAT_NS_BEGIN {
         // Plain "deflate": negative -MAX_WBITS argument which makes zlib use "raw deflate"
         // without zlib header, as required by IIS.
         // "gzip": Add 16 to windowBits to write a simple gzip header
+#ifdef HAVE_MAT_ZLIB
         m_windowBits = m_config.GetHttpRequestContentEncoding() == "gzip" ? (MAX_WBITS | 16) : -MAX_WBITS;
+#endif
     }
 
     HttpDeflateCompression::~HttpDeflateCompression()

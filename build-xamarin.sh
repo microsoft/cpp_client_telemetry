@@ -1,5 +1,19 @@
 #!/bin/sh
 
+if [ "$1" == "help" ] || [ "$1" == "?" ]; then
+    echo
+    echo "build-xamarin.sh usage:"
+    echo "./build-xamarin.sh [debug|release] [cleanAll|cleanXamarin] [xamarinOnly] [package]"
+    echo
+    echo "- debug|release: build configuration to use. Default to release of not specified"
+    echo "- cleanAll: deletes output and temporary directories for all platforms"
+    echo "- cleanXamarin: deletes output and temporary directories for the Xamarin solution only"
+    echo "- xamarinOnly: only builds the Xamarin solution, assuming that iOS and Android SDKs have already been built"
+    echo "- package: packages the Xamarin bindings in a NuGet package"
+    echo
+    exit 0
+fi
+
 if [ "$1" == "release" ] || [ "$1" == "debug" ]; then
     BUILD_CONFIGURATION="$1"
 else

@@ -27,6 +27,7 @@
 #include "bond/All.hpp"
 #include "CsProtocol_types.hpp"
 #include "bond/generated/CsProtocol_readers.hpp"
+#include "utils/ZlibUtils.hpp"
 
 #include "zlib.h"
 #undef compress
@@ -490,48 +491,6 @@ namespace clienttelemetry {
 
                 return result;
             }
-
-            bool InflateVector(const std::vector<uint8_t>& in, std::vector<uint8_t>& out)
-            {
-                bool result = true;
-
-                z_stream zs;
-                memset(&zs, 0, sizeof(zs));
-
-                // Must call inflateInit2 with -9 because otherwise
-                // it'd be searching for non-existing gzip header.
-                if (inflateInit2(&zs, -9) != Z_OK)
-                {
-                    return false;
-                }
-
-                zs.next_in = (Bytef *)in.data();
-                zs.avail_in = (uInt)in.size();
-                int ret;
-                // The problem with 32K is that it's too small and causes corruption
-                // in zlib inflate. 128KB seems to be fine.
-                // Allocate a buffer enough to hold an output with Zlib max compression
-                // ratio 5:1 in case it is larger than 128KB.
-                uInt outbufferSize = std::max((uInt)131072, zs.avail_in * 5);
-
-                char* outbuffer = new char[outbufferSize];
-                do
-                {
-                    zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
-                    zs.avail_out = outbufferSize;
-                    ret = inflate(&zs, Z_NO_FLUSH);
-                    out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
-                } while (ret == Z_OK);
-                if (ret != Z_STREAM_END)
-                {
-                    TEST_LOG_ERROR("Unable to successfully decompress into buffer");
-                    result = false;
-                }
-                inflateEnd(&zs);
-                delete[] outbuffer;
-                return result;
-            }
-
         }
     }
 }
@@ -555,7 +514,7 @@ namespace MAT_NS_BEGIN {
             std::vector<uint8_t> buffer;
             if (compressed)
             {
-                if (!InflateVector(in, buffer))
+                if (!ZlibUtils::InflateVector(in, buffer, false /* isGzip */))
                 {
                     TEST_LOG_ERROR("Failed to inflate compressed data");
                     return false;

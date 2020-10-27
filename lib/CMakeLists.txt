@@ -31,6 +31,7 @@ set(SRCS decorators/BaseDecorator.cpp
   utils/FileUtils.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
+  utils/ZlibUtils.cpp
   pal/InformationProviderImpl.cpp
   http/HttpClient_CAPI.cpp
   http/HttpClientManager.cpp
