@@ -152,10 +152,15 @@ namespace PAL_NS_BEGIN {
     std::string getCommercialId()
     {
         char buff[MAX_PATH] = { 0 };
+        const PCSTR c_groupPolicyDataCollection_Key = "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection";
         const PCSTR c_dataCollection_Key = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection";
         const PCSTR c_commercialId = "CommercialId";
         DWORD size = sizeof(buff);
-        RegGetValueA(HKEY_LOCAL_MACHINE, c_dataCollection_Key, c_commercialId, RRF_RT_REG_SZ, NULL, (char*)buff, &size);
+        if (RegGetValueA(HKEY_LOCAL_MACHINE, c_groupPolicyDataCollection_Key, c_commercialId, RRF_RT_REG_SZ, NULL, static_cast<char*>(buff), &size) != ERROR_SUCCESS)
+        {
+            size = sizeof(buff);
+            RegGetValueA(HKEY_LOCAL_MACHINE, c_dataCollection_Key, c_commercialId, RRF_RT_REG_SZ, NULL, static_cast<char*>(buff), &size);
+        }
         return buff;
     }
 

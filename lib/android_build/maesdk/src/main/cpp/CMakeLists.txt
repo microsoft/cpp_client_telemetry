@@ -81,6 +81,7 @@ set(SRCS
         ${SDK_ROOT}/lib/tpm/TransmitProfiles.cpp
         ${SDK_ROOT}/lib/utils/FileUtils.cpp
         ${SDK_ROOT}/lib/utils/StringUtils.cpp
+        ${SDK_ROOT}/lib/utils/ZlibUtils.cpp
         ${SDK_ROOT}/lib/utils/Utils.cpp
 )
 
