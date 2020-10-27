@@ -1,5 +1,9 @@
 include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/../lib/decoder ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite )
 
+if (BUILD_TCMALLOC)
+  list(APPEND LIBS "${Tcmalloc_LIBRARIES}")
+endif()
+
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/googletest/build)
   # Prefer new Google Test submodule if built in source tree (required for Ubuntu 20.04 and above)
   include_directories(

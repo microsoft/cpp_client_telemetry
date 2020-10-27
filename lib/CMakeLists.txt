@@ -198,6 +198,10 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
+if (BUILD_TCMALLOC)
+  list(APPEND LIBS "${Tcmalloc_LIBRARIES}")
+endif()
+
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
   
@@ -216,9 +220,6 @@ if(BUILD_SHARED_LIBS STREQUAL "ON")
     )
   endif()
 
-  #
-  # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-  #
   if (BUILD_STATIC_SQLITE STREQUAL "ON")
     # Build dynamic library, but prefer statically linking sqlite3 and zlib
     add_library(sqlite3 STATIC IMPORTED GLOBAL)
@@ -241,9 +242,6 @@ else()
   else()
     add_library(sqlite3 STATIC IMPORTED GLOBAL)
     add_library(z STATIC IMPORTED GLOBAL)
-    #
-    # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-    #
     target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   endif()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
