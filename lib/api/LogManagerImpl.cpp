@@ -831,7 +831,6 @@ namespace MAT_NS_BEGIN
 
         return STATUS_SUCCESS;
     }
-
 }
 MAT_NS_END
 

@@ -34,7 +34,6 @@ namespace MAT_NS_BEGIN {
         virtual bool upload() = 0;
         virtual void cleanup() = 0;
 
-
         // Access to common core components
         virtual ILogManager& getLogManager() = 0;
         virtual IRuntimeConfig& getConfig() = 0;
