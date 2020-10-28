@@ -31,6 +31,12 @@ namespace MAT_NS_BEGIN
         }
     }
 
+    void LogSessionDataProvider::ResetLogSessionData()
+    {
+        DeleteLogSessionData();
+        CreateLogSessionData();
+    }
+
     void LogSessionDataProvider::DeleteLogSessionData()
     {
         if (m_storageType == SessionStorageType::FileStore)

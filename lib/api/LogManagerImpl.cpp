@@ -747,8 +747,7 @@ namespace MAT_NS_BEGIN
     {
         if (m_logSessionDataProvider) 
         {
-            m_logSessionDataProvider->DeleteLogSessionData();
-            m_logSessionDataProvider->CreateLogSessionData();
+            m_logSessionDataProvider->ResetLogSessionData();
         }
     }
 

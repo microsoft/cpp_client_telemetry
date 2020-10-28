@@ -891,18 +891,7 @@ namespace MAT_NS_BEGIN
 
         return m_logManager.GetLogSessionData();
     }
-
-    void Logger::ResetLogSessionData()
-    {
-        ActiveLoggerCall active(*this);
-        if (active.LoggerIsDead())
-        {
-            return nullManager.ResetLogSessionData();
-        }
-
-        return m_logManager.ResetLogSessionData();
-    }
-
+    
     IAuthTokensController* Logger::GetAuthTokensController()
     {
         ActiveLoggerCall active(*this);

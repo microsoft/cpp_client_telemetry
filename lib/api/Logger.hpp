@@ -213,7 +213,6 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
         virtual LogSessionData* GetLogSessionData() override;
-        virtual void ResetLogSessionData() override;
 
         /// <summary>
         /// Get the Auth ticket controller
