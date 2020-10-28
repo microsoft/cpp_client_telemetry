@@ -7,9 +7,14 @@ using NUnit.Framework;
 
 #if __ANDROID__
 using Android.App;
+using Java.Util;
 #endif
 
-namespace OneDsCppSdk.Bindings.Tests.Shared
+#if __IOS__
+using Foundation;
+#endif
+
+namespace OneDsCppSdk.Bindings.Tests
 {
     [TestFixture]
     public class LoggerTests
@@ -17,7 +22,7 @@ namespace OneDsCppSdk.Bindings.Tests.Shared
         private const string Token = "fake-token";
         private const string TestEventName = "eventname";
 
-        private readonly EventProperties TestEventProperties = new EventProperties(TestEventName);
+        private EventProperties TestEventProperties;
 
         private ILogger logger;
 
@@ -29,16 +34,12 @@ namespace OneDsCppSdk.Bindings.Tests.Shared
 #elif __IOS__
             logger = LogManager.Initialize(Token);
 #endif
+
+            TestEventProperties = new EventProperties(TestEventName);
         }
 
         [TearDown]
         public void Tear() { }
-
-        [Test]
-        public void InstantiateLogger()
-        {
-            Assert.NotNull(logger);
-        }
 
         [Test]
         public void GetSemanticContext()
@@ -98,6 +99,126 @@ namespace OneDsCppSdk.Bindings.Tests.Shared
         public void LogTrace()
         {
             logger.LogTrace(TraceLevel.Error, "message", TestEventProperties);
+        }
+
+        [Test]
+        public void SetContextWithStringValueWithPiiKind()
+        {
+            logger.SetContext("name", "value", PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithStringValue()
+        {
+            logger.SetContext("name", "value");
+        }
+
+        [Test]
+        public void SetContextWithMaxDoubleValueWithPiiKind()
+        {
+            logger.SetContext("name", double.MaxValue, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithMaxDoubleValue()
+        {
+            logger.SetContext("name", double.MaxValue);
+        }
+
+        [Test]
+        public void SetContextWithMinDoubleValueWithPiiKind()
+        {
+            logger.SetContext("name", double.MinValue, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithMinDoubleValue()
+        {
+            logger.SetContext("name", double.MinValue);
+        }
+
+        [Test]
+        public void SetContextWithMaxInt64ValueWithPiiKind()
+        {
+            logger.SetContext("name", long.MaxValue, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithMaxInt64Value()
+        {
+            logger.SetContext("name", long.MaxValue);
+        }
+
+        [Test]
+        public void SetContextWithMinInt64ValueWithPiiKind()
+        {
+            logger.SetContext("name", long.MinValue, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithMinInt64Value()
+        {
+            logger.SetContext("name", long.MinValue);
+        }
+
+        [Test]
+        public void SetContextWithMaxInt32ValueWithPiiKind()
+        {
+            logger.SetContext("name", int.MaxValue, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithMaxInt32Value()
+        {
+            logger.SetContext("name", int.MaxValue);
+        }
+
+        [Test]
+        public void SetContextWithMinInt32ValueWithPiiKind()
+        {
+            logger.SetContext("name", int.MinValue, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithMinInt32Value()
+        {
+            logger.SetContext("name", int.MinValue);
+        }
+
+        [Test]
+        public void SetContextWithBoolValueWithPiiKind()
+        {
+            logger.SetContext("name", true, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithBoolValue()
+        {
+            logger.SetContext("name", true);
+        }
+
+        [Test]
+        public void SetContextWithGuidValueWithPiiKind()
+        {
+            logger.SetContext("name", DataTypes.TestGuid, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithGuidValue()
+        {
+            logger.SetContext("name", DataTypes.TestGuid);
+        }
+
+        [Test]
+        public void SetContextWithDateTimeValueWithPiiKind()
+        {
+            logger.SetContext("name", DataTypes.TestDate, PiiKind.DistinguishedName);
+        }
+
+        [Test]
+        public void SetContextWithDateTimeValue()
+        {
+            logger.SetContext("name", DataTypes.TestDate);
         }
     }
 }
