@@ -215,7 +215,6 @@ namespace MAT_NS_BEGIN {
 
     bool TransmissionPolicyManager::handleStart()
     {
-        LOG_TRACE("LALIT: resuming");
         m_isPaused = false;
         scheduleUpload(std::chrono::seconds{1}, calculateNewPriority());
         return true;
@@ -403,7 +402,6 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::pauseAllUploads()
     {
-        LOG_TRACE("LALIT: Pausing.");
         m_isPaused = true;
         cancelUploadTask();
     }

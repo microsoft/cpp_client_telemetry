@@ -190,7 +190,7 @@ public:
 #ifdef NDEBUG
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
 #else
-        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
+        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
 #endif
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
