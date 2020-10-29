@@ -1469,11 +1469,12 @@ TEST_F(BasicFuncTests, deleteEvents)
 {
     CleanStorage();
     Initialize();
+
     const size_t  max_events = 10;
     size_t iteration = 0;
 
     // pause the transmission so events get collected in storage
-   // LogManager::PauseTransmission();
+    LogManager::PauseTransmission();
     std::string eventset1 = "EventSet1_";
     std::vector<EventProperties> events1;
     while ( iteration++ < max_events )
@@ -1489,27 +1490,6 @@ TEST_F(BasicFuncTests, deleteEvents)
     LogManager::ResumeTransmission();
     LogManager::UploadNow(); //forc upload if something is there in local storage
     PAL::sleep(2000) ; //wait for some time.
-    ASSERT_EQ(records().size(), static_cast<size_t>(0));
-
-    std::vector<EventProperties> events2;
-    std::string eventset2 = "EventSet2_";
-    iteration = 0;
-
-    while ( iteration++ < max_events )
-    {
-        EventProperties event(eventset2 + std::to_string(iteration));
-        event.SetPriority(EventPriority_Normal);
-        event.SetProperty("property1", "value1");
-        event.SetProperty("property2", "value2");
-        events2.push_back(event);
-        logger->LogEvent(event);
-    }
-    LogManager::UploadNow(); //forc upload if something is there in local storage
-    waitForEvents(3 /*timeout*/, max_events /*expected count*/); 
-    for (auto &e: events2) {
-        verifyEvent(e, find(e.GetName()));
-    }
-    // Ensure events from set 1 are not uploaded
     for (auto &e: events1) {
         ASSERT_EQ(find(e.GetName()).name, "");
     }
