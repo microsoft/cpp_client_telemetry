@@ -215,6 +215,7 @@ namespace MAT_NS_BEGIN {
 
     bool TransmissionPolicyManager::handleStart()
     {
+        LOG_TRACE("LALIT: resuming");
         m_isPaused = false;
         scheduleUpload(std::chrono::seconds{1}, calculateNewPriority());
         return true;
@@ -255,6 +256,25 @@ namespace MAT_NS_BEGIN {
         allUploadsFinished();
         return true;
     }
+
+    /**
+     * Wait for pending uploads to finish. This handler is invoked from 
+     * TelemetrySystem::onCleanup after HCM has attempted to cancel all pending
+     * requests via hcm.cancelAllRequests. This won't abort the uploads in the end
+     * and is possible to resume the transmission
+     */
+     bool TransmissionPolicyManager::handleCleanup()
+     {
+        cancelUploadTask();
+        // Make sure ongoing uploads are finished.
+        while (uploadCount() > 0)
+        {
+            std::this_thread::yield();
+        }
+
+        allUploadsFinished();
+        return true;
+     }
 
     // Called from finishAllUploads
     void TransmissionPolicyManager::handleFinishAllUploads()
@@ -383,6 +403,7 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::pauseAllUploads()
     {
+        LOG_TRACE("LALIT: Pausing.");
         m_isPaused = true;
         cancelUploadTask();
     }

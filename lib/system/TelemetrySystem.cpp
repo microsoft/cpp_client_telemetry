@@ -142,7 +142,7 @@ namespace MAT_NS_BEGIN {
         {
             bool result = true;
             hcm.cancelAllRequests();
-            result &= tpm.stop();
+            result &= tpm.cleanup();
             return result;
         };
 

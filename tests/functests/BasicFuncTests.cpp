@@ -190,7 +190,7 @@ public:
 #ifdef NDEBUG
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
 #else
-        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
+        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Debug;
 #endif
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
@@ -1492,6 +1492,25 @@ TEST_F(BasicFuncTests, deleteEvents)
     PAL::sleep(2000) ; //wait for some time.
     for (auto &e: events1) {
         ASSERT_EQ(find(e.GetName()).name, "");
+    }
+
+    std::vector<EventProperties> events2;
+    std::string eventset2 = "EventSet2_";
+    iteration = 0;
+
+    while ( iteration++ < max_events )
+    {
+        EventProperties event(eventset2 + std::to_string(iteration));
+        event.SetPriority(EventPriority_Normal);
+        event.SetProperty("property1", "value1");
+        event.SetProperty("property2", "value2");
+        events2.push_back(event);
+        logger->LogEvent(event);
+    }
+    LogManager::UploadNow(); //forc upload if something is there in local storage
+    waitForEvents(3 /*timeout*/, max_events /*expected count*/); 
+    for (auto &e: events2) {
+        verifyEvent(e, find(e.GetName()));
     }
 }
 #endif

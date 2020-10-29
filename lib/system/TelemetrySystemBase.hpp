@@ -104,14 +104,11 @@ namespace MAT_NS_BEGIN {
         };
 
         /// <summary>
-        /// Cleanups events upload
-        /// This also stops the telemetry system,
-        /// but doesn't wait for the pending 
-        /// requests to be processed first.
+        /// Cleanups pending events upload
         /// </summary>
         virtual void cleanup() override
         {
-            if (m_isStarted.exchange(false))
+            if (m_isStarted)
             {
                 onCleanup();       
             }
