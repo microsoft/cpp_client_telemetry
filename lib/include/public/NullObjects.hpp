@@ -331,6 +331,8 @@ namespace MAT_NS_BEGIN
             return nullptr;
         }
 
+        virtual void ResetLogSessionData() override {};
+
         virtual ILogController* GetLogController() override
         {
             return this;

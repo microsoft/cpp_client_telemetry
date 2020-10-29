@@ -229,6 +229,7 @@ namespace MAT_NS_BEGIN
         virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scopeId = std::string()) override;
 
         LogSessionData* GetLogSessionData() override;
+        void ResetLogSessionData() override;
 
         ILogController* GetLogController(void) override;
 

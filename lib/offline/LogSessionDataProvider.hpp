@@ -39,6 +39,7 @@ namespace MAT_NS_BEGIN
         }
 
         void CreateLogSessionData();
+        void ResetLogSessionData();
         void DeleteLogSessionData();
         LogSessionData *GetLogSessionData();
 
