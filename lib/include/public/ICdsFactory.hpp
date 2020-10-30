@@ -29,17 +29,17 @@ using CollectorCallback = std::function<void(const std::wstring&, const Config&)
 
 
 /// <summary>
-/// 
+/// Provide the Common Diagnostic Stack functionality
 /// </summary>
 class MATSDK_LIBABI ICommonDiagnosticStack {
 public:
     /// <summary>
-    /// 
+    /// Used to register collectors with CDS
     /// </summary>
     virtual void RegisterCollector(std::wstring collectorGuid, CollectorCallback callback) noexcept = 0;
 
     /// <summary>
-    /// 
+    /// Call to perform data collection and upload to ODS
     /// </summary>
     virtual void DoCollectAndUpload(std::wstring sessionID, DiagnosticConfig config) noexcept = 0;
 };
