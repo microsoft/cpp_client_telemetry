@@ -321,6 +321,11 @@ namespace MAT_NS_BEGIN
         virtual LogSessionData* GetLogSessionData() override = 0;
 
         /// <summary>
+        /// Resets the log session data.
+        /// </summary>
+        virtual void ResetLogSessionData() = 0;
+
+        /// <summary>
         /// Retrieves the ILogController interface of LogManager to control transmission pipe.
         /// </summary>
         /// <returns>Pointer to the ILogController interface</returns>

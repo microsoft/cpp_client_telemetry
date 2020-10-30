@@ -743,6 +743,14 @@ namespace MAT_NS_BEGIN
         return (m_logSessionDataProvider) ? m_logSessionDataProvider->GetLogSessionData() : nullptr;
     }
 
+    void LogManagerImpl::ResetLogSessionData()
+    {
+        if (m_logSessionDataProvider) 
+        {
+            m_logSessionDataProvider->ResetLogSessionData();
+        }
+    }
+
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
     {
         m_diagLevelFilter.SetFilter(defaultLevel, levelMin, levelMax);
