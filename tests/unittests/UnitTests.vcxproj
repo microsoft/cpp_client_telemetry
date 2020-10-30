@@ -486,10 +486,8 @@
     <ClInclude Include="CheckForExceptionOrAbort.hpp" />
   </ItemGroup>
   <ImportGroup Label="Shared">
-    <Import Project="../../lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp" Condition="exists('..\..\lib\modules\exp\exp.vcxitems')" Label="Shared" >
-    <Import Project="../../lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp">
-    <Import Project="../../lib/modules/exp/tests/unittests/ECSClientTests.cpp">
+    <Import Project="../../lib/modules/exp/tests/unittests/UnitTests.vcxproj" Condition="exists('../../lib/modules/exp/tests/unittests/UnitTests.vcxproj')" Label="Shared" >
   </ImportGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-</Project>
+</Project
