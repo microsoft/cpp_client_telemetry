@@ -465,9 +465,6 @@
     <ClCompile Include="$(ProjectDir)\TransmitProfileRuleTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmitProfilesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\ECSClientUtilsTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\ECSConfigCacheTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\ECSClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
@@ -488,6 +485,11 @@
     <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
     <ClInclude Include="CheckForExceptionOrAbort.hpp" />
   </ItemGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="../../lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp" Condition="exists('..\..\lib\modules\exp\exp.vcxitems')" Label="Shared" >
+    <Import Project="../../lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp">
+    <Import Project="../../lib/modules/exp/tests/unittests/ECSClientTests.cpp">
+  </ImportGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
