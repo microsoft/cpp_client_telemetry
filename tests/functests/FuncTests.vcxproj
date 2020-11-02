@@ -454,6 +454,12 @@
     <ClInclude Include="..\common\MockITenantDataSerializer.hpp" />
     <ClInclude Include="EventDecoderListener.hpp" />
   </ItemGroup>
+  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\exp')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSConfigCacheFuncTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientFuncTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientRealworldFuncTests.cpp" />
+    <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientCommon.hpp" />
+  </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
