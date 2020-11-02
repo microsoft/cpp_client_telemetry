@@ -40,7 +40,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{553836FF-B1FD-4B70-AC81-AEC7752F9284}"
 	ProjectSection(SolutionItems) = preProject
 		..\lib\include\public\AggregatedMetric.hpp = ..\lib\include\public\AggregatedMetric.hpp
-		..\lib\include\public\CdsFactory.hpp = ..\lib\include\public\CdsFactory.hpp
 		..\lib\include\public\CommonFields.h = ..\lib\include\public\CommonFields.h
 		..\lib\include\public\CsProtocol_types.hpp = ..\lib\include\public\CsProtocol_types.hpp
 		..\lib\include\public\ctmacros.hpp = ..\lib\include\public\ctmacros.hpp

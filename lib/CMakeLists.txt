@@ -88,7 +88,8 @@ endif()
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds/ AND BUILD_CDS)
   add_definitions(-DHAVE_MAT_CDS)
   list(APPEND SRCS
-    modules/cds/impl/CdsFactory.cpp
+    modules/cds/CdsFactory.hpp
+    modules/cds/CdsFactory.cpp
   )
 endif()
 

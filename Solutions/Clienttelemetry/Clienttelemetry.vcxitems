@@ -117,7 +117,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\json.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\oacr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\TransmitProfiles.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CdsFactory.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CommonFields.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CompliantByDefaultFilterApi.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\CsProtocol_types.hpp" />

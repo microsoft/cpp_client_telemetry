@@ -14,18 +14,29 @@
 namespace Microsoft {
 namespace CDS {
 
+/// <summary>
+/// Configuration Params for Collector / Packager / Uploader
+/// </summary>
 struct Config {
-    std::wstring guid;
-    std::map<std::wstring /*param name*/, std::wstring /*param value*/> params;
+    std::string guid;
+    std::map<std::string /*param name*/, std::string /*param value*/> params;
 };
 
+
+/// <summary>
+/// Collecotr/Packager/Uploader Configuration Params for Common Diagnostic Stack
+/// </summary>
 struct DiagnosticConfig {
     Config collectorConfig;
-    Config pakagerConfig;
+    Config packagerConfig;
     Config uploaderConfig;
 };
 
-using CollectorCallback = std::function<void(const std::wstring&, const Config&)>;
+
+/// <summary>
+/// Collector Function that is called when a specific data need to be collected
+/// </summary>
+using CollectorCallback = std::function<void(const std::string&, const Config&)>;
 
 
 /// <summary>
@@ -33,22 +44,28 @@ using CollectorCallback = std::function<void(const std::wstring&, const Config&)
 /// </summary>
 class MATSDK_LIBABI ICommonDiagnosticStack {
 public:
+    virtual ~ICommonDiagnosticStack() noexcept = default;
+
     /// <summary>
     /// Used to register collectors with CDS
     /// </summary>
-    virtual void RegisterCollector(std::wstring collectorGuid, CollectorCallback callback) noexcept = 0;
+    virtual void RegisterCollector(const std::string& collectorGuid, CollectorCallback callback) noexcept = 0;
 
     /// <summary>
     /// Call to perform data collection and upload to ODS
     /// </summary>
-    virtual void DoCollectAndUpload(std::wstring sessionID, DiagnosticConfig config) noexcept = 0;
+    virtual void DoCollectAndUpload(const std::string& sessionID, const DiagnosticConfig& config) noexcept = 0;
 };
 
 
+/// <summary>
+/// Get a singleton of Common Diagnostic Stack that is used for regitering CollectorCallback and is used to call
+/// to collect and upload data.
+/// </summary>
+MATSDK_LIBABI const std::shared_ptr<Microsoft::CDS::ICommonDiagnosticStack>& GetCommonDiagnosticStack();
+
 } // namespace CDS
 } // namespace Microsoft
-
-MATSDK_LIBABI const std::shared_ptr<Microsoft::CDS::ICommonDiagnosticStack>& GetCommonDiagnosticStack();
 
 #endif
 
