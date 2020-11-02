@@ -486,9 +486,9 @@
     <ClInclude Include="CheckForExceptionOrAbort.hpp" />
   </ItemGroup>
   <ImportGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\exp')">
-    <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSConfigCacheTests.cpp">
-    <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientTests.cpp">
-    <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientUtilsTests.cpp">
+    <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSConfigCacheTests.cpp" />
+    <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientTests.cpp" />
+    <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientUtilsTests.cpp" />
   </ImportGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
