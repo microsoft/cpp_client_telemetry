@@ -201,26 +201,26 @@ namespace MAT_NS_BEGIN
             if (connectivityLevel != NetworkConnectivityLevel_None)
             {
 
-        }
+            }
 #endif
 
             ComPtr<INetworkAdapter> adapter;
             HRESULT hr = profile->get_NetworkAdapter(&adapter);
             if (hr == E_INVALIDARG)
             {
-                LOG_ERROR("No network interfaces - device is in airplane mode");
-                return ""; // No interfaces - device is in airplane mode
-            }
-
-            UINT32 type;
-            hr = adapter->get_IanaInterfaceType(&type);
-            if (type == 23)
-            {
-                // FIXME
+                // No interfaces - device is in airplane mode
+                LOG_TRACE("No network interfaces - device is in airplane mode");
+                return "";
             }
 
             GUID id;
             hr = adapter->get_NetworkAdapterId(&id);
+            if (!SUCCEEDED(hr))
+            {
+                // Unable to obtain Network Adapter GUID
+                LOG_TRACE("Unable to obtain interface GUID");
+                return "";
+            }
 
             return to_string(id);
         }
@@ -238,7 +238,7 @@ namespace MAT_NS_BEGIN
                 QITABENT(NetworkDetector, INetworkEvents),
                 QITABENT(NetworkDetector, INetworkConnectionEvents),
                 QITABENT(NetworkDetector, INetworkListManagerEvents),
-                { 0 }
+                { nullptr,0 }
             };
             return QISearch(this, rgqit, riid, ppv);
         }
@@ -379,7 +379,6 @@ namespace MAT_NS_BEGIN
                     (SUCCEEDED(hr)) ? "OK" : "FAILED");
             }
 
-            BOOL bRet;
             MSG msg;
             m_listener_tid = GetCurrentThreadId();
             PostThreadMessage(m_listener_tid, NETDETECTOR_START, 0, 0);
@@ -387,7 +386,8 @@ namespace MAT_NS_BEGIN
                 std::unique_lock<std::mutex> lock(m_lock);
                 cv.notify_all();
             }
-            while ((bRet = GetMessage(&msg, NULL, 0, 0)) > 0)
+
+            while (GetMessage(&msg, NULL, 0, 0) > 0)
             {
                 switch (msg.message)
                 {
@@ -638,23 +638,28 @@ namespace MAT_NS_BEGIN
             LOG_TRACE("Getting network details...");
             ComPtr<IVectorView<HostName *>> hostNames;
             HRESULT hr = networkInfoStats->GetHostNames(&hostNames);
-            if (!hostNames)
+            if ((!SUCCEEDED(hr))||(!hostNames))
                 return;
 
             m_hostnames.clear();
             unsigned int hostNameCount;
             hr = hostNames->get_Size(&hostNameCount);
+            if (!SUCCEEDED(hr))
+                return;
             for (unsigned i = 0; i < hostNameCount; ++i) {
                 MATW::HostNameInfo hostInfo;
                 ComPtr<IHostName> hostName;
                 hr = hostNames->GetAt(i, &hostName);
-
+                if (!SUCCEEDED(hr))
+                    continue;
                 HString rawName;
                 hostName->get_RawName(rawName.GetAddressOf());
                 LOG_TRACE("RawName: %s", to_string(&rawName).c_str());
 
                 HostNameType type;
                 hr = hostName->get_Type(&type);
+                if (!SUCCEEDED(hr))
+                    continue;
                 LOG_TRACE("HostNameType: %d", type);
 
                 if (type == HostNameType_DomainName)
@@ -662,15 +667,25 @@ namespace MAT_NS_BEGIN
 
                 ComPtr<IIPInformation> ipInformation;
                 hr = hostName->get_IPInformation(&ipInformation);
+                if (!SUCCEEDED(hr))
+                    continue;
 
                 ComPtr<INetworkAdapter> currentAdapter;
                 hr = ipInformation->get_NetworkAdapter(&currentAdapter);
+                if (!SUCCEEDED(hr))
+                    continue;
                 hr = currentAdapter->get_NetworkAdapterId(&hostInfo.adapterId);
+                if (!SUCCEEDED(hr))
+                    continue;
                 LOG_TRACE("CurrentAdapterId: %s", to_string(hostInfo.adapterId).c_str());
 
                 ComPtr<IReference<unsigned char>> prefixLengthReference;
                 hr = ipInformation->get_PrefixLength(&prefixLengthReference);
+                if (!SUCCEEDED(hr))
+                    continue;
                 hr = prefixLengthReference->get_Value(&hostInfo.prefixLength);
+                if (!SUCCEEDED(hr))
+                    continue;
                 LOG_TRACE("PrefixLength: %d", hostInfo.prefixLength);
 
                 // invalid prefixes
@@ -680,6 +695,8 @@ namespace MAT_NS_BEGIN
 
                 HString name;
                 hr = hostName->get_CanonicalName(name.GetAddressOf());
+                if (!SUCCEEDED(hr))
+                    continue;
                 hostInfo.address = to_string(&name);
                 LOG_TRACE("CanonicalName: %s", hostInfo.address.c_str());
 
@@ -691,15 +708,24 @@ namespace MAT_NS_BEGIN
 
             ComPtr<IVectorView<ConnectionProfile *>> m_connection_profiles;
             hr = networkInfoStats->GetConnectionProfiles(&m_connection_profiles);
+            if (!SUCCEEDED(hr))
+                return;
 
             unsigned int size;
             hr = m_connection_profiles->get_Size(&size);
+            if (!SUCCEEDED(hr))
+                return;
+
             for (unsigned int i = 0; i < size; ++i) {
                 ComPtr<IConnectionProfile> profile;
                 hr = m_connection_profiles->GetAt(i, &profile);
+                if (!SUCCEEDED(hr))
+                    continue;
                 auto prof = profile.Get();
                 HString name;
                 hr = prof->get_ProfileName(name.GetAddressOf());
+                if (!SUCCEEDED(hr))
+                    continue;
                 LOG_TRACE("Profile[%d]: name = %s", i, to_string(&name).c_str());
                 LOG_TRACE("Profile[%d]: guid = %s", i, GetAdapterId(prof).c_str());
             }

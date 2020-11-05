@@ -130,7 +130,7 @@ namespace MAT_NS_BEGIN
 
         virtual ISemanticContext* GetSemanticContext() const override;
 
-        virtual void SetParentContext(ISemanticContext* context) override;
+        virtual void SetParentContext(ISemanticContext* context) final;
 
         virtual void LogAppLifecycle(AppLifecycleState state,
                                      EventProperties const& properties) override;
