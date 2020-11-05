@@ -85,7 +85,7 @@ evt_status_t mat_open_core(
     // Find the next available spare hashcode
     do
     {
-        auto client = MAT::capi_get_client(code);
+        const auto client = MAT::capi_get_client(code);
         if (client != nullptr)
         {
             if (client->ctx_data == config)
@@ -192,7 +192,7 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
         return EFAULT; /* bad address */
     };
 
-    evt_open_with_params_data_t* data = static_cast<evt_open_with_params_data_t*>(ctx->data);
+    const evt_open_with_params_data_t* data = static_cast<evt_open_with_params_data_t*>(ctx->data);
     if ((data == nullptr) || (data->params == nullptr))
     {
         // Invalid param data

@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#pragma once
+#ifndef OFFLINESTORAGEHANDLER_HPP
+#define OFFLINESTORAGEHANDLER_HPP
+
 #include "pal/PAL.hpp"
 #include "IOfflineStorage.hpp"
 
@@ -73,8 +75,6 @@ namespace MAT_NS_BEGIN {
 
         virtual bool isKilled(StorageRecord const& record);
 
-        virtual void WaitForFlush();
-
         std::mutex                             m_flushLock;
         bool                                   m_flushPending;
         PAL::DeferredCallbackHandle            m_flushHandle;
@@ -94,8 +94,13 @@ namespace MAT_NS_BEGIN {
 
     protected:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
+
+    private:
+        void WaitForFlush();
+
     };
 
 
 } MAT_NS_END
 
+#endif

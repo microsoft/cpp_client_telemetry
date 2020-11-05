@@ -230,6 +230,7 @@ namespace MAT_NS_BEGIN
         }
 
         int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
+        (void)sdkMode; // variable may be unused when SDK is compiled without private modules
 
 #ifdef HAVE_MAT_UTC
         // UTC is not active

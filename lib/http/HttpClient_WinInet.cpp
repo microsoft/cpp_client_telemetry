@@ -37,8 +37,8 @@ class WinInetRequestWrapper
   public:
     WinInetRequestWrapper(HttpClient_WinInet& parent, SimpleHttpRequest* request)
       : m_parent(parent),
-        m_request(request),
-        m_id(request->GetId())
+        m_id(request->GetId()),
+        m_request(request)
     {
         LOG_TRACE("%p WinInetRequestWrapper()", this);
     }
@@ -99,10 +99,10 @@ class WinInetRequestWrapper
         // regressions for downlevel OS.
         if (::InternetQueryOption(m_hWinInetRequest, INTERNET_OPTION_SERVER_CERT_CHAIN_CONTEXT, (LPVOID)&pCertCtx, &dwCertChainContextSize))
         {
-            CERT_CHAIN_POLICY_STATUS pps = {0};
+            CERT_CHAIN_POLICY_STATUS pps = { 0, 0, 0, 0, nullptr };
             pps.cbSize = sizeof(pps);
             // Verify that the cert chain roots up to the Microsoft application root at top level
-            CERT_CHAIN_POLICY_PARA policyPara = {0};
+            CERT_CHAIN_POLICY_PARA policyPara = {0, 0, nullptr };
             policyPara.cbSize = sizeof(policyPara);
             policyPara.dwFlags = MICROSOFT_ROOT_CERT_CHAIN_POLICY_CHECK_APPLICATION_ROOT_FLAG;
             policyPara.pvExtraPolicyPara = nullptr;

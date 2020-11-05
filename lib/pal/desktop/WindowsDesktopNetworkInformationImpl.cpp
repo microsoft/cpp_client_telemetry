@@ -16,9 +16,9 @@ using namespace MAT;
 namespace PAL_NS_BEGIN {
 
     NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
+        m_cost(NetworkCost_Unmetered),
         m_info_helper(),
         m_registeredCount(0),
-        m_cost(NetworkCost_Unmetered),
         m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT])
     { };
     NetworkInformationImpl::~NetworkInformationImpl() { };
