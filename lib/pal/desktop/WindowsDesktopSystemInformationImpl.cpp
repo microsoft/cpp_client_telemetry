@@ -176,7 +176,7 @@ namespace PAL_NS_BEGIN {
         typedef NTSTATUS(__stdcall * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
         RtlGetVersion_t pRtlGetVersion = hNtDll ? reinterpret_cast<RtlGetVersion_t>(::GetProcAddress(hNtDll, "RtlGetVersion")) : nullptr;
 
-        RTL_OSVERSIONINFOW rtlOsvi = { sizeof(rtlOsvi) };
+        RTL_OSVERSIONINFOW rtlOsvi = { sizeof(rtlOsvi), 0, 0, 0, 0, {0} };
         if (pRtlGetVersion && SUCCEEDED(pRtlGetVersion(&rtlOsvi)))
         {
             osMajorVersion = std::to_string((long long)rtlOsvi.dwMajorVersion) + "." + std::to_string((long long)rtlOsvi.dwMinorVersion);

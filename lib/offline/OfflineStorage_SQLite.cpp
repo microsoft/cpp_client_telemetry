@@ -443,6 +443,7 @@ namespace MAT_NS_BEGIN {
     void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
     {
         UNREFERENCED_PARAMETER(fromMemory);
+        UNREFERENCED_PARAMETER(headers); // could be unused
 
         if (ids.empty()) {
             return;
@@ -486,6 +487,7 @@ namespace MAT_NS_BEGIN {
     void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
     {
         UNREFERENCED_PARAMETER(fromMemory);
+        UNREFERENCED_PARAMETER(headers); // could be unused
 
         if (ids.empty()) {
             return;
