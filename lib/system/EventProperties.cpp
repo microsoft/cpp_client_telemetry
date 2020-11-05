@@ -450,6 +450,11 @@ namespace MAT_NS_BEGIN {
     {
         size_t size = m_storage->properties.size() + m_storage->propertiesPartB.size() + 1;
         evt_prop * result = static_cast<evt_prop *>(calloc(sizeof(evt_prop), size));
+        if (result==nullptr)
+        {
+            LOG_ERROR("Unable to allocate memory to pack EventProperties");
+            return result;
+        };
         size_t i = 0;
         for(auto &props : { m_storage->properties, m_storage->propertiesPartB })
             for (auto &kv : props)
@@ -483,6 +488,11 @@ namespace MAT_NS_BEGIN {
     bool EventProperties::unpack(evt_prop *packed, size_t size)
     {
         evt_prop *curr = packed;
+        if (packed==nullptr)
+        {
+            // Invalid input (nullptr) from C API results in an empty property bag
+            return false;
+        };
 
         // Verify size using size_t size parameter passed down by evt_log_s API call
         if (size == 0)
