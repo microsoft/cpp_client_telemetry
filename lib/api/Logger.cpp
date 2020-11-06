@@ -143,7 +143,7 @@ namespace MAT_NS_BEGIN
         LOG_TRACE("%p: SetContext( properties.name=\"%s\", properties.value=\"%s\", PII=%u, ...)",
                   this, name.c_str(), prop.to_string().c_str(), prop.piiKind);
 
-        EventRejectedReason isValidPropertyName = validatePropertyName(name);
+        const EventRejectedReason isValidPropertyName = validatePropertyName(name);
         if (isValidPropertyName != REJECTED_REASON_OK)
         {
             LOG_ERROR("Context name is invalid: %s", name.c_str());
@@ -248,7 +248,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decorateAppLifecycleMessage(record, state);
         if (!decorated)
@@ -259,7 +259,7 @@ namespace MAT_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_LIFECYCLE, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_LIFECYCLE, size_t(latency), size_t(0), static_cast<void*>(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -319,7 +319,7 @@ namespace MAT_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_EVENT, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_EVENT, size_t(latency), size_t(0), static_cast<void*>(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -356,7 +356,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decorateFailureMessage(record, signature, detail, category, id);
 
@@ -369,7 +369,7 @@ namespace MAT_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_FAILURE, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_FAILURE, size_t(latency), size_t(0), static_cast<void*>(&record), sizeof(record)));
     }
 
     void Logger::LogFailure(
@@ -407,7 +407,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decoratePageViewMessage(record, id, pageName, category, uri, referrer);
 
@@ -461,7 +461,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decoratePageActionMessage(record, pageActionData);
         if (!decorated)
@@ -521,9 +521,9 @@ namespace MAT_NS_BEGIN
             return;
         }
 
-        auto policyBitFlags = props.GetPolicyBitFlags();
-        auto persistence = props.GetPersistence();
-        auto latency = props.GetLatency();
+        const auto policyBitFlags = props.GetPolicyBitFlags();
+        const auto persistence = props.GetPersistence();
+        const auto latency = props.GetLatency();
         auto levelFilter = m_logManager.GetLevelFilter();
         if (levelFilter.IsLevelFilterEnabled())
         {
@@ -611,7 +611,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId);
 
@@ -667,7 +667,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decorateAggregatedMetricMessage(record, metricData);
 
@@ -952,4 +952,3 @@ namespace MAT_NS_BEGIN
     }
 }
 MAT_NS_END
-
