@@ -6,10 +6,6 @@ set(SRCS
   LogSessionDataFuncTests.cpp
   Main.cpp
   MultipleLogManagersTests.cpp
-  ECSClientFuncTests.cpp
-  ECSClientRealworldFuncTests.cpp
-  ECSConfigCacheFuncTests.cpp
-
 )
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
