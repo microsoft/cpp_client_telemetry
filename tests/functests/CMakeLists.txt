@@ -15,7 +15,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
-if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/)
+if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+    message(STATUS "LALIT--> Inside EXP")
     list(APPEND SRCS
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
