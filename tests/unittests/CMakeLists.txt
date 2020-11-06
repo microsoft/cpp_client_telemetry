@@ -54,12 +54,15 @@ if (APPLE)
   endif()
 endif()
 
-if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/)
+if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+    messsage (" EXP Module Exists ")
     list(APPEND SRCS
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp 
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientTests.cpp
         )
+else()
+    message("EXP Module doesn't Exists")
 endif()
         
         
