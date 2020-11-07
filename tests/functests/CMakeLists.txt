@@ -104,6 +104,7 @@ else()
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIB}
     ${PLATFORM_LIBS}
+    ${LIBS}
     dl)
 
   if(NOT BUILD_IOS)

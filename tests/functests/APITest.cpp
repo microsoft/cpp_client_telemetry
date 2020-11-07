@@ -549,7 +549,10 @@ TEST(APITest, LogManager_Stress_SingleThreaded)
     EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
 }
 
-constexpr static unsigned MAX_ITERATIONS_MT = 100;
+// MAX_ITERATIONS_MT=100,MAX_THREADS=25 takes 40s on a slow machine.
+// This extremely absive test is known to pass with above settings.
+// Optimizing MAX_ITERATIONS_MT=20 to reduce total test duration.
+constexpr static unsigned MAX_ITERATIONS_MT = 20;
 constexpr static unsigned MAX_THREADS = 25;
 /// <summary>
 /// Stresses the Upload vs Teardown multi-threaded.

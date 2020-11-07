@@ -10,21 +10,10 @@ fi
 
 cd `dirname $0`
 
-GTEST_PATH=googletest
-
-# Use latest Google Test for Ubuntu 20.04
-# TODO: switch all OS builds to Google Test located in third_party/googletest submodule
-if [ -f /etc/os-release ]; then
-  source /etc/os-release
-  # Use new Google Test on latest Ubuntu 20.04 : old one no longer compiles on 20
-  if [ "$VERSION_ID" == "20.04" ]; then
-    echo Running on Ubuntu 20.04
-    GTEST_PATH=third_party/googletest
-    if [ ! "$(ls -A $GTEST_PATH)" ]; then      
-      echo Clone googletest from google/googletest:master ...
-      git clone https://github.com/google/googletest $GTEST_PATH
-    fi
-  fi
+GTEST_PATH=third_party/googletest
+if [ ! "$(ls -A $GTEST_PATH)" ]; then      
+  echo Clone googletest from google/googletest:master ...
+  git clone https://github.com/google/googletest $GTEST_PATH
 fi
 
 pushd $GTEST_PATH
