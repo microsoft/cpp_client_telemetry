@@ -380,7 +380,6 @@ namespace MAT_NS_BEGIN {
         }
 
         int sqlite3_exec(const char *sql, int(*callback)(void*, int, char**, char**) = sqlite3_noop_callback, void *arg = nullptr) {
-            static size_t failureCount = 0;
             char *errmsg = nullptr;
             int result = 0;
             LOG_DEBUG("%s", sql);
@@ -487,6 +486,7 @@ namespace MAT_NS_BEGIN {
             m_duration(0),
             m_ownStmt(false),
             m_hasRow(false),
+            m_done(false),
             m_error(false)
         {
             reset();
@@ -500,6 +500,7 @@ namespace MAT_NS_BEGIN {
             m_duration(0),
             m_ownStmt(true),
             m_hasRow(false),
+            m_done(false),
             m_error(false)
         {
             reset();

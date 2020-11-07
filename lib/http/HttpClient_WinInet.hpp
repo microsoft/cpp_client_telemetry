@@ -25,10 +25,10 @@ class HttpClient_WinInet : public IHttpClient {
     // Common IHttpClient methods
     HttpClient_WinInet();
     virtual ~HttpClient_WinInet();
-    virtual IHttpRequest* CreateRequest() override;
-    virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
-    virtual void CancelRequestAsync(std::string const& id) override;
-    virtual void CancelAllRequests() override;
+    virtual IHttpRequest* CreateRequest() final;
+    virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) final;
+    virtual void CancelRequestAsync(std::string const& id) final;
+    virtual void CancelAllRequests() final;
 
     // Methods unique to WinInet implementation.
     void SetMsRootCheck(bool enforceMsRoot);
