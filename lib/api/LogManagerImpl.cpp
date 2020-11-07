@@ -230,6 +230,7 @@ namespace MAT_NS_BEGIN
         }
 
         int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
+        (void)sdkMode; // variable may be unused when SDK is compiled without private modules
 
 #ifdef HAVE_MAT_UTC
         // UTC is not active
@@ -741,6 +742,14 @@ namespace MAT_NS_BEGIN
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
         return (m_logSessionDataProvider) ? m_logSessionDataProvider->GetLogSessionData() : nullptr;
+    }
+
+    void LogManagerImpl::ResetLogSessionData()
+    {
+        if (m_logSessionDataProvider) 
+        {
+            m_logSessionDataProvider->ResetLogSessionData();
+        }
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)

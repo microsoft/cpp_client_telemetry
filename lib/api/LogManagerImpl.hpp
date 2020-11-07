@@ -151,20 +151,20 @@ namespace MAT_NS_BEGIN
         /**
          * ILogController - state management methods
          */
-        virtual void Configure() override;
+        virtual void Configure() final;
 
-        virtual void FlushAndTeardown() override;
+        virtual void FlushAndTeardown() final;
 
-        virtual status_t Flush() override;
-        virtual status_t UploadNow() override;
-        virtual status_t PauseTransmission() override;
-        virtual status_t ResumeTransmission() override;
-        virtual status_t SetTransmitProfile(TransmitProfile profile) override;
-        virtual status_t SetTransmitProfile(const std::string& profile) override;
-        virtual status_t LoadTransmitProfiles(const std::string& profiles_json) override;
-        virtual status_t LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept override;
-        virtual status_t ResetTransmitProfiles() override;
-        virtual const std::string& GetTransmitProfileName() override;
+        virtual status_t Flush() final;
+        virtual status_t UploadNow() final;
+        virtual status_t PauseTransmission() final;
+        virtual status_t ResumeTransmission() final;
+        virtual status_t SetTransmitProfile(TransmitProfile profile) final;
+        virtual status_t SetTransmitProfile(const std::string& profile) final;
+        virtual status_t LoadTransmitProfiles(const std::string& profiles_json) final;
+        virtual status_t LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept final;
+        virtual status_t ResetTransmitProfiles() final;
+        virtual const std::string& GetTransmitProfileName() final;
 
         /**
          * Semantic Context methods
@@ -229,6 +229,7 @@ namespace MAT_NS_BEGIN
         virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scopeId = std::string()) override;
 
         LogSessionData* GetLogSessionData() override;
+        void ResetLogSessionData() override;
 
         ILogController* GetLogController(void) override;
 

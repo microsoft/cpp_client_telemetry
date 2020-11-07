@@ -223,10 +223,18 @@ namespace MAT_NS_BEGIN {
                 evt.type = DebugEventType::EVT_TICKET_EXPIRED;
                 DispatchEvent(evt);
             }
+
+            if (result != Rejected)
+            {
+                LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
+            } else
+            {
+                LOG_TRACE("HTTP response: all rejected");
+            }
         }
         catch (...)
         {
-            LOG_ERROR("Http response JSON parsing failed");
+            LOG_ERROR("HTTP response: JSON parsing failed");
         }
 #else
         UNREFERENCED_PARAMETER(response);
