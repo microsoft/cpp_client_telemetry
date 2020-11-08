@@ -81,7 +81,11 @@ namespace MAT_NS_BEGIN {
     std::string GetAppLocalTempDirectory()
     {
 #ifdef _WINRT_DLL // Win 10 UWP
-        RoInitialize(RO_INIT_MULTITHREADED);
+        auto hr = RoInitialize(RO_INIT_MULTITHREADED);
+        if (FAILED(hr))
+        {
+            return "";
+        }
         ::Windows::Storage::StorageFolder^ temp = ::Windows::Storage::ApplicationData::Current->TemporaryFolder;
         // TODO: [MG]
         // - verify that the path ends with a slash

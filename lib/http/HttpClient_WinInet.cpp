@@ -181,7 +181,7 @@ class WinInetRequestWrapper
         char path[1024] = { 0 };
         urlc.lpszUrlPath = path;
         urlc.dwUrlPathLength = sizeof(path);
-        if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc))
+        if (!::InternetCrackUrlW(CA2CW(m_request->m_url.data()), (DWORD)m_request->m_url.size(), 0, &urlc))
         {
             DWORD dwError = ::GetLastError();
             LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
@@ -191,7 +191,7 @@ class WinInetRequestWrapper
             return;
         }
 
-        m_hWinInetSession = ::InternetConnectA(m_parent.m_hInternet, hostname, urlc.nPort,
+        m_hWinInetSession = ::InternetConnectW(m_parent.m_hInternet, CA2CW(hostname), urlc.nPort,
             NULL, NULL, INTERNET_SERVICE_HTTP, 0, reinterpret_cast<DWORD_PTR>(this));
         if (m_hWinInetSession == NULL) {
             DWORD dwError = ::GetLastError();
@@ -204,8 +204,8 @@ class WinInetRequestWrapper
         // TODO: Session handle for the same target should be cached across requests to enable keep-alive.
 
         PCSTR szAcceptTypes[] = {"*/*", NULL};
-        m_hWinInetRequest = ::HttpOpenRequestA(
-            m_hWinInetSession, m_request->m_method.c_str(), path, NULL, NULL, szAcceptTypes,
+        m_hWinInetRequest = ::HttpOpenRequestW(
+            m_hWinInetSession, CA2CW(m_request->m_method.c_str()), CA2CW(path), NULL, NULL, szAcceptTypes,
             INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_AUTH | INTERNET_FLAG_NO_CACHE_WRITE |
             INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_PRAGMA_NOCACHE |
             INTERNET_FLAG_RELOAD | (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
