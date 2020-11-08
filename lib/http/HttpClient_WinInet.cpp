@@ -13,6 +13,7 @@
 
 #include <Wincrypt.h>
 #include <WinInet.h>
+#include <atlconv.h>
 
 #include <algorithm>
 #include <memory>

@@ -171,10 +171,7 @@ make package
 if [ -f /usr/bin/dpkg ]; then
   # Install new package
   [[ -z "$NOROOT" ]] && sudo dpkg -i *.deb || echo "No root: skipping package deployment."
-fi
-
-# RedHat / CentOS
-if [ -f /usr/bin/rpmbuild ]; then
+elif [ -f /usr/bin/rpmbuild ]; then
   [[ -z "$NOROOT" ]] && sudo rpm -i --force -v *.rpm || echo "No root: skipping package deployment."
 fi
 
