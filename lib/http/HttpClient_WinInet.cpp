@@ -13,8 +13,6 @@
 
 #include <Wincrypt.h>
 #include <WinInet.h>
-#include <atlbase.h> 
-#include <atlstr.h> 
 
 #include <algorithm>
 #include <memory>
@@ -174,16 +172,16 @@ class WinInetRequestWrapper
         }
 
         DispatchEvent(OnConnecting);
-        URL_COMPONENTSW urlc;
+        URL_COMPONENTSA urlc;
         memset(&urlc, 0, sizeof(urlc));
         urlc.dwStructSize = sizeof(urlc);
-        wchar_t hostname[256] = { 0 };
+        char hostname[256] = { 0 };
         urlc.lpszHostName = hostname;
         urlc.dwHostNameLength = sizeof(hostname);
-        wchar_t path[1024] = { 0 };
+        char path[1024] = { 0 };
         urlc.lpszUrlPath = path;
         urlc.dwUrlPathLength = sizeof(path);
-        if (!::InternetCrackUrlW(CA2W(m_request->m_url.data()), (DWORD)m_request->m_url.size(), 0, &urlc))
+        if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc))
         {
             DWORD dwError = ::GetLastError();
             LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
@@ -193,7 +191,7 @@ class WinInetRequestWrapper
             return;
         }
 
-        m_hWinInetSession = ::InternetConnectW(m_parent.m_hInternet, hostname, urlc.nPort,
+        m_hWinInetSession = ::InternetConnectA(m_parent.m_hInternet, hostname, urlc.nPort,
             NULL, NULL, INTERNET_SERVICE_HTTP, 0, reinterpret_cast<DWORD_PTR>(this));
         if (m_hWinInetSession == NULL) {
             DWORD dwError = ::GetLastError();
@@ -205,9 +203,9 @@ class WinInetRequestWrapper
         }
         // TODO: Session handle for the same target should be cached across requests to enable keep-alive.
 
-        PCWSTR szAcceptTypes[] = {(wchar_t *)"*/*", NULL};
-        m_hWinInetRequest = ::HttpOpenRequestW(
-            m_hWinInetSession, CA2W(m_request->m_method.c_str()), path, NULL, NULL, szAcceptTypes,
+        PCSTR szAcceptTypes[] = {"*/*", NULL};
+        m_hWinInetRequest = ::HttpOpenRequestA(
+            m_hWinInetSession, m_request->m_method.c_str(), path, NULL, NULL, szAcceptTypes,
             INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_AUTH | INTERNET_FLAG_NO_CACHE_WRITE |
             INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_PRAGMA_NOCACHE |
             INTERNET_FLAG_RELOAD | (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
@@ -235,15 +233,15 @@ class WinInetRequestWrapper
 
         ::InternetSetStatusCallback(m_hWinInetRequest, &WinInetRequestWrapper::winInetCallback);
 
-        std::wostringstream os;
+        std::ostringstream os;
         for (auto const& header : m_request->m_headers) {
-            os << header.first.c_str() << ": " << header.second.c_str() << "\r\n";
+            os << header.first << ": " << header.second << "\r\n";
         }
 
-        if (!::HttpAddRequestHeadersW(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
+        if (!::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
         {
             DWORD dwError = ::GetLastError();
-            LOG_WARN("HttpAddRequestHeadersW() failed: %d", dwError);
+            LOG_WARN("HttpAddRequestHeadersA() failed: %d", dwError);
             // Unable to add request headers. There's no point in proceeding with upload because
             // our server is expecting those custom request headers to always be there.
             DispatchEvent(OnConnectFailed);
@@ -357,7 +355,7 @@ class WinInetRequestWrapper
 
             uint32_t value = 0;
             DWORD dwSize = sizeof(value);
-            BOOL bResult = ::HttpQueryInfoW(m_hWinInetRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &value, &dwSize, NULL);
+            BOOL bResult = ::HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &value, &dwSize, NULL);
             if (!bResult) {
                 LOG_WARN("HttpQueryInfo(STATUS_CODE) failed: %d", GetLastError());
             }
@@ -365,7 +363,7 @@ class WinInetRequestWrapper
 
             char* pBuffer = reinterpret_cast<char*>(m_buffer);
             dwSize = sizeof(m_buffer) - 1;
-            if (!HttpQueryInfoW(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
+            if (!HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
                 dwError = GetLastError();
                 if (dwError != ERROR_INSUFFICIENT_BUFFER) {
                     LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed: %d", dwError);
@@ -373,7 +371,7 @@ class WinInetRequestWrapper
                 } else {
                     m_bodyBuffer.resize(dwSize + 1);
                     pBuffer = reinterpret_cast<char*>(m_bodyBuffer.data());
-                    if (!HttpQueryInfoW(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
+                    if (!HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
                         LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed twice: %d", dwError);
                         dwSize = 0;
                     }
