@@ -6,19 +6,26 @@
 #define MAT_ICDSFACTORY_HPP
 
 #include "ctmacros.hpp"
+#include "Version.hpp"
 
 #include <functional>
+#include <future>
 #include <map>
 #include <string>
+#include <vector>
 
-namespace Microsoft {
-namespace CDS {
+namespace MAT_NS_BEGIN {
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4251)
+#endif
 
 /// <summary>
 /// Configuration Params for Collector / Packager / Uploader
 /// </summary>
-struct Config {
-    std::string guid;
+struct MATSDK_LIBABI Config {
+    std::string name;
     std::map<std::string /*param name*/, std::string /*param value*/> params;
 };
 
@@ -26,35 +33,52 @@ struct Config {
 /// <summary>
 /// Collecotr/Packager/Uploader Configuration Params for Common Diagnostic Stack
 /// </summary>
-struct DiagnosticConfig {
+struct MATSDK_LIBABI DiagnosticConfig {
     Config collectorConfig;
     Config packagerConfig;
     Config uploaderConfig;
 };
 
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 
 /// <summary>
-/// Collector Function that is called when a specific data need to be collected
+/// Collector must agree to this interface to provide diagnostic data to CDS
 /// </summary>
-using CollectorCallback = std::function<void(const std::string&, const Config&)>;
+class MATSDK_LIBABI IDiagnosticDataCollector {
+public:
+    virtual ~IDiagnosticDataCollector() noexcept = default;
+
+    /// <summary>
+    /// return Diagnostic Data
+    /// </summary>
+    virtual std::future<std::vector<uint8_t>> CollectAndGetDataStream(const std::string& sessionId, const Config& config) noexcept = 0;
+};
 
 
 /// <summary>
 /// Provide the Common Diagnostic Stack functionality
 /// </summary>
-class MATSDK_LIBABI ICommonDiagnosticStack {
+class ICommonDiagnosticSystem {
 public:
-    virtual ~ICommonDiagnosticStack() noexcept = default;
+    virtual ~ICommonDiagnosticSystem() noexcept = default;
 
     /// <summary>
     /// Used to register collectors with CDS
     /// </summary>
-    virtual void RegisterCollector(const std::string& collectorGuid, CollectorCallback callback) noexcept = 0;
+    virtual MATSDK_LIBABI void RegisterCollector(const std::string& collectorName, const std::shared_ptr<IDiagnosticDataCollector>& collector) noexcept = 0;
+
+    /// <summary>
+    /// Call to perform data collection with default config and upload to ODS
+    /// </summary>
+    virtual MATSDK_LIBABI bool DoCollectAndUpload(const std::string& sessionID, const std::string& collectorName) noexcept = 0;
 
     /// <summary>
     /// Call to perform data collection and upload to ODS
     /// </summary>
-    virtual void DoCollectAndUpload(const std::string& sessionID, const DiagnosticConfig& config) noexcept = 0;
+    virtual MATSDK_LIBABI bool DoCollectAndUpload(const std::string& sessionID, const DiagnosticConfig& config) noexcept = 0;
 };
 
 
@@ -62,10 +86,10 @@ public:
 /// Get a singleton of Common Diagnostic Stack that is used for regitering CollectorCallback and is used to call
 /// to collect and upload data.
 /// </summary>
-MATSDK_LIBABI const std::shared_ptr<Microsoft::CDS::ICommonDiagnosticStack>& GetCommonDiagnosticStack();
+MATSDK_LIBABI std::shared_ptr<ICommonDiagnosticSystem> GetCommonDiagnosticSystem();
 
-} // namespace CDS
-} // namespace Microsoft
+
+}
+MAT_NS_END
 
 #endif
-
