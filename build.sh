@@ -134,13 +134,11 @@ cd out
 # .tgz package
 CMAKE_PACKAGE_TYPE=tgz
 
-# .deb package
 if [ -f /usr/bin/dpkg ]; then
+  # .deb package
   export CMAKE_PACKAGE_TYPE=deb
-fi
-
-# .rpm package
-if [ -f /usr/bin/rpmbuild ]; then
+elif [ -f /usr/bin/rpmbuild ]; then
+  # .rpm package
   export CMAKE_PACKAGE_TYPE=rpm
 fi
 
@@ -167,14 +165,12 @@ rm -f *.deb *.rpm
 # Build new package
 make package
 
-# Debian / Ubuntu / Raspbian
+# Install newly generated package
 if [ -f /usr/bin/dpkg ]; then
-  # Install new package
+  # Ubuntu / Debian / Raspbian 
   [[ -z "$NOROOT" ]] && sudo dpkg -i *.deb || echo "No root: skipping package deployment."
-fi
-
-# RedHat / CentOS
-if [ -f /usr/bin/rpmbuild ]; then
+elif [ -f /usr/bin/rpmbuild ]; then
+  # Redhat / Centos
   [[ -z "$NOROOT" ]] && sudo rpm -i --force -v *.rpm || echo "No root: skipping package deployment."
 fi
 
