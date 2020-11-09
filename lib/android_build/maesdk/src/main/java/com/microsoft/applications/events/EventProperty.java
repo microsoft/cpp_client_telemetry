@@ -14,7 +14,7 @@ public class EventProperty {
     private DataCategory m_category = DataCategory.PartC;
     private EventPropertyValue m_eventPropertyValue;
 
-    PiiKind getPiiKind() {
+    public PiiKind getPiiKind() {
         return m_piiKind;
     }
 
