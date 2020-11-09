@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import androidx.annotation.Keep;
@@ -10,7 +14,7 @@ public class EventProperty {
     private DataCategory m_category = DataCategory.PartC;
     private EventPropertyValue m_eventPropertyValue;
 
-    PiiKind getPiiKind() {
+    public PiiKind getPiiKind() {
         return m_piiKind;
     }
 
@@ -492,3 +496,4 @@ public class EventProperty {
         m_eventPropertyValue = new EventPropertyGuidArrayValue(value);
     }
 }
+
