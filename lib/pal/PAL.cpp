@@ -296,10 +296,8 @@ namespace PAL_NS_BEGIN {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
         auto hr = CoCreateGuid(&uuid);
-        if (FAILED(hr))
-        {
-            return "";
-        }
+        /* CoCreateGuid` will possiblity never fail, so ignoring the result */
+        UNREFERENCED_PARAMETER(hr)
         return MAT::to_string(uuid);
 #else
         static std::once_flag flag;
