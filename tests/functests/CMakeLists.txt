@@ -16,14 +16,11 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
 endif()
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
-    message( "EXP Module exists")
     list(APPEND SRCS
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
         )
-else()
-    message("EXP Module doesnt exists")
 endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
