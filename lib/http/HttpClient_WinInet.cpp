@@ -235,15 +235,15 @@ class WinInetRequestWrapper
 
         ::InternetSetStatusCallback(m_hWinInetRequest, &WinInetRequestWrapper::winInetCallback);
 
-        std::ostringstream os;
+        std::wostringstream os;
         for (auto const& header : m_request->m_headers) {
-            os << header.first << ": " << header.second << "\r\n";
+            os << header.first.c_str() << ": " << header.second.c_str() << "\r\n";
         }
 
-        if (!::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
+        if (!::HttpAddRequestHeadersW(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
         {
             DWORD dwError = ::GetLastError();
-            LOG_WARN("HttpAddRequestHeadersA() failed: %d", dwError);
+            LOG_WARN("HttpAddRequestHeadersW() failed: %d", dwError);
             // Unable to add request headers. There's no point in proceeding with upload because
             // our server is expecting those custom request headers to always be there.
             DispatchEvent(OnConnectFailed);
@@ -357,7 +357,7 @@ class WinInetRequestWrapper
 
             uint32_t value = 0;
             DWORD dwSize = sizeof(value);
-            BOOL bResult = ::HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &value, &dwSize, NULL);
+            BOOL bResult = ::HttpQueryInfoW(m_hWinInetRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, &value, &dwSize, NULL);
             if (!bResult) {
                 LOG_WARN("HttpQueryInfo(STATUS_CODE) failed: %d", GetLastError());
             }
@@ -365,7 +365,7 @@ class WinInetRequestWrapper
 
             char* pBuffer = reinterpret_cast<char*>(m_buffer);
             dwSize = sizeof(m_buffer) - 1;
-            if (!HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
+            if (!HttpQueryInfoW(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
                 dwError = GetLastError();
                 if (dwError != ERROR_INSUFFICIENT_BUFFER) {
                     LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed: %d", dwError);
@@ -373,7 +373,7 @@ class WinInetRequestWrapper
                 } else {
                     m_bodyBuffer.resize(dwSize + 1);
                     pBuffer = reinterpret_cast<char*>(m_bodyBuffer.data());
-                    if (!HttpQueryInfoA(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
+                    if (!HttpQueryInfoW(m_hWinInetRequest, HTTP_QUERY_RAW_HEADERS_CRLF, pBuffer, &dwSize, NULL)) {
                         LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed twice: %d", dwError);
                         dwSize = 0;
                     }
