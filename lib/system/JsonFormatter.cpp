@@ -16,11 +16,6 @@ namespace MAT_NS_BEGIN
 
     }
 
-    JsonFormatter::~JsonFormatter()
-    {
-
-    }
-
     void addExtApp(json& object, std::vector<::CsProtocol::App>& extApp)
     {
         if (!extApp[0].id.empty())
