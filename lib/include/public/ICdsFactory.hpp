@@ -86,7 +86,7 @@ public:
 /// Get a singleton of Common Diagnostic Stack that is used for regitering CollectorCallback and is used to call
 /// to collect and upload data.
 /// </summary>
-MATSDK_LIBABI std::shared_ptr<ICommonDiagnosticSystem> GetCommonDiagnosticSystem();
+MATSDK_LIBABI std::shared_ptr<ICommonDiagnosticSystem> GetCommonDiagnosticSystem() noexcept;
 
 
 }
