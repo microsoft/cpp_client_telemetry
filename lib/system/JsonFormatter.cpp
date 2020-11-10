@@ -48,10 +48,10 @@ namespace MAT_NS_BEGIN
     void addData(json& object, std::vector<::CsProtocol::Data>& data)
     {
         std::vector<::CsProtocol::Data>::const_iterator it;
-        for (it = data.begin(); it != data.end(); it++)
+        for (it = data.begin(); it != data.end(); ++it)
         {
             std::map<std::string, CsProtocol::Value>::const_iterator mapIt;
-            for (mapIt = it->properties.begin(); mapIt != it->properties.end(); mapIt++)
+            for (mapIt = it->properties.begin(); mapIt != it->properties.end(); ++mapIt)
             {
                 switch (mapIt->second.type)
                 {
