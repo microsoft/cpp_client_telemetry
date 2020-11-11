@@ -2,16 +2,6 @@
 
 export PATH=/usr/local/bin:$PATH
 
-if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
-  rm -rf lib/modules
-  echo Git local settings:
-  git config -l
-  echo Git system settings:
-  git config --system --list
-  git config credential.helper store
-  git clone https://${GIT_PULL_TOKEN}:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
-fi
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
@@ -134,13 +124,11 @@ cd out
 # .tgz package
 CMAKE_PACKAGE_TYPE=tgz
 
-# .deb package
 if [ -f /usr/bin/dpkg ]; then
+  # .deb package
   export CMAKE_PACKAGE_TYPE=deb
-fi
-
-# .rpm package
-if [ -f /usr/bin/rpmbuild ]; then
+elif [ -f /usr/bin/rpmbuild ]; then
+  # .rpm package
   export CMAKE_PACKAGE_TYPE=rpm
 fi
 
@@ -167,14 +155,12 @@ rm -f *.deb *.rpm
 # Build new package
 make package
 
-# Debian / Ubuntu / Raspbian
+# Install newly generated package
 if [ -f /usr/bin/dpkg ]; then
-  # Install new package
+  # Ubuntu / Debian / Raspbian 
   [[ -z "$NOROOT" ]] && sudo dpkg -i *.deb || echo "No root: skipping package deployment."
-fi
-
-# RedHat / CentOS
-if [ -f /usr/bin/rpmbuild ]; then
+elif [ -f /usr/bin/rpmbuild ]; then
+  # Redhat / Centos
   [[ -z "$NOROOT" ]] && sudo rpm -i --force -v *.rpm || echo "No root: skipping package deployment."
 fi
 
