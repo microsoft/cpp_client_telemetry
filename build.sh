@@ -2,16 +2,6 @@
 
 export PATH=/usr/local/bin:$PATH
 
-if [[ ! -z "${GIT_PULL_TOKEN}" ]]; then
-  rm -rf lib/modules
-  echo Git local settings:
-  git config -l
-  echo Git system settings:
-  git config --system --list
-  git config credential.helper store
-  git clone https://${GIT_PULL_TOKEN}:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib/modules
-fi
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
