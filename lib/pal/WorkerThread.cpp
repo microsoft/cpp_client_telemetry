@@ -51,7 +51,7 @@ namespace PAL_NS_BEGIN {
             Join();
         }
 
-        void Join() override
+        void Join() final
         {
             auto item = new WorkerThreadShutdownItem();
             Queue(item);
@@ -75,7 +75,7 @@ namespace PAL_NS_BEGIN {
             }
         }
 
-        void Queue(MAT::Task* item) override
+        void Queue(MAT::Task* item) final
         {
             LOG_INFO("queue item=%p", &item);
             LOCKGUARD(m_lock);
