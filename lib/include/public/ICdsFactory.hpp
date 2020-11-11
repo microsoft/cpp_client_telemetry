@@ -9,7 +9,6 @@
 #include "Version.hpp"
 
 #include <functional>
-#include <future>
 #include <map>
 #include <string>
 #include <vector>
@@ -54,7 +53,7 @@ public:
     /// <summary>
     /// return Diagnostic Data
     /// </summary>
-    virtual std::future<std::vector<uint8_t>> CollectAndGetDataStream(const std::string& sessionId, const Config& config) noexcept = 0;
+    virtual std::vector<uint8_t> CollectAndGetDataStream(const std::string& sessionId, const Config& config) noexcept = 0;
 };
 
 
