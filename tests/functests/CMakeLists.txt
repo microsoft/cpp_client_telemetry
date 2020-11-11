@@ -6,10 +6,6 @@ set(SRCS
   LogSessionDataFuncTests.cpp
   Main.cpp
   MultipleLogManagersTests.cpp
-  ECSClientFuncTests.cpp
-  ECSClientRealworldFuncTests.cpp
-  ECSConfigCacheFuncTests.cpp
-
 )
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
@@ -17,6 +13,14 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   list(APPEND SRCS
     PrivacyGuardFuncTests.cpp
   )
+endif()
+
+if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+    list(APPEND SRCS
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
+        )
 endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
