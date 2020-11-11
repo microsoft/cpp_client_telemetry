@@ -44,9 +44,6 @@ set(SRCS
   TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
   UtilsTests.cpp
-  ECSClientTests.cpp
-  ECSClientUtilsTests.cpp
-  ECSConfigCacheTests.cpp
 )
 
 if (APPLE)
@@ -57,6 +54,15 @@ if (APPLE)
   endif()
 endif()
 
+if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+    list(APPEND SRCS
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp 
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientTests.cpp
+        )
+endif()
+        
+        
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
