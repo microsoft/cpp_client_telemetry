@@ -429,7 +429,6 @@
     <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
@@ -493,6 +492,7 @@
   </ItemGroup>
   <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
   </ItemGroup>   
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
