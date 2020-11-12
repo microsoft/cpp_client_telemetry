@@ -27,7 +27,7 @@ jobs:
         choco install --no-progress -y android-sdk
         choco install --no-progress -y ninja
         new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
-        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;21.1.6352462" --sdk_root=$Env:ANDROID_SDK_ROOT
+        echo yes | C:\Android\android-sdk\tools\bin\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;21.3.6528147" --sdk_root=$Env:ANDROID_SDK_ROOT
         gci -r -i "CMake*" C:\Android
         echo $Env:PATH
     - name: Gradle Build

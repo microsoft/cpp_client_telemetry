@@ -27,6 +27,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/LogManagerFactory.cpp
   api/capi.cpp
   api/DataViewerCollection.cpp
+  api/EvtPropConverter.cpp
   utils/FileUtils.cpp
   utils/Utils.cpp
   utils/StringUtils.cpp
@@ -70,6 +71,9 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   )
 endif()
 
+#
+# Custom private module: dataviewer
+#
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
   list(APPEND SRCS
     modules/dataviewer/DefaultDataViewer.cpp
@@ -77,6 +81,9 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
   )
 endif()
 
+#
+# Custom private module: privacyguard
+#
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
@@ -85,6 +92,9 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
+#
+# POSIX (CPP11) implementation
+#
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(APPLE)
     list(APPEND SRCS
@@ -152,11 +162,12 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     endif()
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
-# Win32 Desktop for now.
-# TODO: define a separate PAL for Win10 cmake build
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
-add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
-remove_definitions(-D_MBCS)
+#
+# Win32 Desktop implementation
+#
+  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
+  add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
+  remove_definitions(-D_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
@@ -168,14 +179,15 @@ remove_definitions(-D_MBCS)
     utils/StringConversion.cpp
   )
 
-  # UTC module
+  #
+  # Custom private module: UTC
+  #
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/utc)
     list(APPEND SRCS
       modules/utc/desktop/UtcHelpers.cpp
       modules/utc/UtcTelemetrySystem.cpp
     )
   endif()
-
 else()
   message(FATAL_ERROR "No platform abstraction library configured. Set PAL_IMPLEMENTATION.")
 endif()
@@ -191,7 +203,9 @@ endif()
 
 create_source_files_groups_per_folder(${SRCS})
 
+#
 # MinGW does not require pthread
+#
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   find_package(Threads REQUIRED)
   if(THREADS_HAVE_PTHREAD_ARG)
@@ -199,61 +213,64 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
+#
+# TODO: this rule needs to be simplified
+#
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
-  
-  # include(FindCURL)
-  # find_package(CURL REQUIRED)
-  # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
-
-  # find_package(sqlite3 REQUIRED)
-
   add_library(mat SHARED ${SRCS})
-
-  # Add flags for obtaining system UUID via IOKit
-  if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_SHARED_LINKER_FLAGS
-      "-framework CoreFoundation -framework IOKit -framework Foundation"
-    )
-  endif()
-
-  #
-  # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-  #
-  if (BUILD_STATIC_SQLITE STREQUAL "ON")
-    # Build dynamic library, but prefer statically linking sqlite3 and zlib
-    add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    add_library(z STATIC IMPORTED GLOBAL)
-    target_link_libraries(mat PRIVATE sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
+  if(PAL_IMPLEMENTATION STREQUAL "WIN32")
+    target_link_libraries(mat PRIVATE ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   else()
-    # Prefer shared libraries for sqlite3 and zlib
-    add_library(sqlite3 SHARED IMPORTED GLOBAL)
-    add_library(z SHARED IMPORTED GLOBAL)
-    target_link_libraries(mat PUBLIC sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
+    if(NOT BUILD_ANDROID)
+      # Curl
+      include(FindCURL)
+      find_package(CURL REQUIRED)
+      # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
+      # SQLite3
+      if (BUILD_STATIC_SQLITE STREQUAL "ON")
+        # Use prebuilt libsqlite3.a
+        list(APPEND LIBS libsqlite3.a)
+      else()
+        # Find shared library from OS
+        find_package(sqlite3 REQUIRED)
+        add_library(sqlite3 SHARED IMPORTED GLOBAL)
+      endif()
+    endif()
+    # Add flags for obtaining system UUID via IOKit
+    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set(CMAKE_SHARED_LINKER_FLAGS
+        "-framework CoreFoundation -framework IOKit -framework Foundation"
+      )
+    endif()
+    #
+    # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
+    #
+    target_link_libraries(mat PRIVATE sqlite3 z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
   endif()
-
-  # target_link_libraries(mat PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   install(TARGETS mat EXPORT mat LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 else()
   message("-- Building static SDK library")
   add_library(mat STATIC ${SRCS})
   if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-    target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    target_link_libraries(mat PUBLIC ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   else()
-    add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    add_library(z STATIC IMPORTED GLOBAL)
-    #
+    if(NOT BUILD_ANDROID)
+      list(APPEND LIBS libsqlite3.a)
+    endif()
+    ## Don't generally need to add sqlite3 and z libraries to static build
+    # add_library(sqlite3 STATIC IMPORTED GLOBAL)
+    # add_library(z STATIC IMPORTED GLOBAL)
     # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-    #
-    target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    target_link_libraries(mat PRIVATE ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
   endif()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()
 
 message("-- Library will be installed to ${INSTALL_LIB_DIR}")
-
-#if(PAL_IMPLEMENTATION STREQUAL "CPP11")
-#  #target_link_libraries(mat PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-#  #target_link_libraries(mat PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-#endif()
-
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  if(BUILD_SHARED_LIBS STREQUAL "ON")
+    message("-- Library symbols will be stripped.")
+    set_target_properties(mat PROPERTIES LINK_FLAGS_RELEASE -s)
+  endif()
+endif()
