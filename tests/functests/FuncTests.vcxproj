@@ -456,7 +456,7 @@
     <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientCommon.hpp" />
   </ItemGroup>
   <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
-    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyhguard\tests\functests\PrivacyGuardFuncTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\functests\PrivacyGuardFuncTests.cpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
