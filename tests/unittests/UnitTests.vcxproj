@@ -431,7 +431,6 @@
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
@@ -457,7 +456,6 @@
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />
     <ClCompile Include="$(ProjectDir)\PackagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\PrivacyGuardTests.cpp" />
     <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
@@ -490,6 +488,12 @@
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientUtilsTests.cpp" />
   </ItemGroup>
+  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyGuardTests.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
+  </ItemGroup>   
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
