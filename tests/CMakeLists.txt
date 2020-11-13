@@ -28,5 +28,6 @@ if(BUILD_FUNC_TESTS)
 endif()
 
 if(BUILD_UNIT_TESTS)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/unittests)
   add_subdirectory(unittests)
 endif()
