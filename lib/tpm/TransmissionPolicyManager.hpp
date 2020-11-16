@@ -63,6 +63,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         bool handleStart();
         bool handlePause();
         bool handleStop();
+        bool handleCleanup();
         void handleFinishAllUploads();
 
         void handleEventArrived(IncomingEventContextPtr const& event);
@@ -137,6 +138,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         RoutePassThrough<TransmissionPolicyManager>                          start{ this, &TransmissionPolicyManager::handleStart };
         RoutePassThrough<TransmissionPolicyManager>                          pause{ this, &TransmissionPolicyManager::handlePause };
         RoutePassThrough<TransmissionPolicyManager>                          stop{ this, &TransmissionPolicyManager::handleStop };
+        RoutePassThrough<TransmissionPolicyManager>                          cleanup{ this,&TransmissionPolicyManager::handleCleanup };
         RouteSink<TransmissionPolicyManager>                                 finishAllUploads{ this, &TransmissionPolicyManager::handleFinishAllUploads };
         RouteSource<>                                                        allUploadsFinished;
 
