@@ -305,6 +305,8 @@ namespace MAT_NS_BEGIN {
             break;
         }
         }
+
+        piiKind = source->piiKind;
     }
 
 
