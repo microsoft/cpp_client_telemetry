@@ -7,6 +7,7 @@
 #include "compression/HttpDeflateCompression.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
+#include <utils/ZlibUtils.hpp>
 #include "zlib.h"
 #undef compress
 
@@ -78,7 +79,7 @@ TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
     input(event);
 
     std::vector<uint8_t> inflated;
-    testing::InflateVector(event->body, inflated);
+    ZlibUtils::InflateVector(event->body, inflated, false);
 
     EXPECT_THAT(inflated, Eq(testPayload));
     EXPECT_THAT(event->compressed, true);
@@ -103,7 +104,7 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
         input(event2);
 
         std::vector<uint8_t> inflated;
-        testing::InflateVector(event2->body, inflated);
+        ZlibUtils::InflateVector(event2->body, inflated, false);
         EXPECT_THAT(inflated, Eq(testPayload));
         EXPECT_THAT(event2->compressed, true);
     }
@@ -117,7 +118,7 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
         input(event3);
 
         std::vector<uint8_t> inflated;
-        testing::InflateVector(event3->body, inflated);
+        ZlibUtils::InflateVector(event3->body, inflated, false);
         EXPECT_THAT(inflated, Eq(testPayload2));
         EXPECT_THAT(event3->compressed, true);
     }
@@ -168,7 +169,7 @@ TEST_F(HttpDeflateCompressionTests, CompressesGzipCorrectly)
     gzipCompression->compress(event);
 
     std::vector<uint8_t> inflated;
-    testing::InflateVector(event->body, inflated, true);
+    ZlibUtils::InflateVector(event->body, inflated, true);
 
     EXPECT_THAT(inflated, Eq(testPayload));
     EXPECT_THAT(event->compressed, true);

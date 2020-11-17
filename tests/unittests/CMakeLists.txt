@@ -43,6 +43,7 @@ set(SRCS
   TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
   UtilsTests.cpp
+  ZlibUtilsTests.cpp
 )
 
 if (APPLE)
