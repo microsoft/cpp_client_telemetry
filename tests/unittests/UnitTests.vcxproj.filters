@@ -39,6 +39,7 @@
     <ClCompile Include="$(ProjectDir)\TransmitProfileRuleTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmitProfilesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ZlibUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp">
       <Filter>common</Filter>
     </ClCompile>
