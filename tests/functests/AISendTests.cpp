@@ -11,6 +11,8 @@
 #include "common/Common.hpp"
 #include "common/HttpServer.hpp"
 
+#include <utils/ZlibUtils.hpp>
+
 #include "LogManager.hpp"
 
 #include "json.hpp"
@@ -280,7 +282,7 @@ class AISendTests : public ::testing::Test,
                         EXPECT_TRUE(compression);
                         std::vector<uint8_t> content(request.content.begin(), request.content.end());
                         std::vector<uint8_t> inflated;
-                        testing::InflateVector(content, inflated, true);
+                        ZlibUtils::InflateVector(content, inflated, true);
                         body = nlohmann::json::parse(inflated.begin(), inflated.end());
                     }
                     else
@@ -326,7 +328,7 @@ class AISendTests : public ::testing::Test,
         {
             std::vector<uint8_t> content(request.content.begin(), request.content.end());
             std::vector<uint8_t> inflated;
-            testing::InflateVector(content, inflated, true);
+            ZlibUtils::InflateVector(content, inflated, true);
             body = nlohmann::json::parse(inflated.begin(), inflated.end());
         }
         else

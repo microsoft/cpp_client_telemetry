@@ -138,6 +138,14 @@ namespace MAT_NS_BEGIN {
             return tpm.start();
         };
 
+        onCleanup = [this](void)
+        {
+            bool result = true;
+            hcm.cancelAllRequests();
+            result &= tpm.cleanup();
+            return result;
+        };
+
         tpm.allUploadsFinished >> stats.onStop >> this->flushTaskDispatcher;
 
         // On an arbitrary user thread

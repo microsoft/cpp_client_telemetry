@@ -19,6 +19,7 @@ namespace MAT_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
 
     OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher) :
+        m_observer(nullptr),
         m_logManager(logManager),
         m_config(runtimeConfig),
         m_taskDispatcher(taskDispatcher),

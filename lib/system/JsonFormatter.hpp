@@ -15,7 +15,7 @@ namespace MAT_NS_BEGIN
     public:
         JsonFormatter();
 
-        ~JsonFormatter();
+        ~JsonFormatter() = default ;
 
         std::string getJsonFormattedEvent(IncomingEventContextPtr const& event);
     };
