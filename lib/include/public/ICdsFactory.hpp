@@ -19,6 +19,7 @@ namespace MAT_NS_BEGIN {
 #pragma warning(push)
 #pragma warning(disable : 4251)
 #endif
+// disable warning (4251) to declare Config and DiagnosticConfig as dll api
 
 /// <summary>
 /// Configuration Params for Collector / Packager / Uploader
@@ -82,7 +83,7 @@ public:
 
 
 /// <summary>
-/// Get a singleton of Common Diagnostic Stack that is used for regitering CollectorCallback and is used to call
+/// Get a singleton of Common Diagnostic Stack that is used for registering CollectorCallback and is used to call
 /// to collect and upload data.
 /// </summary>
 MATSDK_LIBABI ICommonDiagnosticSystem& GetCommonDiagnosticSystem() noexcept;
