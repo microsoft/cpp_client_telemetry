@@ -148,12 +148,42 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
       assertThat("https://localhost:5000/", isIn(client.urlSet));
       assertThat(contosoUrl, isIn(client.urlSet));
     }
+  }
 
-    /*
-    Both ILogger and ILogManager are AutoCloseable, and it is good practice
-    to call the close() method to tear each of them down. This will prevent use-after-free
-    disasters from Java wrappers passing dangling (freed) C++ native pointers into native code.
-     */
+  @Test
+  public void startDDVonLogManager() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    MockHttpClient client = new MockHttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
 
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+    final String contosoToken =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String contosoUrl = "https://bozo.contoso.com/";
+    final String contosoName = "ContosoFactory";
+    final String contosoDatabase = "ContosoSequel";
+
+    final ILogger initialLogger = LogManager.initialize(token);
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
+    custom.set(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME, (long) 5);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
+    assertThat(custom.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(contosoToken));
+    assertThat(custom.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(contosoUrl));
+
+    final ILogManager secondaryManager = LogManagerProvider.createLogManager(custom);
+    final ILogger secondaryLogger = secondaryManager.getLogger(contosoToken, "contoso", "");
+
+    assertThat(secondaryManager.initializeDiagnosticDataViewer("contoso", "http://10.0.0.2"), is(true));
+    secondaryLogger.logEvent("some.event");
+
+    secondaryManager.flush();
+    assertThat("http://10.0.0.2", isIn(client.urlSet));
+    LogManager.flushAndTeardown();
   }
 }
