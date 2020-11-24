@@ -297,11 +297,15 @@ namespace MAT_NS_BEGIN
         }
 
         m_offlineStorage.reset(new OfflineStorageHandler(*this, *m_config, *m_taskDispatcher));
-
+        bool disableSdkUid = false;
+        if ((*m_config)[CFG_BOOL_DISABLE_EPOCH_INSTALLID])
+        {
+            disableSdkUid = true;
+        }
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
-        m_logSessionDataProvider.reset(new LogSessionDataProvider(m_offlineStorage.get()));
+        m_logSessionDataProvider.reset(new LogSessionDataProvider(m_offlineStorage.get(), disableSdkUid));
 #else
-        m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
+        m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath, disableSdkUid));
 #endif
 
 #ifdef HAVE_MAT_AI

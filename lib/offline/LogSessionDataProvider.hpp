@@ -7,6 +7,7 @@
 
 #include "LogSessionData.hpp"
 #include "IOfflineStorage.hpp"
+#include "api/IRuntimeConfig.hpp"
 #include <string>
 #include <memory>
 
@@ -20,21 +21,41 @@ namespace MAT_NS_BEGIN
     class  LogSessionDataProvider
     {
     public:
+
         LogSessionDataProvider(
-            IOfflineStorage* offlineStorage)
+            IOfflineStorage* offlineStorage,
+            bool disableSdkUid)
             :
             m_offlineStorage(offlineStorage),
             m_storageType(SessionStorageType::DatabaseStore),
-            m_logSessionData(nullptr)
+            m_logSessionData(nullptr),
+            m_disableSdkUid(disableSdkUid)
+
         {
         }
 
         LogSessionDataProvider(
-            std::string const& cacheFilePath)
+            IOfflineStorage* offlineStorage) 
+            : 
+            LogSessionDataProvider(offlineStorage, false)
+        {
+        }
+
+        LogSessionDataProvider(
+            std::string const& cacheFilePath,
+            bool disableSdkUid)
             :
             m_cacheFilePath(cacheFilePath),
             m_storageType(SessionStorageType::FileStore),
-            m_logSessionData(nullptr)
+            m_logSessionData(nullptr),
+            m_disableSdkUid(disableSdkUid)
+        {
+        }
+
+        LogSessionDataProvider(
+            std::string const& cacheFilePath) 
+            : 
+            LogSessionDataProvider(cacheFilePath, false)
         {
         }
 
@@ -53,6 +74,7 @@ namespace MAT_NS_BEGIN
     private:
         IOfflineStorage* m_offlineStorage; //Pointer is not owned. Do not delete!
         std::string const m_cacheFilePath;
+        bool m_disableSdkUid;
         SessionStorageType m_storageType;
         std::unique_ptr<LogSessionData> m_logSessionData;
         uint64_t convertStrToLong(const std::string&);

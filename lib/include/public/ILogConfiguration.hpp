@@ -121,6 +121,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_UTC_LARGE_PAYLOADS = "largePayloadsEnabled";
 
     /// <summary>
+    /// Enable Sending installId and epoch to collector
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_DISABLE_EPOCH_INSTALLID = "disableEpochInstallId";
+
+    /// <summary>
     /// The event collection URI.
     /// </summary>
     static constexpr const char* const CFG_STR_COLLECTOR_URL = "eventCollectorUri";
