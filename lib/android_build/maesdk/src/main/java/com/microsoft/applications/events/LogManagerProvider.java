@@ -48,7 +48,9 @@ public class LogManagerProvider {
     protected native void nativeFlushAndTeardown(long nativeLogManager);
 
     @Override
-    public void flushAndTeardown() {}
+    public void flushAndTeardown() {
+      nativeFlushAndTeardown(nativeLogManager);
+    }
 
     protected native int nativeFlush(long nativeLogManager);
 
@@ -61,7 +63,7 @@ public class LogManagerProvider {
 
     @Override
     public Status uploadNow() {
-      return Status.SUCCESS;
+      return Status.getEnum(nativeUploadNow(nativeLogManager));
     }
 
     protected native int nativePauseTransmission(long nativeLogManager);
@@ -142,7 +144,8 @@ public class LogManagerProvider {
 
     @Override
     public Status setContext(final String name, final long value, final PiiKind piiKind) {
-      return Status.getEnum(nativeSetContextLong(nativeLogManager, name, value, piiKind.getValue()));
+      return Status.getEnum(
+          nativeSetContextLong(nativeLogManager, name, value, piiKind.getValue()));
     }
 
     protected native int nativeSetContextDouble(
@@ -150,7 +153,8 @@ public class LogManagerProvider {
 
     @Override
     public Status setContext(final String name, final double value, final PiiKind piiKind) {
-      return Status.getEnum(nativeSetContextDouble(nativeLogManager, name, value, piiKind.getValue()));
+      return Status.getEnum(
+          nativeSetContextDouble(nativeLogManager, name, value, piiKind.getValue()));
     }
 
     protected native int nativeSetContextBoolean(
@@ -158,7 +162,8 @@ public class LogManagerProvider {
 
     @Override
     public Status setContext(final String name, final boolean value, final PiiKind piiKind) {
-      return Status.getEnum(nativeSetContextBoolean(nativeLogManager, name, value, piiKind.getValue()));
+      return Status.getEnum(
+          nativeSetContextBoolean(nativeLogManager, name, value, piiKind.getValue()));
     }
 
     protected native int nativeSetContextDate(
@@ -166,7 +171,8 @@ public class LogManagerProvider {
 
     @Override
     public Status setContext(final String name, final Date value, final PiiKind piiKind) {
-      return Status.getEnum(nativeSetContextDate(nativeLogManager, name, value, piiKind.getValue()));
+      return Status.getEnum(
+          nativeSetContextDate(nativeLogManager, name, value, piiKind.getValue()));
     }
 
     protected native int nativeSetContextUUID(
@@ -174,10 +180,12 @@ public class LogManagerProvider {
 
     @Override
     public Status setContext(final String name, final UUID value, final PiiKind piiKind) {
-      return Status.getEnum(nativeSetContextUUID(nativeLogManager, name, value.toString(), piiKind.getValue()));
+      return Status.getEnum(
+          nativeSetContextUUID(nativeLogManager, name, value.toString(), piiKind.getValue()));
     }
 
-    protected native boolean nativeInitializeDDV(long nativeLogManager, String machineIdentifier, String endpoint);
+    protected native boolean nativeInitializeDDV(
+        long nativeLogManager, String machineIdentifier, String endpoint);
 
     @Override
     public boolean initializeDiagnosticDataViewer(String machineIdentifier, String endpoint) {
@@ -195,7 +203,7 @@ public class LogManagerProvider {
 
     @Override
     public boolean isViewerEnabled() {
-      return false;
+      return nativeIsViewerEnabled(nativeLogManager);
     }
 
     protected native String nativeGetCurrentEndpoint(long nativeLogManager);

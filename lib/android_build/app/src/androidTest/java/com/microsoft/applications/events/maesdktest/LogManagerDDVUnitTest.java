@@ -8,6 +8,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.isIn;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -121,6 +123,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     assertThat(copy.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(contosoUrl));
     assertThat(copy.getLong(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME), is((long) 5));
     assertThat(copy.getString(LogConfigurationKey.CFG_STR_FACTORY_NAME), is(contosoName));
+    assertThat(copy.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
 
     /*
     Log an event. Ideally, we would mock and verify that the HTTP client is uploading this
@@ -130,9 +133,10 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     contosoLogger.logEvent("contosoevent");
     assertThat(LogManager.flush(), is(Status.SUCCESS));
 
+    final String secondaryUrl = "https://localhost:5000/";
     ILogConfiguration secondaryConfig = LogManager.logConfigurationFactory();
     secondaryConfig.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, "https://localhost:5000/");
+    secondaryConfig.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, secondaryUrl);
     secondaryConfig.set(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME, (long) 5);
     secondaryConfig.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "osotnoc");
     secondaryConfig.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, "osotnoc");
@@ -140,12 +144,13 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     ILogManager secondaryManager = LogManagerProvider.createLogManager(secondaryConfig);
     ILogger secondaryLogger = secondaryManager.getLogger(token, "osotnoc", "");
     secondaryLogger.logEvent("osotnoc");
+    assertThat(secondaryManager.uploadNow(), is(Status.SUCCESS));
     assertThat(secondaryManager.flush(), is(Status.SUCCESS));
 
     LogManager.flushAndTeardown();
 
     synchronized (client.urlSet) {
-      assertThat("https://localhost:5000/", isIn(client.urlSet));
+      assertThat(secondaryUrl, isIn(client.urlSet));
       assertThat(contosoUrl, isIn(client.urlSet));
     }
   }
@@ -167,19 +172,22 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     final ILogger initialLogger = LogManager.initialize(token);
 
-    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    ILogConfiguration custom = LogManager.getLogConfigurationCopy();
     custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
     custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
-    custom.set(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME, (long) 5);
     custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
     custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
     assertThat(custom.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(contosoToken));
     assertThat(custom.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(contosoUrl));
+    assertThat(custom.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
 
     final ILogManager secondaryManager = LogManagerProvider.createLogManager(custom);
+    final ILogConfiguration copyConfig = secondaryManager.getLogConfigurationCopy();
+    assertThat(copyConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
     final ILogger secondaryLogger = secondaryManager.getLogger(contosoToken, "contoso", "");
 
     assertThat(secondaryManager.initializeDiagnosticDataViewer("contoso", "http://10.0.0.2"), is(true));
+    assertThat(secondaryManager.isViewerEnabled(), is(true));
     secondaryLogger.logEvent("some.event");
 
     secondaryManager.flush();
