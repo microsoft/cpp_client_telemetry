@@ -4,8 +4,56 @@
 //
 package com.microsoft.applications.events;
 
-public interface ILogManager extends AutoCloseable {
-  public ILogger getLogger(String tenantToken);
-  public ILogConfiguration getLogConfigurationCopy();
-}
+import java.util.Date;
+import java.util.UUID;
 
+public interface ILogManager extends AutoCloseable {
+
+  public ILogger getLogger(String token, String source, String scope);
+
+  public ILogConfiguration getLogConfigurationCopy();
+
+  public void flushAndTeardown();
+
+  public Status flush();
+
+  public Status uploadNow();
+
+  public Status pauseTransmission();
+
+  public Status resumeTransmission();
+
+  public Status setTransmitProfile(TransmitProfile profile);
+
+  public Status setTransmitProfile(String profile);
+
+  public Status loadTransmitProfiles(String profilesJson);
+
+  public Status resetTransmitProfiles();
+
+  public String getTransmitProfileName();
+
+  public ISemanticContext getSemanticContext();
+
+  public Status setContext(final String name, final String value, final PiiKind piiKind);
+
+  public Status setContext(final String name, final int value, final PiiKind piiKind);
+
+  public Status setContext(final String name, final long value, final PiiKind piiKind);
+
+  public Status setContext(final String name, final double value, final PiiKind piiKind);
+
+  public Status setContext(final String name, final boolean value, final PiiKind piiKind);
+
+  public Status setContext(final String name, final Date value, final PiiKind piiKind);
+
+  public Status setContext(final String name, final UUID value, final PiiKind piiKind);
+
+  public boolean initializeDiagnosticDataViewer(String machineIdentifier, String endpoint);
+
+  public void disableViewer();
+
+  public boolean isViewerEnabled();
+
+  public String getCurrentEndpoint();
+}
