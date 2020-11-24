@@ -2,6 +2,18 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
+
+#if defined(__has_include)
+#if __has_include("modules/dataviewer/DefaultDataViewer.hpp")
+# include "modules/dataviewer/DefaultDataViewer.hpp"
+# define HAS_DDV true
+#else
+# define HAS_DDV false
+#endif
+#else
+# define HAS_DDV false
+#endif
+
 #include <modules/dataviewer/DefaultDataViewer.hpp>
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
@@ -645,11 +657,18 @@ struct ConfigConstructor {
   }
 };
 
+#if HAS_DDV
 struct ManagerAndConfig {
   ILogConfiguration config;
   ILogManager *manager;
   std::shared_ptr<DefaultDataViewer> ddv;
 };
+#else
+struct ManagerAndConfig {
+  ILogConfiguration config;
+  ILogManager *manager;
+};
+#endif
 
 using MCVector = std::vector<ManagerAndConfig>;
 
@@ -1111,6 +1130,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jlong native_log_manager,
     jstring jmachine_identifier,
     jstring jendpoint) {
+#if !HAS_DDV
+    return false;
+#else
     auto log_manager = getLogManager(native_log_manager);
     if (!log_manager) {
         return false;
@@ -1132,6 +1154,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     log_manager->GetDataViewerCollection().RegisterViewer(to_register);
     return true;
+#endif
 }
 
 extern "C"
@@ -1140,6 +1163,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     JNIEnv *env,
     jobject thiz,
     jlong native_log_manager) {
+#if !HAS_DDV
+    return;
+#else
     auto log_manager = getLogManager(native_log_manager);
     if (!log_manager) {
         return;
@@ -1153,6 +1179,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return;
     }
     log_manager->GetDataViewerCollection().UnregisterViewer(to_unregister->GetName());
+#endif
 }
 
 extern "C"
@@ -1161,6 +1188,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     JNIEnv *env,
     jobject thiz,
     jlong native_log_manager) {
+#if !HAS_DDV
+    return false;
+#else
     auto log_manager = getLogManager(native_log_manager);
     if (!log_manager) {
         return false;
@@ -1172,6 +1202,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     return (!!ddv)
         && log_manager->GetDataViewerCollection().IsViewerEnabled(ddv->GetName());
+#endif
 }
 
 extern "C"
@@ -1180,6 +1211,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     JNIEnv *env,
     jobject thiz,
     jlong native_log_manager) {
+#if !HAS_DDV
+    return env->NewStringUTF("");
+#else
     auto log_manager = getLogManager(native_log_manager);
     if (!log_manager) {
         return env->NewStringUTF("");
@@ -1193,4 +1227,5 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return env->NewStringUTF(ddv->GetCurrentEndpoint().c_str());
     }
     return env->NewStringUTF("");
+#endif
 }

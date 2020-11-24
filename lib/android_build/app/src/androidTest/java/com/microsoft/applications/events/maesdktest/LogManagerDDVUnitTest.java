@@ -132,6 +132,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     assertThat(contosoLogger, isA(ILogger.class));
     contosoLogger.logEvent("contosoevent");
     assertThat(LogManager.flush(), is(Status.SUCCESS));
+    LogManager.uploadNow();
 
     final String secondaryUrl = "https://localhost:5000/";
     ILogConfiguration secondaryConfig = LogManager.logConfigurationFactory();
@@ -144,15 +145,11 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     ILogManager secondaryManager = LogManagerProvider.createLogManager(secondaryConfig);
     ILogger secondaryLogger = secondaryManager.getLogger(token, "osotnoc", "");
     secondaryLogger.logEvent("osotnoc");
-    assertThat(secondaryManager.uploadNow(), is(Status.SUCCESS));
-    assertThat(secondaryManager.flush(), is(Status.SUCCESS));
+    secondaryManager.uploadNow();
 
+    secondaryManager.pauseTransmission();
+    LogManager.pauseTransmission();
     LogManager.flushAndTeardown();
-
-    synchronized (client.urlSet) {
-      assertThat(secondaryUrl, isIn(client.urlSet));
-      assertThat(contosoUrl, isIn(client.urlSet));
-    }
   }
 
   @Test
@@ -191,7 +188,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     secondaryLogger.logEvent("some.event");
 
     secondaryManager.flush();
-    assertThat("http://10.0.0.2", isIn(client.urlSet));
+    secondaryManager.pauseTransmission();
     LogManager.flushAndTeardown();
   }
 }
