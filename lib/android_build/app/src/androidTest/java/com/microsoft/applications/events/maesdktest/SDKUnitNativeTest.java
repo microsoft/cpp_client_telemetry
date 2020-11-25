@@ -16,7 +16,6 @@ import android.util.Log;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.microsoft.applications.events.DataCategory;
-import com.microsoft.applications.events.EventProperties;
 import com.microsoft.applications.events.EventProperty;
 import com.microsoft.applications.events.HttpClient;
 import com.microsoft.applications.events.ILogConfiguration;
@@ -145,7 +144,7 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
 
     assertNotNull(logger);
     logger.logEvent("amazingAndroidUnitTest");
-    LogManager.flushAndTeardown();
+    LogManager.flush();
   }
 
   @Test
@@ -231,6 +230,7 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
   }
 
   public native int nativeGetPiiType(EventProperty property);
+
   public native int nativeGetDataCategory(EventProperty property);
 
   @Test
@@ -245,4 +245,3 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
     assertThat(roundTrip, is(DataCategory.PartB.getValue()));
   }
 }
-

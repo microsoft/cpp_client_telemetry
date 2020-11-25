@@ -40,6 +40,7 @@ namespace MAT_NS_BEGIN {
             onStop   = []() { return true; };
             onPause  = []() { return true; };
             onResume = []() { return true; };
+            onCleanup  = []() { return true; };
         };
         
         /// <summary>
@@ -99,6 +100,17 @@ namespace MAT_NS_BEGIN {
                 {
                     onResume();
                 }
+            }
+        };
+
+        /// <summary>
+        /// Cleanups pending events upload
+        /// </summary>
+        virtual void cleanup() override
+        {
+            if (m_isStarted)
+            {
+                onCleanup();       
             }
         };
 
@@ -174,6 +186,7 @@ namespace MAT_NS_BEGIN {
         std::function<bool(void)>                                  onStop;
         std::function<bool(void)>                                  onPause;
         std::function<bool(void)>                                  onResume;
+        std::function<bool(void)>                                  onCleanup;
 
     // TODO: [MG] - clean this up - get rid of RouteSource
     public:
