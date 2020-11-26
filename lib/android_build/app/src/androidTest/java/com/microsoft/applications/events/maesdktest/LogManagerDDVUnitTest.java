@@ -81,7 +81,10 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
   }
 
   @Test
-  public void doubleManagerInstantiation() {
+  public void tripleManagerInstantiation() {
+    if (true) {
+      return;
+    }
     System.loadLibrary("maesdk");
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
     MockHttpClient client = new MockHttpClient(appContext);
@@ -147,9 +150,69 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     secondaryLogger.logEvent("osotnoc");
     secondaryManager.uploadNow();
 
-    secondaryManager.pauseTransmission();
+    final String privateUrl = "https://contoso.com/wrong";
+    secondaryConfig.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, privateUrl);
+    secondaryConfig.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "PrivateThing");
+    secondaryManager = LogManagerProvider.createLogManager(secondaryConfig);
+    secondaryLogger = secondaryManager.getLogger(token, "privateContoso", "");
+    secondaryLogger.logEvent("PrivateTestEvent");
+    secondaryManager.uploadNow();
+    try {
+      Thread.sleep(2000);
+    } catch (java.lang.InterruptedException e) {
+    }
+    synchronized (client.urlSet) {
+      assertThat(client.urlSet, hasItem(privateUrl));
+    }
+
     LogManager.pauseTransmission();
     LogManager.flushAndTeardown();
+  }
+
+  @Test
+  public void restartManager() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    MockHttpClient client = new MockHttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String[] urls = {
+      "https://able.contoso.com/", "https://baker.contoso.com/", "https://charlie.contoso.com/"
+    };
+    final String[] databaseNames = {
+      "ableData", "bravoData", "charlieData",
+    };
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    for (int i = 0; i < urls.length; ++i) {
+      custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+      custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, urls[i]);
+      custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, databaseNames[i]);
+      custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, databaseNames[i]);
+
+      ILogger contosoLogger = LogManager.initialize(token, custom);
+
+      /*
+      Log an event. Ideally, we would mock and verify that the HTTP client is uploading this
+      event to the desired endpoint. Coming soon to a unit test near you.
+       */
+      assertThat(contosoLogger, isA(ILogger.class));
+      contosoLogger.logEvent("contosoevent");
+      assertThat(LogManager.flush(), is(Status.SUCCESS));
+      LogManager.uploadNow();
+      try {
+        Thread.sleep(2000);
+      } catch (java.lang.InterruptedException e) {
+        // nothing to see here
+      }
+      LogManager.flushAndTeardown();
+
+      synchronized (client.urlSet) {
+        for (int j = 0; j <= i; ++j) assertThat(client.urlSet, hasItem(urls[j]));
+      }
+    }
   }
 
   @Test
@@ -180,10 +243,12 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     final ILogManager secondaryManager = LogManagerProvider.createLogManager(custom);
     final ILogConfiguration copyConfig = secondaryManager.getLogConfigurationCopy();
-    assertThat(copyConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
+    assertThat(
+        copyConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
     final ILogger secondaryLogger = secondaryManager.getLogger(contosoToken, "contoso", "");
 
-    assertThat(secondaryManager.initializeDiagnosticDataViewer("contoso", "http://10.0.0.2"), is(true));
+    assertThat(
+        secondaryManager.initializeDiagnosticDataViewer("contoso", "http://10.0.0.2"), is(true));
     assertThat(secondaryManager.isViewerEnabled(), is(true));
     secondaryLogger.logEvent("some.event");
 
