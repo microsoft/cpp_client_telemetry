@@ -670,7 +670,7 @@ struct ManagerAndConfig {
 };
 #endif
 
-using MCVector = std::vector<ManagerAndConfig>;
+using MCVector = std::vector<ManagerAndConfig *>;
 
 static MCVector jniManagers;
 static std::mutex jniManagersMutex;
@@ -712,20 +712,21 @@ Java_com_microsoft_applications_events_LogManagerProvider_nativeCreateLogManager
     jobject configuration) {
     VariantTranslator variantTranslator(env);
     size_t n;
+    auto mcPointer = new(ManagerAndConfig);
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
         n = jniManagers.size();
-        jniManagers.emplace_back();
+        jniManagers.push_back(mcPointer);
     }
 
-    variantTranslator.translateVariantMap(*jniManagers[n].config,
+    variantTranslator.translateVariantMap(*(mcPointer->config),
                                           configuration);
 
     status_t status = status_t::STATUS_SUCCESS;
-    jniManagers[n].manager = MAT::LogManagerProvider::CreateLogManager(
-        jniManagers[n].config,
+    mcPointer->manager = MAT::LogManagerProvider::CreateLogManager(
+        mcPointer->config,
         status);
-    if (status == status_t::STATUS_SUCCESS && !!jniManagers[n].manager) {
+    if (status == status_t::STATUS_SUCCESS && !!mcPointer->manager) {
         return n;
     }
     __android_log_print(ANDROID_LOG_ERROR,
@@ -739,14 +740,14 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     JNIEnv *env,
     jobject thiz,
     jlong nativeLogManagerIndex) {
-    ManagerAndConfig const *mc;
+    ManagerAndConfig const * mc;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
         if (nativeLogManagerIndex < 0
             || nativeLogManagerIndex >= jniManagers.size()) {
             return nullptr;
         }
-        mc = &jniManagers[nativeLogManagerIndex];
+        mc = jniManagers[nativeLogManagerIndex];
     }
     ConfigConstructor builder(env);
     auto vm = mc->config;
@@ -763,7 +764,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         if (nativeLogManager < 0 || nativeLogManager >= jniManagers.size()) {
             return;
         }
-        jniManagers[nativeLogManager].manager = nullptr;
+        jniManagers[nativeLogManager]->manager = nullptr;
     }
 }
 
@@ -791,7 +792,16 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     auto nativeLogManagerID =
         env->GetFieldID(LogManagerProviderClassID, "nativeLogManager", "J");
     auto nativeLogManagerIndex = env->GetLongField(thiz, nativeLogManagerID);
-    auto logManager = jniManagers[nativeLogManagerIndex];
+    ManagerAndConfig *mc;
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        if (nativeLogManagerIndex < 0
+            || nativeLogManagerIndex >= jniManagers.size()) {
+            return 0;
+        }
+        mc = jniManagers[nativeLogManagerIndex];
+        if (!mc) return 0;
+    }
     auto tokenUtf = env->GetStringUTFChars(jToken, nullptr);
     std::string token{tokenUtf};
     env->ReleaseStringUTFChars(jToken, tokenUtf);
@@ -801,7 +811,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     auto scopeUtf = env->GetStringUTFChars(jScope, nullptr);
     std::string scope{scopeUtf};
     env->ReleaseStringUTFChars(jScope, scopeUtf);
-    return reinterpret_cast<jlong>(logManager.manager->GetLogger(
+    return reinterpret_cast<jlong>(mc->manager->GetLogger(
         token,
         source,
         scope
@@ -814,7 +824,7 @@ static ILogManager *getLogManager(jlong nativeLogManager) {
         return nullptr;
     }
 
-    return jniManagers[nativeLogManager].manager;
+    return jniManagers[nativeLogManager]->manager;
 }
 
 extern "C"
@@ -1147,7 +1157,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     std::shared_ptr<DefaultDataViewer> to_register = ddv;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        ddv.swap(jniManagers[native_log_manager].ddv);
+        ddv.swap(jniManagers[native_log_manager]->ddv);
     }
     if (ddv) {
         log_manager->GetDataViewerCollection().UnregisterViewer(ddv->GetName());
@@ -1173,7 +1183,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     std::shared_ptr<DefaultDataViewer> to_unregister;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        to_unregister.swap(jniManagers[native_log_manager].ddv);
+        to_unregister.swap(jniManagers[native_log_manager]->ddv);
     }
     if (!to_unregister) {
         return;
@@ -1198,7 +1208,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     std::shared_ptr<DefaultDataViewer> ddv;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        ddv = jniManagers[native_log_manager].ddv;
+        ddv = jniManagers[native_log_manager]->ddv;
     }
     return (!!ddv)
         && log_manager->GetDataViewerCollection().IsViewerEnabled(ddv->GetName());
@@ -1221,7 +1231,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     std::shared_ptr<DefaultDataViewer> ddv;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        ddv = jniManagers[native_log_manager].ddv;
+        ddv = jniManagers[native_log_manager]->ddv;
     }
     if (ddv) {
         return env->NewStringUTF(ddv->GetCurrentEndpoint().c_str());

@@ -82,9 +82,6 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
   @Test
   public void tripleManagerInstantiation() {
-    if (true) {
-      return;
-    }
     System.loadLibrary("maesdk");
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
     MockHttpClient client = new MockHttpClient(appContext);
@@ -136,30 +133,38 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     contosoLogger.logEvent("contosoevent");
     assertThat(LogManager.flush(), is(Status.SUCCESS));
     LogManager.uploadNow();
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      // nothing to see here
+    }
+    LogManager.pauseTransmission();
+    synchronized (client.urlSet) {
+      assertThat(client.urlSet, hasItem(contosoUrl));
+    }
 
     final String secondaryUrl = "https://localhost:5000/";
-    ILogConfiguration secondaryConfig = LogManager.logConfigurationFactory();
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, secondaryUrl);
-    secondaryConfig.set(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME, (long) 5);
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "osotnoc");
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, "osotnoc");
+    copy.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    copy.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, secondaryUrl);
+    copy.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "osotnoc");
+    copy.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, "osotnoc");
 
-    ILogManager secondaryManager = LogManagerProvider.createLogManager(secondaryConfig);
+    ILogManager secondaryManager = LogManagerProvider.createLogManager(copy);
+    secondaryManager.resumeTransmission();
     ILogger secondaryLogger = secondaryManager.getLogger(token, "osotnoc", "");
     secondaryLogger.logEvent("osotnoc");
     secondaryManager.uploadNow();
 
     final String privateUrl = "https://contoso.com/wrong";
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, privateUrl);
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "PrivateThing");
-    secondaryManager = LogManagerProvider.createLogManager(secondaryConfig);
+    copy.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, privateUrl);
+    copy.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "PrivateThing");
+    secondaryManager = LogManagerProvider.createLogManager(copy);
     secondaryLogger = secondaryManager.getLogger(token, "privateContoso", "");
     secondaryLogger.logEvent("PrivateTestEvent");
     secondaryManager.uploadNow();
     try {
       Thread.sleep(2000);
-    } catch (java.lang.InterruptedException e) {
+    } catch (InterruptedException e) {
     }
     synchronized (client.urlSet) {
       assertThat(client.urlSet, hasItem(privateUrl));
