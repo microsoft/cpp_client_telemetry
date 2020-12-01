@@ -1239,3 +1239,25 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     return env->NewStringUTF("");
 #endif
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeGetLogSessionData(
+    JNIEnv *env,
+    jobject thiz,
+    jlong native_log_manager,
+    jobject result) {
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager) {
+        return;
+    }
+    auto sessionData = logManager->GetLogSessionData();
+
+    auto resultClassId = env->GetObjectClass(result);
+    auto timeId = env->GetFieldID(resultClassId, "m_first_time", "J");
+    env->SetLongField(result, timeId, static_cast<jlong>(sessionData->getSessionFirstTime()));
+
+    auto uuidId = env->GetFieldID(resultClassId, "m_uuid", "Ljava/lang/String;");
+    auto uuidUtf = env->NewStringUTF(sessionData->getSessionSDKUid().c_str());
+    env->SetObjectField(result, uuidId, uuidUtf);
+}

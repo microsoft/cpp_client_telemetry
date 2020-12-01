@@ -7,7 +7,9 @@ package com.microsoft.applications.events.maesdktest;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -22,6 +24,7 @@ import com.microsoft.applications.events.ILogger;
 import com.microsoft.applications.events.LogConfigurationKey;
 import com.microsoft.applications.events.LogManager;
 import com.microsoft.applications.events.LogManagerProvider;
+import com.microsoft.applications.events.LogSessionData;
 import com.microsoft.applications.events.OfflineRoom;
 import com.microsoft.applications.events.Status;
 import java.util.Collections;
@@ -369,5 +372,33 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     // uploading bad json wipes out the older custome profile, and we revert
     // to the default REAL_TIME profile.
     assertThat(manager.getTransmitProfileName(), is("REAL_TIME"));
+  }
+
+  @Test
+  public void sessionData() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    MockHttpClient client = new MockHttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+    final String contosoToken =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String contosoUrl = "https://bozo.contoso.com/";
+    final String contosoName = "ContosoFactory";
+    final String contosoDatabase = "ContosoSequel";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+
+    LogSessionData sessionData = manager.getLogSessionData();
+    assertThat(sessionData, is(notNullValue()));
+    assertThat(sessionData.getSessionFirstTime(), is(not(0l)));
+    assertThat(sessionData.getSessionSDKUid(), is(not(isEmptyOrNullString())));
   }
 }
