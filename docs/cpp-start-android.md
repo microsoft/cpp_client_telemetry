@@ -33,6 +33,8 @@ set "ANDROID_NDK_HOME=%ANDROID_NDK%"
 
 You can specify your own versions of dependencies as needed.
 
+>Note: Only Java JDKs 8-13 will work. Java JDK 14+ will fail to build, due to an issue with the version of Gradle currently in use.
+
 ## 3. Integrate the SDK into your C++ project
 
 If you use the lib/android_build Gradle files, they build the SDK into maesdk.aar in the output folders of the maesdk module in lib/android. You can package or consume this AAR in your applications modules, just as you would any other AAR.
