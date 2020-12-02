@@ -383,5 +383,11 @@ public interface ILogger extends AutoCloseable {
      * @param level Diagnostic level.
      */
     public void setLevel(final DiagnosticLevel level);
+
+    /**
+     * Get the native pointer for ILogger* for components that rely on it
+     * @return long representing the native pointer for ILogger *
+     */
+    public long getNativeILoggerPtr();
 }
 
