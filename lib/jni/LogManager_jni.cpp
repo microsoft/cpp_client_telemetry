@@ -7,11 +7,7 @@
 #if __has_include("modules/dataviewer/DefaultDataViewer.hpp")
 # include "modules/dataviewer/DefaultDataViewer.hpp"
 # define HAS_DDV true
-#else
-# define HAS_DDV false
 #endif
-#else
-# define HAS_DDV false
 #endif
 
 #include <modules/dataviewer/DefaultDataViewer.hpp>
@@ -657,7 +653,7 @@ struct ConfigConstructor {
   }
 };
 
-#if HAS_DDV
+#ifdef HAS_DDV
 struct ManagerAndConfig {
   ILogConfiguration config;
   ILogManager *manager;
@@ -670,7 +666,7 @@ struct ManagerAndConfig {
 };
 #endif
 
-using MCVector = std::vector<ManagerAndConfig *>;
+using MCVector = std::vector<std::unique_ptr<ManagerAndConfig>>;
 
 static MCVector jniManagers;
 static std::mutex jniManagersMutex;
@@ -712,12 +708,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_nativeCreateLogManager
     jobject configuration) {
     VariantTranslator variantTranslator(env);
     size_t n;
-    auto mcPointer = new(ManagerAndConfig);
-    {
-        std::lock_guard<std::mutex> lock(jniManagersMutex);
-        n = jniManagers.size();
-        jniManagers.push_back(mcPointer);
-    }
+    auto mcPointer = std::make_unique<ManagerAndConfig>();
 
     variantTranslator.translateVariantMap(*(mcPointer->config),
                                           configuration);
@@ -727,6 +718,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_nativeCreateLogManager
         mcPointer->config,
         status);
     if (status == status_t::STATUS_SUCCESS && !!mcPointer->manager) {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        n = jniManagers.size();
+        jniManagers.emplace_back(std::move(mcPointer));
         return n;
     }
     __android_log_print(ANDROID_LOG_ERROR,
@@ -740,14 +734,17 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     JNIEnv *env,
     jobject thiz,
     jlong nativeLogManagerIndex) {
-    ManagerAndConfig const * mc;
+    ManagerAndConfig const *mc;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
         if (nativeLogManagerIndex < 0
             || nativeLogManagerIndex >= jniManagers.size()) {
             return nullptr;
         }
-        mc = jniManagers[nativeLogManagerIndex];
+        // mc will outlive this method call because jniManagers
+        // is static, and we never destroy individual array
+        // vector elements
+        mc = jniManagers[nativeLogManagerIndex].get();
     }
     ConfigConstructor builder(env);
     auto vm = mc->config;
@@ -764,6 +761,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         if (nativeLogManager < 0 || nativeLogManager >= jniManagers.size()) {
             return;
         }
+        // we reset the manager member of the ManagerAndConfig,
+        // but the ManagerAndConfig itself will survive until
+        // the static jniManagers array is destroyed.
         jniManagers[nativeLogManager]->manager = nullptr;
     }
 }
@@ -799,7 +799,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
             || nativeLogManagerIndex >= jniManagers.size()) {
             return 0;
         }
-        mc = jniManagers[nativeLogManagerIndex];
+        mc = jniManagers[nativeLogManagerIndex].get();
         if (!mc) return 0;
     }
     auto tokenUtf = env->GetStringUTFChars(jToken, nullptr);
@@ -1140,7 +1140,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jlong native_log_manager,
     jstring jmachine_identifier,
     jstring jendpoint) {
-#if !HAS_DDV
+#ifndef HAS_DDV
     return false;
 #else
     auto log_manager = getLogManager(native_log_manager);
@@ -1173,7 +1173,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     JNIEnv *env,
     jobject thiz,
     jlong native_log_manager) {
-#if !HAS_DDV
+#ifndef HAS_DDV
     return;
 #else
     auto log_manager = getLogManager(native_log_manager);
@@ -1198,7 +1198,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     JNIEnv *env,
     jobject thiz,
     jlong native_log_manager) {
-#if !HAS_DDV
+#ifndef HAS_DDV
     return false;
 #else
     auto log_manager = getLogManager(native_log_manager);
@@ -1221,7 +1221,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     JNIEnv *env,
     jobject thiz,
     jlong native_log_manager) {
-#if !HAS_DDV
+#ifndef HAS_DDV
     return env->NewStringUTF("");
 #else
     auto log_manager = getLogManager(native_log_manager);
@@ -1255,9 +1255,12 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 
     auto resultClassId = env->GetObjectClass(result);
     auto timeId = env->GetFieldID(resultClassId, "m_first_time", "J");
-    env->SetLongField(result, timeId, static_cast<jlong>(sessionData->getSessionFirstTime()));
+    env->SetLongField(result,
+                      timeId,
+                      static_cast<jlong>(sessionData->getSessionFirstTime()));
 
-    auto uuidId = env->GetFieldID(resultClassId, "m_uuid", "Ljava/lang/String;");
+    auto
+        uuidId = env->GetFieldID(resultClassId, "m_uuid", "Ljava/lang/String;");
     auto uuidUtf = env->NewStringUTF(sessionData->getSessionSDKUid().c_str());
     env->SetObjectField(result, uuidId, uuidUtf);
 }
