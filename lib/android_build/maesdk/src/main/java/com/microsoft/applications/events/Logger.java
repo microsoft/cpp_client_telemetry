@@ -1380,10 +1380,11 @@ class Logger implements ILogger {
   }
 
   /**
-   * Package-private method to get the native pointer for ILogger*
+   * Get the native pointer for ILogger* for components that rely on it
    * @return long representing the native pointer for ILogger *
    */
-  long getNativeILoggerPtr()
+  @Override
+  public long getNativeILoggerPtr()
   {
     return m_nativePtr;
   }
