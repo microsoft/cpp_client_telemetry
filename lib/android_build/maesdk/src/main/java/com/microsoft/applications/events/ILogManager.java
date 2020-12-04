@@ -56,4 +56,6 @@ public interface ILogManager extends AutoCloseable {
   public boolean isViewerEnabled();
 
   public String getCurrentEndpoint();
+
+  public LogSessionData getLogSessionData();
 }
