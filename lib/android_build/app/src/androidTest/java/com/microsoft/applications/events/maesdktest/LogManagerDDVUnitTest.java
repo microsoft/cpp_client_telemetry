@@ -4,11 +4,12 @@
 //
 package com.microsoft.applications.events.maesdktest;
 
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
-import static org.hamcrest.Matchers.isIn;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -23,11 +24,12 @@ import com.microsoft.applications.events.ILogger;
 import com.microsoft.applications.events.LogConfigurationKey;
 import com.microsoft.applications.events.LogManager;
 import com.microsoft.applications.events.LogManagerProvider;
+import com.microsoft.applications.events.LogSessionData;
 import com.microsoft.applications.events.OfflineRoom;
 import com.microsoft.applications.events.Status;
 import java.util.Collections;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.FutureTask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,13 +58,13 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     }
   }
 
-  class MockHttpClient extends HttpClient {
+  public class MockHttpClient extends HttpClient {
 
-    public SortedSet<String> urlSet;
+    public SortedMap<String, Integer> urlMap;
 
     public MockHttpClient(Context context) {
       super(context);
-      urlSet = Collections.synchronizedSortedSet(new TreeSet());
+      urlMap = Collections.synchronizedSortedMap(new TreeMap());
     }
 
     public FutureTask<Boolean> createTask(
@@ -72,86 +74,115 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
         String request_id,
         int[] header_index,
         byte[] header_buffer) {
-      synchronized (urlSet) {
-        urlSet.add(url);
+      synchronized (urlMap) {
+        if (urlMap.containsKey(url)) {
+          urlMap.put(url, urlMap.get(url) + 1);
+        } else {
+          urlMap.put(url, 1);
+        }
       }
       Runnable r = new MockRequest(this, request_id);
       return new FutureTask<Boolean>(r, true);
     }
   }
 
+  static public MockHttpClient s_client = null;
+
   @Test
-  public void doubleManagerInstantiation() {
+  public void multipleLogManagerInstantiation() {
     System.loadLibrary("maesdk");
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    MockHttpClient client = new MockHttpClient(appContext);
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    synchronized (s_client.urlMap) {
+      s_client.urlMap.clear();
+    }
     OfflineRoom.connectContext(appContext);
 
     final String token =
         "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
-    final String contosoToken =
-        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
-    final String contosoUrl = "https://bozo.contoso.com/";
-    final String contosoName = "ContosoFactory";
-    final String contosoDatabase = "ContosoSequel";
+
+    String[] names = {
+        "alpha-contoso",
+        "beta-contoso",
+        "gamma-contoso",
+        "delta-contoso",
+    };
+    for (String name : names) {
+      final String url = String.format("https://%s/", name);
+      ILogConfiguration custom = LogManager.logConfigurationFactory();
+      custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+      custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, url);
+      custom.set(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME, (long) 5);
+      custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, name);
+      custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, name);
+      assertThat(custom.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(token));
+      assertThat(custom.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(url));
+
+      final ILogManager secondaryManager = LogManagerProvider.createLogManager(custom);
+      final ILogger secondaryLogger = secondaryManager.getLogger(token, "osotnoc", "");
+      secondaryLogger.logEvent("osotnoc");
+      secondaryManager.uploadNow();
+
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+      }
+      synchronized (s_client.urlMap) {
+        assertThat(s_client.urlMap.containsKey(url), is(true));
+      }
+    }
+  }
+
+  @Test
+  public void restartManager() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    synchronized (s_client.urlMap) {
+      s_client.urlMap.clear();
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String[] urls = {
+      "https://able.contoso.com/", "https://baker.contoso.com/", "https://charlie.contoso.com/"
+    };
+    final String[] databaseNames = {
+      "ableData", "bravoData", "charlieData",
+    };
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
 
     ILogConfiguration custom = LogManager.logConfigurationFactory();
-    /*
+    for (int i = 0; i < urls.length; ++i) {
+      custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+      custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, urls[i]);
+      custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, databaseNames[i]);
+      custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, databaseNames[i]);
 
-    Set up configuration for a second log manager instance. Why second, when we have
-    no previous log manager initialized in this test? Because we get a default, nameless
-    log manager in the SDK's internal tables whether we ask for it here or not.
+      ILogger contosoLogger = LogManager.initialize(token, custom);
 
-    Key points: we set CFG_STR_COLLECTOR_URL to define the collector URL we wish to use. We
-    set CFG_INT_MAX_TEARDOWN_TIME because the SDK will crash on teardown if this parameter
-    is missing. We set CFG_STR_FACTORY_NAME to give this log manager a unique identity and
-    unique configuration.
+      /*
+      Log an event. Ideally, we would mock and verify that the HTTP client is uploading this
+      event to the desired endpoint. Coming soon to a unit test near you.
+       */
+      assertThat(contosoLogger, isA(ILogger.class));
+      contosoLogger.logEvent("contosoevent");
+      assertThat(LogManager.flush(), is(Status.SUCCESS));
+      LogManager.uploadNow();
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        // nothing to see here
+      }
+      LogManager.flushAndTeardown();
 
-     */
-    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
-    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
-    custom.set(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME, (long) 5);
-    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
-    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
-    assertThat(custom.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(contosoToken));
-    assertThat(custom.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(contosoUrl));
-
-    ILogger contosoLogger = LogManager.initialize(contosoToken, custom);
-
-    ILogConfiguration copy = LogManager.getLogConfigurationCopy();
-    assertThat(copy.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(contosoToken));
-    assertThat(copy.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(contosoUrl));
-    assertThat(copy.getLong(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME), is((long) 5));
-    assertThat(copy.getString(LogConfigurationKey.CFG_STR_FACTORY_NAME), is(contosoName));
-    assertThat(copy.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
-
-    /*
-    Log an event. Ideally, we would mock and verify that the HTTP client is uploading this
-    event to the desired endpoint. Coming soon to a unit test near you.
-     */
-    assertThat(contosoLogger, isA(ILogger.class));
-    contosoLogger.logEvent("contosoevent");
-    assertThat(LogManager.flush(), is(Status.SUCCESS));
-
-    final String secondaryUrl = "https://localhost:5000/";
-    ILogConfiguration secondaryConfig = LogManager.logConfigurationFactory();
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, secondaryUrl);
-    secondaryConfig.set(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME, (long) 5);
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "osotnoc");
-    secondaryConfig.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, "osotnoc");
-
-    ILogManager secondaryManager = LogManagerProvider.createLogManager(secondaryConfig);
-    ILogger secondaryLogger = secondaryManager.getLogger(token, "osotnoc", "");
-    secondaryLogger.logEvent("osotnoc");
-    assertThat(secondaryManager.uploadNow(), is(Status.SUCCESS));
-    assertThat(secondaryManager.flush(), is(Status.SUCCESS));
-
-    LogManager.flushAndTeardown();
-
-    synchronized (client.urlSet) {
-      assertThat(secondaryUrl, isIn(client.urlSet));
-      assertThat(contosoUrl, isIn(client.urlSet));
+      synchronized (s_client.urlMap) {
+        for (int j = 0; j <= i; ++j) assertThat(s_client.urlMap.containsKey(urls[j]), is(true));
+      }
     }
   }
 
@@ -159,7 +190,12 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
   public void startDDVonLogManager() {
     System.loadLibrary("maesdk");
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    MockHttpClient client = new MockHttpClient(appContext);
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    synchronized (s_client.urlMap) {
+      s_client.urlMap.clear();
+    }
     OfflineRoom.connectContext(appContext);
 
     final String token =
@@ -183,15 +219,162 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     final ILogManager secondaryManager = LogManagerProvider.createLogManager(custom);
     final ILogConfiguration copyConfig = secondaryManager.getLogConfigurationCopy();
-    assertThat(copyConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
+    assertThat(
+        copyConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
     final ILogger secondaryLogger = secondaryManager.getLogger(contosoToken, "contoso", "");
 
-    assertThat(secondaryManager.initializeDiagnosticDataViewer("contoso", "http://10.0.0.2"), is(true));
+    assertThat(
+        secondaryManager.initializeDiagnosticDataViewer("contoso", "http://10.0.0.2"), is(true));
     assertThat(secondaryManager.isViewerEnabled(), is(true));
     secondaryLogger.logEvent("some.event");
 
     secondaryManager.flush();
-    assertThat("http://10.0.0.2", isIn(client.urlSet));
+    secondaryManager.pauseTransmission();
+    secondaryManager.disableViewer();
     LogManager.flushAndTeardown();
+  }
+
+  @Test
+  public void pauseAndResume() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    synchronized (s_client.urlMap) {
+      s_client.urlMap.clear();
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+    final String contosoToken =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String contosoUrl = "https://bozo.contoso.com/";
+    final String contosoName = "ContosoFactory";
+    final String contosoDatabase = "ContosoSequel";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+    ILogger logger = manager.getLogger(contosoToken, "contoso", "");
+    logger.logEvent("ContosoEvent");
+    manager.resumeTransmission(); // just in case
+    manager.uploadNow();
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      // nothing to see here
+    }
+    synchronized (s_client.urlMap) {
+      assertThat(s_client.urlMap.containsKey(contosoUrl), is(true));
+    }
+    manager.pauseTransmission();
+    try {
+      Thread.sleep(125);
+    } catch (InterruptedException e) {
+    }
+    int beforePause = -1;
+    synchronized (s_client.urlMap) {
+      beforePause = s_client.urlMap.get(contosoUrl);
+    }
+    logger.logEvent("ContosoEvent");
+    manager.uploadNow();
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+    }
+    synchronized (s_client.urlMap) {
+      assertThat(s_client.urlMap.get(contosoUrl), is(beforePause));
+    }
+    manager.resumeTransmission();
+    manager.uploadNow();
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+    }
+    synchronized (s_client.urlMap) {
+      assertThat(s_client.urlMap.get(contosoUrl), greaterThan(beforePause));
+    }
+  }
+
+  @Test
+  public void transmitProfiles() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+    final String contosoToken =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String contosoUrl = "https://bozo.contoso.com/";
+    final String contosoName = "ContosoFactory";
+    final String contosoDatabase = "ContosoSequel";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+    ILogger logger = manager.getLogger(contosoToken, "contoso", "");
+
+    assertThat(manager.getTransmitProfileName(), is("REAL_TIME"));
+
+    assertThat(manager.setTransmitProfile("Fred"), is(Status.EFAIL));
+    assertThat(manager.getTransmitProfileName(), is("REAL_TIME"));
+    assertThat(manager.setTransmitProfile("BEST_EFFORT"), is(Status.SUCCESS));
+    assertThat(manager.getTransmitProfileName(), is("BEST_EFFORT"));
+
+    final String goodRuleJson =
+        "[{\"name\": \"GoodRule\",\"rules\":["
+            + "{\"netCost\":\"restricted\",\"timers\":[ -1,-1,-1]}"
+            + "]}]";
+    assertThat(manager.loadTransmitProfiles(goodRuleJson), is(Status.SUCCESS));
+    assertThat(manager.getTransmitProfileName(), is("BEST_EFFORT"));
+    assertThat(manager.setTransmitProfile("GoodRule"), is(Status.SUCCESS));
+    assertThat(manager.getTransmitProfileName(), is("GoodRule"));
+    final String badRuleJson = "badJson" + goodRuleJson;
+    assertThat(manager.loadTransmitProfiles(badRuleJson), is(Status.EFAIL));
+    // uploading bad json wipes out the older custome profile, and we revert
+    // to the default REAL_TIME profile.
+    assertThat(manager.getTransmitProfileName(), is("REAL_TIME"));
+  }
+
+  @Test
+  public void sessionData() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+    final String contosoToken =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String contosoUrl = "https://bozo.contoso.com/";
+    final String contosoName = "ContosoFactory";
+    final String contosoDatabase = "ContosoSequel";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+
+    LogSessionData sessionData = manager.getLogSessionData();
+    assertThat(sessionData, is(notNullValue()));
+    assertThat(sessionData.getSessionFirstTime(), is(not(0l)));
+    assertThat(sessionData.getSessionSDKUid(), is(not(isEmptyOrNullString())));
   }
 }

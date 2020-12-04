@@ -212,5 +212,34 @@ public class LogManagerProvider {
     public String getCurrentEndpoint() {
       return nativeGetCurrentEndpoint(nativeLogManager);
     }
+
+    protected static class LogSessionDataImpl implements LogSessionData {
+      private long m_first_time;
+      private String m_uuid;
+
+      public LogSessionDataImpl() {
+        m_first_time = 0;
+        m_uuid = null;
+      }
+
+      @Override
+      public long getSessionFirstTime() {
+        return m_first_time;
+      }
+
+      @Override
+      public String getSessionSDKUid() {
+        return m_uuid;
+      }
+    }
+
+    protected native void nativeGetLogSessionData(long nativeLogManager, LogSessionDataImpl result);
+
+    @Override
+    public LogSessionData getLogSessionData() {
+      LogSessionDataImpl result = new LogSessionDataImpl();
+      nativeGetLogSessionData(nativeLogManager, result);
+      return result;
+    }
   }
 }
