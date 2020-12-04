@@ -5,6 +5,7 @@
 package com.microsoft.applications.events.maesdktest;
 
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -17,6 +18,10 @@ import static org.junit.Assert.fail;
 import android.content.Context;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
+import com.microsoft.applications.events.DebugEvent;
+import com.microsoft.applications.events.DebugEventListener;
+import com.microsoft.applications.events.DebugEventType;
+import com.microsoft.applications.events.DiagLevel;
 import com.microsoft.applications.events.HttpClient;
 import com.microsoft.applications.events.ILogConfiguration;
 import com.microsoft.applications.events.ILogManager;
@@ -261,8 +266,25 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
     ILogManager manager = LogManagerProvider.createLogManager(custom);
     ILogger logger = manager.getLogger(contosoToken, "contoso", "");
+
+    class FilterListener extends DebugEventListener {
+
+      long filteredCount = 0;
+      @Override
+      public void onDebugEvent(DebugEvent evt) {
+        synchronized(this) {
+          filteredCount += 1;
+        }
+      }
+    }
+    FilterListener listener = new FilterListener();
+    manager.addEventListener(DebugEventType.EVT_FILTERED, listener);
     logger.logEvent("ContosoEvent");
+    synchronized(listener) {
+
+    }
     manager.resumeTransmission(); // just in case
+    manager.flush();
     manager.uploadNow();
     try {
       Thread.sleep(2000);
@@ -270,7 +292,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
       // nothing to see here
     }
     synchronized (s_client.urlMap) {
-      assertThat(s_client.urlMap.containsKey(contosoUrl), is(true));
+      assertThat(s_client.urlMap.keySet(), hasItem(contosoUrl));
     }
     manager.pauseTransmission();
     try {
@@ -376,5 +398,68 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     assertThat(sessionData, is(notNullValue()));
     assertThat(sessionData.getSessionFirstTime(), is(not(0l)));
     assertThat(sessionData.getSessionSDKUid(), is(not(isEmptyOrNullString())));
+  }
+
+  @Test
+  public void levelFilterAndDebugEvents() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+    final String contosoToken =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String contosoUrl = "https://bozo.contoso.com/";
+    final String contosoName = "ContosoFactory";
+    final String contosoDatabase = "ContosoSequel";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+    ILogger logger = manager.getLogger(token, "contoso", "");
+
+    class ListenForFilter extends DebugEventListener {
+
+      long filteredCount = 0;
+
+      @Override
+      public void onDebugEvent(DebugEvent evt) {
+        synchronized (this) {
+          filteredCount += 1;
+        }
+      }
+    }
+
+    ListenForFilter listener = new ListenForFilter();
+    manager.addEventListener(DebugEventType.EVT_FILTERED, listener);
+    logger.logEvent("noprops");
+    manager.uploadNow();
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {}
+    synchronized(listener) {
+      assertThat(listener.filteredCount, is(0L));
+    }
+    int[] allowed = { DiagLevel.DIAG_LEVEL_REQUIRED.value() };
+    manager.setLevelFilter(DiagLevel.DIAG_LEVEL_OPTIONAL.value(),
+        allowed);
+    logger.logEvent("nopropsagain");
+    manager.uploadNow();
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {}
+    synchronized(listener) {
+      assertThat(listener.filteredCount, is(1L));
+    }
+    manager.removeEventListener(DebugEventType.EVT_FILTERED, listener);
+    int[] everything = { DiagLevel.DIAG_LEVEL_REQUIRED.value(), DiagLevel.DIAG_LEVEL_OPTIONAL.value() };
+    manager.setLevelFilter(DiagLevel.DIAG_LEVEL_OPTIONAL.value(), everything);
   }
 }
