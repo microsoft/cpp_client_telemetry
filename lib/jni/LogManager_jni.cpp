@@ -14,6 +14,7 @@
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
 #include "android/log.h"
+#include "config/RuntimeConfig_Default.hpp"
 #include <modules/dataviewer/DefaultDataViewer.hpp>
 
 using namespace MAT;
@@ -1496,4 +1497,15 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     auto logManager = getLogManager(native_log_manager);
     logManager->RemoveEventListener(static_cast<DebugEventType>(eventType), *listeners[identity]);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_microsoft_applications_events_ILogConfiguration_getDefaultConfiguration(
+    JNIEnv *env,
+    jclass clazz) {
+    ILogConfiguration emptyConfig;
+    RuntimeConfig_Default defaultConfig(emptyConfig);
+    ConfigConstructor builder(env);
+    return builder.mapTranslate(*emptyConfig);
 }

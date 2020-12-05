@@ -4,8 +4,10 @@
 //
 package com.microsoft.applications.events.maesdktest;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -16,6 +18,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import android.content.Context;
+import android.util.ArraySet;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.microsoft.applications.events.DebugEvent;
@@ -28,14 +31,20 @@ import com.microsoft.applications.events.ILogManager;
 import com.microsoft.applications.events.ILogger;
 import com.microsoft.applications.events.LogConfigurationKey;
 import com.microsoft.applications.events.LogManager;
+import com.microsoft.applications.events.LogManager.LogConfigurationImpl;
 import com.microsoft.applications.events.LogManagerProvider;
 import com.microsoft.applications.events.LogSessionData;
 import com.microsoft.applications.events.OfflineRoom;
 import com.microsoft.applications.events.Status;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.FutureTask;
+import java.util.regex.Pattern;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -461,5 +470,96 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     manager.removeEventListener(DebugEventType.EVT_FILTERED, listener);
     int[] everything = { DiagLevel.DIAG_LEVEL_REQUIRED.value(), DiagLevel.DIAG_LEVEL_OPTIONAL.value() };
     manager.setLevelFilter(DiagLevel.DIAG_LEVEL_OPTIONAL.value(), everything);
+  }
+
+  @Test
+  public void getDefaultConfig() {
+    ILogConfiguration defaultConfig = ILogConfiguration.getDefaultConfiguration();
+    final String COLLECTOR_URL_PROD = "https://self.events.data.microsoft.com/OneCollector/1.0/";
+
+    assertThat(defaultConfig.getBoolean(LogConfigurationKey.CFG_BOOL_ENABLE_ANALYTICS), is(false));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_CACHE_FILE_SIZE), is(3145728L));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_RAM_QUEUE_SIZE), is(524288L));
+    assertThat(defaultConfig.getBoolean(LogConfigurationKey.CFG_BOOL_ENABLE_MULTITENANT), is(true));
+    assertThat(defaultConfig.getBoolean(LogConfigurationKey.CFG_BOOL_ENABLE_DB_DROP_IF_FULL), is(false));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME), is(1L));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_MAX_PENDING_REQ), is(4L));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_RAM_QUEUE_BUFFERS), is(3L));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_TRACE_LEVEL_MASK), is(0L));
+    assertThat(defaultConfig.getBoolean(LogConfigurationKey.CFG_BOOL_ENABLE_TRACE), is(true));
+    assertThat(defaultConfig.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(COLLECTOR_URL_PROD));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_STORAGE_FULL_PCT), is(75L));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_STORAGE_FULL_CHECK_TIME), is(5000L));
+    assertThat(defaultConfig.getLong(LogConfigurationKey.CFG_INT_RAMCACHE_FULL_PCT), is(75L));
+    assertThat(defaultConfig.getBoolean(LogConfigurationKey.CFG_BOOL_ENABLE_NET_DETECT), is(true));
+    assertThat(defaultConfig.getBoolean(LogConfigurationKey.CFG_BOOL_SESSION_RESET_ENABLED), is(false));
+    ILogConfiguration http = defaultConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_HTTP);
+    assertThat(http, is(notNullValue()));
+    assertThat(http.getBoolean(LogConfigurationKey.CFG_BOOL_HTTP_COMPRESSION), is(true));
+    assertThat(http.getString(LogConfigurationKey.CFG_STR_HTTP_CONTENT_ENCODING), is("deflate"));
+    assertThat(http.getBoolean(LogConfigurationKey.CFG_BOOL_HTTP_MS_ROOT_CHECK), is(false));
+    ILogConfiguration utc = defaultConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_UTC);
+    assertThat(utc, is(notNullValue()));
+    // we do not expect UTC to be enabled on Android.
+    assertThat(utc.getBoolean(LogConfigurationKey.CFG_BOOL_UTC_ENABLED), is(false));
+    ILogConfiguration meta = defaultConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_METASTATS_CONFIG);
+    assertThat(meta, is(notNullValue()));
+    assertThat(meta, isA(ILogConfiguration.class));
+    assertThat(meta.getBoolean(LogConfigurationKey.CFG_BOOL_METASTATS_SPLIT), is(false));
+    assertThat(meta.getLong(LogConfigurationKey.CFG_INT_METASTATS_INTERVAL), is(1800L));
+    assertThat(meta.getString(LogConfigurationKey.CFG_STR_METASTATS_TOKEN_INT), isA(String.class));
+    assertThat(meta.getString(LogConfigurationKey.CFG_STR_METASTATS_TOKEN_INT), not(isEmptyOrNullString()));
+    assertThat(meta.getString(LogConfigurationKey.CFG_STR_METASTATS_TOKEN_PROD), isA(String.class));
+    assertThat(meta.getString(LogConfigurationKey.CFG_STR_METASTATS_TOKEN_PROD), not(isEmptyOrNullString()));
+    ILogConfiguration tpm = defaultConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM);
+    assertThat(tpm, is(notNullValue()));
+    assertThat(tpm, isA(ILogConfiguration.class));
+    assertThat(tpm.getLong(LogConfigurationKey.CFG_INT_TPM_MAX_BLOB_BYTES), is(2L * 1024 * 1024));
+    assertThat(tpm.getLong(LogConfigurationKey.CFG_INT_TPM_MAX_RETRY), is(5L));
+    assertThat(tpm.getBoolean(LogConfigurationKey.CFG_BOOL_TPM_CLOCK_SKEW_ENABLED), is(true));
+    ILogConfiguration compat = defaultConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_COMPAT);
+    assertThat(compat, is(notNullValue()));
+    assertThat(compat.getBoolean(LogConfigurationKey.CFG_BOOL_COMPAT_DOTS), is(true));
+
+    assertThat(defaultConfig, is(instanceOf(LogManager.LogConfigurationImpl.class)));
+
+    TreeMap<String, LogConfigurationKey> keyMap = new TreeMap<String, LogConfigurationKey>();
+    for (LogConfigurationKey k : LogConfigurationKey.values()) {
+      String kKey = k.getKey();
+      keyMap.put(kKey, k);
+    }
+    TreeMap<String, Object> configMap = ((LogConfigurationImpl) defaultConfig).getConfigMap();
+    for (String k : configMap.keySet()) {
+      assertThat(keyMap.keySet(), hasItem(k));
+    }
+  }
+
+  @Test
+  public void enforceKeyNaming() {
+    final String[] allowListArray = {
+        "CFG_STR_UTC",
+    };
+    final TreeSet<String> allowSet = new TreeSet<String>(Arrays.asList(allowListArray));
+    for (LogConfigurationKey k : LogConfigurationKey.values()) {
+      String keyName = k.name();
+      if (allowSet.contains(keyName)) {
+        continue;
+      }
+      if (keyName.startsWith("CFG_INT_")) {
+        assertThat(String.format("Key %s should be a long value", keyName), k.getValueType() == Long.class, is(true));
+      }
+      else if (keyName.startsWith("CFG_STR_")) {
+        assertThat(String.format("Key %s should be a String value", keyName), k.getValueType() == String.class, is(true));
+      }
+      else if (keyName.startsWith("CFG_BOOL_")) {
+        assertThat(String.format("Key %s should be a boolean value", keyName), k.getValueType() == Boolean.class, is(true));
+      }
+      else if (keyName.startsWith("CFG_MAP_")) {
+        assertThat(String.format("Key %s should be a nested map value", keyName), k.getValueType() == ILogConfiguration.class, is(true));
+      }
+      else {
+        fail(String.format("Key %s has an unexpected prefix", keyName));
+      }
+    }
   }
 }
