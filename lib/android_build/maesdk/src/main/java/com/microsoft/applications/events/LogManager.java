@@ -22,11 +22,15 @@ public class LogManager {
    * <p>The C++ side can translate values of type Boolean, Long, String, ILogConfiguration (nested
    * maps) and arrays of these types (including nested arrays).
    */
-  public static class LogConfigurationImpl implements ILogConfiguration {
+  public static class LogConfigurationImpl extends ILogConfiguration {
     TreeMap<String, Object> configMap;
 
     LogConfigurationImpl() {
       configMap = new TreeMap<String, Object>();
+    }
+
+    public TreeMap<String, Object> getConfigMap() {
+      return configMap;
     }
 
     @Override

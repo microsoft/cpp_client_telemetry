@@ -241,5 +241,27 @@ public class LogManagerProvider {
       nativeGetLogSessionData(nativeLogManager, result);
       return result;
     }
+
+    protected native void nativeSetLevelFilter(
+        long nativeLogManager, int defaultLevel, int[] allowedLevels);
+
+    @Override
+    public void setLevelFilter(int defaultLevel, int[] allowedLevels) {
+      nativeSetLevelFilter(nativeLogManager, defaultLevel, allowedLevels);
+    }
+
+    public native long nativeAddEventListener(long nativeLogManager, long eventType, DebugEventListener listener, long currentIdentity);
+
+    @Override
+    public void addEventListener(DebugEventType eventType, DebugEventListener listener) {
+      listener.nativeIdentity = nativeAddEventListener(nativeLogManager, eventType.value(), listener, listener.nativeIdentity);
+    }
+
+    public native void nativeRemoveEventListener(long nativeLogManager, long eventType, long identity);
+
+    @Override
+    public void removeEventListener(DebugEventType eventType, DebugEventListener listener) {
+      nativeRemoveEventListener(nativeLogManager, eventType.value(), listener.nativeIdentity);
+    }
   }
 }
