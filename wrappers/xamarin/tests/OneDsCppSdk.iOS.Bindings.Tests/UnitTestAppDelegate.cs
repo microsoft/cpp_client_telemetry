@@ -44,4 +44,3 @@ namespace OneDsCppSdk.iOS.Bindings.Tests
         }
     }
 }
-

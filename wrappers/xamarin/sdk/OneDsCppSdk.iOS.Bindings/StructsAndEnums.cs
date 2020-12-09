@@ -107,4 +107,21 @@ namespace Microsoft.Applications.Events
         UserDomain = 20,
         UserName = 21
     }
+
+    [Native]
+    public enum Status : long
+    {
+        // General failure
+        Efail = -1,
+        // Success
+        Success = 0,
+        // Permission denied
+        Eperm = 1,
+        // Already done / already in progress
+        Ealready = 2,
+        // Not implemented or no-op
+        Enosys = 3,
+        // Not supported
+        Enotsup = 4,
+    }
 }

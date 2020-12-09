@@ -238,6 +238,12 @@ namespace Microsoft.Applications.Events
         [Static]
         [Export ("surfaceCppExceptions")]
         bool SurfaceCppExceptions { get; set; }
+
+        // +(NSString * _Nullable)cacheFilePath;
+        // +(void)setCacheFilePath:(NSString * _Nonnull)cacheFilePath;
+        [Static]
+        [NullAllowed, Export("cacheFilePath")]
+        string CacheFilePath { get; set; }
     }
 
     // @interface ODWSemanticContext : NSObject
@@ -399,35 +405,23 @@ namespace Microsoft.Applications.Events
     // @interface ODWLogManager : NSObject
     [BaseType (typeof(NSObject), Name = "ODWLogManager")]
     [Protocol]
-    interface LogManager
+    public interface LogManager
     {
         // +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull)tenantToken;
         [Static]
         [Export ("loggerWithTenant:")]
         [return: NullAllowed]
-        Logger Initialize(string tenantToken);
-
-        // +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull)tenantToken source:(NSString * _Nonnull)source;
-        [Static]
-        [Export ("loggerWithTenant:source:")]
-        [return: NullAllowed]
-        Logger LoggerWithTenant (string tenantToken, string source);
-
-        // +(ODWLogger * _Nullable)loggerForSource:(NSString * _Nonnull)source;
-        [Static]
-        [Export ("loggerForSource:")]
-        [return: NullAllowed]
-        Logger LoggerForSource (string source);
+        Logger InitializeLogger(string tenantToken);
 
         // +(void)uploadNow;
         [Static]
         [Export ("uploadNow")]
         void UploadNow ();
 
-        // +(void)flush;
+        // +(ODWStatus)flushWithStatus;
         [Static]
-        [Export ("flush")]
-        void Flush ();
+        [Export("flushWithStatus")]
+        Status Flush();
 
         // +(void)setTransmissionProfile:(ODWTransmissionProfile)profile;
         [Static]
@@ -444,10 +438,10 @@ namespace Microsoft.Applications.Events
         [Export ("resumeTransmission")]
         void ResumeTransmission ();
 
-        // +(void)flushAndTeardown;
+        // +(ODWStatus)flushAndTeardownWithStatus;
         [Static]
-        [Export ("flushAndTeardown")]
-        void FlushAndTeardown ();
+        [Export ("flushAndTeardownWithStatus")]
+        Status FlushAndTeardown ();
 
         // +(void)resetTransmitProfiles;
         [Static]

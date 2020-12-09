@@ -98,6 +98,17 @@
 */
 +(bool)enableSessionReset;
 
+/*!
+@brief Sets the cache file path.
+@param cacheFilePath A string for the cache path.
+*/
++(void)setCacheFilePath:(nonnull NSString *)cacheFilePath;
+
+/*!
+@brief Returns the cache file path.
+*/
++(nullable NSString *)cacheFilePath;
+
 @end
 
 #include "objc_end.h"

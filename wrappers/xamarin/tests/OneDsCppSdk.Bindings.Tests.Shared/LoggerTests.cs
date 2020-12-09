@@ -17,7 +17,7 @@ using Foundation;
 namespace OneDsCppSdk.Bindings.Tests
 {
     [TestFixture]
-    public class LoggerTests
+    public class LoggerTests : BaseTests
     {
         private const string Token = "fake-token";
         private const string TestEventName = "eventname";
@@ -29,12 +29,7 @@ namespace OneDsCppSdk.Bindings.Tests
         [SetUp]
         public void Setup()
         {
-#if __ANDROID__
-            logger = LogManager.Initialize(Application.Context, Token);
-#elif __IOS__
-            logger = LogManager.Initialize(Token);
-#endif
-
+            logger = LogManager.InitializeLogger(Token);
             TestEventProperties = new EventProperties(TestEventName);
         }
 

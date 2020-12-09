@@ -176,4 +176,3 @@ namespace OneDsCppSdk.Android.Bindings.Tests
 	}
 }
 #pragma warning restore 1591
-

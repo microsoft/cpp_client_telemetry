@@ -15,6 +15,7 @@
     <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
     <MonoAndroidAssetsPrefix>Assets</MonoAndroidAssetsPrefix>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
+    <CodeAnalysisRuleSet>..\..\OneDsCppSdk.Bindings.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,7 +47,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Applications.Events">
-      <HintPath>..\Assemblies\Android\Debug\Microsoft.Applications.Events.dll</HintPath>
+      <HintPath>..\Assemblies\$(Configuration)\Android\Microsoft.Applications.Events.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -58,9 +59,12 @@
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tests\LogManagerTests.cs" />
+    <Compile Include="Tests\BaseTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <AdditionalFiles Include="..\..\stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
     <None Include="Resources\AboutResources.txt" />
     <None Include="Properties\AndroidManifest.xml" />
   </ItemGroup>
@@ -100,12 +104,14 @@
     <AndroidAsset Include="Assets\AboutAssets.txt" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers">
+      <Version>1.1.118</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Room.Runtime">
       <Version>2.2.5.5</Version>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Tests\" />
   </ItemGroup>
   <Import Project="..\OneDsCppSdk.Bindings.Tests.Shared\OneDsCppSdk.Bindings.Tests.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />

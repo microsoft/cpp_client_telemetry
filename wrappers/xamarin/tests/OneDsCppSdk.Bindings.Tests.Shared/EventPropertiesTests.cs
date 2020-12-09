@@ -14,7 +14,7 @@ using Foundation;
 namespace OneDsCppSdk.Bindings.Tests
 {
     [TestFixture]
-    public class EventPropertiesTests
+    public class EventPropertiesTests : BaseTests
     {
         private const string EventName = "eventname";
         private const string PropertyName = "propertyname";
@@ -23,11 +23,7 @@ namespace OneDsCppSdk.Bindings.Tests
         [SetUp]
         public void Setup()
         {
-#if __ANDROID__
-            LogManager.Initialize(Application.Context, "token");
-#elif __IOS__
-            LogManager.Initialize("token");
-#endif
+            LogManager.InitializeLogger("token");
             eventProperties = new EventProperties(EventName);
         }
 

@@ -75,15 +75,15 @@ namespace Microsoft.Applications.Events
         BestEffort = 2
     }
 
-	public enum Status : long
-	{
-		Ealready,
-		Efail,
-		Enosys,
-		Enotsup,
-		Eperm,
-		Success
-	}
+    public enum Status : long
+    {
+        Ealready,
+        Efail,
+        Enosys,
+        Enotsup,
+        Eperm,
+        Success
+    }
 
     public enum DataConcernType : long
     {
@@ -111,4 +111,3 @@ namespace Microsoft.Applications.Events
         UserName = 21
     }
 }
-

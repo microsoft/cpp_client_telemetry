@@ -2,7 +2,7 @@
 <package>
     <metadata>
         <id>Microsoft.Applications.Events.Xamarin</id>
-        <version>3.4.276.4</version>
+        <version>0.0.0.0</version>
         <authors>Microsoft - One Observability</authors>
         <description>1DS C++ SDK Xamarin Bindings</description>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
