@@ -56,4 +56,12 @@ public interface ILogManager extends AutoCloseable {
   public boolean isViewerEnabled();
 
   public String getCurrentEndpoint();
+
+  public LogSessionData getLogSessionData();
+
+  public void setLevelFilter(int defaultLevel, int[] allowedLevels);
+
+  public void addEventListener(DebugEventType eventType, DebugEventListener listener);
+
+  public void removeEventListener(DebugEventType eventType, DebugEventListener listener);
 }

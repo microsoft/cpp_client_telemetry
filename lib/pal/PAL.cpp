@@ -519,7 +519,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            LOG_ERROR("Already initialized: %d", m_palStarted.load());
+            LOG_INFO("Already initialized: %d", m_palStarted.load());
         }
     }
 
@@ -547,7 +547,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            LOG_ERROR("Shutting down: %d", m_palStarted.load());
+            LOG_INFO("Shutting down: %d", m_palStarted.load());
         }
     }
 
@@ -564,4 +564,3 @@ namespace PAL_NS_BEGIN {
 #endif
 
 } PAL_NS_END
-

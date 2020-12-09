@@ -212,5 +212,56 @@ public class LogManagerProvider {
     public String getCurrentEndpoint() {
       return nativeGetCurrentEndpoint(nativeLogManager);
     }
+
+    protected static class LogSessionDataImpl implements LogSessionData {
+      private long m_first_time;
+      private String m_uuid;
+
+      public LogSessionDataImpl() {
+        m_first_time = 0;
+        m_uuid = null;
+      }
+
+      @Override
+      public long getSessionFirstTime() {
+        return m_first_time;
+      }
+
+      @Override
+      public String getSessionSDKUid() {
+        return m_uuid;
+      }
+    }
+
+    protected native void nativeGetLogSessionData(long nativeLogManager, LogSessionDataImpl result);
+
+    @Override
+    public LogSessionData getLogSessionData() {
+      LogSessionDataImpl result = new LogSessionDataImpl();
+      nativeGetLogSessionData(nativeLogManager, result);
+      return result;
+    }
+
+    protected native void nativeSetLevelFilter(
+        long nativeLogManager, int defaultLevel, int[] allowedLevels);
+
+    @Override
+    public void setLevelFilter(int defaultLevel, int[] allowedLevels) {
+      nativeSetLevelFilter(nativeLogManager, defaultLevel, allowedLevels);
+    }
+
+    public native long nativeAddEventListener(long nativeLogManager, long eventType, DebugEventListener listener, long currentIdentity);
+
+    @Override
+    public void addEventListener(DebugEventType eventType, DebugEventListener listener) {
+      listener.nativeIdentity = nativeAddEventListener(nativeLogManager, eventType.value(), listener, listener.nativeIdentity);
+    }
+
+    public native void nativeRemoveEventListener(long nativeLogManager, long eventType, long identity);
+
+    @Override
+    public void removeEventListener(DebugEventType eventType, DebugEventListener listener) {
+      nativeRemoveEventListener(nativeLogManager, eventType.value(), listener.nativeIdentity);
+    }
   }
 }
