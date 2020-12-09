@@ -159,7 +159,8 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
         const jobjectArray& jEventPropertyStringKeyArray, const jobjectArray& jEventPropertyValueArray) {
     EventProperties eventProperties;
     eventProperties.SetName(JStringToStdString(env, jstrEventName));
-    eventProperties.SetType(JStringToStdString(env, jstrEventType));
+    if (jstrEventType != NULL)
+        eventProperties.SetType(JStringToStdString(env, jstrEventType));
     eventProperties.SetLatency(static_cast<EventLatency>(jEventLatency));
     eventProperties.SetPersistence(static_cast<EventPersistence>(jEventPersistence));
     eventProperties.SetPopsample(static_cast<double>(jEventPopSample));
