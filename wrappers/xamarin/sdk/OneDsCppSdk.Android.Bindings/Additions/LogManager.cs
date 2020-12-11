@@ -2,6 +2,8 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
+using System.Collections.Generic;
+
 namespace Microsoft.Applications.Events
 {
     public partial class LogManager
@@ -11,9 +13,15 @@ namespace Microsoft.Applications.Events
             return (Logger)Initialize(tenantToken);
         }
 
-        public static Logger InitializeLogger(string tenantToken, ILogConfiguration logConfiguration)
+        public static Logger InitializeLogger(string tenantToken, Dictionary<string, string> logConfiguration)
         {
-            return (Logger)Initialize(tenantToken, logConfiguration);
+            var configuration = LogManager.LogConfigurationFactory();
+            foreach (var config in logConfiguration)
+            {
+                configuration.Set(config.Key, config.Value);
+            }
+
+            return (Logger)Initialize(tenantToken, configuration);
         }
     }
 }

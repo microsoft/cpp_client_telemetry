@@ -48,7 +48,7 @@ namespace Microsoft.Applications.Events
         SoftwareSetupAndInventory = 0x80000000L
     }
 
-    public enum DiagLevel
+    public enum DiagLevel : byte
     {
         RequiredDiagnosticData = 1,
         OptionalDiagnosticData = 2,
@@ -82,6 +82,17 @@ namespace Microsoft.Applications.Events
     }
 
     [Native]
+    public enum Status : long
+    {
+        Efail = -1,
+        Success = 0,
+        Eperm = 1,
+        Ealready = 2,
+        Enosys = 3,
+        Enotsup = 4
+    }
+
+    [Native]
     public enum DataConcernType : long
     {
         None = 0,
@@ -106,22 +117,5 @@ namespace Microsoft.Applications.Events
         UserAlias = 19,
         UserDomain = 20,
         UserName = 21
-    }
-
-    [Native]
-    public enum Status : long
-    {
-        // General failure
-        Efail = -1,
-        // Success
-        Success = 0,
-        // Permission denied
-        Eperm = 1,
-        // Already done / already in progress
-        Ealready = 2,
-        // Not implemented or no-op
-        Enosys = 3,
-        // Not supported
-        Enotsup = 4,
     }
 }

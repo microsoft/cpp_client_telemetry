@@ -1,6 +1,8 @@
-﻿using Android.App;
+﻿extern alias NUnitLite;
+
+using Android.App;
 using Microsoft.Applications.Events;
-using NUnit.Framework;
+using NUnitLite::NUnit.Framework;
 using System;
 
 namespace OneDsCppSdk.Bindings.Tests

@@ -43,24 +43,23 @@
     <JavaMaximumHeapSize>
     </JavaMaximumHeapSize>
     <AndroidUseAapt2>false</AndroidUseAapt2>
-    <AndroidSupportedAbis>armeabi-v7a</AndroidSupportedAbis>
+    <AndroidSupportedAbis>armeabi-v7a;x86;x86_64;arm64-v8a</AndroidSupportedAbis>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Applications.Events">
-      <HintPath>..\Assemblies\$(Configuration)\Android\Microsoft.Applications.Events.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="Mono.Android" />
-    <Reference Include="Xamarin.Android.NUnitLite" />
+    <Reference Include="Xamarin.Android.NUnitLite">
+      <Aliases>NUnitLite</Aliases>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tests\BaseTests.cs" />
-    <Compile Include="Tests\MoreTests.cs" />
+    <Compile Include="Tests\LogManagerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="..\..\stylecop.json">
@@ -117,6 +116,11 @@
   <ItemGroup>
     <AndroidResource Include="Resources\xml\network_security_config.xml" />
   </ItemGroup>
-  <Import Project="..\OneDsCppSdk.Bindings.Tests.Shared\OneDsCppSdk.Bindings.Tests.Shared.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="..\OneDsCppSdk.NetStandard.Tests\OneDsCppSdk.NetStandard.Tests.csproj">
+      <Project>{d15b820a-3f87-4dd0-b0b0-76870c48caed}</Project>
+      <Name>OneDsCppSdk.NetStandard.Tests</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>

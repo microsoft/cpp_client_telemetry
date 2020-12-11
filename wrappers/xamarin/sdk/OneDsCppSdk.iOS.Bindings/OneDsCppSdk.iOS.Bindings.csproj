@@ -39,6 +39,13 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\OneDsCppSdk.NetStandard\LogConfigurationKey.cs">
+      <Link>LogConfigurationKey.cs</Link>
+    </Compile>
+    <Compile Include="ILogConfiguration.cs" />
+    <Compile Include="LogConfiguration.cs" />
+    <Compile Include="Logger.cs" />
+    <Compile Include="LogManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

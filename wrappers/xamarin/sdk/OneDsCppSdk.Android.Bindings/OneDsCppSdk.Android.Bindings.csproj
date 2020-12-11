@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Additions\ILogConfiguration.cs" />
     <Compile Include="Additions\Library.cs" />
     <Compile Include="Additions\LogConfiguration.cs" />
     <Compile Include="Additions\LogManager.cs" />

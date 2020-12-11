@@ -189,60 +189,60 @@ namespace Microsoft.Applications.Events
     }
 
     // @interface ODWLogConfiguration : NSObject
-    [BaseType (typeof(NSObject), Name = "ODWLogConfiguration")]
+    [BaseType(typeof(NSObject), Name = "ODWLogConfiguration")]
     [Protocol]
     public interface LogConfiguration
     {
         // +(NSString * _Nullable)eventCollectorUri;
         // +(void)setEventCollectorUri:(NSString * _Nonnull)eventCollectorUri;
         [Static]
-        [NullAllowed, Export ("eventCollectorUri")]
+        [NullAllowed, Export("eventCollectorUri")]
         string EventCollectorUri { get; set; }
 
         // +(uint64_t)cacheMemorySizeLimitInBytes;
         // +(void)setCacheMemorySizeLimitInBytes:(uint64_t)cacheMemorySizeLimitInBytes;
         [Static]
-        [Export ("cacheMemorySizeLimitInBytes")]
+        [Export("cacheMemorySizeLimitInBytes")]
         ulong CacheMemorySizeLimitInBytes { get; set; }
 
         // +(uint64_t)cacheFileSizeLimitInBytes;
         // +(void)setCacheFileSizeLimitInBytes:(uint64_t)cacheFileSizeLimitInBytes;
         [Static]
-        [Export ("cacheFileSizeLimitInBytes")]
+        [Export("cacheFileSizeLimitInBytes")]
         ulong CacheFileSizeLimitInBytes { get; set; }
 
         // +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec;
         [Static]
-        [Export ("setMaxTeardownUploadTimeInSec:")]
-        void SetMaxTeardownUploadTimeInSec (int maxTeardownUploadTimeInSec);
+        [Export("setMaxTeardownUploadTimeInSec:")]
+        void SetMaxTeardownUploadTimeInSec(int maxTeardownUploadTimeInSec);
 
         // +(void)setTraceLevel:(int)TraceLevel;
         [Static]
-        [Export ("setTraceLevel:")]
-        void SetTraceLevel (int TraceLevel);
+        [Export("setTraceLevel:")]
+        void SetTraceLevel(int TraceLevel);
 
         // +(_Bool)enableTrace;
         // +(void)setEnableTrace:(_Bool)enableTrace;
         [Static]
-        [Export ("enableTrace")]
+        [Export("enableTrace")]
         bool EnableTrace { get; set; }
 
         // +(_Bool)enableConsoleLogging;
         // +(void)setEnableConsoleLogging:(_Bool)enableConsoleLogging;
         [Static]
-        [Export ("enableConsoleLogging")]
+        [Export("enableConsoleLogging")]
         bool EnableConsoleLogging { get; set; }
 
         // +(_Bool)surfaceCppExceptions;
         // +(void)setSurfaceCppExceptions:(_Bool)surfaceCppExceptions;
         [Static]
-        [Export ("surfaceCppExceptions")]
+        [Export("surfaceCppExceptions")]
         bool SurfaceCppExceptions { get; set; }
 
         // +(_Bool)enableSessionReset;
         // +(void)setEnableSessionReset:(_Bool)enableSessionReset;
         [Static]
-        [Export ("enableSessionReset")]
+        [Export("enableSessionReset")]
         bool EnableSessionReset { get; set; }
 
         // +(NSString * _Nullable)cacheFilePath;
@@ -250,6 +250,14 @@ namespace Microsoft.Applications.Events
         [Static]
         [NullAllowed, Export("cacheFilePath")]
         string CacheFilePath { get; set; }
+
+        //public static Logger InitializeLogger(string tenantToken, LogConfiguration config)
+        //{
+        //    //    //    var configDictionary = new NSDictionary(new NSString(LogConfigurationKey.CfgStrCollectorUrl), "", new NSString(LogConfigurationKey.CfgStrCacheFilePath), "");
+        //    //    //    return InitializeLogger(tenantToken/*, configDictionary*/);
+        //    //    //}
+        //    return null;
+        //}
     }
 
     // @interface ODWSemanticContext : NSObject
