@@ -239,6 +239,12 @@ namespace Microsoft.Applications.Events
         [Export ("surfaceCppExceptions")]
         bool SurfaceCppExceptions { get; set; }
 
+        // +(_Bool)enableSessionReset;
+        // +(void)setEnableSessionReset:(_Bool)enableSessionReset;
+        [Static]
+        [Export ("enableSessionReset")]
+        bool EnableSessionReset { get; set; }
+
         // +(NSString * _Nullable)cacheFilePath;
         // +(void)setCacheFilePath:(NSString * _Nonnull)cacheFilePath;
         [Static]
@@ -305,7 +311,7 @@ namespace Microsoft.Applications.Events
     [Protocol]
     public interface Logger
     {
-        // -(void)logEventWithName:(NSString * _Nonnull __strong)name;
+        // -(void)logEventWithName:(NSString * _Nonnull)name;
         [Export ("logEventWithName:")]
         void LogEvent (string name);
 
@@ -409,9 +415,15 @@ namespace Microsoft.Applications.Events
     {
         // +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull)tenantToken;
         [Static]
-        [Export ("loggerWithTenant:")]
+        [Export ("initForTenant:")]
         [return: NullAllowed]
         Logger InitializeLogger(string tenantToken);
+
+        // +(ODWLogger * _Nullable)initForTenant:(NSString * _Nonnull)tenantToken withConfig:(NSDictionary * _Nullable)config;
+        [Static]
+        [Export ("initForTenant:withConfig:")]
+        [return: NullAllowed]
+        Logger InitializeLogger (string tenantToken, [NullAllowed] NSDictionary config);
 
         // +(void)uploadNow;
         [Static]
@@ -447,6 +459,16 @@ namespace Microsoft.Applications.Events
         [Static]
         [Export ("resetTransmitProfiles")]
         void ResetTransmitProfiles ();
+
+        // +(void)setContextWithName:(NSString * _Nonnull)name stringValue:(NSString * _Nonnull)value;
+        [Static]
+        [Export ("setContextWithName:stringValue:")]
+        void SetContext (string name, string value);
+
+        // +(void)setContextWithName:(NSString * _Nonnull)name stringValue:(NSString * _Nonnull)value piiKind:(enum ODWPiiKind)piiKind;
+        [Static]
+        [Export ("setContextWithName:stringValue:piiKind:")]
+        void SetContext (string name, string value, PiiKind piiKind);
     }
 
     // @interface ODWPrivacyGuard : NSObject

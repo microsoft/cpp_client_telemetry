@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DataTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EventPropertiesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LoggerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LogConfigurationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LogManagerTests.cs" />
   </ItemGroup>
 </Project>

@@ -51,108 +51,112 @@ namespace OneDsCppSdk.Bindings.Tests
         public void ConstructorWithName()
         {
             var ep = new EventProperties(EventName);
+
+            Assert.IsNotNull(ep);
         }
 
         [Test]
         public void ConstructorWithNameAndProperties()
         {
             var ep = new EventProperties(EventName, DataTypes.TestProperties);
+
+            Assert.IsNotNull(ep);
         }
 
         [Test]
         public void SetPropertyWithStringValue()
         {
-            eventProperties.SetProperty(PropertyName, "value");
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, "value"));
         }
 
         [Test]
         public void SetPropertyWithStringValueAndPiiKind()
         {
-            eventProperties.SetProperty(PropertyName, "value", PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, "value", PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithDoubleValue()
         {
-            eventProperties.SetProperty(PropertyName, double.MaxValue, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, double.MaxValue, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithDoubleValueAndPiiKind()
         {
-            eventProperties.SetProperty(PropertyName, double.MaxValue, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, double.MaxValue, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithLongValue()
         {
-            eventProperties.SetProperty(PropertyName, long.MaxValue, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, long.MaxValue, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithLongValueAndPiiKind()
         {
-            eventProperties.SetProperty(PropertyName, long.MaxValue, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, long.MaxValue, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithByteValue()
         {
-            eventProperties.SetProperty(PropertyName, byte.MaxValue, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, byte.MaxValue, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithByteValueAndPiiKind()
         {
-            eventProperties.SetProperty(PropertyName, byte.MaxValue, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, byte.MaxValue, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithULongValue()
         {
-            eventProperties.SetProperty(PropertyName, ulong.MaxValue, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, ulong.MaxValue, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithULongValueAndPiiKind()
         {
-            eventProperties.SetProperty(PropertyName, ulong.MaxValue, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, ulong.MaxValue, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithBoolValue()
         {
-            eventProperties.SetProperty(PropertyName, true, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, true, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithBoolValueAndPiiKind()
         {
-            eventProperties.SetProperty(PropertyName, true, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, true, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithUUID()
         {
-            eventProperties.SetProperty(PropertyName, DataTypes.TestGuid);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, DataTypes.TestGuid));
         }
 
         [Test]
         public void SetPropertyWithUUIDAndPiiKind()
         {
-            eventProperties.SetProperty(PropertyName, DataTypes.TestGuid, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, DataTypes.TestGuid, PiiKind.GenericData));
         }
 
         [Test]
         public void SetPropertyWithDate()
         {
-            eventProperties.SetProperty(PropertyName, DataTypes.TestDate);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, DataTypes.TestDate));
         }
 
         [Test]
         public void SetPropertyWithDatePiiKind()
         {
-            eventProperties.SetProperty(PropertyName, DataTypes.TestDate, PiiKind.GenericData);
+            ExecuteWithoutAssertion(() => eventProperties.SetProperty(PropertyName, DataTypes.TestDate, PiiKind.GenericData));
         }
     }
 }

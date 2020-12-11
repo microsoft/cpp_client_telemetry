@@ -51,169 +51,169 @@ namespace OneDsCppSdk.Bindings.Tests
         [Test]
         public void LogEventWithName()
         {
-            logger.LogEvent(TestEventName);
+            ExecuteWithoutAssertion(() => logger.LogEvent(TestEventName));
         }
 
         [Test]
         public void LogEventWithProperties()
         {
-            logger.LogEvent(TestEventProperties);
+            ExecuteWithoutAssertion(() => logger.LogEvent(TestEventProperties));
         }
 
         [Test]
         public void LogFailure()
         {
-            logger.LogFailure("signature", "detail", TestEventProperties);
+            ExecuteWithoutAssertion(() => logger.LogFailure("signature", "detail", TestEventProperties));
         }
 
         [Test]
         public void LogFailureWithCategory()
         {
-            logger.LogFailure("signature", "detail", "category", "identifier", TestEventProperties);
+            ExecuteWithoutAssertion(() => logger.LogFailure("signature", "detail", "category", "identifier", TestEventProperties));
         }
 
         [Test]
         public void LogPageView()
         {
-            logger.LogPageView("identifier", "pageName", TestEventProperties);
+            ExecuteWithoutAssertion(() => logger.LogPageView("identifier", "pageName", TestEventProperties));
         }
 
         [Test]
         public void LogPageViewWithCategory()
         {
-            logger.LogPageView("identifier", "pageName", "category", "uri", "referrerUri", TestEventProperties);
+            ExecuteWithoutAssertion(() => logger.LogPageView("identifier", "pageName", "category", "uri", "referrerUri", TestEventProperties));
         }
 
         [Test]
         public void LogSession()
         {
-            logger.LogSession(SessionState.Started, TestEventProperties);
+            ExecuteWithoutAssertion(() => logger.LogSession(SessionState.Started, TestEventProperties));
         }
 
         [Test]
         public void LogTrace()
         {
-            logger.LogTrace(TraceLevel.Error, "message", TestEventProperties);
+            ExecuteWithoutAssertion(() => logger.LogTrace(TraceLevel.Error, "message", TestEventProperties));
         }
 
         [Test]
         public void SetContextWithStringValueWithPiiKind()
         {
-            logger.SetContext("name", "value", PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", "value", PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithStringValue()
         {
-            logger.SetContext("name", "value");
+            ExecuteWithoutAssertion(() => logger.SetContext("name", "value"));
         }
 
         [Test]
         public void SetContextWithMaxDoubleValueWithPiiKind()
         {
-            logger.SetContext("name", double.MaxValue, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", double.MaxValue, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithMaxDoubleValue()
         {
-            logger.SetContext("name", double.MaxValue);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", double.MaxValue));
         }
 
         [Test]
         public void SetContextWithMinDoubleValueWithPiiKind()
         {
-            logger.SetContext("name", double.MinValue, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", double.MinValue, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithMinDoubleValue()
         {
-            logger.SetContext("name", double.MinValue);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", double.MinValue));
         }
 
         [Test]
         public void SetContextWithMaxInt64ValueWithPiiKind()
         {
-            logger.SetContext("name", long.MaxValue, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", long.MaxValue, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithMaxInt64Value()
         {
-            logger.SetContext("name", long.MaxValue);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", long.MaxValue));
         }
 
         [Test]
         public void SetContextWithMinInt64ValueWithPiiKind()
         {
-            logger.SetContext("name", long.MinValue, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", long.MinValue, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithMinInt64Value()
         {
-            logger.SetContext("name", long.MinValue);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", long.MinValue));
         }
 
         [Test]
         public void SetContextWithMaxInt32ValueWithPiiKind()
         {
-            logger.SetContext("name", int.MaxValue, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", int.MaxValue, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithMaxInt32Value()
         {
-            logger.SetContext("name", int.MaxValue);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", int.MaxValue));
         }
 
         [Test]
         public void SetContextWithMinInt32ValueWithPiiKind()
         {
-            logger.SetContext("name", int.MinValue, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", int.MinValue, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithMinInt32Value()
         {
-            logger.SetContext("name", int.MinValue);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", int.MinValue));
         }
 
         [Test]
         public void SetContextWithBoolValueWithPiiKind()
         {
-            logger.SetContext("name", true, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", true, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithBoolValue()
         {
-            logger.SetContext("name", true);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", true));
         }
 
         [Test]
         public void SetContextWithGuidValueWithPiiKind()
         {
-            logger.SetContext("name", DataTypes.TestGuid, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", DataTypes.TestGuid, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithGuidValue()
         {
-            logger.SetContext("name", DataTypes.TestGuid);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", DataTypes.TestGuid));
         }
 
         [Test]
         public void SetContextWithDateTimeValueWithPiiKind()
         {
-            logger.SetContext("name", DataTypes.TestDate, PiiKind.DistinguishedName);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", DataTypes.TestDate, PiiKind.DistinguishedName));
         }
 
         [Test]
         public void SetContextWithDateTimeValue()
         {
-            logger.SetContext("name", DataTypes.TestDate);
+            ExecuteWithoutAssertion(() => logger.SetContext("name", DataTypes.TestDate));
         }
     }
 }

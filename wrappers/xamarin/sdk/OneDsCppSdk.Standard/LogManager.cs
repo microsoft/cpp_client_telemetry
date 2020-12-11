@@ -10,6 +10,8 @@ namespace Microsoft.Applications.Events
     {
         public static Logger InitializeLogger(string tenantToken) { throw new NotImplementedException(); }
 
+        //public static Logger InitializeLogger(string tenantToken, LogConfiguration logConfiguration) { throw new NotImplementedException(); }
+
         public static void UploadNow() { }
 
         public static Status Flush() { throw new NotImplementedException(); }
