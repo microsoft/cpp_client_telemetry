@@ -85,7 +85,7 @@ Due to various arising practical needs it may be necessary to update `VER_MINOR`
 
 ## Release schedule for 2021H2
 
-A separate feature branch may be needed to accomodate the integration with
+A separate feature branch may be needed to accommodate the integration with
 [OpenTelemetry C++ SDK](https://github.com/open-telemetry/opentelemetry-cpp).
 Separate branch with addition of new major API changes should be labeled
 `dev/r4` to mark the `Release 4.x` milestone. Next major release 4 may contain
