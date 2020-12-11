@@ -597,8 +597,8 @@ namespace MAT_NS_BEGIN
                 }
                 catch (std::system_error &ex)
                 {
-                  UNREFERENCED_PARAMETER(ex);
-                  LOG_WARN("NetworkDetector tid=%p is already stopped.", m_listener_tid);
+                    UNREFERENCED_PARAMETER(ex);
+                    LOG_WARN("NetworkDetector tid=%p is already stopped.", m_listener_tid);
                 }
             }
         };
