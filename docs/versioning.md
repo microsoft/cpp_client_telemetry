@@ -27,7 +27,11 @@ SDK maintainer preparing the release must:
 - run `tools/gen-version.cmd` or `tools/gen-version.sh`
 - check-in the `Version.hpp` and send a PR to merge it in the `master` branch
 - use [GitHub Release Management Tab](https://github.com/microsoft/cpp_client_telemetry/releases/new)
-to create a corresponding v3.x.x tag. Source code release is published. No binary packages.
+to create a corresponding v3.x.x tag.
+
+Source code release is published in `.zip` or tarball under Release tab.
+
+There are no immediate plans to start publishing binary packages. This may change in 2021.
 
 ## SDK Version and API / ABI stability guarantees
 
@@ -97,7 +101,7 @@ a fundamental principle of 1DS SDK design.
 
 ## Product Release branches
 
-Microsoft products 1DS C/C++ SDK may release their own product branches, such as `release/product`
+Microsoft products onboarded to 1DS C/C++ SDK may release their own product branches, such as `release/product`
 with git tags as `v3.5.1-rc0`. Custom product branches may contain tweaks to API and SDK features
 not applicable to mainline main branch. However, should the products see the common need for their
 custom features - developers are encouraged to integrate their patches back to mainline main branch.
