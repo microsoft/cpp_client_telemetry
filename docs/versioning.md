@@ -30,7 +30,7 @@ SDK maintainer preparing the release must:
 - check-in the `Version.hpp` and send a PR to merge it in the `master` branch
 - use [GitHub Release Management Tab](https://github.com/microsoft/cpp_client_telemetry/releases/new)
 to create a corresponding `v3.x.x` release tag
-- individual products may refresh their branches, create Android artifactsm, cocoapods, etc. based on published release tag
+- individual products may refresh their product branches and mirrors, create Android / Maven artifacts, cocoapods, etc. based on published release tag
 
 Source code release is published in `.zip` or tarball under Release tab.
 
