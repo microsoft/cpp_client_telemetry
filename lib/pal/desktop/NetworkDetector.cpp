@@ -381,9 +381,7 @@ namespace MAT_NS_BEGIN
 
             MSG msg;
             PostThreadMessage(m_listener_tid, NETDETECTOR_START, 0, 0);
-            {
-                cv.notify_all();
-            }
+            cv.notify_all();
 
             while (GetMessage(&msg, NULL, 0, 0) > 0)
             {
@@ -528,8 +526,8 @@ namespace MAT_NS_BEGIN
             netDetectThread = std::thread([this]()
             {
                 {
-                  std::lock_guard<std::mutex> lk(m_lock);
-                  m_listener_tid = GetCurrentThreadId();
+                    std::lock_guard<std::mutex> lk(m_lock);
+                    m_listener_tid = GetCurrentThreadId();
                 }
                 run();
                 LOG_TRACE("NetworkDetector tid=%p is shutting down..", m_listener_tid);
@@ -537,6 +535,7 @@ namespace MAT_NS_BEGIN
                     std::lock_guard<std::mutex> lk(m_lock);
                     m_listener_tid = 0;
                     isRunning = false;
+                    cv.notify_all();
                 }
             });
 
@@ -550,7 +549,7 @@ namespace MAT_NS_BEGIN
                     // - COM object can't be started (pre-Win 8 scenario)
                     int retry = 1;
                     constexpr int max_retries = 2;
-                    while (cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_COM_SETTLE_MS))
+                    while (isRunning && cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_COM_SETTLE_MS))
                            == std::cv_status::timeout && (retry < max_retries))
                     {
                         LOG_TRACE("NetworkDetector starting up... [%u]", retry);
@@ -577,23 +576,29 @@ namespace MAT_NS_BEGIN
             if (netDetectThread.joinable())
             {
                 std::unique_lock<std::mutex> lk(m_lock);
-                if (!isRunning || m_listener_tid == 0 ||
-                    !PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL))
-                {
-                    LOG_ERROR("NetworkDetector thread unable to be shut down.");
-                }
-                else
-                {
-                    try {
+                try {
+                    if (!isRunning || m_listener_tid == 0 ||
+                        !PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL))
+                    {
+                        // Without detaching, we risk throwing an exception in the destructor.
+                        // There is a chance that our code has finished, but the thread
+                        // hasn't fully terminated, or the thread has already exited and
+                        // isRunning is false. Alternatively, we may have never gotten
+                        // a thread_id.
+                        netDetectThread.detach();
+                        LOG_WARN("NetworkDetector thread unable to be shut down.");
+                    }
+                    else
+                    {
                         lk.unlock();
                         netDetectThread.join();
                         LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
                     }
-                    catch (std::system_error &ex)
-                    {
-                        UNREFERENCED_PARAMETER(ex);
-                        LOG_WARN("NetworkDetector tid=%p is already stopped.", m_listener_tid);
-                    }
+                }
+                catch (std::system_error &ex)
+                {
+                    UNREFERENCED_PARAMETER(ex);
+                    LOG_WARN("NetworkDetector tid=%p is already stopped.", m_listener_tid);
                 }
             }
         };
