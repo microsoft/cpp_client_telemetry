@@ -20,19 +20,23 @@ Version details:
 - `VER_MINOR` is 4. This number has to be incremented to 5 on January 1st, 2021.
 - `VER_PATCH` is a day number of the year.
 
-`Version.hpp` file is auto-generated during Release publishing stage using cross-plat
-[gen-version](https://github.com/microsoft/cpp_client_telemetry/blob/master/tools/version.js) script.
+`Version.hpp` file is generated during Release publishing stage using cross-platform
+[gen-version](https://github.com/microsoft/cpp_client_telemetry/blob/master/tools/version.js) script written in `node.js`.
 
 ## Release Process
 
 SDK maintainer preparing the release must:
-- run `tools/gen-version.cmd` or `tools/gen-version.sh`
-- check-in the `Version.hpp` and send a PR to merge it in the `master` branch
+- run `tools/gen-version.cmd` on Windows (or `tools/gen-version.sh` on POSIX) to generate the `Version.hpp` file
+- commit the contents of `Version.hpp`
+- send a PR to merge it in the `master` branch
 - use [GitHub Release Management Tab](https://github.com/microsoft/cpp_client_telemetry/releases/new)
-to create a corresponding `v3.x.x` release tag
-- individual products may refresh their product branches and mirrors, create Android / Maven artifacts, cocoapods, etc. based on published release tag
+to create a corresponding `v3.x.x` release tag with release notes
 
-Source code release is published in `.zip` or tarball under Release tab.
+Only source code release is published in `.zip` or tarball under Release tab. No binary artifacts published in this repository.
+
+Products using this SDK may subsequently:
+- refresh their custom product branches and mirrors based on latest published release tag
+- publish their Windows build, NuGet packages, Android / Maven artifacts, cocoapods for Mac and iOS, etc.
 
 There are no immediate plans to start publishing binary packages. This may change in 2021.
 
