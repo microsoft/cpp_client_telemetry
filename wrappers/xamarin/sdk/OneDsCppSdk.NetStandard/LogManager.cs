@@ -11,7 +11,7 @@ namespace Microsoft.Applications.Events
     {
         public static Logger InitializeLogger(string tenantToken) { throw new NotImplementedException(); }
 
-        public static Logger InitializeLogger(string tenantToken, Dictionary<string, string> logConfiguration) { throw new NotImplementedException(); }
+        public static Logger InitializeLogger(string tenantToken, IDictionary<string, string> logConfiguration) { throw new NotImplementedException(); }
 
         public static void UploadNow() { }
 

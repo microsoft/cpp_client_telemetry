@@ -9,11 +9,22 @@ namespace Microsoft.Applications.Events
 {
     public partial class LogManager
     {
-        //public static Logger InitializeLogger(string tenantToken, LogConfiguration config)
-        public static Logger InitializeLogger(string tenantToken, Dictionary<string, string> config)
+        public static Logger InitializeLogger(string tenantToken, IDictionary<string, string> config)
         {
-            var configDictionary = new NSDictionary(LogConfigurationKey.CfgStrCollectorUrl, config[LogConfigurationKey.CfgStrCollectorUrl], LogConfigurationKey.CfgStrCacheFilePath, config[LogConfigurationKey.CfgStrCollectorUrl]);
-            return InitializeLogger(tenantToken, configDictionary);
+            foreach (var configItem in config)
+            {
+                switch (configItem.Key)
+                {
+                    case LogConfigurationKey.CfgStrCacheFilePath:
+                        LogConfiguration.CacheFilePath = configItem.Value;
+                        break;
+                    case LogConfigurationKey.CfgStrCollectorUrl:
+                        LogConfiguration.EventCollectorUri = configItem.Value;
+                        break;
+                }
+            }
+
+            return InitializeLogger(tenantToken);
         }
     }
 }

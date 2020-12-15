@@ -250,14 +250,6 @@ namespace Microsoft.Applications.Events
         [Static]
         [NullAllowed, Export("cacheFilePath")]
         string CacheFilePath { get; set; }
-
-        //public static Logger InitializeLogger(string tenantToken, LogConfiguration config)
-        //{
-        //    //    //    var configDictionary = new NSDictionary(new NSString(LogConfigurationKey.CfgStrCollectorUrl), "", new NSString(LogConfigurationKey.CfgStrCacheFilePath), "");
-        //    //    //    return InitializeLogger(tenantToken/*, configDictionary*/);
-        //    //    //}
-        //    return null;
-        //}
     }
 
     // @interface ODWSemanticContext : NSObject

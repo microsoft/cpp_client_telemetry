@@ -13,7 +13,7 @@ namespace Microsoft.Applications.Events
             return (Logger)Initialize(tenantToken);
         }
 
-        public static Logger InitializeLogger(string tenantToken, Dictionary<string, string> logConfiguration)
+        public static Logger InitializeLogger(string tenantToken, IDictionary<string, string> logConfiguration)
         {
             var configuration = LogManager.LogConfigurationFactory();
             foreach (var config in logConfiguration)
