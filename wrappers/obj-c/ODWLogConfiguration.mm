@@ -113,4 +113,22 @@ using namespace Microsoft::Applications::Events;
     return _enableSessionReset;
 }
 
++(void)setCacheFilePath:(nonnull NSString *)cacheFilePath
+{
+    std::string strCacheFilePath = std::string([cacheFilePath UTF8String]);
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_STR_CACHE_FILE_PATH] = strCacheFilePath;
+}
+
++(nullable NSString *)cacheFilePath
+{
+    auto& config = LogManager::GetLogConfiguration();
+    std::string strCacheFilePath = config[CFG_STR_CACHE_FILE_PATH];
+    if (strCacheFilePath.empty())
+    {
+        return nil;
+    }
+    return [NSString stringWithCString:strCacheFilePath.c_str() encoding:NSUTF8StringEncoding];
+}
+
 @end

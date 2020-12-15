@@ -189,55 +189,67 @@ namespace Microsoft.Applications.Events
     }
 
     // @interface ODWLogConfiguration : NSObject
-    [BaseType (typeof(NSObject), Name = "ODWLogConfiguration")]
+    [BaseType(typeof(NSObject), Name = "ODWLogConfiguration")]
     [Protocol]
     public interface LogConfiguration
     {
         // +(NSString * _Nullable)eventCollectorUri;
         // +(void)setEventCollectorUri:(NSString * _Nonnull)eventCollectorUri;
         [Static]
-        [NullAllowed, Export ("eventCollectorUri")]
+        [NullAllowed, Export("eventCollectorUri")]
         string EventCollectorUri { get; set; }
 
         // +(uint64_t)cacheMemorySizeLimitInBytes;
         // +(void)setCacheMemorySizeLimitInBytes:(uint64_t)cacheMemorySizeLimitInBytes;
         [Static]
-        [Export ("cacheMemorySizeLimitInBytes")]
+        [Export("cacheMemorySizeLimitInBytes")]
         ulong CacheMemorySizeLimitInBytes { get; set; }
 
         // +(uint64_t)cacheFileSizeLimitInBytes;
         // +(void)setCacheFileSizeLimitInBytes:(uint64_t)cacheFileSizeLimitInBytes;
         [Static]
-        [Export ("cacheFileSizeLimitInBytes")]
+        [Export("cacheFileSizeLimitInBytes")]
         ulong CacheFileSizeLimitInBytes { get; set; }
 
         // +(void)setMaxTeardownUploadTimeInSec:(int)maxTeardownUploadTimeInSec;
         [Static]
-        [Export ("setMaxTeardownUploadTimeInSec:")]
-        void SetMaxTeardownUploadTimeInSec (int maxTeardownUploadTimeInSec);
+        [Export("setMaxTeardownUploadTimeInSec:")]
+        void SetMaxTeardownUploadTimeInSec(int maxTeardownUploadTimeInSec);
 
         // +(void)setTraceLevel:(int)TraceLevel;
         [Static]
-        [Export ("setTraceLevel:")]
-        void SetTraceLevel (int TraceLevel);
+        [Export("setTraceLevel:")]
+        void SetTraceLevel(int TraceLevel);
 
         // +(_Bool)enableTrace;
         // +(void)setEnableTrace:(_Bool)enableTrace;
         [Static]
-        [Export ("enableTrace")]
+        [Export("enableTrace")]
         bool EnableTrace { get; set; }
 
         // +(_Bool)enableConsoleLogging;
         // +(void)setEnableConsoleLogging:(_Bool)enableConsoleLogging;
         [Static]
-        [Export ("enableConsoleLogging")]
+        [Export("enableConsoleLogging")]
         bool EnableConsoleLogging { get; set; }
 
         // +(_Bool)surfaceCppExceptions;
         // +(void)setSurfaceCppExceptions:(_Bool)surfaceCppExceptions;
         [Static]
-        [Export ("surfaceCppExceptions")]
+        [Export("surfaceCppExceptions")]
         bool SurfaceCppExceptions { get; set; }
+
+        // +(_Bool)enableSessionReset;
+        // +(void)setEnableSessionReset:(_Bool)enableSessionReset;
+        [Static]
+        [Export("enableSessionReset")]
+        bool EnableSessionReset { get; set; }
+
+        // +(NSString * _Nullable)cacheFilePath;
+        // +(void)setCacheFilePath:(NSString * _Nonnull)cacheFilePath;
+        [Static]
+        [NullAllowed, Export("cacheFilePath")]
+        string CacheFilePath { get; set; }
     }
 
     // @interface ODWSemanticContext : NSObject
@@ -299,7 +311,7 @@ namespace Microsoft.Applications.Events
     [Protocol]
     public interface Logger
     {
-        // -(void)logEventWithName:(NSString * _Nonnull __strong)name;
+        // -(void)logEventWithName:(NSString * _Nonnull)name;
         [Export ("logEventWithName:")]
         void LogEvent (string name);
 
@@ -399,35 +411,29 @@ namespace Microsoft.Applications.Events
     // @interface ODWLogManager : NSObject
     [BaseType (typeof(NSObject), Name = "ODWLogManager")]
     [Protocol]
-    interface LogManager
+    public interface LogManager
     {
         // +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull)tenantToken;
         [Static]
-        [Export ("loggerWithTenant:")]
+        [Export ("initForTenant:")]
         [return: NullAllowed]
-        Logger Initialize(string tenantToken);
+        Logger InitializeLogger(string tenantToken);
 
-        // +(ODWLogger * _Nullable)loggerWithTenant:(NSString * _Nonnull)tenantToken source:(NSString * _Nonnull)source;
+        // +(ODWLogger * _Nullable)initForTenant:(NSString * _Nonnull)tenantToken withConfig:(NSDictionary * _Nullable)config;
         [Static]
-        [Export ("loggerWithTenant:source:")]
+        [Export ("initForTenant:withConfig:")]
         [return: NullAllowed]
-        Logger LoggerWithTenant (string tenantToken, string source);
-
-        // +(ODWLogger * _Nullable)loggerForSource:(NSString * _Nonnull)source;
-        [Static]
-        [Export ("loggerForSource:")]
-        [return: NullAllowed]
-        Logger LoggerForSource (string source);
+        Logger InitializeLogger (string tenantToken, [NullAllowed] NSDictionary config);
 
         // +(void)uploadNow;
         [Static]
         [Export ("uploadNow")]
         void UploadNow ();
 
-        // +(void)flush;
+        // +(ODWStatus)flushWithStatus;
         [Static]
-        [Export ("flush")]
-        void Flush ();
+        [Export("flushWithStatus")]
+        Status Flush();
 
         // +(void)setTransmissionProfile:(ODWTransmissionProfile)profile;
         [Static]
@@ -444,15 +450,25 @@ namespace Microsoft.Applications.Events
         [Export ("resumeTransmission")]
         void ResumeTransmission ();
 
-        // +(void)flushAndTeardown;
+        // +(ODWStatus)flushAndTeardownWithStatus;
         [Static]
-        [Export ("flushAndTeardown")]
-        void FlushAndTeardown ();
+        [Export ("flushAndTeardownWithStatus")]
+        Status FlushAndTeardown ();
 
         // +(void)resetTransmitProfiles;
         [Static]
         [Export ("resetTransmitProfiles")]
         void ResetTransmitProfiles ();
+
+        // +(void)setContextWithName:(NSString * _Nonnull)name stringValue:(NSString * _Nonnull)value;
+        [Static]
+        [Export ("setContextWithName:stringValue:")]
+        void SetContext (string name, string value);
+
+        // +(void)setContextWithName:(NSString * _Nonnull)name stringValue:(NSString * _Nonnull)value piiKind:(enum ODWPiiKind)piiKind;
+        [Static]
+        [Export ("setContextWithName:stringValue:piiKind:")]
+        void SetContext (string name, string value, PiiKind piiKind);
     }
 
     // @interface ODWPrivacyGuard : NSObject

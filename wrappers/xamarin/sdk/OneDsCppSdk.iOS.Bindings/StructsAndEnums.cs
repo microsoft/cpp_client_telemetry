@@ -48,7 +48,7 @@ namespace Microsoft.Applications.Events
         SoftwareSetupAndInventory = 0x80000000L
     }
 
-    public enum DiagLevel
+    public enum DiagLevel : byte
     {
         RequiredDiagnosticData = 1,
         OptionalDiagnosticData = 2,
@@ -79,6 +79,17 @@ namespace Microsoft.Applications.Events
         RealTime = 0,
         NearRealTime = 1,
         BestEffort = 2
+    }
+
+    [Native]
+    public enum Status : long
+    {
+        Efail = -1,
+        Success = 0,
+        Eperm = 1,
+        Ealready = 2,
+        Enosys = 3,
+        Enotsup = 4
     }
 
     [Native]

@@ -2,11 +2,12 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
-using System.Reflection;
+extern alias NUnitLite;
 
 using Android.App;
 using Android.OS;
-using Xamarin.Android.NUnitLite;
+using NUnitLite::Xamarin.Android.NUnitLite;
+using System.Reflection;
 
 namespace OneDsCppSdk.Android.Bindings.Tests
 {
@@ -25,4 +26,3 @@ namespace OneDsCppSdk.Android.Bindings.Tests
         }
     }
 }
-

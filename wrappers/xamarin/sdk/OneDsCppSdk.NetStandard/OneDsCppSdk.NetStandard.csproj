@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Microsoft.Applications.Events</AssemblyName>
+    <RootNamespace>Microsoft.Applications.Events</RootNamespace>
+    <LangVersion>8.0</LangVersion>
+    <CodeAnalysisRuleSet>..\..\OneDsCppSdk.Bindings.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="..\..\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyOutput Include="bin/$(Configuration)/netstandard2.0/Microsoft.Applications.Events.*"/>
+  </ItemGroup>
+
+  <Target Name="AfterBuild">
+    <Copy SourceFiles="$(AssemblyOutput)" DestinationFolder="../../tests/Assemblies/NetStandard2.0/$(Configuration)/" />
+  </Target>
+</Project>
