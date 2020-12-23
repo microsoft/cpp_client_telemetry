@@ -7,6 +7,18 @@
 #include <exception>
 #include <jni.h>
 
+#ifndef NDEBUG
+namespace
+{
+    static constexpr bool s_throwExceptions = true;
+}
+#else
+namespace
+{
+    static constexpr bool s_throwExceptions = false;
+}
+#endif
+
 namespace MAT_NS_BEGIN
 {
     /**
@@ -92,7 +104,7 @@ namespace MAT_NS_BEGIN
 
     /**
      * Drop-in replacement for OfflineStorage_SQLite.
-     * 
+     *
      * @param[in] logManager Send DebugEvent here
      * @param[in] runtimeConfig Configuration (imagine that)
      */
@@ -155,12 +167,12 @@ namespace MAT_NS_BEGIN
 
     /**
      * Connect Java VM and application context for later use in reverse-JNI
-     * 
+     *
      * There is a static native method connectContext on the Java class OfflineRoom which will call
      * this static method, as a convenient way to pass the application context to this method.
-     * 
+     *
      * @param [in] env: JNI environment.
-     * @param [in] appContext: Context that will own database (usually application Context) 
+     * @param [in] appContext: Context that will own database (usually application Context)
      */
     void OfflineStorage_Room::ConnectJVM(JNIEnv* env, jobject appContext)
     {
@@ -176,9 +188,9 @@ namespace MAT_NS_BEGIN
     }
 
     /**
-     * Delete all records 
+     * Delete all records
      *
-     * Not Implemented 
+     * Not Implemented
      */
     void OfflineStorage_Room::DeleteAllRecords()
     {
@@ -187,7 +199,7 @@ namespace MAT_NS_BEGIN
 
     /**
      * Delete records matching a set of WHERE equality conditions
-     * 
+     *
      * Only implements equality-on-tenantToken.
      * @param[in] whereFilter The keys are column selectors (only tenant_token
      * is supported). The corresponding value specifies the column value
@@ -215,7 +227,7 @@ namespace MAT_NS_BEGIN
 
     /**
      * Delete records by identifier.
-     * 
+     *
      * @param[in] ids A vector of std::string record ids.
      * @param[out] fromMemory Always false (even when the database
      * is held in memory, which can happen in tests).
@@ -280,23 +292,23 @@ namespace MAT_NS_BEGIN
 
     /**
      * Get records for the packager
-     * 
+     *
      * If leaseTime is non-zero, this will set the reservedUntil
      * column in the selected
      * records. This method only selects records with a
      * reservedUntil value in the past, so setting the column reserves the
      * record and prevents later calls to GetAndReserveRecords
      * from picking up and retransmitting the reserved records.
-     * 
+     *
      * Because we retrieve the records in a batch, if the consumer
      * functor returns false before the end of the batch, we
      * will reset reservedUntil on the unconsumed records.
-     * 
+     *
      * Records are sorted by:
      * - Latency (Latency_RealTime first)
      * - Persistence (Critical first)
      * - Time (oldest first)
-     * 
+     *
      * @param[in] consumer We call this functor for each
      * record, and it may move or copy the record as it likes. If
      * the functor returns false, we assume that it did not
@@ -328,7 +340,7 @@ namespace MAT_NS_BEGIN
         ThrowLogic(env, "getAndReserve");
         auto now = PAL::getUtcSystemTimeMs();
         auto until = now + leaseTimeMs;
-        jobjectArray selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
+        auto selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
                                                                                 static_cast<int>(minLatency),
                                                                                 static_cast<int64_t>(maxCount ? maxCount : -1),
                                                                                 static_cast<int64_t>(now),
@@ -336,7 +348,8 @@ namespace MAT_NS_BEGIN
         ThrowRuntime(env, "Call getAndReserve");
         size_t index;
         size_t limit = env->GetArrayLength(selected);
-        if (limit == 0) {
+        if (limit == 0)
+        {
             return false;
         }
         // we don't collect these here because GetObjectClass is
@@ -436,11 +449,11 @@ namespace MAT_NS_BEGIN
 
     /**
      * Initialize the database (and instantiate our androidx Room objects).
-     * 
+     *
      * The ConnectJVM method must be called before this method to set up our
      * connection to the JVM and the desired Context (usually the
      * application context).
-     * 
+     *
      * @param[in] observer In practice, an instance of StorageObserver. We
      * communicate significant events back to this IOfflineStorageObserver.
      */
@@ -493,11 +506,11 @@ namespace MAT_NS_BEGIN
 
     /**
      * Release lease and optionally increment retry count for records.
-     * 
+     *
      * @param[in] ids Vector of StorageRecord ids to release.
      * @param[in] incrementRetryCount True if we should increment the retryCount column
      * for these records.
-     * 
+     *
      */
     void OfflineStorage_Room::ReleaseRecords(
         std::vector<StorageRecordId> const& ids,
@@ -570,6 +583,7 @@ namespace MAT_NS_BEGIN
             jfieldID count_id;
             for (size_t index = 0; index < tokens; ++index)
             {
+                env.pushLocalFrame(8);
                 auto byTenant = env->GetObjectArrayElement(results, index);
                 ThrowRuntime(env, "Exception fetching element from results");
                 if (!bt_class)
@@ -588,6 +602,7 @@ namespace MAT_NS_BEGIN
                 std::string key(utf);
                 env->ReleaseStringUTFChars(token, utf);
                 dropped[key] = static_cast<size_t>(count);
+                env.popLocalFrame();
             }
             m_observer->OnStorageRecordsDropped(dropped);
         }
@@ -602,11 +617,11 @@ namespace MAT_NS_BEGIN
 
     /**
      * Store a single record.
-     * 
+     *
      * This makes a reverse-JNI call, so
      * the StoreRecords() method with a batch of records will be
      * more efficient.
-     * 
+     *
      * @param[in] record StorageRecord to persist.
      * @return true if we stored the record.
      */
@@ -620,11 +635,11 @@ namespace MAT_NS_BEGIN
 
     /**
      * Store a std::vector of records.
-     * 
+     *
      * We ignore the id on these records. SQLite will assign a unique
      * row id to each record we persist, and we will return that
      * whenever we retrieve records.
-     * 
+     *
      * @param[in] records The records to be persisted.
      * @return the number of records we persisted.
      */
@@ -748,7 +763,7 @@ namespace MAT_NS_BEGIN
 
     /**
      * Delete one setting (helper for StoreSetting)
-     * 
+     *
      * @param[in] name The key to delete from the database.
      */
 
@@ -799,10 +814,10 @@ namespace MAT_NS_BEGIN
 
     /**
      * Retrieve value from key-value store.
-     * 
+     *
      * Returns empty string if the key is not in the database, or we
      * encounter errors.
-     * 
+     *
      * @param[in] name Key.
      * @return Corresponding value.
      */
@@ -871,7 +886,7 @@ namespace MAT_NS_BEGIN
 
     /**
      * Number of records (StorageRecord) for a latency (or all latencies)
-     * 
+     *
      * @param[in] latency Desired latency (or EventLatency_Unspecified to get
      * the total count for all latencies).
      * @return number of records.
@@ -1022,7 +1037,10 @@ namespace MAT_NS_BEGIN
         {
             env->ExceptionDescribe();
             env->ExceptionClear();
-            MATSDK_THROW(std::logic_error(message));
+            if (s_throwExceptions)
+            {
+                MATSDK_THROW(std::logic_error(message));
+            }
         }
     }
 
@@ -1034,7 +1052,11 @@ namespace MAT_NS_BEGIN
         {
             env->ExceptionDescribe();
             env->ExceptionClear();
-            MATSDK_THROW(std::runtime_error(message));
+
+            if (s_throwExceptions)
+            {
+                MATSDK_THROW(std::runtime_error(message));
+            }
         }
     }
 
@@ -1051,4 +1073,3 @@ Java_com_microsoft_applications_events_OfflineRoom_connectContext(
 {
     ::Microsoft::Applications::Events::OfflineStorage_Room::ConnectJVM(env, context);
 }
-
