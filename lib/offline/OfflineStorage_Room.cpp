@@ -1063,6 +1063,9 @@ namespace MAT_NS_BEGIN
         {
             env->ExceptionDescribe();
             env->ExceptionClear();
+            if (m_observer) {
+                m_observer->OnStorageFailed(message);
+            }
             if (s_throwExceptions)
             {
                 MATSDK_THROW(std::logic_error(message));
@@ -1078,7 +1081,9 @@ namespace MAT_NS_BEGIN
         {
             env->ExceptionDescribe();
             env->ExceptionClear();
-
+            if (m_observer) {
+                m_observer->OnStorageFailed(message);
+            }
             if (s_throwExceptions)
             {
                 MATSDK_THROW(std::runtime_error(message));
