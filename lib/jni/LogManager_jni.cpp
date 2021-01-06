@@ -10,12 +10,12 @@
 #endif
 #endif
 
+#include <utils/Utils.hpp>
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
 #include "android/log.h"
 #include "config/RuntimeConfig_Default.hpp"
-#include <modules/dataviewer/DefaultDataViewer.hpp>
 
 using namespace MAT;
 
