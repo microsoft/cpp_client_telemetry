@@ -430,9 +430,9 @@ namespace Microsoft.Applications.Events
         [Export ("uploadNow")]
         void UploadNow ();
 
-        // +(ODWStatus)flushWithStatus;
+        // +(ODWStatus)flush;
         [Static]
-        [Export("flushWithStatus")]
+        [Export("flush")]
         Status Flush();
 
         // +(void)setTransmissionProfile:(ODWTransmissionProfile)profile;
@@ -450,9 +450,9 @@ namespace Microsoft.Applications.Events
         [Export ("resumeTransmission")]
         void ResumeTransmission ();
 
-        // +(ODWStatus)flushAndTeardownWithStatus;
+        // +(ODWStatus)flushAndTeardown;
         [Static]
-        [Export ("flushAndTeardownWithStatus")]
+        [Export ("flushAndTeardown")]
         Status FlushAndTeardown ();
 
         // +(void)resetTransmitProfiles;

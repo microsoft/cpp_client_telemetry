@@ -24,22 +24,22 @@ NS_ASSUME_NONNULL_BEGIN
 
 /*!
  @enum ODWStatus
- @brief The <b>ODWStatus</b> enumartion contiains the status values returned by the Flush and FlushAndTearDown functions
+ @brief The <b>ODWStatus</b> enumeration contains the status values returned by the Flush and FlushAndTearDown functions
 */
 typedef NS_ENUM(NSInteger, ODWStatus)
 {
     // General failure
-    Efail = -1,
+    ODWEfail = -1,
     // Success
-    Success = 0,
+    ODWSuccess = 0,
     // Permission denied
-    Eperm = 1,
+    ODWEperm = 1,
     // Already done / already in progress
-    Ealready = 2,
+    ODWEalready = 2,
     // Not implemented or no-op
-    Enosys = 3,
+    ODWEnosys = 3,
     // Not supported
-    Enotsup = 4,
+    ODWEnotsup = 4,
 };
 
 /*!
@@ -86,14 +86,9 @@ typedef NS_ENUM(NSInteger, ODWStatus)
 +(void)uploadNow;
 
 /*!
- @brief Flushes pending telemetry events from memory to disk (to reduce possible data loss).
- */
-+(void)flush;
-
-/*!
  @brief Flushes pending telemetry events from memory to disk (to reduce possible data loss) and returns the flush operation's status
  */
-+(ODWStatus)flushWithStatus;
++(ODWStatus)flush;
 
 /*!
  @brief Sets the transmit profile for event transmission.
@@ -115,14 +110,9 @@ typedef NS_ENUM(NSInteger, ODWStatus)
 +(void)resumeTransmission;
 
 /*!
- @brief Flushes pending telemetry events from memory to disk, and tears-down the telemetry logging system.
- */
-+(void)flushAndTeardown;
-
-/*!
  @brief Flushes pending telemetry events from memory to disk, tears-down the telemetry logging system, and returns the flush operation's status
  */
-+(ODWStatus)flushAndTeardownWithStatus;
++(ODWStatus)flushAndTeardown;
 
 /*!
  @brief Resets the transmit profiles to contain only default profiles.

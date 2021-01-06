@@ -174,14 +174,7 @@ static BOOL _initialized = false;
     });
 }
 
-+(void)flush
-{
-    PerformActionWithCppExceptionsCatch(^(void) {
-        LogManager::Flush();
-    });
-}
-
-+(ODWStatus)flushWithStatus
++(ODWStatus)flush
 {
     try
     {
@@ -197,15 +190,7 @@ static BOOL _initialized = false;
     }
 }
 
-+(void)flushAndTeardown
-{
-    PerformActionWithCppExceptionsCatch(^(void) {
-        LogManager::FlushAndTeardown();
-        _initialized = false;
-    });
-}
-
-+(ODWStatus)flushAndTeardownWithStatus
++(ODWStatus)flushAndTeardown
 {
     try
     {
