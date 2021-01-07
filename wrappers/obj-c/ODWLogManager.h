@@ -23,6 +23,26 @@ NS_ASSUME_NONNULL_BEGIN
 };
 
 /*!
+ @enum ODWStatus
+ @brief The <b>ODWStatus</b> enumeration contains the status values returned by the Flush and FlushAndTearDown functions
+*/
+typedef NS_ENUM(NSInteger, ODWStatus)
+{
+    // General failure
+    ODWEfail = -1,
+    // Success
+    ODWSuccess = 0,
+    // Permission denied
+    ODWEperm = 1,
+    // Already done / already in progress
+    ODWEalready = 2,
+    // Not implemented or no-op
+    ODWEnosys = 3,
+    // Not supported
+    ODWEnotsup = 4,
+};
+
+/*!
  @brief Initializes the telemetry logging system with the default cofiguration, using the specified tenant token.
  @param tenantToken A string that contains the tenant token.
  @return An ODWLogger instance
@@ -66,9 +86,9 @@ NS_ASSUME_NONNULL_BEGIN
 +(void)uploadNow;
 
 /*!
- @brief Flushes pending telemetry events from memory to disk (to reduce possible data loss).
+ @brief Flushes pending telemetry events from memory to disk (to reduce possible data loss) and returns the flush operation's status
  */
-+(void)flush;
++(ODWStatus)flush;
 
 /*!
  @brief Sets the transmit profile for event transmission.
@@ -90,9 +110,9 @@ NS_ASSUME_NONNULL_BEGIN
 +(void)resumeTransmission;
 
 /*!
- @brief Flushes pending telemetry events from memory to disk, and tears-down the telemetry logging system.
+ @brief Flushes pending telemetry events from memory to disk, tears-down the telemetry logging system, and returns the flush operation's status
  */
-+(void)flushAndTeardown;
++(ODWStatus)flushAndTeardown;
 
 /*!
  @brief Resets the transmit profiles to contain only default profiles.

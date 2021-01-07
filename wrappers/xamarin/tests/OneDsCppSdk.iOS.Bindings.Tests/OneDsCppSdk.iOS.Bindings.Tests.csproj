@@ -9,6 +9,7 @@
     <RootNamespace>OneDsCppSdk.iOS.Bindings.Tests</RootNamespace>
     <AssemblyName>OneDsCppSdk.iOS.Bindings.Tests</AssemblyName>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <CodeAnalysisRuleSet>..\..\OneDsCppSdk.Bindings.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
     <DebugSymbols>true</DebugSymbols>
@@ -90,27 +91,38 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Applications.Events">
-      <HintPath>..\Assemblies\iOS\$(Configuration)\Microsoft.Applications.Events.dll</HintPath>
+      <HintPath>..\Assemblies\$(Configuration)\iOS\Microsoft.Applications.Events.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.iOS" />
-    <Reference Include="MonoTouch.NUnitLite" />
+    <Reference Include="MonoTouch.NUnitLite">
+      <Aliases>NUnitLite</Aliases>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
   </ItemGroup>
   <ItemGroup>
+    <AdditionalFiles Include="..\..\stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />
-    <Compile Include="Tests\LogManagerTests.cs" />
+    <Compile Include="Tests\BaseTests.cs" />
     <Compile Include="UnitTestAppDelegate.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers">
+      <Version>1.1.118</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
   <Import Project="..\OneDsCppSdk.Bindings.Tests.Shared\OneDsCppSdk.Bindings.Tests.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

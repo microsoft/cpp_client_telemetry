@@ -2,10 +2,11 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
+extern alias NUnitLite;
 
 using Foundation;
+using NUnitLite::MonoTouch.NUnit.UI;
 using UIKit;
-using MonoTouch.NUnit.UI;
 
 namespace OneDsCppSdk.iOS.Bindings.Tests
 {
@@ -44,4 +45,3 @@ namespace OneDsCppSdk.iOS.Bindings.Tests
         }
     }
 }
-

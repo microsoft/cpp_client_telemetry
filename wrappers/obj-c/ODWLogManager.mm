@@ -174,19 +174,36 @@ static BOOL _initialized = false;
     });
 }
 
-+(void)flush
++(ODWStatus)flush
 {
-    PerformActionWithCppExceptionsCatch(^(void) {
-        LogManager::Flush();
-    });
+    try
+    {
+        return ((ODWStatus)LogManager::Flush());
+    }
+    catch (const std::exception &e)
+    {
+         if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+    }
 }
 
-+(void)flushAndTeardown
++(ODWStatus)flushAndTeardown
 {
-    PerformActionWithCppExceptionsCatch(^(void) {
-        LogManager::FlushAndTeardown();
-        _initialized = false;
-    });
+    try
+    {
+        ODWStatus status = ((ODWStatus)LogManager::FlushAndTeardown());
+    }
+    catch (const std::exception &e)
+    {
+         if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+    }
 }
 
 +(void)setTransmissionProfile:(ODWTransmissionProfile)profile

@@ -15,4 +15,3 @@ namespace Microsoft.Applications.Events
         public EventProperty(string value) {}
     }
 }
-
