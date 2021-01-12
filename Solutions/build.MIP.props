@@ -4,11 +4,13 @@
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);CONFIG_CUSTOM_H="config-MIP.h"</PreprocessorDefinitions>
     </ClCompile>
-      <Link>
-        <DelayLoadDLLs>api-ms-win-crt-convert-l1-1-0.dll; api-ms-win-crt-filesystem-l1-1-0.dll; api-ms-win-crt-heap-l1-1-0.dll; api-ms-win-crt-math-l1-1-0.dll; api-ms-win-crt-runtime-l1-1-0.dll; api-ms-win-crt-stdio-l1-1-0.dll; api-ms-win-crt-string-l1-1-0.dll; api-ms-win-crt-time-l1-1-0.dll; wininet.dll; version.dll; user32.dll; advapi32.dll; ole32.dll; shlwapi.dll; iphlpapi.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
+    <Link>
       <DelayLoadDLLs Condition="'$(Configuration)'=='Debug'">ucrtbased.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
+  <PropertyGroup>
+    <DisableWinRT>true</DisableWinRT>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(RootNamespace)'=='ClientTelemetry'">
     <TargetName>mip_ClientTelemetry</TargetName>
   </PropertyGroup>
