@@ -5,7 +5,11 @@ if [ "$1" == "ios" ]; then
   BUILD_TESTS="OFF"
 else
   IOS_BUILD="NO"
-  BUILD_TESTS="ON"
+  if [ "$1" == "arm64" ]; then
+    BUILD_TESTS="OFF"
+  else
+    BUILD_TESTS="ON"
+  fi
 fi
 
 cd `dirname $0`
