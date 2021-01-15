@@ -72,7 +72,7 @@ static BOOL _initialized = false;
     ILogger* logger = nullptr;
     try
     {
-        ILogConfiguration logManagerConfig;
+        static ILogConfiguration logManagerConfig;
 
         // Initializing logManager config with default configuration
         auto& defaultConfig = LogManager::GetLogConfiguration();
