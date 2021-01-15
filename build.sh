@@ -91,11 +91,7 @@ if [ "$LINK_TYPE" == "shared" ]; then
 fi
 
 # Set target MacOS minver
-export MACOSX_DEPLOYMENT_TARGET=10.10
-
-if [ "$MAC_ARCH" == "arm64" ]; then
-  export CC="/usr/bin/clang -arch ${MAC_ARCH}"
-fi
+export MACOSX_DEPLOYMENT_TARGET=11.10
 
 # Install build tools and recent sqlite3
 FILE=.buildtools
