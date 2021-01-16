@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
+ARCH="x86_64"
 if [ "$1" == "ios" ]; then
   IOS_BUILD="YES"
   # Skip building tests on iOS as there is no way to run them
   BUILD_TESTS="OFF"
 else
   IOS_BUILD="NO"
-  BUILD_TESTS="ON"
+  if [ "$1" == "arm64" ]; then
+    ARCH="arm64"
+    BUILD_TESTS="OFF"
+  else
+    BUILD_TESTS="ON"
+  fi
 fi
 
 cd `dirname $0`
@@ -39,6 +45,7 @@ cmake -Dgtest_build_samples=OFF \
       -Dgmock_build_tests=OFF \
       -DCMAKE_CXX_FLAGS="-fPIC $CXX_FLAGS" \
       -DBUILD_IOS=$IOS_BUILD \
+      -DARCH=$ARCH \
       ..
 make
 popd
