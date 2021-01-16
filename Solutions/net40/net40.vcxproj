@@ -218,7 +218,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>uuid.lib;wininet.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
+      <DelayLoadDLLs Condition="'$(DisableWinRT)'!='true'">Mfplat.dll;api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll;kernel.appcore.dll;Windows.Networking.Connectivity.dll;Windows.Networking.HostName.dll</DelayLoadDLLs>
       <ForceFileOutput>
       </ForceFileOutput>
       <EntryPointSymbol>
