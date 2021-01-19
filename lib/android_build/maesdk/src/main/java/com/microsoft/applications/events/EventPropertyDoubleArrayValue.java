@@ -1,6 +1,10 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
-public class EventPropertyDoubleArrayValue extends EventPropertyValue{
+class EventPropertyDoubleArrayValue extends EventPropertyValue{
     private double[] m_value;
 
     public EventPropertyDoubleArrayValue(final double[] value) {
@@ -15,3 +19,4 @@ public class EventPropertyDoubleArrayValue extends EventPropertyValue{
         return m_value;
     }
 }
+

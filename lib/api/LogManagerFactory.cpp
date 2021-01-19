@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "LogManagerFactory.hpp"
 #include "LogManagerImpl.hpp"
 
@@ -153,8 +157,7 @@ namespace MAT_NS_BEGIN
             shared[host].names.insert(name);
         }
 
-        // TODO: [MG] - if there was no module configuration supplied
-        // explicitly, then do we treat the client as host or guest?
+        // If there was no module configuration supplied explicitly, then do we treat the client as host or guest?
         c[CFG_BOOL_HOST_MODE] = (name == host);
         return shared[host].instance;
     }
@@ -251,3 +254,4 @@ namespace MAT_NS_BEGIN
 
 }
 MAT_NS_END
+

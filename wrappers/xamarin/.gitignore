@@ -1,0 +1,5 @@
+*.aar
+*.so
+*.a
+*.dll
+sdk/OneDsCppSdk.Android.Bindings/JavaDoc/

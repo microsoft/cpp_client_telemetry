@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "Logger.hpp"
 #include "CommonFields.h"
@@ -94,12 +97,14 @@ namespace MAT_NS_BEGIN
         m_semanticContextDecorator(logManager, m_context),
         m_semanticApiDecorators(logManager),
         m_sessionStartTime(0),
-        m_allowDotsInType(false)
+        m_allowDotsInType(false),
+        m_resetSessionOnEnd(false)
     {
         std::string tenantId = tenantTokenToId(m_tenantToken);
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
         m_allowDotsInType = m_config[CFG_MAP_COMPAT][CFG_BOOL_COMPAT_DOTS];
+        m_resetSessionOnEnd = m_config[CFG_BOOL_SESSION_RESET_ENABLED];
 
         // Special scope "-" - means opt-out from parent context variables auto-capture.
         // It allows to detach the logger from its parent context.
@@ -140,7 +145,7 @@ namespace MAT_NS_BEGIN
         LOG_TRACE("%p: SetContext( properties.name=\"%s\", properties.value=\"%s\", PII=%u, ...)",
                   this, name.c_str(), prop.to_string().c_str(), prop.piiKind);
 
-        EventRejectedReason isValidPropertyName = validatePropertyName(name);
+        const EventRejectedReason isValidPropertyName = validatePropertyName(name);
         if (isValidPropertyName != REJECTED_REASON_OK)
         {
             LOG_ERROR("Context name is invalid: %s", name.c_str());
@@ -192,7 +197,7 @@ namespace MAT_NS_BEGIN
         SetContext(k, EventProperty(v, pii));
     };
 
-    // TODO: [MG] - the goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
+    // The goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
     // SDK may provide a future option for a guest logger to opt-in into its own semantic context. The method will then
     // rewire from the default parent (Host LogManager context) to guest's sandbox context, i.e. enabling scenario where
     // several guests are attached to one host, but each guest has their own 'local' LogManager semantic context sandbox.
@@ -245,7 +250,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decorateAppLifecycleMessage(record, state);
         if (!decorated)
@@ -256,7 +261,7 @@ namespace MAT_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_LIFECYCLE, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_LIFECYCLE, size_t(latency), size_t(0), static_cast<void*>(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -316,7 +321,7 @@ namespace MAT_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_EVENT, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_EVENT, size_t(latency), size_t(0), static_cast<void*>(&record), sizeof(record)));
     }
 
     /// <summary>
@@ -353,7 +358,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decorateFailureMessage(record, signature, detail, category, id);
 
@@ -366,7 +371,7 @@ namespace MAT_NS_BEGIN
         }
 
         submit(record, properties);
-        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_FAILURE, size_t(latency), size_t(0), (void*)(&record), sizeof(record)));
+        DispatchEvent(DebugEvent(DebugEventType::EVT_LOG_FAILURE, size_t(latency), size_t(0), static_cast<void*>(&record), sizeof(record)));
     }
 
     void Logger::LogFailure(
@@ -404,7 +409,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decoratePageViewMessage(record, id, pageName, category, uri, referrer);
 
@@ -458,7 +463,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decoratePageActionMessage(record, pageActionData);
         if (!decorated)
@@ -518,9 +523,9 @@ namespace MAT_NS_BEGIN
             return;
         }
 
-        auto policyBitFlags = props.GetPolicyBitFlags();
-        auto persistence = props.GetPersistence();
-        auto latency = props.GetLatency();
+        const auto policyBitFlags = props.GetPolicyBitFlags();
+        const auto persistence = props.GetPersistence();
+        const auto latency = props.GetLatency();
         auto levelFilter = m_logManager.GetLevelFilter();
         if (levelFilter.IsLevelFilterEnabled())
         {
@@ -608,7 +613,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decorateSampledMetricMessage(record, name, value, units, instanceName, objectClass, objectId);
 
@@ -664,7 +669,7 @@ namespace MAT_NS_BEGIN
         EventLatency latency = EventLatency_Normal;
         ::CsProtocol::Record record;
 
-        bool decorated =
+        const bool decorated =
             applyCommonDecorators(record, properties, latency) &&
             m_semanticApiDecorators.decorateAggregatedMetricMessage(record, metricData);
 
@@ -775,9 +780,14 @@ namespace MAT_NS_BEGIN
             return;
         }
 
-        LogSessionData* logSessionData = m_logManager.GetLogSessionData();
-        std::string sessionSDKUid = logSessionData->getSessionSDKUid();
-        unsigned long long sessionFirstTime = logSessionData->getSessionFirstTime();
+        auto logSessionData = m_logManager.GetLogSessionData();
+        std::string sessionSDKUid;
+        unsigned long long sessionFirstTime = 0;
+        if (logSessionData!=nullptr)
+        {
+            sessionSDKUid = logSessionData->getSessionSDKUid();
+            sessionFirstTime = logSessionData->getSessionFirstTime();
+        }
 
         if (sessionSDKUid == "" || sessionFirstTime == 0)
         {
@@ -819,6 +829,18 @@ namespace MAT_NS_BEGIN
                 return;
             }
             sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
+
+            if (m_resetSessionOnEnd) 
+            {
+                // reset the time of the session to 0 and get a new sessionId
+                m_sessionStartTime = 0;
+                if (logSessionData!=nullptr)
+                {
+                    m_logManager.ResetLogSessionData();
+                    LOG_TRACE("Resetting session data on session end");
+                }
+            }
+
             break;
         }
         }
@@ -871,7 +893,7 @@ namespace MAT_NS_BEGIN
 
         return m_logManager.GetLogSessionData();
     }
-
+    
     IAuthTokensController* Logger::GetAuthTokensController()
     {
         ActiveLoggerCall active(*this);

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "TelemetrySystem.hpp"
 #include "utils/Utils.hpp"
@@ -42,8 +45,10 @@ namespace MAT_NS_BEGIN {
             bool result = true;
             result&=storage.start();
             result&=tpm.start();
+            // TODO: clarify how UTC subsystem initializes LogSessionData m_storageType=SessionStorageType::FileStore ?
+            // We may not necessarily compile in SQLite support for UTC min-build. For now we assume nullptr.
             logSessionDataProvider.CreateLogSessionData();
-            result&=stats.onStart(); // TODO: [MG]- readd this
+            result&=stats.onStart();
             return result;
         };
 
@@ -131,6 +136,14 @@ namespace MAT_NS_BEGIN {
         onResume = [this](void)
         {
             return tpm.start();
+        };
+
+        onCleanup = [this](void)
+        {
+            bool result = true;
+            hcm.cancelAllRequests();
+            result &= tpm.cleanup();
+            return result;
         };
 
         tpm.allUploadsFinished >> stats.onStop >> this->flushTaskDispatcher;
@@ -222,3 +235,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+

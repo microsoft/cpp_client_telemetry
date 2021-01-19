@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "Packager.hpp"
 #include "ILogManager.hpp"
@@ -23,7 +26,7 @@ namespace MAT_NS_BEGIN {
             if (ctx->maxUploadSize == 0) {
                 ctx->maxUploadSize = m_config.GetMaximumUploadSizeBytes();
             }
-            if (ctx->splicer.getSizeEstimate() + record.blob.size() > ctx->maxUploadSize) {
+            if (ctx->splicer->getSizeEstimate() + record.blob.size() > ctx->maxUploadSize) {
                 wantMore = false;
                 if (!ctx->recordIdsAndTenantIds.empty()) {
                     LOG_TRACE("Maximum upload size %u bytes exceeded, not adding the next event (ID %s, size %u bytes)",
@@ -49,10 +52,10 @@ namespace MAT_NS_BEGIN {
             auto it = ctx->packageIds.lower_bound(tenantToken);
             if (it == ctx->packageIds.end() || it->first != tenantToken)
             {
-                it = ctx->packageIds.insert(it, { tenantToken, ctx->splicer.addTenantToken(tenantToken) });
+                it = ctx->packageIds.insert(it, { tenantToken, ctx->splicer->addTenantToken(tenantToken) });
             }
 
-            ctx->splicer.addRecord(it->second, record.blob);
+            ctx->splicer->addRecord(it->second, record.blob);
 
             ctx->recordIdsAndTenantIds[record.id] = record.tenantToken;
             ctx->recordTimestamps.push_back(record.timestamp);
@@ -71,11 +74,12 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
-        ctx->body = ctx->splicer.splice();
-        ctx->splicer.clear();
+        ctx->body = ctx->splicer->splice();
+        ctx->splicer->clear();
 
         packagedEvents(ctx);
     }
 
 
 } MAT_NS_END
+

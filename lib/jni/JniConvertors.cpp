@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "JniConvertors.hpp"
 
 namespace MAT_NS_BEGIN
@@ -155,7 +159,8 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
         const jobjectArray& jEventPropertyStringKeyArray, const jobjectArray& jEventPropertyValueArray) {
     EventProperties eventProperties;
     eventProperties.SetName(JStringToStdString(env, jstrEventName));
-    eventProperties.SetType(JStringToStdString(env, jstrEventType));
+    if (jstrEventType != NULL)
+        eventProperties.SetType(JStringToStdString(env, jstrEventType));
     eventProperties.SetLatency(static_cast<EventLatency>(jEventLatency));
     eventProperties.SetPersistence(static_cast<EventPersistence>(jEventPersistence));
     eventProperties.SetPopsample(static_cast<double>(jEventPopSample));
@@ -174,4 +179,45 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
     return eventProperties;
 }
 
+std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const jobjectArray& jArrayToConvert)
+{
+    std::vector<std::string> stringVector;
+    stringVector.reserve(env->GetArrayLength(jArrayToConvert));
+
+    for(int i = 0; i < env->GetArrayLength(jArrayToConvert); i++)
+    {
+        auto jStringValue = static_cast<jstring>(env->GetObjectArrayElement(jArrayToConvert, i));
+        auto stringValue = JStringToStdString(env, jStringValue);
+        if(!stringValue.empty())
+        {
+            stringVector.emplace_back(std::move(stringValue));
+        }
+        env->DeleteLocalRef(jStringValue);
+    }
+
+    return stringVector;
+}
+
+CommonDataContexts GenerateCommonDataContextObject(JNIEnv *env,
+                                                       jstring domainName,
+                                                       jstring machineName,
+                                                       jstring userName,
+                                                       jstring userAlias,
+                                                       jobjectArray ipAddresses,
+                                                       jobjectArray languageIdentifiers,
+                                                       jobjectArray machineIds,
+                                                       jobjectArray outOfScopeIdentifiers) {
+    CommonDataContexts cdc;
+    cdc.DomainName = JStringToStdString(env, domainName);
+    cdc.MachineName = JStringToStdString(env, machineName);
+    cdc.UserName = JStringToStdString(env, userName);
+    cdc.UserAlias = JStringToStdString(env, userAlias);
+    cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
+    cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
+    cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
+    cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
+    return cdc;
+}
+
 } MAT_NS_END
+

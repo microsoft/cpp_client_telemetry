@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "JniConvertors.hpp"
 #include "ISemanticContext.hpp"
 
@@ -116,3 +120,4 @@ JNIEXPORT void JNICALL Java_com_microsoft_applications_events_SemanticContext_na
 }
 
 }
+

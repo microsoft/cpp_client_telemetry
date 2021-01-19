@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "HttpRequestEncoder.hpp"
 #include "utils/Utils.hpp"
@@ -143,7 +146,7 @@ namespace MAT_NS_BEGIN {
 
 
 #if 0
-        // XXX: [MG] - debug only
+        // Debug only: uncomment to set a breakpoint - decode-verify the payload before sending it.
         CsProtocol::Record result;
         bond_lite::CompactBinaryProtocolReader reader(ctx->body);
         bond_lite::Deserialize(reader, result);
@@ -161,3 +164,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+

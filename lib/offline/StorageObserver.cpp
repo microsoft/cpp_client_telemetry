@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "StorageObserver.hpp"
 
@@ -46,7 +49,7 @@ namespace MAT_NS_BEGIN {
             return wantMore;
         };
 
-        // TODO: [MG] - expose 120000 as a constant
+        // TODO: [MG] - expose 120000 as a configuration parameter
         if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
         {
             ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
@@ -212,3 +215,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+

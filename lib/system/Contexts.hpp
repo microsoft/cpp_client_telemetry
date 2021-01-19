@@ -1,8 +1,12 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include "IHttpClient.hpp"
 #include "IOfflineStorage.hpp"
+#include "packager/ISplicer.hpp"
 #include "packager/BondSplicer.hpp"
 #include "pal/PAL.hpp"
 #include "utils/Utils.hpp"
@@ -80,7 +84,7 @@ namespace MAT_NS_BEGIN {
         unsigned                             requestedMaxCount = 0;
 
         // Packaging
-        BondSplicer                          splicer;
+        std::unique_ptr<ISplicer>            splicer;
         unsigned                             maxUploadSize = 0;
         EventLatency                         latency = EventLatency_Unspecified;
         std::map<std::string, size_t>        packageIds;
@@ -102,7 +106,13 @@ namespace MAT_NS_BEGIN {
         int                                  durationMs = -1;
         bool                                 fromMemory = false;
 
-        EventsUploadContext() noexcept
+        EventsUploadContext() noexcept : 
+            EventsUploadContext(std::unique_ptr<ISplicer>(new BondSplicer()))
+        {
+        }
+
+        EventsUploadContext(std::unique_ptr<ISplicer> &&splicer) : 
+            splicer(std::move(splicer))
         {
 #ifdef CRT_DEBUG_LEAKS
             objCount(1);
@@ -129,3 +139,4 @@ namespace MAT_NS_BEGIN {
 
 
 } MAT_NS_END
+

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -210,93 +214,6 @@ public:
     }
 };
 
-
-/// <summary>
-/// Create sample event of a given priority
-/// </summary>
-/// <param name="name">event name</param>
-/// <param name="prio">priority</param>
-/// <returns></returns>
-EventProperties CreateSampleEvent(const char *name, EventPriority prio)
-{
-#ifdef _WIN32
-    /* Test for Win32 GUID type, specific to Windows only */
-    GUID win_guid;
-    win_guid.Data1 = 0;
-    win_guid.Data2 = 1;
-    win_guid.Data3 = 2;
-
-    for (uint8_t i = 0; i < 8; i++)
-    {
-        win_guid.Data4[i] = i;
-    }
-#endif
-
-    // GUID constructor from byte[16]
-    const uint8_t guid_b[16] = {
-        0x03, 0x02, 0x01, 0x00,
-        0x05, 0x04,
-        0x07, 0x06,
-        0x08, 0x09,
-        0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
-
-    GUID_t guid_c(
-        0x00010203,
-        0x0405,
-        0x0607,
-        { 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }
-    );
-
-    const GUID_t guid_d;
-
-    // Prepare current time in UTC (seconds precision)
-    std::time_t t = std::time(nullptr);
-    std::gmtime(&t);
-
-    /* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
-    EventProperties props(name,
-        {
-    #ifdef _MSC_VER
-            { "_MSC_VER", _MSC_VER },
-    #endif
-            { "piiKind.None",               EventProperty("jackfrost",  PiiKind_None) },
-            { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
-            { "piiKind.GenericData",        EventProperty("jackfrost",  PiiKind_GenericData) },
-            { "piiKind.IPv4Address",        EventProperty("127.0.0.1", PiiKind_IPv4Address) },
-            { "piiKind.IPv6Address",        EventProperty("2001:0db8:85a3:0000:0000:8a2e:0370:7334", PiiKind_IPv6Address) },
-            { "piiKind.MailSubject",        EventProperty("RE: test",  PiiKind_MailSubject) },
-            { "piiKind.PhoneNumber",        EventProperty("+1-613-866-6960", PiiKind_PhoneNumber) },
-            { "piiKind.QueryString",        EventProperty("a=1&b=2&c=3", PiiKind_QueryString) },
-            { "piiKind.SipAddress",         EventProperty("sip:jackfrost@microsoft.com", PiiKind_SipAddress) },
-            { "piiKind.SmtpAddress",        EventProperty("Jack Frost <jackfrost@microsoft.com>", PiiKind_SmtpAddress) },
-            { "piiKind.Identity",           EventProperty("Jack Frost", PiiKind_Identity) },
-            { "piiKind.Uri",                EventProperty("http://www.microsoft.com", PiiKind_Uri) },
-            { "piiKind.Fqdn",               EventProperty("www.microsoft.com", PiiKind_Fqdn) },
-
-            { "strKey",   "hello" },
-            { "strKey2",  "hello2" },
-            { "int64Key", (int64_t)1L },
-            { "dblKey",   3.14 },
-            { "boolKey",  false },
-
-            { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
-            { "guidKey1", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-            { "guidKey2", GUID_t(guid_b) },
-            { "guidKey3", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
-            { "guidKey4", GUID_t(guid_c) },
-
-            { "timeKey1",  time_ticks_t((uint64_t)0) },     // ticks   precision
-            { "timeKey2",  time_ticks_t(&t) }               // seconds precision
-        });
-#ifdef _WIN32
-    props.SetProperty("win_guid", GUID_t(win_guid));
-#endif
-    props.SetPriority(prio);
-    props.SetLevel(DIAG_LEVEL_REQUIRED);
-
-    return props;
-}
-
 /// <summary>
 /// Add all event listeners
 /// </summary>
@@ -462,6 +379,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     configuration[CFG_INT_CACHE_FILE_SIZE] = 1024000; // 1MB
     configuration[CFG_INT_STORAGE_FULL_PCT] = 1; // 1%
     configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 0; // 0ms
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 524288; // Requires default ram queue size otherwise skips events
 
     EventProperties eventToLog{ "foo1" };
     eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
@@ -614,7 +532,7 @@ unsigned StressSingleThreaded(ILogConfiguration& config)
     size_t numIterations = MAX_ITERATIONS;
     while (numIterations--)
     {
-        EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
+        EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
     }
     LogManager::FlushAndTeardown();
@@ -668,7 +586,7 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
                 t.detach();
             }
         };
-        EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
+        EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
         LogManager::FlushAndTeardown();
     }
@@ -1481,8 +1399,13 @@ TEST(APITest, Custom_Decorator)
     });
     LogManager::GetLogger()->LogEvent(myEvent2);
     LogManager::FlushAndTeardown();
+    // In-lieu of RemoveModule(...) the current solution is to set the module to nullptr.
+    // This is functionally nearly equivalent to unsetting it since GetModule(CFG_MODULE_DECORATOR)
+    // for non-existing module also returns nullptr.
+    config.AddModule(CFG_MODULE_DECORATOR, nullptr);
 }
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)
+

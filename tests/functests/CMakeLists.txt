@@ -1,6 +1,3 @@
-include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googletest/include ${CMAKE_CURRENT_SOURCE_DIR}/../googletest/googlemock/include ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/public ${CMAKE_CURRENT_SOURCE_DIR}/../lib/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite )
-
-
 message("--- functests")
 
 set(SRCS
@@ -10,6 +7,21 @@ set(SRCS
   Main.cpp
   MultipleLogManagersTests.cpp
 )
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+  add_definitions(-DHAVE_MAT_PRIVACYGUARD)
+  list(APPEND SRCS
+    PrivacyGuardFuncTests.cpp
+  )
+endif()
+
+if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+    list(APPEND SRCS
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
+        )
+endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
@@ -59,7 +71,7 @@ else()
     if(BUILD_IOS)
       set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit -framework Network -framework SystemConfiguration")
     else()
-      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework IOKit")
+      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework IOKit -framework Network -framework SystemConfiguration")
     endif()
   endif()
 
@@ -76,6 +88,7 @@ else()
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
@@ -83,6 +96,7 @@ else()
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )

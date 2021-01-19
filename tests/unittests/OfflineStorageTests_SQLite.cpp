@@ -1,5 +1,8 @@
-// Copyright (c) Microsoft. All rights reserved.
-#if 0 // TODO: [MG] - re-enable the tests
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
+#if 0
 #include "common/Common.hpp"
 #include "common/MockIOfflineStorageObserver.hpp"
 #include "common/MockIRuntimeConfig.hpp"
@@ -633,3 +636,4 @@ TEST_F(OfflineStorageTests_SQLite, TrimmingAlwaysDropsAtLeastOneEvent)
     EXPECT_THAT(consumer.records[1].id, StrEq("new"));
 }
 #endif
+

@@ -1,18 +1,7 @@
-///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
 //
-// This code is licensed under the MIT License (MIT).
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-///////////////////////////////////////////////////////////////////////////////
 #ifndef ILOGMANAGER_HPP
 #define ILOGMANAGER_HPP
 
@@ -21,9 +10,11 @@
 #include <climits>
 #include <cstdint>
 #include <string>
+#include <functional>
 
 #include "Enums.hpp"
 #include "IAuthTokensController.hpp"
+#include "IDataInspector.hpp"
 #include "IDataViewerCollection.hpp"
 #include "IEventFilterCollection.hpp"
 #include "ILogger.hpp"
@@ -126,6 +117,12 @@ namespace MAT_NS_BEGIN
         /// Gets the name of the current transmit profile.
         /// </summary>
         virtual const std::string& GetTransmitProfileName() = 0;
+
+        /// <summary>
+        /// Delete local data
+        /// </summary>
+        virtual status_t DeleteData() = 0;
+
     };
 
     /// <summary>
@@ -324,6 +321,11 @@ namespace MAT_NS_BEGIN
         virtual LogSessionData* GetLogSessionData() override = 0;
 
         /// <summary>
+        /// Resets the log session data.
+        /// </summary>
+        virtual void ResetLogSessionData() = 0;
+
+        /// <summary>
         /// Retrieves the ILogController interface of LogManager to control transmission pipe.
         /// </summary>
         /// <returns>Pointer to the ILogController interface</returns>
@@ -370,9 +372,22 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>A const reference to the IDataViewerCollection instance</returns>
         virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
+
+        /// <summary>
+        /// Set the current instance of IDataInspector
+        /// </summary>
+        /// <param name="dataInspector">Shared Ptr to an instance of IDataInspector</param>
+        virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) = 0;
+
+        /// <summary>
+        /// Get the current instance of IDataInspector
+        /// </summary>
+        /// <returns>Current instance of IDataInspector if set, nullptr otherwise.</returns>
+        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept = 0;
     };
 
 }
 MAT_NS_END
 
 #endif
+

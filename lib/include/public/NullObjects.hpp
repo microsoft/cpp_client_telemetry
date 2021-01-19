@@ -1,18 +1,7 @@
-///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
 //
-// This code is licensed under the MIT License (MIT).
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-///////////////////////////////////////////////////////////////////////////////
 #ifndef MAT_NULLOBJECTS_HPP
 #define MAT_NULLOBJECTS_HPP
 
@@ -345,6 +334,8 @@ namespace MAT_NS_BEGIN
             return nullptr;
         }
 
+        virtual void ResetLogSessionData() override {};
+
         virtual ILogController* GetLogController() override
         {
             return this;
@@ -379,6 +370,19 @@ namespace MAT_NS_BEGIN
             return nullDataViewerCollection;
         }
 
+
+        void SetDataInspector(const std::shared_ptr<IDataInspector>& /*dataInspector*/) override {}
+
+        std::shared_ptr<IDataInspector> GetDataInspector() noexcept override
+        {
+            return nullptr;
+        }
+
+        virtual status_t DeleteData() noexcept override 
+        { 
+            return STATUS_ENOSYS;
+        }
+
         private:
             NullDataViewerCollection nullDataViewerCollection;
             NullEventFilterCollection m_filters;
@@ -387,3 +391,4 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
+

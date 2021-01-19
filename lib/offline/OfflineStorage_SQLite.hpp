@@ -1,6 +1,9 @@
 #include "mat/config.h"
 #ifdef HAVE_MAT_STORAGE
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include "pal/PAL.hpp"
@@ -23,7 +26,7 @@ namespace MAT_NS_BEGIN {
     class OfflineStorage_SQLite : public IOfflineStorage
     {
     public:
-        OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory = false);
+        OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory=false);
 
         virtual ~OfflineStorage_SQLite() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
@@ -37,11 +40,13 @@ namespace MAT_NS_BEGIN {
         virtual unsigned LastReadRecordCount() override;
 
         virtual void DeleteRecords(const std::map<std::string, std::string> & whereFilter) override;
+        virtual void DeleteAllRecords() override;
         virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
 
         virtual bool StoreSetting(std::string const& name, std::string const& value) override;
         virtual std::string GetSetting(std::string const& name) override;
+        virtual bool DeleteSetting(std::string const& name) override;
         virtual size_t GetSize() override;
         virtual size_t GetRecordCount(EventLatency latency) const override;
         virtual std::vector<StorageRecord> GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Normal, unsigned maxCount = 0) override;
@@ -116,3 +121,4 @@ namespace MAT_NS_BEGIN {
 
 } MAT_NS_END
 #endif
+

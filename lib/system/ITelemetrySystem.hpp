@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef ITELEMETRYSYSTEM_HPP
 #define ITELEMETRYSYSTEM_HPP
 
@@ -29,11 +32,14 @@ namespace MAT_NS_BEGIN {
         virtual void pause() = 0;
         virtual void resume() = 0;
         virtual bool upload() = 0;
+        virtual void cleanup() = 0;
 
         // Access to common core components
         virtual ILogManager& getLogManager() = 0;
         virtual IRuntimeConfig& getConfig() = 0;
         virtual ISemanticContext& getContext() = 0;
+
+        virtual EventsUploadContextPtr createEventsUploadContext() = 0;
 
         // Debug functionality
         virtual bool DispatchEvent(DebugEvent evt) override = 0;
@@ -52,3 +58,4 @@ namespace MAT_NS_BEGIN {
 } MAT_NS_END
 
 #endif
+

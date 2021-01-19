@@ -6,6 +6,10 @@
 cmake_minimum_required(VERSION 3.10.2)
 set(CMAKE_CXX_STANDARD 11)
 
+# Enable Azure Monitor / Application Insights end-point support
+option(BUILD_AZMON        "Build for Azure Monitor" YES)
+option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
+
 string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
 if (USE_CURL)
@@ -54,6 +58,7 @@ set(SRCS
         ${SDK_ROOT}/lib/jni/Utils_jni.cpp
         ${SDK_ROOT}/lib/offline/MemoryStorage.cpp
         ${SDK_ROOT}/lib/offline/LogSessionDataProvider.cpp
+        ${SDK_ROOT}/lib/offline/OfflineStorageFactory.cpp
         ${SDK_ROOT}/lib/offline/OfflineStorageHandler.cpp
         ${SDK_ROOT}/lib/offline/StorageObserver.cpp
         ${SDK_ROOT}/lib/packager/BondSplicer.cpp
@@ -76,14 +81,28 @@ set(SRCS
         ${SDK_ROOT}/lib/tpm/TransmitProfiles.cpp
         ${SDK_ROOT}/lib/utils/FileUtils.cpp
         ${SDK_ROOT}/lib/utils/StringUtils.cpp
+        ${SDK_ROOT}/lib/utils/ZlibUtils.cpp
         ${SDK_ROOT}/lib/utils/Utils.cpp
 )
+
+# Support for Azure Monitor / Application Insights
+if (BUILD_AZMON)
+    include(${SDK_ROOT}/lib/modules/azmon/CMakeLists.txt OPTIONAL)
+endif()
 
 if(EXISTS ${SDK_ROOT}/lib/modules/dataviewer/)
         list(APPEND SRCS
                 ${SDK_ROOT}/lib/jni/LogManagerDDVController_jni.cpp
                 ${SDK_ROOT}/lib/modules/dataviewer/DefaultDataViewer.cpp
                 ${SDK_ROOT}/lib/modules/dataviewer/OnDisableNotificationCollection.cpp
+        )
+endif()
+
+if(EXISTS ${SDK_ROOT}/lib/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+        list(APPEND SRCS
+                ${SDK_ROOT}/lib/jni/PrivacyGuard_jni.cpp
+                ${SDK_ROOT}/lib/modules/privacyguard/PrivacyGuard.cpp
+                ${SDK_ROOT}/lib/modules/privacyguard/RegisteredFileTypes.cpp
         )
 endif()
 

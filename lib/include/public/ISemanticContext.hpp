@@ -1,18 +1,7 @@
-///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
 //
-// This code is licensed under the MIT License (MIT).
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-///////////////////////////////////////////////////////////////////////////////
 #ifndef ISEMANTICCONTEXT_HPP
 #define ISEMANTICCONTEXT_HPP
 
@@ -121,6 +110,12 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <param name="deviceClass">Device class.</param>
         DECLARE_COMMONFIELD(DeviceClass, COMMONFIELDS_DEVICE_CLASS);
+
+          /// <summary>
+        /// Set the device orgId context information of telemetry event.
+        /// </summary>
+        /// <param name="deviceClass">Device orgId</param>
+        DECLARE_COMMONFIELD(DeviceOrgId, COMMONFIELDS_DEVICE_ORGID);
 
         /// <summary>
         /// Set the network cost context information of telemetry event.
@@ -285,3 +280,4 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif //ISEMANTICCONTEXT_H
+

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 // clang-format off
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
@@ -24,7 +28,6 @@ namespace PAL_NS_BEGIN {
     protected:
         std::thread           m_hThread;
 
-        // TODO: [MG] - investigate all the cases why we need recursive here
         std::recursive_mutex  m_lock;
         std::timed_mutex      m_execution_mutex;
 
@@ -48,7 +51,7 @@ namespace PAL_NS_BEGIN {
             Join();
         }
 
-        void Join() override
+        void Join() final
         {
             auto item = new WorkerThreadShutdownItem();
             Queue(item);
@@ -61,8 +64,7 @@ namespace PAL_NS_BEGIN {
             }
             catch (...) {};
 
-            // TODO: [MG] - investigate how often that happens.
-            // Side-effect is that we have a queued work item discarded on shutdown.
+            // TODO: [MG] - investigate if we ever drop work items on shutdown.
             if (!m_queue.empty())
             {
                 LOG_WARN("m_queue is not empty!");
@@ -73,9 +75,8 @@ namespace PAL_NS_BEGIN {
             }
         }
 
-        void Queue(MAT::Task* item) override
+        void Queue(MAT::Task* item) final
         {
-            // TODO: [MG] - show item type
             LOG_INFO("queue item=%p", &item);
             LOCKGUARD(m_lock);
             if (item->Type == MAT::Task::TimedCall) {
@@ -260,3 +261,4 @@ namespace PAL_NS_BEGIN {
 } PAL_NS_END
 
 #endif
+

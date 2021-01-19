@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
@@ -127,7 +130,7 @@ namespace MAT_NS_BEGIN
 
         virtual ISemanticContext* GetSemanticContext() const override;
 
-        virtual void SetParentContext(ISemanticContext* context) override;
+        virtual void SetParentContext(ISemanticContext* context) final;
 
         virtual void LogAppLifecycle(AppLifecycleState state,
                                      EventProperties const& properties) override;
@@ -266,6 +269,7 @@ namespace MAT_NS_BEGIN
         std::string m_sessionId;
 
         bool m_allowDotsInType;
+        bool m_resetSessionOnEnd;
         EventFilterCollection m_filters;
 
         /// m_shutdown_mutex protects shut-down state
@@ -293,3 +297,4 @@ namespace MAT_NS_BEGIN
 MAT_NS_END
 
 #endif
+

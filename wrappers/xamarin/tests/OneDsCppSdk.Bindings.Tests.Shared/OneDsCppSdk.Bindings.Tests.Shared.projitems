@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>399fbce4-fcab-4ec4-b805-449d87dfd4fc</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>OneDsCppSdk.Bindings.Tests.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DataTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EventPropertiesTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LoggerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LogManagerTests.cs" />
+  </ItemGroup>
+</Project>

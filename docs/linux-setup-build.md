@@ -1,4 +1,6 @@
-### Required dependencies
+# Linux build tools
+
+## Required dependencies
 
 - gcc-5+ or above
 - zlib
@@ -8,21 +10,21 @@
 
 ### Installing dependencies as root
 
-```
+```console
 sudo apt-get install cmake3 sqlite3 libsqlite3-dev libcurl4-openssl-dev libgtest-dev
 ```
 
 There is a helper script in source code distribution that can be invoked as follows:
 
-```
+```console
 source tools/setup-buildtools.sh
 ```
 
 ### Debian 8.x Jesse (old stable) specific instructions
 
-Microsoft Events 1DS OneSDK requires gcc-5+. Latest available in Debian 8 and below is 4.9. gcc-5 and g++-5 must to be installed manually:
+1DS SDK requires gcc-5+. Latest available in Debian 8 and below is 4.9. gcc-5 and g++-5 must to be installed manually:
 
-```
+```console
 #!/bin/sh
 # Run these commands to install gcc-5.x compiler on Debian 8.x container.
 # Microsoft Events SDK requires gcc-5.x or newer compiler.
@@ -45,7 +47,7 @@ This step is not required for recent distros which come with gcc version above 5
 Microsoft Events SDK expects gcc-5.x+ which is not included in Ubuntu-14.04, Debian 8 and below.
 Please install  recent gcc-5.x on older Ubuntu distributions as follows:
 
-```
+```console
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt-get update
 sudo apt-get install gcc-5 g++-5
@@ -64,9 +66,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Please contact OneSDK dev team for the git repository location. Building Microsoft Events SDK from source:
 
-```
-  cmake .
-  make
+```console
+cmake .
+make
 ```
 
 Package for your platform is going to be created and placed in ./out directory.

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "LogSessionDataProvider.hpp"
 #include "utils/FileUtils.hpp"
 #include "utils/StringUtils.hpp"
@@ -24,6 +28,24 @@ namespace MAT_NS_BEGIN
         } else 
         {
             CreateLogSessionDataFromDB();
+        }
+    }
+
+    void LogSessionDataProvider::ResetLogSessionData()
+    {
+        DeleteLogSessionData();
+        CreateLogSessionData();
+    }
+
+    void LogSessionDataProvider::DeleteLogSessionData()
+    {
+        if (m_storageType == SessionStorageType::FileStore)
+        {
+            DeleteLogSessionDataFromFile();
+        } 
+        else
+        {
+            DeleteLogSessionDataFromDB();
         }
     }
 
@@ -54,6 +76,32 @@ namespace MAT_NS_BEGIN
             }
         }
         m_logSessionData.reset(new LogSessionData(sessionFirstTimeLaunch, sessionSDKUid));
+    }
+
+
+    void LogSessionDataProvider::DeleteLogSessionDataFromDB()
+    {
+        if (nullptr == m_offlineStorage) {
+            LOG_WARN(" offline storage not available. Session data won't be deleted");
+            return ;
+        }
+        if (!m_offlineStorage->DeleteSetting(sessionFirstLaunchTimeName))
+        {
+            LOG_WARN("Unable to delete session analytics from DB for %d", sessionFirstLaunchTimeName);
+        }
+        if (!m_offlineStorage->DeleteSetting(sessionSdkUidName))
+        {
+            LOG_WARN("Unable to delete session analytics from DB for %d", sessionSdkUidName);
+        }
+    }
+
+    void LogSessionDataProvider::DeleteLogSessionDataFromFile()
+    {
+        std::string sessionPath = m_cacheFilePath.empty() ? "" : (m_cacheFilePath + ".ses").c_str();
+        if (!sessionPath.empty() && MAT::FileExists(sessionPath.c_str()))
+        {
+            MAT::FileDelete(sessionPath.c_str());
+        }
     }
 
     void LogSessionDataProvider::CreateLogSessionDataFromFile()
@@ -154,3 +202,4 @@ namespace MAT_NS_BEGIN
     }
 }
 MAT_NS_END
+

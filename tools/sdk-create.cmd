@@ -46,4 +46,8 @@ call sku-create.cmd win32-lib-vs2015-md  win32-lib
 call sku-create.cmd win32-lib-vs2015-md  sqlite
 call sku-create.cmd win32-lib-vs2015-md  zlib
 
-copy /Y %ROOT%\CHANGELOG.md %OUTDIR%\
+echo "Copy Changelog.md"
+if exist "%ROOT%\CHANGELOG.md" (
+  copy /Y %ROOT%\CHANGELOG.md %OUTDIR%\
+)
+

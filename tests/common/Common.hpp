@@ -1,9 +1,13 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "pal/PAL.hpp"
+#include "EventProperty.hpp"
 #include <assert.h>
 #include <stdlib.h>
 #include <algorithm>
@@ -63,4 +67,18 @@ namespace testing {
 
     bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex);
 
+    EventProperties CreateSampleEvent(const char *name, EventPriority prio);
+
+    std::string GetUniqueDBFileName();
+
+#define CAPTURE_PERF_STATS(label) \
+       LogMemUsage(label); \
+       LogCpuUsage(label);
+
+    void LogMemUsage(const char* label);
+
+    void LogCpuUsage(const char* label);
+    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip = false);
+
 } // namespace testing
+

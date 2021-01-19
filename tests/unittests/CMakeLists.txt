@@ -1,13 +1,14 @@
 message("--- unittests")
 
 set(SRCS
+  AIJsonSerializerTests.cpp
+  AITelemetrySystemTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
   ClockSkewManagerTests.cpp
   ContextFieldsProviderTests.cpp
   ControlPlaneProviderTests.cpp
   CorrelationVectorTests.cpp
-  DataViewerCollectionTests.cpp
   DebugEventSourceTests.cpp
   DeviceStateHandlerTests.cpp
   DiskLocalStorageTests.cpp
@@ -42,6 +43,7 @@ set(SRCS
   TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
   UtilsTests.cpp
+  ZlibUtilsTests.cpp
 )
 
 if (APPLE)
@@ -50,6 +52,28 @@ if (APPLE)
   else()
     list(APPEND SRCS SysInfoUtilsTests_Mac.cpp)
   endif()
+endif()
+
+if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+    list(APPEND SRCS
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp 
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientTests.cpp
+        )
+endif()
+        
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+  add_definitions(-DHAVE_MAT_PRIVACYGUARD)
+  list(APPEND SRCS
+     ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyGuardTests.cpp
+  )
+endif()
+
+if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
+  list(APPEND SRCS
+     ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/unittests/DefaultDataViewerTests.cpp
+     DataViewerCollectionTests.cpp
+  )
 endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
@@ -96,7 +120,7 @@ else()
   set (PLATFORM_LIBS "")
   # Add flags for obtaining system UUID via IOKit
   if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework SystemConfiguration -framework Foundation")
+    set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework SystemConfiguration -framework Foundation -framework Network")
     if(BUILD_IOS)
       set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit")
     endif()
@@ -117,6 +141,7 @@ else()
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
@@ -124,6 +149,7 @@ else()
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )

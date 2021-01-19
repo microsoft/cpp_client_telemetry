@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "Version.hpp"
 #include "mat/config.h"
 #ifdef HAVE_MAT_NETDETECT
@@ -94,7 +98,7 @@ namespace MAT_NS_BEGIN
                 m_currentNetworkCost = _GetCurrentNetworkCost();
             }
             //******************************************************************************************************************************
-            // XXX: Bug in Visual Studio debug host:
+            // This code is required as a workaround for an issue in Visual Studio debug host mode: crash in W.N.C.dll
             //
             // onecoreuap\net\netprofiles\winrt\networkinformation\lib\handlemanager.cpp(132)\Windows.Networking.Connectivity.dll!0FBCFB9E:
             // (caller: 0FBCEE2C) ReturnHr(1) tid(4584) 80070426 The service has not been started.
@@ -197,26 +201,26 @@ namespace MAT_NS_BEGIN
             if (connectivityLevel != NetworkConnectivityLevel_None)
             {
 
-        }
+            }
 #endif
 
             ComPtr<INetworkAdapter> adapter;
             HRESULT hr = profile->get_NetworkAdapter(&adapter);
             if (hr == E_INVALIDARG)
             {
-                LOG_ERROR("No network interfaces - device is in airplane mode");
-                return ""; // No interfaces - device is in airplane mode
-            }
-
-            UINT32 type;
-            hr = adapter->get_IanaInterfaceType(&type);
-            if (type == 23)
-            {
-                // FIXME
+                // No interfaces - device is in airplane mode
+                LOG_TRACE("No network interfaces - device is in airplane mode");
+                return "";
             }
 
             GUID id;
             hr = adapter->get_NetworkAdapterId(&id);
+            if (!SUCCEEDED(hr))
+            {
+                // Unable to obtain Network Adapter GUID
+                LOG_TRACE("Unable to obtain interface GUID");
+                return "";
+            }
 
             return to_string(id);
         }
@@ -234,7 +238,7 @@ namespace MAT_NS_BEGIN
                 QITABENT(NetworkDetector, INetworkEvents),
                 QITABENT(NetworkDetector, INetworkConnectionEvents),
                 QITABENT(NetworkDetector, INetworkListManagerEvents),
-                { 0 }
+                { nullptr,0 }
             };
             return QISearch(this, rgqit, riid, ppv);
         }
@@ -375,15 +379,11 @@ namespace MAT_NS_BEGIN
                     (SUCCEEDED(hr)) ? "OK" : "FAILED");
             }
 
-            BOOL bRet;
             MSG msg;
-            m_listener_tid = GetCurrentThreadId();
             PostThreadMessage(m_listener_tid, NETDETECTOR_START, 0, 0);
-            {
-                std::unique_lock<std::mutex> lock(m_lock);
-                cv.notify_all();
-            }
-            while ((bRet = GetMessage(&msg, NULL, 0, 0)) > 0)
+            cv.notify_all();
+
+            while (GetMessage(&msg, NULL, 0, 0) > 0)
             {
                 switch (msg.message)
                 {
@@ -433,8 +433,6 @@ namespace MAT_NS_BEGIN
                 pNlm->Release();
                 pNlm = nullptr;
             };
-
-            m_listener_tid = 0;
         }
 
         /// <summary>
@@ -527,11 +525,17 @@ namespace MAT_NS_BEGIN
             // Start a new thread. Notify waiters on exit.
             netDetectThread = std::thread([this]()
             {
+                {
+                    std::lock_guard<std::mutex> lk(m_lock);
+                    m_listener_tid = GetCurrentThreadId();
+                }
                 run();
                 LOG_TRACE("NetworkDetector tid=%p is shutting down..", m_listener_tid);
                 {
                     std::lock_guard<std::mutex> lk(m_lock);
+                    m_listener_tid = 0;
                     isRunning = false;
+                    cv.notify_all();
                 }
             });
 
@@ -545,8 +549,8 @@ namespace MAT_NS_BEGIN
                     // - COM object can't be started (pre-Win 8 scenario)
                     int retry = 1;
                     constexpr int max_retries = 2;
-                    while (!cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_COM_SETTLE_MS),
-                        [this] {return (m_listener_tid != 0); }) && (isRunning) && (retry < max_retries))
+                    while (isRunning && cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_COM_SETTLE_MS))
+                           == std::cv_status::timeout && (retry < max_retries))
                     {
                         LOG_TRACE("NetworkDetector starting up... [%u]", retry);
                         retry++;
@@ -569,13 +573,27 @@ namespace MAT_NS_BEGIN
         /// </summary>
         void NetworkDetector::Stop()
         {
-            if ((isRunning) || (netDetectThread.joinable()))
+            if (netDetectThread.joinable())
             {
-                PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL);
+                std::unique_lock<std::mutex> lk(m_lock);
                 try {
-                    if (netDetectThread.joinable())
+                    if (!isRunning || m_listener_tid == 0 ||
+                        !PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL))
+                    {
+                        // Without detaching, we risk throwing an exception in the destructor.
+                        // There is a chance that our code has finished, but the thread
+                        // hasn't fully terminated, or the thread has already exited and
+                        // isRunning is false. Alternatively, we may have never gotten
+                        // a thread_id.
+                        netDetectThread.detach();
+                        LOG_WARN("NetworkDetector thread unable to be shut down.");
+                    }
+                    else
+                    {
+                        lk.unlock();
                         netDetectThread.join();
-                    LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
+                        LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
+                    }
                 }
                 catch (std::system_error &ex)
                 {
@@ -634,23 +652,28 @@ namespace MAT_NS_BEGIN
             LOG_TRACE("Getting network details...");
             ComPtr<IVectorView<HostName *>> hostNames;
             HRESULT hr = networkInfoStats->GetHostNames(&hostNames);
-            if (!hostNames)
+            if ((!SUCCEEDED(hr))||(!hostNames))
                 return;
 
             m_hostnames.clear();
             unsigned int hostNameCount;
             hr = hostNames->get_Size(&hostNameCount);
+            if (!SUCCEEDED(hr))
+                return;
             for (unsigned i = 0; i < hostNameCount; ++i) {
                 MATW::HostNameInfo hostInfo;
                 ComPtr<IHostName> hostName;
                 hr = hostNames->GetAt(i, &hostName);
-
+                if (!SUCCEEDED(hr))
+                    continue;
                 HString rawName;
                 hostName->get_RawName(rawName.GetAddressOf());
                 LOG_TRACE("RawName: %s", to_string(&rawName).c_str());
 
                 HostNameType type;
                 hr = hostName->get_Type(&type);
+                if (!SUCCEEDED(hr))
+                    continue;
                 LOG_TRACE("HostNameType: %d", type);
 
                 if (type == HostNameType_DomainName)
@@ -658,15 +681,25 @@ namespace MAT_NS_BEGIN
 
                 ComPtr<IIPInformation> ipInformation;
                 hr = hostName->get_IPInformation(&ipInformation);
+                if (!SUCCEEDED(hr))
+                    continue;
 
                 ComPtr<INetworkAdapter> currentAdapter;
                 hr = ipInformation->get_NetworkAdapter(&currentAdapter);
+                if (!SUCCEEDED(hr))
+                    continue;
                 hr = currentAdapter->get_NetworkAdapterId(&hostInfo.adapterId);
+                if (!SUCCEEDED(hr))
+                    continue;
                 LOG_TRACE("CurrentAdapterId: %s", to_string(hostInfo.adapterId).c_str());
 
                 ComPtr<IReference<unsigned char>> prefixLengthReference;
                 hr = ipInformation->get_PrefixLength(&prefixLengthReference);
+                if (!SUCCEEDED(hr))
+                    continue;
                 hr = prefixLengthReference->get_Value(&hostInfo.prefixLength);
+                if (!SUCCEEDED(hr))
+                    continue;
                 LOG_TRACE("PrefixLength: %d", hostInfo.prefixLength);
 
                 // invalid prefixes
@@ -676,6 +709,8 @@ namespace MAT_NS_BEGIN
 
                 HString name;
                 hr = hostName->get_CanonicalName(name.GetAddressOf());
+                if (!SUCCEEDED(hr))
+                    continue;
                 hostInfo.address = to_string(&name);
                 LOG_TRACE("CanonicalName: %s", hostInfo.address.c_str());
 
@@ -687,15 +722,24 @@ namespace MAT_NS_BEGIN
 
             ComPtr<IVectorView<ConnectionProfile *>> m_connection_profiles;
             hr = networkInfoStats->GetConnectionProfiles(&m_connection_profiles);
+            if (!SUCCEEDED(hr))
+                return;
 
             unsigned int size;
             hr = m_connection_profiles->get_Size(&size);
+            if (!SUCCEEDED(hr))
+                return;
+
             for (unsigned int i = 0; i < size; ++i) {
                 ComPtr<IConnectionProfile> profile;
                 hr = m_connection_profiles->GetAt(i, &profile);
+                if (!SUCCEEDED(hr))
+                    continue;
                 auto prof = profile.Get();
                 HString name;
                 hr = prof->get_ProfileName(name.GetAddressOf());
+                if (!SUCCEEDED(hr))
+                    continue;
                 LOG_TRACE("Profile[%d]: name = %s", i, to_string(&name).c_str());
                 LOG_TRACE("Profile[%d]: guid = %s", i, GetAdapterId(prof).c_str());
             }

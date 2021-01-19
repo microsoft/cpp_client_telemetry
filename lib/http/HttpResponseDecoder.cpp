@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "HttpResponseDecoder.hpp"
 #include "ILogManager.hpp"
@@ -36,7 +39,7 @@ namespace MAT_NS_BEGIN {
     void HttpResponseDecoder::handleDecode(EventsUploadContextPtr const& ctx)
     {
 #ifndef NDEBUG
-        // XXX: [MG] - debug accessing object that's been already freed
+        // Debug only for Visual Studio: check if accessing object that's been already freed
         uint64_t ptr = (uint64_t)(ctx->httpResponse);
         assert(ptr != 0x00000000dddddddd);
         assert(ptr != 0xdddddddddddddddd);
@@ -220,10 +223,18 @@ namespace MAT_NS_BEGIN {
                 evt.type = DebugEventType::EVT_TICKET_EXPIRED;
                 DispatchEvent(evt);
             }
+
+            if (result != Rejected)
+            {
+                LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
+            } else
+            {
+                LOG_TRACE("HTTP response: all rejected");
+            }
         }
         catch (...)
         {
-            LOG_ERROR("Http response JSON parsing failed");
+            LOG_ERROR("HTTP response: JSON parsing failed");
         }
 #else
         UNREFERENCED_PARAMETER(response);
@@ -232,3 +243,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+

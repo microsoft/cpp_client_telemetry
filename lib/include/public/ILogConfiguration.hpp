@@ -1,18 +1,7 @@
-///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 Microsoft Corporation. All rights reserved.
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
 //
-// This code is licensed under the MIT License (MIT).
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-///////////////////////////////////////////////////////////////////////////////
 #ifndef MAT_ILOGCONFIGURATION_HPP
 #define MAT_ILOGCONFIGURATION_HPP
 
@@ -264,6 +253,16 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_MODULE_DECORATOR = "decorator";
 
     /// <summary>
+    /// IDecorator override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_PRIVACY_GUARD = "privacy_guard";
+
+    /// <summary>
+    /// IDecorator override module
+    /// </summary>
+    static constexpr const char* const CFG_MODULE_OFFLINE_STORAGE = "offlineStorage";
+
+    /// <summary>
     /// Pointer to the Android app's JavaVM
     /// </summary>
     static constexpr const char* const CFG_PTR_ANDROID_JVM = "android_jvm";
@@ -363,6 +362,11 @@ namespace MAT_NS_BEGIN
     /// </summary>
     static constexpr const char* const CFG_BOOL_TPM_CLOCK_SKEW_ENABLED = "clockSkewEnabled";
 
+    /// <summary>
+    /// When enabled, the session timer is reset after session is completed, allowing for several session events in the duration of the SDK lifecycle
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_SESSION_RESET_ENABLED = "sessionResetEnabled";
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4251)
@@ -433,3 +437,4 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 #endif
+

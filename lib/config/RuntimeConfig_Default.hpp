@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 
 #pragma once
@@ -24,6 +27,7 @@ namespace MAT_NS_BEGIN
         {CFG_INT_STORAGE_FULL_CHECK_TIME, 5000},
         {CFG_INT_RAMCACHE_FULL_PCT, 75},
         {CFG_BOOL_ENABLE_NET_DETECT, true},
+        {CFG_BOOL_SESSION_RESET_ENABLED, false},
         {CFG_MAP_METASTATS_CONFIG,
          {/* Parameter that allows to split stats events by tenant */
           {"split", false},
@@ -49,6 +53,7 @@ namespace MAT_NS_BEGIN
              {CFG_BOOL_HTTP_COMPRESSION, false}
 #endif
              ,
+             {"contentEncoding", "deflate"},
              /* Optional parameter to require Microsoft Root CA */
              {CFG_BOOL_HTTP_MS_ROOT_CHECK, false}}},
         {CFG_MAP_TPM,
@@ -64,8 +69,6 @@ namespace MAT_NS_BEGIN
          }},
         {"sample",
          {{"rate", 0}}}};
-
-    // TODO: [MG] - add ability to re-Configure with new custom config on-demand
 
     /// <summary>
     /// This class overlays a custom configuration provided by the customer
@@ -126,7 +129,6 @@ namespace MAT_NS_BEGIN
 
         virtual unsigned GetOfflineStorageResizeThresholdPct() override
         {
-            // FIXME: [MG] - add parameter for that
             return 99;
         }
 
@@ -145,9 +147,13 @@ namespace MAT_NS_BEGIN
             return config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION];
         }
 
+        virtual const std::string& GetHttpRequestContentEncoding() const override
+        {
+            return config[CFG_MAP_HTTP]["contentEncoding"];
+        }
+
         virtual unsigned GetMinimumUploadBandwidthBps() override
         {
-            // FIXME: [MG] - add parameter for that
             return 0;
         }
 
@@ -158,7 +164,6 @@ namespace MAT_NS_BEGIN
 
         virtual void SetEventLatency(std::string const& tenantId, std::string const& eventName, EventLatency latency) override
         {
-            // TODO: [MG] - currently we don't allow to override the event latency via ECS or runtime config tree
             UNREFERENCED_PARAMETER(tenantId);
             UNREFERENCED_PARAMETER(eventName);
             UNREFERENCED_PARAMETER(latency);
@@ -181,7 +186,7 @@ namespace MAT_NS_BEGIN
 
         virtual Variant& operator[](const char* key) override
         {
-            return config[key];  // FIXME: [MG] - Error #116: LEAK 32 bytes
+            return config[key];
         }
 
         virtual bool HasConfig(const char* key) override
@@ -192,3 +197,4 @@ namespace MAT_NS_BEGIN
 
 }
 MAT_NS_END
+

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifdef _WIN32
 #define LOG_MODULE DBG_PAL
 #include "pal/NetworkInformationImpl.hpp"
@@ -12,9 +16,9 @@ using namespace MAT;
 namespace PAL_NS_BEGIN {
 
     NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
+        m_cost(NetworkCost_Unmetered),
         m_info_helper(),
         m_registeredCount(0),
-        m_cost(NetworkCost_Unmetered),
         m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT])
     { };
     NetworkInformationImpl::~NetworkInformationImpl() { };
@@ -84,7 +88,7 @@ namespace PAL_NS_BEGIN {
         m_cost = NetworkCost_Unknown;
 #ifdef HAVE_MAT_NETDETECT
         if (m_isNetDetectEnabled) {
-            networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector()); // FIXME: [MG] - Error #99: POSSIBLE LEAK 352 direct bytes + 224 indirect bytes
+            networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector());
             networkDetector->AddRef();
             networkDetector->Start();
         }
@@ -108,3 +112,4 @@ namespace PAL_NS_BEGIN {
     }
 } PAL_NS_END
 #endif
+

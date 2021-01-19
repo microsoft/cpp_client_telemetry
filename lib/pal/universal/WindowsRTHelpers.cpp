@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifdef WIN10_CS
 /* Helpers for Win 10 C# Universal API */
 #include "pch.h"
@@ -7,7 +11,7 @@
 
 namespace Microsoft {
     namespace Applications {
-        // TODO: [MG] - consider refactoring this to use a macro namespace
+        // TODO: [MG] - refactor this to use the macro namespace
         namespace Telemetry {
             namespace Windows
             {

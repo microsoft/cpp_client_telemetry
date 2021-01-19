@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import java.util.ArrayList;
@@ -384,4 +388,11 @@ public interface ILogger extends AutoCloseable {
      * Return current session id.
      */
     public String getSessionId();
+
+    /**
+     * Get the native pointer for ILogger* for components that rely on it
+     * @return long representing the native pointer for ILogger *
+     */
+    public long getNativeILoggerPtr();
 }
+

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "PAL.hpp"
 
 #include "ILogManager.hpp"
@@ -27,7 +30,7 @@
 #define _GNU_SOURCE
 #endif
 #include <unistd.h>
-
+#include <time.h>
 #ifdef __linux__
 #include <sys/syscall.h>   /* For SYS_xxx definitions */
 #endif
@@ -223,9 +226,15 @@ namespace PAL_NS_BEGIN {
             int64_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
             auto in_time_t = std::chrono::system_clock::to_time_t(now);
             std::stringstream ss;
-
-            ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X"); // warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead
-            ss << "." << std::setfill('0') << std::setw(3) << (unsigned)(millis % 1000);
+            struct tm timeNow;
+            localtime_r(&in_time_t, &timeNow);
+            ss << std::setw(4) << (timeNow.tm_year + 1900) << '-';
+            ss << std::setfill('0') << std::setw(2) << (timeNow.tm_mon + 1) << '-';
+            ss << std::setfill('0') << std::setw(2) << timeNow.tm_mday << 'T';
+            ss << std::setfill('0') << std::setw(2) << timeNow.tm_hour << ':';
+            ss << std::setfill('0') << std::setw(2) << timeNow.tm_min << ':';
+            ss << std::setfill('0') << std::setw(2) << timeNow.tm_sec << '.';
+            ss << std::setfill('0') << std::setw(3) << unsigned(millis % 1000) << 'Z';
             ss << "|";
 
             ss << std::setfill('0') << std::setw(8) << gettid();
@@ -288,7 +297,9 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
-        CoCreateGuid(&uuid);
+        auto hr = CoCreateGuid(&uuid);
+        /* CoCreateGuid` will possiblity never fail, so ignoring the result */
+        UNREFERENCED_PARAMETER(hr);
         return MAT::to_string(uuid);
 #else
         static std::once_flag flag;
@@ -510,7 +521,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            LOG_ERROR("Already initialized: %d", m_palStarted.load());
+            LOG_INFO("Already initialized: %d", m_palStarted.load());
         }
     }
 
@@ -538,7 +549,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            LOG_ERROR("Shutting down: %d", m_palStarted.load());
+            LOG_INFO("Shutting down: %d", m_palStarted.load());
         }
     }
 

@@ -1,3 +1,8 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
+
 // System
 using System;
 using System.Text;
@@ -51,7 +56,7 @@ namespace CommonSchema
             }
             ClientId = requestHeaders["Client-Id"];
             ContentType = requestHeaders["Content-Type"];
-            ContentEncoding = requestHeaders["Content-Encoding"];
+            ContentEncoding = requestHeaders.ContainsKey("Content-Encoding") ? requestHeaders["Content-Encoding"] : "";
             RequestBody = requestBody ?? throw new ArgumentNullException(nameof(requestBody));
         }
 
@@ -296,11 +301,7 @@ namespace CommonSchema
                 }
                 else if (this.ContentEncoding == "deflate")
                 {
-                    data = Deflate(data);
-                }
-                else
-                {
-                    throw new ArgumentException("Unknown Content-Encoding: " + this.ContentEncoding);
+                    data = Inflate(data);
                 }
             }
 
@@ -374,7 +375,7 @@ namespace CommonSchema
         /// </summary>
         /// <param name="data">The compressed data</param>
         /// <returns>The gunzip'd data</returns>
-        private static byte[] Gunzip(byte[] data)
+        public static byte[] Gunzip(byte[] data)
         {
             if (data is null)
             {
@@ -394,7 +395,7 @@ namespace CommonSchema
         /// </summary>
         /// <param name="data">The compressed data</param>
         /// <returns>The delated data</returns>
-        private static byte[] Deflate(byte[] data)
+        public static byte[] Inflate(byte[] data)
         {
             if (data is null)
             {

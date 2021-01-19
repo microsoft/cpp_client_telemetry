@@ -1,6 +1,11 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
-#pragma once
+#ifndef OFFLINESTORAGEHANDLER_HPP
+#define OFFLINESTORAGEHANDLER_HPP
+
 #include "pal/PAL.hpp"
 #include "IOfflineStorage.hpp"
 
@@ -35,10 +40,12 @@ namespace MAT_NS_BEGIN {
 
         virtual void DeleteRecords(const std::map<std::string, std::string> & whereFilter) override;
         virtual void DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory) override;
+        virtual void DeleteAllRecords() override;
         virtual void ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory) override;
 
         virtual bool StoreSetting(std::string const& name, std::string const& value) override;
         virtual std::string GetSetting(std::string const& name) override;
+        virtual bool DeleteSetting(std::string const& name) override;
 
         virtual size_t GetSize() override;
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;
@@ -68,15 +75,13 @@ namespace MAT_NS_BEGIN {
 
         virtual bool isKilled(StorageRecord const& record);
 
-        virtual void WaitForFlush();
-
         std::mutex                             m_flushLock;
         bool                                   m_flushPending;
         PAL::DeferredCallbackHandle            m_flushHandle;
         PAL::Event                             m_flushComplete;
 
         std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
-        std::unique_ptr<IOfflineStorage>       m_offlineStorageDisk;
+        std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
         bool                                   m_readFromMemory;
         unsigned                               m_lastReadCount;
@@ -89,7 +94,13 @@ namespace MAT_NS_BEGIN {
 
     protected:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
+
+    private:
+        void WaitForFlush();
+
     };
 
 
 } MAT_NS_END
+
+#endif

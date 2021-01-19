@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "mat/config.h"
 #include "BaseDecorator.hpp"
 
@@ -43,7 +47,11 @@ namespace MAT_NS_BEGIN {
 #else
         record.extSdk[0].libVer = PAL::getSdkVersion();
 #endif
-        record.extSdk[0].installId = m_owner.GetLogSessionData()->getSessionSDKUid();
+        auto sessionData = m_owner.GetLogSessionData();
+        if (sessionData)
+        {
+            record.extSdk[0].installId = sessionData->getSessionSDKUid();
+        }
 
         //set Tickets
         if ((m_owner.GetAuthTokensController()) &&
@@ -69,3 +77,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+

@@ -1,9 +1,13 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "compression/HttpDeflateCompression.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
+#include <utils/ZlibUtils.hpp>
 #include "zlib.h"
 #undef compress
 
@@ -22,27 +26,6 @@ namespace testing {
         if (buffer)
             delete[] buffer;
 
-    }
-
-    void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out)
-    {
-        z_stream zs;
-        memset(&zs, 0, sizeof(zs));
-        // [MG]: must call inflateInit2 with -9 because otherwise
-        // it'd be searching for non-existing gzip header...
-        EXPECT_EQ(inflateInit2(&zs, -9), Z_OK);
-        zs.next_in = (Bytef *)in.data();
-        zs.avail_in = (uInt)in.size();
-        int ret;
-        char outbuffer[32768] = { 0 };
-        do {
-            zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
-            zs.avail_out = sizeof(outbuffer);
-            ret = inflate(&zs, Z_NO_FLUSH);
-            out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
-        } while (ret == Z_OK);
-        EXPECT_EQ(ret, Z_STREAM_END);
-        inflateEnd(&zs);
     }
 
 }
@@ -96,7 +79,7 @@ TEST_F(HttpDeflateCompressionTests, CompressesCorrectly)
     input(event);
 
     std::vector<uint8_t> inflated;
-    testing::InflateVector(event->body, inflated);
+    ZlibUtils::InflateVector(event->body, inflated, false);
 
     EXPECT_THAT(inflated, Eq(testPayload));
     EXPECT_THAT(event->compressed, true);
@@ -121,7 +104,7 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
         input(event2);
 
         std::vector<uint8_t> inflated;
-        testing::InflateVector(event2->body, inflated);
+        ZlibUtils::InflateVector(event2->body, inflated, false);
         EXPECT_THAT(inflated, Eq(testPayload));
         EXPECT_THAT(event2->compressed, true);
     }
@@ -135,7 +118,7 @@ TEST_F(HttpDeflateCompressionTests, WorksMultipleTimes)
         input(event3);
 
         std::vector<uint8_t> inflated;
-        testing::InflateVector(event3->body, inflated);
+        ZlibUtils::InflateVector(event3->body, inflated, false);
         EXPECT_THAT(inflated, Eq(testPayload2));
         EXPECT_THAT(event3->compressed, true);
     }
@@ -173,3 +156,22 @@ TEST_F(HttpDeflateCompressionTests, HasReasonableCompressionRatio)
     EXPECT_THAT(event->compressed, true);
 }
 #pragma warning(pop)
+
+TEST_F(HttpDeflateCompressionTests, CompressesGzipCorrectly)
+{
+    config[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
+    config[CFG_MAP_HTTP]["contentEncoding"] = "gzip";
+    EventsUploadContextPtr event = std::make_shared<EventsUploadContext>();
+    EXPECT_THAT(event->compressed, false);
+    event->body = testPayload;
+
+    std::unique_ptr<HttpDeflateCompression> gzipCompression = std::make_unique<HttpDeflateCompression>(config);
+    gzipCompression->compress(event);
+
+    std::vector<uint8_t> inflated;
+    ZlibUtils::InflateVector(event->body, inflated, true);
+
+    EXPECT_THAT(inflated, Eq(testPayload));
+    EXPECT_THAT(event->compressed, true);
+    config[CFG_MAP_HTTP]["contentEncoding"] = "deflate";
+}

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<sdk>
-  <description>ARIA SDK for Windows</description>
-  <keywords>ARIA, Telemetry, Phone, Tablet, Signed, Windows, ARM</keywords>
-  <cert>253</cert>
-  <files>
-    <file path="arm\" displayName="ARIA SDK for Windows" displayUrl="https://aria.microsoft.com"/>
-  </files>
-</sdk>

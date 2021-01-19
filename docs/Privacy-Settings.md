@@ -14,15 +14,15 @@ To set a tag in code you can use the following syntax using the SetProperty meth
 ```cpp
 EventProperties event(eventName);
 
-std::string evtType = "My.Record.BaseType"; 
+std::string evtType = "My.Record.BaseType";
 event.SetName("MyProduct.TaggedEvent");
 event.SetType(evtType);
 event.SetProperty("result", "Success");
 event.SetProperty("random", rand());
 event.SetProperty("secret", 5.6872);
-event.SetProperty("seq", (uint64_t)i); 
+event.SetProperty("seq", (uint64_t)i);
 event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory);
-event.SetLatency(latency); 
+event.SetLatency(latency);
 logger->LogEvent(event);
 ```
 
@@ -55,20 +55,20 @@ The tag set on your event will show it the field `EventInfo.PrivTags`. You can v
 
 ![UTC Privacy Tags example](/docs/images/14154-utc.png)
 
-
 # Diagnostic Level
 
 The C++ SDK has an API feature to filter events using the diagnostic level associated with it. The current list of supported Diagnostic level are:
+
 ```cpp
 DIAG_LEVEL_REQUIRED                                 1
 DIAG_LEVEL_OPTIONAL                                 2
 DIAG_LEVEL_REQUIREDSERVICEDATA                      110
 DIAG_LEVEL_REQUIREDSERVICEDATAFORESSENTIALSERVICES  120
 ```
+
 The level set on your event will show up in the field `EventInfo.Level`.
 
 There are different ways you can make your diagnostic levels filtering work:
-
 
 You can set a filter for the default LogManager in your application using the _SetLevel()_ API to allow events to be sent.
 An event inherits the Logger level when sent. If you set the **COMMONFIELDS_EVENT_LEVEL** property for your event this will override the default level.
@@ -106,28 +106,28 @@ size_t i = 0;
 // For each filter defined
 for (auto filter : filters)
 {
-	// Specify diagnostic level filter for the default LogManager
-	LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
-	// For every logger
-	for (auto logger : { logger0, logger1, logger2, logger3 })
-	{
-		// Create an event without diagnostic level 
-		EventProperties defLevelEvent("My.DefaultLevelEvent");
-		// Behavior is inherited from the current logger
-		logger->LogEvent(defLevelEvent);
+ // Specify diagnostic level filter for the default LogManager
+ LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
+ // For every logger
+ for (auto logger : { logger0, logger1, logger2, logger3 })
+ {
+  // Create an event without diagnostic level
+  EventProperties defLevelEvent("My.DefaultLevelEvent");
+  // Behavior is inherited from the current logger
+  logger->LogEvent(defLevelEvent);
 
-		// Create an event and set level to REQUIRED 
-		// This overrides the logger level for filtering
-		EventProperties requiredEvent("My.RequiredEvent");
-		requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
-		logger->LogEvent(requiredEvent);
+  // Create an event and set level to REQUIRED
+  // This overrides the logger level for filtering
+  EventProperties requiredEvent("My.RequiredEvent");
+  requiredEvent.SetLevel(DIAG_LEVEL_REQUIRED);
+  logger->LogEvent(requiredEvent);
 
-		// Create an event and set level to OPTIONAL 
-		// This overrides the logger level for filtering
-		EventProperties optionalEvent("My.OptionalEvent");
-		optionalEvent.SetLevel(DIAG_LEVEL_OPTIONAL);
-		logger->LogEvent(optionalEvent);
-	}
+  // Create an event and set level to OPTIONAL
+  // This overrides the logger level for filtering
+  EventProperties optionalEvent("My.OptionalEvent");
+  optionalEvent.SetLevel(DIAG_LEVEL_OPTIONAL);
+  logger->LogEvent(optionalEvent);
+ }
 }
 
 LogManager::FlushAndTeardown();

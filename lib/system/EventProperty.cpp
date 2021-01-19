@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "EventProperty.hpp"
 
 #include "utils/Utils.hpp"
@@ -21,9 +25,6 @@ using namespace MAT;
 #endif
 
 namespace MAT_NS_BEGIN {
-
-    // TODO: [MG] - time_ticks_t would benefit from an extra method:
-    // time_ticks_t::time_ticks_t(const std::time_t time)
 
     /// <summary>
     /// Default constructor for an empty object
@@ -252,7 +253,7 @@ namespace MAT_NS_BEGIN {
         case TYPE_STRING:
         {
             size_t len = strlen(source->as_string);
-            as_string = new char[len + 1];      // FIXME: [MG] - Error #14: LEAK 16 bytes 
+            as_string = new char[len + 1];
             memcpy((void*)as_string, (void*)source->as_string, len);
             as_string[len] = 0;
             break;
@@ -304,6 +305,8 @@ namespace MAT_NS_BEGIN {
             break;
         }
         }
+
+        piiKind = source->piiKind;
     }
 
 
@@ -314,7 +317,6 @@ namespace MAT_NS_BEGIN {
     EventProperty::EventProperty(const EventProperty& source) :
         type(source.type)
     {
-        // TODO: [MG] - memcpy is probably no longer needed here
         memcpy((void*)this, (void*)&source, sizeof(EventProperty));
         copydata(&source);
     }
@@ -326,7 +328,6 @@ namespace MAT_NS_BEGIN {
     EventProperty::EventProperty(EventProperty&& source) /* noexcept */ :
         type(source.type)
     {
-        // TODO: [MG] - memcpy is probably no longer needed here
         memcpy((void*)this, (void*)&source, sizeof(EventProperty));
         copydata(&source);
     }
@@ -887,3 +888,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+

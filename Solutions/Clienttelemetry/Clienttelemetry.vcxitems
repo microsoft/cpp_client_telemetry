@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -42,6 +42,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpResponseDecoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\LogSessionDataProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.cpp" />
@@ -64,6 +65,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringConversion.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\ZlibUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -110,7 +112,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IDeviceInformation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IInformationProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\INetworkInformation.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IOfflineStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IPropertyChangedCallback.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\ISystemInformation.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\json.hpp" />
@@ -128,11 +129,14 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAFDClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IAuthTokensController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IBandwidthController.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ICdsFactory.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDecorator.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IECSClient.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilter.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IEventFilterCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\ILogManager.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataInspector.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IOfflineStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IDataViewerCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\IHttpClient.hpp" />
@@ -165,6 +169,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\BondSplicer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\DataPackage.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\ISplicer.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\packager\Packager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DebugTrace.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\pal\DeviceInformationImpl.hpp" />
@@ -193,6 +198,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\FileUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringConversion.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\ZlibUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>

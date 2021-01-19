@@ -33,6 +33,9 @@
     <ProjectReference Include="..\..\googletest\googletest\msvc\gtest.vcxproj">
       <Project>{c8f6c172-56f2-4e76-b5fa-c3b423b31be7}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\Solutions\win32-lib\win32-lib.vcxproj">
+      <Project>{216a8e97-21f7-4bef-9e52-7f772c177c32}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
       <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
     </ProjectReference>
@@ -93,6 +96,8 @@
     <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\filter\filter.vcxitems')" Project="..\..\lib\modules\filter\filter.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\privacyguard\privacyguard.vcxitems')" Project="..\..\lib\modules\privacyguard\privacyguard.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\azmon\azmon.vcxitems')" Project="..\..\lib\modules\azmon\azmon.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -424,9 +429,7 @@
     <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
@@ -459,6 +462,9 @@
     <ClCompile Include="$(ProjectDir)\TransmitProfileRuleTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmitProfilesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ZlibUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
@@ -477,6 +483,18 @@
     <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
     <ClInclude Include="CheckForExceptionOrAbort.hpp" />
   </ItemGroup>
+  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\exp')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSConfigCacheTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientUtilsTests.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyGuardTests.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
+  </ItemGroup>   
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

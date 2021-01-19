@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef LOGMANAGERIMPL_HPP
 #define LOGMANAGERIMPL_HPP
 
@@ -26,6 +29,7 @@
 
 #include "AllowedLevelsCollection.hpp"
 
+#include "IDataInspector.hpp"
 #include "offline/LogSessionDataProvider.hpp"
 
 #include <mutex>
@@ -147,20 +151,20 @@ namespace MAT_NS_BEGIN
         /**
          * ILogController - state management methods
          */
-        virtual void Configure() override;
+        virtual void Configure() final;
 
-        virtual void FlushAndTeardown() override;
+        virtual void FlushAndTeardown() final;
 
-        virtual status_t Flush() override;
-        virtual status_t UploadNow() override;
-        virtual status_t PauseTransmission() override;
-        virtual status_t ResumeTransmission() override;
-        virtual status_t SetTransmitProfile(TransmitProfile profile) override;
-        virtual status_t SetTransmitProfile(const std::string& profile) override;
-        virtual status_t LoadTransmitProfiles(const std::string& profiles_json) override;
-        virtual status_t LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept override;
-        virtual status_t ResetTransmitProfiles() override;
-        virtual const std::string& GetTransmitProfileName() override;
+        virtual status_t Flush() final;
+        virtual status_t UploadNow() final;
+        virtual status_t PauseTransmission() final;
+        virtual status_t ResumeTransmission() final;
+        virtual status_t SetTransmitProfile(TransmitProfile profile) final;
+        virtual status_t SetTransmitProfile(const std::string& profile) final;
+        virtual status_t LoadTransmitProfiles(const std::string& profiles_json) final;
+        virtual status_t LoadTransmitProfiles(const std::vector<TransmitProfileRules>& profiles) noexcept final;
+        virtual status_t ResetTransmitProfiles() final;
+        virtual const std::string& GetTransmitProfileName() final;
 
         /**
          * Semantic Context methods
@@ -225,6 +229,7 @@ namespace MAT_NS_BEGIN
         virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scopeId = std::string()) override;
 
         LogSessionData* GetLogSessionData() override;
+        void ResetLogSessionData() override;
 
         ILogController* GetLogController(void) override;
 
@@ -273,6 +278,7 @@ namespace MAT_NS_BEGIN
 
         virtual IDataViewerCollection& GetDataViewerCollection() override;
         virtual const IDataViewerCollection& GetDataViewerCollection() const override;
+        virtual status_t DeleteData() override;
 
         /// <summary>
         /// Get a reference to this log manager diagnostic level filter
@@ -289,6 +295,10 @@ namespace MAT_NS_BEGIN
         }
 
         static size_t GetDeadLoggerCount();
+
+        virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) override;
+
+        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept override;
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
@@ -327,9 +337,12 @@ namespace MAT_NS_BEGIN
         EventFilterCollection m_filters;
         std::vector<std::unique_ptr<IModule>> m_modules;
         DataViewerCollection m_dataViewerCollection;
+        std::shared_ptr<IDataInspector> m_dataInspector;
+        std::recursive_mutex m_dataInspectorGuard;
     };
 
 }
 MAT_NS_END
 
 #endif
+

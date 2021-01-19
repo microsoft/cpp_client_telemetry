@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #define LOG_MODULE DBG_API
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
@@ -50,6 +54,7 @@ namespace PAL_NS_BEGIN {
         PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
         if (pAdapterInfo != NULL)
         {
+            pAdapterInfo->AdapterName[0] = 0;
             DWORD result = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
             if (result == ERROR_BUFFER_OVERFLOW)
             {
@@ -65,7 +70,7 @@ namespace PAL_NS_BEGIN {
                     goto retry_bigger_buffer;
                 }
             }
-            if ((result == ERROR_SUCCESS) && (pAdapterInfo->AdapterName != NULL))
+            if ((result == ERROR_SUCCESS) && (pAdapterInfo->AdapterName[0] != 0))
             {
                 std::string adapterName{ toLower(pAdapterInfo->AdapterName) };
                 devId = adapterName;
@@ -96,13 +101,6 @@ namespace PAL_NS_BEGIN {
         return result;
     }
 
-    static inline std::string to_string(const std::wstring& wstr)
-    {
-        using convert_typeX = std::codecvt_utf8<wchar_t>;
-        std::wstring_convert<convert_typeX, wchar_t> converterX;
-        return converterX.to_bytes(wstr);
-    }
-
     std::string DeviceInformationImpl::GetDeviceTicket() const
     {
         return m_deviceTicket;
@@ -110,8 +108,8 @@ namespace PAL_NS_BEGIN {
 
     ///// IDeviceInformation API
     DeviceInformationImpl::DeviceInformationImpl(MAT::IRuntimeConfig& /*configuration*/) :
-            m_registeredCount(0),
-            m_info_helper()
+            m_info_helper(),
+            m_registeredCount(0)
     {
         m_os_architecture = WindowsEnvironmentInfo::GetProcessorArchitecture();
 
@@ -150,3 +148,4 @@ namespace PAL_NS_BEGIN {
     }
 
 } PAL_NS_END
+

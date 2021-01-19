@@ -1,7 +1,17 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "OfflineStorage_Room.hpp"
+#include "pal/PAL.hpp"
 #include <cmath>
 #include <exception>
 #include <jni.h>
+
+namespace
+{
+    static constexpr bool s_throwExceptions = true;
+}
 
 namespace MAT_NS_BEGIN
 {
@@ -66,9 +76,17 @@ namespace MAT_NS_BEGIN
     void
     OfflineStorage_Room::ConnectedEnv::pushLocalFrame(uint32_t frameSize)
     {
-        if (env->PushLocalFrame(frameSize) == 0)
-        {
-            ++push_count;
+        try {
+            if (env->PushLocalFrame(frameSize) == JNI_OK) {
+                ++push_count;
+            }
+        }
+        catch (std::exception e) {
+            auto what = e.what();
+            if (!what) {
+                what = "*nothing*";
+            }
+            LOG_ERROR("Exception in pushLocalFrame: %s", what);
         }
     }
 
@@ -79,16 +97,20 @@ namespace MAT_NS_BEGIN
     void
     OfflineStorage_Room::ConnectedEnv::popLocalFrame()
     {
-        if (push_count > 0)
-        {
-            env->PopLocalFrame(nullptr);
-            --push_count;
+        try {
+            if (push_count > 0) {
+                env->PopLocalFrame(nullptr);
+                --push_count;
+            }
+        }
+        catch (std::exception e) {
+            LOG_ERROR("Exception in popLocalFrame");
         }
     }
 
     /**
      * Drop-in replacement for OfflineStorage_SQLite.
-     * 
+     *
      * @param[in] logManager Send DebugEvent here
      * @param[in] runtimeConfig Configuration (imagine that)
      */
@@ -151,12 +173,12 @@ namespace MAT_NS_BEGIN
 
     /**
      * Connect Java VM and application context for later use in reverse-JNI
-     * 
+     *
      * There is a static native method connectContext on the Java class OfflineRoom which will call
      * this static method, as a convenient way to pass the application context to this method.
-     * 
+     *
      * @param [in] env: JNI environment.
-     * @param [in] appContext: Context that will own database (usually application Context) 
+     * @param [in] appContext: Context that will own database (usually application Context)
      */
     void OfflineStorage_Room::ConnectJVM(JNIEnv* env, jobject appContext)
     {
@@ -172,8 +194,18 @@ namespace MAT_NS_BEGIN
     }
 
     /**
+     * Delete all records
+     *
+     * Not Implemented
+     */
+    void OfflineStorage_Room::DeleteAllRecords()
+    {
+        MATSDK_THROW(std::logic_error("DeleteAllRecords not implemented"));
+    }
+
+    /**
      * Delete records matching a set of WHERE equality conditions
-     * 
+     *
      * Only implements equality-on-tenantToken.
      * @param[in] whereFilter The keys are column selectors (only tenant_token
      * is supported). The corresponding value specifies the column value
@@ -201,7 +233,7 @@ namespace MAT_NS_BEGIN
 
     /**
      * Delete records by identifier.
-     * 
+     *
      * @param[in] ids A vector of std::string record ids.
      * @param[out] fromMemory Always false (even when the database
      * is held in memory, which can happen in tests).
@@ -224,7 +256,6 @@ namespace MAT_NS_BEGIN
         auto room_class = env->GetObjectClass(m_room);
         auto method = env->GetMethodID(room_class, "deleteById", "([J)J");
         ThrowLogic(env, "Unable to get deleteById method");
-        ThrowRuntime(env, "Unable to allocate id array");
         size_t index = 0;
 
         /* Convert string identifiers to int64_t */
@@ -258,6 +289,7 @@ namespace MAT_NS_BEGIN
         }
         // Convert to java array, call OfflineRoom.deleteById
         auto ids_java = env->NewLongArray(roomIds.size());
+        ThrowRuntime(env, "Unable to allocate id array");
         env->SetLongArrayRegion(ids_java, 0, roomIds.size(), roomIds.data());
         ThrowLogic(env, "set delete ids");
         env->CallLongMethod(m_room, method, ids_java);
@@ -266,23 +298,23 @@ namespace MAT_NS_BEGIN
 
     /**
      * Get records for the packager
-     * 
+     *
      * If leaseTime is non-zero, this will set the reservedUntil
      * column in the selected
      * records. This method only selects records with a
      * reservedUntil value in the past, so setting the column reserves the
      * record and prevents later calls to GetAndReserveRecords
      * from picking up and retransmitting the reserved records.
-     * 
+     *
      * Because we retrieve the records in a batch, if the consumer
      * functor returns false before the end of the batch, we
      * will reset reservedUntil on the unconsumed records.
-     * 
+     *
      * Records are sorted by:
      * - Latency (Latency_RealTime first)
      * - Persistence (Critical first)
      * - Time (oldest first)
-     * 
+     *
      * @param[in] consumer We call this functor for each
      * record, and it may move or copy the record as it likes. If
      * the functor returns false, we assume that it did not
@@ -304,124 +336,150 @@ namespace MAT_NS_BEGIN
         EventLatency minLatency,
         unsigned maxCount)
     {
-        ConnectedEnv env(s_vm);
-        if (!env)
-        {
+        try {
+            ConnectedEnv env(s_vm);
+            if (!env) {
+                return false;
+            }
+            auto room_class = env->GetObjectClass(m_room);
+            auto reserve = env->GetMethodID(room_class, "getAndReserve",
+                                            "(IJJJ)[Lcom/microsoft/applications/events/StorageRecord;");
+            ThrowLogic(env, "getAndReserve");
+            auto now = PAL::getUtcSystemTimeMs();
+            auto until = now + leaseTimeMs;
+            auto selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
+                                                                            static_cast<int>(minLatency),
+                                                                            static_cast<int64_t>(maxCount
+                                                                                                 ? maxCount
+                                                                                                 : -1),
+                                                                            static_cast<int64_t>(now),
+                                                                            static_cast<int64_t>(until)));
+            ThrowRuntime(env, "Call getAndReserve");
+            size_t index;
+            size_t limit = env->GetArrayLength(selected);
+            if (limit == 0) {
+                return false;
+            }
+            // we don't collect these here because GetObjectClass is
+            // less fragile than FindClass
+            jclass record_class = nullptr;
+            jfieldID id_id;
+            jfieldID tenantToken_id;
+            jfieldID latency_id;
+            jfieldID persistence_id;
+            jfieldID timestamp_id;
+            jfieldID retryCount_id;
+            jfieldID reservedUntil_id;
+            jfieldID blob_id;
+
+            // Set limits for conversion from int to enum
+            int latency_lb = static_cast<int>(EventLatency_Off);
+            int latency_ub = static_cast<int>(EventLatency_Max);
+            int persist_lb = static_cast<int>(EventPersistence_Normal);
+            int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
+
+            size_t collected = 0;
+            for (index = 0; index < limit; ++index) {
+                env.pushLocalFrame(32);
+                auto record = env->GetObjectArrayElement(selected, index);
+                ThrowLogic(env, "getAndReserve element");
+                if (!record_class) {
+                    record_class = env->GetObjectClass(record);
+                    id_id = env->GetFieldID(record_class, "id", "J");
+                    ThrowLogic(env, "gar id");
+                    tenantToken_id = env->GetFieldID(record_class, "tenantToken",
+                                                     "Ljava/lang/String;");
+                    ThrowLogic(env, "gar tenant");
+                    latency_id = env->GetFieldID(record_class, "latency", "I");
+                    ThrowLogic(env, "gar latency");
+                    persistence_id = env->GetFieldID(record_class, "persistence", "I");
+                    ThrowLogic(env, "gar persistence");
+                    timestamp_id = env->GetFieldID(record_class, "timestamp", "J");
+                    ThrowLogic(env, "gar timestamp");
+                    retryCount_id = env->GetFieldID(record_class, "retryCount", "I");
+                    ThrowLogic(env, "gar retryCount");
+                    reservedUntil_id = env->GetFieldID(record_class, "reservedUntil", "J");
+                    ThrowLogic(env, "gar reserved");
+                    blob_id = env->GetFieldID(record_class, "blob", "[B");
+                    ThrowLogic(env, "gar blob");
+                }
+
+                auto id_java = env->GetLongField(record, id_id);
+                ThrowLogic(env, "get id");
+                auto tenantToken_java = static_cast<jstring>(env->GetObjectField(record,
+                                                                                 tenantToken_id));
+                ThrowRuntime(env, "get tenant");
+                auto token_utf = env->GetStringUTFChars(tenantToken_java, nullptr);
+                ThrowRuntime(env, "string tenant");
+                auto latency = static_cast<EventLatency>(std::max(latency_lb,
+                                                                  std::min<int>(latency_ub,
+                                                                                env->GetIntField(
+                                                                                        record,
+                                                                                        latency_id))));
+                ThrowLogic(env, "get latency");
+                auto persistence = static_cast<EventPersistence>(std::max(latency_lb,
+                                                                          std::min<int>(latency_ub,
+                                                                                        env->GetIntField(
+                                                                                                record,
+                                                                                                persistence_id))));
+                ThrowLogic(env, "get persistence");
+                auto timestamp = static_cast<uint64_t>(env->GetLongField(record, timestamp_id));
+                ThrowLogic(env, "get timestamp");
+                auto retryCount = env->GetIntField(record, retryCount_id);
+                ThrowLogic(env, "get retry");
+                auto reservedUntil = static_cast<uint64_t>(env->GetLongField(record,
+                                                                             reservedUntil_id));
+                ThrowLogic(env, "get reservedUntil");
+                auto blob_java = static_cast<jbyteArray>(env->GetObjectField(record, blob_id));
+                ThrowLogic(env, "get blob");
+                uint8_t *start = reinterpret_cast<uint8_t *>(env->GetByteArrayElements(blob_java,
+                                                                                       nullptr));
+                ThrowLogic(env, "get blob storage");
+                uint8_t *end = start + env->GetArrayLength(blob_java);
+                StorageRecord dest(
+                        std::to_string(id_java),
+                        token_utf,
+                        latency,
+                        persistence,
+                        timestamp,
+                        StorageBlob(start, end),
+                        retryCount,
+                        reservedUntil);
+                env->ReleaseStringUTFChars(tenantToken_java, token_utf);
+                env->ReleaseByteArrayElements(blob_java, reinterpret_cast<jbyte *>(start), 0);
+                env.popLocalFrame();
+                if (!consumer(std::move(dest))) {
+                    break;
+                }
+                collected += 1;
+            }
+            if (index < limit) {
+                auto release = env->GetMethodID(room_class, "releaseUnconsumed",
+                                                "([Lcom/microsoft/applications/events/StorageRecord;I)V");
+                ThrowLogic(env, "releaseUnconsumed");
+                env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
+                ThrowRuntime(env, "call ru");
+            }
+            m_lastReadCount.store(std::min(index, static_cast<size_t>(INT32_MAX)));
+            return collected > 0;
+        }
+        catch (std::exception e) {
+            auto what = e.what();
+            if (!what) {
+                what = "*nothing*";
+            }
+            LOG_ERROR("Exception in GetAndReserveRecords: %s", what);
             return false;
         }
-        auto room_class = env->GetObjectClass(m_room);
-        auto reserve = env->GetMethodID(room_class, "getAndReserve", "(IJJJ)[Lcom/microsoft/applications/events/StorageRecord;");
-        ThrowLogic(env, "getAndReserve");
-        auto now = PAL::getUtcSystemTimeMs();
-        auto until = now + leaseTimeMs;
-        jobjectArray selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
-                                                                                static_cast<int>(minLatency),
-                                                                                static_cast<int64_t>(maxCount ? maxCount : -1),
-                                                                                static_cast<int64_t>(now),
-                                                                                static_cast<int64_t>(until)));
-        ThrowRuntime(env, "Call getAndReserve");
-        size_t index;
-        size_t limit = env->GetArrayLength(selected);
-        // we don't collect these here because GetObjectClass is
-        // less fragile than FindClass
-        jclass record_class = nullptr;
-        jfieldID id_id;
-        jfieldID tenantToken_id;
-        jfieldID latency_id;
-        jfieldID persistence_id;
-        jfieldID timestamp_id;
-        jfieldID retryCount_id;
-        jfieldID reservedUntil_id;
-        jfieldID blob_id;
-
-        // Set limits for conversion from int to enum
-        int latency_lb = static_cast<int>(EventLatency_Off);
-        int latency_ub = static_cast<int>(EventLatency_Max);
-        int persist_lb = static_cast<int>(EventPersistence_Normal);
-        int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
-
-        for (index = 0; index < limit; ++index)
-        {
-            env.pushLocalFrame(32);
-            auto record = env->GetObjectArrayElement(selected, index);
-            ThrowLogic(env, "getAndReserve element");
-            if (!record_class)
-            {
-                record_class = env->GetObjectClass(record);
-                id_id = env->GetFieldID(record_class, "id", "J");
-                ThrowLogic(env, "gar id");
-                tenantToken_id = env->GetFieldID(record_class, "tenantToken", "Ljava/lang/String;");
-                ThrowLogic(env, "gar tenant");
-                latency_id = env->GetFieldID(record_class, "latency", "I");
-                ThrowLogic(env, "gar latency");
-                persistence_id = env->GetFieldID(record_class, "persistence", "I");
-                ThrowLogic(env, "gar persistence");
-                timestamp_id = env->GetFieldID(record_class, "timestamp", "J");
-                ThrowLogic(env, "gar timestamp");
-                retryCount_id = env->GetFieldID(record_class, "retryCount", "I");
-                ThrowLogic(env, "gar retryCount");
-                reservedUntil_id = env->GetFieldID(record_class, "reservedUntil", "J");
-                ThrowLogic(env, "gar reserved");
-                blob_id = env->GetFieldID(record_class, "blob", "[B");
-                ThrowLogic(env, "gar blob");
-            }
-
-            auto id_java = env->GetLongField(record, id_id);
-            ThrowLogic(env, "get id");
-            auto tenantToken_java = static_cast<jstring>(env->GetObjectField(record, tenantToken_id));
-            ThrowRuntime(env, "get tenant");
-            auto token_utf = env->GetStringUTFChars(tenantToken_java, nullptr);
-            ThrowRuntime(env, "string tenant");
-            auto latency = static_cast<EventLatency>(std::max(latency_lb, std::min<int>(latency_ub, env->GetIntField(record, latency_id))));
-            ThrowLogic(env, "get latency");
-            auto persistence = static_cast<EventPersistence>(std::max(latency_lb, std::min<int>(latency_ub, env->GetIntField(record, persistence_id))));
-            ThrowLogic(env, "get persistence");
-            auto timestamp = static_cast<uint64_t>(env->GetLongField(record, timestamp_id));
-            ThrowLogic(env, "get timestamp");
-            auto retryCount = env->GetIntField(record, retryCount_id);
-            ThrowLogic(env, "get retry");
-            auto reservedUntil = static_cast<uint64_t>(env->GetLongField(record, reservedUntil_id));
-            ThrowLogic(env, "get reservedUntil");
-            auto blob_java = static_cast<jbyteArray>(env->GetObjectField(record, blob_id));
-            ThrowLogic(env, "get blob");
-            uint8_t* start = reinterpret_cast<uint8_t*>(env->GetByteArrayElements(blob_java, nullptr));
-            ThrowLogic(env, "get blob storage");
-            uint8_t* end = start + env->GetArrayLength(blob_java);
-            StorageRecord dest(
-                std::to_string(id_java),
-                token_utf,
-                latency,
-                persistence,
-                timestamp,
-                StorageBlob(start, end),
-                retryCount,
-                reservedUntil);
-            env->ReleaseStringUTFChars(tenantToken_java, token_utf);
-            env->ReleaseByteArrayElements(blob_java, reinterpret_cast<jbyte*>(start), 0);
-            env.popLocalFrame();
-            if (!consumer(std::move(dest)))
-            {
-                break;
-            }
-        }
-        if (index < limit)
-        {
-            auto release = env->GetMethodID(room_class, "releaseUnconsumed", "([Lcom/microsoft/applications/events/StorageRecord;I)V");
-            ThrowLogic(env, "releaseUnconsumed");
-            env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
-            ThrowRuntime(env, "call ru");
-        }
-        m_lastReadCount.store(std::min(index, static_cast<size_t>(INT32_MAX)));
-        return true;
     }
 
     /**
      * Initialize the database (and instantiate our androidx Room objects).
-     * 
+     *
      * The ConnectJVM method must be called before this method to set up our
      * connection to the JVM and the desired Context (usually the
      * application context).
-     * 
+     *
      * @param[in] observer In practice, an instance of StorageObserver. We
      * communicate significant events back to this IOfflineStorageObserver.
      */
@@ -474,11 +532,11 @@ namespace MAT_NS_BEGIN
 
     /**
      * Release lease and optionally increment retry count for records.
-     * 
+     *
      * @param[in] ids Vector of StorageRecord ids to release.
      * @param[in] incrementRetryCount True if we should increment the retryCount column
      * for these records.
-     * 
+     *
      */
     void OfflineStorage_Room::ReleaseRecords(
         std::vector<StorageRecordId> const& ids,
@@ -551,6 +609,7 @@ namespace MAT_NS_BEGIN
             jfieldID count_id;
             for (size_t index = 0; index < tokens; ++index)
             {
+                env.pushLocalFrame(8);
                 auto byTenant = env->GetObjectArrayElement(results, index);
                 ThrowRuntime(env, "Exception fetching element from results");
                 if (!bt_class)
@@ -569,6 +628,7 @@ namespace MAT_NS_BEGIN
                 std::string key(utf);
                 env->ReleaseStringUTFChars(token, utf);
                 dropped[key] = static_cast<size_t>(count);
+                env.popLocalFrame();
             }
             m_observer->OnStorageRecordsDropped(dropped);
         }
@@ -583,11 +643,11 @@ namespace MAT_NS_BEGIN
 
     /**
      * Store a single record.
-     * 
+     *
      * This makes a reverse-JNI call, so
      * the StoreRecords() method with a batch of records will be
      * more efficient.
-     * 
+     *
      * @param[in] record StorageRecord to persist.
      * @return true if we stored the record.
      */
@@ -601,11 +661,11 @@ namespace MAT_NS_BEGIN
 
     /**
      * Store a std::vector of records.
-     * 
+     *
      * We ignore the id on these records. SQLite will assign a unique
      * row id to each record we persist, and we will return that
      * whenever we retrieve records.
-     * 
+     *
      * @param[in] records The records to be persisted.
      * @return the number of records we persisted.
      */
@@ -729,11 +789,11 @@ namespace MAT_NS_BEGIN
 
     /**
      * Delete one setting (helper for StoreSetting)
-     * 
+     *
      * @param[in] name The key to delete from the database.
      */
 
-    void OfflineStorage_Room::DeleteSetting(std::string const& name)
+    bool OfflineStorage_Room::DeleteSetting(std::string const& name)
     {
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
@@ -743,6 +803,7 @@ namespace MAT_NS_BEGIN
         ThrowRuntime(env, "newstring");
         env->CallVoidMethod(m_room, delete_method, jName);
         ThrowLogic(env, "exception in delete setting");
+        return true;
     }
 
     /**
@@ -757,8 +818,7 @@ namespace MAT_NS_BEGIN
     {
         if (value.size() == 0)
         {
-            DeleteSetting(name);
-            return true;
+            return DeleteSetting(name);
         }
         ConnectedEnv env(s_vm);
         auto room_class = env->GetObjectClass(m_room);
@@ -780,10 +840,10 @@ namespace MAT_NS_BEGIN
 
     /**
      * Retrieve value from key-value store.
-     * 
+     *
      * Returns empty string if the key is not in the database, or we
      * encounter errors.
-     * 
+     *
      * @param[in] name Key.
      * @return Corresponding value.
      */
@@ -852,7 +912,7 @@ namespace MAT_NS_BEGIN
 
     /**
      * Number of records (StorageRecord) for a latency (or all latencies)
-     * 
+     *
      * @param[in] latency Desired latency (or EventLatency_Unspecified to get
      * the total count for all latencies).
      * @return number of records.
@@ -1003,7 +1063,13 @@ namespace MAT_NS_BEGIN
         {
             env->ExceptionDescribe();
             env->ExceptionClear();
-            MATSDK_THROW(std::logic_error(message));
+            if (m_observer) {
+                m_observer->OnStorageFailed(message);
+            }
+            if (s_throwExceptions)
+            {
+                MATSDK_THROW(std::logic_error(message));
+            }
         }
     }
 
@@ -1015,7 +1081,13 @@ namespace MAT_NS_BEGIN
         {
             env->ExceptionDescribe();
             env->ExceptionClear();
-            MATSDK_THROW(std::runtime_error(message));
+            if (m_observer) {
+                m_observer->OnStorageFailed(message);
+            }
+            if (s_throwExceptions)
+            {
+                MATSDK_THROW(std::runtime_error(message));
+            }
         }
     }
 

@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
@@ -99,7 +102,6 @@ class HttpClientTests : public ::testing::Test,
 
     /**
      * This method temporarily copies SimpleHttpResponse to a responses buffer.
-     * TODO: [MG] - ideally we should create a copy-constructor for that.
      */
     virtual SimpleHttpResponse* clone(IHttpResponse* inResponse)
     {
@@ -344,3 +346,4 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
 
 }
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
+

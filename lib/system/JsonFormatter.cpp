@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "JsonFormatter.hpp"
 #include "CorrelationVector.hpp"
 #include "json.hpp"
@@ -8,11 +12,6 @@ namespace MAT_NS_BEGIN
 {
 
     JsonFormatter::JsonFormatter()
-    {
-
-    }
-
-    JsonFormatter::~JsonFormatter()
     {
 
     }
@@ -44,10 +43,10 @@ namespace MAT_NS_BEGIN
     void addData(json& object, std::vector<::CsProtocol::Data>& data)
     {
         std::vector<::CsProtocol::Data>::const_iterator it;
-        for (it = data.begin(); it != data.end(); it++)
+        for (it = data.begin(); it != data.end(); ++it)
         {
             std::map<std::string, CsProtocol::Value>::const_iterator mapIt;
-            for (mapIt = it->properties.begin(); mapIt != it->properties.end(); mapIt++)
+            for (mapIt = it->properties.begin(); mapIt != it->properties.end(); ++mapIt)
             {
                 switch (mapIt->second.type)
                 {

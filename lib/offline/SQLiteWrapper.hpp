@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef SQLITEWRAPPER_HPP
 #define SQLITEWRAPPER_HPP
 
@@ -346,7 +349,6 @@ namespace MAT_NS_BEGIN {
         // sqlite3 callback to translate result set into vector of vectors of string
         static int sqlite3_select_callback(void *p_data, int num_fields, char **p_fields, char **p_col_names)
         {
-            // TODO: [MG] - ideally we can return a map that uses column names as keys
             UNREFERENCED_PARAMETER(p_col_names);
             SQLRecords* records = static_cast<SQLRecords*>(p_data);
             try {
@@ -371,7 +373,6 @@ namespace MAT_NS_BEGIN {
             if (rc != SQLITE_OK) {
                 LOG_DEBUG("rc=%u: %s", rc, (zErrMsg != nullptr) ? zErrMsg : sqlite3_errmsg(m_db));
                 if (zErrMsg) {
-                    // TODO: [MG] - expose sqlite3_free via g_sqlite3Proxy
                     ::sqlite3_free(zErrMsg);
                 }
             }
@@ -379,11 +380,9 @@ namespace MAT_NS_BEGIN {
         }
 
         int sqlite3_exec(const char *sql, int(*callback)(void*, int, char**, char**) = sqlite3_noop_callback, void *arg = nullptr) {
-            static size_t failureCount = 0;
             char *errmsg = nullptr;
             int result = 0;
             LOG_DEBUG("%s", sql);
-            // TODO: [MG] - expose sqlite3_exec via g_sqlite3Proxy
             result = ::sqlite3_exec(m_db, sql, callback, arg, &errmsg);
             if (!isOK(result, errmsg))
             {
@@ -393,7 +392,7 @@ namespace MAT_NS_BEGIN {
         }
 
         bool trylock() {
-            return isOK(sqlite3_exec("BEGIN EXCLUSIVE;")); // XXX: [MG] - ptr corruption in sqlite3DbMallocRawNN
+            return isOK(sqlite3_exec("BEGIN EXCLUSIVE;")); 
         }
 
         /**
@@ -487,6 +486,7 @@ namespace MAT_NS_BEGIN {
             m_duration(0),
             m_ownStmt(false),
             m_hasRow(false),
+            m_done(false),
             m_error(false)
         {
             reset();
@@ -500,6 +500,7 @@ namespace MAT_NS_BEGIN {
             m_duration(0),
             m_ownStmt(true),
             m_hasRow(false),
+            m_done(false),
             m_error(false)
         {
             reset();
@@ -767,3 +768,4 @@ namespace MAT_NS_BEGIN {
 
 } MAT_NS_END
 #endif
+

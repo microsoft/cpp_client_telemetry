@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -76,6 +80,32 @@ namespace CommonSchema
                             requestLogger.LogInformation(result);
                             await context.Response.WriteAsync(result);
                         } else
+                        /* Azure Monitor / Application Insights -compatible server */
+                        if (path.StartsWith("/v2/track"))
+                        {
+                            int length = Int32.Parse(context.Request.Headers["Content-Length"]);
+                            BinaryReader reader = new BinaryReader(context.Request.Body);
+
+                            // Read body fully before decoding it
+                            byte[] buffer = reader.ReadBytes(length);
+
+                            if (context.Request.Headers["Content-Encoding"] == "gzip")
+                            {
+                                buffer = Decoder.Gunzip(buffer);
+                            } else
+                            if (context.Request.Headers["Content-Encoding"] == "deflate")
+                            {
+                                buffer = Decoder.Inflate(buffer);
+                            }
+
+                            string result = System.Text.Encoding.UTF8.GetString(buffer);
+
+                            // Echo the body converted to JSON array
+                            context.Response.StatusCode = 200;
+                            requestLogger.LogInformation(result);
+                            await context.Response.WriteAsync(result);
+                        }
+                        else
                         if (path.StartsWith("/admin/stop"))
                         {
                             // Stop web-server

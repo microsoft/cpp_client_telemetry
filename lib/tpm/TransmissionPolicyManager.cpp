@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "TransmissionPolicyManager.hpp"
 #include "TransmitProfiles.hpp"
@@ -176,7 +179,7 @@ namespace MAT_NS_BEGIN {
         }
 #endif
 
-        auto ctx = std::make_shared<EventsUploadContext>();
+        auto ctx = m_system.createEventsUploadContext();
         ctx->requestedMinLatency = m_runningLatency;
         addUpload(ctx);
         initiateUpload(ctx);
@@ -213,10 +216,6 @@ namespace MAT_NS_BEGIN {
     bool TransmissionPolicyManager::handleStart()
     {
         m_isPaused = false;
-        // TODO: [MG] - this implies that start would force the immediate upload, but
-        // some customers require to be able to start in a paused (no telemetry) state.
-        // We may avoid the issue if we schedule the first upload to happen 1 second
-        // after start
         scheduleUpload(std::chrono::seconds{1}, calculateNewPriority());
         return true;
     }
@@ -257,6 +256,25 @@ namespace MAT_NS_BEGIN {
         return true;
     }
 
+    /**
+     * Wait for pending uploads to finish. This handler is invoked from 
+     * TelemetrySystem::onCleanup after HCM has attempted to cancel all pending
+     * requests via hcm.cancelAllRequests. This won't abort the uploads in the end
+     * and is possible to resume the transmission
+     */
+     bool TransmissionPolicyManager::handleCleanup()
+     {
+        cancelUploadTask();
+        // Make sure ongoing uploads are finished.
+        while (uploadCount() > 0)
+        {
+            std::this_thread::yield();
+        }
+
+        allUploadsFinished();
+        return true;
+     }
+
     // Called from finishAllUploads
     void TransmissionPolicyManager::handleFinishAllUploads()
     {
@@ -275,7 +293,7 @@ namespace MAT_NS_BEGIN {
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
-            auto ctx = std::make_shared<EventsUploadContext>();
+            auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
             addUpload(ctx);
             initiateUpload(ctx);
@@ -425,3 +443,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+

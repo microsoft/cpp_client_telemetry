@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "MemoryStorage.hpp"
 
 #include "utils/Utils.hpp"
@@ -192,6 +196,30 @@ namespace MAT_NS_BEGIN {
     {
         LOCKGUARD(m_records_lock);
         return static_cast<unsigned>(m_lastReadCount);
+    }
+
+    void MemoryStorage::DeleteAllRecords()
+    {
+        {
+            LOCKGUARD(m_reserved_lock);
+            if (m_reserved_records.size())
+            {
+                m_reserved_records.clear();
+            }
+        }
+        {
+            LOCKGUARD(m_records_lock);
+            for (unsigned latency = EventLatency_Off; (latency <= EventLatency_Max); latency++)
+            {
+                auto& records = m_records[latency];
+                if (records.size()) {
+                    records.clear();
+                }
+            }
+            m_size = 0;
+            m_lastReadCount = 0;
+        }
+
     }
 
     void MemoryStorage::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
@@ -400,6 +428,19 @@ namespace MAT_NS_BEGIN {
         LOG_WARN("Not implemented!");
         return std::string();
     }
+
+    /// <summary>
+    /// Deleting settings from RAM storage is not supported
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    bool MemoryStorage::DeleteSetting(std::string const & name)
+    {
+        UNREFERENCED_PARAMETER(name);
+
+        LOG_WARN("Not implemented!");
+        return false;
+    }
     
     /// <summary>
     /// Get size of the ram DB excluding reserved (in-flight) records.
@@ -459,10 +500,6 @@ namespace MAT_NS_BEGIN {
     /// <remarks>This method is not currently implemented</remarks>
     bool MemoryStorage::ResizeDb()
     {
-        // TODO: [MG] - consider implementing reduction of in-ram queue at runtime.
-        // Scenario for this is if we already run with 16MB buffer, but would like
-        // to switch to 8MB on Control Plane config update - we'd have to flush
-        // the queue and never grow above the newly provisioned limit.
         LOG_WARN("Not implemented!");
         return true;
     }
@@ -484,3 +521,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+

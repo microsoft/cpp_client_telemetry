@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef CONTEXTFIELDSPROVIDER_HPP
 #define CONTEXTFIELDSPROVIDER_HPP
 
@@ -14,7 +17,6 @@
 
 namespace MAT_NS_BEGIN
 {
-    // TODO: [MG] - A/B EXP code has to be refactored into separate module
 
     class ContextFieldsProvider : public ISemanticContext
     {
@@ -55,3 +57,4 @@ namespace MAT_NS_BEGIN
 
 } MAT_NS_END
 #endif
+

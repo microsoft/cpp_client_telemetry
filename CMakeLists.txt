@@ -11,6 +11,9 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 #set(CMAKE_CXX_FLAGS -m32)
 # End of i386 build
 
+# We ask for 14, but we may get C++11 on older gcc-4.x and gcc-5.x
+set(CMAKE_CXX_STANDARD 14)
+
 if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
@@ -61,6 +64,7 @@ if(APPLE)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
       set(CMAKE_SYSTEM_PROCESSOR arm64)
+      set(APPLE True)
     else()
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
@@ -210,6 +214,11 @@ option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
+option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
+option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
+
+# Enable Azure Monitor / Application Insights end-point support
+option(BUILD_AZMON        "Build for Azure Monitor" YES)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)

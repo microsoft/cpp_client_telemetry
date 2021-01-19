@@ -39,6 +39,9 @@
     <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
       <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\Solutions\win32-lib\win32-lib.vcxproj">
+      <Project>{216a8e97-21f7-4bef-9e52-7f772c177c32}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGUID>{FE79FB3A-B3EF-38DF-B7A4-11277DB72B39}</ProjectGUID>
@@ -94,6 +97,8 @@
     <Import Project="..\..\lib\decoder\decoder.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\filter\filter.vcxitems')" Project="..\..\lib\modules\filter\filter.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\azmon\azmon.vcxitems')" Project="..\..\lib\modules\azmon\azmon.vcxitems" Label="Shared" />
+    <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\privacyguard\privacyguard.vcxitems')" Project="..\..\lib\modules\privacyguard\privacyguard.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -417,6 +422,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AISendTests.cpp" />
     <ClCompile Include="APITest.cpp" />
     <ClCompile Include="BondDecoderTests.cpp" />
     <ClCompile Include="EventDecoderListener.cpp" />
@@ -442,6 +448,15 @@
     <ClInclude Include="..\common\MockITelemetrySystem.hpp" />
     <ClInclude Include="..\common\MockITenantDataSerializer.hpp" />
     <ClInclude Include="EventDecoderListener.hpp" />
+  </ItemGroup>
+  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\exp')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSConfigCacheFuncTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientFuncTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientRealworldFuncTests.cpp" />
+    <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientCommon.hpp" />
+  </ItemGroup>
+  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\functests\PrivacyGuardFuncTests.cpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef METASTATS_HPP
 #define METASTATS_HPP
 
@@ -559,7 +563,6 @@ namespace MAT_NS_BEGIN {
 
         IRuntimeConfig&                 m_config;
 
-        // TODO: [MG] - allow stats configuration provisioning via IRuntimeConfig above
         StatsConfig                     m_statsConfig;
         
         /// <summary>
@@ -611,3 +614,4 @@ namespace MAT_NS_BEGIN {
 } MAT_NS_END
 
 #endif
+

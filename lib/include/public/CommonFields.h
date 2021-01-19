@@ -1,18 +1,7 @@
 /*
-
- Copyright (c) 2020 Microsoft Corporation. All rights reserved.
-
- This code is licensed under the MIT License (MIT).
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
-
-*/
+ * Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #ifndef MAT_COMMONFIELDS_H
 #define MAT_COMMONFIELDS_H
 
@@ -33,6 +22,7 @@
 #define COMMONFIELDS_DEVICE_MAKE                             "DeviceInfo.Make"
 #define COMMONFIELDS_DEVICE_MODEL                            "DeviceInfo.Model"
 #define COMMONFIELDS_DEVICE_CLASS                            "DeviceInfo.Class"
+#define COMMONFIELDS_DEVICE_ORGID                            "DeviceInfo.OrgId"
 
 #define COMMONFIELDS_NETWORK_PROVIDER                        "DeviceInfo.NetworkProvider"
 #define COMMONFIELDS_NETWORK_TYPE                            "DeviceInfo.NetworkType"
@@ -121,7 +111,6 @@
 #define DIAG_LEVEL_DEFAULT_MAX                          DIAG_LEVEL_OPTIONAL
 #endif
 
-/* TODO: [MG] - this field does not exist in Common Schema. Move it away from DeviceInfo namespace */
 #define SESSION_SDKUID                                  "DeviceInfo.SDKUid"
 
 #define SETTER_METHOD(NAME) Set ## NAME

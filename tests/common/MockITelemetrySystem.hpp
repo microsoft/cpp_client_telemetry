@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #pragma once
 #include <system/ITelemetrySystem.hpp>
@@ -19,6 +22,7 @@ namespace testing {
         MOCK_METHOD0(pause, void());
         MOCK_METHOD0(resume, void());
         MOCK_METHOD0(upload, bool());
+        MOCK_METHOD0(cleanup, void());
 
         // MOCK_METHOD0(getLogManager, ILogManager&());
         ILogManager& getLogManager()
@@ -33,6 +37,11 @@ namespace testing {
             static ILogConfiguration & config = getLogManager().GetLogConfiguration();
             static RuntimeConfig_Default testConfig(config);
             return testConfig;
+        }
+        
+        EventsUploadContextPtr createEventsUploadContext() override
+        {
+            return std::make_shared<EventsUploadContext>();
         }
 
         MOCK_METHOD0(getContext, ISemanticContext&());
@@ -49,3 +58,4 @@ namespace testing {
     };
 
 }  // namespace MAT_NS_BEGIN
+

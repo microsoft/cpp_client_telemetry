@@ -1,8 +1,12 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import java.util.UUID;
 
-public class EventPropertyGuidArrayValue extends EventPropertyValue {
+class EventPropertyGuidArrayValue extends EventPropertyValue {
     private String[] m_value;
 
     public EventPropertyGuidArrayValue(final UUID[] value) {
@@ -25,3 +29,4 @@ public class EventPropertyGuidArrayValue extends EventPropertyValue {
         return m_value;
     }
 }
+

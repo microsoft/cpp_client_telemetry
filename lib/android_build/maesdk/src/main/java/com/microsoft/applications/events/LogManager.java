@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 package com.microsoft.applications.events;
 
 import androidx.annotation.Keep;
@@ -18,11 +22,15 @@ public class LogManager {
    * <p>The C++ side can translate values of type Boolean, Long, String, ILogConfiguration (nested
    * maps) and arrays of these types (including nested arrays).
    */
-  public static class LogConfigurationImpl implements ILogConfiguration {
+  public static class LogConfigurationImpl extends ILogConfiguration {
     TreeMap<String, Object> configMap;
 
     LogConfigurationImpl() {
       configMap = new TreeMap<String, Object>();
+    }
+
+    public TreeMap<String, Object> getConfigMap() {
+      return configMap;
     }
 
     @Override
@@ -903,3 +911,4 @@ public class LogManager {
    */
   public native static String getCurrentEndpoint();
 }
+

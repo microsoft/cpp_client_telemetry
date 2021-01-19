@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifdef _MSC_VER
 // evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
 #pragma warning(disable : 4459)
@@ -6,8 +9,8 @@
 #include "LogManagerImpl.hpp"
 #include "mat/config.h"
 
-#include "offline/OfflineStorageHandler.hpp"
 #include "offline/LogSessionDataProvider.hpp"
+#include "offline/OfflineStorageHandler.hpp"
 
 #include "system/TelemetrySystem.hpp"
 
@@ -30,6 +33,19 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_AI
+#if defined __has_include
+#if __has_include("modules/azmon/AITelemetrySystem.hpp")
+#include "modules/azmon/AITelemetrySystem.hpp"
+#else
+/* Compiling without Azure Monitor support because Azure Monitor private header is unavailable */
+#undef HAVE_MAT_AI
+#endif
+#else
+#include "modules/azmon/AITelemetrySystem.hpp"
+#endif
+#endif  // HAVE_MAT_AI
+
 #ifdef HAVE_MAT_DEFAULT_FILTER
 #if defined __has_include
 #if __has_include("modules/filter/CompliantByDefaultEventFilterModule.hpp")
@@ -42,6 +58,19 @@
 #include "modules/filter/LevelChececkingEventFilter.hpp"
 #endif
 #endif  // HAVE_MAT_DEFAULT_FILTER
+
+#ifdef HAVE_MAT_PRIVACYGUARD
+#if defined __has_include
+#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
+#include "modules/privacyguard/PrivacyGuard.hpp"
+#else
+/* Compiling without Privacy Guard support because Privacy Guard private header is unavailable */
+#undef HAVE_MAT_PRIVACYGUARD
+#endif
+#else
+#include "modules/privacyguard/PrivacyGuard.hpp"
+#endif
+#endif
 
 namespace MAT_NS_BEGIN
 {
@@ -162,7 +191,6 @@ namespace MAT_NS_BEGIN
                 cacheFilePath += filename;
                 m_logConfiguration[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
             }
-            // TODO: [MG] - verify that cache file is writeable
         }
 
         if (m_logConfiguration.HasConfig(CFG_STR_TRANSMIT_PROFILES))
@@ -191,10 +219,6 @@ namespace MAT_NS_BEGIN
         {
             m_dataViewerCollection.RegisterViewer(m_dataViewer);
         }
-        else
-        {
-            // TODO: [MG] - register default data viewer implementation if enabled?
-        }
 
         if (m_taskDispatcher == nullptr)
         {
@@ -205,6 +229,9 @@ namespace MAT_NS_BEGIN
             LOG_TRACE("TaskDispatcher: External %p", m_taskDispatcher.get());
         }
 
+        int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
+        (void)sdkMode; // variable may be unused when SDK is compiled without private modules
+
 #ifdef HAVE_MAT_UTC
         // UTC is not active
         configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = false;
@@ -213,8 +240,9 @@ namespace MAT_NS_BEGIN
         bool isWindowsUtcClientRegistrationEnable = PAL::IsUtcRegistrationEnabledinWindows();
         configuration[CFG_STR_UTC][CFG_BOOL_UTC_ENABLED] = isWindowsUtcClientRegistrationEnable;
 
-        int32_t sdkMode = configuration[CFG_INT_SDK_MODE];
-        if ((sdkMode > SdkModeTypes::SdkModeTypes_CS) && isWindowsUtcClientRegistrationEnable)
+        if (
+            ((sdkMode == SdkModeTypes::SdkModeTypes_UTCBackCompat) || (sdkMode == SdkModeTypes::SdkModeTypes_UTCCommonSchema)) &&
+            isWindowsUtcClientRegistrationEnable)
         {
             // UTC is active
             configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
@@ -273,11 +301,22 @@ namespace MAT_NS_BEGIN
 #if defined(STORE_SESSION_DB) && defined(HAVE_MAT_STORAGE)
         m_logSessionDataProvider.reset(new LogSessionDataProvider(m_offlineStorage.get()));
 #else
-         m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
+        m_logSessionDataProvider.reset(new LogSessionDataProvider(cacheFilePath));
 #endif
 
-        m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient, *m_taskDispatcher, 
-                    m_bandwidthController, *m_logSessionDataProvider));
+#ifdef HAVE_MAT_AI
+        if (sdkMode == SdkModeTypes::SdkModeTypes_AI)
+        {
+            m_system.reset(new AITelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
+                                                 *m_taskDispatcher, m_bandwidthController, *m_logSessionDataProvider));
+        }
+        else
+#endif
+        {
+            // Default mode is Common Schema - direct
+            m_system.reset(new TelemetrySystem(*this, *m_config, *m_offlineStorage, *m_httpClient,
+                                               *m_taskDispatcher, m_bandwidthController, *m_logSessionDataProvider));
+        }
         LOG_TRACE("Telemetry system created, starting up...");
         if (m_system && !deferSystemStart)
         {
@@ -363,6 +402,7 @@ namespace MAT_NS_BEGIN
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
             m_dataViewer = nullptr;
+            m_dataInspector = nullptr;
 
             m_filters.UnregisterAllFilters();
 
@@ -389,7 +429,6 @@ namespace MAT_NS_BEGIN
         {
             GetSystem()->upload();
         }
-        // FIXME: [MG] - make sure m_system->upload returns a status
         return STATUS_SUCCESS;
     }
 
@@ -401,7 +440,6 @@ namespace MAT_NS_BEGIN
         {
             GetSystem()->pause();
         }
-        // FIXME: [MG] - make sure m_system->pause returns a status
         return STATUS_SUCCESS;
     }
 
@@ -413,7 +451,6 @@ namespace MAT_NS_BEGIN
         {
             GetSystem()->resume();
         }
-        // FIXME: [MG] - make sure m_system->resume returns a status
         return STATUS_SUCCESS;
     }
 
@@ -486,6 +523,13 @@ namespace MAT_NS_BEGIN
         LOG_TRACE("SetContext(\"%s\", ..., %u)", name.c_str(), piiKind);
         EventProperty prop(value, piiKind);
         m_context.SetCustomField(name, prop);
+        {
+            LOCKGUARD(m_dataInspectorGuard);
+            if (m_dataInspector)
+            {
+                m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+            }
+        }
         return STATUS_SUCCESS;
     }
 
@@ -556,6 +600,14 @@ namespace MAT_NS_BEGIN
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.SetCustomField(name, prop);
+        m_context.SetCustomField(name, prop);
+        {
+            LOCKGUARD(m_dataInspectorGuard);
+            if (m_dataInspector)
+            {
+                m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+            }
+        }
         return STATUS_SUCCESS;
     }
 
@@ -654,6 +706,15 @@ namespace MAT_NS_BEGIN
             {
                 m_customDecorator->decorate(*(event->source));
             }
+
+            {
+                LOCKGUARD(m_dataInspectorGuard);
+
+                if (m_dataInspector)
+                {
+                    m_dataInspector->InspectRecord(*(event->source));
+                }
+            }
             GetSystem()->sendEvent(event);
         }
     }
@@ -680,7 +741,15 @@ namespace MAT_NS_BEGIN
 
     LogSessionData* LogManagerImpl::GetLogSessionData()
     {
-        return m_logSessionDataProvider->GetLogSessionData();
+        return (m_logSessionDataProvider) ? m_logSessionDataProvider->GetLogSessionData() : nullptr;
+    }
+
+    void LogManagerImpl::ResetLogSessionData()
+    {
+        if (m_logSessionDataProvider) 
+        {
+            m_logSessionDataProvider->ResetLogSessionData();
+        }
     }
 
     void LogManagerImpl::SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
@@ -735,5 +804,40 @@ namespace MAT_NS_BEGIN
         return m_dataViewerCollection;
     }
 
+    void LogManagerImpl::SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector)
+    {
+        LOCKGUARD(m_dataInspectorGuard);
+        m_dataInspector = dataInspector;
+    }
+
+    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector() noexcept
+    {
+        return m_dataInspector;
+    }
+
+    status_t LogManagerImpl::DeleteData()
+    {
+
+        LOCKGUARD(m_lock);
+        if (GetSystem()) 
+        {
+            // cleanup pending http requests
+            GetSystem()->cleanup(); 
+        
+            // cleanup log session ( UUID)
+            if (m_logSessionDataProvider)
+            {
+                m_logSessionDataProvider->DeleteLogSessionData();
+            }
+    
+            // cleanup offline storage ( this will also cleanup retry queue for http requests
+            if (m_offlineStorage) 
+            {	
+                m_offlineStorage->DeleteAllRecords();	
+            }
+        }
+        return STATUS_SUCCESS;
+    }
 }
 MAT_NS_END
+

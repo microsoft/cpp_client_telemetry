@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #ifndef NETWORKDETECTOR_HPP
 #define NETWORKDETECTOR_HPP
 #include "mat/config.h"
@@ -123,8 +127,8 @@ namespace MAT_NS_BEGIN
 
                     std::mutex                          m_lock;
                     std::condition_variable             cv;
-                    bool                                isRunning;
-                    bool                                isCoInitialized;
+                    bool                                isRunning = false;
+                    bool                                isCoInitialized = false;
                     std::thread                         netDetectThread;
 
                     /// <summary>
@@ -141,7 +145,7 @@ namespace MAT_NS_BEGIN
                     DWORD                               m_dwCookie_INetworkEvents;
                     DWORD                               m_dwCookie_INetworkConnectionEvents;
                     DWORD                               m_dwCookie_INetworkListManagerEvents;
-                    DWORD                               m_listener_tid;
+                    DWORD                               m_listener_tid = 0;
 
                     NLM_CONNECTIVITY                    m_connectivity;
 

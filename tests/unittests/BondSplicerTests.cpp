@@ -1,4 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 
 #include "common/Common.hpp"
 #include "Enums.hpp"
@@ -25,7 +28,7 @@ class ShadowBondSplicer : protected MAT::BondSplicer
         MAT::BondSplicer::addRecord(dataPackageIndex, recordBlob);
     }
 
-    FullDumpBinaryBlob splice() const
+    std::vector<uint8_t> splice() const override
     {
         FullDumpBinaryBlob output;
         static_cast<std::vector<uint8_t>&>(output) = MAT::BondSplicer::splice();

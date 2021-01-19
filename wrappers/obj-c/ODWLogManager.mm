@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
 #import "ODWLogManager.h"
@@ -12,6 +16,8 @@ LOGMANAGER_INSTANCE
 
 @implementation ODWLogManager
 
+static BOOL _initialized = false;
+
 +(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
 {
     return [ODWLogManager loggerWithTenant:tenantToken source:@""];
@@ -20,9 +26,11 @@ LOGMANAGER_INSTANCE
 +(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
                   source:(nonnull NSString *)source
 {
-    static const BOOL initialized = [ODWLogManager initializeLogManager:tenantToken];
-    if(!initialized) return nil;
-    
+    // If log manager is not initialized, try initializing it. If that fails, return nil else return the logger.
+    if (!_initialized && ![ODWLogManager initializeLogManager:tenantToken withConfig:nil])
+    {
+        return nil;
+    }
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = nullptr;
@@ -44,20 +52,57 @@ LOGMANAGER_INSTANCE
     return [[ODWLogger alloc] initWithILogger: logger];
 }
 
-+(BOOL)initializeLogManager:(nonnull NSString *)tenantToken
++(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
+{
+    ILogger *logger = [ODWLogManager initializeLogManager:tenantToken withConfig:config];
+    _initialized = logger != NULL;
+
+    if (!logger) return nil;
+
+    return [[ODWLogger alloc] initWithILogger: logger];
+}
+
++(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken
+{
+    return [ODWLogManager initForTenant:tenantToken withConfig:nil];
+}
+
++(nullable ILogger *)initializeLogManager:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
 {
     ILogger* logger = nullptr;
-
     try
     {
+        static ILogConfiguration logManagerConfig;
+
+        // Initializing logManager config with default configuration
+        auto& defaultConfig = LogManager::GetLogConfiguration();
+        logManagerConfig = defaultConfig;
+
+        // Update logManager config when custom configuration is provided.
+        if (config != nil && config.count > 0)
+        {
+            NSError *error;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:config
+                                                               options:0
+                                                                 error:&error];
+            if (jsonData)
+            {
+                NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                logManagerConfig = MAT::FromJSON([jsonString UTF8String]);
+            }
+            else
+            {
+                [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"%@", error.localizedDescription]];
+            }
+        }
+
         // Turn off statistics
-        auto& config = LogManager::GetLogConfiguration();
-        config[CFG_MAP_METASTATS_CONFIG]["interval"] = 0;
+        logManagerConfig[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;
 
         // Initialize SDK Log Manager
         std::string strToken = std::string([tenantToken UTF8String]);
-        logger = LogManager::Initialize(strToken);
-    
+        logger = LogManager::Initialize(strToken, logManagerConfig);
+
         // Obtain semantics values
         NSBundle* bundle = [NSBundle mainBundle];
         NSLocale* locale = [NSLocale currentLocale];
@@ -98,8 +143,7 @@ LOGMANAGER_INSTANCE
         }
         [ODWLogger traceException: e.what()];
     }
-    
-    return logger != NULL;
+    return logger;
 }
 
 +(nullable ODWLogger *)loggerForSource:(nonnull NSString *)source
@@ -130,18 +174,36 @@ LOGMANAGER_INSTANCE
     });
 }
 
-+(void)flush
++(ODWStatus)flush
 {
-    PerformActionWithCppExceptionsCatch(^(void) {
-        LogManager::Flush();
-    });
+    try
+    {
+        return ((ODWStatus)LogManager::Flush());
+    }
+    catch (const std::exception &e)
+    {
+         if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+    }
 }
 
-+(void)flushAndTeardown
++(ODWStatus)flushAndTeardown
 {
-    PerformActionWithCppExceptionsCatch(^(void) {
-        LogManager::FlushAndTeardown();
-    });
+    try
+    {
+        ODWStatus status = ((ODWStatus)LogManager::FlushAndTeardown());
+    }
+    catch (const std::exception &e)
+    {
+         if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+    }
 }
 
 +(void)setTransmissionProfile:(ODWTransmissionProfile)profile
@@ -172,4 +234,27 @@ LOGMANAGER_INSTANCE
     });
 }
 
++(void)setContextWithName:(nonnull NSString*)name
+              stringValue:(nonnull NSString*)value
+{
+    PerformActionWithCppExceptionsCatch(^(void) {
+        std::string strKey = std::string([name UTF8String]);
+        std::string strValue = std::string([value UTF8String]);
+        
+        LogManager::SetContext(strKey, strValue);
+    });
+}
+
++(void)setContextWithName:(nonnull NSString*)name
+              stringValue:(nonnull NSString*)value
+                  piiKind:(enum ODWPiiKind)piiKind
+{
+    PerformActionWithCppExceptionsCatch(^(void) {
+        std::string strKey = std::string([name UTF8String]);
+        std::string strValue = std::string([value UTF8String]);
+        PiiKind piiValue = PiiKind(piiKind);
+
+        LogManager::SetContext(strKey, strValue, piiValue);
+    });
+}
 @end

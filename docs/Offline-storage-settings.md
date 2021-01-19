@@ -2,7 +2,6 @@
 
 There are several configurations that can alter the offline storage handler behaviour.
 
-
 ## Configurations
 
 | Configuration | Type | Default value | Description |
@@ -13,10 +12,9 @@ There are several configurations that can alter the offline storage handler beha
 | CFG_BOOL_ENABLE_DB_DROP_IF_FULL | bool | false | When set to true, trim events if cache size reaches CFG_INT_CACHE_FILE_SIZE
 | CFG_STR_CACHE_FILE_PATH | string | %TEMP% | Sets the path for the cache file
 
-
 ## Deprecated configurations
 
-| Configuration | 
+| Configuration |
 | ------------- |
 | CFG_BOOL_ENABLE_DB_COMPRESS |
 | CFG_BOOL_ENABLE_WAL_JOURNAL |

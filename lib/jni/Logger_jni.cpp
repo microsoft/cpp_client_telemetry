@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// SPDX-License-Identifier: Apache-2.0
+//
 #include "ILogger.hpp"
 #include "JniConvertors.hpp"
 
@@ -570,3 +574,4 @@ JNIEXPORT jstring JNICALL Java_com_microsoft_applications_events_Logger_nativeGe
 }
 
 };
+
