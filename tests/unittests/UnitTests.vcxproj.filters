@@ -9,7 +9,6 @@
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesTests.cpp" />
@@ -31,7 +30,6 @@
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />
     <ClCompile Include="$(ProjectDir)\PackagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\PrivacyGuardTests.cpp" />
     <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
@@ -53,17 +51,16 @@
     <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />
     <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\ECSClientTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\ECSClientUtilsTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\ECSConfigCacheTests.cpp" />
     <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSConfigCacheTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyGuardTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
-      <Filter>mocks</Filter>
-    </ClInclude>
-    <ClInclude Include="$(ProjectDir)..\common\MockILocalStorageReader.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
     <ClInclude Include="$(ProjectDir)..\common\MockILogManagerInternal.hpp">
