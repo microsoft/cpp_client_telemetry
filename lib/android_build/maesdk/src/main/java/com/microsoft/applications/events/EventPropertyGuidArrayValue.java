@@ -6,7 +6,7 @@ package com.microsoft.applications.events;
 
 import java.util.UUID;
 
-class EventPropertyGuidArrayValue extends EventPropertyValue {
+public class EventPropertyGuidArrayValue extends EventPropertyValue {
     private String[] m_value;
 
     public EventPropertyGuidArrayValue(final UUID[] value) {

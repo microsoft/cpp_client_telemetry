@@ -4,7 +4,7 @@
 //
 package com.microsoft.applications.events;
 
-class EventPropertyLongArrayValue extends EventPropertyValue{
+public class EventPropertyLongArrayValue extends EventPropertyValue{
     private long[] m_value;
 
     public EventPropertyLongArrayValue(final long[] value) {

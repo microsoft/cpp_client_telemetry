@@ -4,7 +4,7 @@
 //
 package com.microsoft.applications.events;
 
-class EventPropertyTimeTicksValue extends EventPropertyValue{
+public class EventPropertyTimeTicksValue extends EventPropertyValue{
     private long m_value;
 
     public EventPropertyTimeTicksValue(final long value) {
