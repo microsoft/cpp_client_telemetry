@@ -6,7 +6,6 @@ package com.microsoft.applications.events;
 
 public abstract class ILogConfiguration {
 
-  public String getString(LogConfigurationKey key);
   public abstract Long getLong(LogConfigurationKey key);
 
   public abstract String getString(LogConfigurationKey key);
