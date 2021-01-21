@@ -13,6 +13,11 @@
 
 namespace testing {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"  // GMock MOCK_METHOD* macros don't use override.
+#endif
+
     class MockILogManagerInternal : public MAT::ILogManagerInternal
     {
     public:
@@ -48,6 +53,10 @@ namespace testing {
         MOCK_METHOD4(GetLogger, MAT::ILogger * (std::string const &, MAT::ContextFieldsProvider*, std::string const &, std::string const &));
         MOCK_METHOD1(sendEvent, void(MAT::IncomingEventContextPtr const &));
     };
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 } // namespace testing
 

@@ -10,6 +10,11 @@
 
 namespace testing {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"  // GMock MOCK_METHOD* macros don't use override.
+#endif
+
     class MockIRuntimeConfig : public MAT::RuntimeConfig_Default /* MAT::IRuntimeConfig */ {
 
     protected:
@@ -49,6 +54,9 @@ namespace testing {
 
     };
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 } // namespace testing
 
