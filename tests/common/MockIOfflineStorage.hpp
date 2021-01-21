@@ -9,6 +9,10 @@
 
 namespace testing {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"  // GMock MOCK_METHOD* macros don't use override.
+#endif
 
 class MockIOfflineStorage : public MAT::IOfflineStorage {
   public:
@@ -34,9 +38,12 @@ class MockIOfflineStorage : public MAT::IOfflineStorage {
     MOCK_METHOD0(DeleteAllRecords, void());
     MOCK_CONST_METHOD1(GetRecordCount, size_t(MAT::EventLatency));
     MOCK_METHOD3(GetRecords, std::vector<MAT::StorageRecord>(bool, MAT::EventLatency, unsigned));
-	MOCK_METHOD0(ResizeDb, bool());
+    MOCK_METHOD0(ResizeDb, bool());
 };
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 } // namespace testing
 
