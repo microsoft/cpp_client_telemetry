@@ -6,7 +6,6 @@
 #define STRINGUTILS_HPP
 
 #include "Version.hpp"
-#include "ctmacros.hpp"
 #include <EventProperty.hpp>
 
 #include <algorithm>
