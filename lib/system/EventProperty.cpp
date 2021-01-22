@@ -4,7 +4,7 @@
 //
 #include "EventProperty.hpp"
 
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 
 #include <string>
 #include <algorithm>

@@ -9,7 +9,7 @@
 #pragma warning(push)
 #pragma warning(disable:4189)   /* Turn off Level 4: local variable is initialized but not referenced. dwError unused in Release without printing it. */
 #include "HttpClient_WinInet.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 
 #include <Wincrypt.h>
 #include <WinInet.h>
