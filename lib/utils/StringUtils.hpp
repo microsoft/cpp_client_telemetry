@@ -14,18 +14,11 @@
 
 namespace MAT_NS_BEGIN
 {
-    class StringUtils
+    namespace StringUtils
     {
-    public:
-
-        static void SplitString(const std::string& s, const char separator, std::vector<std::string>& parts);
-        static bool AreAllCharactersWhitelisted(const std::string& stringToTest, const std::string& whitelist);
-
-    private:
-
-        StringUtils(const StringUtils&) = delete;
-        StringUtils& operator=(const StringUtils&) = delete;
-    };
+        void SplitString(const std::string& s, const char separator, std::vector<std::string>& parts);
+        bool AreAllCharactersWhitelisted(const std::string& stringToTest, const std::string& whitelist);
+    }
 
     std::string toString(char const* value);
     std::string toString(bool value);
