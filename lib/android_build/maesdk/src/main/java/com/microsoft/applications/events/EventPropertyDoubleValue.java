@@ -4,7 +4,7 @@
 //
 package com.microsoft.applications.events;
 
-class EventPropertyDoubleValue extends EventPropertyValue{
+public class EventPropertyDoubleValue extends EventPropertyValue{
     private double m_value;
 
     public EventPropertyDoubleValue(final double value) {
