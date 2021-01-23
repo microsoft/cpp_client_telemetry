@@ -2,33 +2,17 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
-using Bond.IO.Unsafe;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 [assembly: Fiddler.RequiredVersion("2.3.0.0")]
 
 namespace OneDSInspector
 {
+    using Fiddler;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using System.IO;
-    using System.IO.Compression;
-    using System.Security.Cryptography;
     using System.Windows.Forms;
-    using System.Collections.Generic;
-
-    using Fiddler;
-    using CsProtocol;
-    using CommonSchema = CsProtocol;
-
-    using Bond;
-    using Bond.Protocols;
-    using Bond.IO.Safe;
-    using Fiddler.WebFormats;
-
     using Decoder = CommonSchema.Decoder;
 
     public class EventInspector : Inspector2, IRequestInspector2
@@ -87,10 +71,10 @@ namespace OneDSInspector
 
         }
 
-    /// <summary>
-    /// Clear the inspector contents.
-    /// </summary>
-    public void Clear()
+        /// <summary>
+        /// Clear the inspector contents.
+        /// </summary>
+        public void Clear()
         {
             this.DecodedJson = string.Empty;
             this.PayloadViewerControl.SetText(new List<string>());
