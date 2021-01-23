@@ -23,9 +23,5 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: 'true'
-        token:  ${{ secrets.GIT_PULL_TOKEN }}
     - name: build
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
       run: ./build-tests-ios.sh ${{ matrix.config }} ${{ matrix.simulator }}

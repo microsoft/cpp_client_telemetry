@@ -28,8 +28,6 @@ jobs:
 
     - name: Build
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
         VSTOOLS_VERSION: vs2019
       shell: cmd
       run: build-cmake-clang-vs2019.cmd
