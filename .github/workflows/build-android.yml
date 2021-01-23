@@ -19,6 +19,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         submodules: 'true'
+      continue-on-error: true
     - name: Chocolatey
       run: |
         $Env:ANDROID_SDK_ROOT = "C:\Android\android-sdk"

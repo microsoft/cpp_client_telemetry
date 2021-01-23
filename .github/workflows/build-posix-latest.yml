@@ -22,6 +22,8 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
     
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@v1
+      continue-on-error: true
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       run: ./build-tests.sh ${{ matrix.config }}
