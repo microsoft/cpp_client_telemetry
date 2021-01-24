@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "mat/config.h"
+
+#pragma once
+#include "pal/PAL.hpp"
+
 #include "OfflineStorageFactory.hpp"
 
 #ifdef USE_ROOM
@@ -10,6 +14,8 @@
 #else
 #include "offline/OfflineStorage_SQLite.hpp"
 #endif
+
+#include <memory>
 
 namespace MAT_NS_BEGIN
 {
@@ -29,6 +35,8 @@ namespace MAT_NS_BEGIN
         return std::make_shared<OfflineStorage_SQLite>(logManager, runtimeConfig);
 #endif //USE_ROOM
 #else
+        UNREFERENCED_PARAMETER(logManager);
+        UNREFERENCED_PARAMETER(runtimeConfig);
         LOG_TRACE("MAT storage disabled");
         return nullptr;
 #endif //HAVE_MAT_STORAGE
