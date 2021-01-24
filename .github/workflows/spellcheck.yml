@@ -11,8 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: check out code
+
+    - name: Checkout
       uses: actions/checkout@v2
+      continue-on-error: true
 
     - name: install misspell
       run: |
