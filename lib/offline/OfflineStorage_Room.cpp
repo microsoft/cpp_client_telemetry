@@ -336,6 +336,8 @@ namespace MAT_NS_BEGIN
         EventLatency minLatency,
         unsigned maxCount)
     {
+        constexpr int64_t chunkSize = 1024;
+        int64_t requested = maxCount ? maxCount : INT64_MAX;
         try {
             ConnectedEnv env(s_vm);
             if (!env) {
@@ -347,120 +349,125 @@ namespace MAT_NS_BEGIN
             ThrowLogic(env, "getAndReserve");
             auto now = PAL::getUtcSystemTimeMs();
             auto until = now + leaseTimeMs;
-            auto selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
-                                                                            static_cast<int>(minLatency),
-                                                                            static_cast<int64_t>(maxCount
-                                                                                                 ? maxCount
-                                                                                                 : -1),
-                                                                            static_cast<int64_t>(now),
-                                                                            static_cast<int64_t>(until)));
-            ThrowRuntime(env, "Call getAndReserve");
-            size_t index;
-            size_t limit = env->GetArrayLength(selected);
-            if (limit == 0) {
-                return false;
-            }
-            // we don't collect these here because GetObjectClass is
-            // less fragile than FindClass
-            jclass record_class = nullptr;
-            jfieldID id_id;
-            jfieldID tenantToken_id;
-            jfieldID latency_id;
-            jfieldID persistence_id;
-            jfieldID timestamp_id;
-            jfieldID retryCount_id;
-            jfieldID reservedUntil_id;
-            jfieldID blob_id;
-
-            // Set limits for conversion from int to enum
-            int latency_lb = static_cast<int>(EventLatency_Off);
-            int latency_ub = static_cast<int>(EventLatency_Max);
-            int persist_lb = static_cast<int>(EventPersistence_Normal);
-            int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
-
-            size_t collected = 0;
-            for (index = 0; index < limit; ++index) {
-                env.pushLocalFrame(32);
-                auto record = env->GetObjectArrayElement(selected, index);
-                ThrowLogic(env, "getAndReserve element");
-                if (!record_class) {
-                    record_class = env->GetObjectClass(record);
-                    id_id = env->GetFieldID(record_class, "id", "J");
-                    ThrowLogic(env, "gar id");
-                    tenantToken_id = env->GetFieldID(record_class, "tenantToken",
-                                                     "Ljava/lang/String;");
-                    ThrowLogic(env, "gar tenant");
-                    latency_id = env->GetFieldID(record_class, "latency", "I");
-                    ThrowLogic(env, "gar latency");
-                    persistence_id = env->GetFieldID(record_class, "persistence", "I");
-                    ThrowLogic(env, "gar persistence");
-                    timestamp_id = env->GetFieldID(record_class, "timestamp", "J");
-                    ThrowLogic(env, "gar timestamp");
-                    retryCount_id = env->GetFieldID(record_class, "retryCount", "I");
-                    ThrowLogic(env, "gar retryCount");
-                    reservedUntil_id = env->GetFieldID(record_class, "reservedUntil", "J");
-                    ThrowLogic(env, "gar reserved");
-                    blob_id = env->GetFieldID(record_class, "blob", "[B");
-                    ThrowLogic(env, "gar blob");
+            int64_t collected = 0; // Signed because JNI likes signed numbers
+            while (requested > collected) {
+                int64_t loopChunk = std::min(chunkSize, requested - collected);
+                auto selected = static_cast<jobjectArray>(env->CallObjectMethod(m_room, reserve,
+                                                                                static_cast<int>(minLatency),
+                                                                                loopChunk,
+                                                                                static_cast<int64_t>(now),
+                                                                                static_cast<int64_t>(until)));
+                ThrowRuntime(env, "Call getAndReserve");
+                size_t index;
+                size_t limit = env->GetArrayLength(selected);
+                if (limit == 0) {
+                    break; // out of r > c loop; no more records
                 }
+                // we don't collect these here because GetObjectClass is
+                // less fragile than FindClass
+                jclass record_class = nullptr;
+                jfieldID id_id;
+                jfieldID tenantToken_id;
+                jfieldID latency_id;
+                jfieldID persistence_id;
+                jfieldID timestamp_id;
+                jfieldID retryCount_id;
+                jfieldID reservedUntil_id;
+                jfieldID blob_id;
 
-                auto id_java = env->GetLongField(record, id_id);
-                ThrowLogic(env, "get id");
-                auto tenantToken_java = static_cast<jstring>(env->GetObjectField(record,
-                                                                                 tenantToken_id));
-                ThrowRuntime(env, "get tenant");
-                auto token_utf = env->GetStringUTFChars(tenantToken_java, nullptr);
-                ThrowRuntime(env, "string tenant");
-                auto latency = static_cast<EventLatency>(std::max(latency_lb,
-                                                                  std::min<int>(latency_ub,
-                                                                                env->GetIntField(
-                                                                                        record,
-                                                                                        latency_id))));
-                ThrowLogic(env, "get latency");
-                auto persistence = static_cast<EventPersistence>(std::max(latency_lb,
-                                                                          std::min<int>(latency_ub,
-                                                                                        env->GetIntField(
-                                                                                                record,
-                                                                                                persistence_id))));
-                ThrowLogic(env, "get persistence");
-                auto timestamp = static_cast<uint64_t>(env->GetLongField(record, timestamp_id));
-                ThrowLogic(env, "get timestamp");
-                auto retryCount = env->GetIntField(record, retryCount_id);
-                ThrowLogic(env, "get retry");
-                auto reservedUntil = static_cast<uint64_t>(env->GetLongField(record,
-                                                                             reservedUntil_id));
-                ThrowLogic(env, "get reservedUntil");
-                auto blob_java = static_cast<jbyteArray>(env->GetObjectField(record, blob_id));
-                ThrowLogic(env, "get blob");
-                uint8_t *start = reinterpret_cast<uint8_t *>(env->GetByteArrayElements(blob_java,
-                                                                                       nullptr));
-                ThrowLogic(env, "get blob storage");
-                uint8_t *end = start + env->GetArrayLength(blob_java);
-                StorageRecord dest(
-                        std::to_string(id_java),
-                        token_utf,
-                        latency,
-                        persistence,
-                        timestamp,
-                        StorageBlob(start, end),
-                        retryCount,
-                        reservedUntil);
-                env->ReleaseStringUTFChars(tenantToken_java, token_utf);
-                env->ReleaseByteArrayElements(blob_java, reinterpret_cast<jbyte *>(start), 0);
-                env.popLocalFrame();
-                if (!consumer(std::move(dest))) {
-                    break;
+                // Set limits for conversion from int to enum
+                int latency_lb = static_cast<int>(EventLatency_Off);
+                int latency_ub = static_cast<int>(EventLatency_Max);
+                int persist_lb = static_cast<int>(EventPersistence_Normal);
+                int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
+
+                for (index = 0; index < limit; ++index) {
+                    env.pushLocalFrame(32);
+                    auto record = env->GetObjectArrayElement(selected, index);
+                    ThrowLogic(env, "getAndReserve element");
+                    if (!record_class) {
+                        record_class = env->GetObjectClass(record);
+                        id_id = env->GetFieldID(record_class, "id", "J");
+                        ThrowLogic(env, "gar id");
+                        tenantToken_id = env->GetFieldID(record_class, "tenantToken",
+                                                         "Ljava/lang/String;");
+                        ThrowLogic(env, "gar tenant");
+                        latency_id = env->GetFieldID(record_class, "latency", "I");
+                        ThrowLogic(env, "gar latency");
+                        persistence_id = env->GetFieldID(record_class, "persistence", "I");
+                        ThrowLogic(env, "gar persistence");
+                        timestamp_id = env->GetFieldID(record_class, "timestamp", "J");
+                        ThrowLogic(env, "gar timestamp");
+                        retryCount_id = env->GetFieldID(record_class, "retryCount", "I");
+                        ThrowLogic(env, "gar retryCount");
+                        reservedUntil_id = env->GetFieldID(record_class, "reservedUntil", "J");
+                        ThrowLogic(env, "gar reserved");
+                        blob_id = env->GetFieldID(record_class, "blob", "[B");
+                        ThrowLogic(env, "gar blob");
+                    }
+
+                    auto id_java = env->GetLongField(record, id_id);
+                    ThrowLogic(env, "get id");
+                    auto tenantToken_java = static_cast<jstring>(env->GetObjectField(record,
+                                                                                     tenantToken_id));
+                    ThrowRuntime(env, "get tenant");
+                    auto token_utf = env->GetStringUTFChars(tenantToken_java, nullptr);
+                    ThrowRuntime(env, "string tenant");
+                    auto latency = static_cast<EventLatency>(std::max(latency_lb,
+                                                                      std::min<int>(latency_ub,
+                                                                                    env->GetIntField(
+                                                                                            record,
+                                                                                            latency_id))));
+                    ThrowLogic(env, "get latency");
+                    auto persistence = static_cast<EventPersistence>(std::max(latency_lb,
+                                                                              std::min<int>(
+                                                                                      latency_ub,
+                                                                                      env->GetIntField(
+                                                                                              record,
+                                                                                              persistence_id))));
+                    ThrowLogic(env, "get persistence");
+                    auto timestamp = static_cast<uint64_t>(env->GetLongField(record, timestamp_id));
+                    ThrowLogic(env, "get timestamp");
+                    auto retryCount = env->GetIntField(record, retryCount_id);
+                    ThrowLogic(env, "get retry");
+                    auto reservedUntil = static_cast<uint64_t>(env->GetLongField(record,
+                                                                                 reservedUntil_id));
+                    ThrowLogic(env, "get reservedUntil");
+                    auto blob_java = static_cast<jbyteArray>(env->GetObjectField(record, blob_id));
+                    ThrowLogic(env, "get blob");
+                    uint8_t *start = reinterpret_cast<uint8_t *>(env->GetByteArrayElements(
+                            blob_java,
+                            nullptr));
+                    ThrowLogic(env, "get blob storage");
+                    uint8_t *end = start + env->GetArrayLength(blob_java);
+                    StorageRecord dest(
+                            std::to_string(id_java),
+                            token_utf,
+                            latency,
+                            persistence,
+                            timestamp,
+                            StorageBlob(start, end),
+                            retryCount,
+                            reservedUntil);
+                    env->ReleaseStringUTFChars(tenantToken_java, token_utf);
+                    env->ReleaseByteArrayElements(blob_java, reinterpret_cast<jbyte *>(start), 0);
+                    env.popLocalFrame();
+                    if (!consumer(std::move(dest))) {
+                        break;
+                    }
+                    collected += 1;
                 }
-                collected += 1;
+                if (index < limit) {
+                    // we did not consume all these events
+                    auto release = env->GetMethodID(room_class, "releaseUnconsumed",
+                                                    "([Lcom/microsoft/applications/events/StorageRecord;I)V");
+                    ThrowLogic(env, "releaseUnconsumed");
+                    env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
+                    ThrowRuntime(env, "call ru");
+                    break; // break out of the request > collected loop--end early by request
+                }
             }
-            if (index < limit) {
-                auto release = env->GetMethodID(room_class, "releaseUnconsumed",
-                                                "([Lcom/microsoft/applications/events/StorageRecord;I)V");
-                ThrowLogic(env, "releaseUnconsumed");
-                env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
-                ThrowRuntime(env, "call ru");
-            }
-            m_lastReadCount.store(std::min(index, static_cast<size_t>(INT32_MAX)));
+            m_lastReadCount.store(std::min(collected, static_cast<int64_t>(INT32_MAX)));
             return collected > 0;
         }
         catch (std::exception e) {
