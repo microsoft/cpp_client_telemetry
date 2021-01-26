@@ -4,6 +4,7 @@
 //
 #include "EventProperty.hpp"
 
+#include "utils/annex_k.hpp"
 #include "utils/StringUtils.hpp"
 
 #include <string>
