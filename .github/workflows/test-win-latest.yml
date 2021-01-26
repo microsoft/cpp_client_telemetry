@@ -23,10 +23,11 @@ jobs:
         os: [windows-2016]
     
     steps:
-    - uses: actions/checkout@v1
+
+    - name: Checkout
+      uses: actions/checkout@v1
+      continue-on-error: true
+
     - name: Test ${{ matrix.arch }} ${{ matrix.config }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
       shell: cmd
       run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.config }}

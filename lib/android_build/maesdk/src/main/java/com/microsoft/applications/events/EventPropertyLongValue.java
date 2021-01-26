@@ -4,7 +4,7 @@
 //
 package com.microsoft.applications.events;
 
-class EventPropertyLongValue extends EventPropertyValue{
+public class EventPropertyLongValue extends EventPropertyValue{
     private long m_value;
 
     public EventPropertyLongValue(final long value) {
