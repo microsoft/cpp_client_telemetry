@@ -8,7 +8,7 @@
 #include "OfflineStorage_SQLite.hpp"
 #include "ILogManager.hpp"
 #include "SQLiteWrapper.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>

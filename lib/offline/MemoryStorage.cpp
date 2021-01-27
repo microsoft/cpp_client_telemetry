@@ -4,7 +4,7 @@
 //
 #include "MemoryStorage.hpp"
 
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 #include <climits>
 
 namespace MAT_NS_BEGIN {

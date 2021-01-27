@@ -4,6 +4,7 @@
 //
 
 #include "BondSerializer.hpp"
+#include "utils/StringUtils.hpp"
 #include "utils/Utils.hpp"
 #include "bond/All.hpp"
 #include "bond/generated/CsProtocol_writers.hpp"

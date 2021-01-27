@@ -6,7 +6,7 @@
 
 #include "ILogManager.hpp"
 #include "ISemanticContext.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 
 #include <algorithm>
 #include <list>

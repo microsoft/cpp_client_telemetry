@@ -5,7 +5,7 @@
 
 #include "Packager.hpp"
 #include "ILogManager.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 #include <algorithm>
 
 namespace MAT_NS_BEGIN {
