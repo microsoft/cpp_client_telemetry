@@ -2,7 +2,7 @@
 
 #include "common/Common.hpp"
 #include "common/MockIRuntimeConfig.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 #include "packager/Packager.hpp"
 #include "bond/All.hpp"
 #include "CsProtocol_types.hpp"

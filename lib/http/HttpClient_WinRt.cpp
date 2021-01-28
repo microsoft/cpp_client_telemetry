@@ -9,7 +9,7 @@
 #include "pal/PAL.hpp"
 
 #include "http/HttpClient_WinRt.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 
 #include <algorithm>
 #include <memory>
