@@ -23,6 +23,8 @@
 /* Lean implementation of SLDC "Annex K" for non-Windows OS */
 #include "annex_k.hpp"
 
+#include "utils/StringUtils.hpp"
+
 #if (__cplusplus < 201402L) && !defined(_MSC_VER)
 /* Workaround for lack of std::make_unique in C++11 (gcc-5). N3936 for C++14 support mentions 201402L */
 #include <memory>
@@ -69,54 +71,6 @@ namespace MAT_NS_BEGIN {
     std::string GetTempDirectory();
     std::string GetAppLocalTempDirectory();
 
-    std::string toString(char const*        value);
-    std::string toString(bool               value);
-    std::string toString(char               value);
-    std::string toString(int                value);
-    std::string toString(long               value);
-    std::string toString(long long          value);
-    std::string toString(unsigned char      value);
-    std::string toString(unsigned int       value);
-    std::string toString(unsigned long      value);
-    std::string toString(unsigned long long value);
-    std::string toString(float              value);
-    std::string toString(double             value);
-    std::string toString(long double        value);
-
-    std::string to_string(const GUID_t& uuid);
-
-    inline std::string toLower(const std::string& str)
-    {
-        std::string result = str;
-        std::transform(str.begin(), str.end(), result.begin(), 
-                   [](unsigned char c){ return (char)::tolower(c); }
-                );
-        return result;
-    }
-
-    inline std::string toUpper(const std::string& str)
-    {
-        std::string result = str;
-        std::transform(str.begin(), str.end(), result.begin(), 
-                   [](unsigned char c){ return (char)::toupper(c); }
-                );
-        return result;
-    }
-
-    inline bool equalsIgnoreCase(const std::string& str1, const std::string& str2)
-    {
-        return (str1.size() == str2.size()) && (toLower(str1) == toLower(str2));
-    }
-
-    inline std::string sanitizeIdentifier(const std::string &str)
-    {
-#if 0
-        // TODO: [MG] - we have to add some sanitizing logic, but definitely NOT replacing dots by underscores
-        std::replace(str.begin(), str.end(), '.', '_');
-#endif
-        return str;
-    }
-
     EventRejectedReason validateEventName(std::string const& name);
 
     EventRejectedReason validatePropertyName(std::string const& name);
@@ -124,66 +78,6 @@ namespace MAT_NS_BEGIN {
     inline std::string tenantTokenToId(std::string const& tenantToken)
     {
         return tenantToken.substr(0, tenantToken.find('-'));
-    }
-
-    inline const char* priorityToStr(EventPriority priority)
-    {
-        switch (priority) {
-        case EventPriority_Unspecified:
-            return "Unspecified";
-
-        case EventPriority_Off:
-            return "Off";
-
-        case EventPriority_Low:
-            return "Low";
-
-        case EventPriority_Normal:
-            return "Normal";
-
-        case EventPriority_High:
-            return "High";
-
-        case EventPriority_Immediate:
-            return "Immediate";
-
-        default:
-            return "???";
-        }
-    }
-
-    inline const char* latencyToStr(EventLatency latency)
-    {
-        switch (latency) {
-        case EventLatency_Unspecified:
-            return "Unspecified";
-
-        case EventLatency_Off:
-            return "Off";
-
-        case EventLatency_Normal:
-            return "Normal";
-
-        case EventLatency_CostDeferred:
-            return "CostDeferred";
-
-        case EventLatency_RealTime:
-            return "RealTime";
-
-        case EventLatency_Max:
-            return "Immediate";
-
-        default:
-            return "???";
-        }
-    }
-
-    inline bool replace(std::string& str, const std::string& from, const std::string& to) {
-        size_t start_pos = str.find(from);
-        if (start_pos == std::string::npos)
-            return false;
-        str.replace(start_pos, from.length(), to);
-        return true;
     }
 
     inline uint64_t GetUptimeMs()

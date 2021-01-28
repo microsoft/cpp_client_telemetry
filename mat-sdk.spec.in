@@ -36,6 +36,7 @@ mv "@CMAKE_CURRENT_BINARY_DIR@/_CPack_Packages/Linux/RPM/tmpBBroot" $RPM_BUILD_R
 @CPACK_PACKAGING_INSTALL_PREFIX@/bin/my_project
 
 %changelog
+* Tue Jan 19 2021 Max Golovanov <maxgolov@microsoft.com> 3.5.19-0
 * Mon Aug 3 2020 Max Golovanov <maxgolov@microsoft.com> 3.4.216-0
 Diagnostic Data Viewer fixes for mobile platforms.
 * Mon Jul 7 2020 Max Golovanov <maxgolov@microsoft.com> 3.4.195-0

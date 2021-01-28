@@ -10,7 +10,7 @@
 #include "EventPropertiesStorage.hpp"
 #include "DebugEvents.hpp"
 #include "ILogManager.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 #include <string>
 #include <algorithm>
 #include <cctype>

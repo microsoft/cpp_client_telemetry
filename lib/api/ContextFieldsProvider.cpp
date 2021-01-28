@@ -2,12 +2,11 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
-#include "pal/PAL.hpp"
 
 #include "ContextFieldsProvider.hpp"
 #include "LogSessionData.hpp"
-
-#include "utils/Utils.hpp"
+#include "pal/PAL.hpp"
+#include "utils/StringUtils.hpp"
 
 namespace MAT_NS_BEGIN
 {

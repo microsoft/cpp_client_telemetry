@@ -4,7 +4,7 @@
 //
 
 #include "HttpClientManager.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 #include "pal/TaskDispatcher.hpp"
 
 #include <assert.h>

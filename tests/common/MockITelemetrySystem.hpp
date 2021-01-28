@@ -12,6 +12,11 @@ using namespace MAT;
 
 namespace testing {
 
+#if defined( __clang__ )
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override" // GMock MOCK_METHOD* macros don't use override.
+#endif
+
     class MockITelemetrySystem : public ITelemetrySystem {
     public:
         MockITelemetrySystem() {};
@@ -56,6 +61,10 @@ namespace testing {
         MOCK_METHOD1(handleIncomingEventPrepared, void(IncomingEventContextPtr const& event));
         MOCK_METHOD1(preparedIncomingEventAsync, void(IncomingEventContextPtr const& event));
     };
+
+#if defined( __clang__ )
+#pragma clang diagnostic pop
+#endif
 
 }  // namespace MAT_NS_BEGIN
 

@@ -4,7 +4,7 @@
 //
 
 #include "HttpRequestEncoder.hpp"
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 #include "pal/PAL.hpp"
 
 #include <memory>

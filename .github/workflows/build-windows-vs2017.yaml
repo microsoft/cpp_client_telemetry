@@ -18,6 +18,7 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v2
+      continue-on-error: true
 
     - name: Setup Tools
       shell: cmd
@@ -25,8 +26,6 @@ jobs:
 
     - name: Build
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GIT_PULL_TOKEN: ${{ secrets.GIT_PULL_TOKEN }}
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
         SKIP_DEBUG_BUILD: 1

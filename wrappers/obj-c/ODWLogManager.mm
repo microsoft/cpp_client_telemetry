@@ -187,6 +187,7 @@ static BOOL _initialized = false;
             [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
+        return ODWEfail;
     }
 }
 
@@ -194,7 +195,7 @@ static BOOL _initialized = false;
 {
     try
     {
-        ODWStatus status = ((ODWStatus)LogManager::FlushAndTeardown());
+        return ((ODWStatus)LogManager::FlushAndTeardown());
     }
     catch (const std::exception &e)
     {
@@ -203,6 +204,7 @@ static BOOL _initialized = false;
             [ODWLogger raiseException: e.what()];
         }
         [ODWLogger traceException: e.what()];
+        return ODWEfail;
     }
 }
 
