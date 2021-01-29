@@ -149,6 +149,8 @@ You may find these helpful for debugging. All device files will be found under t
 
 `.../cache/mat-debug-10782.log`: one log file per session
 
+Local logs are only generated if `HAVE_MAT_LOGGING` is defined in `lib/include/mat/config*.h` file and `LogConfigurationKey.CFG_BOOL_ENABLE_TRACE` is set to `true` in client code. If `ANDROID_SUPPRESS_LOGCAT` is not defined, this will also generate LogCat logs. Note that there are some LogCat logs that are created through `__android_log_print` and not tied to this
+
 ### 2. Database Files
 
 `.../cache/`*dbname*`.db`: database file (if using OfflineStorage_SQLite), where *dbname* is the database name.
