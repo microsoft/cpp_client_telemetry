@@ -20,7 +20,7 @@
 #endif
 #define HAVE_MAT_JSONHPP
 #define HAVE_MAT_ZLIB
-//#define HAVE_MAT_LOGGING
+#define HAVE_MAT_LOGGING
 #define HAVE_MAT_STORAGE
 #define HAVE_MAT_DEFAULT_HTTP_CLIENT
 #ifndef __GNUC__

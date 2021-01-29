@@ -99,6 +99,7 @@ namespace PAL_NS_BEGIN {
 
         bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
         {
+            __android_log_print(ANDROID_LOG_INFO, "MAE", "log_init: %s\n", isTraceEnabled ? "TRUE" : "FALSE");
             if (!isTraceEnabled)
             {
                 return false;
@@ -504,12 +505,15 @@ namespace PAL_NS_BEGIN {
 
     void PlatformAbstractionLayer::initialize(IRuntimeConfig& configuration)
     {
+            __android_log_print(ANDROID_LOG_INFO, "MAE", "initialized called\n");
         if (m_palStarted.fetch_add(1) == 0)
         {
+            __android_log_print(ANDROID_LOG_INFO, "MAE", "Begin initializing\n");
             std::string traceFolderPath = MAT::GetTempDirectory();
             if (configuration.HasConfig(CFG_STR_TRACE_FOLDER_PATH))
             {
                 traceFolderPath = static_cast<std::string&>(configuration[CFG_STR_TRACE_FOLDER_PATH]);
+                __android_log_print(ANDROID_LOG_INFO, "MAE", "CFG_STR_TRACE_FOLDER_PATH %s\n", traceFolderPath.c_str());
             }
 
             detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);

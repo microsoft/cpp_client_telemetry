@@ -825,7 +825,7 @@ namespace MAT_NS_BEGIN
         {
             if (m_sessionStartTime == 0)
             {
-                __android_log_print(ANDROID_LOG_ERROR, "HungCat", "LogSession We don't have session start time");
+                __android_log_print(ANDROID_LOG_ERROR, "MAE", "LogSession We don't have session start time");
                 return;
             }
             sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
