@@ -23,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief Enables Data Viewer.
  @param endpoint A string that contains endpoint to route events.
- @param completionWithResult Code to execute when enable is completed. <b>Note:</b> This value can be null.
+ @param completion Code to execute when enable is completed. <b>Note:</b> This value can be null.
  */
 +(void)enableRemoteViewer:(NSString *)endpoint
 	 completionWithResult:(void(^)(bool result))completion;
