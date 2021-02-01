@@ -5,7 +5,7 @@
 #ifndef PLATFORMHELPERS_HPP
 #define PLATFORMHELPERS_HPP
 
-#include <Version.hpp>
+#include <ctmacros.hpp>
 
 #include <Windows.h>
 #include <string>

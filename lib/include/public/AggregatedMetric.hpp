@@ -5,7 +5,7 @@
 #ifndef AGGREGATEDMETRIC_HPP
 #define AGGREGATEDMETRIC_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include "ILogger.hpp"
 

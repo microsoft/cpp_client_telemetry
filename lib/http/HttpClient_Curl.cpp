@@ -8,7 +8,7 @@
 // e.g. WinInet.dll or Win 10 HTTP client instead
 #if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include <memory>
 

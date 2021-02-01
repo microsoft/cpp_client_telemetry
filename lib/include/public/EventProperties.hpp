@@ -7,8 +7,6 @@
 
 #define MAT_C_API
 
-#include "Version.hpp"
-
 #include "Enums.hpp"
 #include "EventProperty.hpp"
 #include "ctmacros.hpp"

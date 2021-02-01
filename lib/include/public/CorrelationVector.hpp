@@ -5,7 +5,6 @@
 #ifndef CORRELATIONVECTOR_HPP
 #define CORRELATIONVECTOR_HPP
 
-#include "Version.hpp"
 #include "ctmacros.hpp"
 
 #include <mutex>

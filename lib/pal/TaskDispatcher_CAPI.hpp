@@ -7,7 +7,7 @@
 
 #include "ITaskDispatcher.hpp"
 #include "mat.h"
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 namespace PAL_NS_BEGIN {
     class TaskDispatcher_CAPI : public MAT::ITaskDispatcher

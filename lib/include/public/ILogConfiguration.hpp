@@ -5,10 +5,9 @@
 #ifndef MAT_ILOGCONFIGURATION_HPP
 #define MAT_ILOGCONFIGURATION_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include "Enums.hpp"
-#include "ctmacros.hpp"
 #include "stdint.h"
 
 #include <memory>

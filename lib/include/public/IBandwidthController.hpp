@@ -5,7 +5,7 @@
 #ifndef IBANDWIDTHCONTROLLER_HPP
 #define IBANDWIDTHCONTROLLER_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 namespace MAT_NS_BEGIN
 {

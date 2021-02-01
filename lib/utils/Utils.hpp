@@ -9,7 +9,7 @@
 // Certain features, e.g. <mutex> or <thread> - cannot be used while building with /cli
 // For this reason this header cannot include any other headers that rely on <mutex> or <thread>
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "Enums.hpp"
 #include "StringConversion.hpp"
 
