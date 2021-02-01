@@ -10,23 +10,8 @@
 #define BUILD_VERSION @BUILD_VERSION_MAJOR@,@BUILD_VERSION_MINOR@,@BUILD_VERSION_PATCH@,@BUILD_NUMBER@
 
 #ifndef RESOURCE_COMPILER_INVOKED
+#include <ctmacros.hpp>
 #include <stdint.h>
-
-#ifdef HAVE_MAT_SHORT_NS
-#define MAT_NS_BEGIN  MAT
-#define MAT_NS_END
-#define PAL_NS_BEGIN  PAL
-#define PAL_NS_END
-#else
-#define MAT_NS_BEGIN  Microsoft { namespace Applications { namespace Events
-#define MAT_NS_END    }}
-#define MAT           ::Microsoft::Applications::Events
-#define PAL_NS_BEGIN  Microsoft { namespace Applications { namespace Events { namespace PlatformAbstraction
-#define PAL_NS_END    }}}
-#define PAL           ::Microsoft::Applications::Events::PlatformAbstraction
-#endif
-
-#define MAT_v1        ::Microsoft::Applications::Telemetry
 
 namespace MAT_NS_BEGIN {
 
