@@ -13,14 +13,20 @@ else
 BUILD_TYPE="Debug"
 fi
 
+# Set Architecture: arm64, arm64e or x86_64
 if [ "$2" == "arm64" ] || [ "$3" == "arm64" ]; then
 IOS_ARCH="arm64"
 elif [ "$2" == "arm64e" ] || [ "$3" == "arm64e" ]; then
 IOS_ARCH="arm64e"
-elif [ "$2" == "x86_64" ] || [ "$2" == "simulator" ] || [ "$3" == "x86_64" ] || [ "$3" == "simulator" ]; then
-IOS_ARCH="x86_64"
 else
 IOS_ARCH="x86_64"
+fi
+
+# Set Platform: device or simulator
+if [ "$2" == "device" ] || [ "$3" == "device" ]; then
+IOS_PLAT="iphoneos"
+else
+IOS_PLAT="iphonesimulator"
 fi
 
 # Set target iOS minver
@@ -48,7 +54,7 @@ cd out
 
 CMAKE_PACKAGE_TYPE=tgz
 
-cmake -DBUILD_IOS=YES -DIOS_ARCH=$IOS_ARCH -DIOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET -DBUILD_UNIT_TESTS=YES -DBUILD_FUNC_TESTS=YES -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
+cmake -DBUILD_IOS=YES -DIOS_ARCH=$IOS_ARCH -DIOS_PLAT=$IOS_PLAT -DIOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET -DBUILD_UNIT_TESTS=YES -DBUILD_FUNC_TESTS=YES -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE ..
 make
 
 make package
