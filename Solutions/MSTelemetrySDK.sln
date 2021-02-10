@@ -160,6 +160,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "azmon", "..\lib\modules\azm
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cds", "..\lib\modules\cds\cds.vcxitems", "{0299C8BA-03B9-451E-8A52-8DF1291173A5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liveeventinspector", "..\lib\modules\liveeventinspector\liveeventinspector.vcxitems", "{F8BB42F6-9C93-423B-B0C6-23EF79DD959A}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\lib\pal\universal\universal.vcxitems*{10e9165b-49d1-4d1c-8248-334b9905b9cc}*SharedItemsImports = 9
@@ -227,6 +229,7 @@ Global
 		..\lib\shared\Shared.vcxitems*{dc91621e-a203-42df-8e03-3a23dd0602b1}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{e1f6ca48-3bbf-4378-8d1e-6bbf4869db5b}*SharedItemsImports = 9
 		..\lib\shared\Shared.vcxitems*{ef859326-2a11-481c-ae8c-03d754f1c412}*SharedItemsImports = 9
+		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{f8bb42f6-9c93-423b-b0c6-23ef79dd959a}*SharedItemsImports = 9
 		..\lib\decoder\decoder.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\modules\azmon\azmon.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\modules\dataviewer\dataviewer.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
@@ -1297,6 +1300,7 @@ Global
 		{E1F6CA48-3BBF-4378-8D1E-6BBF4869DB5B} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{6DC5AB1D-3D64-4C52-8D8E-D9A8B0C16F14} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{0299C8BA-03B9-451E-8A52-8DF1291173A5} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
+		{F8BB42F6-9C93-423B-B0C6-23EF79DD959A} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EE8585B-C10F-4DAC-BDAF-3726EDF8FCD7}
