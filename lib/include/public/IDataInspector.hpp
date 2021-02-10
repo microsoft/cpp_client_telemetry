@@ -119,6 +119,12 @@ namespace MAT_NS_BEGIN
         /// <param name="isGlobalContext">Whether this is a global/logmanager Context or local ILogger context</param>
         /// <param name="associatedTenant">(Optional) Tenant associated with the Context</param>
         virtual void InspectSemanticContext(const std::string& contextName, GUID_t contextValue, bool isGlobalContext, const std::string& associatedTenant) noexcept = 0;
+
+        /// <summary>
+        /// Get the descriptive name for inspector.
+        /// </summary>
+        /// <returns>String descriptor for instance of IDataInspector.</returns>
+        virtual std::string InspectorDescriptor() const noexcept = 0;
     };
 
 }
