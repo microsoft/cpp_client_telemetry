@@ -23,6 +23,7 @@
 #define HAVE_MAT_LOGGING
 #define HAVE_MAT_STORAGE
 #define HAVE_MAT_DEFAULT_HTTP_CLIENT
+#define HAVE_MAT_LIVEEVENTINSPECTOR
 #ifndef __GNUC__
 // PrivacyGuard is not presently compatible with gcc
 #define HAVE_MAT_PRIVACYGUARD

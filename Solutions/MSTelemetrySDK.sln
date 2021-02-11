@@ -241,6 +241,7 @@ Global
 		..\lib\modules\dataviewer\dataviewer.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\modules\filter\filter.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
+		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 	EndGlobalSection

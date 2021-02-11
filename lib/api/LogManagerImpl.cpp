@@ -72,6 +72,19 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_LIVEEVENTINSPECTOR
+#if defined __has_include
+#if __has_include("modules/liveeventinspector/LiveEventInspector.hpp")
+#include "modules/liveeventinspector/LiveEventInspector.hpp"
+#else
+/* Compiling without Live Event Inspector support because Live Event Inspector private header is unavailable */
+#undef HAVE_MAT_LIVEEVENTINSPECTOR
+#endif
+#else
+#include "modules/liveeventinspector/LiveEventInspector.hpp"
+#endif
+#endif
+
 namespace MAT_NS_BEGIN
 {
     void DeadLoggers::AddMap(LoggerMap&& source)
