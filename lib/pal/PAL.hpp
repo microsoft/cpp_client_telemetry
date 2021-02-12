@@ -6,7 +6,7 @@
 #define PAL_HPP
 
 #include "mat/config.h"
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "DebugTrace.hpp"
 
 #ifdef HAVE_MAT_EXP

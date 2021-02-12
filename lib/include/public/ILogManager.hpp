@@ -5,7 +5,7 @@
 #ifndef ILOGMANAGER_HPP
 #define ILOGMANAGER_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include <climits>
 #include <cstdint>

@@ -6,7 +6,6 @@
 #define ITASKDISPATCHER_HPP
 
 #include "IModule.hpp"
-#include "Version.hpp"
 #include "ctmacros.hpp"
 
 #include <atomic>

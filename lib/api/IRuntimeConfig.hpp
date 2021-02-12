@@ -5,7 +5,7 @@
 #ifndef IRUNTIMECONFIG_HPP
 #define IRUNTIMECONFIG_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include "ILogger.hpp"
 #include "ILogConfiguration.hpp"

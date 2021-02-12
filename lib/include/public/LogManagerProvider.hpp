@@ -10,6 +10,7 @@
 #include "ILogManager.hpp"
 #include "ITaskDispatcher.hpp"
 #include "NullObjects.hpp"
+#include "Version.hpp"
 
 namespace MAT_NS_BEGIN
 {

@@ -5,7 +5,6 @@
 #ifndef COMPLIANTBYDEFAULTEVENTFILTERAPI_HPP
 #define COMPLIANTBYDEFAULTEVENTFILTERAPI_HPP
 
-#include "Version.hpp"
 #include "ctmacros.hpp"
 
 #include <vector>

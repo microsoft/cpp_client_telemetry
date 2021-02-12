@@ -5,8 +5,6 @@
 #ifndef IAFGCLIENT_HPP
 #define IAFGCLIENT_HPP
 
-#include "Version.hpp"
-
 #include "ctmacros.hpp"
 #include "ILogger.hpp"
 

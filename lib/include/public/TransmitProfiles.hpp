@@ -5,7 +5,7 @@
 #ifndef TRANSMITPROFILES_HPP
 #define TRANSMITPROFILES_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include "Enums.hpp"
 

@@ -6,9 +6,8 @@
 #define IDATAINSPECTOR_HPP
 
 #include "EventProperty.hpp"
-#include "Version.hpp"
-#include "CsProtocol_types.hpp"
 #include "ctmacros.hpp"
+#include "CsProtocol_types.hpp"
 #include <functional>
 #include <memory>
 #include <string>

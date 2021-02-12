@@ -5,7 +5,6 @@
 #ifndef IMODULE_HPP
 #define IMODULE_HPP
 
-#include "Version.hpp"
 #include "ctmacros.hpp"
 
 ///@cond INTERNAL_DOCS

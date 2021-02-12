@@ -11,7 +11,7 @@
 // payload data or Common Schema protocol struct into JSON format.
 //
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include <vector>
 #include <cinttypes>

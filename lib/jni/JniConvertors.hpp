@@ -5,7 +5,7 @@
 #include <jni.h>
 #include <include/public/EventProperties.hpp>
 #include <include/public/IDataInspector.hpp>
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #define MAT_USE_WEAK_LOGMANAGER
 

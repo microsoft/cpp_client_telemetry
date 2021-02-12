@@ -5,7 +5,7 @@
 #ifndef MAT_ENUMS_HPP
 #define MAT_ENUMS_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include <string>
 #include <vector>

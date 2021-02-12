@@ -5,7 +5,6 @@
 #ifndef STRINGCONVERSION_HPP
 #define STRINGCONVERSION_HPP
 
-#include "Version.hpp"
 #include "ctmacros.hpp"
 #include <string>
 

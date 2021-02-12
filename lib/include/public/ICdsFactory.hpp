@@ -6,7 +6,6 @@
 #define MAT_ICDSFACTORY_HPP
 
 #include "ctmacros.hpp"
-#include "Version.hpp"
 
 #include <functional>
 #include <map>

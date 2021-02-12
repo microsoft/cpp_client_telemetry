@@ -4,7 +4,7 @@
 //
 
 #pragma once
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "api/IRuntimeConfig.hpp"
 #include "system/Route.hpp"
 #include "system/Contexts.hpp"
