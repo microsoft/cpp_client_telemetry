@@ -81,7 +81,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     auto cdc = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject]);
 
     _privacyGuardPtr = std::make_shared<PrivacyGuard> (logger, std::move(cdc));
-    LogManager::GetInstance()->AddDataInspector(_privacyGuardPtr);
+    LogManager::GetInstance()->AddOrUpdateInspector(_privacyGuardPtr);
 }
 
 +(void)setEnabled:(bool)enabled

@@ -21,7 +21,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 
     auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
     spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, nullptr);
-    WrapperLogManager::GetInstance()->AddDataInspector(spPrivacyGuard);
+    WrapperLogManager::GetInstance()->AddOrUpdateInspector(spPrivacyGuard);
     return true;
 }
 
@@ -52,7 +52,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                                                                     outOfScopeIdentifiers));
 
     spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, std::move(cdc));
-    WrapperLogManager::GetInstance()->AddDataInspector(spPrivacyGuard);
+    WrapperLogManager::GetInstance()->AddOrUpdateInspector(spPrivacyGuard);
     return true;
 }
 
@@ -64,7 +64,7 @@ JNIEXPORT jboolean JNICALL
         return false;
     }
 
-    WrapperLogManager::GetInstance()->AddDataInspector(nullptr);
+    WrapperLogManager::GetInstance()->AddOrUpdateInspector(nullptr);
     spPrivacyGuard.reset();
 
     return true;

@@ -377,7 +377,7 @@ namespace MAT_NS_BEGIN
         /// Set the current instance of IDataInspector
         /// </summary>
         /// <param name="dataInspector">Shared Ptr to an instance of IDataInspector</param>
-        virtual void AddDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) = 0;
+        virtual void AddOrUpdateInspector(const std::shared_ptr<IDataInspector>& dataInspector) = 0;
 
         /// <summary>
         /// Get the current instance of IDataInspector

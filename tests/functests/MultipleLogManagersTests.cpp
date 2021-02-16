@@ -215,8 +215,8 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
     std::unique_ptr<ILogManager> lm1(LogManagerFactory::Create(config1));
     std::unique_ptr<ILogManager> lm2(LogManagerFactory::Create(config2));
 
-    lm1->AddDataInspector(privacyGuard);
-    lm2->AddDataInspector(privacyGuard);
+    lm1->AddOrUpdateInspector(privacyGuard);
+    lm2->AddOrUpdateInspector(privacyGuard);
 
     ILogger* l2a = lm2->GetLogger("aaa", "aaa-source");
     EventProperties l2a1p("l2a1");
