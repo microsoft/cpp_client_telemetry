@@ -14,6 +14,22 @@ using namespace Microsoft::Applications::Events;
     static bool _enableConsoleLogging;
     static bool _enableSessionReset;
     static bool _surfaceCppExceptions;
+    ILogConfiguration* _wrappedConfiguration;
+
+-(instancetype)initWithILogConfiguration:(ILogConfiguration*)config
+{
+    self = [super init];
+    if(self) {
+        _wrappedConfiguration = config;
+    }
+    return self;
+}
+
++(nullable ODWLogConfiguration *)getLogConfigurationCopy
+{
+    auto& config = LogManager::GetLogConfiguration();
+    return [[ODWLogConfiguration alloc] initWithILogConfiguration: *config];
+}
 
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
 {

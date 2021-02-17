@@ -10,6 +10,11 @@
 @interface ODWLogConfiguration : NSObject
 
 /*!
+@brief Return a copy of the default configuration
+*/
++(nullable ODWLogConfiguration *)getLogConfigurationCopy;
+
+/*!
 @brief Sets the URI of the event collector.
 @param eventCollectorUri A string for event collector uri.
 */
