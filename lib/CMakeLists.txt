@@ -98,7 +98,6 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/ AND BUILD_LIVE
   list(APPEND SRCS
     modules/liveeventinspector/liveeventinspector.cpp
     modules/liveeventinspector/liveeventinspector.hpp
-    decoder/PayloadDecoder.cpp
     )
 endif()
 
