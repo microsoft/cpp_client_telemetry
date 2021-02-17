@@ -384,7 +384,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <param name="inspectorDescriptor">String that describes the type of inspector</param>
         /// <returns>Current instance of IDataInspector for desired type if present, nullptr otherwise.</returns>
-        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& inspectorDescriptor) noexcept = 0;
+        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& inspectorDescriptor) const noexcept = 0;
     };
 
 }

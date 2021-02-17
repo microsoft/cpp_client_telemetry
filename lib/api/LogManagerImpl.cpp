@@ -840,7 +840,7 @@ namespace MAT_NS_BEGIN
         m_dataInspectors.push_back(dataInspector);
     }
 
-    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& inspectorDescriptor) noexcept
+    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& inspectorDescriptor) const noexcept
     {
         for(const auto& inspector : m_dataInspectors)
         {
