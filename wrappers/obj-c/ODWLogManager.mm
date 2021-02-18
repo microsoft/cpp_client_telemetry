@@ -34,13 +34,6 @@ static BOOL _initialized = false;
         return nil;
     }
 
-    status_t status = status_t::STATUS_SUCCESS;
-    ODWLogConfiguration* config = [ODWLogConfiguration getLogConfigurationCopy];
-    ILogConfiguration* wrappedConfig = [config getWrappedConfiguration];
-    /*ILogManager* manager = LogManagerProvider::CreateLogManager(
-        config._wrappedConfiguration,
-        status);*/
-
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = nullptr;
@@ -60,6 +53,48 @@ static BOOL _initialized = false;
     if(!logger) return nil;
 
     return [[ODWLogger alloc] initWithILogger: logger];
+}
+
++(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
+                  source:(nonnull NSString *)source
+                  withConfig:(nullable NSDictionary *)config
+{
+    if (config == nil || config.count == 0)
+    {
+        return [ODWLogManager loggerWithTenant:tenantToken source:source];
+    }
+
+    status_t status = status_t::STATUS_SUCCESS;
+    ODWLogConfiguration* odwConfig = [ODWLogConfiguration getLogConfigurationCopy];
+    ILogConfiguration* wrappedConfig = [odwConfig getWrappedConfiguration];
+    ILogManager* manager = LogManagerProvider::CreateLogManager(
+        *wrappedConfig,
+        status);
+
+    if (status == status_t::STATUS_SUCCESS && manager != nil)
+    {
+        std::string strToken = std::string([tenantToken UTF8String]);
+        std::string strSource = std::string([source UTF8String]);
+        ILogger* logger = nullptr;
+        try
+        {
+            logger = manager->GetLogger(strToken, strSource);
+        }
+        catch (const std::exception &e)
+        {
+            if ([ODWLogConfiguration surfaceCppExceptions])
+            {
+                [ODWLogger raiseException: e.what()];
+            }
+            [ODWLogger traceException: e.what()];
+        }
+
+        if(!logger) return nil;
+
+        return [[ODWLogger alloc] initWithILogger: logger];
+    }
+
+    return nil;
 }
 
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
