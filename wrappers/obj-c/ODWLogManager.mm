@@ -8,6 +8,7 @@
 #import "ODWLogger_private.h"
 #include <stdexcept>
 #include "LogManager.hpp"
+#include "LogManagerProvider.hpp"
 
 using namespace MAT;
 using namespace Microsoft::Applications::Events;
@@ -31,6 +32,13 @@ static BOOL _initialized = false;
     {
         return nil;
     }
+
+    status_t status = status_t::STATUS_SUCCESS;
+    ODWLogConfiguration* config = [ODWLogConfiguration getLogConfigurationCopy];
+    ILogManager* manager = LogManagerProvider::CreateLogManager(
+        config._wrappedConfiguration,
+        status);
+
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = nullptr;

@@ -28,7 +28,8 @@ using namespace Microsoft::Applications::Events;
 +(nullable ODWLogConfiguration *)getLogConfigurationCopy
 {
     auto& config = LogManager::GetLogConfiguration();
-    return [[ODWLogConfiguration alloc] initWithILogConfiguration: *config];
+    ILogConfiguration configCopy(config);
+    return [[ODWLogConfiguration alloc] initWithILogConfiguration: &configCopy];
 }
 
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
