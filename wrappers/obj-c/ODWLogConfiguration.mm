@@ -4,6 +4,7 @@
 //
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
+#import "ODWLogConfiguration_private.h"
 #import "ODWLogger_private.h"
 #import "LogManager.hpp"
 
@@ -23,6 +24,11 @@ using namespace Microsoft::Applications::Events;
         _wrappedConfiguration = config;
     }
     return self;
+}
+
+-(nullable ILogConfiguration*)getWrappedConfiguration
+{
+    return _wrappedConfiguration;
 }
 
 +(nullable ODWLogConfiguration *)getLogConfigurationCopy

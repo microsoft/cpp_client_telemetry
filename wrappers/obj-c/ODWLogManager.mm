@@ -4,6 +4,7 @@
 //
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
+#import "ODWLogConfiguration_private.h"
 #import "ODWLogManager.h"
 #import "ODWLogger_private.h"
 #include <stdexcept>
@@ -35,9 +36,10 @@ static BOOL _initialized = false;
 
     status_t status = status_t::STATUS_SUCCESS;
     ODWLogConfiguration* config = [ODWLogConfiguration getLogConfigurationCopy];
-    ILogManager* manager = LogManagerProvider::CreateLogManager(
+    ILogConfiguration* wrappedConfig = [config getWrappedConfiguration];
+    /*ILogManager* manager = LogManagerProvider::CreateLogManager(
         config._wrappedConfiguration,
-        status);
+        status);*/
 
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
