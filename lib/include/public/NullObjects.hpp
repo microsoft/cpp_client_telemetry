@@ -370,7 +370,9 @@ namespace MAT_NS_BEGIN
 
         void AddOrUpdateInspector(const std::shared_ptr<IDataInspector>& /*dataInspector*/) override {}
 
-        std::shared_ptr<IDataInspector> GetDataInspector(const std::string& /*inspectorDescriptor*/) const noexcept override
+        void ClearInspectors() override {}
+
+        std::shared_ptr<IDataInspector> GetDataInspector(const std::string& /*uniqueIdentifier*/) const noexcept override
         {
             return nullptr;
         }

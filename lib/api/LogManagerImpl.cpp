@@ -540,10 +540,7 @@ namespace MAT_NS_BEGIN
             LOCKGUARD(m_dataInspectorGuard);
             for(const auto& inspector : m_dataInspectors)
             {
-                if(inspector->InspectorDescriptor().compare("PrivacyGuard") == 0)
-                {
-                    inspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
-                }
+                inspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
             }
         }
         return STATUS_SUCCESS;
@@ -825,12 +822,12 @@ namespace MAT_NS_BEGIN
         LOCKGUARD(m_dataInspectorGuard);
         if(dataInspector == nullptr)
         {
-            m_dataInspectors.clear();
+            LOG_WARN("Attempting to add nullptr as inspector");
             return;
         }
 
         auto itInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const auto& inspector){
-            return inspector->InspectorDescriptor().compare(dataInspector->InspectorDescriptor()) == 0;
+            return inspector->UniqueIdentifier().compare(dataInspector->UniqueIdentifier()) == 0;
         });
 
         if (itInspector != m_dataInspectors.end())
@@ -840,11 +837,17 @@ namespace MAT_NS_BEGIN
         m_dataInspectors.push_back(dataInspector);
     }
 
-    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& inspectorDescriptor) const noexcept
+    void LogManagerImpl::ClearInspectors()
+    {
+        LOCKGUARD(m_dataInspectorGuard);
+        m_dataInspectors.clear();
+    }
+
+    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& uniqueIdentifier) const noexcept
     {
         for(const auto& inspector : m_dataInspectors)
         {
-            if(inspector->InspectorDescriptor().compare(inspectorDescriptor) == 0)
+            if(inspector->UniqueIdentifier().compare(uniqueIdentifier) == 0)
             {
                 return inspector;
             }

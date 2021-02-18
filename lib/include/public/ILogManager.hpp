@@ -374,17 +374,22 @@ namespace MAT_NS_BEGIN
         virtual const IDataViewerCollection& GetDataViewerCollection() const = 0;
 
         /// <summary>
-        /// Set the current instance of IDataInspector
+        /// Adds or updates list of IDataInspectors
         /// </summary>
         /// <param name="dataInspector">Shared Ptr to an instance of IDataInspector</param>
         virtual void AddOrUpdateInspector(const std::shared_ptr<IDataInspector>& dataInspector) = 0;
 
         /// <summary>
+        /// Clears all IDataInspectors
+        /// </summary>
+        virtual void ClearInspectors() = 0;
+
+        /// <summary>
         /// Get the current instance of IDataInspector
         /// </summary>
-        /// <param name="inspectorDescriptor">String that describes the type of inspector</param>
+        /// <param name="uniqueIdentifier">String that identifies inspector</param>
         /// <returns>Current instance of IDataInspector for desired type if present, nullptr otherwise.</returns>
-        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& inspectorDescriptor) const noexcept = 0;
+        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& uniqueIdentifier) const noexcept = 0;
     };
 
 }

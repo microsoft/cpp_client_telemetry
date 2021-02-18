@@ -297,8 +297,8 @@ namespace MAT_NS_BEGIN
         static size_t GetDeadLoggerCount();
 
         virtual void AddOrUpdateInspector(const std::shared_ptr<IDataInspector>& dataInspector) override;
-
-        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& inspectorDescriptor) const noexcept override;
+        virtual void ClearInspectors() override;
+        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& uniqueIdentifier) const noexcept override;
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();

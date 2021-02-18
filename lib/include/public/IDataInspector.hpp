@@ -124,7 +124,7 @@ namespace MAT_NS_BEGIN
         /// Get the descriptive name for inspector.
         /// </summary>
         /// <returns>String descriptor for instance of IDataInspector.</returns>
-        virtual const std::string& InspectorDescriptor() const noexcept = 0;
+        virtual const std::string& UniqueIdentifier() const noexcept = 0;
     };
 
 }
