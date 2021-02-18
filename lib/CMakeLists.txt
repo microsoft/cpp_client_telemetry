@@ -49,7 +49,6 @@ set(SRCS decorators/BaseDecorator.cpp
   pal/PAL.cpp
   pal/TaskDispatcher_CAPI.cpp
   pal/WorkerThread.cpp
-  payload/PayloadDecoder.cpp
 )
 
 # Support for Azure Monitor / Application Insights
