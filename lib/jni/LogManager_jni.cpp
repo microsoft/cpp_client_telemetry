@@ -704,7 +704,7 @@ namespace
             }
             return result;
         }
- 
+
         jobject mapTranslate(VariantMap& variantMap)
         {
             auto map = env->NewObject(configClass, configInit);
