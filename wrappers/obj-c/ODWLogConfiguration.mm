@@ -456,4 +456,10 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
     return [NSString stringWithCString:strCacheFilePath.c_str() encoding:NSUTF8StringEncoding];
 }
 
+-(void)set:(nonnull NSString *)key withValue:(nonnull NSString *)value
+{
+    ILogConfiguration wrappedConfig = *_wrappedConfiguration;
+    wrappedConfig[[key UTF8String]] = [value UTF8String];
+}
+
 @end

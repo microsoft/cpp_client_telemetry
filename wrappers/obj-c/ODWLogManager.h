@@ -82,7 +82,7 @@ typedef NS_ENUM(NSInteger, ODWStatus)
  */
 +(nullable ODWLogger *)loggerWithTenant:(NSString *)tenantToken
                   source:(NSString *)source
-                  withConfig:(nullable NSDictionary *)config;
+                  withConfig:(nonnull ODWLogConfiguration *)config;
 
 /*!
  @brief Retrieves a new instance of ODWLogger for logging telemetry events. It requires to previously call "loggerWithTenant" method
