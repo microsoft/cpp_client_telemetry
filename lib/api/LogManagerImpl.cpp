@@ -816,27 +816,6 @@ namespace MAT_NS_BEGIN
         m_dataInspectors.push_back(dataInspector);
     }
 
-    void LogManagerImpl::AddOrUpdateDataInspector(const std::shared_ptr<IDataInspector>& dataInspector)
-    {
-        LOCKGUARD(m_dataInspectorGuard);
-        if(dataInspector == nullptr)
-        {
-            LOG_WARN("Attempting to set nullptr as DataInspector");
-            return;
-        }
-
-        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const auto& inspector){
-            return inspector->UniqueIdentifier().compare(dataInspector->UniqueIdentifier()) == 0;
-        });
-
-        if (itDataInspector != m_dataInspectors.end())
-        {
-            m_dataInspectors.erase(itDataInspector);
-        }
-
-        m_dataInspectors.push_back(dataInspector);
-    }
-
     void LogManagerImpl::ClearDataInspectors()
     {
         LOCKGUARD(m_dataInspectorGuard);
@@ -850,18 +829,6 @@ namespace MAT_NS_BEGIN
             return nullptr;
         }
         return m_dataInspectors.at(0);
-    }
-
-    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& uniqueIdentifier) noexcept
-    {
-        for (const auto& dataInspector : m_dataInspectors)
-        {
-            if (dataInspector->UniqueIdentifier().compare(uniqueIdentifier) == 0)
-            {
-                return dataInspector;
-            }
-        }
-        return nullptr;
     }
 
     status_t LogManagerImpl::DeleteData()
