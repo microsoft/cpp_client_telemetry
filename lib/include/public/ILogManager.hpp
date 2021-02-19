@@ -380,10 +380,28 @@ namespace MAT_NS_BEGIN
         virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) = 0;
 
         /// <summary>
+        /// Adds new IDataInspector to LogManager, or updates that instance with new IDataInspector
+        /// </summary>
+        /// <param name="dataInspector">Shared Ptr to and instance of IDataInspector</param>
+        virtual void AddOrUpdateDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) = 0;
+
+        /// <summary>
+        /// Clears all IDataInspectors
+        /// </summary>
+        virtual void ClearDataInspectors() = 0;
+
+        /// <summary>
         /// Get the current instance of IDataInspector
         /// </summary>
         /// <returns>Current instance of IDataInspector if set, nullptr otherwise.</returns>
         virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept = 0;
+
+        /// <summary>
+        /// Gets the specified instance of IDataInspector
+        /// </summary>
+        /// <param name="uniqueIdentifier">String that identifies the IDataInspector</param>
+        /// <returns>Specified instance of IDataInspector if present, nullptr otherwise.</returns>
+        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& uniqueIdentifier) noexcept = 0;
     };
 
 }
