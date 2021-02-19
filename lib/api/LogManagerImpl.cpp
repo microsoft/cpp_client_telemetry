@@ -807,7 +807,6 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector)
     {
         LOCKGUARD(m_dataInspectorGuard);
-        m_dataInspectors.clear();
         if(dataInspector == nullptr)
         {
             LOG_WARN("Attempting to set nullptr as DataInspector");
@@ -816,7 +815,7 @@ namespace MAT_NS_BEGIN
 
         auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector)
         {
-            return strcmp(typeid(dataInspector).name(),typeid(currentInspector).name()) == 0;
+            return strcmp(typeid(*dataInspector).name(),typeid(*currentInspector).name()) == 0;
         });
 
         if (itDataInspector != m_dataInspectors.end())
@@ -847,11 +846,12 @@ namespace MAT_NS_BEGIN
     {
         for (const auto& dataInspector : m_dataInspectors)
         {
-            if (strcmp(uniqueIdentifier.c_str(), typeid(dataInspector).name()) == 0)
+            if (strcmp(uniqueIdentifier.c_str(), typeid(*dataInspector).name()) == 0)
             {
                 return dataInspector;
             }
         }
+        LOG_WARN("DataInspector requested does not exist");
         return  nullptr;
     }
 
