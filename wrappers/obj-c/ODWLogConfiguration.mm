@@ -10,6 +10,308 @@
 
 using namespace Microsoft::Applications::Events;
 
+/*!
+  Enable analytics.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_ANALYTICS = @"enableLifecycleSession";
+
+/*!
+ Enable multitenant.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_MULTITENANT = @"multiTenantEnabled";
+
+/*!
+ Enable CRC-32 check.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_CRC32 = @"enableCRC32";
+
+/*!
+ Enable HMAC authentication.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_HMAC = @"enableHMAC";
+
+/*!
+ Enable dropping events if DB file size exceeds its limit.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_DB_DROP_IF_FULL = @"enableDbDropIfFull";
+
+/*!
+ Enable database compression.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_DB_COMPRESS = @"enableDBCompression";
+
+/*!
+ Enable WAL journal.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_WAL_JOURNAL = @"enableWALJournal";
+
+/*!
+ Enable network detector.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_NET_DETECT = @"enableNetworkDetector";
+
+/*!
+ Parameter that allows to check if the SDK is running on UTC mode
+*/
+NSString *const ODWCFG_BOOL_UTC_ENABLED = @"enabled";
+
+/*!
+ Parameter that allows to check if the SDK is running on UTC mode
+*/
+NSString *const ODWCFG_BOOL_UTC_ACTIVE = @"active";
+
+/*!
+ Parameter that allows to check if the Windows 10 version SDK is using supports large payloads on UTC
+*/
+NSString *const ODWCFG_BOOL_UTC_LARGE_PAYLOADS = @"largePayloadsEnabled";
+
+/*!
+ The event collection URI.
+*/
+NSString *const ODWCFG_STR_COLLECTOR_URL = @"eventCollectorUri";
+
+/*!
+ The cache file-path.
+*/
+NSString *const ODWCFG_STR_CACHE_FILE_PATH = @"cacheFilePath";
+
+/*!
+ the cache file size limit in bytes.
+*/
+NSString *const ODWCFG_INT_CACHE_FILE_SIZE = @"cacheFileSizeLimitInBytes";
+
+/*!
+ The RAM queue size limit in bytes.
+*/
+NSString *const ODWCFG_INT_RAM_QUEUE_SIZE = @"cacheMemorySizeLimitInBytes";
+
+/*!
+ The size of the RAM queue buffers, in bytes.
+*/
+NSString *const ODWCFG_INT_RAM_QUEUE_BUFFERS = @"maxDBFlushQueues";
+
+/*!
+ The trace level mask.
+*/
+NSString *const ODWCFG_INT_TRACE_LEVEL_MASK = @"traceLevelMask";
+
+/*!
+ The minimum trace level.
+*/
+NSString *const ODWCFG_INT_TRACE_LEVEL_MIN = @"minimumTraceLevel";
+
+/*!
+ Enable trace logs.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_TRACE = @"enableTrace";
+
+/*!
+ The trace filepath.
+*/
+NSString *const ODWCFG_STR_TRACE_FOLDER_PATH = @"traceFolderPath";
+
+/*!
+ The SDK mode.
+*/
+NSString *const ODWCFG_INT_SDK_MODE = @"sdkmode";
+
+/*!
+ UTC lives at the root of all UTC-specific configuration.
+*/
+NSString *const ODWCFG_STR_UTC = @"utc";
+
+/*!
+ Set the provider group directly with a string (which will be converted to a GUID).
+*/
+NSString *const ODWCFG_STR_PROVIDER_GROUP_ID = @"providerGroupId";
+
+/*!
+ The maximum teardown time.
+*/
+NSString *const ODWCFG_INT_MAX_TEARDOWN_TIME = @"maxTeardownUploadTimeInSec";
+
+/*!
+ The maximum number of pending HTTP requests.
+*/
+NSString *const ODWCFG_INT_MAX_PENDING_REQ = @"maxPendingHTTPRequests";
+
+/*!
+ The maximum package drop on full.
+*/
+NSString *const ODWCFG_INT_MAX_PKG_DROP_ON_FULL = @"maxPkgDropOnFull";
+
+/*!
+ The cache file percentage full notification.
+*/
+NSString *const ODWCFG_INT_STORAGE_FULL_PCT = @"cacheFileFullNotificationPercentage";
+
+/*!
+ The minimum time (ms) between storage full notifications.
+*/
+NSString *const ODWCFG_INT_STORAGE_FULL_CHECK_TIME = @"cacheFullNotificationIntervalTime";
+
+/*!
+ The cache memory percentage full notification.
+*/
+NSString *const ODWCFG_INT_RAMCACHE_FULL_PCT = @"cacheMemoryFullNotificationPercentage";
+
+/*!
+ PRAGMA journal mode.
+*/
+NSString *const ODWCFG_STR_PRAGMA_JOURNAL_MODE = @"PRAGMA_journal_mode";
+
+/*!
+ PRAGMA synchronous.
+*/
+NSString *const ODWCFG_STR_PRAGMA_SYNCHRONOUS = @"PRAGMA_synchronous";
+
+NSString *const ODWCFG_STR_PRIMARY_TOKEN = @"primaryToken";
+
+/*!
+ Parameter that allows to apply custom transmit profile on SDK start
+*/
+NSString *const ODWCFG_STR_START_PROFILE_NAME = @"startProfileName";
+
+/*!
+ Parameter that allows to load a set of custom transmit profile on SDK start
+*/
+NSString *const ODWCFG_STR_TRANSMIT_PROFILES = @"transmitProfiles";
+
+/*!
+ IHttpClient override module
+*/
+NSString *const ODWCFG_MODULE_HTTP_CLIENT = @"httpClient";
+
+/*!
+ ITaskDispatcher override module
+*/
+NSString *const ODWCFG_MODULE_TASK_DISPATCHER = @"taskDispatcher";
+
+/*!
+ IDataViewer override module
+*/
+NSString *const ODWCFG_MODULE_DATA_VIEWER = @"dataViewer";
+
+/*!
+ IDecorator override module
+*/
+NSString *const ODWCFG_MODULE_DECORATOR = @"decorator";
+
+/*!
+ IDecorator override module
+*/
+NSString *const ODWCFG_MODULE_PRIVACY_GUARD = @"privacy_guard";
+
+/*!
+ IDecorator override module
+*/
+NSString *const ODWCFG_MODULE_OFFLINE_STORAGE = @"offlineStorage";
+
+/*!
+ Pointer to the Android app's JavaVM
+*/
+NSString *const ODWCFG_PTR_ANDROID_JVM = @"android_jvm";
+
+/*!
+ JObject of the Android app's main activity
+*/
+NSString *const ODWCFG_JOBJECT_ANDROID_ACTIVITY = @"android_activity";
+
+/*!
+ LogManagerFactory's name parameter
+*/
+NSString *const ODWCFG_STR_FACTORY_NAME = @"name";
+
+/*!
+ LogManagerFactory (and friends) config map
+*/
+NSString *const ODWCFG_MAP_FACTORY_CONFIG = @"config";
+
+/*!
+ sub-component in CFG_MAP_FACTORY_CONFIG: LogManagerFactory host parameter
+*/
+NSString *const ODWCFG_STR_FACTORY_HOST = @"host";
+
+/*!
+ sub-component in CFG_MAP_FACTORY_CONFIG: capi's scope parameter
+*/
+NSString *const ODWCFG_STR_CONTEXT_SCOPE = @"scope";
+
+/*!
+ MetaStats configuration
+*/
+NSString *const ODWCFG_MAP_METASTATS_CONFIG = @"stats";
+
+/*!
+ MetaStats configuration: time interval
+*/
+NSString *const ODWCFG_INT_METASTATS_INTERVAL = @"interval";
+
+/*!
+ MetaStats configuration: time interval
+*/
+NSString *const ODWCFG_BOOL_METASTATS_SPLIT = @"split";
+
+/*!
+ Compatibility configuration
+*/
+NSString *const ODWCFG_MAP_COMPAT = @"compat";
+
+/*!
+ Compatibility configuration: dot mode
+*/
+NSString *const ODWCFG_BOOL_COMPAT_DOTS = @"dotType";
+
+/*!
+ LogManagerFactory: is this log manager instance in host mode?
+*/
+NSString *const ODWCFG_BOOL_HOST_MODE = @"hostMode";
+
+/*!
+ HTTP configuration map
+*/
+NSString *const ODWCFG_MAP_HTTP = @"http";
+
+/*!
+ HTTP configuration map: MS root check
+*/
+NSString *const ODWCFG_BOOL_HTTP_MS_ROOT_CHECK = @"msRootCheck";
+
+/*!
+ HTTP configuration: compression
+*/
+NSString *const ODWCFG_BOOL_HTTP_COMPRESSION = @"compress";
+
+/*!
+ TPM configuration map
+*/
+NSString *const ODWCFG_MAP_TPM = @"tpm";
+
+/*!
+ TPM configuration: max retry
+*/
+NSString *const ODWCFG_INT_TPM_MAX_RETRY = @"maxRetryCount";
+
+/*!
+ TPM configuration map
+*/
+NSString *const ODWCFG_STR_TPM_BACKOFF = @"backoffConfig";
+
+/*!
+ TPM configuration map
+*/
+NSString *const ODWCFG_INT_TPM_MAX_BLOB_BYTES = @"maxBlobSize";
+
+/*!
+ TPM configuration map
+*/
+NSString *const ODWCFG_BOOL_TPM_CLOCK_SKEW_ENABLED = @"clockSkewEnabled";
+
+/*!
+ When enabled, the session timer is reset after session is completed, allowing for several session events in the duration of the SDK lifecycle
+*/
+NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
+
 @implementation ODWLogConfiguration
     static bool _enableTrace;
     static bool _enableConsoleLogging;

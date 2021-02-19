@@ -66,9 +66,33 @@ static BOOL _initialized = false;
 
     status_t status = status_t::STATUS_SUCCESS;
     ODWLogConfiguration* odwConfig = [ODWLogConfiguration getLogConfigurationCopy];
-    ILogConfiguration* wrappedConfig = [odwConfig getWrappedConfiguration];
+    if (odwConfig == nil)
+    {
+        return nil;
+    }
+
+    ILogConfiguration* wrappedConfigPtr = [odwConfig getWrappedConfiguration];
+    if (wrappedConfigPtr == nil)
+    {
+        return nil;
+    }
+    ILogConfiguration wrappedConfig = *wrappedConfigPtr;
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:config
+                                                        options:0
+                                                            error:&error];
+    if (jsonData)
+    {
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        ILogConfiguration inputConfig = MAT::FromJSON([jsonString UTF8String]);
+        for (const auto& kv : *inputConfig)
+        {
+            wrappedConfig[kv.first.c_str()] = kv.second;
+        }
+    }
+
     ILogManager* manager = LogManagerProvider::CreateLogManager(
-        *wrappedConfig,
+        wrappedConfig,
         status);
 
     if (status == status_t::STATUS_SUCCESS && manager != nil)
