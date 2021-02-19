@@ -377,6 +377,11 @@ namespace MAT_NS_BEGIN
             return nullptr;
         }
 
+        std::shared_ptr<IDataInspector> GetDataInspector(const std::string& /*uniqueIdentifier*/) noexcept override
+        {
+            return nullptr;
+        }
+
         virtual status_t DeleteData() noexcept override 
         { 
             return STATUS_ENOSYS;

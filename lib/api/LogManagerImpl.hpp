@@ -299,6 +299,7 @@ namespace MAT_NS_BEGIN
         virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) override;
         virtual void ClearDataInspectors() override;
         virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept override;
+        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& uniqueIdentifier) noexcept override;
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();

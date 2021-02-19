@@ -385,10 +385,17 @@ namespace MAT_NS_BEGIN
         virtual void ClearDataInspectors() = 0;
 
         /// <summary>
-        /// Get the current instance of IDataInspector
+        /// Get the first instance of IDataInspector
         /// </summary>
         /// <returns>Current instance of IDataInspector if set, nullptr otherwise.</returns>
         virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept = 0;
+
+        /// <summary>
+        /// Get the current instance of IDataInspector specified by the UniqueIdentifier
+        /// </summary>
+        /// <param name="uniqueIdentifier">String name that identifies IDataInspector</param>
+        /// <returns>Current instance of IDataInspector if set, nullptr otherwise.</returns>
+        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& uniqueIdentifier) noexcept = 0;
     };
 
 }
