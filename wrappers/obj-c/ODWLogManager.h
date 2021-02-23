@@ -50,10 +50,10 @@ typedef NS_ENUM(NSInteger, ODWStatus)
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken;
 
 /*!
- @brief Initializes the telemetry logging system with the specified tenant token and custom cofiguration.
- @param tenantToken A string that contains the tenant token.
- @param config A Dictionary that contains a custom configuration.
- @return An ODWLogger instance
+@brief Initializes the telemetry logging system with the specified tenant token and custom cofiguration.
+@param tenantToken A string that contains the tenant token.
+@param config A Dictionary that contains a custom configuration.
+@return An ODWLogger instance
 */
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config;
 
