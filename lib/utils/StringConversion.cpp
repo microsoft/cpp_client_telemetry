@@ -7,7 +7,9 @@
 #include <codecvt>
 #include <locale>
 
+#ifdef _WIN32
 #include "windows.h"
+#endif  // _WIN32
 
 namespace MAT_NS_BEGIN
 {
