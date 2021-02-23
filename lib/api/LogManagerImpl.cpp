@@ -846,7 +846,8 @@ namespace MAT_NS_BEGIN
     {
         for (const auto& dataInspector : m_dataInspectors)
         {
-            if (strcmp(uniqueIdentifier.c_str(), typeid(*dataInspector).name()) == 0)
+            std::string inspectorIdentifier(typeid(*dataInspector).name());
+            if (inspectorIdentifier.find(uniqueIdentifier) != std::string::npos)
             {
                 return dataInspector;
             }
