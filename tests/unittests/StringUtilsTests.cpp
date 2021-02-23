@@ -137,6 +137,7 @@ TEST(StringUtilsTests, ToString)
     EXPECT_THAT(toString(1234.567891l), Eq("1234.567891"));
 }
 
+#ifdef _WIN32
 TEST(StringUtilsTests, Utf8Utf16Conversion)
 {
     std::vector<std::string> test_strings = {
@@ -158,3 +159,4 @@ TEST(StringUtilsTests, Utf8Utf16Conversion)
       EXPECT_EQ(str, to_utf8_string(to_utf16_string(str)));
     }
 }
+#endif  // _WIN32
