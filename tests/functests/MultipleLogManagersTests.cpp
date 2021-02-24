@@ -205,7 +205,7 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
     MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
     mockLogger.m_logEventOverride = [&privacyConcernLogCount](const EventProperties& properties) {
-        if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::PrivacyConcernEventName))
+        if (equalsIgnoreCase(properties.GetName(), PrivacyGuard::GetNotificationEventName()))
         {
             privacyConcernLogCount++;
         }
