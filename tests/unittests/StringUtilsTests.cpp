@@ -4,6 +4,7 @@
 //
 
 #include "common/Common.hpp"
+#include "utils/StringConversion.hpp"
 #include "utils/StringUtils.hpp"
 
 using namespace testing;
@@ -135,3 +136,27 @@ TEST(StringUtilsTests, ToString)
     EXPECT_THAT(toString(1234.567), Eq("1234.567000"));
     EXPECT_THAT(toString(1234.567891l), Eq("1234.567891"));
 }
+
+#ifdef _WIN32
+TEST(StringUtilsTests, Utf8Utf16Conversion)
+{
+    std::vector<std::string> test_strings = {
+        "Falsches Üben von Xylophonmusik quält jeden größeren Zwerg",
+        "The quick brown fox jumps over the lazy dog",
+        "El pingüino Wenceslao hizo kilómetros bajo exhaustiva lluvia y frío,"
+        "añoraba a su querido cachorro.",
+        "Le cœur déçu mais l'âme plutôt naïve, Louÿs rêva de crapaüter en canoë"
+        "au delà des îles, près du mälström où brûlent les novæ.",
+        "Árvíztűrő tükörfúrógép",
+        "いろはにほへとちりぬるを",
+        "イロハニホヘト チリヌルヲ ワカヨタレソ ツネナラム",
+        "В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!",
+        "我能吞下玻璃而不伤身体。",
+        "!@#$%^&*()-=_+[]\\{}|;':\",./<>?",
+    };
+
+    for (std::string str : test_strings) {
+      EXPECT_EQ(str, to_utf8_string(to_utf16_string(str)));
+    }
+}
+#endif  // _WIN32
