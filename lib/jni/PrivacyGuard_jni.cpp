@@ -41,7 +41,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     }
 
     auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
-    auto cdc = std::make_unique<CommonDataContexts>(GenerateCommonDataContextObject(env,
+    auto cdc = std::make_unique<CommonDataContext>(GenerateCommonDataContextObject(env,
                                                                                     domainName,
                                                                                     machineName,
                                                                                     userName,
@@ -100,7 +100,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
         return false;
     }
 
-    auto cdc = std::make_unique<CommonDataContexts>(GenerateCommonDataContextObject(env,
+    auto cdc = std::make_unique<CommonDataContext>(GenerateCommonDataContextObject(env,
                                                                                     domainName,
                                                                                     machineName,
                                                                                     userName,

@@ -198,7 +198,7 @@ std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const
     return stringVector;
 }
 
-CommonDataContexts GenerateCommonDataContextObject(JNIEnv *env,
+CommonDataContext GenerateCommonDataContextObject(JNIEnv *env,
                                                        jstring domainName,
                                                        jstring machineName,
                                                        jstring userName,
@@ -207,7 +207,7 @@ CommonDataContexts GenerateCommonDataContextObject(JNIEnv *env,
                                                        jobjectArray languageIdentifiers,
                                                        jobjectArray machineIds,
                                                        jobjectArray outOfScopeIdentifiers) {
-    CommonDataContexts cdc;
+    CommonDataContext cdc;
     cdc.DomainName = JStringToStdString(env, domainName);
     cdc.MachineName = JStringToStdString(env, machineName);
     cdc.UserName = JStringToStdString(env, userName);
