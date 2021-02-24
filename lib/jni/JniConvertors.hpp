@@ -7,6 +7,8 @@
 #include <include/public/IDataInspector.hpp>
 #include "ctmacros.hpp"
 
+#include "modules/privacyguard/CommonDataContext.hpp"
+
 #define MAT_USE_WEAK_LOGMANAGER
 
 namespace MAT_NS_BEGIN
