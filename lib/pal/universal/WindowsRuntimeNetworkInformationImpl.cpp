@@ -69,11 +69,24 @@ namespace PAL_NS_BEGIN {
                     m_registeredCount(0),
                     m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT])
                 {
+                    m_type = NetworkType_Unknown;
+                    m_cost = NetworkCost_Unknown;
+
+                    token.Value = 0;
+
+                    // If Network Detector is turned off, then no need to obtain NetworkInformation.
+                    if (!m_isNetDetectEnabled)
+                    {
+                        return;
+                    }
+
                     // NetworkInformation::GetInternetConnectionProfile() may fail under
-                    // some unknown scenarios on some Windows versions (Windows API bug),
-                    // so we assume the network type and cost both as Unknown.
+                    // some unknown scenarios on some Windows versions (Windows API bug).
+                    // In those cases we assume the network type and cost both as Unknown.
                     try {
                         auto profile = NetworkInformation::GetInternetConnectionProfile();
+                        if (profile == nullptr)
+                            return;
                         m_type = GetNetworkTypeForProfile(profile);
                         m_cost = GetNetworkCostForProfile(profile);
                     }
@@ -128,7 +141,10 @@ namespace PAL_NS_BEGIN {
 
                 NetworkInformationImpl::~NetworkInformationImpl()
                 {
-                    NetworkInformation::NetworkStatusChanged -= token;
+                    if (token.Value != 0)
+                    {
+                        NetworkInformation::NetworkStatusChanged -= token;
+                    }
                 };
 
                 std::shared_ptr<INetworkInformation> NetworkInformationImpl::Create(IRuntimeConfig& configuration)
