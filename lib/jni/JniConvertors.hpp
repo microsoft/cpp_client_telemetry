@@ -42,15 +42,5 @@ namespace MAT_NS_BEGIN
      */
     std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const jobjectArray& jArray);
 
-    CommonDataContext GenerateCommonDataContextObject(JNIEnv *env,
-                                                       jstring domainName,
-                                                       jstring machineName,
-                                                       jstring userName,
-                                                       jstring userAlias,
-                                                       jobjectArray ipAddresses,
-                                                       jobjectArray languageIdentifiers,
-                                                       jobjectArray machineIds,
-                                                       jobjectArray outOfScopeIdentifiers);
-
 } MAT_NS_END
 

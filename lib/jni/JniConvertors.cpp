@@ -198,26 +198,5 @@ std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const
     return stringVector;
 }
 
-CommonDataContext GenerateCommonDataContextObject(JNIEnv *env,
-                                                       jstring domainName,
-                                                       jstring machineName,
-                                                       jstring userName,
-                                                       jstring userAlias,
-                                                       jobjectArray ipAddresses,
-                                                       jobjectArray languageIdentifiers,
-                                                       jobjectArray machineIds,
-                                                       jobjectArray outOfScopeIdentifiers) {
-    CommonDataContext cdc;
-    cdc.DomainName = JStringToStdString(env, domainName);
-    cdc.MachineName = JStringToStdString(env, machineName);
-    cdc.UserName = JStringToStdString(env, userName);
-    cdc.UserAlias = JStringToStdString(env, userAlias);
-    cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
-    cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
-    cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
-    cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
-    return cdc;
-}
-
 } MAT_NS_END
 
