@@ -48,7 +48,7 @@ namespace PAL_NS_BEGIN {
                 }
 
                 ///// IDeviceInformation API
-                DeviceInformationImpl::DeviceInformationImpl(MAT::IRuntimeConfig& /*configuration*/) :
+                DeviceInformationImpl::DeviceInformationImpl(MAT::IRuntimeConfig& configuration) :
                     m_registeredCount(0),
                     m_info_helper()
                 {
@@ -58,14 +58,27 @@ namespace PAL_NS_BEGIN {
                     m_model = FromPlatformString(easClientDeviceInformation->SystemProductName);
                     m_manufacturer = FromPlatformString(easClientDeviceInformation->SystemManufacturer);
 
+                    bool isNetDetectEnabled = configuration[CFG_BOOL_ENABLE_NET_DETECT];
+                    m_device_id = DEFAULT_DEVICE_ID;
+
                     try {
-                        auto networkProfiles = NetworkInformation::GetConnectionProfiles();
-                        if (networkProfiles->Size != 0)
+                        // Note that if Network Detection is off, then we do not have acccess
+                        // to NetworkInformation statics. Thus, the best available device id
+                        // is the one populated by UTC (Diagnostic Tracking Service) from MSA
+                        // Device Id claim.
+                        if (isNetDetectEnabled)
                         {
-                            // The first adapter is always LAN and cannot be removed.
-                            // TODO: Normalize the value using MD5 (per Root Tools).
-                            auto  adapter = networkProfiles->GetAt(0)->NetworkAdapter;
-                            m_device_id = FromPlatformString(adapter->NetworkAdapterId.ToString());
+                            auto networkProfiles = NetworkInformation::GetConnectionProfiles();
+                            if (networkProfiles->Size != 0)
+                            {
+                                // The first adapter is always LAN and cannot be removed.
+                                // TODO: Normalize the value using MD5 (per Root Tools).
+                                auto adapter = networkProfiles->GetAt(0)->NetworkAdapter;
+                                if (adapter != nullptr)
+                                {
+                                    m_device_id = FromPlatformString(adapter->NetworkAdapterId.ToString());
+                                }
+                            }
                         }
                     }
                     catch (...)
