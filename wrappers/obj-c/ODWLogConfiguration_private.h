@@ -10,8 +10,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 using namespace MAT;
 
-#define EXCEPTION_TRACE_FORMAT @"C++ Exception: %s"
-
 /*!
  The <b>ODWLogConfiguration</b> static class represents general logging properties.
 */

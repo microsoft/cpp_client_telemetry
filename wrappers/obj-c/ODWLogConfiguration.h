@@ -45,21 +45,6 @@ extern NSString * _Nonnull const ODWCFG_BOOL_ENABLE_WAL_JOURNAL;
 extern NSString * _Nonnull const ODWCFG_BOOL_ENABLE_NET_DETECT;
 
 /*!
- Parameter that allows to check if the SDK is running on UTC mode
-*/
-extern NSString * _Nonnull const ODWCFG_BOOL_UTC_ENABLED;
-
-/*!
- Parameter that allows to check if the SDK is running on UTC mode
-*/
-extern NSString * _Nonnull const ODWCFG_BOOL_UTC_ACTIVE;
-
-/*!
- Parameter that allows to check if the Windows 10 version SDK is using supports large payloads on UTC
-*/
-extern NSString * _Nonnull const ODWCFG_BOOL_UTC_LARGE_PAYLOADS;
-
-/*!
  The event collection URI.
 */
 extern NSString * _Nonnull const ODWCFG_STR_COLLECTOR_URL;
@@ -108,11 +93,6 @@ extern NSString * _Nonnull const ODWCFG_STR_TRACE_FOLDER_PATH;
  The SDK mode.
 */
 extern NSString * _Nonnull const ODWCFG_INT_SDK_MODE;
-
-/*!
- UTC lives at the root of all UTC-specific configuration.
-*/
-extern NSString * _Nonnull const ODWCFG_STR_UTC;
 
 /*!
  Set the provider group directly with a string (which will be converted to a GUID).
@@ -200,16 +180,6 @@ extern NSString * _Nonnull const ODWCFG_MODULE_PRIVACY_GUARD;
  IDecorator override module
 */
 extern NSString * _Nonnull const ODWCFG_MODULE_OFFLINE_STORAGE;
-
-/*!
- Pointer to the Android app's JavaVM
-*/
-extern NSString * _Nonnull const ODWCFG_PTR_ANDROID_JVM;
-
-/*!
- JObject of the Android app's main activity
-*/
-extern NSString * _Nonnull const ODWCFG_JOBJECT_ANDROID_ACTIVITY;
 
 /*!
  LogManagerFactory's name parameter
