@@ -59,6 +59,13 @@ static BOOL _initialized = false;
                   source:(nonnull NSString *)source
                   withConfig:(nonnull ODWLogConfiguration *)config
 {
+    // We expect that the static LogManager has already been initialized before this function is called
+    // If not, return nil
+    if (!_initialized)
+    {
+        return nil;
+    }
+
     status_t status = status_t::STATUS_SUCCESS;
     ILogConfiguration* wrappedConfig = [config getWrappedConfiguration];
     if (wrappedConfig == nil)
@@ -286,7 +293,7 @@ static BOOL _initialized = false;
     PerformActionWithCppExceptionsCatch(^(void) {
         std::string strKey = std::string([name UTF8String]);
         std::string strValue = std::string([value UTF8String]);
-        
+
         LogManager::SetContext(strKey, strValue);
     });
 }
