@@ -17,6 +17,9 @@ namespace MAT_NS_BEGIN {
 
     constexpr static size_t kBlockSize = 8192;
 
+    std::mutex OfflineStorage_SQLite::m_initAndShutdownLock;
+    int OfflineStorage_SQLite::m_instanceCount = 0;
+
     class DbTransaction {
         SqliteDB* m_db;
     public:
@@ -94,7 +97,8 @@ namespace MAT_NS_BEGIN {
         m_observer = &observer;
 
         assert(!m_db);
-        m_db.reset(new SqliteDB(m_skipInitAndShutdown));
+        m_db.reset(new SqliteDB(m_skipInitAndShutdown, &m_initAndShutdownLock,
+                                &m_instanceCount));
 
         LOG_TRACE("Initializing offline storage: %s", m_offlineStorageFileName.c_str());
         auto sqlStartTime = GetUptimeMs();

@@ -80,6 +80,12 @@ namespace MAT_NS_BEGIN {
         std::mutex                  m_resizeLock{};
         std::atomic<bool>           m_resizing{false};
 
+        // SQLite initialization and shutdown isn't safe to call across mulitple
+        // threads, and shutdown cannot be called while there are any instances
+        // of this class still using SQLite.
+        static std::mutex           m_initAndShutdownLock;
+        static int                  m_instanceCount;
+
         size_t                      m_stmtBeginTransaction {};
         size_t                      m_stmtCommitTransaction {};
         size_t                      m_stmtRollbackTransaction {};
