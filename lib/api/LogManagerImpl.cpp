@@ -402,7 +402,7 @@ namespace MAT_NS_BEGIN
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
             m_dataViewer = nullptr;
-            std::vector<std::shared_ptr<IDataInspector>>{}.swap(m_dataInspectors);
+            ClearDataInspectors();
 
             m_filters.UnregisterAllFilters();
 
