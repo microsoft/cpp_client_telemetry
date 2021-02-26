@@ -402,7 +402,7 @@ namespace MAT_NS_BEGIN
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
             m_dataViewer = nullptr;
-            m_dataInspectors.clear();
+            std::vector<std::shared_ptr<IDataInspector>>{}.swap(m_dataInspectors);
 
             m_filters.UnregisterAllFilters();
 
@@ -815,7 +815,7 @@ namespace MAT_NS_BEGIN
 
         auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector)
         {
-            return strcmp(typeid(*dataInspector).name(),typeid(*currentInspector).name()) == 0;
+            return strcmp(dataInspector->GetName(), currentInspector->GetName()) == 0;
         });
 
         if (itDataInspector != m_dataInspectors.end())
@@ -830,19 +830,19 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::ClearDataInspectors()
     {
         LOCKGUARD(m_dataInspectorGuard);
-        std::vector<std::shared_ptr<IDataInspector>>().swap(m_dataInspectors);
+        std::vector<std::shared_ptr<IDataInspector>>{}.swap(m_dataInspectors);
     }
 
     void LogManagerImpl::RemoveDataInspector(const std::string& name)
     {
         LOCKGUARD(m_dataInspectorGuard);
-        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
             return strcmp(inspector->GetName(), name.c_str()) == 0;
         });
 
-        if (it != m_dataInspectors.end())
+        if (itDataInspector != m_dataInspectors.end())
         {
-            m_dataInspectors.erase(it);
+            m_dataInspectors.erase(itDataInspector);
         }
     }
 
