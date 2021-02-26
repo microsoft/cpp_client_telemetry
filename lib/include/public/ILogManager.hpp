@@ -385,17 +385,23 @@ namespace MAT_NS_BEGIN
         virtual void ClearDataInspectors() = 0;
 
         /// <summary>
-        /// Get the first instance of IDataInspector
+        /// Removes specified IDataInspector
         /// </summary>
-        /// <returns>Current instance of IDataInspector if set, nullptr otherwise.</returns>
-        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept = 0;
+        /// <param name="name">String name that identifies IDataInspector</param>
+        virtual void RemoveDataInspector(const std::string& name) = 0;
 
         /// <summary>
-        /// Get the current instance of IDataInspector specified by the UniqueIdentifier
+        /// Get the current instance of IDataInspector specified by the name
         /// </summary>
-        /// <param name="uniqueIdentifier">String name that identifies IDataInspector</param>
-        /// <returns>Current instance of IDataInspector if set, nullptr otherwise.</returns>
-        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& uniqueIdentifier) noexcept = 0;
+        /// <param name="name">String name that identifies IDataInspector</param>
+        /// <returns>Selected instance of IDataInspector if available, nullptr otherwise.</returns>
+        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& name) noexcept = 0;
+
+        /// <summary>
+        /// Get the current instance of IDataInspector specified by an empty string
+        /// </summary>
+        /// <returns>Selected instance of IDataInspector if available, nullptr otherwise.</returns>
+        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept { return GetDataInspector(std::string{}); }
     };
 
 }

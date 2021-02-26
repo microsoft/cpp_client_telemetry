@@ -830,30 +830,30 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::ClearDataInspectors()
     {
         LOCKGUARD(m_dataInspectorGuard);
-        m_dataInspectors.clear();
+        std::vector<std::shared_ptr<IDataInspector>>().swap(m_dataInspectors);
     }
 
-    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector() noexcept
+    void LogManagerImpl::RemoveDataInspector(const std::string& name)
     {
-        if(m_dataInspectors.empty())
+        LOCKGUARD(m_dataInspectorGuard);
+        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+            return strcmp(inspector->GetName(), name.c_str()) == 0;
+        });
+
+        if (it != m_dataInspectors.end())
         {
-            return nullptr;
+            m_dataInspectors.erase(it);
         }
-        return m_dataInspectors.at(0);
     }
 
-    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& uniqueIdentifier) noexcept
+    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& name) noexcept
     {
-        for (const auto& dataInspector : m_dataInspectors)
-        {
-            std::string inspectorIdentifier(typeid(*dataInspector).name());
-            if (inspectorIdentifier.find(uniqueIdentifier) != std::string::npos)
-            {
-                return dataInspector;
-            }
-        }
-        LOG_WARN("DataInspector requested does not exist");
-        return  nullptr;
+        LOCKGUARD(m_dataInspectorGuard);
+        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+            return strcmp(inspector->GetName(), name.c_str()) == 0;
+        });
+
+        return it != m_dataInspectors.end() ? *it : nullptr;
     }
 
     status_t LogManagerImpl::DeleteData()
