@@ -4,7 +4,6 @@
 //
 #include "mat/config.h"
 
-#pragma once
 #include "pal/PAL.hpp"
 
 #include "OfflineStorageFactory.hpp"
