@@ -74,6 +74,17 @@ typedef NS_ENUM(NSInteger, ODWStatus)
                   source:(NSString *)source;
 
 /*!
+ @brief Retrieves a new instance of ODWLogger for logging telemetry events. This function expects that the telemetry logging system has already been initialized.
+ @param tenantToken A string that contains the tenant token.
+ @param source A string that contains the name of the source of events.
+ @param config A Dictionary that contains a custom configuration.
+ @return An ODWLogger pointer that points to the logger for the specified tenantToken and source.
+ */
++(nullable ODWLogger *)loggerWithTenant:(NSString *)tenantToken
+                  source:(NSString *)source
+                  withConfig:(nonnull ODWLogConfiguration *)config;
+
+/*!
  @brief Retrieves a new instance of ODWLogger for logging telemetry events. It requires to previously call "loggerWithTenant" method
  @param source A string that contains the name of the source of events sent by this logger instance.
  @return An ODWLogger instance that points to the logger for source.
