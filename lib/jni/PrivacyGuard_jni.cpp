@@ -8,6 +8,28 @@
 
 using namespace MAT;
 
+CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
+                                                  jstring domainName,
+                                                  jstring machineName,
+                                                  jstring userName,
+                                                  jstring userAlias,
+                                                  jobjectArray ipAddresses,
+                                                  jobjectArray languageIdentifiers,
+                                                  jobjectArray machineIds,
+                                                  jobjectArray outOfScopeIdentifiers)
+{
+    CommonDataContext cdc;
+    cdc.DomainName = JStringToStdString(env, domainName);
+    cdc.MachineName = JStringToStdString(env, machineName);
+    cdc.UserName = JStringToStdString(env, userName);
+    cdc.UserAlias = JStringToStdString(env, userAlias);
+    cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
+    cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
+    cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
+    cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
+    return cdc;
+}
+
 extern "C"
 {
 std::shared_ptr<PrivacyGuard> spPrivacyGuard;
@@ -19,32 +41,12 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         return false;
     }
 
-    auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
-    spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, nullptr);
+    auto config = std::make_unique<InitializationConfiguration>();
+    config->loggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
+
+    spPrivacyGuard = std::make_shared<PrivacyGuard>(std::move(config));
     WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
-}
-
-CommonDataContexts GenerateCommonDataContextObject(JNIEnv* env,
-   jstring domainName,
-   jstring machineName,
-   jstring userName,
-   jstring userAlias,
-   jobjectArray ipAddresses,
-   jobjectArray languageIdentifiers,
-   jobjectArray machineIds,
-   jobjectArray outOfScopeIdentifiers)
-{
-   CommonDataContexts cdc;
-   cdc.DomainName = JStringToStdString(env, domainName);
-   cdc.MachineName = JStringToStdString(env, machineName);
-   cdc.UserName = JStringToStdString(env, userName);
-   cdc.UserAlias = JStringToStdString(env, userAlias);
-   cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
-   cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
-   cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
-   cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
-   return cdc;
 }
 
 JNIEXPORT jboolean JNICALL
@@ -62,8 +64,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         return false;
     }
 
-    auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
-    auto cdc = std::make_unique<CommonDataContext>(GenerateCommonDataContextObject(env,
+    auto config = std::make_unique<InitializationConfiguration>();
+    config->commonContexts = std::make_unique<CommonDataContext>(GenerateCommonDataContextObject(env,
                                                                                     domainName,
                                                                                     machineName,
                                                                                     userName,
@@ -73,7 +75,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                                                                     machineIds,
                                                                                     outOfScopeIdentifiers));
 
-    spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, std::move(cdc));
+    config->loggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
+    spPrivacyGuard = std::make_shared<PrivacyGuard>(std::move(config));
     WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
