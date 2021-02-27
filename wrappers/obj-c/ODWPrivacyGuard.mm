@@ -77,10 +77,10 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
 +(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
 {
-    auto config = std::make_unique<InitializationConfiguration>();
-    config->LoggerInstance = logger;
-    config->CommonContext = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject]);
-    _privacyGuardPtr = std::make_shared<PrivacyGuard> (std::move(config));
+    InitializationConfiguration config;
+    config.LoggerInstance = logger;
+    config.CommonContext = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject]);
+    _privacyGuardPtr = std::make_shared<PrivacyGuard> (config);
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
 }
 
