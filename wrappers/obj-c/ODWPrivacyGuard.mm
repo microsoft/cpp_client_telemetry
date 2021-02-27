@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include "ILogger.hpp"
 #include "LogManager.hpp"
-#include "IDataInspector.hpp"
 #include "PrivacyGuard.hpp"
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
@@ -18,9 +17,9 @@ using namespace MAT;
 
 std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
-+(CommonDataContexts)convertToNativeCommonDataContexts:(ODWCommonDataContext *)odwCDC
++(CommonDataContext)convertToNativeCommonDataContexts:(ODWCommonDataContext *)odwCDC
 {
-    CommonDataContexts cdc;
+    CommonDataContext cdc;
     if([ [odwCDC DomainName] length] != 0)
     {
         cdc.DomainName = [[odwCDC DomainName] UTF8String];
@@ -78,9 +77,10 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
 +(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
 {
-    auto cdc = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject]);
-
-    _privacyGuardPtr = std::make_shared<PrivacyGuard> (logger, std::move(cdc));
+    auto config = std::make_unique<InitializationConfiguration>();
+    config->LoggerInstance = logger;
+    config->CommonContext = std::make_unique<CommonDataContexts>([ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject]);
+    _privacyGuardPtr = std::make_shared<PrivacyGuard> (std::move(config));
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
 }
 

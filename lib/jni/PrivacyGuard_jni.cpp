@@ -42,8 +42,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     }
 
     auto config = std::make_unique<InitializationConfiguration>();
-    config->loggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
-
+    config->LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
     spPrivacyGuard = std::make_shared<PrivacyGuard>(std::move(config));
     WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
@@ -65,7 +64,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     }
 
     auto config = std::make_unique<InitializationConfiguration>();
-    config->commonContexts = std::make_unique<CommonDataContext>(GenerateCommonDataContextObject(env,
+    config->CommonContext = std::make_unique<CommonDataContext>(GenerateCommonDataContextObject(env,
                                                                                     domainName,
                                                                                     machineName,
                                                                                     userName,
@@ -75,7 +74,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                                                                     machineIds,
                                                                                     outOfScopeIdentifiers));
 
-    config->loggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
+    config->LoggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
     spPrivacyGuard = std::make_shared<PrivacyGuard>(std::move(config));
     WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
