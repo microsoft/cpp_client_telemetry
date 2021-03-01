@@ -89,17 +89,17 @@ public:
             bool rawResponse                                         = false,
             size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT) :
 
-            //
+            // Optional connection params
+            rawResponse(rawResponse),
+            httpConnTimeout(httpConnTimeout),
+
+            m_callback(callback),
             m_method(method),
             m_url(url),
-            m_callback(callback),
 
             // Local vars
             requestHeaders(requestHeaders),
             requestBody(requestBody),
-            // Optional connection params
-            rawResponse(rawResponse),
-            httpConnTimeout(httpConnTimeout),
             // Result
             res(CURLE_OK),
             sockfd(0),
