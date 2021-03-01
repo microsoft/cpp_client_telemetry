@@ -210,14 +210,23 @@ public class HttpClient {
     if (hasConnectivityManager()) {
       if (context.checkSelfPermission(permission.ACCESS_NETWORK_STATE)
           == PackageManager.PERMISSION_GRANTED) {
-        m_connectivityManager =
-            (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (m_connectivityManager != null) {
-          boolean is_metered = m_connectivityManager.isActiveNetworkMetered();
-          m_callback = new ConnectivityCallback(this, is_metered);
-          onCostChange(is_metered); // set initial value in C++ side
-          m_connectivityManager.registerDefaultNetworkCallback(m_callback);
-        }
+            try {
+              m_connectivityManager =
+                  (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+              if (m_connectivityManager != null) {
+                boolean is_metered = m_connectivityManager.isActiveNetworkMetered();
+                m_callback = new ConnectivityCallback(this, is_metered);
+                onCostChange(is_metered); // set initial value in C++ side
+                m_connectivityManager.registerDefaultNetworkCallback(m_callback);
+              }
+            }
+            catch (Exception e) {
+              // Fetching CONNECTIVITY_SERVICE can throw a SecurityException, especially in Android Work Profile cases
+              // "package does not belong to xxxx"
+              // can also throw runtimeException: 
+              // https://developer.android.com/reference/android/net/ConnectivityManager#registerDefaultNetworkCallback(android.net.ConnectivityManager.NetworkCallback)
+              // in either case, we don't have access to ConnectivityInfo, so can't truly populate callback/isMetered, or react to network changes
+            }
       }
     }
     m_power_receiver = new PowerInfoReceiver(this);
