@@ -99,12 +99,7 @@ public:
 
             // Local vars
             requestHeaders(requestHeaders),
-            requestBody(requestBody),
-            // Result
-            res(CURLE_OK),
-            sockfd(0),
-            isAborted(false),
-            nread(0)
+            requestBody(requestBody)
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
@@ -409,7 +404,7 @@ protected:
     const size_t httpConnTimeout;   // Timeout for connect.  Default: 5s
 
     CURL *curl;                     // Local curl instance
-    CURLcode res;                   // Curl result OR HTTP status code if successful
+    CURLcode res = CURLE_OK;        // Curl result OR HTTP status code if successful
     
     IHttpResponseCallback* m_callback = nullptr;
 
@@ -425,13 +420,13 @@ protected:
     std::vector<uint8_t>        respBody;
 
     // Socket parameters
-    curl_socket_t sockfd;
+    curl_socket_t sockfd = 0;
 
     long sockextr   = 0;
 
-    curl_off_t nread;
-    size_t sendlen  = 0;        // # bytes sent by client
-    size_t acklen   = 0;        // # bytes ack by server
+    curl_off_t nread = 0;
+    size_t sendlen   = 0;        // # bytes sent by client
+    size_t acklen    = 0;        // # bytes ack by server
 
     std::future<long>       result;
 
