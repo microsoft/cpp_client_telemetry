@@ -64,15 +64,15 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     }
 
     InitializationConfiguration config;
-    config.CommonContext = std::make_unique<CommonDataContext>(GenerateCommonDataContextObject(env,
-                                                                                    domainName,
-                                                                                    machineName,
-                                                                                    userName,
-                                                                                    userAlias,
-                                                                                    ipAddresses,
-                                                                                    languageIdentifiers,
-                                                                                    machineIds,
-                                                                                    outOfScopeIdentifiers));
+    config.CommonContext = GenerateCommonDataContextObject(env,
+                                                           domainName,
+                                                           machineName,
+                                                           userName,
+                                                           userAlias,
+                                                           ipAddresses,
+                                                           languageIdentifiers,
+                                                           machineIds,
+                                                           outOfScopeIdentifiers);
 
     config.LoggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
@@ -124,17 +124,15 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
         return false;
     }
 
-    auto cdc = std::make_unique<CommonDataContext>(GenerateCommonDataContextObject(env,
-                                                                                    domainName,
-                                                                                    machineName,
-                                                                                    userName,
-                                                                                    userAlias,
-                                                                                    ipAddresses,
-                                                                                    languageIdentifiers,
-                                                                                    machineIds,
-                                                                                    outOfScopeIdentifiers));
-
-    spPrivacyGuard->AppendCommonDataContext(std::move(cdc));
+    spPrivacyGuard->AppendCommonDataContext(GenerateCommonDataContextObject(env,
+                                                                            domainName,
+                                                                            machineName,
+                                                                            userName,
+                                                                            userAlias,
+                                                                            ipAddresses,
+                                                                            languageIdentifiers,
+                                                                            machineIds,
+                                                                            outOfScopeIdentifiers));
 
     return true;
 }
