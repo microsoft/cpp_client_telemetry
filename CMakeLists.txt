@@ -96,7 +96,7 @@ message("-- TARGET_ARCH:            ${TARGET_ARCH}")
 include(tools/ParseOsRelease.cmake)
 
 # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
-set(WARN_FLAGS "-Wall -Wextra -Wno-unused-parameter")
+set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # Using GCC with -s and -Wl linker flags
