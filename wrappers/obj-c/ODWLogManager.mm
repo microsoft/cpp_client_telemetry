@@ -143,7 +143,7 @@ static BOOL _initialized = false;
             }
             else
             {
-                [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"%@", error.localizedDescription]];
+                [ODWLogger raiseException: [error.localizedDescription UTF8String]];
             }
         }
 
