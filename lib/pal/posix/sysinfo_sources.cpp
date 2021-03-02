@@ -226,8 +226,24 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     // add("proc_uptime", {"/proc/uptime", "(.*)[\n]*"});
 
     time_t t = time(NULL);
-    struct tm lt = { 0 };
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ‘tm::tm_min’ [-Werror=missing-field-initializers]
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ‘tm::tm_min’ [-Werror=missing-field-initializers]
+#endif
+
+    struct tm lt { 0 };
     localtime_r(&t, &lt);
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
     int hh = lt.tm_gmtoff / 3600;
     int mm = (lt.tm_gmtoff / 60) % 60;
     std::ostringstream oss;
