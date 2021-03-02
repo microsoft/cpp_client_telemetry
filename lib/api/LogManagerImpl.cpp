@@ -402,7 +402,7 @@ namespace MAT_NS_BEGIN
             m_httpClient = nullptr;
             m_taskDispatcher = nullptr;
             m_dataViewer = nullptr;
-            m_dataInspector = nullptr;
+            ClearDataInspectors();
 
             m_filters.UnregisterAllFilters();
 
@@ -525,9 +525,9 @@ namespace MAT_NS_BEGIN
         m_context.SetCustomField(name, prop);
         {
             LOCKGUARD(m_dataInspectorGuard);
-            if (m_dataInspector)
+            for(const auto& dataInspector : m_dataInspectors)
             {
-                m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+                dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
             }
         }
         return STATUS_SUCCESS;
@@ -603,9 +603,9 @@ namespace MAT_NS_BEGIN
         m_context.SetCustomField(name, prop);
         {
             LOCKGUARD(m_dataInspectorGuard);
-            if (m_dataInspector)
+            for(const auto& dataInspector : m_dataInspectors)
             {
-                m_dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
+                dataInspector->InspectSemanticContext(name, value, /*isGlobalContext: */ true, std::string{});
             }
         }
         return STATUS_SUCCESS;
@@ -710,9 +710,9 @@ namespace MAT_NS_BEGIN
             {
                 LOCKGUARD(m_dataInspectorGuard);
 
-                if (m_dataInspector)
+                for (const auto& dataInspector : m_dataInspectors)
                 {
-                    m_dataInspector->InspectRecord(*(event->source));
+                    dataInspector->InspectRecord(*(event->source));
                 }
             }
             GetSystem()->sendEvent(event);
@@ -807,12 +807,53 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector)
     {
         LOCKGUARD(m_dataInspectorGuard);
-        m_dataInspector = dataInspector;
+        if(dataInspector == nullptr)
+        {
+            LOG_WARN("Attempting to set nullptr as DataInspector");
+            return;
+        }
+
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector)
+        {
+            return strcmp(dataInspector->GetName(), currentInspector->GetName()) == 0;
+        });
+
+        if (itDataInspector != m_dataInspectors.end())
+        {
+            LOG_WARN("Replacing specified IDataInspector with passed in inspector");
+            m_dataInspectors.erase(itDataInspector);
+        }
+
+        m_dataInspectors.push_back(dataInspector);
     }
 
-    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector() noexcept
+    void LogManagerImpl::ClearDataInspectors()
     {
-        return m_dataInspector;
+        LOCKGUARD(m_dataInspectorGuard);
+        std::vector<std::shared_ptr<IDataInspector>>{}.swap(m_dataInspectors);
+    }
+
+    void LogManagerImpl::RemoveDataInspector(const std::string& name)
+    {
+        LOCKGUARD(m_dataInspectorGuard);
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+            return strcmp(inspector->GetName(), name.c_str()) == 0;
+        });
+
+        if (itDataInspector != m_dataInspectors.end())
+        {
+            m_dataInspectors.erase(itDataInspector);
+        }
+    }
+
+    std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& name) noexcept
+    {
+        LOCKGUARD(m_dataInspectorGuard);
+        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+            return strcmp(inspector->GetName(), name.c_str()) == 0;
+        });
+
+        return it != m_dataInspectors.end() ? *it : nullptr;
     }
 
     status_t LogManagerImpl::DeleteData()
