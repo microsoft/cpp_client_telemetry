@@ -80,7 +80,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     InitializationConfiguration config;
     config.LoggerInstance = logger;
     config.CommonContext = [ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject];
-    _privacyGuardPtr = std::make_shared<PrivacyGuard> (config);
+    _privacyGuardPtr = std::make_shared<PrivacyGuard>(config);
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
 }
 
