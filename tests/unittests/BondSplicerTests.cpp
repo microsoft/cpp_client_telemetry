@@ -32,7 +32,7 @@ class ShadowBondSplicer : protected MAT::BondSplicer
     {
         FullDumpBinaryBlob output;
         static_cast<std::vector<uint8_t>&>(output) = MAT::BondSplicer::splice();
-        return output;
+        return std::move(output);
     }
 };
 
