@@ -103,6 +103,13 @@ inline std::string ReadFile(const char *filename)
  * @param cmd Command to execute
  * @return output
  */
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"  // Used on non-Apple platforms. See sysinfo_sources_impl()
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"  // Used on non-Apple platforms. See sysinfo_sources_impl()
+#endif
 static std::string Exec(const char* cmd)
 {
     std::array<char, 128> buffer;
@@ -128,6 +135,11 @@ static std::string Exec(const char* cmd)
 
     return result;
 }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 /**
  * Read node value, preprocess it using regexp and store result in cache
