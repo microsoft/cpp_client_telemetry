@@ -17,8 +17,10 @@
 #pragma warning(disable : 4459 4121 4068)
 #endif
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundefined-var-template"
+#endif
 
 #ifdef _MANAGED
 #include <msclr/lock.h>
@@ -726,7 +728,9 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(pop)
