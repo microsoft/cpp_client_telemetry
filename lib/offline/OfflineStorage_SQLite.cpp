@@ -5,24 +5,28 @@
 #include "mat/config.h"
 #ifdef HAVE_MAT_STORAGE
 
-#include "OfflineStorage_SQLite.hpp"
 #include "ILogManager.hpp"
+#include "OfflineStorage_SQLite.hpp"
 #include "SQLiteWrapper.hpp"
 #include "utils/StringUtils.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>
 
-namespace MAT_NS_BEGIN {
-
+namespace MAT_NS_BEGIN
+{
     constexpr static size_t kBlockSize = 8192;
 
-    class DbTransaction {
+    class DbTransaction
+    {
         SqliteDB* m_db;
-    public:
+
+       public:
         bool locked;
 
-        DbTransaction(SqliteDB* db) : m_db(db), locked(false)
+        DbTransaction(SqliteDB* db) :
+            m_db(db),
+            locked(false)
         {
             if (m_db)
             {
@@ -42,7 +46,7 @@ namespace MAT_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class");
 
     static int const CURRENT_SCHEMA_VERSION = 1;
-#define TABLE_NAME_EVENTS   "events"
+#define TABLE_NAME_EVENTS "events"
 #define TABLE_NAME_SETTINGS "settings"
 #define TABLE_NAME_PACKAGES "packages"
 
@@ -57,18 +61,18 @@ namespace MAT_NS_BEGIN {
         return true;
     }
 
-    OfflineStorage_SQLite::OfflineStorage_SQLite(ILogManager & logManager, IRuntimeConfig& runtimeConfig, bool inMemory)
-        : m_config(runtimeConfig)
-        , m_logManager(logManager)
+    OfflineStorage_SQLite::OfflineStorage_SQLite(ILogManager& logManager, IRuntimeConfig& runtimeConfig, bool inMemory) :
+        m_config(runtimeConfig),
+        m_logManager(logManager)
     {
         uint32_t percentage = (inMemory) ? m_config[CFG_INT_RAMCACHE_FULL_PCT] : m_config[CFG_INT_STORAGE_FULL_PCT];
         m_DbSizeLimit = (inMemory) ? static_cast<uint32_t>(m_config[CFG_INT_RAM_QUEUE_SIZE])
-                : m_config.GetOfflineStorageMaximumSizeBytes();
-        m_offlineStorageFileName = (inMemory) ? ":memory:" : (const char *)m_config[CFG_STR_CACHE_FILE_PATH];
+                                   : m_config.GetOfflineStorageMaximumSizeBytes();
+        m_offlineStorageFileName = (inMemory) ? ":memory:" : (const char*)m_config[CFG_STR_CACHE_FILE_PATH];
 
-        if ((percentage == 0)||(percentage > 100))
+        if ((percentage == 0) || (percentage > 100))
         {
-            percentage = DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE; // 75%
+            percentage = DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE;  // 75%
         }
         m_DbSizeNotificationLimit = (percentage * (uint32_t)m_DbSizeLimit) / 100;
         m_DbSizeNotificationInterval = m_config[CFG_INT_STORAGE_FULL_CHECK_TIME];
@@ -98,7 +102,8 @@ namespace MAT_NS_BEGIN {
 
         LOG_TRACE("Initializing offline storage: %s", m_offlineStorageFileName.c_str());
         auto sqlStartTime = GetUptimeMs();
-        if (m_db->initialize(m_offlineStorageFileName, false, m_DbSizeHeapLimit) && initializeDatabase()) {
+        if (m_db->initialize(m_offlineStorageFileName, false, m_DbSizeHeapLimit) && initializeDatabase())
+        {
             LOG_INFO("Using configured on-disk database");
             m_observer->OnStorageOpened("SQLite/Default");
             sqlStartTime = GetUptimeMs() - sqlStartTime;
@@ -121,8 +126,10 @@ namespace MAT_NS_BEGIN {
     {
         LOG_TRACE("Shutting down offline storage %s", m_offlineStorageFileName.c_str());
         LOCKGUARD(m_lock);
-        if (m_db) {
-            if (m_isOpened) {
+        if (m_db)
+        {
+            if (m_isOpened)
+            {
                 m_db->shutdown();
                 m_db.reset();
             }
@@ -141,16 +148,18 @@ namespace MAT_NS_BEGIN {
         // TODO: [MG] - this works, but may not play nicely with several LogManager instances
         // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
 
-        if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
+        if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0)
+        {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
-                tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                      tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
             m_observer->OnStorageFailed("Invalid parameters");
             return false;
         }
 
-        if (!m_db) {
+        if (!m_db)
+        {
             LOG_ERROR("Failed to store event %s:%s: Database is not open",
-                tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                      tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
             m_observer->OnStorageOpenFailed("Database is not open");
             return false;
         }
@@ -170,10 +179,10 @@ namespace MAT_NS_BEGIN {
             m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
         }
 
-        if ((m_DbSizeNotificationLimit != 0) && (m_DbSizeEstimate>m_DbSizeNotificationLimit))
+        if ((m_DbSizeNotificationLimit != 0) && (m_DbSizeEstimate > m_DbSizeNotificationLimit))
         {
             auto now = PAL::getMonotonicTimeMs();
-            if (static_cast<uint64_t>(now-m_isStorageFullNotificationSendTime) > m_DbSizeNotificationInterval)
+            if (static_cast<uint64_t>(now - m_isStorageFullNotificationSendTime) > m_DbSizeNotificationInterval)
             {
                 // Notify the client that the DB is getting full, but only once in DB_FULL_CHECK_TIME_MS
                 m_isStorageFullNotificationSendTime = now;
@@ -190,7 +199,7 @@ namespace MAT_NS_BEGIN {
             auto shouldResize = m_config[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] && !m_resizing;
             if (shouldResize)
             {
-                LOCKGUARD(m_resizeLock); //Serialize resize operations
+                LOCKGUARD(m_resizeLock);  //Serialize resize operations
                 m_resizing = true;
                 if (m_DbSizeEstimate > m_DbSizeLimit)
                 {
@@ -201,14 +210,15 @@ namespace MAT_NS_BEGIN {
         }
 
         return true;
-
     }
 
-    size_t OfflineStorage_SQLite::StoreRecords(std::vector<StorageRecord> & records)
+    size_t OfflineStorage_SQLite::StoreRecords(std::vector<StorageRecord>& records)
     {
         size_t stored = 0;
-        for (auto & i : records) {
-            if (StoreRecord(i)) {
+        for (auto& i : records)
+        {
+            if (StoreRecord(i))
+            {
                 ++stored;
             }
         }
@@ -240,13 +250,14 @@ namespace MAT_NS_BEGIN {
     {
         m_lastReadCount = 0;
 
-        if (!m_db) {
+        if (!m_db)
+        {
             LOG_ERROR("Failed to retrieve events to send: Database is not open");
             return false;
         }
 
         LOG_TRACE("Retrieving max. %u%s events of latency at least %d (%s)",
-            maxCount, (maxCount > 0) ? "" : " (unlimited)", minLatency, latencyToStr(static_cast<EventLatency>(minLatency)));
+                  maxCount, (maxCount > 0) ? "" : " (unlimited)", minLatency, latencyToStr(static_cast<EventLatency>(minLatency)));
 
         /* ============================================================================================================= */
         LOCKGUARD(m_lock);
@@ -263,14 +274,17 @@ namespace MAT_NS_BEGIN {
 
             if (!releaseStmt.execute(PAL::getUtcSystemTimeMs()))
                 LOG_ERROR("Failed to release expired reserved events: Database error occurred");
-            else {
-                if (releaseStmt.changes() > 0) {
+            else
+            {
+                if (releaseStmt.changes() > 0)
+                {
                     LOG_TRACE("Released %u expired reserved events", static_cast<unsigned>(releaseStmt.changes()));
                 }
             }
 
             SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
-            if (!selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1)) {
+            if (!selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1))
+            {
                 LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");
                 recreate(204);
                 return false;
@@ -284,10 +298,12 @@ namespace MAT_NS_BEGIN {
 
             while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
             {
-                if (latency < EventLatency_Off || latency > EventLatency_Max) {
+                if (latency < EventLatency_Off || latency > EventLatency_Max)
+                {
                     record.latency = EventLatency_Normal;
                 }
-                else {
+                else
+                {
                     record.latency = static_cast<EventLatency>(latency);
                 }
                 consumedIds.push_back(record.id);
@@ -300,18 +316,20 @@ namespace MAT_NS_BEGIN {
 
             selectStmt.reset();
 
-            if (selectStmt.error()) {
+            if (selectStmt.error())
+            {
                 LOG_ERROR("Failed to search for events to send: Database error has occurred, recreating database");
                 recreate(205);
                 return false;
             }
 
-            if (consumedIds.empty()) {
+            if (consumedIds.empty())
+            {
                 return false;
             }
 
             LOG_TRACE("Reserving %u event(s) {%s%s} for %u milliseconds",
-                static_cast<unsigned>(consumedIds.size()), consumedIds.front().c_str(), (consumedIds.size() > 1) ? ", ..." : "", leaseTimeMs);
+                      static_cast<unsigned>(consumedIds.size()), consumedIds.front().c_str(), (consumedIds.size() > 1) ? ", ..." : "", leaseTimeMs);
 
             for (size_t i = 0; i < consumedIds.size(); i += kBlockSize)
             {
@@ -336,7 +354,7 @@ namespace MAT_NS_BEGIN {
 
     unsigned OfflineStorage_SQLite::LastReadRecordCount()
     {
-        return  m_lastReadCount;
+        return m_lastReadCount;
     }
 
     std::vector<StorageRecord> OfflineStorage_SQLite::GetRecords(bool shutdown, EventLatency minLatency, unsigned maxCount)
@@ -344,7 +362,8 @@ namespace MAT_NS_BEGIN {
         std::vector<StorageRecord> records;
         StorageRecord record;
 
-        if (!isOpen()) {
+        if (!isOpen())
+        {
             return records;
         }
 
@@ -381,15 +400,15 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorage_SQLite::DeleteAllRecords()
     {
-        std::string sql = "DELETE FROM "  TABLE_NAME_EVENTS ;
+        std::string sql = "DELETE FROM " TABLE_NAME_EVENTS;
         Execute(sql);
-
     }
 
-    void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
+    void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string>& whereFilter)
     {
         UNREFERENCED_PARAMETER(whereFilter);
-        if (!isOpen()) {
+        if (!isOpen())
+        {
             return;
         }
 
@@ -403,10 +422,9 @@ namespace MAT_NS_BEGIN {
                 return;
             }
 #endif
-            auto formatter = [&](const std::map<std::string, std::string> & whereFilter)
-            {
+            auto formatter = [&](const std::map<std::string, std::string>& whereFilter) {
                 std::string clause;
-                for (const auto &kv : whereFilter)
+                for (const auto& kv : whereFilter)
                 {
                     bool quotes = false;
                     if ((kv.first == "record_id") ||
@@ -414,7 +432,7 @@ namespace MAT_NS_BEGIN {
                     {
                         // string types
                         quotes = true;
-                    } 
+                    }
                     else if (
                         // integer types
                         (kv.first == "latency") ||
@@ -429,9 +447,7 @@ namespace MAT_NS_BEGIN {
                     }
                     clause += kv.first;
                     clause += "=";
-                    clause += (quotes) ?
-                        ("\"" + kv.second + "\"") :
-                        kv.second;
+                    clause += (quotes) ? ("\"" + kv.second + "\"") : kv.second;
                 }
                 return clause;
             };
@@ -443,15 +459,17 @@ namespace MAT_NS_BEGIN {
     void OfflineStorage_SQLite::DeleteRecords(std::vector<StorageRecordId> const& ids, HttpHeaders headers, bool& fromMemory)
     {
         UNREFERENCED_PARAMETER(fromMemory);
-        UNREFERENCED_PARAMETER(headers); // could be unused
+        UNREFERENCED_PARAMETER(headers);  // could be unused
 
-        if (ids.empty()) {
+        if (ids.empty())
+        {
             return;
         }
 
-        if (!m_db) {
+        if (!m_db)
+        {
             LOG_ERROR("Failed to delete %u sent event(s) {%s%s}: Database is not open",
-                static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
+                      static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
             return;
         }
 
@@ -468,15 +486,17 @@ namespace MAT_NS_BEGIN {
 #endif
             LOG_TRACE("Deleting %u sent event(s) {%s%s}...", static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
 
-            for (size_t i = 0; i < ids.size(); i += kBlockSize) {
+            for (size_t i = 0; i < ids.size(); i += kBlockSize)
+            {
                 size_t count = std::min(kBlockSize, ids.size() - i);
                 std::vector<uint8_t> idList = packageIdList(ids.begin() + i,
                                                             ids.begin() + i + count);
-                if (!SqliteStatement(*m_db, m_stmtDeleteEvents_ids).execute(idList)) {
+                if (!SqliteStatement(*m_db, m_stmtDeleteEvents_ids).execute(idList))
+                {
                     LOG_ERROR(
-                            "Failed to delete %u sent event(s) {%s%s}: Database error occurred, recreating database",
-                            static_cast<unsigned>(ids.size()), ids.front().c_str(),
-                            (ids.size() > 1) ? ", ..." : "");
+                        "Failed to delete %u sent event(s) {%s%s}: Database error occurred, recreating database",
+                        static_cast<unsigned>(ids.size()), ids.front().c_str(),
+                        (ids.size() > 1) ? ", ..." : "");
                     recreate(302);
                     return;
                 }
@@ -487,14 +507,16 @@ namespace MAT_NS_BEGIN {
     void OfflineStorage_SQLite::ReleaseRecords(std::vector<StorageRecordId> const& ids, bool incrementRetryCount, HttpHeaders headers, bool& fromMemory)
     {
         UNREFERENCED_PARAMETER(fromMemory);
-        UNREFERENCED_PARAMETER(headers); // could be unused
+        UNREFERENCED_PARAMETER(headers);  // could be unused
 
-        if (ids.empty()) {
+        if (ids.empty())
+        {
             return;
         }
-        if (!m_db) {
+        if (!m_db)
+        {
             LOG_ERROR("Failed to release %u event(s) {%s%s}, retry count %s: Database is not open",
-                static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
+                      static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
             return;
         }
 
@@ -509,31 +531,34 @@ namespace MAT_NS_BEGIN {
             }
 #endif
             LOG_TRACE("Releasing %u event(s) {%s%s}, retry count %s...",
-                static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
+                      static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
 
             SqliteStatement releaseStmt(*m_db, m_stmtReleaseEvents_ids_retryCountDelta);
-            for (size_t i = 0; i < ids.size(); i += kBlockSize) {
+            for (size_t i = 0; i < ids.size(); i += kBlockSize)
+            {
                 size_t count = std::min(kBlockSize, ids.size() - i);
                 std::vector<uint8_t> idList = packageIdList(ids.begin() + i, ids.begin() + i + count);
-                if (!releaseStmt.execute(idList, incrementRetryCount ? 1 : 0)) {
+                if (!releaseStmt.execute(idList, incrementRetryCount ? 1 : 0))
+                {
                     LOG_ERROR(
-                            "Failed to release %u event(s) {%s%s}, retry count %s: Database error occurred, recreating database",
-                            static_cast<unsigned>(ids.size()), ids.front().c_str(),
-                            (ids.size() > 1) ? ", ..." : "",
-                            incrementRetryCount ? "+1" : "not changed");
+                        "Failed to release %u event(s) {%s%s}, retry count %s: Database error occurred, recreating database",
+                        static_cast<unsigned>(ids.size()), ids.front().c_str(),
+                        (ids.size() > 1) ? ", ..." : "",
+                        incrementRetryCount ? "+1" : "not changed");
                     recreate(403);
                     return;
                 }
             }
             LOG_TRACE("Successfully released %u requested event(s), %u were not found anymore",
-                releaseStmt.changes(), static_cast<unsigned>(ids.size()) - releaseStmt.changes());
+                      releaseStmt.changes(), static_cast<unsigned>(ids.size()) - releaseStmt.changes());
 
             if (incrementRetryCount)
             {
                 unsigned maxRetryCount = m_config.GetMaximumRetryCount();
 
                 SqliteStatement getRowstobedeleteStmt(*m_db, m_stmtSelectEventsRetried_maxRetryCount);
-                if (!getRowstobedeleteStmt.select(maxRetryCount)) {
+                if (!getRowstobedeleteStmt.select(maxRetryCount))
+                {
                     LOG_ERROR("Failed to get events with exceeded retry count: Database error occurred, recreating database");
                     recreate(404);
                     return;
@@ -549,7 +574,8 @@ namespace MAT_NS_BEGIN {
                 getRowstobedeleteStmt.reset();
 
                 SqliteStatement deleteStmt(*m_db, m_stmtDeleteEventsRetried_maxRetryCount);
-                if (!deleteStmt.execute(maxRetryCount)) {
+                if (!deleteStmt.execute(maxRetryCount))
+                {
                     LOG_ERROR("Failed to delete events with exceeded retry count: Database error occurred, recreating database");
                     recreate(404);
                     return;
@@ -559,35 +585,40 @@ namespace MAT_NS_BEGIN {
                 if (droppedCount > 0)
                 {
                     LOG_ERROR("Deleted %u events over maximum retry count %u",
-                        droppedCount, maxRetryCount);
+                              droppedCount, maxRetryCount);
                     m_observer->OnStorageRecordsDropped(deletedData);
                 }
             }
         }
-
     }
 
     bool OfflineStorage_SQLite::StoreSetting(std::string const& name, std::string const& value)
     {
-        if (name.empty()) {
+        if (name.empty())
+        {
             LOG_ERROR("Failed to set setting \"%s\": Name cannot be empty", name.c_str());
             return false;
         }
 
-        if (!m_db) {
+        if (!m_db)
+        {
             LOG_ERROR("Failed to set setting \"%s\": Database is not open", name.c_str());
             return false;
         }
 
-        if (!value.empty()) {
-            if (!SqliteStatement(*m_db, m_stmtInsertSetting_name_value).execute(name, value)) {
+        if (!value.empty())
+        {
+            if (!SqliteStatement(*m_db, m_stmtInsertSetting_name_value).execute(name, value))
+            {
                 LOG_ERROR("Failed to set setting \"%s\": Database error occurred, recreating database", name.c_str());
                 recreate(502);
                 return false;
             }
         }
-        else {
-            if (!SqliteStatement(*m_db, m_stmtDeleteSetting_name).execute(name)) {
+        else
+        {
+            if (!SqliteStatement(*m_db, m_stmtDeleteSetting_name).execute(name))
+            {
                 LOG_ERROR("Failed to set setting \"%s\": Database error occurred, recreating database", name.c_str());
                 recreate(503);
                 return false;
@@ -601,12 +632,14 @@ namespace MAT_NS_BEGIN {
     {
         std::string result;
 
-        if (name.empty()) {
+        if (name.empty())
+        {
             LOG_ERROR("Failed to get setting \"%s\": Name cannot be empty", name.c_str());
             return result;
         }
 
-        if (!isOpen()) {
+        if (!isOpen())
+        {
             LOG_ERROR("Oddly closed");
             return result;
         }
@@ -620,7 +653,8 @@ namespace MAT_NS_BEGIN {
             }
 #endif
             SqliteStatement stmt(*m_db, m_stmtSelectSetting_name);
-            if (!stmt.select(name)) {
+            if (!stmt.select(name))
+            {
                 LOG_WARN("Failed to get setting \"%s\"", name.c_str());
                 return result;
             }
@@ -632,11 +666,13 @@ namespace MAT_NS_BEGIN {
 
     bool OfflineStorage_SQLite::DeleteSetting(std::string const& name)
     {
-        if (name.empty()) {
+        if (name.empty())
+        {
             LOG_ERROR("Failed to delete setting \"%s\": Name cannot be empty", name.c_str());
             return false;
         }
-        if (!isOpen()) {
+        if (!isOpen())
+        {
             LOG_ERROR("Oddly closed");
             return false;
         }
@@ -648,7 +684,7 @@ namespace MAT_NS_BEGIN {
             return false;
         }
 #endif
-        if(!SqliteStatement(*m_db, m_stmtDeleteSetting_name).execute(name))
+        if (!SqliteStatement(*m_db, m_stmtDeleteSetting_name).execute(name))
         {
             LOG_ERROR("Failed to delete setting \"%s\": Database error occurred, recreating database", name.c_str());
             return false;
@@ -664,8 +700,10 @@ namespace MAT_NS_BEGIN {
         {
             m_db->shutdown();
             // Try again with deletePrevious = true
-            if (m_db->initialize(m_offlineStorageFileName, true)) {
-                if (initializeDatabase()) {
+            if (m_db->initialize(m_offlineStorageFileName, true))
+            {
+                if (initializeDatabase())
+                {
                     m_observer->OnStorageOpened("SQLite/Clean");
                     LOG_INFO("Using configured on-disk database after deleting the existing one");
                     m_isOpened = true;
@@ -696,175 +734,212 @@ namespace MAT_NS_BEGIN {
         int openedDbVersion;
         {
             SqliteStatement stmt(*m_db, "PRAGMA user_version");
-            if (!stmt.select() || !stmt.getRow(openedDbVersion)) { return false; }
+            if (!stmt.select() || !stmt.getRow(openedDbVersion))
+            {
+                return false;
+            }
         }
 
-        if (openedDbVersion != CURRENT_SCHEMA_VERSION) {
-            if (openedDbVersion == 0) {
+        if (openedDbVersion != CURRENT_SCHEMA_VERSION)
+        {
+            if (openedDbVersion == 0)
+            {
                 LOG_TRACE("No stored version found, assuming fresh database");
             }
-            else if (openedDbVersion < CURRENT_SCHEMA_VERSION) {
+            else if (openedDbVersion < CURRENT_SCHEMA_VERSION)
+            {
                 LOG_INFO("Database has older version %d, upgrading to %d",
-                    openedDbVersion, CURRENT_SCHEMA_VERSION);
+                         openedDbVersion, CURRENT_SCHEMA_VERSION);
             }
-            else {
+            else
+            {
                 LOG_WARN("Database version %d is newer than current %d, erasing and replacing with new",
-                    openedDbVersion, CURRENT_SCHEMA_VERSION);
+                         openedDbVersion, CURRENT_SCHEMA_VERSION);
                 return false;
             }
             if (!SqliteStatement(*m_db,
-                ("PRAGMA user_version=" + toString(CURRENT_SCHEMA_VERSION)).c_str()
-            ).execute()) {
+                                 ("PRAGMA user_version=" + toString(CURRENT_SCHEMA_VERSION)).c_str())
+                     .execute())
+            {
                 return false;
             }
         }
 
         if (!SqliteStatement(*m_db,
-            "CREATE TABLE IF NOT EXISTS " TABLE_NAME_EVENTS " ("
-            "record_id"      " TEXT,"
-            "tenant_token"   " TEXT NOT NULL,"
-            "latency"        " INTEGER,"
-            "persistence"    " INTEGER,"
-            "timestamp"      " INTEGER,"
-            "retry_count"    " INTEGER DEFAULT 0,"
-            "reserved_until" " INTEGER DEFAULT 0,"
-            "payload"        " BLOB"
-            ")"
-        ).execute()) {
+                             "CREATE TABLE IF NOT EXISTS " TABLE_NAME_EVENTS " ("
+                             "record_id"
+                             " TEXT,"
+                             "tenant_token"
+                             " TEXT NOT NULL,"
+                             "latency"
+                             " INTEGER,"
+                             "persistence"
+                             " INTEGER,"
+                             "timestamp"
+                             " INTEGER,"
+                             "retry_count"
+                             " INTEGER DEFAULT 0,"
+                             "reserved_until"
+                             " INTEGER DEFAULT 0,"
+                             "payload"
+                             " BLOB"
+                             ")")
+                 .execute())
+        {
             return false;
         }
 
         if (!SqliteStatement(*m_db,
-            "CREATE INDEX IF NOT EXISTS k_latency_timestamp ON " TABLE_NAME_EVENTS
-            " (latency DESC, persistence DESC, timestamp ASC)"
-        ).execute()) {
+                             "CREATE INDEX IF NOT EXISTS k_latency_timestamp ON " TABLE_NAME_EVENTS
+                             " (latency DESC, persistence DESC, timestamp ASC)")
+                 .execute())
+        {
             return false;
         }
 
         if (!SqliteStatement(*m_db,
-            "CREATE TABLE IF NOT EXISTS " TABLE_NAME_SETTINGS " ("
-            "name"  " TEXT,"
-            "value" " TEXT,"
-            " PRIMARY KEY (name))"
-        ).execute()) {
+                             "CREATE TABLE IF NOT EXISTS " TABLE_NAME_SETTINGS " ("
+                             "name"
+                             " TEXT,"
+                             "value"
+                             " TEXT,"
+                             " PRIMARY KEY (name))")
+                 .execute())
+        {
             return false;
         }
 
         {
             SqliteStatement stmt(*m_db, "PRAGMA page_size");
-            if (!stmt.select() || !stmt.getRow(m_pageSize)) { return false; }
+            if (!stmt.select() || !stmt.getRow(m_pageSize))
+            {
+                return false;
+            }
         }
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #pragma warning(push)
-#pragma warning(disable:4296) // expression always false.
-#else
-#ifdef __clang__
+#pragma warning(disable : 4296)  // expression always false.
+#elif defined(__clang__)
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtype-limits" // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
+#pragma clang diagnostic ignored "-Wtype-limits"  // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"  // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
 #endif
-#endif
-#define PREPARE_SQL(var_, stmt_) \
-    if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
+
+#define PREPARE_SQL(var_, stmt_)           \
+    if ((var_ = m_db->prepare(stmt_)) < 0) \
+    {                                      \
+        return false;                      \
+    }
 
 #ifdef ENABLE_LOCKING
         PREPARE_SQL(m_stmtBeginTransaction,
-            "BEGIN IMMEDIATE");
+                    "BEGIN IMMEDIATE");
         PREPARE_SQL(m_stmtCommitTransaction,
-            "COMMIT");
+                    "COMMIT");
         PREPARE_SQL(m_stmtRollbackTransaction,
-            "ROLLBACK");
+                    "ROLLBACK");
 #endif
 
         PREPARE_SQL(m_stmtGetPageCount,
-            "PRAGMA page_count");
+                    "PRAGMA page_count");
 
         PREPARE_SQL(m_stmtGetRecordCount,
-            "SELECT count(*) FROM " TABLE_NAME_EVENTS);
+                    "SELECT count(*) FROM " TABLE_NAME_EVENTS);
         PREPARE_SQL(m_stmtGetRecordCountBylatency,
-            "SELECT count(*) FROM " TABLE_NAME_EVENTS " WHERE latency=?");
+                    "SELECT count(*) FROM " TABLE_NAME_EVENTS " WHERE latency=?");
 
         PREPARE_SQL(m_stmtPerTenantTrimCount,
-            "SELECT tenant_token FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
-            "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
-            "* ? / 100)");
+                    "SELECT tenant_token FROM " TABLE_NAME_EVENTS
+                    " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
+                    "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS
+                    ")"
+                    "* ? / 100)");
         PREPARE_SQL(m_stmtTrimEvents_percent,
-                    "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ("
-                                                     "SELECT record_id FROM " TABLE_NAME_EVENTS " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
-                                                                                                "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS ")"
-                                                                                                                                                   "* ? / 100)"
-                                                                                                                                                   ")");
+                    "DELETE FROM " TABLE_NAME_EVENTS
+                    " WHERE record_id IN ("
+                    "SELECT record_id FROM " TABLE_NAME_EVENTS
+                    " ORDER BY persistence ASC, timestamp ASC LIMIT MAX(1,"
+                    "(SELECT COUNT(record_id) FROM " TABLE_NAME_EVENTS
+                    ")"
+                    "* ? / 100)"
+                    ")");
 
         PREPARE_SQL(m_stmtDeleteEvents_tenants,
-                SQL_SUPPLY_PACKAGED_IDS
-                "DELETE FROM " TABLE_NAME_EVENTS " WHERE tenant_token IN ids");
+                    SQL_SUPPLY_PACKAGED_IDS
+                    "DELETE FROM " TABLE_NAME_EVENTS " WHERE tenant_token IN ids");
         PREPARE_SQL(m_stmtDeleteEvents_ids,
-            SQL_SUPPLY_PACKAGED_IDS
-            "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ids");
+                    SQL_SUPPLY_PACKAGED_IDS
+                    "DELETE FROM " TABLE_NAME_EVENTS " WHERE record_id IN ids");
         PREPARE_SQL(m_stmtReleaseExpiredEvents,
-            "UPDATE " TABLE_NAME_EVENTS
-            " SET reserved_until=0, retry_count=retry_count+1"
-            " WHERE reserved_until<>0 AND reserved_until<=?");
+                    "UPDATE " TABLE_NAME_EVENTS
+                    " SET reserved_until=0, retry_count=retry_count+1"
+                    " WHERE reserved_until<>0 AND reserved_until<=?");
         PREPARE_SQL(m_stmtSelectEvents,
-            "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
-            " FROM " TABLE_NAME_EVENTS
-            " WHERE latency>=? AND reserved_until=0"
-            " ORDER BY latency DESC,persistence DESC, timestamp ASC LIMIT ?");
+                    "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
+                    " FROM " TABLE_NAME_EVENTS
+                    " WHERE latency>=? AND reserved_until=0"
+                    " ORDER BY latency DESC,persistence DESC, timestamp ASC LIMIT ?");
         PREPARE_SQL(m_stmtSelectEventAtShutdown,
-            "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
-            " FROM " TABLE_NAME_EVENTS
-            " WHERE latency>=?"
-            " ORDER BY latency DESC,persistence DESC, timestamp ASC LIMIT ?");
+                    "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
+                    " FROM " TABLE_NAME_EVENTS
+                    " WHERE latency>=?"
+                    " ORDER BY latency DESC,persistence DESC, timestamp ASC LIMIT ?");
         PREPARE_SQL(m_stmtSelectEventsMinlatency,
-            "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
-            " FROM " TABLE_NAME_EVENTS
-            " WHERE latency=(SELECT MIN(latency) FROM " TABLE_NAME_EVENTS " WHERE reserved_until=0 AND latency>=?) AND reserved_until=0"
-            " ORDER BY timestamp ASC LIMIT ?");
+                    "SELECT record_id,tenant_token,latency,timestamp,retry_count,reserved_until,payload"
+                    " FROM " TABLE_NAME_EVENTS
+                    " WHERE latency=(SELECT MIN(latency) FROM " TABLE_NAME_EVENTS
+                    " WHERE reserved_until=0 AND latency>=?) AND reserved_until=0"
+                    " ORDER BY timestamp ASC LIMIT ?");
 
         PREPARE_SQL(m_stmtReserveEvents,
-            SQL_SUPPLY_PACKAGED_IDS
-            "UPDATE " TABLE_NAME_EVENTS
-            " SET reserved_until=?"
-            " WHERE record_id IN ids");
+                    SQL_SUPPLY_PACKAGED_IDS
+                    "UPDATE " TABLE_NAME_EVENTS
+                    " SET reserved_until=?"
+                    " WHERE record_id IN ids");
         PREPARE_SQL(m_stmtReleaseEvents_ids_retryCountDelta,
-            SQL_SUPPLY_PACKAGED_IDS
-            "UPDATE " TABLE_NAME_EVENTS
-            " SET reserved_until=0, retry_count=retry_count+?"
-            " WHERE record_id IN ids AND reserved_until>0");
+                    SQL_SUPPLY_PACKAGED_IDS
+                    "UPDATE " TABLE_NAME_EVENTS
+                    " SET reserved_until=0, retry_count=retry_count+?"
+                    " WHERE record_id IN ids AND reserved_until>0");
         PREPARE_SQL(m_stmtSelectEventsRetried_maxRetryCount,
-            "SELECT tenant_token FROM " TABLE_NAME_EVENTS
-            " WHERE retry_count>?");
+                    "SELECT tenant_token FROM " TABLE_NAME_EVENTS
+                    " WHERE retry_count>?");
         PREPARE_SQL(m_stmtDeleteEventsRetried_maxRetryCount,
-            "DELETE FROM " TABLE_NAME_EVENTS
-            " WHERE retry_count>?");
+                    "DELETE FROM " TABLE_NAME_EVENTS
+                    " WHERE retry_count>?");
         PREPARE_SQL(m_stmtInsertEvent_id_tenant_prio_ts_data,
-            "REPLACE INTO " TABLE_NAME_EVENTS " (record_id,tenant_token,latency,persistence,timestamp,payload) VALUES (?,?,?,?,?,?)");
+                    "REPLACE INTO " TABLE_NAME_EVENTS " (record_id,tenant_token,latency,persistence,timestamp,payload) VALUES (?,?,?,?,?,?)");
         PREPARE_SQL(m_stmtInsertSetting_name_value,
-            "REPLACE INTO " TABLE_NAME_SETTINGS " (name,value) VALUES (?,?)");
+                    "REPLACE INTO " TABLE_NAME_SETTINGS " (name,value) VALUES (?,?)");
         PREPARE_SQL(m_stmtDeleteSetting_name,
-            "DELETE FROM " TABLE_NAME_SETTINGS " WHERE name=?");
+                    "DELETE FROM " TABLE_NAME_SETTINGS " WHERE name=?");
         PREPARE_SQL(m_stmtSelectSetting_name,
-            "SELECT value FROM " TABLE_NAME_SETTINGS " WHERE name=?");
+                    "SELECT value FROM " TABLE_NAME_SETTINGS " WHERE name=?");
 
         /* Delete v1 records */
         Execute("DELETE FROM " TABLE_NAME_PACKAGES);
 
 #undef PREPARE_SQL
-#ifdef _MSC_VER
+
+#if defined(_MSC_VER)
 #pragma warning(pop)
-#else
-#ifdef __clang__
+#elif defined(__clang__)
 #pragma clang diagnostic pop
-#endif
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif
 
         ResizeDb();
         return true;
-}
+    }
 
     size_t OfflineStorage_SQLite::GetSize()
     {
-        if (!m_db) {
+        if (!m_db)
+        {
             LOG_ERROR("Failed to get DB size: database is not open");
             return 0;
         }
@@ -904,7 +979,8 @@ namespace MAT_NS_BEGIN {
 
     size_t OfflineStorage_SQLite::GetRecordCount(EventLatency latency = EventLatency_Unspecified) const
     {
-        if (!m_db) {
+        if (!m_db)
+        {
             LOG_ERROR("Failed to get DB size: database is not open");
             return 0;
         }
@@ -915,7 +991,8 @@ namespace MAT_NS_BEGIN {
 
     bool OfflineStorage_SQLite::ResizeDb()
     {
-        if (!m_db) {
+        if (!m_db)
+        {
             LOG_ERROR("Failed to resize DB: database is not open");
             return false;
         }
@@ -966,8 +1043,8 @@ namespace MAT_NS_BEGIN {
     }
 
     std::vector<uint8_t> OfflineStorage_SQLite::packageIdList(
-        std::vector<std::string>::const_iterator const & begin,
-        std::vector<std::string>::const_iterator const & end) const
+        std::vector<std::string>::const_iterator const& begin,
+        std::vector<std::string>::const_iterator const& end) const
     {
         size_t size = std::accumulate(begin, end, size_t(0), [](size_t sum, std::string const& id) -> size_t {
             return sum + id.length() + 1;
@@ -978,14 +1055,13 @@ namespace MAT_NS_BEGIN {
 
         for (auto i = begin; i != end; ++i)
         {
-            std::string const & id(*i);
+            std::string const& id(*i);
             uint8_t const* ptr = reinterpret_cast<uint8_t const*>(id.c_str());
             result.insert(result.end(), ptr, ptr + id.size() + 1);
         }
 
         return result;
     }
-    
-} MAT_NS_END
+}
+MAT_NS_END
 #endif
-
