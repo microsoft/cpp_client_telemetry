@@ -272,12 +272,14 @@ namespace MAT_NS_BEGIN
         static status_t FlushAndTeardown()
         {
             LM_LOCKGUARD(stateLock());
-#ifdef NO_TEARDOWN  // Avoid destroying our ILogManager instance on teardown
+#ifdef NO_TEARDOWN  
+            // Avoid destroying our ILogManager instance on teardown
             LM_SAFE_CALL(Flush);
             LM_SAFE_CALL(UploadNow);
             return STATUS_SUCCESS;
-#else  // Less safe approach, but this is in alignment with original v1 behavior \
-       // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
+#else
+            // Less safe approach, but this is in alignment with original v1 behavior
+            // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
             if (instance)
             {
                 auto controller = instance->GetLogController();
