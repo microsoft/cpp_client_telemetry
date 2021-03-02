@@ -379,7 +379,7 @@ using namespace MAT;
 
 +(void)raiseException:(const char *)message
 {
-    [NSException raise:@"1DSSDKException" format:@"%@", message];
+    [NSException raise:@"1DSSDKException" format:@"%s", message];
 }
 
 void PerformActionWithCppExceptionsCatch(void (^block)())
