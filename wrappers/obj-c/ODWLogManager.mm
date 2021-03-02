@@ -4,10 +4,12 @@
 //
 #import <Foundation/Foundation.h>
 #import "ODWLogConfiguration.h"
+#import "ODWLogConfiguration_private.h"
 #import "ODWLogManager.h"
 #import "ODWLogger_private.h"
 #include <stdexcept>
 #include "LogManager.hpp"
+#include "LogManagerProvider.hpp"
 
 using namespace MAT;
 using namespace Microsoft::Applications::Events;
@@ -31,6 +33,7 @@ static BOOL _initialized = false;
     {
         return nil;
     }
+
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = nullptr;
@@ -50,6 +53,54 @@ static BOOL _initialized = false;
     if(!logger) return nil;
 
     return [[ODWLogger alloc] initWithILogger: logger];
+}
+
++(nullable ODWLogger *)loggerWithTenant:(nonnull NSString *)tenantToken
+                  source:(nonnull NSString *)source
+                  withConfig:(nonnull ODWLogConfiguration *)config
+{
+    // We expect that the static LogManager has already been initialized before this function is called
+    // If not, return nil
+    if (!_initialized)
+    {
+        return nil;
+    }
+
+    status_t status = status_t::STATUS_SUCCESS;
+    ILogConfiguration* wrappedConfig = [config getWrappedConfiguration];
+    if (wrappedConfig == nil)
+    {
+        return nil;
+    }
+
+    ILogManager* manager = LogManagerProvider::CreateLogManager(
+        *wrappedConfig,
+        status);
+
+    if (status == status_t::STATUS_SUCCESS && manager != nil)
+    {
+        std::string strToken = std::string([tenantToken UTF8String]);
+        std::string strSource = std::string([source UTF8String]);
+        ILogger* logger = nullptr;
+        try
+        {
+            logger = manager->GetLogger(strToken, strSource);
+        }
+        catch (const std::exception &e)
+        {
+            if ([ODWLogConfiguration surfaceCppExceptions])
+            {
+                [ODWLogger raiseException: e.what()];
+            }
+            [ODWLogger traceException: e.what()];
+        }
+
+        if(!logger) return nil;
+
+        return [[ODWLogger alloc] initWithILogger: logger];
+    }
+
+    return nil;
 }
 
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
@@ -72,7 +123,7 @@ static BOOL _initialized = false;
     ILogger* logger = nullptr;
     try
     {
-        ILogConfiguration logManagerConfig;
+        static ILogConfiguration logManagerConfig;
 
         // Initializing logManager config with default configuration
         auto& defaultConfig = LogManager::GetLogConfiguration();
@@ -174,19 +225,38 @@ static BOOL _initialized = false;
     });
 }
 
-+(void)flush
++(ODWStatus)flush
 {
-    PerformActionWithCppExceptionsCatch(^(void) {
-        LogManager::Flush();
-    });
+    try
+    {
+        return ((ODWStatus)LogManager::Flush());
+    }
+    catch (const std::exception &e)
+    {
+         if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+        return ODWEfail;
+    }
 }
 
-+(void)flushAndTeardown
++(ODWStatus)flushAndTeardown
 {
-    PerformActionWithCppExceptionsCatch(^(void) {
-        LogManager::FlushAndTeardown();
-        _initialized = false;
-    });
+    try
+    {
+        return ((ODWStatus)LogManager::FlushAndTeardown());
+    }
+    catch (const std::exception &e)
+    {
+         if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+        return ODWEfail;
+    }
 }
 
 +(void)setTransmissionProfile:(ODWTransmissionProfile)profile
@@ -223,7 +293,7 @@ static BOOL _initialized = false;
     PerformActionWithCppExceptionsCatch(^(void) {
         std::string strKey = std::string([name UTF8String]);
         std::string strValue = std::string([value UTF8String]);
-        
+
         LogManager::SetContext(strKey, strValue);
     });
 }

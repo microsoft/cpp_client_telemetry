@@ -19,4 +19,3 @@ namespace Microsoft.Applications.Events
         public virtual string Name { get; }
     }
 }
-

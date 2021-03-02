@@ -4,7 +4,8 @@
 //
 #include "EventProperty.hpp"
 
-#include "utils/Utils.hpp"
+#include "utils/annex_k.hpp"
+#include "utils/StringUtils.hpp"
 
 #include <string>
 #include <algorithm>
@@ -305,6 +306,8 @@ namespace MAT_NS_BEGIN {
             break;
         }
         }
+
+        piiKind = source->piiKind;
     }
 
 

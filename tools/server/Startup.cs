@@ -2,18 +2,16 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CsProtocol;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Hosting;
 
 namespace CommonSchema
 {
@@ -31,7 +29,7 @@ namespace CommonSchema
             }
 
             // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+            public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
             {
                 if (env.IsDevelopment())
                 {
@@ -79,7 +77,8 @@ namespace CommonSchema
                             context.Response.StatusCode = 200;
                             requestLogger.LogInformation(result);
                             await context.Response.WriteAsync(result);
-                        } else
+                        }
+                        else
                         /* Azure Monitor / Application Insights -compatible server */
                         if (path.StartsWith("/v2/track"))
                         {
@@ -92,7 +91,8 @@ namespace CommonSchema
                             if (context.Request.Headers["Content-Encoding"] == "gzip")
                             {
                                 buffer = Decoder.Gunzip(buffer);
-                            } else
+                            }
+                            else
                             if (context.Request.Headers["Content-Encoding"] == "deflate")
                             {
                                 buffer = Decoder.Inflate(buffer);

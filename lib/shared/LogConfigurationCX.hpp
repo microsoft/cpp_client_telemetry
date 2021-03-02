@@ -70,6 +70,8 @@ namespace Microsoft {
                         CollectorURL = CollectorUrlDefault;
                         StartProfileName = "";
                         TransmitProfiles = "";
+                        CacheFileSizeLimitInBytes = 3 * 1024 * 1024;
+                        EnableDBDropIfFull = false;
                     }
 
                     property String^ CollectorURL;
@@ -77,6 +79,8 @@ namespace Microsoft {
                     property bool AutoLogAppResume;
                     property bool AutoLogUnhandledException;
                     property String^ OfflineStorage;
+                    property unsigned int CacheFileSizeLimitInBytes;
+                    property bool EnableDBDropIfFull;
                     property SdkModeTypes SdkMode;
                     property unsigned int TraceLevelMask;
                     property ACTTraceLevel MinTraceLevel;

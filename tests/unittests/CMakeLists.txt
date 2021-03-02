@@ -9,7 +9,6 @@ set(SRCS
   ContextFieldsProviderTests.cpp
   ControlPlaneProviderTests.cpp
   CorrelationVectorTests.cpp
-  DataViewerCollectionTests.cpp
   DebugEventSourceTests.cpp
   DeviceStateHandlerTests.cpp
   DiskLocalStorageTests.cpp
@@ -44,6 +43,7 @@ set(SRCS
   TransmitProfileRuleTests.cpp
   TransmitProfilesTests.cpp
   UtilsTests.cpp
+  ZlibUtilsTests.cpp
 )
 
 if (APPLE)
@@ -62,11 +62,17 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
         )
 endif()
         
-        
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
-    PrivacyGuardFuncTests.cpp
+     ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyGuardTests.cpp
+  )
+endif()
+
+if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
+  list(APPEND SRCS
+     ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/unittests/DefaultDataViewerTests.cpp
+     DataViewerCollectionTests.cpp
   )
 endif()
 

@@ -5,7 +5,7 @@
 #ifndef EVENTFILTERCOLLECTION_HPP
 #define EVENTFILTERCOLLECTION_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "IEventFilterCollection.hpp"
 
 #include <memory>

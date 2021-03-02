@@ -5,7 +5,7 @@
 #ifndef LOGSESSIONDATA_HPP
 #define LOGSESSIONDATA_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include <string>
 #include <cstdint>

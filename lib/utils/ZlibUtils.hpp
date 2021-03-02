@@ -5,7 +5,8 @@
 #ifndef LIB_ZLIB_UTILS_HPP
 #define LIB_ZLIB_UTILS_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
+#include <cstdint>
 #include <vector>
 
 namespace MAT_NS_BEGIN 

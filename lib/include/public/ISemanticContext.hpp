@@ -5,8 +5,6 @@
 #ifndef ISEMANTICCONTEXT_HPP
 #define ISEMANTICCONTEXT_HPP
 
-#include "Version.hpp"
-
 #include "EventProperty.hpp"
 #include "CommonFields.h"
 #include "ctmacros.hpp"

@@ -44,7 +44,7 @@ namespace MAT_NS_BEGIN
             zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
             zs.avail_out = outbufferSize;
             ret = inflate(&zs, Z_NO_FLUSH);
-            out.insert(out.end(), outbuffer, outbuffer + zs.total_out);
+            out.insert(out.end(), outbuffer, outbuffer + (outbufferSize - zs.avail_out));
         } while (ret == Z_OK);
         if (ret != Z_STREAM_END)
         {

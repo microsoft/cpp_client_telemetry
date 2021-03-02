@@ -6,7 +6,8 @@
 
 #include "ILogManager.hpp"
 #include "ISemanticContext.hpp"
-#include "utils/Utils.hpp"
+#include "Version.hpp"
+#include "utils/StringUtils.hpp"
 
 #include <algorithm>
 #include <list>
@@ -295,7 +296,9 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
-        CoCreateGuid(&uuid);
+        auto hr = CoCreateGuid(&uuid);
+        /* CoCreateGuid` will possiblity never fail, so ignoring the result */
+        UNREFERENCED_PARAMETER(hr);
         return MAT::to_string(uuid);
 #else
         static std::once_flag flag;
@@ -517,7 +520,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            LOG_ERROR("Already initialized: %d", m_palStarted.load());
+            LOG_INFO("Already initialized: %d", m_palStarted.load());
         }
     }
 
@@ -545,7 +548,7 @@ namespace PAL_NS_BEGIN {
         }
         else
         {
-            LOG_ERROR("Shutting down: %d", m_palStarted.load());
+            LOG_INFO("Shutting down: %d", m_palStarted.load());
         }
     }
 
@@ -562,4 +565,3 @@ namespace PAL_NS_BEGIN {
 #endif
 
 } PAL_NS_END
-

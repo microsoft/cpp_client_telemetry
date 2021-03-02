@@ -429,9 +429,7 @@
     <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
@@ -457,7 +455,6 @@
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />
     <ClCompile Include="$(ProjectDir)\PackagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\PalTests.cpp" />
-    <ClCompile Include="$(ProjectDir)\PrivacyGuardTests.cpp" />
     <ClCompile Include="$(ProjectDir)\RouteTests.cpp" />
     <ClCompile Include="$(ProjectDir)\StringUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TaskDispatcherCAPITests.cpp" />
@@ -465,6 +462,7 @@
     <ClCompile Include="$(ProjectDir)\TransmitProfileRuleTests.cpp" />
     <ClCompile Include="$(ProjectDir)\TransmitProfilesTests.cpp" />
     <ClCompile Include="$(ProjectDir)\UtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\ZlibUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
@@ -473,7 +471,6 @@
     <ClInclude Include="$(ProjectDir)..\common\MockIBandwidthController.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIEcsClient.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp" />
-    <ClInclude Include="$(ProjectDir)..\common\MockILocalStorageReader.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockILogManagerInternal.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorage.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\MockIOfflineStorageObserver.hpp" />
@@ -485,10 +482,17 @@
     <ClInclude Include="$(ProjectDir)..\common\SocketTools.hpp" />
     <ClInclude Include="CheckForExceptionOrAbort.hpp" />
   </ItemGroup>
-  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\exp')">
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\exp')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSConfigCacheTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientUtilsTests.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyGuardTests.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

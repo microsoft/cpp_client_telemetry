@@ -5,8 +5,6 @@
 #ifndef IECSCLIENT_HPP
 #define IECSCLIENT_HPP
 
-#include "Version.hpp"
-
 #include "ctmacros.hpp"
 #include "ILogger.hpp"
 

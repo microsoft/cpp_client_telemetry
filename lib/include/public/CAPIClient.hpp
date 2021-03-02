@@ -8,7 +8,7 @@
 // Header-only implementation of C++03 API on top of stable C ABI
 //
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include "mat.h"
 

@@ -8,6 +8,10 @@
 
 namespace testing {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"  // GMock MOCK_METHOD* macros don't use override.
+#endif
 
 #ifdef _MSC_VER
 // Avoid noise caused by ECS using const modifier on value-type arguments like int, bool and double.
@@ -63,6 +67,9 @@ class MockIEcsClient : public ecsclient::IEcsClient {
     MOCK_METHOD0(ResumeSendingRequests, void());
 };
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 } // namespace testing
 

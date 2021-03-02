@@ -2,7 +2,7 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "mat/config.h"
 #ifdef HAVE_MAT_NETDETECT
 
@@ -380,12 +380,8 @@ namespace MAT_NS_BEGIN
             }
 
             MSG msg;
-            m_listener_tid = GetCurrentThreadId();
             PostThreadMessage(m_listener_tid, NETDETECTOR_START, 0, 0);
-            {
-                std::unique_lock<std::mutex> lock(m_lock);
-                cv.notify_all();
-            }
+            cv.notify_all();
 
             while (GetMessage(&msg, NULL, 0, 0) > 0)
             {
@@ -437,8 +433,6 @@ namespace MAT_NS_BEGIN
                 pNlm->Release();
                 pNlm = nullptr;
             };
-
-            m_listener_tid = 0;
         }
 
         /// <summary>
@@ -531,11 +525,17 @@ namespace MAT_NS_BEGIN
             // Start a new thread. Notify waiters on exit.
             netDetectThread = std::thread([this]()
             {
+                {
+                    std::lock_guard<std::mutex> lk(m_lock);
+                    m_listener_tid = GetCurrentThreadId();
+                }
                 run();
                 LOG_TRACE("NetworkDetector tid=%p is shutting down..", m_listener_tid);
                 {
                     std::lock_guard<std::mutex> lk(m_lock);
+                    m_listener_tid = 0;
                     isRunning = false;
+                    cv.notify_all();
                 }
             });
 
@@ -549,8 +549,8 @@ namespace MAT_NS_BEGIN
                     // - COM object can't be started (pre-Win 8 scenario)
                     int retry = 1;
                     constexpr int max_retries = 2;
-                    while (!cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_COM_SETTLE_MS),
-                        [this] {return (m_listener_tid != 0); }) && (isRunning) && (retry < max_retries))
+                    while (isRunning && cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_COM_SETTLE_MS))
+                           == std::cv_status::timeout && (retry < max_retries))
                     {
                         LOG_TRACE("NetworkDetector starting up... [%u]", retry);
                         retry++;
@@ -573,13 +573,27 @@ namespace MAT_NS_BEGIN
         /// </summary>
         void NetworkDetector::Stop()
         {
-            if ((isRunning) || (netDetectThread.joinable()))
+            if (netDetectThread.joinable())
             {
-                PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL);
+                std::unique_lock<std::mutex> lk(m_lock);
                 try {
-                    if (netDetectThread.joinable())
+                    if (!isRunning || m_listener_tid == 0 ||
+                        !PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL))
+                    {
+                        // Without detaching, we risk throwing an exception in the destructor.
+                        // There is a chance that our code has finished, but the thread
+                        // hasn't fully terminated, or the thread has already exited and
+                        // isRunning is false. Alternatively, we may have never gotten
+                        // a thread_id.
+                        netDetectThread.detach();
+                        LOG_WARN("NetworkDetector thread unable to be shut down.");
+                    }
+                    else
+                    {
+                        lk.unlock();
                         netDetectThread.join();
-                    LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
+                        LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
+                    }
                 }
                 catch (std::system_error &ex)
                 {

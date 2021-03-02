@@ -7,7 +7,7 @@
 #include <mutex>
 #include <sstream>
 
-#include "utils/Utils.hpp"
+#include "utils/StringUtils.hpp"
 
 namespace MAT_NS_BEGIN {
 

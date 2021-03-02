@@ -21,13 +21,13 @@ public class PrivacyGuard {
     private static native boolean nativeInitializePrivacyGuardWithoutCommonDataContext(long iLoggerNativePtr);
 
     /**
-     * Initialize Privacy Guard from Logger
-     * @param loggerInstance Logger instance that will be used to send data concerns to
+     * Initialize Privacy Guard from ILogger
+     * @param loggerInstance ILogger instance that will be used to send data concerns to
      * @param dataContext Common Data Context to initialize Privacy Guard with.
      * @return true if Privacy Guard is successfully initialized, false otherwise. Try UnInit before re-init.
      * @throws IllegalArgumentException if loggerInstance is null.
      */
-    public static boolean initializePrivacyGuard(Logger loggerInstance, final CommonDataContext dataContext)
+    public static boolean initializePrivacyGuard(ILogger loggerInstance, final CommonDataContext dataContext)
     {
         if(loggerInstance == null)
         {

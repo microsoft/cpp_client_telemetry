@@ -4,6 +4,5 @@
 //
 namespace Microsoft.Applications.Events
 {
-    public abstract class ActionType {}
+    public abstract class AppLifecycleState {}
 }
-

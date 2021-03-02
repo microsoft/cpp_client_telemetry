@@ -2,10 +2,20 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
+
+#if defined(__has_include)
+#if __has_include("modules/dataviewer/DefaultDataViewer.hpp")
+#include "modules/dataviewer/DefaultDataViewer.hpp"
+#define HAS_DDV true
+#endif
+#endif
+
+#include <utils/Utils.hpp>
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
 #include "android/log.h"
+#include "config/RuntimeConfig_Default.hpp"
 
 using namespace MAT;
 
@@ -267,9 +277,9 @@ extern "C"
 namespace
 {
     /**
- * helper function: rethrow any exceptions from reverse-JNI calls
- * @param env
- */
+* helper function: rethrow any exceptions from reverse-JNI calls
+* @param env
+*/
     void rethrow(JNIEnv* env)
     {
         if (env->ExceptionCheck())
@@ -280,8 +290,8 @@ namespace
     }
 
     /**
- * Smart object to manage PushLocalFrame/PopLocalFrame
- */
+* Smart object to manage PushLocalFrame/PopLocalFrame
+*/
 
     class FrameWrapper
     {
@@ -293,8 +303,8 @@ namespace
 
        public:
         /*
-   * Constructor: takes JNIEnv* and the desired LocalStack frame depth
-   */
+* Constructor: takes JNIEnv* and the desired LocalStack frame depth
+*/
         FrameWrapper(JNIEnv* e, size_t s) :
             env(e),
             frameSize(s)
@@ -304,11 +314,11 @@ namespace
         }
 
         /**
-   * Set the reference that will survive PopLocalFrame (as a new
-   * reference in the outer frame).
-   * @param r Object that should survive
-   * @return Previous result value
-   */
+* Set the reference that will survive PopLocalFrame (as a new
+* reference in the outer frame).
+* @param r Object that should survive
+* @return Previous result value
+*/
         jobject* setResult(jobject* r)
         {
             jobject* t = result;
@@ -317,8 +327,8 @@ namespace
         }
 
         /**
-   * On destruction, pop the frame with an optional result object.
-   */
+* On destruction, pop the frame with an optional result object.
+*/
         virtual ~FrameWrapper()
         {
             jobject localRef = nullptr;
@@ -336,9 +346,9 @@ namespace
     };
 
     /**
- * Enum of the types we know how to convert into a VariantMap or
- * VariantArray.
- */
+* Enum of the types we know how to convert into a VariantMap or
+* VariantArray.
+*/
     enum class ValueTypes
     {
         BOOLEAN,
@@ -349,18 +359,18 @@ namespace
     };
 
     /**
- * POD to record how we handle each known value type
- */
+* POD to record how we handle each known value type
+*/
     struct ValueInfo
     {
         /**
-   * JNI class reference for a known type
-   */
+* JNI class reference for a known type
+*/
         jclass valueClass;
         /**
-   * Method ID for the method to cast into the primitive type for
-   * Long or Boolean
-   */
+* Method ID for the method to cast into the primitive type for
+* Long or Boolean
+*/
         jmethodID castMethod;
     };
 
@@ -714,13 +724,22 @@ namespace
         }
     };
 
+#ifdef HAS_DDV
+    struct ManagerAndConfig
+    {
+        ILogConfiguration config;
+        ILogManager* manager;
+        std::shared_ptr<DefaultDataViewer> ddv;
+    };
+#else
     struct ManagerAndConfig
     {
         ILogConfiguration config;
         ILogManager* manager;
     };
+#endif
 
-    using MCVector = std::vector<ManagerAndConfig>;
+    using MCVector = std::vector<std::unique_ptr<ManagerAndConfig>>;
 
     static MCVector jniManagers;
     static std::mutex jniManagersMutex;
@@ -765,20 +784,20 @@ Java_com_microsoft_applications_events_LogManagerProvider_nativeCreateLogManager
 {
     VariantTranslator variantTranslator(env);
     size_t n;
-    {
-        std::lock_guard<std::mutex> lock(jniManagersMutex);
-        n = jniManagers.size();
-        jniManagers.emplace_back();
-    }
-    variantTranslator.translateVariantMap(*jniManagers[n].config,
+    auto mcPointer = std::make_unique<ManagerAndConfig>();
+
+    variantTranslator.translateVariantMap(*(mcPointer->config),
                                           configuration);
 
     status_t status = status_t::STATUS_SUCCESS;
-    jniManagers[n].manager = MAT::LogManagerProvider::CreateLogManager(
-        jniManagers[n].config,
+    mcPointer->manager = MAT::LogManagerProvider::CreateLogManager(
+        mcPointer->config,
         status);
-    if (status == status_t::STATUS_SUCCESS && !!jniManagers[n].manager)
+    if (status == status_t::STATUS_SUCCESS && !!mcPointer->manager)
     {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        n = jniManagers.size();
+        jniManagers.emplace_back(std::move(mcPointer));
         return n;
     }
     __android_log_print(ANDROID_LOG_ERROR,
@@ -800,7 +819,10 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         {
             return nullptr;
         }
-        mc = &jniManagers[nativeLogManagerIndex];
+        // mc will outlive this method call because jniManagers
+        // is static, and we never destroy individual array
+        // vector elements
+        mc = jniManagers[nativeLogManagerIndex].get();
     }
     ConfigConstructor builder(env);
     auto vm = mc->config;
@@ -819,13 +841,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         {
             return;
         }
+        // we reset the manager member of the ManagerAndConfig,
+        // but the ManagerAndConfig itself will survive until
+        // the static jniManagers array is destroyed.
+        jniManagers[nativeLogManager]->manager = nullptr;
     }
-    if (!jniManagers[nativeLogManager].manager)
-    {
-        return;
-    }
-    MAT::LogManagerProvider::Release(jniManagers[nativeLogManager].config);
-    jniManagers[nativeLogManager].manager = nullptr;
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -841,3 +861,651 @@ Java_com_microsoft_applications_events_LogManager_00024LogConfigurationImpl_roun
     return builder.mapTranslate(*logConfiguration);
 }
 
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeGetLogger(
+    JNIEnv* env,
+    jobject thiz,
+    jstring jToken,
+    jstring jSource,
+    jstring jScope)
+{
+    auto LogManagerProviderClassID = env->GetObjectClass(thiz);
+    auto nativeLogManagerID =
+        env->GetFieldID(LogManagerProviderClassID, "nativeLogManager", "J");
+    auto nativeLogManagerIndex = env->GetLongField(thiz, nativeLogManagerID);
+    ManagerAndConfig* mc;
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= jniManagers.size())
+        {
+            return 0;
+        }
+        mc = jniManagers[nativeLogManagerIndex].get();
+        if (!mc)
+            return 0;
+    }
+    auto tokenUtf = env->GetStringUTFChars(jToken, nullptr);
+    std::string token{tokenUtf};
+    env->ReleaseStringUTFChars(jToken, tokenUtf);
+    auto sourceUtf = env->GetStringUTFChars(jSource, nullptr);
+    std::string source{sourceUtf};
+    env->ReleaseStringUTFChars(jSource, sourceUtf);
+    auto scopeUtf = env->GetStringUTFChars(jScope, nullptr);
+    std::string scope{scopeUtf};
+    env->ReleaseStringUTFChars(jScope, scopeUtf);
+    return reinterpret_cast<jlong>(mc->manager->GetLogger(
+        token,
+        source,
+        scope));
+}
+
+static ILogManager* getLogManager(jlong nativeLogManager)
+{
+    std::lock_guard<std::mutex> lock(jniManagersMutex);
+    if (nativeLogManager < 0 || nativeLogManager >= jniManagers.size())
+    {
+        return nullptr;
+    }
+
+    return jniManagers[nativeLogManager]->manager;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeFlushAndTeardown(
+    JNIEnv* env,
+    jobject thiz,
+    jlong nativeLogManager)
+{
+    auto logManager = getLogManager(nativeLogManager);
+    if (!logManager)
+    {
+        return;
+    }
+    logManager->FlushAndTeardown();
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeFlush(
+    JNIEnv* env,
+    jobject thiz,
+    jlong nativeLogManager)
+{
+    auto logManager = getLogManager(nativeLogManager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    return logManager->Flush();
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUploadNow(
+    JNIEnv* env,
+    jobject thiz,
+    jlong nativeLogManager)
+{
+    auto logManager = getLogManager(nativeLogManager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    return logManager->UploadNow();
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativePauseTransmission(
+    JNIEnv* env,
+    jobject thiz,
+    jlong nativeLogManager)
+{
+    auto logManager = getLogManager(nativeLogManager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    return logManager->PauseTransmission();
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeResumeTransmission(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    return logManager->ResumeTransmission();
+}
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetTransmitProfileTP(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jint profile)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    return logManager->SetTransmitProfile(static_cast<TransmitProfile>(profile));
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetTransmitProfileS(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring profile)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto profile_string = env->GetStringUTFChars(profile, nullptr);
+    std::string stringyProfile(profile_string);
+    env->ReleaseStringUTFChars(profile, profile_string);
+    return logManager->SetTransmitProfile(stringyProfile);
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeLoadTransmitProfiles(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring json)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto chars = env->GetStringUTFChars(json, nullptr);
+    std::string cppJson(chars);
+    env->ReleaseStringUTFChars(json, chars);
+    return logManager->LoadTransmitProfiles(cppJson);
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeResetTransmitProfiles(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    return logManager->ResetTransmitProfiles();
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeGetTransmitProfileName(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return nullptr;
+    }
+    auto name = logManager->GetTransmitProfileName();
+    return env->NewStringUTF(name.c_str());
+}
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeGetSemanticContext(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return 0;
+    }
+    return reinterpret_cast<uint64_t>(&logManager->GetSemanticContext());
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetContextString(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring name,
+    jstring value,
+    jint pii_kind)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto chars = env->GetStringUTFChars(name, nullptr);
+    std::string cppName(chars);
+    env->ReleaseStringUTFChars(name, chars);
+    chars = env->GetStringUTFChars(value, nullptr);
+    std::string cppValue(chars);
+    env->ReleaseStringUTFChars(value, chars);
+
+    return logManager->SetContext(cppName, cppValue,
+                                  static_cast<PiiKind>(pii_kind));
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetContextInt(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring name,
+    jint value,
+    jint pii_kind)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto chars = env->GetStringUTFChars(name, nullptr);
+    std::string cppName(chars);
+    env->ReleaseStringUTFChars(name, chars);
+    return logManager->SetContext(cppName, value,
+                                  static_cast<PiiKind>(pii_kind));
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetContextLong(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring name,
+    jlong value,
+    jint pii_kind)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto chars = env->GetStringUTFChars(name, nullptr);
+    std::string cppName(chars);
+    env->ReleaseStringUTFChars(name, chars);
+    return logManager->SetContext(cppName, value,
+                                  static_cast<PiiKind>(pii_kind));
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetContextDouble(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring name,
+    jdouble value,
+    jint pii_kind)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto chars = env->GetStringUTFChars(name, nullptr);
+    std::string cppName(chars);
+    env->ReleaseStringUTFChars(name, chars);
+    return logManager->SetContext(cppName, value,
+                                  static_cast<PiiKind>(pii_kind));
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetContextBoolean(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring name,
+    jboolean value,
+    jint pii_kind)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto chars = env->GetStringUTFChars(name, nullptr);
+    std::string cppName(chars);
+    env->ReleaseStringUTFChars(name, chars);
+    return logManager->SetContext(cppName, value,
+                                  static_cast<PiiKind>(pii_kind));
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetContextDate(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring name,
+    jobject value,
+    jint pii_kind)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto chars = env->GetStringUTFChars(name, nullptr);
+    std::string cppName(chars);
+    env->ReleaseStringUTFChars(name, chars);
+    auto dateClass = env->GetObjectClass(value);
+    auto getTimeID = env->GetMethodID(dateClass, "getTime", "()J");
+    auto javaMilliseconds = env->CallLongMethod(value, getTimeID);
+    constexpr uint64_t ticksPerMillisecond = ticksPerSecond / 1000ull;
+    time_ticks_t
+        sdkTicks = (javaMilliseconds * ticksPerMillisecond) + ticksUnixEpoch;
+    return logManager->SetContext(cppName, sdkTicks,
+                                  static_cast<PiiKind>(pii_kind));
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetContextUUID(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring name,
+    jstring value,
+    jint pii_kind)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    auto chars = env->GetStringUTFChars(name, nullptr);
+    std::string cppName(chars);
+    env->ReleaseStringUTFChars(name, chars);
+    chars = env->GetStringUTFChars(value, nullptr);
+    auto result = logManager->SetContext(cppName, value,
+                                         static_cast<PiiKind>(pii_kind));
+    env->ReleaseStringUTFChars(value, chars);
+    return result;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeInitializeDDV(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jstring jmachine_identifier,
+    jstring jendpoint)
+{
+#ifndef HAS_DDV
+    return false;
+#else
+    auto log_manager = getLogManager(native_log_manager);
+    if (!log_manager)
+    {
+        return false;
+    }
+    auto machine_identifier = JStringToStdString(env, jmachine_identifier);
+    auto endpoint = JStringToStdString(env, jendpoint);
+    std::shared_ptr<DefaultDataViewer>
+        ddv = std::make_shared<DefaultDataViewer>(nullptr, machine_identifier);
+    if (!ddv->EnableRemoteViewer(endpoint))
+    {
+        return false;
+    }
+    std::shared_ptr<DefaultDataViewer> to_register = ddv;
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        ddv.swap(jniManagers[native_log_manager]->ddv);
+    }
+    if (ddv)
+    {
+        log_manager->GetDataViewerCollection().UnregisterViewer(ddv->GetName());
+    }
+    log_manager->GetDataViewerCollection().RegisterViewer(to_register);
+    return true;
+#endif
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeDisableViewer(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager)
+{
+#ifndef HAS_DDV
+    return;
+#else
+    auto log_manager = getLogManager(native_log_manager);
+    if (!log_manager)
+    {
+        return;
+    }
+    std::shared_ptr<DefaultDataViewer> to_unregister;
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        to_unregister.swap(jniManagers[native_log_manager]->ddv);
+    }
+    if (!to_unregister)
+    {
+        return;
+    }
+    log_manager->GetDataViewerCollection().UnregisterViewer(to_unregister->GetName());
+#endif
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeIsViewerEnabled(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager)
+{
+#ifndef HAS_DDV
+    return false;
+#else
+    auto log_manager = getLogManager(native_log_manager);
+    if (!log_manager)
+    {
+        return false;
+    }
+    std::shared_ptr<DefaultDataViewer> ddv;
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        ddv = jniManagers[native_log_manager]->ddv;
+    }
+    return (!!ddv) && log_manager->GetDataViewerCollection().IsViewerEnabled(ddv->GetName());
+#endif
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeGetCurrentEndpoint(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager)
+{
+#ifndef HAS_DDV
+    return env->NewStringUTF("");
+#else
+    auto log_manager = getLogManager(native_log_manager);
+    if (!log_manager)
+    {
+        return env->NewStringUTF("");
+    }
+    std::shared_ptr<DefaultDataViewer> ddv;
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        ddv = jniManagers[native_log_manager]->ddv;
+    }
+    if (ddv)
+    {
+        return env->NewStringUTF(ddv->GetCurrentEndpoint().c_str());
+    }
+    return env->NewStringUTF("");
+#endif
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeGetLogSessionData(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jobject result)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return;
+    }
+    auto sessionData = logManager->GetLogSessionData();
+
+    auto resultClassId = env->GetObjectClass(result);
+    auto timeId = env->GetFieldID(resultClassId, "m_first_time", "J");
+    env->SetLongField(result,
+                      timeId,
+                      static_cast<jlong>(sessionData->getSessionFirstTime()));
+
+    auto
+        uuidId = env->GetFieldID(resultClassId, "m_uuid", "Ljava/lang/String;");
+    auto uuidUtf = env->NewStringUTF(sessionData->getSessionSDKUid().c_str());
+    env->SetObjectField(result, uuidId, uuidUtf);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetLevelFilter(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jint default_level,
+    jintArray allowed_levels)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if (!logManager)
+    {
+        return;
+    }
+    std::set<uint8_t> allowedSet;
+    auto length = env->GetArrayLength(allowed_levels);
+    if (length > 0)
+    {
+        std::vector<jint> things(length, 0);
+        env->GetIntArrayRegion(allowed_levels, 0, length, things.data());
+        for (const auto& level : things)
+        {
+            if (level >= 0 && level < 256)
+            {
+                allowedSet.insert(level);
+            }
+        }
+    }
+    if (default_level >= 0 && default_level < 256)
+    {
+        logManager->SetLevelFilter(default_level, allowedSet);
+    }
+}
+
+namespace
+{
+    struct JniDebugEventListener : DebugEventListener
+    {
+        JavaVM* javaVm;
+        jobject javaListener;
+
+        JniDebugEventListener() = delete;
+
+        JniDebugEventListener(JavaVM* _javaVm, jobject _javaListener) :
+            javaVm(_javaVm)
+        {
+            JNIEnv* env = nullptr;
+            _javaVm->AttachCurrentThread(&env, nullptr);
+            javaListener = env->NewGlobalRef(_javaListener);
+        }
+
+        ~JniDebugEventListener()
+        {
+            JNIEnv* env = nullptr;
+            javaVm->AttachCurrentThread(&env, nullptr);
+            env->DeleteGlobalRef(javaListener);
+        }
+
+        void OnDebugEvent(DebugEvent& evt) override
+        {
+            JNIEnv* env = nullptr;
+            javaVm->AttachCurrentThread(&env, nullptr);
+            auto eventClassId =
+                env->FindClass("com/microsoft/applications/events/DebugEvent");
+            auto constructorId = env->GetMethodID(eventClassId, "<init>",
+                                                  "(JJJJJLjava/lang/Object;J)V");
+            jobject eventLocal;
+            eventLocal = env->NewObject(eventClassId,
+                                        constructorId,
+                                        static_cast<jlong>(evt.seq),
+                                        static_cast<jlong>(evt.ts),
+                                        static_cast<jlong>(evt.type),
+                                        static_cast<jlong>(evt.param1),
+                                        static_cast<jlong>(evt.param2),
+                                        static_cast<jobject>(nullptr),
+                                        static_cast<jlong>(evt.size));
+            auto classId = env->GetObjectClass(javaListener);
+            auto methodId = env->GetMethodID(classId,
+                                             "onDebugEvent",
+                                             "(Lcom/microsoft/applications/events/DebugEvent;)V");
+            env->CallVoidMethod(javaListener, methodId, eventLocal);
+        }
+    };
+
+    static std::vector<std::unique_ptr<JniDebugEventListener>> listeners;
+    static std::mutex listeners_mutex;
+}  // anonymous namespace
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeAddEventListener(
+    JNIEnv* env,
+    jobject thiz,
+    jlong native_log_manager,
+    jlong event_type,
+    jobject listener,
+    jlong current_identity)
+{
+    JavaVM* vm;
+    env->GetJavaVM(&vm);
+    std::unique_ptr<JniDebugEventListener> callback = std::make_unique<JniDebugEventListener>(vm, listener);
+    auto logManager = getLogManager(native_log_manager);
+    logManager->AddEventListener(static_cast<DebugEventType>(event_type), *callback);
+    if (current_identity >= 0) {
+        return current_identity;
+    }
+    std::lock_guard<std::mutex> l(listeners_mutex);
+    listeners.emplace_back(std::move(callback));
+    return listeners.size();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRemoveEventListener(
+    JNIEnv *env,
+    jobject thiz,
+    jlong native_log_manager,
+    jlong eventType,
+    jlong identity) {
+    std::lock_guard<std::mutex> l(listeners_mutex);
+    if (identity < 0 || identity >= listeners.size() || !listeners[identity]) {
+        return;
+    }
+    auto logManager = getLogManager(native_log_manager);
+    logManager->RemoveEventListener(static_cast<DebugEventType>(eventType), *listeners[identity]);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_microsoft_applications_events_ILogConfiguration_getDefaultConfiguration(
+    JNIEnv *env,
+    jclass clazz) {
+    ILogConfiguration emptyConfig;
+    RuntimeConfig_Default defaultConfig(emptyConfig);
+    ConfigConstructor builder(env);
+    return builder.mapTranslate(*emptyConfig);
+}

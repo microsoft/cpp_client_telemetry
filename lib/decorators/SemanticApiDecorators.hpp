@@ -7,6 +7,7 @@
 
 #include "BaseDecorator.hpp"
 #include "ILogger.hpp"
+#include "utils/StringUtils.hpp"
 
 namespace MAT_NS_BEGIN {
 

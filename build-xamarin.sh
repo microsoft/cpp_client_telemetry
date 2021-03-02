@@ -3,12 +3,14 @@
 if [ "$1" == "help" ] || [ "$1" == "?" ]; then
     echo
     echo "build-xamarin.sh usage:"
-    echo "./build-xamarin.sh [debug|release] [cleanAll|cleanXamarin] [xamarinOnly] [package]"
+    echo "./build-xamarin.sh [debug|release] [cleanall|cleanxamarin] [xamarinonly|skipios|skipandroid] [package]"
     echo
     echo "- debug|release: build configuration to use. Default to release of not specified"
-    echo "- cleanAll: deletes output and temporary directories for all platforms"
-    echo "- cleanXamarin: deletes output and temporary directories for the Xamarin solution only"
-    echo "- xamarinOnly: only builds the Xamarin solution, assuming that iOS and Android SDKs have already been built"
+    echo "- cleanall: deletes output and temporary directories for all platforms"
+    echo "- cleanxamarin: deletes output and temporary directories for the Xamarin solution only"
+    echo "- xamarinonly: only builds the Xamarin solution, assuming that iOS and Android SDKs have already been built"
+    echo "- skipios: skip building the SDK for iOS, assuming it has already been built"
+    echo "- skipandroid: skip building the SDK for Android, assuming it has already been built"
     echo "- package: packages the Xamarin bindings in a NuGet package"
     echo
     exit 0
@@ -20,16 +22,24 @@ else
     BUILD_CONFIGURATION="release"
 fi
 
-if [ "$1" == "cleanXamarin" ] || [ "$2" == "cleanXamarin" ]; then
+if [ "$1" == "cleanxamarin" ] || [ "$2" == "cleanxamarin" ]; then
     CLEAN_XAMARIN=true
 fi
 
-if [ "$1" == "cleanAll" ] || [ "$2" == "cleanAll" ]; then
+if [ "$1" == "cleanall" ] || [ "$2" == "cleanall" ]; then
     CLEAN_ALL=true
 fi
 
-if [ "$1" == "xamarinOnly" ] || [ "$2" == "xamarinOnly" ] ||  [ "$3" == "xamarinOnly" ] ||  [ "$4" == "xamarinOnly" ]; then
+if [ "$1" == "xamarinonly" ] || [ "$2" == "xamarinonly" ] ||  [ "$3" == "xamarinonly" ] ||  [ "$4" == "xamarinonly" ]; then
     BUILD_XAMARIN_ONLY=true
+fi
+
+if [ "$1" == "skipIos" ] || [ "$2" == "skipios" ] ||  [ "$3" == "skipios" ] ||  [ "$4" == "skipios" ]; then
+    SKIP_IOS_BUILD=true
+fi
+
+if [ "$1" == "skipandroid" ] || [ "$2" == "skipandroid" ] ||  [ "$3" == "skipandroid" ] ||  [ "$4" == "skipandroid" ]; then
+    SKIP_ANDROID_BUILD=true
 fi
 
 if [ "$1" == "package" ] || [ "$2" == "package" ] || [ "$3" == "package" ] || [ "$4" == "package" ]; then
@@ -70,6 +80,8 @@ set -e
 
 if [ "$BUILD_XAMARIN_ONLY" != true ]; then
 
+    if [ "$SKIP_IOS_BUILD" != true ]; then
+
     # Build for iOS
     echo "$GREEN ====== Building for iOS $NOCOLOR"
     if [ "$CLEAN_ALL" == true ]; then
@@ -90,6 +102,10 @@ if [ "$BUILD_XAMARIN_ONLY" != true ]; then
     lipo -create -output libmat.a libmat.arm64.a libmat.arm64e.a libmat.x86_64.a
     popd
 
+    fi
+
+    if [ "$SKIP_ANDROID_BUILD" != true ]; then
+
     # Build for Android
     echo "$GREEN ====== Building for Android $NOCOLOR"
     pushd ./lib/android_build
@@ -105,6 +121,7 @@ if [ "$BUILD_XAMARIN_ONLY" != true ]; then
     javadoc -protected -d ../../../../../../wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/JavaDoc -Xdoclint:none com.microsoft.applications.events
     popd
     popd
+fi
 fi
 
 echo "$GREEN ====== Copying build artifacts $NOCOLOR"
@@ -128,7 +145,12 @@ msbuild ./Microsoft.Applications.Events.Xamarin.sln /p:Configuration=$BUILD_CONF
 
 if [ "$PACKAGE" == true ]; then
     echo "$GREEN ====== Creating NuGet package $NOCOLOR"
-    nuget pack ./Microsoft.Applications.Events.nuspec
+
+    echo "Getting Version number from git Tags"
+    VERSION=$(git describe --tags --match="v*.*.*" | sed  's/^v\([0-9]*\(\.[0-9]*\)*\).*$/\1/g')
+    echo "Version: $VERSION"
+
+    nuget pack ./Microsoft.Applications.Events.nuspec -Version "$VERSION"
 fi
 
 popd

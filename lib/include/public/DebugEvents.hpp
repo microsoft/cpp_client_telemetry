@@ -5,8 +5,6 @@
 #ifndef DEBUGEVENTS_HPP
 #define DEBUGEVENTS_HPP
 
-#include "Version.hpp"
-
 #include "ctmacros.hpp"
 
 #include <cstdint>

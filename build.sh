@@ -91,14 +91,19 @@ if [ "$LINK_TYPE" == "shared" ]; then
 fi
 
 # Set target MacOS minver
-export MACOSX_DEPLOYMENT_TARGET=10.10
+if [ "$MAC_ARCH" == "arm64" ]; then
+  export MACOSX_DEPLOYMENT_TARGET=11.10
+else
+  export MACOSX_DEPLOYMENT_TARGET=10.10
+fi
+
 
 # Install build tools and recent sqlite3
 FILE=.buildtools
 OS_NAME=`uname -a`
 if [ ! -f $FILE ]; then
   case "$OS_NAME" in
-    *Darwin*) tools/setup-buildtools-apple.sh ;;
+    *Darwin*) tools/setup-buildtools-apple.sh $MAC_ARCH ;;
     *Linux*)  [[ -z "$NOROOT" ]] && sudo tools/setup-buildtools.sh || echo "No root: skipping build tools installation." ;;
     *)        echo "WARNING: unsupported OS $OS_NAME , skipping build tools installation.."
   esac

@@ -241,6 +241,41 @@ std::ostream & operator<<(std::ostream &os, EventLatency const &latency)
     return os;
 }
 
+TEST_P(OfflineStorageTestsRoom, TestGetAndReserveManyAcceptSome) {
+    StorageRecordVector records;
+    auto now = PAL::getUtcSystemTimeMs();
+    for (size_t i = 0; i < 500000; ++i) {
+        std::ostringstream id_stream;
+        id_stream << "Fred-" << i;
+        std::string id = id_stream.str();
+        records.emplace_back(
+                id,
+                id,
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob{1, 2, 3});
+        if (records.size() >= 256) {
+            offlineStorage->StoreRecords(records);
+            records.clear();
+        }
+    }
+    if (!records.empty()) {
+        offlineStorage->StoreRecords(records);
+        records.clear();
+    }
+    EXPECT_TRUE(offlineStorage->GetAndReserveRecords(
+            [&records](StorageRecord &&record) -> bool {
+                if (records.size() >= 256) {
+                    return false;
+                }
+                records.push_back(record);
+                return true;
+            },
+            5
+    ));
+}
+
 TEST_P(OfflineStorageTestsRoom, TestGetAndReserveAcceptAll)
 {
     PopulateRecords();

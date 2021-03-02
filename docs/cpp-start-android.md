@@ -33,6 +33,8 @@ set "ANDROID_NDK_HOME=%ANDROID_NDK%"
 
 You can specify your own versions of dependencies as needed.
 
+>Note: Only Java JDKs 8-13 will work. Java JDK 14+ will fail to build, due to an issue with the version of Gradle currently in use.
+
 ## 3. Integrate the SDK into your C++ project
 
 If you use the lib/android_build Gradle files, they build the SDK into maesdk.aar in the output folders of the maesdk module in lib/android. You can package or consume this AAR in your applications modules, just as you would any other AAR.
@@ -146,6 +148,8 @@ You may find these helpful for debugging. All device files will be found under t
 ### 1. Log Files
 
 `.../cache/mat-debug-10782.log`: one log file per session
+
+Local logs are only generated if `HAVE_MAT_LOGGING` is defined in `lib/include/mat/config*.h` file and `LogConfigurationKey.CFG_BOOL_ENABLE_TRACE` is set to `true` in client code. If `ANDROID_SUPPRESS_LOGCAT` is not defined, this will also generate LogCat logs. Note that there are some LogCat logs that are created through `__android_log_print` and not tied to this
 
 ### 2. Database Files
 

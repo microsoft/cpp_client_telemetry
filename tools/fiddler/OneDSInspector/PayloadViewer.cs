@@ -44,7 +44,7 @@ namespace OneDSInspector
             // this allows to extend control beyond the default ~3510 characters
 
             int maxWidth = 0;
-            
+
             for (int i = 0; i < textList.Count; i++)
             {
                 int curWidth = TextRenderer.MeasureText(textList[i], this.m_mainText.Font).Width;

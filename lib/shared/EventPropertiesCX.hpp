@@ -6,7 +6,7 @@
 #pragma warning( push )
 #pragma warning( disable : 4454 )
 
-#include <Version.hpp>
+#include <ctmacros.hpp>
 #include "PlatformHelpers.h"
 #include "SchemaStub.hpp"
 

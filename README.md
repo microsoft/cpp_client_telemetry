@@ -118,3 +118,4 @@ This library follows [Semantic Versioning](http://semver.org/).
 
 By contributing to 1DS C++ SDK repository, you agree that your contributions
 will be licensed under [Apache License 2.0](LICENSE).
+

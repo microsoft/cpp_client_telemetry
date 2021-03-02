@@ -256,6 +256,25 @@ namespace MAT_NS_BEGIN {
         return true;
     }
 
+    /**
+     * Wait for pending uploads to finish. This handler is invoked from 
+     * TelemetrySystem::onCleanup after HCM has attempted to cancel all pending
+     * requests via hcm.cancelAllRequests. This won't abort the uploads in the end
+     * and is possible to resume the transmission
+     */
+     bool TransmissionPolicyManager::handleCleanup()
+     {
+        cancelUploadTask();
+        // Make sure ongoing uploads are finished.
+        while (uploadCount() > 0)
+        {
+            std::this_thread::yield();
+        }
+
+        allUploadsFinished();
+        return true;
+     }
+
     // Called from finishAllUploads
     void TransmissionPolicyManager::handleFinishAllUploads()
     {

@@ -159,7 +159,8 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
         const jobjectArray& jEventPropertyStringKeyArray, const jobjectArray& jEventPropertyValueArray) {
     EventProperties eventProperties;
     eventProperties.SetName(JStringToStdString(env, jstrEventName));
-    eventProperties.SetType(JStringToStdString(env, jstrEventType));
+    if (jstrEventType != NULL)
+        eventProperties.SetType(JStringToStdString(env, jstrEventType));
     eventProperties.SetLatency(static_cast<EventLatency>(jEventLatency));
     eventProperties.SetPersistence(static_cast<EventPersistence>(jEventPersistence));
     eventProperties.SetPopsample(static_cast<double>(jEventPopSample));
@@ -195,27 +196,6 @@ std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const
     }
 
     return stringVector;
-}
-
-CommonDataContexts GenerateCommonDataContextObject(JNIEnv *env,
-                                                       jstring domainName,
-                                                       jstring machineName,
-                                                       jstring userName,
-                                                       jstring userAlias,
-                                                       jobjectArray ipAddresses,
-                                                       jobjectArray languageIdentifiers,
-                                                       jobjectArray machineIds,
-                                                       jobjectArray outOfScopeIdentifiers) {
-    CommonDataContexts cdc;
-    cdc.DomainName = JStringToStdString(env, domainName);
-    cdc.MachineName = JStringToStdString(env, machineName);
-    cdc.UserName = JStringToStdString(env, userName);
-    cdc.UserAlias = JStringToStdString(env, userAlias);
-    cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
-    cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
-    cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
-    cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
-    return cdc;
 }
 
 } MAT_NS_END

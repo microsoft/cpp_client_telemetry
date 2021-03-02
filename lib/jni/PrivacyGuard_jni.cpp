@@ -8,6 +8,28 @@
 
 using namespace MAT;
 
+CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
+                                                  jstring domainName,
+                                                  jstring machineName,
+                                                  jstring userName,
+                                                  jstring userAlias,
+                                                  jobjectArray ipAddresses,
+                                                  jobjectArray languageIdentifiers,
+                                                  jobjectArray machineIds,
+                                                  jobjectArray outOfScopeIdentifiers)
+{
+    CommonDataContext cdc;
+    cdc.DomainName = JStringToStdString(env, domainName);
+    cdc.MachineName = JStringToStdString(env, machineName);
+    cdc.UserName = JStringToStdString(env, userName);
+    cdc.UserAlias = JStringToStdString(env, userAlias);
+    cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
+    cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
+    cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
+    cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
+    return cdc;
+}
+
 extern "C"
 {
 std::shared_ptr<PrivacyGuard> spPrivacyGuard;
@@ -19,8 +41,9 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         return false;
     }
 
-    auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
-    spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, nullptr);
+    InitializationConfiguration config;
+    config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
+    spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
     WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
@@ -40,18 +63,19 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         return false;
     }
 
-    auto logger = reinterpret_cast<ILogger *>(iLoggerNativePtr);
-    auto cdc = std::make_unique<CommonDataContexts>(GenerateCommonDataContextObject(env,
-                                                                                    domainName,
-                                                                                    machineName,
-                                                                                    userName,
-                                                                                    userAlias,
-                                                                                    ipAddresses,
-                                                                                    languageIdentifiers,
-                                                                                    machineIds,
-                                                                                    outOfScopeIdentifiers));
+    InitializationConfiguration config;
+    config.CommonContext = GenerateCommonDataContextObject(env,
+                                                           domainName,
+                                                           machineName,
+                                                           userName,
+                                                           userAlias,
+                                                           ipAddresses,
+                                                           languageIdentifiers,
+                                                           machineIds,
+                                                           outOfScopeIdentifiers);
 
-    spPrivacyGuard = std::make_shared<PrivacyGuard>(logger, std::move(cdc));
+    config.LoggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
+    spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
     WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
@@ -100,17 +124,15 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
         return false;
     }
 
-    auto cdc = std::make_unique<CommonDataContexts>(GenerateCommonDataContextObject(env,
-                                                                                    domainName,
-                                                                                    machineName,
-                                                                                    userName,
-                                                                                    userAlias,
-                                                                                    ipAddresses,
-                                                                                    languageIdentifiers,
-                                                                                    machineIds,
-                                                                                    outOfScopeIdentifiers));
-
-    spPrivacyGuard->AppendCommonDataContext(std::move(cdc));
+    spPrivacyGuard->AppendCommonDataContext(GenerateCommonDataContextObject(env,
+                                                                            domainName,
+                                                                            machineName,
+                                                                            userName,
+                                                                            userAlias,
+                                                                            ipAddresses,
+                                                                            languageIdentifiers,
+                                                                            machineIds,
+                                                                            outOfScopeIdentifiers));
 
     return true;
 }

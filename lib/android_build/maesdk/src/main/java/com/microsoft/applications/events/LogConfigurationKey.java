@@ -29,6 +29,8 @@ public enum LogConfigurationKey {
   /** Enable network detector. */
   CFG_BOOL_ENABLE_NET_DETECT("enableNetworkDetector", Boolean.class),
 
+  CFG_BOOL_TPM_CLOCK_SKEW_ENABLED("clockSkewEnabled", Boolean.class),
+
   /** Parameter that allows to check if the SDK is running on UTC mode */
   CFG_BOOL_UTC_ENABLED("enabled", Boolean.class),
 
@@ -72,6 +74,7 @@ public enum LogConfigurationKey {
   CFG_INT_SDK_MODE("sdkmode", Long.class),
 
   /** UTC lives at the root of all UTC-specific configuration. */
+  CFG_MAP_UTC("utc", ILogConfiguration.class),
   CFG_STR_UTC("utc", ILogConfiguration.class),
 
   /** Set the provider group directly with a string (which will be converted to a GUID). */
@@ -122,6 +125,10 @@ public enum LogConfigurationKey {
   /** LogManagerFactory sub-config context scope */
   CFG_STR_CONTEXT_SCOPE("scope", String.class),
 
+  CFG_MAP_SAMPLE("sample", ILogConfiguration.class),
+
+  CFG_INT_SAMPLE_RATE("rate", Long.class),
+
   /** Metastats config map */
   CFG_MAP_METASTATS_CONFIG("stats", ILogConfiguration.class),
 
@@ -129,6 +136,10 @@ public enum LogConfigurationKey {
   CFG_INT_METASTATS_INTERVAL("interval", Long.class),
 
   CFG_BOOL_METASTATS_SPLIT("split", Boolean.class),
+
+  CFG_STR_METASTATS_TOKEN_INT("tokenInt", String.class),
+
+  CFG_STR_METASTATS_TOKEN_PROD("tokenProd", String.class),
 
   CFG_MAP_COMPAT("compat", ILogConfiguration.class),
 
@@ -141,6 +152,8 @@ public enum LogConfigurationKey {
   CFG_BOOL_HTTP_MS_ROOT_CHECK("msRootCheck", Boolean.class),
 
   CFG_BOOL_HTTP_COMPRESSION("compress", Boolean.class),
+
+  CFG_STR_HTTP_CONTENT_ENCODING("contentEncoding", String.class),
 
   CFG_MAP_TPM("tpm", ILogConfiguration.class),
 

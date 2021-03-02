@@ -7,9 +7,8 @@
 
 #include "mat/config.h"
 
-#include "Version.hpp"
-#include "typename.hpp"
 #include "ctmacros.hpp"
+#include "typename.hpp"
 
 namespace PAL_NS_BEGIN
 {
