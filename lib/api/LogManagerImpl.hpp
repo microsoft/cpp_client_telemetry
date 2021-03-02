@@ -297,8 +297,9 @@ namespace MAT_NS_BEGIN
         static size_t GetDeadLoggerCount();
 
         virtual void SetDataInspector(const std::shared_ptr<IDataInspector>& dataInspector) override;
-
-        virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept override;
+        virtual void ClearDataInspectors() override;
+        virtual void RemoveDataInspector(const std::string& name) override;
+        virtual std::shared_ptr<IDataInspector> GetDataInspector(const std::string& name) noexcept override;
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
@@ -337,7 +338,7 @@ namespace MAT_NS_BEGIN
         EventFilterCollection m_filters;
         std::vector<std::unique_ptr<IModule>> m_modules;
         DataViewerCollection m_dataViewerCollection;
-        std::shared_ptr<IDataInspector> m_dataInspector;
+        std::vector<std::shared_ptr<IDataInspector>> m_dataInspectors;
         std::recursive_mutex m_dataInspectorGuard;
     };
 

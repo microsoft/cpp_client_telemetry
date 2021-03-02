@@ -82,6 +82,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   list(APPEND SRCS
     modules/privacyguard/PrivacyGuard.cpp
     modules/privacyguard/RegisteredFileTypes.cpp
+    modules/privacyguard/SummaryStatistics.cpp
   )
 endif()
 
