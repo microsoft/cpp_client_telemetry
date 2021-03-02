@@ -101,6 +101,7 @@ endif()
 if(EXISTS ${SDK_ROOT}/lib/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
         list(APPEND SRCS
                 ${SDK_ROOT}/lib/jni/PrivacyGuard_jni.cpp
+                ${SDK_ROOT}/lib/modules/privacyguard/SummaryStatistics.cpp
                 ${SDK_ROOT}/lib/modules/privacyguard/PrivacyGuard.cpp
                 ${SDK_ROOT}/lib/modules/privacyguard/RegisteredFileTypes.cpp
         )
