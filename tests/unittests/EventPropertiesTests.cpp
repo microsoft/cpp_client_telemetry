@@ -186,7 +186,7 @@ TEST(EventPropertiesTests, SetLevel_SetsPropertyTypeInt64)
     EventProperties properties;
     properties.SetLevel(42);
     const auto& property = properties.GetProperties().find(COMMONFIELDS_EVENT_LEVEL)->second;
-    EXPECT_EQ(property.type, TYPE_INT64);
+    EXPECT_TRUE(property.type == TYPE_INT64);
 }
 
 TEST(EventPropertiesTests, SetLevel_SetsValueCorrectly)
