@@ -220,12 +220,20 @@ public class HttpClient {
                 m_connectivityManager.registerDefaultNetworkCallback(m_callback);
               }
             }
-            catch (Exception e) {
+            catch (SecurityException e) {
               // Fetching CONNECTIVITY_SERVICE can throw a SecurityException, especially in Android Work Profile cases
               // "package does not belong to xxxx"
-              // can also throw runtimeException: 
+              Log.e("MAE", "SecurityException in HttpClient initialization", e);
+            }
+            catch (RuntimeException e) {
+              // can throw runtimeException: 
               // https://developer.android.com/reference/android/net/ConnectivityManager#registerDefaultNetworkCallback(android.net.ConnectivityManager.NetworkCallback)
-              // in either case, we don't have access to ConnectivityInfo, so can't truly populate callback/isMetered, or react to network changes
+              Log.e("MAE", "RuntimeException in HttpClient initialization", e);
+            }
+            catch (Exception e) {
+              // If we don't have access to ConnectivityInfo, we can't truly populate callback/isMetered, or react to network changes
+              // However, we can still continue with initialization
+              Log.e("MAE", "Exception in HttpClient initialization", e);
             }
       }
     }
