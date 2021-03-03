@@ -64,6 +64,14 @@ public:
                 Return(5));
         std::ostringstream name;
         implementation = GetParam();
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch" // error: enumeration value ‘Room’ not handled in switch [-Werror=switch]
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch" // error: enumeration value ‘Room’ not handled in switch [-Werror=switch]
+#endif
         switch (implementation) {
 #ifdef ANDROID
             case StorageImplementation::Room:
@@ -84,6 +92,12 @@ public:
                 offlineStorage = std::make_unique<MAE::MemoryStorage>(nullLogManager, configMock);
                 break;
         }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 
         offlineStorage->Initialize(observerMock);
     }
