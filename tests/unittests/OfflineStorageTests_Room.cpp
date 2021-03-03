@@ -298,8 +298,8 @@ TEST_P(OfflineStorageTestsRoom, TestGetAndReserveAcceptAll)
         found.push_back(record);
         return true;
     }, 5));
-    EXPECT_EQ(20, found.size());
-    ASSERT_EQ(20, offlineStorage->LastReadRecordCount());
+    EXPECT_EQ(size_t { 20 }, found.size());
+    ASSERT_EQ(unsigned { 20 }, offlineStorage->LastReadRecordCount());
     ASSERT_EQ(
             implementation == StorageImplementation::Memory,
             offlineStorage->IsLastReadFromMemory());
@@ -328,8 +328,8 @@ TEST_P(OfflineStorageTestsRoom, TestAcceptFunctor) {
                 return false;
             }
             , 5));
-    ASSERT_EQ(10, found.size());
-    ASSERT_EQ(11, calls);
+    ASSERT_EQ(size_t { 10 }, found.size());
+    ASSERT_EQ(size_t { 11 }, calls);
 
 }
 
@@ -615,7 +615,7 @@ TEST_P(OfflineStorageTestsRoom, StoreManyRecords)
         offlineStorage->StoreRecords(records);
         ++blocks;
     }
-    EXPECT_EQ(blocks * blockSize, offlineStorage->GetRecordCount());
+    EXPECT_EQ(blocks * blockSize, size_t { offlineStorage->GetRecordCount() });
 }
 
 #ifdef ANDROID
