@@ -120,7 +120,7 @@ public:
         HttpHeaders h;
         bool fromMemory = false;
         offlineStorage->DeleteRecords(ids, h, fromMemory);
-        EXPECT_EQ(0, offlineStorage->GetRecordCount());
+        EXPECT_EQ(size_t { 0 }, offlineStorage->GetRecordCount());
     }
 
     void SetUp() override {
@@ -150,12 +150,12 @@ public:
             }
             offlineStorage->StoreRecords(records);
         }
-        EXPECT_EQ(20, offlineStorage->GetRecordCount(EventLatency_Unspecified));
+        EXPECT_EQ(size_t { 20 }, offlineStorage->GetRecordCount(EventLatency_Unspecified));
     }
 
     void VerifyBlob(StorageBlob const & blob)
     {
-        EXPECT_EQ(3, blob.size());
+        EXPECT_EQ(size_t { 3 }, blob.size());
         for (size_t i = 0; i < blob.size(); ++i) {
             EXPECT_EQ(i+1, blob[i]);
         }
@@ -226,10 +226,10 @@ TEST_P(OfflineStorageTestsRoom, TestStoreRecords)
                 StorageBlob {1, 2, 3});
     }
     offlineStorage->StoreRecords(records);
-    EXPECT_EQ(10, offlineStorage->GetRecordCount(EventLatency_Normal));
-    EXPECT_EQ(10, offlineStorage->GetRecordCount(EventLatency_Unspecified));
+    EXPECT_EQ(size_t { 10 }, offlineStorage->GetRecordCount(EventLatency_Normal));
+    EXPECT_EQ(size_t { 10 }, offlineStorage->GetRecordCount(EventLatency_Unspecified));
     auto found = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
-    EXPECT_EQ(10, found.size());
+    EXPECT_EQ(size_t { 10 }, found.size());
     for (auto const & record : found) {
         VerifyBlob(record.blob);
         EXPECT_EQ(EventLatency_Normal, record.latency);
@@ -410,7 +410,7 @@ TEST_P(OfflineStorageTestsRoom, TestManyExpiredRecords) {
     auto retries = configMock.GetMaximumRetryCount() + 1;
     std::vector<StorageRecord> manyRecords;
     manyRecords.reserve(count);
-    EXPECT_EQ(0, offlineStorage->GetRecordCount(EventLatency_Normal));
+    EXPECT_EQ(size_t { 0 }, offlineStorage->GetRecordCount(EventLatency_Normal));
     for (size_t i = 0; i < count; ++i) {
         std::string thing = std::to_string(i);
         manyRecords.emplace_back(
@@ -506,7 +506,7 @@ TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
             },
             5000
             );
-    EXPECT_EQ(0, offlineStorage->LastReadRecordCount());
+    EXPECT_EQ(unsigned { 0 }, offlineStorage->LastReadRecordCount());
     StorageRecordVector records;
     offlineStorage->GetAndReserveRecords(
             [&records] (StorageRecord && record)->bool
@@ -515,8 +515,8 @@ TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
                 return true;
             }, 5000
             );
-    EXPECT_EQ(1, offlineStorage->LastReadRecordCount());
-    EXPECT_EQ(1, records.size());
+    EXPECT_EQ(unsigned { 1 }, offlineStorage->LastReadRecordCount());
+    EXPECT_EQ(size_t { 1 }, records.size());
     offlineStorage->GetAndReserveRecords(
             [] (StorageRecord && record)->bool
             {
@@ -544,9 +544,9 @@ TEST_P(OfflineStorageTestsRoom, DeleteByToken)
         );
     }
     offlineStorage->StoreRecords(records);
-    EXPECT_EQ(1000, offlineStorage->GetRecordCount());
+    EXPECT_EQ(size_t { 1000 }, offlineStorage->GetRecordCount());
     offlineStorage->DeleteRecords({{ "tenant_token", "0"}});
-    EXPECT_EQ(800, offlineStorage->GetRecordCount());
+    EXPECT_EQ(size_t { 800 }, offlineStorage->GetRecordCount());
 }
 
 TEST_P(OfflineStorageTestsRoom, ResizeDB)
@@ -615,7 +615,7 @@ TEST_P(OfflineStorageTestsRoom, StoreManyRecords)
         offlineStorage->StoreRecords(records);
         ++blocks;
     }
-    EXPECT_EQ(blocks * blockSize, size_t { offlineStorage->GetRecordCount() });
+    EXPECT_EQ(blocks * blockSize, offlineStorage->GetRecordCount());
 }
 
 #ifdef ANDROID
