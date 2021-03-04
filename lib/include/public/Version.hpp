@@ -6,8 +6,8 @@
 #define MAT_VERSION_HPP
 // WARNING: DO NOT MODIFY THIS FILE!
 // This file has been automatically generated, manual changes will be lost.
-#define BUILD_VERSION_STR "3.5.60.1"
-#define BUILD_VERSION 3,5,60,1
+#define BUILD_VERSION_STR "3.5.63.1"
+#define BUILD_VERSION 3,5,63,1
 
 #ifndef RESOURCE_COMPILER_INVOKED
 #include <ctmacros.hpp>
@@ -18,7 +18,7 @@ namespace MAT_NS_BEGIN {
 uint64_t const Version =
     ((uint64_t)3 << 48) |
     ((uint64_t)5 << 32) |
-    ((uint64_t)60 << 16) |
+    ((uint64_t)63 << 16) |
     ((uint64_t)1);
 
 } MAT_NS_END
@@ -27,5 +27,3 @@ namespace PAL_NS_BEGIN { } PAL_NS_END
 
 #endif // RESOURCE_COMPILER_INVOKED
 #endif
-
-
