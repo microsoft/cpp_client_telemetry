@@ -308,7 +308,7 @@ TEST_F(TransmitProfilesTests, load_VectorIsLargerThanMaxTransmitProfiles_Returns
 {
     std::vector<TransmitProfileRules> newProfiles{MAX_TRANSMIT_PROFILES + 1};
     ASSERT_FALSE(TransmitProfiles::load(newProfiles));
-    ASSERT_EQ(TransmitProfiles::profiles.size(), 3);
+    ASSERT_EQ(TransmitProfiles::profiles.size(), size_t { 3 });
 }
 
 TEST_F(TransmitProfilesTests, load_OneProfileTooManyRules_ReturnsFalseAndSizeThree)
@@ -317,7 +317,7 @@ TEST_F(TransmitProfilesTests, load_OneProfileTooManyRules_ReturnsFalseAndSizeThr
     profile.rules = std::vector<TransmitProfileRule>{MAX_TRANSMIT_RULES + 1};
     std::vector<TransmitProfileRules> newProfiles{profile};
     ASSERT_FALSE(TransmitProfiles::load(newProfiles));
-    ASSERT_EQ(TransmitProfiles::profiles.size(), 3);
+    ASSERT_EQ(TransmitProfiles::profiles.size(), size_t { 3 });
 }
 
 TEST_F(TransmitProfilesTests, load_OneProfileNoRules_ReturnsFalseAndSizeThree)
@@ -325,7 +325,7 @@ TEST_F(TransmitProfilesTests, load_OneProfileNoRules_ReturnsFalseAndSizeThree)
     TransmitProfileRules profile{"testProfile", { }};
     std::vector<TransmitProfileRules> newProfiles{profile};
     ASSERT_FALSE(TransmitProfiles::load(newProfiles));
-    ASSERT_EQ(TransmitProfiles::profiles.size(), 3);
+    ASSERT_EQ(TransmitProfiles::profiles.size(), size_t { 3 });
 }
 
 TEST_F(TransmitProfilesTests, load_OneProfileOneRuleNoTimers_ReturnsFalseAndSizeThree)
@@ -334,7 +334,7 @@ TEST_F(TransmitProfilesTests, load_OneProfileOneRuleNoTimers_ReturnsFalseAndSize
     TransmitProfileRules profile{"testProfile", { rule }};
     std::vector<TransmitProfileRules> newProfiles{profile};
     ASSERT_FALSE(TransmitProfiles::load(newProfiles));
-    ASSERT_EQ(TransmitProfiles::profiles.size(), 3);
+    ASSERT_EQ(TransmitProfiles::profiles.size(), size_t { 3 });
 }
 
 TEST_F(TransmitProfilesTests, load_OneRule_ReturnsTrueAndSizeFour)
@@ -344,7 +344,7 @@ TEST_F(TransmitProfilesTests, load_OneRule_ReturnsTrueAndSizeFour)
     TransmitProfileRules profile{"testProfile", { rule }};
     std::vector<TransmitProfileRules> newProfiles{profile};
     ASSERT_TRUE(TransmitProfiles::load(newProfiles));
-    ASSERT_EQ(TransmitProfiles::profiles.size(), 4);
+    ASSERT_EQ(TransmitProfiles::profiles.size(), size_t { 4 });
 }
 
 #ifdef HAVE_MAT_JSONHPP
