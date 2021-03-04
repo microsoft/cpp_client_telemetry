@@ -593,7 +593,7 @@ TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadNotAbort
 TEST_F(TransmissionPolicyManagerTests, getCancelWaitTime_ScheduledUploadNotAborted_ReturnsZeroInteger)
 {
     tpm.m_scheduledUploadAborted = false;
-    ASSERT_EQ(tpm.getCancelWaitTime().count(), uint64_t { 0 });
+    ASSERT_EQ(tpm.getCancelWaitTime().count(), long long { 0 });
 }
 
 TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_ScheduledUpload_ReturnsTrue)
