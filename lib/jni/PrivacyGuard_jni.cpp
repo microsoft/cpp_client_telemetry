@@ -88,7 +88,7 @@ JNIEXPORT jboolean JNICALL
         return false;
     }
 
-    WrapperLogManager::GetInstance()->SetDataInspector(nullptr);
+    WrapperLogManager::GetInstance()->ClearDataInspectors();
     spPrivacyGuard.reset();
 
     return true;
