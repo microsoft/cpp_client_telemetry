@@ -390,12 +390,12 @@ TEST_P(OfflineStorageTestsRoom, TestGetRecords) {
     }
     offlineStorage->StoreRecords(records);
     auto found = offlineStorage->GetRecords(false, EventLatency_Normal, 0);
-    ASSERT_EQ(10, found.size());
+    ASSERT_EQ(size_t { 10 }, found.size());
     for (StorageRecord record : found) {
         ASSERT_EQ(EventLatency_Normal, record.latency);
     }
     auto shutdown_found = offlineStorage->GetRecords(true, EventLatency_Normal, 0);
-    ASSERT_EQ(20, shutdown_found.size());
+    ASSERT_EQ(size_t { 20 }, shutdown_found.size());
     for (size_t i = 0; i < 10; ++i) {
         ASSERT_EQ(EventLatency_RealTime, shutdown_found[i].latency);
     }
@@ -439,7 +439,7 @@ TEST_P(OfflineStorageTestsRoom, TestManyExpiredRecords) {
                 },
                 5000u);
         EXPECT_EQ(count, manyRecords.size());
-        EXPECT_THAT(manyRecords, Each(Field(&StorageRecord::retryCount, Eq(retry))));
+        EXPECT_THAT(manyRecords, Each(Field(&StorageRecord::retryCount, Eq(static_cast<int>(retry)))));
         for (auto const & record : manyRecords) {
             manyIds.emplace_back(std::move(record.id));
         }
