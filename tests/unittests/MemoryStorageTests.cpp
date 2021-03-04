@@ -256,11 +256,8 @@ TEST(MemoryStorageTests, GetAndReserveSome)
     std::vector<StorageRecord> someRecords;
 
 #if defined(__clang__)
-#pragma clang diagnostic push
+#pragma clang diagnostic push                              // This appears to be a detection bug with constexpr variables in Clang9
 #pragma clang diagnostic ignored "-Wunused-lambda-capture" // error : lambda capture 'howMany' is not required to be captured for this use[-Werror, -Wunused - lambda - capture]
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-lambda-capture"  // error: lambda capture 'howMany' is not required to be captured for this use [-Werror,-Wunused-lambda-capture]
 #endif
     storage.GetAndReserveRecords(
         [&someRecords, howMany] (StorageRecord && record)->bool
@@ -275,8 +272,6 @@ TEST(MemoryStorageTests, GetAndReserveSome)
     );
 #if defined(__clang__)
 #pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif
 
     EXPECT_EQ(howMany, someRecords.size());
