@@ -69,7 +69,7 @@ namespace MAT_NS_BEGIN
         /// Returns unique name for current Data Inspector
         /// </summary>
         /// <returns>Name of Data Inspector</returns>
-        virtual const char* GetName() const noexcept { return ""; }
+        virtual const char* GetName() const noexcept = 0;
     };
 
 }
