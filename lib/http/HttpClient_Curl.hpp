@@ -68,7 +68,7 @@ public:
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
     }
 
-    std::atomic<bool>   isAborted;      // Set to 'true' when async callback is aborted
+    std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
 
     /**
      * Create local CURL instance for url and body
