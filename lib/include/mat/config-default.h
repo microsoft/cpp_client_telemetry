@@ -24,10 +24,7 @@
 #define HAVE_MAT_STORAGE
 #define HAVE_MAT_DEFAULT_HTTP_CLIENT
 #define HAVE_MAT_LIVEEVENTINSPECTOR
-#ifndef __GNUC__
-// PrivacyGuard is not presently compatible with gcc
 #define HAVE_MAT_PRIVACYGUARD
-#endif
 //#define HAVE_MAT_DEFAULT_FILTER
 #if defined(_WIN32) && !defined(_WINRT_DLL)
 #define HAVE_MAT_NETDETECT
