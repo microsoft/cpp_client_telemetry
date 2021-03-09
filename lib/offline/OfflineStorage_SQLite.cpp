@@ -9,6 +9,7 @@
 #include "ILogManager.hpp"
 #include "SQLiteWrapper.hpp"
 #include "utils/StringUtils.hpp"
+#include "mat/CompilerWarnings.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>
@@ -755,8 +756,9 @@ namespace MAT_NS_BEGIN {
             if (!stmt.select() || !stmt.getRow(m_pageSize)) { return false; }
         }
 
-#pragma warning(push)
-#pragma warning(disable:4296) // expression always false.
+MAT_PUSH_WARNINGS
+MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE
+
 #define PREPARE_SQL(var_, stmt_) \
     if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
 
@@ -843,7 +845,8 @@ namespace MAT_NS_BEGIN {
         Execute("DELETE FROM " TABLE_NAME_PACKAGES);
 
 #undef PREPARE_SQL
-#pragma warning(pop)
+
+MAT_POP_WARNINGS
 
         ResizeDb();
         return true;
