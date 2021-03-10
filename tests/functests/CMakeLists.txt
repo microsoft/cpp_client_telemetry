@@ -15,6 +15,13 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/ AND BUILD_LIVEEVENTINSPECTOR)
+  add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
+  list(APPEND SRCS
+    LiveEventInspectorFuncTests.cpp
+  )
+endif()
+
 if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
     list(APPEND SRCS
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
