@@ -52,9 +52,14 @@ if ERRORLEVEL 1 (
 )
 
 REM Install it
-vcpkg integrate install
+
+REM Temporary fix for GitHub Action runner issue
+REM vcpkg integrate install
 vcpkg install gtest:x64-windows
-vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
+
+REM Temporary fix for GitHub Action runner issue
+REM vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
+
 vcpkg install ms-gsl:x64-windows
 
 if DEFINED INSTALL_LLVM (
