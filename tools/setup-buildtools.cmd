@@ -52,9 +52,9 @@ if ERRORLEVEL 1 (
 )
 
 REM Install it
-vcpkg integrate install
 vcpkg install gtest:x64-windows
-vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
+REM Temporarily disable the build of Google Benchmark due to GitHub Actions runner 'hang' on it
+REM vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
 vcpkg install ms-gsl:x64-windows
 
 if DEFINED INSTALL_LLVM (
