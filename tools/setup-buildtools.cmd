@@ -52,7 +52,6 @@ if ERRORLEVEL 1 (
 )
 
 REM Install it
-vcpkg integrate install
 vcpkg install gtest:x64-windows
 vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
 vcpkg install ms-gsl:x64-windows
@@ -61,6 +60,8 @@ if DEFINED INSTALL_LLVM (
   REM Required for LLVM Clang build on Windows
   call install-llvm.cmd
 )
+
+:end
 
 popd
 exit /b 0
