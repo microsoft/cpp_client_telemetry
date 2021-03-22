@@ -94,6 +94,10 @@ namespace MAT_NS_BEGIN
         virtual std::string GetCollectorUrl() override
         {
             const char* url = config[CFG_STR_COLLECTOR_URL];
+            if (url == nullptr)
+            {
+                return std::string(COLLECTOR_URL_PROD);
+            }
             return std::string(url);
         }
 
@@ -113,8 +117,14 @@ namespace MAT_NS_BEGIN
 
         virtual std::string GetMetaStatsTenantToken() override
         {
-            const char* token = config[CFG_MAP_METASTATS_CONFIG]["tokenProd"];
-            return std::string(token);
+            const char *defaultToken = STATS_TOKEN_PROD;
+            if (config.count(CFG_MAP_METASTATS_CONFIG))
+            {
+                const char* token = config[CFG_MAP_METASTATS_CONFIG]["tokenProd"];
+                if (token != nullptr)
+                    return std::string(token);
+            }
+            return std::string(defaultToken);
         };
 
         virtual unsigned GetMetaStatsSendIntervalSec() override
