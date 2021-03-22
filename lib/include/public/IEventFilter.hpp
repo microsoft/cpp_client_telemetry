@@ -5,7 +5,7 @@
 #ifndef IEVENTFILTER_HPP
 #define IEVENTFILTER_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "EventProperties.hpp"
 
 namespace MAT_NS_BEGIN

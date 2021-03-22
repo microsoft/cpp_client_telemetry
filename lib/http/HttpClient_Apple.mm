@@ -12,6 +12,7 @@
 #import <CFNetwork/CFNetwork.h>
 
 #include "HttpClient_Apple.hpp"
+#include "utils/StringUtils.hpp"
 #include "utils/Utils.hpp"
 
 namespace MAT_NS_BEGIN {

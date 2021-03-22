@@ -19,7 +19,7 @@
 #include <utility>
 
 #include "ITaskDispatcher.hpp"
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 namespace PAL_NS_BEGIN {
 

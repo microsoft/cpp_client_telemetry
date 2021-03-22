@@ -6,7 +6,7 @@
 #define LIB_FILEUTILS_HPP
 // Cross-platform C-style file utils that work well with UTF-8 filenames
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "pal/PAL.hpp"
 
 namespace MAT_NS_BEGIN

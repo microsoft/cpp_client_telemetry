@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "Version.hpp"
 #include "ctmacros.hpp"
 
 namespace MAT_NS_BEGIN

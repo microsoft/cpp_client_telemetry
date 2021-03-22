@@ -6,7 +6,7 @@
 #define IDATAVIEWERCOLLECTION_HPP
 
 #include "IDataViewer.hpp"
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include <memory>
 

@@ -5,7 +5,7 @@
 #ifndef MAT_VARIANT_HPP
 #define MAT_VARIANT_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "Enums.hpp"
 
 #include <algorithm>

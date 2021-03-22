@@ -5,9 +5,8 @@
 #ifndef MAT_EVENTPROPERTY_HPP
 #define MAT_EVENTPROPERTY_HPP
 
-#include "Version.hpp"
-
 #include "ctmacros.hpp"
+
 #include "Enums.hpp"
 #include "CommonFields.h"
 

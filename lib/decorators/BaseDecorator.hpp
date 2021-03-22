@@ -5,7 +5,7 @@
 #ifndef BASEDECORATOR_HPP
 #define BASEDECORATOR_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 
 #include <algorithm>
 #include <string>

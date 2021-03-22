@@ -5,7 +5,6 @@
 #ifndef MAT_IAUTHTOKENS_HPP
 #define MAT_IAUTHTOKENS_HPP
 
-#include "Version.hpp"
 #include "ctmacros.hpp"
 #include "Enums.hpp"
 

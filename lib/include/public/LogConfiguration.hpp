@@ -5,8 +5,6 @@
 #ifndef MAT_LOGCONFIGURATION_HPP
 #define MAT_LOGCONFIGURATION_HPP
 
-#include "Version.hpp"
-
 #include "ILogConfiguration.hpp"
 
 #include "Enums.hpp"

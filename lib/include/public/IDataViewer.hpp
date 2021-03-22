@@ -5,7 +5,6 @@
 #ifndef IDATAVIEWER_HPP
 #define IDATAVIEWER_HPP
 
-#include "Version.hpp"
 #include "ctmacros.hpp"
 #include "IModule.hpp"
 

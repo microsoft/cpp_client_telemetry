@@ -9,7 +9,7 @@
 // Certain features, e.g. <mutex> or <thread> - cannot be used while building with /cli
 // For this reason this header cannot include any other headers that rely on <mutex> or <thread>
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "Enums.hpp"
 #include "StringConversion.hpp"
 
@@ -22,8 +22,6 @@
 
 /* Lean implementation of SLDC "Annex K" for non-Windows OS */
 #include "annex_k.hpp"
-
-#include "utils/StringUtils.hpp"
 
 #if (__cplusplus < 201402L) && !defined(_MSC_VER)
 /* Workaround for lack of std::make_unique in C++11 (gcc-5). N3936 for C++14 support mentions 201402L */

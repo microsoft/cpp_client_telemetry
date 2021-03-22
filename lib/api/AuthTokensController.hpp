@@ -5,7 +5,7 @@
 #ifndef AUTHTOKENSCONTROLLER_HPP
 #define AUTHTOKENSCONTROLLER_HPP
 
-#include "Version.hpp"
+#include "ctmacros.hpp"
 #include "Enums.hpp"
 #include "pal/PAL.hpp"
 #include "IAuthTokensController.hpp"

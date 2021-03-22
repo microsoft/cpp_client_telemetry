@@ -5,8 +5,6 @@
 #ifndef MAT_ILOGGER_HPP
 #define MAT_ILOGGER_HPP
 
-#include "Version.hpp"
-
 #include "ctmacros.hpp"
 #include "Enums.hpp"
 #include "EventProperties.hpp"

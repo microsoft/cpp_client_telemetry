@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include <random>
-#include <Version.hpp>
+#include <ctmacros.hpp>
 
 namespace PAL_NS_BEGIN
 {

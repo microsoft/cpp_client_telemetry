@@ -31,8 +31,19 @@ if(APPLE)
     set(IOS True)
     set(APPLE True)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+    if((${IOS_PLAT} STREQUAL "iphonesimulator") AND (${IOS_ARCH} STREQUAL "arm64"))
+      # iOS arm64 simulator is supported starting BigSur
+      # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
+    else()
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+    endif()
+
+    if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator"))
+      set(IOS_PLATFORM "${IOS_PLAT}")
+    else()
+      message(FATAL_ERROR "Unrecognized iOS platform '${IOS_PLAT}'")
+    endif()
 
     if(${IOS_ARCH} STREQUAL "x86_64")
       set(IOS_PLATFORM "iphonesimulator")
@@ -51,12 +62,13 @@ if(APPLE)
       message(FATAL_ERROR "Unrecognized iOS architecture '${IOS_ARCH}'")
     endif()
 
-    execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} Path
+    execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} ONLY_ACTIVE_ARCH=NO Path
       OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
       ERROR_QUIET
       OUTPUT_STRIP_TRAILING_WHITESPACE)
     message("-- CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
-    message("-- IOS_ARCH:               ${IOS_ARCH}")
+    message("-- ARCHITECTURE:           ${CMAKE_SYSTEM_PROCESSOR}")
+    message("-- PLATFORM:               ${IOS_PLATFORM}")
   else()
     if(${MAC_ARCH} STREQUAL "x86_64")
       set(CMAKE_SYSTEM_PROCESSOR x86_64)
@@ -216,6 +228,7 @@ option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
+option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
