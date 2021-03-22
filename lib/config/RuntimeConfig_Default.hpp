@@ -118,7 +118,7 @@ namespace MAT_NS_BEGIN
         virtual std::string GetMetaStatsTenantToken() override
         {
             const char *defaultToken = STATS_TOKEN_PROD;
-            if (config.count(CFG_MAP_METASTATS_CONFIG))
+            if (config.HasConfig(CFG_MAP_METASTATS_CONFIG))
             {
                 const char* token = config[CFG_MAP_METASTATS_CONFIG]["tokenProd"];
                 if (token != nullptr)
