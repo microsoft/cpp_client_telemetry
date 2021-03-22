@@ -43,10 +43,6 @@ if exist "%VSINSTALLDIR%" (
   "%VSINSTALLER%" modify --installPath "%VSINSTALLDIR%" --config "%~dp0\.vsconfig.%VSVERSION%" --force --quiet --norestart
 )
 
-REM Temporary disable vcpkg installation
-echo Skipping vcpkg installation
-goto skip_vcpkg_install
-
 where /Q vcpkg.exe
 if ERRORLEVEL 1 (
   REM Build our own vcpkg from source
@@ -65,7 +61,7 @@ if DEFINED INSTALL_LLVM (
   call install-llvm.cmd
 )
 
-:skip_vcpkg_install
+:end
 
 popd
 exit /b 0
