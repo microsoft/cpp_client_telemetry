@@ -43,6 +43,10 @@ if exist "%VSINSTALLDIR%" (
   "%VSINSTALLER%" modify --installPath "%VSINSTALLDIR%" --config "%~dp0\.vsconfig.%VSVERSION%" --force --quiet --norestart
 )
 
+REM Temporary disable vcpkg installation
+echo Skipping vcpkg installation
+goto skip_vcpkg_install
+
 where /Q vcpkg.exe
 if ERRORLEVEL 1 (
   REM Build our own vcpkg from source
@@ -53,14 +57,15 @@ if ERRORLEVEL 1 (
 
 REM Install it
 vcpkg install gtest:x64-windows
-REM Temporarily disable the build of Google Benchmark due to GitHub Actions runner 'hang' on it
-REM vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
+vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
 vcpkg install ms-gsl:x64-windows
 
 if DEFINED INSTALL_LLVM (
   REM Required for LLVM Clang build on Windows
   call install-llvm.cmd
 )
+
+:skip_vcpkg_install
 
 popd
 exit /b 0
