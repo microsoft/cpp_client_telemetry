@@ -1,5 +1,8 @@
 package com.microsoft.applications.events;
 
+import androidx.annotation.Keep;
+
+@Keep
 public class DebugEvent {
   /// <summary>The debug event sequence number.</summary>
   public long seq = 0;
