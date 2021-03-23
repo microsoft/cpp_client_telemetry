@@ -76,7 +76,7 @@ foreach ($arch in $archs) {
         echo ""
         continue
       }
-      if ($binType -eq "lib" -and ($actualArch -eq "ARM" -or $actualArch -eq "ARM64")) {
+      if ($binType -eq "lib" -and ($actualArch -eq "ARM")) {
         if ($binType -eq "lib") {
           echo "   static .libs are not supported for $actualArch architecture"
           echo "...Skipped!"

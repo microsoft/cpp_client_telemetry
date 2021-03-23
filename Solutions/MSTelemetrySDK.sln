@@ -280,6 +280,7 @@ Global
 		{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}.Debug.static|x64.ActiveCfg = Debug|x64
 		{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}.Debug.vs2015.MT-sqlite|ARM.ActiveCfg = Release|x64
 		{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}.Debug.vs2015.MT-sqlite|ARM64.ActiveCfg = Debug.vs2015.MT-sqlite|ARM64
+		{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}.Debug.vs2015.MT-sqlite|ARM64.Build.0 = Debug.vs2015.MT-sqlite|ARM64
 		{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}.Debug.vs2015.MT-sqlite|Win32.ActiveCfg = Debug.vs2015.MT-sqlite|Win32
 		{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}.Debug.vs2015.MT-sqlite|Win32.Build.0 = Debug.vs2015.MT-sqlite|Win32
 		{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}.Debug.vs2015.MT-sqlite|x64.ActiveCfg = Debug.vs2015.MT-sqlite|x64
@@ -607,6 +608,7 @@ Global
 		{1DC6B38A-B390-34CE-907F-4958807A3D42}.Debug.static|x64.Build.0 = Debug|x64
 		{1DC6B38A-B390-34CE-907F-4958807A3D42}.Debug.vs2015.MT-sqlite|ARM.ActiveCfg = Release|x64
 		{1DC6B38A-B390-34CE-907F-4958807A3D42}.Debug.vs2015.MT-sqlite|ARM64.ActiveCfg = Debug.vs2015.MT-sqlite|ARM64
+		{1DC6B38A-B390-34CE-907F-4958807A3D42}.Debug.vs2015.MT-sqlite|ARM64.Build.0 = Debug.vs2015.MT-sqlite|ARM64
 		{1DC6B38A-B390-34CE-907F-4958807A3D42}.Debug.vs2015.MT-sqlite|Win32.ActiveCfg = Debug.vs2015.MT-sqlite|Win32
 		{1DC6B38A-B390-34CE-907F-4958807A3D42}.Debug.vs2015.MT-sqlite|Win32.Build.0 = Debug.vs2015.MT-sqlite|Win32
 		{1DC6B38A-B390-34CE-907F-4958807A3D42}.Debug.vs2015.MT-sqlite|x64.ActiveCfg = Debug.vs2015.MT-sqlite|x64
