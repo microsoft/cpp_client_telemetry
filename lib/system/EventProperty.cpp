@@ -52,6 +52,30 @@ namespace MAT_NS_BEGIN {
         this->ticks = t.ticks;
     }
 
+    /// <summary>
+    /// The time_ticks_t move constructor.
+    /// </summary>
+    time_ticks_t::time_ticks_t(time_ticks_t&& t) noexcept 
+        : ticks(t.ticks) { }
+
+    /// <summary>
+    /// The time_ticks_t copy assignment operator.
+    /// </summary>
+    time_ticks_t& time_ticks_t::operator=(const time_ticks_t& t) noexcept
+    {
+        this->ticks = t.ticks;
+        return *this;
+    }
+
+    /// <summary>
+    /// The time_ticks_t move assignment operator.
+    /// </summary>
+    time_ticks_t& time_ticks_t::operator=(time_ticks_t && t) noexcept
+    {
+        this->ticks = t.ticks;
+        return *this;
+    }
+
     GUID_t::GUID_t() : Data1(0), Data2(0), Data3(0)
     {
         for (size_t i = 0; i < 8; i++)

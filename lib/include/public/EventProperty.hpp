@@ -78,6 +78,21 @@ namespace MAT_NS_BEGIN
         /// The time_ticks_t copy constructor.
         /// </summary>
         time_ticks_t(const time_ticks_t& t);
+
+        /// <summary>
+        /// The time_ticks_t move constructor.
+        /// </summary>
+        time_ticks_t(time_ticks_t&& t) noexcept;
+
+        /// <summary>
+        /// The time_ticks_t copy assignment operator.
+        /// </summary>
+        time_ticks_t& operator=(const time_ticks_t& t) noexcept;
+
+        /// <summary>
+        /// The time_ticks_t move assignment operator.
+        /// </summary>
+        time_ticks_t& operator=(time_ticks_t&& t) noexcept;
     };
 
     /// <summary>
