@@ -20,14 +20,11 @@ jobs:
       uses: actions/checkout@v2
       continue-on-error: true
 
-    - name: Setup Tools
-      shell: cmd
-      run: tools\setup-buildtools.cmd
-
     - name: Build
       env:
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
         PlatformToolset: v142
+        VSTOOLS_VERSION: vs2019
       shell: cmd
       run: build-all.bat
