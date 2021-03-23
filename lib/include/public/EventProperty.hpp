@@ -158,6 +158,24 @@ namespace MAT_NS_BEGIN
         /// <param name="guid">A GUID_t object.</param>
         GUID_t(const GUID_t& guid);
 
+        /// <summary>
+        /// The GUID_t move constructor.
+        /// </summary>
+        /// <param name="guid">A GUID_t object.</param>
+        GUID_t(GUID_t&& guid) noexcept;
+
+        /// <summary>
+        /// The GUID_t copy-assignment operator.
+        /// </summary>
+        /// <param name="guid">A GUID_t object.</param>
+        GUID_t& operator=(const GUID_t& guid) noexcept;
+
+        /// <summary>
+        /// The GUID_t move assignment operator.
+        /// </summary>
+        /// <param name="guid">A GUID_t object.</param>
+        GUID_t& operator=(GUID_t&& guid) noexcept;
+
 #ifdef _WIN32
         /// <summary>
         /// A constructor that creates a GUID_t object from a Windows GUID object.
