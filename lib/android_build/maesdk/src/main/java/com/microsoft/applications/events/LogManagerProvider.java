@@ -4,6 +4,7 @@
 //
 package com.microsoft.applications.events;
 
+import androidx.annotation.Keep;
 import java.util.Date;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ public class LogManagerProvider {
   protected static native long nativeCreateLogManager(ILogConfiguration config);
 
   static class LogManagerImpl implements ILogManager {
+    @Keep
     long nativeLogManager = 0;
 
     private LogManagerImpl() {}
@@ -214,7 +216,9 @@ public class LogManagerProvider {
     }
 
     protected static class LogSessionDataImpl implements LogSessionData {
+      @Keep
       private long m_first_time;
+      @Keep
       private String m_uuid;
 
       public LogSessionDataImpl() {
