@@ -397,14 +397,14 @@ namespace PAL_NS_BEGIN {
 
         char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"  // error: ‘T’ directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Werror=format-truncation=]
 #endif
         (void)snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
                        1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
                        tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
         return buf;
