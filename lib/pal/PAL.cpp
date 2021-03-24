@@ -407,6 +407,7 @@ namespace PAL_NS_BEGIN {
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
+#endif
         return buf;
     }
 
