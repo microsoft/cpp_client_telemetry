@@ -624,7 +624,7 @@ auto values = Values(StorageImplementation::Room, StorageImplementation::SQLite,
 auto values = Values(StorageImplementation::SQLite, StorageImplementation::Memory);
 #endif
 
-INSTANTIATE_TEST_CASE_P(Storage,
+INSTANTIATE_TEST_SUITE_P(Storage,
         OfflineStorageTestsRoom,
         values,
         [](const testing::TestParamInfo<OfflineStorageTestsRoom::ParamType>& info)->std::string {
