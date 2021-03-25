@@ -331,7 +331,6 @@ namespace MAT_NS_BEGIN {
                 {
                     m_statements.erase(it);
                     g_sqlite3Proxy->sqlite3_finalize(stmt);
-                    LOG_INFO("--- [%p]");
                 }
             }
         }
