@@ -624,7 +624,14 @@ auto values = Values(StorageImplementation::Room, StorageImplementation::SQLite,
 auto values = Values(StorageImplementation::SQLite, StorageImplementation::Memory);
 #endif
 
-INSTANTIATE_TEST_SUITE_P(Storage,
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"  // INSTANTIATE_TEST_CASE_P is deprecated in some versions of GTest, but not in older ones.
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"  // INSTANTIATE_TEST_CASE_P is deprecated in some versions of GTest, but not in older ones.
+#endif
+INSTANTIATE_TEST_CASE_P(Storage,
         OfflineStorageTestsRoom,
         values,
         [](const testing::TestParamInfo<OfflineStorageTestsRoom::ParamType>& info)->std::string {
@@ -632,4 +639,8 @@ INSTANTIATE_TEST_SUITE_P(Storage,
     s << info.param;
     return s.str();
 });
-
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
