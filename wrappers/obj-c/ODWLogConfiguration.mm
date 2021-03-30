@@ -431,6 +431,11 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
     (*_wrappedConfiguration)[[key UTF8String]] = [value UTF8String];
 }
 
+-(void)setHost:(nonnull NSString *)host
+{
+    (*_wrappedConfiguration)[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST] = [value UTF8String];
+}
+
 -(nullable NSString *)valueForKey:(nonnull NSString *)key
 {
     std::string strValue = (*_wrappedConfiguration)[[key UTF8String]];
