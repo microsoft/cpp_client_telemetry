@@ -47,4 +47,11 @@ using namespace Microsoft::Applications::Events;
     XCTAssertEqual([ODWLogConfiguration surfaceCppExceptions], false);
 }
 
+- (void)testSetWithValue {
+    ODWLogConfiguration *config = [ODWLogConfiguration getLogConfigurationCopy];
+    XCTAssertNotNil(config);
+    [config set:ODWCFG_STR_COLLECTOR_URL withValue:@"testUrl"];
+    XCTAssertEqualObjects([config valueForKey:ODWCFG_STR_COLLECTOR_URL], @"testUrl");
+}
+
 @end
