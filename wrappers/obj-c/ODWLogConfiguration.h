@@ -393,6 +393,11 @@ extern NSString * _Nonnull const ODWCFG_BOOL_SESSION_RESET_ENABLED;
 */
 -(void)set:(nonnull NSString *)key withValue:(nonnull NSString *)value;
 
+/*!
+@brief Returns the value for the given key.
+*/
+-(nullable NSString *)valueForKey:(nonnull NSString *)key;
+
 @end
 
 #include "objc_end.h"
