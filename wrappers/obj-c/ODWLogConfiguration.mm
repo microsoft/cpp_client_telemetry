@@ -433,7 +433,7 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
 
 -(void)setHost:(nonnull NSString *)host
 {
-    (*_wrappedConfiguration)[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST] = [value UTF8String];
+    (*_wrappedConfiguration)[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST] = [host UTF8String];
 }
 
 -(nullable NSString *)valueForKey:(nonnull NSString *)key
