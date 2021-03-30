@@ -51,7 +51,7 @@ using namespace Microsoft::Applications::Events;
     ODWLogConfiguration *config = [ODWLogConfiguration getLogConfigurationCopy];
     XCTAssertNotNil(config);
     [config set:ODWCFG_STR_COLLECTOR_URL withValue:@"testUrl"];
-    XCTAssertEqual([config valueForKey:ODWCFG_STR_COLLECTOR_URL], @"testUrl");
+    XCTAssertEqualObjects([config valueForKey:ODWCFG_STR_COLLECTOR_URL], @"testUrl");
 }
 
 @end
