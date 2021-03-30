@@ -6,6 +6,7 @@ package com.microsoft.applications.events;
 
 import java.util.Date;
 import java.util.UUID;
+import android.util.Log;
 
 public class LogManagerProvider {
   public static ILogManager createLogManager(ILogConfiguration config) {
@@ -20,6 +21,7 @@ public class LogManagerProvider {
     private LogManagerImpl() {}
 
     LogManagerImpl(long nativeLogManager) {
+      Log.i("HungCat", "LogManagerImpl " + nativeLogManager);
       this.nativeLogManager = nativeLogManager;
     }
 
@@ -27,6 +29,7 @@ public class LogManagerProvider {
 
     @Override
     public ILogger getLogger(String token, String source, String scope) {
+      Log.i("HungCat", "getLogger " + token + ": " + source);
       return new Logger(nativeGetLogger(token, source, scope));
     }
 
