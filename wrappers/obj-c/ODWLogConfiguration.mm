@@ -431,11 +431,6 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
     (*_wrappedConfiguration)[[key UTF8String]] = [value UTF8String];
 }
 
--(void)setHost:(nonnull NSString *)host
-{
-    (*_wrappedConfiguration)[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST] = [host UTF8String];
-}
-
 -(nullable NSString *)valueForKey:(nonnull NSString *)key
 {
     std::string strValue = (*_wrappedConfiguration)[[key UTF8String]];
@@ -444,6 +439,21 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
          return nil;
     }
     return [NSString stringWithCString:strValue.c_str() encoding:NSUTF8StringEncoding];
+}
+
+-(void)setHost:(nonnull NSString *)host
+{
+    (*_wrappedConfiguration)[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST] = [host UTF8String];
+}
+
+-(nullable NSString *)host
+{
+    std::string strHost = (*_wrappedConfiguration)[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST];
+    if (strHost.empty())
+    {
+         return nil;
+    }
+    return [NSString stringWithCString:strHost.c_str() encoding:NSUTF8StringEncoding];
 }
 
 @end

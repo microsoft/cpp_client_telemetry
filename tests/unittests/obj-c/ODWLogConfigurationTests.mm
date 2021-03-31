@@ -54,4 +54,11 @@ using namespace Microsoft::Applications::Events;
     XCTAssertEqualObjects([config valueForKey:ODWCFG_STR_COLLECTOR_URL], @"testUrl");
 }
 
+- (void)testSetHost {
+    ODWLogConfiguration *config = [ODWLogConfiguration getLogConfigurationCopy];
+    XCTAssertNotNil(config);
+    [config setHost:@"testHost"];
+    XCTAssertEqualObjects(config.host, @"testHost");
+}
+
 @end
