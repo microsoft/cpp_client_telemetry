@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 11)
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 
-string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
+string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (USE_CURL)
         add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
