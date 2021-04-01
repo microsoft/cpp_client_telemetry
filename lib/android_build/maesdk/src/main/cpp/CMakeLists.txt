@@ -17,14 +17,7 @@ if (USE_CURL)
         find_package(CURL REQUIRED)
 endif()
 
-include_directories(AFTER
-        ${SDK_ROOT}/lib
-        ${SDK_ROOT}/lib/include/public
-        ${SDK_ROOT}/lib/include
-        ${SDK_ROOT}/lib/include/mat
-        ${SDK_ROOT}/sqlite
-        ${SDK_ROOT}lib/pal
-        ${CURL_INCLUDE_DIRS})
+set(TARGETNAME maesdk)
 
 set(SRCS
         ${SDK_ROOT}/lib/api/AllowedLevelsCollection.cpp
@@ -123,7 +116,16 @@ else()
         list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Android.cpp)
 endif()
 
-add_library(maesdk ${SRCS})
+add_library(${TARGETNAME} ${SRCS})
+
+target_include_directories(${TARGETNAME} PUBLIC
+        ${SDK_ROOT}/lib
+        ${SDK_ROOT}/lib/include/public
+        ${SDK_ROOT}/lib/include
+        ${SDK_ROOT}/lib/include/mat
+        ${SDK_ROOT}/sqlite
+        ${SDK_ROOT}lib/pal
+        ${CURL_INCLUDE_DIRS})
 
 
 # Creates and names a library, sets it as either STATIC
