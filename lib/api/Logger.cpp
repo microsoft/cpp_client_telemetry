@@ -7,6 +7,7 @@
 #include "CommonFields.h"
 #include "LogSessionData.hpp"
 #include "NullObjects.hpp"
+#include "PauseManager.hpp"
 #include "utils/Utils.hpp"
 
 #include <algorithm>
@@ -273,6 +274,10 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
+        PauseManager::Lock pauseLock;
+        if (pauseLock.isPaused()) {
+            return;
+        }
 
         EventProperties event(name);
         LogEvent(event);
@@ -289,7 +294,10 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
-
+        PauseManager::Lock pauseLock;
+        if (pauseLock.isPaused()) {
+            return;
+        }
         // SendAsJSON(properties, m_tenantToken);
 
         LOG_TRACE("%p: LogEvent(properties.name=\"%s\", ...)",
@@ -828,7 +836,7 @@ namespace MAT_NS_BEGIN
             }
             sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
 
-            if (m_resetSessionOnEnd) 
+            if (m_resetSessionOnEnd)
             {
                 // reset the time of the session to 0 and get a new sessionId
                 m_sessionStartTime = 0;
@@ -891,7 +899,7 @@ namespace MAT_NS_BEGIN
 
         return m_logManager.GetLogSessionData();
     }
-    
+
     IAuthTokensController* Logger::GetAuthTokensController()
     {
         ActiveLoggerCall active(*this);

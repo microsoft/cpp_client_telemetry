@@ -20,6 +20,7 @@ set(SRCS decorators/BaseDecorator.cpp
   api/LogSessionData.cpp
   api/Logger.cpp
   api/LogManagerProvider.cpp
+  api/PauseManager.cpp
   api/CorrelationVector.cpp
   api/LogConfiguration.cpp
   api/AuthTokensController.cpp
@@ -218,7 +219,7 @@ endif()
 
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
-  
+
   # include(FindCURL)
   # find_package(CURL REQUIRED)
   # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
@@ -273,4 +274,3 @@ message("-- Library will be installed to ${INSTALL_LIB_DIR}")
 #  #target_link_libraries(mat PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
 #  #target_link_libraries(mat PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
 #endif()
-

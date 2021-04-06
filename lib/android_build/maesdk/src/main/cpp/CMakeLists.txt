@@ -40,6 +40,7 @@ set(SRCS
         ${SDK_ROOT}/lib/api/LogManagerProvider.cpp
         ${SDK_ROOT}/lib/api/LogSessionData.cpp
         ${SDK_ROOT}/lib/api/Logger.cpp
+        ${SDK_ROOT}/lib/api/PauseManager.cpp
         ${SDK_ROOT}/lib/api/capi.cpp
         ${SDK_ROOT}/lib/backoff/IBackoff.cpp
         ${SDK_ROOT}/lib/bond/BondSerializer.cpp
