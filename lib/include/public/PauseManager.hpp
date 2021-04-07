@@ -5,6 +5,7 @@
 #ifndef PAUSEMANAGER_HPP
 #define PAUSEMANAGER_HPP
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
