@@ -29,7 +29,11 @@ public class LogManagerProvider {
 
     @Override
     public ILogger getLogger(String token, String source, String scope) {
-      return new Logger(nativeGetLogger(token, source, scope));
+      long nativeLogger = nativeGetLogger(token, source, scope);
+      if (nativeLogger == 0) {
+        throw new NullPointerException("Null native logger pointer");
+      }
+      return new Logger(nativeLogger);
     }
 
     @Override
