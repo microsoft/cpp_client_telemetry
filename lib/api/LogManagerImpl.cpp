@@ -15,6 +15,7 @@
 #include "system/TelemetrySystem.hpp"
 
 #include "EventProperty.hpp"
+#include "PauseManager.hpp"
 #include "TransmitProfiles.hpp"
 #include "http/HttpClientFactory.hpp"
 #include "pal/TaskDispatcher.hpp"
@@ -94,6 +95,10 @@ namespace MAT_NS_BEGIN
 
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return false;
+        }
         // LOCKGUARD(ILogManagerInternal::managers_lock);
         for (auto instance : ILogManagerInternal::managers)
         {
@@ -109,6 +114,10 @@ namespace MAT_NS_BEGIN
     // Meanwhile we'd set the g_logLevel using ILogConfiguration settings
     static void setLogLevel(ILogConfiguration& configuration)
     {
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return;
+        }
         uint32_t minTraceLevel = configuration[CFG_INT_TRACE_LEVEL_MIN];
 
         switch (minTraceLevel)
@@ -157,6 +166,10 @@ namespace MAT_NS_BEGIN
         m_config = std::unique_ptr<IRuntimeConfig>(new RuntimeConfig_Default(m_logConfiguration));
         setLogLevel(configuration);
         LOG_TRACE("New LogManager instance");
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            LOG_ERROR("Creating instance during pause");
+        }
 
         PAL::initialize(*m_config);
         PAL::registerSemanticContext(&m_context);
@@ -746,7 +759,7 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::ResetLogSessionData()
     {
-        if (m_logSessionDataProvider) 
+        if (m_logSessionDataProvider)
         {
             m_logSessionDataProvider->ResetLogSessionData();
         }
@@ -860,25 +873,24 @@ namespace MAT_NS_BEGIN
     {
 
         LOCKGUARD(m_lock);
-        if (GetSystem()) 
+        if (GetSystem())
         {
             // cleanup pending http requests
-            GetSystem()->cleanup(); 
-        
+            GetSystem()->cleanup();
+
             // cleanup log session ( UUID)
             if (m_logSessionDataProvider)
             {
                 m_logSessionDataProvider->DeleteLogSessionData();
             }
-    
+
             // cleanup offline storage ( this will also cleanup retry queue for http requests
-            if (m_offlineStorage) 
-            {	
-                m_offlineStorage->DeleteAllRecords();	
+            if (m_offlineStorage)
+            {
+                m_offlineStorage->DeleteAllRecords();
             }
         }
         return STATUS_SUCCESS;
     }
 }
 MAT_NS_END
-

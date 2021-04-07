@@ -64,6 +64,7 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/OfflineStorageTests_Room.cpp
         ${SDK_ROOT}/tests/unittests/PackagerTests.cpp
         ${SDK_ROOT}/tests/unittests/PalTests.cpp
+        ${SDK_ROOT}/tests/unittests/PauseManagerTests.cpp
         ${SDK_ROOT}/tests/unittests/RouteTests.cpp
         ${SDK_ROOT}/tests/unittests/StringUtilsTests.cpp
         ${SDK_ROOT}/tests/unittests/TaskDispatcherCAPITests.cpp

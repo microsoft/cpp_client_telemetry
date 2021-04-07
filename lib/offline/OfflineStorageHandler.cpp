@@ -9,6 +9,7 @@
 #include "offline/MemoryStorage.hpp"
 
 #include "ILogManager.hpp"
+#include "PauseManager.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>
@@ -149,6 +150,10 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorageHandler::Flush()
     {
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return; // no flush during pause
+        }
         // Flush could be executed from context of worker thread, as well as from TPM and
         // after HTTP callback. Make sure it is atomic / thread-safe.
         LOCKGUARD(m_flushLock);
@@ -202,6 +207,10 @@ namespace MAT_NS_BEGIN {
 
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return false;
+        }
         // Don't discard on shutdown because the kill-switch may be temporary.
         // Attempt to upload after restart.
         if ((!m_shutdownStarted) && isKilled(record))
@@ -364,7 +373,7 @@ namespace MAT_NS_BEGIN {
      * Delete all records locally".
      */
 
-    void OfflineStorageHandler::DeleteAllRecords() 
+    void OfflineStorageHandler::DeleteAllRecords()
     {
         for (const auto storagePtr : { m_offlineStorageMemory.get() , m_offlineStorageDisk.get() })
         {
@@ -531,4 +540,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

@@ -236,7 +236,10 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
-
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return;
+        }
         LOG_TRACE("%p: LogAppLifecycle(state=%u, properties.name=\"%s\", ...)",
                   this, state, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
@@ -351,7 +354,10 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
-
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return;
+        }
         LOG_TRACE("%p: LogFailure(signature=\"%s\", properties.name=\"%s\", ...)",
                   this, signature.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
 
@@ -400,6 +406,10 @@ namespace MAT_NS_BEGIN
         ActiveLoggerCall active(*this);
         if (active.LoggerIsDead())
         {
+            return;
+        }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
             return;
         }
 
@@ -456,6 +466,10 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return;
+        }
 
         LOG_TRACE("%p: LogPageAction(pageActionData.actionType=%u, properties.name=\"%s\", ...)",
                   this, pageActionData.actionType, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
@@ -497,6 +511,10 @@ namespace MAT_NS_BEGIN
         {
             return false;
         }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return false;
+        }
 
         record.name = properties.GetName();
         record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
@@ -526,6 +544,10 @@ namespace MAT_NS_BEGIN
         ActiveLoggerCall active(*this);
         if (active.LoggerIsDead())
         {
+            return;
+        }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
             return;
         }
 
@@ -588,6 +610,10 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return;
+        }
 
         LOG_INFO("This method is executed from worker thread");
     }
@@ -604,6 +630,10 @@ namespace MAT_NS_BEGIN
         ActiveLoggerCall active(*this);
         if (active.LoggerIsDead())
         {
+            return;
+        }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
             return;
         }
 
@@ -662,6 +692,10 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return;
+        }
 
         LOG_TRACE("%p: LogAggregatedMetric(name=\"%s\", properties.name=\"%s\", ...)",
                   this, metricData.name.c_str(), properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
@@ -700,6 +734,10 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return;
+        }
 
         LOG_TRACE("%p: LogTrace(level=%u, properties.name=\"%s\", ...)",
                   this, level, properties.GetName().empty() ? "<unnamed>" : properties.GetName().c_str());
@@ -736,6 +774,10 @@ namespace MAT_NS_BEGIN
         ActiveLoggerCall active(*this);
         if (active.LoggerIsDead())
         {
+            return;
+        }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
             return;
         }
 
@@ -777,6 +819,10 @@ namespace MAT_NS_BEGIN
         ActiveLoggerCall active(*this);
         if (active.LoggerIsDead())
         {
+            return;
+        }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
             return;
         }
 
@@ -885,6 +931,10 @@ namespace MAT_NS_BEGIN
         {
             return nullManager;
         }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return nullManager;
+        }
 
         return m_logManager;
     }
@@ -896,6 +946,10 @@ namespace MAT_NS_BEGIN
         {
             return nullManager.GetLogSessionData();
         }
+        PauseManager::Lock lock;
+        if (lock.isPaused()) {
+            return nullManager.GetLogSessionData();
+        }
 
         return m_logManager.GetLogSessionData();
     }
@@ -903,8 +957,8 @@ namespace MAT_NS_BEGIN
     IAuthTokensController* Logger::GetAuthTokensController()
     {
         ActiveLoggerCall active(*this);
-        if (active.LoggerIsDead())
-        {
+        PauseManager::Lock lock;
+        if (active.LoggerIsDead() || lock.isPaused()) {
             return nullManager.GetAuthTokensController();
         }
 
@@ -914,7 +968,8 @@ namespace MAT_NS_BEGIN
     bool Logger::DispatchEvent(DebugEvent evt)
     {
         ActiveLoggerCall active(*this);
-        if (active.LoggerIsDead())
+        PauseManager::Lock lock;
+        if (active.LoggerIsDead() || lock.isPaused())
         {
             return nullManager.DispatchEvent(std::move(evt));
         }
@@ -935,7 +990,8 @@ namespace MAT_NS_BEGIN
     bool Logger::CanEventPropertiesBeSent(EventProperties const& properties) const noexcept
     {
         ActiveLoggerCall active(*this);
-        if (active.LoggerIsDead())
+        PauseManager::Lock lock;
+        if (active.LoggerIsDead() || lock.isPaused())
         {
             return false;
         }
