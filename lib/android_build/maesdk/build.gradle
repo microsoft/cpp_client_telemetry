@@ -14,10 +14,12 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
-        externalNativeBuild {
-            cmake {
-                // Passes optional arguments to CMake.
-                arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1", "-DUSE_ROOM=1", "-DCMAKE_SHARED_LINKER_FLAGS=${project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ''}"
+        if(!ext.has("build_cpp_client") || ext.build_cpp_client) {
+            externalNativeBuild {
+                cmake {
+                    // Passes optional arguments to CMake.
+                    arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1", "-DUSE_ROOM=1", "-DCMAKE_SHARED_LINKER_FLAGS=${project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ''}"
+                }
             }
         }
         javaCompileOptions {
@@ -41,11 +43,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-            version "3.10.2"
+    if(!ext.has("build_cpp_client") || ext.build_cpp_client) {
+        externalNativeBuild {
+            cmake {
+                path "src/main/cpp/CMakeLists.txt"
+                version "3.10.2"
+            }
         }
     }
     compileOptions {
