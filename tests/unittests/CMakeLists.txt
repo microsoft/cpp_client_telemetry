@@ -36,6 +36,7 @@ set(SRCS
   OfflineStorageTests_SQLite.cpp
   PackagerTests.cpp
   PalTests.cpp
+  PauseManagerTests.cpp
   RouteTests.cpp
   StringUtilsTests.cpp
   TaskDispatcherCAPITests.cpp
@@ -56,12 +57,12 @@ endif()
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
     list(APPEND SRCS
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp 
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientTests.cpp
         )
 endif()
-        
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
@@ -154,7 +155,7 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
-  target_link_libraries(UnitTests 
+  target_link_libraries(UnitTests
     ${LIBGTEST}
     ${LIBGMOCK}
     mat
