@@ -798,6 +798,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_nativeCreateLogManager
         std::lock_guard<std::mutex> lock(jniManagersMutex);
         n = jniManagers.size();
         jniManagers.emplace_back(std::move(mcPointer));
+        __android_log_print(ANDROID_LOG_INFO, "MAE", "nativeCreateLogManager: %d", static_cast<int>(n));
         return n;
     }
     __android_log_print(ANDROID_LOG_ERROR,
@@ -911,6 +912,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     auto scopeUtf = env->GetStringUTFChars(jScope, nullptr);
     std::string scope{scopeUtf};
     env->ReleaseStringUTFChars(jScope, scopeUtf);
+    __android_log_print(ANDROID_LOG_INFO, "MAE", "LogManagerImpl_nativeGetLogger done");
     return reinterpret_cast<jlong>(mc->manager->GetLogger(
         token,
         source,
