@@ -116,8 +116,7 @@ TEST_F(PauseManagerTests, WaitForTimesOut)
     );
     auto status = hasPaused.wait_for(std::chrono::milliseconds(0));
     EXPECT_THAT(status, std::future_status::timeout);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    auto timedOut = hasPaused.wait_for(std::chrono::milliseconds(0));
+    auto timedOut = hasPaused.wait_for(std::chrono::milliseconds(100));
     EXPECT_THAT(timedOut, std::future_status::ready);
     hasPaused.get();
     PauseManager::ResumeActivity();
