@@ -60,10 +60,14 @@ TEST_F(PauseManagerTests, WaitWaitsIfPausing)
     );
     auto status = hasPaused.wait_for(std::chrono::milliseconds(0));
     EXPECT_THAT(status, std::future_status::timeout);
+    auto rePaused = std::async(std::launch::async,
+        [] () -> void {
+            PauseManager::QuiesceWait();
+        }
+    );
     lock.reset();
-    auto pausedStatus = hasPaused.wait_for(std::chrono::seconds(1));
-    EXPECT_THAT(pausedStatus, std::future_status::ready);
-    hasPaused.get();
+    auto rePausedStatus = rePaused.wait_for(std::chrono::seconds(1));
+    EXPECT_THAT(rePausedStatus, std::future_status::ready);
     PauseManager::ResumeActivity();
 }
 
@@ -79,10 +83,14 @@ TEST_F(PauseManagerTests, WaitWaitsUntilResume)
     );
     auto status = hasPaused.wait_for(std::chrono::milliseconds(0));
     EXPECT_THAT(status, std::future_status::timeout);
+    auto rePaused = std::async(std::launch::async,
+        [] () -> void {
+            PauseManager::QuiesceWait();
+        }
+    );
     PauseManager::ResumeActivity();
-    auto resumedStatus = hasPaused.wait_for(std::chrono::seconds(1));
+    auto resumedStatus = rePaused.wait_for(std::chrono::seconds(1));
     EXPECT_THAT(resumedStatus, std::future_status::ready);
-    hasPaused.get();
     PauseManager::Lock anotherLock;
     EXPECT_THAT(anotherLock.isPaused(), false);
 }
@@ -100,7 +108,6 @@ TEST_F(PauseManagerTests, WaitForCompletes)
     lock.reset();
     auto status = hasPaused.wait_for(std::chrono::milliseconds(75));
     EXPECT_THAT(status, std::future_status::ready);
-    hasPaused.get();
     PauseManager::ResumeActivity();
 }
 
@@ -116,8 +123,12 @@ TEST_F(PauseManagerTests, WaitForTimesOut)
     );
     auto status = hasPaused.wait_for(std::chrono::milliseconds(0));
     EXPECT_THAT(status, std::future_status::timeout);
-    auto timedOut = hasPaused.wait_for(std::chrono::milliseconds(100));
+    auto rePaused = std::async(std::launch::async,
+        [] () -> void {
+            PauseManager::QuiesceWaitFor(std::chrono::milliseconds(50));
+        }
+    );
+    auto timedOut = rePaused.wait_for(std::chrono::milliseconds(100));
     EXPECT_THAT(timedOut, std::future_status::ready);
-    hasPaused.get();
     PauseManager::ResumeActivity();
 }
