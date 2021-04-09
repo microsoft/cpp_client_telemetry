@@ -869,10 +869,28 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jstring jSource,
     jstring jScope)
 {
+    if (!thiz) {
+        return 0;
+    }
     auto LogManagerProviderClassID = env->GetObjectClass(thiz);
+    if (env->ExceptionCheck()) {
+        env->ExceptionDescribe();
+        return 0;
+    }
+    if (!LogManagerProviderClassID) {
+        return 0;
+    }
     auto nativeLogManagerID =
         env->GetFieldID(LogManagerProviderClassID, "nativeLogManager", "J");
+    if (env->ExceptionCheck()) {
+        env->ExceptionDescribe();
+        return 0;
+    }
     auto nativeLogManagerIndex = env->GetLongField(thiz, nativeLogManagerID);
+    if (env->ExceptionCheck()) {
+        env->ExceptionDescribe();
+        return 0;
+    }
     ManagerAndConfig* mc;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
