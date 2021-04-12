@@ -393,6 +393,22 @@ extern NSString * _Nonnull const ODWCFG_BOOL_SESSION_RESET_ENABLED;
 */
 -(void)set:(nonnull NSString *)key withValue:(nonnull NSString *)value;
 
+/*!
+@brief Returns the value for the given key.
+*/
+-(nullable NSString *)valueForKey:(nonnull NSString *)key;
+
+/*!
+@brief Sets the host value
+@param host A host.
+*/
+-(void)setHost:(nonnull NSString *)host;
+
+/*!
+@brief Returns the host.
+*/
+-(nullable NSString *)host;
+
 @end
 
 #include "objc_end.h"
