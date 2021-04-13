@@ -66,7 +66,7 @@ using namespace MAT;
         std::string strPropertyName = std::string([propertyName UTF8String]);
         if([value isKindOfClass: [NSNumber class]]){
             NSNumber* num = (NSNumber*)value;
-            if(strcmp([num objCType], @encode(BOOL))==0 ) {
+            if((id)num == (id)kCFBooleanTrue || (id)num == (id)kCFBooleanFalse) {
                 event.SetProperty(strPropertyName, [num boolValue] ? true : false, piiKind);
             }
             else if( (strcmp([num objCType], @encode(float))==0) || (strcmp([num objCType], @encode(double))==0) || (strcmp([num objCType], @encode(long double))==0) ){
