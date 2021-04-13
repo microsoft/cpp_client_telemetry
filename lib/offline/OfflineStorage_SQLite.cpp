@@ -755,8 +755,17 @@ namespace MAT_NS_BEGIN {
             if (!stmt.select() || !stmt.getRow(m_pageSize)) { return false; }
         }
 
+#if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable:4296) // expression always false.
+#elif defined( __clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtype-limits" // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"  // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
+#endif
+
 #define PREPARE_SQL(var_, stmt_) \
     if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
 
@@ -843,7 +852,14 @@ namespace MAT_NS_BEGIN {
         Execute("DELETE FROM " TABLE_NAME_PACKAGES);
 
 #undef PREPARE_SQL
+
+#if defined(_MSC_VER)
 #pragma warning(pop)
+#elif defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
         ResizeDb();
         return true;

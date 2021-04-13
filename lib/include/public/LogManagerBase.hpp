@@ -17,8 +17,10 @@
 #pragma warning(disable : 4459 4121 4068)
 #endif
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundefined-var-template"
+#endif
 
 #ifdef _MANAGED
 #include <msclr/lock.h>
@@ -272,12 +274,14 @@ namespace MAT_NS_BEGIN
         static status_t FlushAndTeardown()
         {
             LM_LOCKGUARD(stateLock());
-#ifdef NO_TEARDOWN  // Avoid destroying our ILogManager instance on teardown
+#ifdef NO_TEARDOWN  
+            // Avoid destroying our ILogManager instance on teardown
             LM_SAFE_CALL(Flush);
             LM_SAFE_CALL(UploadNow);
             return STATUS_SUCCESS;
-#else  // Less safe approach, but this is in alignment with original v1 behavior \
-       // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
+#else
+            // Less safe approach, but this is in alignment with original v1 behavior
+            // Side-effect of this is that all ILogger instances get invalidated on FlushAndTeardown
             if (instance)
             {
                 auto controller = instance->GetLogController();
@@ -724,7 +728,9 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(pop)

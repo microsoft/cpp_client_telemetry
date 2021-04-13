@@ -50,10 +50,38 @@ TEST(GuidTests, Ctor_PartiallyMalformedInput_CreatesEmptyGuid)
     ASSERT_EQ("00000000-0000-0000-0000-000000000000", guid.to_string());
 }
 
-
 TEST(GuidTests, Ctor_InputIsTooLong_IgnoresExtraData)
 {
     GUID_t guid("{9D016D64-372E-4DCE-9FA3-0D0772217C54CoCougs");
     ASSERT_EQ("9D016D64-372E-4DCE-9FA3-0D0772217C54", guid.to_string());
 }
 
+TEST(GuidTests, CopyCtor_ValidInput_CopiesCorrectly)
+{
+    const GUID_t first { "{9D016D64-372E-4DCE-9FA3-0D0772217C54}" };
+    const GUID_t second{first};
+    ASSERT_EQ("9D016D64-372E-4DCE-9FA3-0D0772217C54", second.to_string());
+}
+
+TEST(GuidTests, MoveCtor_ValidInput_MovesCorrectly)
+{
+    GUID_t first { "9D016D64-372E-4DCE-9FA3-0D0772217C54" };
+    const GUID_t second{ std::move(first) };
+    ASSERT_EQ("9D016D64-372E-4DCE-9FA3-0D0772217C54", second.to_string());
+}
+
+TEST(GuidTests, CopyAssignment_ValidInput_MovesCorrectly)
+{
+    const GUID_t first{ "9D016D64-372E-4DCE-9FA3-0D0772217C54" };
+    GUID_t second{ "BEE391C8-72B0-464F-93C3-1B27879AD103" };
+    second = first;
+    ASSERT_EQ("9D016D64-372E-4DCE-9FA3-0D0772217C54", second.to_string());
+}
+
+TEST(GuidTests, MoveAssignment_ValidInput_MovesCorrectly)
+{
+    GUID_t first{"9D016D64-372E-4DCE-9FA3-0D0772217C54"};
+    GUID_t second{"BEE391C8-72B0-464F-93C3-1B27879AD103"};
+    second = std::move(first);
+    ASSERT_EQ("9D016D64-372E-4DCE-9FA3-0D0772217C54", second.to_string());
+}
