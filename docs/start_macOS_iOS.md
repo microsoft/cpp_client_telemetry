@@ -7,6 +7,8 @@ This tutorial guides you through the process of integrating the [1DS SDK](https:
 The first version is `3.5.67`.
 
 ```
+source 'https://msblox.visualstudio.com/DefaultCollection/_git/CocoaPods'
+
 pod 'OneDsCppSdk’, '3.5.67'
 ```
 
@@ -55,7 +57,3 @@ logger?.logEvent(with: event)
 ODWLogManager.flushAndTeardown()
 ```
 You're done! You can now compile and run your app, and it will send a telemetry event using your ingestion key to your tenant.
-
-## Authors
-
-- @srbanerj 
