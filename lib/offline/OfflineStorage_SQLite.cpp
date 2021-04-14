@@ -846,17 +846,7 @@ MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE // error: comparison of unsigned 
 
 #undef PREPARE_SQL
 
-<<<<<<< HEAD
 MAT_POP_WARNINGS
-=======
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#elif defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
->>>>>>> master
 
         ResizeDb();
         return true;
