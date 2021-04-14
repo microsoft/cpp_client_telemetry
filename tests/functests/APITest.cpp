@@ -8,11 +8,6 @@
 
 #include "mat/config.h"
 
-#ifdef _MSC_VER
-#pragma warning (disable : 4389)
-#endif
-
-//#include "gtest/gtest.h"
 #include "common/Common.hpp"
 
 #include "CsProtocol_types.hpp"
