@@ -7,9 +7,9 @@ This tutorial guides you through the process of integrating the [1DS SDK](https:
 The first version is `3.5.67`.
 
 ```
-source 'https://msblox.visualstudio.com/DefaultCollection/_git/CocoaPods'
+source 'YOUR-COCOAPOD-SOURCE-URL'
 
-pod 'OneDsCppSdk’, '3.5.67'
+pod 'OneDsCppSdk’, 'VERSION-NUMBER'
 ```
 
 If you are using the pod for the first time, run `pod install`, otherwise, if updating the version, run `pod update`. 
@@ -39,9 +39,7 @@ Make sure your project builds after the previous steps. If you are having issues
 - Initialize Logger with Aria Project Key
 
 ``` swift
-var logger: ODWLogger?
-ODWLogManager.setTransmissionProfile(.realTime)
-logger = ODWLogManager.initForTenant(ariaProjectKey)
+var logger = ODWLogManager.initForTenant('ARIA-PROJECT-KEY')
 ```
 
 - Create Event
