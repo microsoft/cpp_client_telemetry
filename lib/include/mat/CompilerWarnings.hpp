@@ -31,18 +31,19 @@
 
 /*
 
-Define specific Disable warning macros here.
-
-Best effort should be made keep both MSVC and GCC/Clang blocks as equivalent as possible.
+Define specific Disable warning macros here. Keep macros ordered alphabetically.
 
 */
 
 #if defined(_MSC_VER)
 
+#define MAT_DISABLE_WARNING_DEPRECATED_METHOD_CALL     MAT_DISABLE_WARNING(4996)
+#define MAT_DISABLE_WARNING_EXCEPTION_EXECUTE_HANDLER  MAT_DISABLE_WARNING(6320)
 #define MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE MAT_DISABLE_WARNING(4296)
 
 #elif defined(__clang__) || defined(__GCC__)
 
+#define MAT_DISABLE_WARNING_DEPRECATED_METHOD_CALL     MAT_DISABLE_WARNING(-Wdeprecated-declarations)
 #define MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE MAT_DISABLE_WARNING(-Wtype-limits)
 
 #endif

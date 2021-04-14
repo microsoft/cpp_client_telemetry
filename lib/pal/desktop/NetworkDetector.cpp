@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "ctmacros.hpp"
+#include "mat/CompilerWarnings.hpp"
 #include "mat/config.h"
 #ifdef HAVE_MAT_NETDETECT
 
@@ -81,8 +82,6 @@ namespace MAT_NS_BEGIN
         /// This function can be called on any Windows release and it provides a SEH handler.
         /// </summary>
         /// <returns></returns>
-#pragma warning(push)
-#pragma warning(disable: 6320)
         int NetworkDetector::GetCurrentNetworkCost()
         {
 #if 0
@@ -106,11 +105,14 @@ namespace MAT_NS_BEGIN
             // Exception thrown at XXX (KernelBase.dll) in YYY : The binding handle is invalid.
             // If there is a handler for this exception, the program may be safely continued.
             //*******************************************************************************************************************************
+MAT_PUSH_WARNINGS
+MAT_DISABLE_WARNING_EXCEPTION_EXECUTE_HANDLER
             __except (EXCEPTION_EXECUTE_HANDLER)
             {
                 LOG_ERROR("Unable to obtain network state!");
                 m_currentNetworkCost = NetworkCost_Unknown;
             }
+MAT_POP_WARNINGS
 
             // Notify the app about current network cost change
             DebugEvent evt;
@@ -121,7 +123,6 @@ namespace MAT_NS_BEGIN
 
             return m_currentNetworkCost;
         }
-#pragma warning(pop)
 
         /// <summary>
         /// Get current network connectivity state
@@ -438,11 +439,6 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Register for COM events and block-wait in RegisterAndListen
         /// </summary>
-#pragma warning( push )
-#pragma warning(disable:28159)
-#pragma warning(disable:4996)
-#pragma warning(disable:6320)
-// We must use GetVersionEx to retain backwards compat with Win 7 SP1
         void NetworkDetector::run()
         {
             // Check Windows version and if below Windows 8, then avoid running Network cost detection logic
@@ -450,7 +446,10 @@ namespace MAT_NS_BEGIN
             BOOL bIsWindows8orLater;
             ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
             osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+MAT_PUSH_WARNINGS
+MAT_DISABLE_WARNING_DEPRECATED_METHOD_CALL // We must use GetVersionEx to retain backwards compat with Win 7 SP1
             GetVersionEx(&osvi);
+MAT_POP_WARNINGS
             bIsWindows8orLater = ((osvi.dwMajorVersion >= 6) && (osvi.dwMinorVersion >= 2)) || (osvi.dwMajorVersion > 6);
             // Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2)
             if (!bIsWindows8orLater)
@@ -504,7 +503,6 @@ namespace MAT_NS_BEGIN
             }
 
         }
-#pragma warning( pop )
 
         /// <summary>
         /// Start network monitoring thread
