@@ -1,0 +1,34 @@
+name: C/C++ CI on Windows (clang)
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  build:
+
+    runs-on: windows-2019
+    name: Build
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+      continue-on-error: true
+
+    - name: Setup Tools
+      env:
+        VSTOOLS_VERSION: vs2019
+        INSTALL_LLVM: 1
+      shell: cmd
+      run: tools\setup-buildtools.cmd
+
+    - name: Build
+      env:
+        VSTOOLS_VERSION: vs2019
+      shell: cmd
+      run: build-cmake-clang-vs2019.cmd

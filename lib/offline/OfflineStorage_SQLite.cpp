@@ -757,7 +757,7 @@ namespace MAT_NS_BEGIN {
         }
 
 MAT_PUSH_WARNINGS
-MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE
+MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
 
 #define PREPARE_SQL(var_, stmt_) \
     if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
@@ -846,7 +846,17 @@ MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE
 
 #undef PREPARE_SQL
 
+<<<<<<< HEAD
 MAT_POP_WARNINGS
+=======
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+>>>>>>> master
 
         ResizeDb();
         return true;

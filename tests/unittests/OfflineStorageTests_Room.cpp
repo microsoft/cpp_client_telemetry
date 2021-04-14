@@ -64,6 +64,14 @@ public:
                 Return(5));
         std::ostringstream name;
         implementation = GetParam();
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch" // error: enumeration value ‘Room’ not handled in switch [-Werror=switch]
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch" // error: enumeration value ‘Room’ not handled in switch [-Werror=switch]
+#endif
         switch (implementation) {
 #ifdef ANDROID
             case StorageImplementation::Room:
@@ -84,6 +92,12 @@ public:
                 offlineStorage = std::make_unique<MAE::MemoryStorage>(nullLogManager, configMock);
                 break;
         }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 
         offlineStorage->Initialize(observerMock);
     }
@@ -106,7 +120,7 @@ public:
         HttpHeaders h;
         bool fromMemory = false;
         offlineStorage->DeleteRecords(ids, h, fromMemory);
-        EXPECT_EQ(0, offlineStorage->GetRecordCount());
+        EXPECT_EQ(size_t { 0 }, offlineStorage->GetRecordCount());
     }
 
     void SetUp() override {
@@ -136,12 +150,12 @@ public:
             }
             offlineStorage->StoreRecords(records);
         }
-        EXPECT_EQ(20, offlineStorage->GetRecordCount(EventLatency_Unspecified));
+        EXPECT_EQ(size_t { 20 }, offlineStorage->GetRecordCount(EventLatency_Unspecified));
     }
 
     void VerifyBlob(StorageBlob const & blob)
     {
-        EXPECT_EQ(3, blob.size());
+        EXPECT_EQ(size_t { 3 }, blob.size());
         for (size_t i = 0; i < blob.size(); ++i) {
             EXPECT_EQ(i+1, blob[i]);
         }
@@ -212,10 +226,10 @@ TEST_P(OfflineStorageTestsRoom, TestStoreRecords)
                 StorageBlob {1, 2, 3});
     }
     offlineStorage->StoreRecords(records);
-    EXPECT_EQ(10, offlineStorage->GetRecordCount(EventLatency_Normal));
-    EXPECT_EQ(10, offlineStorage->GetRecordCount(EventLatency_Unspecified));
+    EXPECT_EQ(size_t { 10 }, offlineStorage->GetRecordCount(EventLatency_Normal));
+    EXPECT_EQ(size_t { 10 }, offlineStorage->GetRecordCount(EventLatency_Unspecified));
     auto found = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
-    EXPECT_EQ(10, found.size());
+    EXPECT_EQ(size_t { 10 }, found.size());
     for (auto const & record : found) {
         VerifyBlob(record.blob);
         EXPECT_EQ(EventLatency_Normal, record.latency);
@@ -284,8 +298,8 @@ TEST_P(OfflineStorageTestsRoom, TestGetAndReserveAcceptAll)
         found.push_back(record);
         return true;
     }, 5));
-    EXPECT_EQ(20, found.size());
-    ASSERT_EQ(20, offlineStorage->LastReadRecordCount());
+    EXPECT_EQ(size_t { 20 }, found.size());
+    ASSERT_EQ(unsigned { 20 }, offlineStorage->LastReadRecordCount());
     ASSERT_EQ(
             implementation == StorageImplementation::Memory,
             offlineStorage->IsLastReadFromMemory());
@@ -314,8 +328,8 @@ TEST_P(OfflineStorageTestsRoom, TestAcceptFunctor) {
                 return false;
             }
             , 5));
-    ASSERT_EQ(10, found.size());
-    ASSERT_EQ(11, calls);
+    ASSERT_EQ(size_t { 10 }, found.size());
+    ASSERT_EQ(size_t { 11 }, calls);
 
 }
 
@@ -376,12 +390,12 @@ TEST_P(OfflineStorageTestsRoom, TestGetRecords) {
     }
     offlineStorage->StoreRecords(records);
     auto found = offlineStorage->GetRecords(false, EventLatency_Normal, 0);
-    ASSERT_EQ(10, found.size());
+    ASSERT_EQ(size_t { 10 }, found.size());
     for (StorageRecord record : found) {
         ASSERT_EQ(EventLatency_Normal, record.latency);
     }
     auto shutdown_found = offlineStorage->GetRecords(true, EventLatency_Normal, 0);
-    ASSERT_EQ(20, shutdown_found.size());
+    ASSERT_EQ(size_t { 20 }, shutdown_found.size());
     for (size_t i = 0; i < 10; ++i) {
         ASSERT_EQ(EventLatency_RealTime, shutdown_found[i].latency);
     }
@@ -396,7 +410,7 @@ TEST_P(OfflineStorageTestsRoom, TestManyExpiredRecords) {
     auto retries = configMock.GetMaximumRetryCount() + 1;
     std::vector<StorageRecord> manyRecords;
     manyRecords.reserve(count);
-    EXPECT_EQ(0, offlineStorage->GetRecordCount(EventLatency_Normal));
+    EXPECT_EQ(size_t { 0 }, offlineStorage->GetRecordCount(EventLatency_Normal));
     for (size_t i = 0; i < count; ++i) {
         std::string thing = std::to_string(i);
         manyRecords.emplace_back(
@@ -425,7 +439,7 @@ TEST_P(OfflineStorageTestsRoom, TestManyExpiredRecords) {
                 },
                 5000u);
         EXPECT_EQ(count, manyRecords.size());
-        EXPECT_THAT(manyRecords, Each(Field(&StorageRecord::retryCount, Eq(retry))));
+        EXPECT_THAT(manyRecords, Each(Field(&StorageRecord::retryCount, Eq(static_cast<int>(retry)))));
         for (auto const & record : manyRecords) {
             manyIds.emplace_back(std::move(record.id));
         }
@@ -492,7 +506,7 @@ TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
             },
             5000
             );
-    EXPECT_EQ(0, offlineStorage->LastReadRecordCount());
+    EXPECT_EQ(unsigned { 0 }, offlineStorage->LastReadRecordCount());
     StorageRecordVector records;
     offlineStorage->GetAndReserveRecords(
             [&records] (StorageRecord && record)->bool
@@ -501,8 +515,8 @@ TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
                 return true;
             }, 5000
             );
-    EXPECT_EQ(1, offlineStorage->LastReadRecordCount());
-    EXPECT_EQ(1, records.size());
+    EXPECT_EQ(unsigned { 1 }, offlineStorage->LastReadRecordCount());
+    EXPECT_EQ(size_t { 1 }, records.size());
     offlineStorage->GetAndReserveRecords(
             [] (StorageRecord && record)->bool
             {
@@ -530,9 +544,9 @@ TEST_P(OfflineStorageTestsRoom, DeleteByToken)
         );
     }
     offlineStorage->StoreRecords(records);
-    EXPECT_EQ(1000, offlineStorage->GetRecordCount());
+    EXPECT_EQ(size_t { 1000 }, offlineStorage->GetRecordCount());
     offlineStorage->DeleteRecords({{ "tenant_token", "0"}});
-    EXPECT_EQ(800, offlineStorage->GetRecordCount());
+    EXPECT_EQ(size_t { 800 }, offlineStorage->GetRecordCount());
 }
 
 TEST_P(OfflineStorageTestsRoom, ResizeDB)
@@ -610,6 +624,13 @@ auto values = Values(StorageImplementation::Room, StorageImplementation::SQLite,
 auto values = Values(StorageImplementation::SQLite, StorageImplementation::Memory);
 #endif
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"  // INSTANTIATE_TEST_CASE_P is deprecated in some versions of GTest, but not in older ones.
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"  // INSTANTIATE_TEST_CASE_P is deprecated in some versions of GTest, but not in older ones.
+#endif
 INSTANTIATE_TEST_CASE_P(Storage,
         OfflineStorageTestsRoom,
         values,
@@ -618,4 +639,8 @@ INSTANTIATE_TEST_CASE_P(Storage,
     s << info.param;
     return s.str();
 });
-
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

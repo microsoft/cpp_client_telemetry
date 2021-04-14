@@ -96,7 +96,7 @@ message("-- TARGET_ARCH:            ${TARGET_ARCH}")
 include(tools/ParseOsRelease.cmake)
 
 # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
-set(WARN_FLAGS "-Wall -Wextra -Wno-unused-parameter")
+set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # Using GCC with -s and -Wl linker flags
@@ -228,6 +228,7 @@ option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
+option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
