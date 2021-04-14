@@ -166,10 +166,6 @@ namespace PAL_NS_BEGIN {
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4996)
-#endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
 #if defined(ANDROID) && !defined(ANDROID_SUPPRESS_LOGCAT)
@@ -271,9 +267,6 @@ namespace PAL_NS_BEGIN {
             (void)(fmt);
 #endif /* of #ifdef HAVE_MAT_LOGGING */
         }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     } // namespace detail
 
