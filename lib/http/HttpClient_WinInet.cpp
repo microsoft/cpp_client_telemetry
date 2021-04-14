@@ -6,8 +6,6 @@
 #include "mat/config.h"
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-#pragma warning(push)
-#pragma warning(disable:4189)   /* Turn off Level 4: local variable is initialized but not referenced. dwError unused in Release without printing it. */
 #include "HttpClient_WinInet.hpp"
 #include "utils/StringUtils.hpp"
 
@@ -561,7 +559,6 @@ bool HttpClient_WinInet::IsMsRootCheckRequired()
 }
 
 } MAT_NS_END
-#pragma warning(pop)
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 // clang-format on
 
