@@ -402,10 +402,36 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>Selected instance of IDataInspector if available, nullptr otherwise.</returns>
         virtual std::shared_ptr<IDataInspector> GetDataInspector() noexcept { return GetDataInspector(std::string{}); }
+
+        /// <summary>
+        /// Ask the log manager to pause activity
+        /// </summary>
+        virtual void PauseActivity() = 0;
+
+        /// <summary>
+        /// Ask the log manager to resume activity
+        /// </summary>
+        virtual void ResumeActivity() = 0;
+
+        /// <summary>
+        /// Wait for pause to complete (no active calls) or resume
+        /// </summary>
+        virtual void WaitPause() = 0;
+
+        /// <summary>
+        /// Start an activity
+        /// </summary>
+        /// <returns>True if we are not paused and the activity may continue.</returns>
+        virtual bool StartActivity() = 0;
+
+        /// <summary>
+        /// End an activity. StartActivity MUST have returned true: do not call this
+        /// method if StartActivity returned true.
+        /// </summary>
+        virtual void EndActivity() = 0;
     };
 
 }
 MAT_NS_END
 
 #endif
-

@@ -21,9 +21,11 @@ namespace MAT_NS_BEGIN
        public:
         const Logger& m_logger;
         bool m_active;
+        bool m_unpaused;
 
         ActiveLoggerCall(ActiveLoggerCall const& source) : m_logger(source.m_logger)
         {
+            m_unpaused = m_logger.m_logManager.StartActivity();
             std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
             m_active = m_logger.m_active;
             if (m_active)
@@ -37,6 +39,7 @@ namespace MAT_NS_BEGIN
         explicit ActiveLoggerCall(const Logger& parent) :
             m_logger(parent)
         {
+            m_unpaused = m_logger.m_logManager.StartActivity();
             std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
             m_active = m_logger.m_active;
             if (m_active)
@@ -49,6 +52,10 @@ namespace MAT_NS_BEGIN
         /// active count reaches zero (usually there are no listeners).
         ~ActiveLoggerCall()
         {
+            if (m_unpaused)
+            {
+                m_logger.m_logManager.EndActivity();
+            }
             if (m_active)
             {
                 std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
@@ -66,7 +73,7 @@ namespace MAT_NS_BEGIN
 
         bool LoggerIsDead() const noexcept
         {
-            return !m_active;
+            return !m_active || !m_unpaused;
         }
     };
 
@@ -836,7 +843,7 @@ namespace MAT_NS_BEGIN
             }
             sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
 
-            if (m_resetSessionOnEnd) 
+            if (m_resetSessionOnEnd)
             {
                 // reset the time of the session to 0 and get a new sessionId
                 m_sessionStartTime = 0;
@@ -899,7 +906,7 @@ namespace MAT_NS_BEGIN
 
         return m_logManager.GetLogSessionData();
     }
-    
+
     IAuthTokensController* Logger::GetAuthTokensController()
     {
         ActiveLoggerCall active(*this);
