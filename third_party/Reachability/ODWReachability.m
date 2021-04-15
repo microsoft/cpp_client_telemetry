@@ -161,6 +161,11 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
     return self;
 }
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-missing-super-calls" // Not fixing third_party components.
+#endif
+
 -(void)dealloc
 {
     [self stopNotifier];
@@ -175,6 +180,10 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 	self.unreachableBlock        = nil;
     self.reachabilitySerialQueue = nil;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #pragma mark - Notifier Methods
 

@@ -52,6 +52,30 @@ namespace MAT_NS_BEGIN {
         this->ticks = t.ticks;
     }
 
+    /// <summary>
+    /// The time_ticks_t move constructor.
+    /// </summary>
+    time_ticks_t::time_ticks_t(time_ticks_t&& t) noexcept 
+        : ticks(t.ticks) { }
+
+    /// <summary>
+    /// The time_ticks_t copy assignment operator.
+    /// </summary>
+    time_ticks_t& time_ticks_t::operator=(const time_ticks_t& t) noexcept
+    {
+        this->ticks = t.ticks;
+        return *this;
+    }
+
+    /// <summary>
+    /// The time_ticks_t move assignment operator.
+    /// </summary>
+    time_ticks_t& time_ticks_t::operator=(time_ticks_t && t) noexcept
+    {
+        this->ticks = t.ticks;
+        return *this;
+    }
+
     GUID_t::GUID_t() : Data1(0), Data2(0), Data3(0)
     {
         for (size_t i = 0; i < 8; i++)
@@ -176,14 +200,56 @@ namespace MAT_NS_BEGIN {
         }
     }
 
+    static void CopyGuidData(const GUID_t& from, GUID_t& to) noexcept
+    {
+        to.Data1 = from.Data1;
+        to.Data2 = from.Data2;
+        to.Data3 = from.Data3;
+        memcpy(&(to.Data4[0]), &(from.Data4[0]), sizeof(from.Data4));
+    }
+
+    static void MoveGuidData(GUID_t&& from, GUID_t& to) noexcept
+    {
+        to.Data1 = from.Data1;
+        to.Data2 = from.Data2;
+        to.Data3 = from.Data3;
+        memmove(&(to.Data4[0]), &(from.Data4[0]), sizeof(from.Data4));
+    }
+
     /// <summary>
     /// GUID_t copy constructor
     /// </summary>
-    GUID_t::GUID_t(const GUID_t& guid) {
-        this->Data1 = guid.Data1;
-        this->Data2 = guid.Data2;
-        this->Data3 = guid.Data3;
-        memcpy(&(this->Data4[0]), &(guid.Data4[0]), sizeof(guid.Data4));
+    GUID_t::GUID_t(const GUID_t& guid)
+    {
+        CopyGuidData(guid, *this);
+    }
+
+    /// <summary>
+    /// The GUID_t move constructor.
+    /// </summary>
+    GUID_t::GUID_t(GUID_t&& guid) noexcept
+    {
+        MoveGuidData(std::move(guid), *this);
+    }
+
+    /// <summary>
+    /// The GUID_t copy-assignment operator.
+    /// </summary>
+    /// <param name="guid">A GUID_t object.</param>
+    GUID_t& GUID_t::operator=(const GUID_t& guid) noexcept
+    {
+        CopyGuidData(guid, *this);
+        return *this;
+    }
+
+    /// <summary>
+    /// The GUID_t move assignment operator.
+    /// </summary>
+    /// <param name="guid">A GUID_t object.</param>
+    GUID_t& GUID_t::operator=(GUID_t&& guid) noexcept
+    {
+        MoveGuidData(std::move(guid), *this);
+        return *this;
     }
 
 #ifdef _WIN32
