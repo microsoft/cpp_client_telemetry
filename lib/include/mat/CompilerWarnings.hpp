@@ -11,7 +11,7 @@
 #define MAT_POP_WARNINGS                   __pragma(warning(pop))
 #define MAT_DISABLE_WARNING(warningNumber) __pragma(warning(disable: warningNumber))
 
-#elif defined(__clang__) || defined(__GCC__)
+#elif defined(__clang__) || defined(__GNUC__)
 
 #define MAT_STRINGIFY_PRAGMA(args) _Pragma(#args)
 
@@ -46,7 +46,7 @@ Define specific Disable warning macros here. Keep macros ordered alphabetically.
 #define MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE                MAT_DISABLE_WARNING(4296)
 #define MAT_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE
 
-#elif defined(__clang__) || defined(__GCC__)
+#elif defined(__clang__) || defined(__GNUC__)
 
 #define MAT_DISABLE_WARNING_CONST_PARAMETER_NOT_OVERRIDDEN
 #define MAT_DISABLE_WARNING_DECIMAL_TERMINATES_OCTAL_ESCAPE_SEQUCENCE
