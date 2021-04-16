@@ -932,5 +932,11 @@ public class LogManager {
     // we should let LogManager remove it when it d'tors.
     return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuardOnDefaultLogManager();
   }
-}
+  public native static String getCurrentEndpoint();
 
+  public static native void pauseActivity();
+  public static native void resumeActivity();
+  public static native void waitPause();
+  public static native boolean startActivity();
+  public static native void endActivity();
+}
