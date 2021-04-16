@@ -2,8 +2,8 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
-#ifndef COMPILERWARNINGS_HPP
-#define COMPILERWARNINGS_HPP
+#ifndef MAT_COMPILERWARNINGS_HPP
+#define MAT_COMPILERWARNINGS_HPP
 
 #if defined(_MSC_VER)
 
@@ -27,9 +27,7 @@
 
 #else
 
-#define MAT_PUSH_WARNINGS
-#define MAT_POP_WARNINGS
-#define MAT_DISABLE_WARNING(warningName) 
+#error "Unsupported compiler toolchain."
 
 #endif
 
@@ -56,6 +54,10 @@ Define specific Disable warning macros here. Keep macros ordered alphabetically.
 #define MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE                MAT_DISABLE_WARNING(-Wtype-limits)
 #define MAT_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE             MAT_DISABLE_WARNING(-Winconsistent-missing-override)
 
+#else
+
+#error "Unsupported compiler toolchain."
+
 #endif
 
-#endif  // COMPILERWARNINGS_HPP
+#endif  // MAT_COMPILERWARNINGS_HPP
