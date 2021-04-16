@@ -27,7 +27,7 @@
 
 #else
 
-#error "Unsupported compiler toolchain."
+#error Unsupported compiler toolchain.
 
 #endif
 
@@ -39,7 +39,7 @@ Define specific Disable warning macros here. Keep macros ordered alphabetically.
 
 #if defined(_MSC_VER)
 
-#define MAT_DISABLE_WARNING_CONST_PARAMETER_NOT_OVERRIDEN             MAT_DISABLE_WARNING(4373)
+#define MAT_DISABLE_WARNING_CONST_PARAMETER_NOT_OVERRIDDEN            MAT_DISABLE_WARNING(4373)
 #define MAT_DISABLE_WARNING_DECIMAL_TERMINATES_OCTAL_ESCAPE_SEQUCENCE MAT_DISABLE_WARNING(4125)
 #define MAT_DISABLE_WARNING_DEPRECATED_METHOD_CALL                    MAT_DISABLE_WARNING(4996)
 #define MAT_DISABLE_WARNING_EXCEPTION_EXECUTE_HANDLER                 MAT_DISABLE_WARNING(6320)
@@ -48,7 +48,7 @@ Define specific Disable warning macros here. Keep macros ordered alphabetically.
 
 #elif defined(__clang__) || defined(__GCC__)
 
-#define MAT_DISABLE_WARNING_CONST_PARAMETER_NOT_OVERRIDEN
+#define MAT_DISABLE_WARNING_CONST_PARAMETER_NOT_OVERRIDDEN
 #define MAT_DISABLE_WARNING_DECIMAL_TERMINATES_OCTAL_ESCAPE_SEQUCENCE
 #define MAT_DISABLE_WARNING_DEPRECATED_METHOD_CALL                    MAT_DISABLE_WARNING(-Wdeprecated-declarations)
 #define MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE                MAT_DISABLE_WARNING(-Wtype-limits)
@@ -56,7 +56,7 @@ Define specific Disable warning macros here. Keep macros ordered alphabetically.
 
 #else
 
-#error "Unsupported compiler toolchain."
+#error Unsupported compiler toolchain.
 
 #endif
 
