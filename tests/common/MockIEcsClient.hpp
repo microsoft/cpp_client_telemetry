@@ -22,7 +22,7 @@ class MockIEcsConfig : public ecsclient::IEcsConfig,
 // Avoid noise caused by ECS using const modifier on value-type arguments like int, bool and double.
 // The modifiers are lost inside Google Mock, the resulting signature differs and compiler complains.
 MAT_PUSH_WARNINGS
-MAT_DISABLE_WARNING_CONST_PARAMETER_NOT_OVERRIDEN // C4373: previous versions of the compiler did not override when parameters only differed by const/volatile qualifiers
+MAT_DISABLE_WARNING_CONST_PARAMETER_NOT_OVERRIDDEN // C4373: previous versions of the compiler did not override when parameters only differed by const/volatile qualifiers
     MOCK_CONST_METHOD3(GetSetting, std::string(std::string const & t, std::string const &, std::string const &));
     MOCK_CONST_METHOD3(GetSettingAsString, std::string(std::string const &, std::string const &, std::string const &));
     MOCK_CONST_METHOD3(GetSettingAsInt, int(std::string const &, std::string const &, int const defaultValue));
