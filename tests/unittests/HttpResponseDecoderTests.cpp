@@ -23,9 +23,8 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
 
   protected:
     HttpResponseDecoderTests() :
-        decoder(testing::getSystem()),
-        reqId(0),
-        config(logConfig)
+        config(logConfig),
+        decoder(testing::getSystem())
     {
         decoder.eventsAccepted          >> eventsAccepted;
         decoder.eventsRejected          >> eventsRejected;
@@ -40,7 +39,7 @@ class HttpResponseDecoderTests : public StrictMock<Test> {
     MOCK_METHOD1(resultTemporaryServerFailure,  void(EventsUploadContextPtr const &));
     MOCK_METHOD1(resultRequestAborted,          void(EventsUploadContextPtr const &));
 
-    std::atomic<unsigned> reqId;
+    std::atomic<unsigned> reqId{0};
 
     std::shared_ptr<EventsUploadContext> createContextWith(HttpResult result, int status, std::string const& body)
     {
