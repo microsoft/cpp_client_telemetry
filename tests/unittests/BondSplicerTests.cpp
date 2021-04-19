@@ -18,7 +18,7 @@ class ShadowBondSplicer : protected MAT::BondSplicer
   public:
     using MAT::BondSplicer::addTenantToken;
 
-    void addRecord(size_t dataPackageIndex, ::CsProtocol::Record& record)
+    void addCsRecord(size_t dataPackageIndex, ::CsProtocol::Record& record)
     {
         std::vector<uint8_t> recordBlob;
         {
@@ -32,7 +32,7 @@ class ShadowBondSplicer : protected MAT::BondSplicer
     {
         FullDumpBinaryBlob output;
         static_cast<std::vector<uint8_t>&>(output) = MAT::BondSplicer::splice();
-        return output;
+        return std::move(output);
     }
 };
 
@@ -80,7 +80,7 @@ TEST_F(BondSplicerTests, splice_OneEmptyTenantToken_SizeZero)
 TEST_F(BondSplicerTests, splice_OnePackageWithOneEmptyRecord_SizeOne)
 {
     ::CsProtocol::Record r; 
-    bs.addRecord(bs.addTenantToken("tenant1"), r);
+    bs.addCsRecord(bs.addTenantToken("tenant1"), r);
 
     EXPECT_THAT(bs.splice().size(), size_t { 1 });
 }
@@ -89,7 +89,7 @@ TEST_F(BondSplicerTests, splice_OnePackageWithOneNonEmptyRecord_SizeNine)
 {
    ::CsProtocol::Record r;
    r.name = std::string { "Record" };
-   bs.addRecord(bs.addTenantToken("tenant1"), r);
+   bs.addCsRecord(bs.addTenantToken("tenant1"), r);
 
    EXPECT_THAT(bs.splice().size(), size_t { 9 });
 }
@@ -99,8 +99,8 @@ TEST_F(BondSplicerTests, splice_OneDataPackageWithTwoEmptyRecords_SizeTwo)
    ::CsProtocol::Record r;
    ::CsProtocol::Record r2;
    auto tokenIndex = bs.addTenantToken("tenant1");
-   bs.addRecord(tokenIndex, r);
-   bs.addRecord(tokenIndex, r2);
+   bs.addCsRecord(tokenIndex, r);
+   bs.addCsRecord(tokenIndex, r2);
 
    EXPECT_THAT(bs.splice().size(), size_t { 2 });
 }
@@ -112,8 +112,8 @@ TEST_F(BondSplicerTests, splice_OneDataPackageWithTwoNonEmptyRecords_SizeTwenty)
    ::CsProtocol::Record r2;
    r2.name = std::string { "Record2" };
    auto tokenIndex = bs.addTenantToken("tenant1");
-   bs.addRecord(tokenIndex, r);
-   bs.addRecord(tokenIndex, r2);
+   bs.addCsRecord(tokenIndex, r);
+   bs.addCsRecord(tokenIndex, r2);
 
    EXPECT_THAT(bs.splice().size(), size_t { 20 });
 }
@@ -124,8 +124,8 @@ TEST_F(BondSplicerTests, splice_TwoDataPackagesWithOneEmptyRecordEach_SizeTwo)
    ::CsProtocol::Record r2;
    auto firstTokenIndex = bs.addTenantToken("tenant1");
    auto secondTokenIndex = bs.addTenantToken("tenant2");
-   bs.addRecord(firstTokenIndex, r);
-   bs.addRecord(secondTokenIndex, r2);
+   bs.addCsRecord(firstTokenIndex, r);
+   bs.addCsRecord(secondTokenIndex, r2);
 
    EXPECT_THAT(bs.splice().size(), size_t { 2 });
 }
@@ -138,8 +138,8 @@ TEST_F(BondSplicerTests, splice_TwoDataPackagesWithOneNonEmptyRecordEach_SizeTwe
    r2.name = std::string { "Record2" };
    auto firstTokenIndex = bs.addTenantToken("tenant1");
    auto secondTokenIndex = bs.addTenantToken("tenant2");
-   bs.addRecord(firstTokenIndex, r);
-   bs.addRecord(secondTokenIndex, r2);
+   bs.addCsRecord(firstTokenIndex, r);
+   bs.addCsRecord(secondTokenIndex, r2);
 
    EXPECT_THAT(bs.splice().size(), size_t { 20 });
 }

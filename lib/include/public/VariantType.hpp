@@ -77,6 +77,16 @@ public:
 
     Variant() : iV(0), type(TYPE_NULL) {};
 
+    Variant(const Variant& other) noexcept
+    {
+       assign(other);
+    }
+
+    Variant(Variant&& other) noexcept
+    {
+       move(std::move(other));
+    }
+
     // All integer types
     VARIANT_PROP(int8_t, iV, TYPE_INT);
     VARIANT_PROP(int16_t, iV, TYPE_INT);
