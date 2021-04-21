@@ -290,6 +290,29 @@ TEST(APITest, LogManager_Initialize_Custom)
     LogManager::FlushAndTeardown();
 }
 
+#define SOME_CUSTOM_URL "https://custom.url"
+
+TEST(APITest, LogManager_Initialize_Custom_DeepCopy)
+{
+    ILogConfiguration* config = new ILogConfiguration();
+    {
+        std::string beingBadString = SOME_CUSTOM_URL;
+        // Assign operator using `const char *`
+        (*config)[CFG_STR_COLLECTOR_URL] = beingBadString.c_str();
+    }
+    // beingBadString is now out-of-scope! But we copied the buffer passed to us.
+    ILogger* result = LogManager::Initialize(TEST_TOKEN, *config);
+    EXPECT_EQ(true, (result != NULL));
+    auto& configuration = LogManager::GetLogConfiguration();
+    // Make sure we actually copied from origin to destination configuration on initialization
+    EXPECT_EQ(true, (const char*)(*config)[CFG_STR_COLLECTOR_URL] != (const char*)configuration[CFG_STR_COLLECTOR_URL]);
+    // Then verify that the contents do match what we expect to see
+    std::string srcConfigStr = (const char*)(*config)[CFG_STR_COLLECTOR_URL];
+    std::string dstConfigStr = (const char*)configuration[CFG_STR_COLLECTOR_URL];
+    EXPECT_TRUE(srcConfigStr == dstConfigStr);
+    LogManager::FlushAndTeardown();
+}
+
 #define TEST_STORAGE_FILENAME   "offlinestorage.db"
 
 static std::string GetStoragePath()

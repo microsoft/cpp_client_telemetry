@@ -103,7 +103,7 @@ public:
 
     VARIANT_PROP(void*, pV, TYPE_PTR);
 
-    Variant(const char* v) : sV(v), type(TYPE_STRING) {};
+    Variant(const char* v) : SV(v), type(TYPE_STRING2) {};
 
     operator const char*()
     {
