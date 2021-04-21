@@ -73,6 +73,12 @@ const char* defaultConfig = static_cast<const char *> JSON_CONFIG
 
 int main(int argc, char *argv[])
 {
+    std::atexit([] {
+        printf("Exiting...\n");
+        printf("status: isTerminated=%d\n", LogManagerExitHandler::isTerminated());
+        LogManager::ResumeTransmission();
+    });
+
     // 2nd (optional) parameter - path to custom SDK configuration
     std::string customConfig;
     if (argc == 2)

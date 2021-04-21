@@ -36,6 +36,22 @@ ref class LogManagerLock
 
 #include "LogManagerProvider.hpp"
 
+
+/// Termination handler required for Apple Platforms
+static bool isLogManagerTerminated = false;
+struct LogManagerExitHandler
+{
+    LogManagerExitHandler() {};
+    ~LogManagerExitHandler()
+    {
+        isLogManagerTerminated = true;
+    };
+    static bool isTerminated()
+    {
+        return isLogManagerTerminated;
+    };
+};
+
 #define LM_SAFE_CALL(method, ...)          \
     {                                      \
         LM_LOCKGUARD(stateLock());         \
@@ -161,9 +177,16 @@ namespace MAT_NS_BEGIN
             return lock;
         }
 #endif
+        
+        static bool isGone()
+        {
+            return LogManagerExitHandler::isTerminated();            
+        }
 
         static inline bool isHost()
         {
+            if (isGone())
+                return false;
             return GetLogConfiguration()[CFG_BOOL_HOST_MODE];
         }
 
@@ -188,12 +211,15 @@ namespace MAT_NS_BEGIN
         }
 
        public:
+
         /// <summary>
         /// Returns this module LogConfiguration
         /// </summary>
         static ILogConfiguration& GetLogConfiguration()
         {
             static ModuleConfiguration currentConfig;
+            // This object is destroyed right before currentConfig is destroyed:
+            static LogManagerExitHandler b;
             return currentConfig;
         }
 
@@ -273,6 +299,9 @@ namespace MAT_NS_BEGIN
         /// </summary>
         static status_t FlushAndTeardown()
         {
+            if (isGone())
+                return STATUS_EALREADY;
+
             LM_LOCKGUARD(stateLock());
 #ifdef NO_TEARDOWN  
             // Avoid destroying our ILogManager instance on teardown
