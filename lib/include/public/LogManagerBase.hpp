@@ -38,7 +38,7 @@ ref class LogManagerLock
 
 /// Termination singleton handler required for Apple Platforms.
 /// This is a safety valve: if SDK API is called when the process is
-/// terminating, e.g. whem `atexit` handlers are running or by
+/// terminating, e.g. when `atexit` handlers are running, or by
 /// the moment when global static destructor of config object is
 /// done running, then all SDK API calls become no-op, thus avoiding
 /// the process crash.
