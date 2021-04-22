@@ -73,9 +73,15 @@ const char* defaultConfig = static_cast<const char *> JSON_CONFIG
 
 int main(int argc, char *argv[])
 {
+    // This part of example shows what NOT to do: you cannot call 1DS API
+    // when the program is terminating. However, the SDK is attempting to
+    // shield you from invalid usage and avoid the crash. All calls invoked
+    // in `atexit` handlers effectively become no-op.
     std::atexit([] {
         printf("Exiting...\n");
         printf("status: isTerminated=%d\n", LogManagerExitHandler::isTerminated());
+        // Subsequent API call is no-op because the program is gone and SDK
+        // instance is torn down, including all associated configuration of SDK.
         LogManager::ResumeTransmission();
     });
 
