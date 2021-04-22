@@ -36,6 +36,29 @@ ref class LogManagerLock
 
 #include "LogManagerProvider.hpp"
 
+/// Termination singleton handler required for Apple Platforms.
+/// This is a safety valve: if SDK API is called when the process is
+/// terminating, e.g. when `atexit` handlers are running, or by
+/// the moment when global static destructor of config object is
+/// done running, then all SDK API calls become no-op, thus avoiding
+/// the process crash.
+///
+/// This global static singleton is destroyed the moment before
+/// corresponding singleton ILogConfiguration is destroyed.
+static bool isLogManagerTerminated = false;
+struct LogManagerExitHandler
+{
+    LogManagerExitHandler() {};
+    ~LogManagerExitHandler()
+    {
+        isLogManagerTerminated = true;
+    };
+    static bool isTerminated()
+    {
+        return isLogManagerTerminated;
+    };
+};
+
 #define LM_SAFE_CALL(method, ...)          \
     {                                      \
         LM_LOCKGUARD(stateLock());         \
@@ -161,9 +184,16 @@ namespace MAT_NS_BEGIN
             return lock;
         }
 #endif
+        
+        static bool isGone()
+        {
+            return LogManagerExitHandler::isTerminated();            
+        }
 
         static inline bool isHost()
         {
+            if (isGone())
+                return false;
             return GetLogConfiguration()[CFG_BOOL_HOST_MODE];
         }
 
@@ -188,12 +218,15 @@ namespace MAT_NS_BEGIN
         }
 
        public:
+
         /// <summary>
         /// Returns this module LogConfiguration
         /// </summary>
         static ILogConfiguration& GetLogConfiguration()
         {
             static ModuleConfiguration currentConfig;
+            // This object is destroyed right before currentConfig is destroyed:
+            static LogManagerExitHandler b;
             return currentConfig;
         }
 
@@ -273,6 +306,9 @@ namespace MAT_NS_BEGIN
         /// </summary>
         static status_t FlushAndTeardown()
         {
+            if (isGone())
+                return STATUS_EALREADY;
+
             LM_LOCKGUARD(stateLock());
 #ifdef NO_TEARDOWN  
             // Avoid destroying our ILogManager instance on teardown

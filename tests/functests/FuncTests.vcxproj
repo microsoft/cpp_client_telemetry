@@ -94,7 +94,7 @@
   <ImportGroup Label="Shared">
     <Import Project="..\..\Solutions\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
     <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
-    <Import Project="..\..\lib\decoder\decoder.vcxitems" Label="Shared" />
+    <!-- Import Project="..\..\lib\decoder\decoder.vcxitems" Label="Shared" / -->
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\filter\filter.vcxitems')" Project="..\..\lib\modules\filter\filter.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Label="Shared" />
     <Import Condition="exists('$(MSBuildThisFileDirectory)..\..\lib\modules\azmon\azmon.vcxitems')" Project="..\..\lib\modules\azmon\azmon.vcxitems" Label="Shared" />
