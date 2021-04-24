@@ -111,6 +111,9 @@ namespace MAT_NS_BEGIN {
                     std::string val = it.value();
                     dst[it.key()] = std::move(val);
                     break;
+                default:
+                    // Ignore unsupported binary type values
+                    break;
                 }
             }
         };
