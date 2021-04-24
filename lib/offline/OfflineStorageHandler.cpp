@@ -86,7 +86,10 @@ namespace MAT_NS_BEGIN {
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
         m_offlineStorageDisk = OfflineStorageFactory::Create(m_logManager, m_config);
-        m_offlineStorageDisk->Initialize(*this);
+        if (m_offlineStorageDisk)
+        {
+            m_offlineStorageDisk->Initialize(*this);
+        }
 
         // TODO: [MG] - consider passing m_offlineStorageDisk to m_offlineStorageMemory,
         // so that the Flush() op on memory storage leads to saving unflushed events to
