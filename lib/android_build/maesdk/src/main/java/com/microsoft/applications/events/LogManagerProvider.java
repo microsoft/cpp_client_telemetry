@@ -271,5 +271,36 @@ public class LogManagerProvider {
     public void removeEventListener(DebugEventType eventType, DebugEventListener listener) {
       nativeRemoveEventListener(nativeLogManager, eventType.value(), listener.nativeIdentity);
     }
+
+    protected native void nativePauseActivity(long nativeLogManager);
+    protected native void nativeResumeActivity(long nativeLogManager);
+    protected native void nativeWaitPause(long nativeLogManager);
+    protected native boolean nativeStartActivity(long nativeLogManager);
+    protected native void nativeEndActivity(long nativeLogManager);
+
+    @Override
+    public void pauseActivity() {
+      nativePauseActivity(nativeLogManager);
+    }
+
+    @Override
+    public void resumeActivity() {
+      nativeResumeActivity(nativeLogManager);
+    }
+
+    @Override
+    public void waitPause() {
+      nativeWaitPause(nativeLogManager);
+    }
+
+    @Override
+    public boolean startActivity() {
+      return nativeStartActivity(nativeLogManager);
+    }
+
+    @Override
+    public void endActivity() {
+      nativeEndActivity(nativeLogManager);
+    }
   }
 }

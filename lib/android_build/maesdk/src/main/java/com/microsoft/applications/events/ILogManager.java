@@ -64,4 +64,10 @@ public interface ILogManager extends AutoCloseable {
   public void addEventListener(DebugEventType eventType, DebugEventListener listener);
 
   public void removeEventListener(DebugEventType eventType, DebugEventListener listener);
+
+  public void pauseActivity();
+  public void resumeActivity();
+  public void waitPause();
+  public boolean startActivity();
+  public void endActivity();
 }

@@ -910,5 +910,11 @@ public class LogManager {
    * @return string denoting the DDV endpoint, empty string if not currently streaming
    */
   public native static String getCurrentEndpoint();
+
+  public static native void pauseActivity();
+  public static native void resumeActivity();
+  public static native void waitPause();
+  public static native boolean startActivity();
+  public static native void endActivity();
 }
 

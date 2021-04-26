@@ -92,6 +92,165 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
     assertEquals("com.microsoft.applications.events.maesdktest", appContext.getPackageName());
   }
 
+  static class Waiter implements Runnable {
+    @Override
+    public void run() {
+      LogManager.waitPause();
+    }
+  }
+
+  @Test
+  public void notPausedInitially() {
+    System.loadLibrary("native-lib");
+    System.loadLibrary("maesdk");
+
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    HttpClient client = new HttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+            "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    ILogger logger = LogManager.initialize(token);
+    assertThat(logger, isA(ILogger.class));
+    Thread t = new Thread(new Waiter());
+    t.start();
+    try {
+      t.join(5);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      fail("Waiter interrupted");
+    }
+    assertThat(t.isAlive(), is(false));
+    assertThat(LogManager.startActivity(), is(true));
+    LogManager.endActivity();
+  }
+
+  @Test
+  public void pausingWillWait() {
+    System.loadLibrary("native-lib");
+    System.loadLibrary("maesdk");
+
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    HttpClient client = new HttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+            "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    ILogger logger = LogManager.initialize(token);
+    assertThat(logger, isA(ILogger.class));
+    assertThat(LogManager.startActivity(), is(true));
+    LogManager.pauseActivity();
+    Thread t = new Thread(new Waiter());
+    t.start();
+    try {
+      t.join(5);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      fail("Waiter interrupted");
+    }
+    assertThat(t.isAlive(), is(true));
+    LogManager.endActivity();
+    try {
+      t.join(5);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      fail("Waiter interrupted");
+    }
+    assertThat(t.isAlive(), is(false));
+    LogManager.resumeActivity();
+  }
+
+  class InstanceWaiter implements Runnable {
+    ILogManager logManager;
+
+    public InstanceWaiter(ILogManager x) {
+      logManager = x;
+    }
+
+    @Override
+    public void run() {
+      logManager.waitPause();
+    }
+  }
+
+  @Test
+  public void pauseOnInstance() {
+    System.loadLibrary("native-lib");
+    System.loadLibrary("maesdk");
+
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    HttpClient client = new HttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+            "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    custom.set(LogConfigurationKey.CFG_INT_MAX_TEARDOWN_TIME, (long) 5);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, "AThing");
+
+    final ILogManager secondaryManager = LogManagerProvider.createLogManager(custom);
+    assertThat(secondaryManager.startActivity(), is(true));
+    secondaryManager.pauseActivity();
+    Thread t = new Thread(new InstanceWaiter(secondaryManager));
+    t.start();
+    try {
+      t.join(5);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      fail("Waiter interrupted");
+    }
+    assertThat(t.isAlive(), is(true));
+    secondaryManager.endActivity();
+    try {
+      t.join(5);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      fail("Waiter interrupted");
+    }
+    assertThat(t.isAlive(), is(false));
+    secondaryManager.resumeActivity();
+  }
+
+  @Test
+  public void resumingAlsoEnds() {
+    System.loadLibrary("native-lib");
+    System.loadLibrary("maesdk");
+
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    HttpClient client = new HttpClient(appContext);
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+            "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+
+    ILogger logger = LogManager.initialize(token);
+    assertThat(logger, isA(ILogger.class));
+    assertThat(LogManager.startActivity(), is(true));
+    LogManager.pauseActivity();
+    Thread t = new Thread(new Waiter());
+    t.start();
+    try {
+      t.join(5);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      fail("Waiter interrupted");
+    }
+    assertThat(t.isAlive(), is(true));
+    LogManager.resumeActivity();
+    try {
+      t.join(5);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      fail("Waiter interrupted");
+    }
+    assertThat(t.isAlive(), is(false));
+    LogManager.endActivity();
+  }
+
   @Test
   public void runNativeTests() {
     System.loadLibrary("native-lib");

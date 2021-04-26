@@ -379,10 +379,19 @@ namespace MAT_NS_BEGIN
             return nullptr;
         }
 
-        virtual status_t DeleteData() noexcept override 
-        { 
+        virtual status_t DeleteData() noexcept override
+        {
             return STATUS_ENOSYS;
         }
+
+        virtual void PauseActivity() override {}
+        virtual void ResumeActivity() override {}
+        virtual void WaitPause() override {}
+        virtual bool StartActivity() override
+        {
+            return true;
+        }
+        virtual void EndActivity() override {}
 
         private:
             NullDataViewerCollection nullDataViewerCollection;
@@ -392,4 +401,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
-
