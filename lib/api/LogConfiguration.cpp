@@ -108,8 +108,13 @@ namespace MAT_NS_BEGIN {
                     break;
                 }
                 case json::value_t::string:
+                {       
                     std::string val = it.value();
                     dst[it.key()] = std::move(val);
+                    break;
+                }
+                default:
+                    // Ignore unsupported binary type values
                     break;
                 }
             }
