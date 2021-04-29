@@ -415,7 +415,7 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
     [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWCommonDataContext:commonDataContextsObject];
 }
 
--(void)applicationWillTerminate {
+- (void)applicationWillTerminate:(NSNotification * __attribute__((unused)))notification {
     canUseSDK = NO;
 }
 
