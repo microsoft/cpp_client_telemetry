@@ -25,7 +25,6 @@ class TestStatusLogger : public testing::EmptyTestEventListener {
 };
 
 #ifdef _MSC_VER
-#pragma warning(suppress:4447) // 'main' signature found without threading model. Consider using 'int main(Platform::Array<Platform::String^>^ args)'.
 #define MAIN_CDECL __cdecl
 #else
 #define MAIN_CDECL

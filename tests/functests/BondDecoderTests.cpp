@@ -9,10 +9,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif 
 
-#ifdef _MSC_VER
-#pragma warning (disable : 4389)
-#endif
-
 #include "common/Common.hpp"
 #include "LogManager.hpp"
 
