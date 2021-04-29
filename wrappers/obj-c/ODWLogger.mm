@@ -4,7 +4,9 @@
 //
 #include "ILogger.hpp"
 #import <Foundation/Foundation.h>
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#endif
 #import "ODWLogger_private.h"
 #import "ODWLogConfiguration.h"
 #import "ODWSemanticContext.h"
@@ -15,7 +17,7 @@
 
 using namespace MAT;
 
-static BOOL canUseSDK = YES;
+static std::atomic<bool> canUseSDK = { true };
 
 @implementation ODWLogger
 {
@@ -35,10 +37,12 @@ static BOOL canUseSDK = YES;
 		}
         _semanticContext = [[ODWSemanticContext alloc] initWithISemanticContext:_wrappedLogger->GetSemanticContext()];
 
+#if TARGET_OS_IPHONE
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(applicationWillTerminate:)
                                                      name:UIApplicationWillTerminateNotification
                                                    object:nil];
+#endif
 
     }
     return self;
@@ -416,7 +420,7 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
 }
 
 - (void)applicationWillTerminate:(NSNotification * __attribute__((unused)))notification {
-    canUseSDK = NO;
+    canUseSDK = false;
 }
 
 @end
