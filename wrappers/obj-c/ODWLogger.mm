@@ -31,6 +31,15 @@ using namespace MAT;
 	        NSLog(@"Logger initialized successfully");
 		}
         _semanticContext = [[ODWSemanticContext alloc] initWithISemanticContext:_wrappedLogger->GetSemanticContext()];
+
+        NSString *notificationName = UIApplicationWillTerminateNotification;
+        if (notificationName) {
+            [[NSNotificationCenter defaultCenter] addObserver:self
+                                                     selector:@selector(applicationWillTerminate:)
+                                                         name:notificationName
+                                                       object:nil];
+        }
+
     }
     return self;
 }
