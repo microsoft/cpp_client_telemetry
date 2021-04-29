@@ -4,6 +4,7 @@
 //
 #include "ILogger.hpp"
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "ODWLogger_private.h"
 #import "ODWLogConfiguration.h"
 #import "ODWSemanticContext.h"
@@ -13,6 +14,8 @@
 #include "EventProperties.hpp"
 
 using namespace MAT;
+
+static BOOL canUseSDK = YES;
 
 @implementation ODWLogger
 {
@@ -32,13 +35,10 @@ using namespace MAT;
 		}
         _semanticContext = [[ODWSemanticContext alloc] initWithISemanticContext:_wrappedLogger->GetSemanticContext()];
 
-        NSString *notificationName = UIApplicationWillTerminateNotification;
-        if (notificationName) {
-            [[NSNotificationCenter defaultCenter] addObserver:self
-                                                     selector:@selector(applicationWillTerminate:)
-                                                         name:notificationName
-                                                       object:nil];
-        }
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(applicationWillTerminate:)
+                                                     name:UIApplicationWillTerminateNotification
+                                                   object:nil];
 
     }
     return self;
@@ -393,6 +393,9 @@ using namespace MAT;
 
 void PerformActionWithCppExceptionsCatch(void (^block)())
 {
+    if (!canUseSDK) {
+        return;
+    }
     try
     {
         block();
@@ -410,6 +413,10 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
 -(void)initializePrivacyGuardWithODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
 {    
     [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWCommonDataContext:commonDataContextsObject];
+}
+
+-(void)applicationWillTerminate {
+    canUseSDK = NO;
 }
 
 @end
