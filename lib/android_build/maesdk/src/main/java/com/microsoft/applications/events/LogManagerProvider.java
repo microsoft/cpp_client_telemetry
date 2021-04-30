@@ -271,5 +271,61 @@ public class LogManagerProvider {
     public void removeEventListener(DebugEventType eventType, DebugEventListener listener) {
       nativeRemoveEventListener(nativeLogManager, eventType.value(), listener.nativeIdentity);
     }
+
+    private native boolean nativeInitializePrivacyGuardWithoutDataContext(long nativeLogManager, long iLoggerNativePtr);
+    private native boolean nativeInitializePrivacyGuardWithDataContext(long nativeLogManager, long iLoggerNativePtr,
+                                                                    String domainName,
+                                                                    String machineName,
+                                                                    String userName,
+                                                                    String userAlias,
+                                                                    Object[] ipAddresses,
+                                                                    Object[] languageIdentifiers,
+                                                                    Object[] machineIds,
+                                                                    Object[] outOfScopeIdentifiers);
+
+    /**
+     * Initialize and register an instance of Privacy Guard to the current LogManager.
+     * @apiNote If an instance of Privacy Guard was already initialized, that instance will be reused and the provided
+     * loggerInstance and dataContext will not be used.
+     * @param loggerInstance logger where the Privacy Concerns should be logged.
+     * @param dataContext data context for the current instance of Privacy Guard.
+     * @return true if the registration was successful, false otherwise.
+     */
+    public boolean initializePrivacyGuard(ILogger loggerInstance, final CommonDataContext dataContext)
+    {
+      if(loggerInstance == null)
+      {
+        throw new IllegalArgumentException(("loggerInstance cannot be null."));
+      }
+
+      if(dataContext == null)
+      {
+        return nativeInitializePrivacyGuardWithoutDataContext(nativeLogManager, loggerInstance.getNativeILoggerPtr());
+      }
+      else
+      {
+        return nativeInitializePrivacyGuardWithDataContext(
+                nativeLogManager,
+                loggerInstance.getNativeILoggerPtr(),
+                dataContext.domainName,
+                dataContext.machineName,
+                dataContext.userName,
+                dataContext.userAlias,
+                dataContext.ipAddresses.toArray(),
+                dataContext.languageIdentifiers.toArray(),
+                dataContext.machineIds.toArray(),
+                dataContext.outOfScopeIdentifiers.toArray());
+      }
+    }
+
+    private native boolean nativeUnregisterPrivacyGuard(long nativeLogManager);
+    /**
+     * Unregister Privacy Guard from the current LogManager
+     * @return True if unregistered successfully, false otherwise.
+     */
+    public boolean unregisterPrivacyGuard()
+    {
+      return nativeUnregisterPrivacyGuard(nativeLogManager);
+    }
   }
 }

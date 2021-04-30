@@ -11,11 +11,12 @@
 #endif
 
 #include <utils/Utils.hpp>
-#include "JniConvertors.hpp"
-#include "LogManagerBase.hpp"
-#include "WrapperLogManager.hpp"
 #include "android/log.h"
 #include "config/RuntimeConfig_Default.hpp"
+#include "JniConvertors.hpp"
+#include "LogManagerBase.hpp"
+#include "PrivacyGuardState.hpp"
+#include "WrapperLogManager.hpp"
 
 using namespace MAT;
 
@@ -1526,4 +1527,75 @@ Java_com_microsoft_applications_events_ILogConfiguration_getDefaultConfiguration
     RuntimeConfig_Default defaultConfig(emptyConfig);
     ConfigConstructor builder(env);
     return builder.mapTranslate(*emptyConfig);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeInitializePrivacyGuardWithoutDataContext(
+                JNIEnv *env,
+                jobject thiz,
+                jlong native_log_manager,
+                jlong iLoggerNativePtr)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
+    {
+        InitializationConfiguration config;
+        config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
+        PrivacyGuardState::setPrivacyGuardInstance(std::make_shared<PrivacyGuard>(config));
+    }
+    logManager->SetDataInspector(PrivacyGuardState::getPrivacyGuardInstance());
+    return true;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeInitializePrivacyGuardWithDataContext(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager,
+        jlong iLoggerNativePtr,
+        jstring domainName,
+        jstring machineName,
+        jstring userName,
+        jstring userAlias,
+        jobjectArray ipAddresses,
+        jobjectArray languageIdentifiers,
+        jobjectArray machineIds,
+        jobjectArray outOfScopeIdentifiers)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
+    {
+        InitializationConfiguration config;
+        config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
+        config.CommonContext = PrivacyGuardState::GenerateCommonDataContextObject(env,
+                                                                                  domainName,
+                                                                                  machineName,
+                                                                                  userName,
+                                                                                  userAlias,
+                                                                                  ipAddresses,
+                                                                                  languageIdentifiers,
+                                                                                  machineIds,
+                                                                                  outOfScopeIdentifiers);
+        PrivacyGuardState::setPrivacyGuardInstance(std::make_shared<PrivacyGuard>(config));
+    }
+    logManager->SetDataInspector(PrivacyGuardState::getPrivacyGuardInstance());
+    return true;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterPrivacyGuard(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager)
+{
+    auto logManager = getLogManager(native_log_manager);
+    if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
+    {
+        return false;
+    }
+    logManager->RemoveDataInspector(PrivacyGuardState::getPrivacyGuardInstance()->GetName());
+    return true;
 }
