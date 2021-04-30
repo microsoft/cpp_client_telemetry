@@ -8,14 +8,17 @@
 #include "modules/dataviewer/DefaultDataViewer.hpp"
 #define HAS_DDV true
 #endif
+#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
+#include "PrivacyGuardState.hpp"
+#define HAS_PRIVACYGUARD true
 #endif
 
+#endif
 #include <utils/Utils.hpp>
 #include "android/log.h"
 #include "config/RuntimeConfig_Default.hpp"
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
-#include "PrivacyGuardState.hpp"
 #include "WrapperLogManager.hpp"
 
 using namespace MAT;
@@ -1537,6 +1540,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
                 jlong native_log_manager,
                 jlong iLoggerNativePtr)
 {
+#ifndef HAS_PRIVACYGUARD
+    return false;
+#else
     auto logManager = getLogManager(native_log_manager);
     if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
     {
@@ -1546,6 +1552,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     logManager->SetDataInspector(PrivacyGuardState::getPrivacyGuardInstance());
     return true;
+#endif
 }
 
 extern "C"
@@ -1564,6 +1571,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         jobjectArray machineIds,
         jobjectArray outOfScopeIdentifiers)
 {
+#ifndef HAS_PRIVACYGUARD
+    return false;
+#else
     auto logManager = getLogManager(native_log_manager);
     if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
     {
@@ -1582,6 +1592,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     logManager->SetDataInspector(PrivacyGuardState::getPrivacyGuardInstance());
     return true;
+#endif
 }
 
 extern "C"
@@ -1591,6 +1602,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         jobject thiz,
         jlong native_log_manager)
 {
+#ifndef HAS_PRIVACYGUARD
+    return false;
+#else
     auto logManager = getLogManager(native_log_manager);
     if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
     {
@@ -1598,4 +1612,5 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     logManager->RemoveDataInspector(PrivacyGuardState::getPrivacyGuardInstance()->GetName());
     return true;
+#endif
 }

@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include <jni.h>
-#include <modules/privacyguard/CommonDataContext.hpp>
-#include <modules/privacyguard/PrivacyGuard.hpp>
+
+#include "modules/privacyguard/CommonDataContext.hpp"
+#include "modules/privacyguard/PrivacyGuard.hpp"
 #include "ctmacros.hpp"
 
 namespace MAT_NS_BEGIN
