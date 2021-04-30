@@ -6,7 +6,7 @@ set CONFIGURATION=%2
 set TARGETS=%~3
 
 set CUSTOM_PROPS=
-if ("%4" == "") goto endCustomProps
+if ("%~4" == "") goto endCustomProps
 set CUSTOM_PROPS=%4
 echo Using custom properties file for the build:
 echo %CUSTOM_PROPS%
