@@ -291,6 +291,7 @@ public class LogManagerProvider {
      * @param dataContext data context for the current instance of Privacy Guard.
      * @return true if the registration was successful, false otherwise.
      */
+    @Override
     public boolean initializePrivacyGuard(ILogger loggerInstance, final CommonDataContext dataContext)
     {
       if(loggerInstance == null)
@@ -319,13 +320,27 @@ public class LogManagerProvider {
     }
 
     private native boolean nativeUnregisterPrivacyGuard(long nativeLogManager);
+
     /**
      * Unregister Privacy Guard from the current LogManager
      * @return True if unregistered successfully, false otherwise.
      */
+    @Override
     public boolean unregisterPrivacyGuard()
     {
       return nativeUnregisterPrivacyGuard(nativeLogManager);
+    }
+
+    private native boolean nativeIsPrivacyGuardEnabled(long nativeLogManager);
+
+    /**
+     * Is Privacy Guard enabled on the current log manager instance
+     * @return `True` if Privacy Guard is enabled, false otherwise.
+     */
+    @Override
+    public boolean isPrivacyGuardEnabled()
+    {
+      return nativeIsPrivacyGuardEnabled(nativeLogManager);
     }
   }
 }

@@ -4,7 +4,7 @@
 //
 #include "JniConvertors.hpp"
 #include "modules/privacyguard/PrivacyGuard.hpp"
-#include "PrivacyGuardState.hpp"
+#include "PrivacyGuardHelper.hpp"
 #include "WrapperLogManager.hpp"
 
 using namespace MAT;

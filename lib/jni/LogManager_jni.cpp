@@ -9,7 +9,7 @@
 #define HAS_DDV true
 #endif
 #if __has_include("modules/privacyguard/PrivacyGuard.hpp")
-#include "PrivacyGuardState.hpp"
+#include "PrivacyGuardHelper.hpp"
 #define HAS_PRIVACYGUARD true
 #endif
 
@@ -1600,5 +1600,24 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     logManager->RemoveDataInspector(pgInstance->GetName());
     return true;
+#endif
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeIsPrivacyGuardEnabled(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager)
+{
+#ifndef HAS_PRIVACYGUARD
+    return false;
+#else
+    auto logManager = getLogManager(native_log_manager);
+    auto pgInstance = GetPrivacyGuardInstance();
+    if (pgInstance == nullptr) {
+        return logManager->GetDataInspector("PrivacyGuard") != nullptr;
+    }
+    return logManager->GetDataInspector(pgInstance->GetName()) != nullptr;
 #endif
 }

@@ -21,6 +21,8 @@ import android.content.Context;
 import android.util.ArraySet;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
+
+import com.microsoft.applications.events.CommonDataContext;
 import com.microsoft.applications.events.DebugEvent;
 import com.microsoft.applications.events.DebugEventListener;
 import com.microsoft.applications.events.DebugEventType;
@@ -244,6 +246,52 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
       secondaryManager.flush();
       secondaryManager.pauseTransmission();
       secondaryManager.disableViewer();
+    }
+    LogManager.flushAndTeardown();
+  }
+
+  @Test
+  public void startPrivacyGuardonLogManager() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    synchronized (s_client.urlMap) {
+      s_client.urlMap.clear();
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+    final String contosoToken =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String contosoUrl = "https://bozo.contoso.com/";
+    final String contosoName = "ContosoFactory";
+    final String contosoDatabase = "ContosoSequel";
+
+    final ILogger initialLogger = LogManager.initialize(token);
+
+    ILogConfiguration custom = LogManager.getLogConfigurationCopy();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
+    assertThat(custom.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(contosoToken));
+    assertThat(custom.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(contosoUrl));
+    assertThat(custom.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
+
+    final ILogManager secondaryManager = LogManagerProvider.createLogManager(custom);
+    final ILogConfiguration copyConfig = secondaryManager.getLogConfigurationCopy();
+    assertThat(
+        copyConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
+    final ILogger secondaryLogger = secondaryManager.getLogger(contosoToken, "contoso", "");
+
+    assertThat(secondaryManager.isPrivacyGuardEnabled(), is(false));
+    if (secondaryManager.initializePrivacyGuard(secondaryLogger, null)) {
+      assertThat(secondaryManager.isPrivacyGuardEnabled(), is(true));
+      secondaryManager.unregisterPrivacyGuard();
+      assertThat(secondaryManager.isPrivacyGuardEnabled(), is(false));
     }
     LogManager.flushAndTeardown();
   }
