@@ -14,15 +14,13 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuardWithoutCommonDataContext(
         JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr) {
-    if (PrivacyGuardState::isPrivacyGuardInstanceInitialized()) {
+    if (IsPrivacyGuardInstanceInitialized()) {
         return false;
     }
 
-    InitializationConfiguration config;
-    config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
-    auto spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
-    PrivacyGuardState::setPrivacyGuardInstance((spPrivacyGuard));
-    WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
+    auto pgInstance = GetOrCreatePrivacyGuardInstance(reinterpret_cast<ILogger *>(iLoggerNativePtr));
+
+    WrapperLogManager::GetInstance()->SetDataInspector(GetOrCreatePrivacyGuardInstance(reinterpret_cast<ILogger*>(iLoggerNativePtr)));
     return true;
 }
 
@@ -37,53 +35,51 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         jobjectArray languageIdentifiers,
         jobjectArray machineIds,
         jobjectArray outOfScopeIdentifiers) {
-    if (PrivacyGuardState::isPrivacyGuardInstanceInitialized()) {
+    if (IsPrivacyGuardInstanceInitialized()) {
         return false;
     }
+    auto pgInstance = GetOrCreatePrivacyGuardInstanceWithDataContext(env,
+                                                                     reinterpret_cast<ILogger *>(iLoggerNativePtr),
+                                                                     domainName,
+                                                                     machineName,
+                                                                     userName,
+                                                                     userAlias,
+                                                                     ipAddresses,
+                                                                     languageIdentifiers,
+                                                                     machineIds,
+                                                                     outOfScopeIdentifiers);
 
-    InitializationConfiguration config;
-    config.CommonContext = PrivacyGuardState::GenerateCommonDataContextObject(env,
-                                                           domainName,
-                                                           machineName,
-                                                           userName,
-                                                           userAlias,
-                                                           ipAddresses,
-                                                           languageIdentifiers,
-                                                           machineIds,
-                                                           outOfScopeIdentifiers);
-
-    config.LoggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
-    auto spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
-    PrivacyGuardState::setPrivacyGuardInstance((spPrivacyGuard));
-    WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
+    WrapperLogManager::GetInstance()->SetDataInspector(pgInstance);
     return true;
 }
 
 JNIEXPORT jboolean JNICALL
         Java_com_microsoft_applications_events_PrivacyGuard_uninitializePrivacyGuard(JNIEnv *env, jclass /*this*/)
 {
-    if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
-    {
+    auto pgInstance = GetPrivacyGuardInstance();
+    if (pgInstance == nullptr) {
         return false;
     }
 
-    WrapperLogManager::GetInstance()->RemoveDataInspector(PrivacyGuardState::getPrivacyGuardInstance()->GetName());
+    WrapperLogManager::GetInstance()->RemoveDataInspector(pgInstance->GetName());
     return true;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jclass /*this*/,
                                                                jboolean isEnabled) {
-    if (!PrivacyGuardState::isPrivacyGuardInstanceInitialized()) {
+    auto pgInstance = GetPrivacyGuardInstance();
+    if (pgInstance == nullptr) {
         return false;
     }
-    PrivacyGuardState::getPrivacyGuardInstance()->SetEnabled(static_cast<bool>(isEnabled));
+
+    pgInstance->SetEnabled(static_cast<bool>(isEnabled));
     return true;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(JNIEnv *env, jclass /*this*/) {
-    return PrivacyGuardState::isPrivacyGuardInstanceInitialized() && PrivacyGuardState::getPrivacyGuardInstance()->IsEnabled();
+    return IsPrivacyGuardInstanceInitialized() && GetPrivacyGuardInstance()->IsEnabled();
 }
 
 JNIEXPORT jboolean JNICALL
@@ -97,19 +93,21 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
         jobjectArray languageIdentifiers,
         jobjectArray machineIds,
         jobjectArray outOfScopeIdentifiers) {
-    if (!PrivacyGuardState::isPrivacyGuardInstanceInitialized()) {
+
+    auto pgInstance = GetPrivacyGuardInstance();
+    if (pgInstance == nullptr) {
         return false;
     }
 
-    PrivacyGuardState::getPrivacyGuardInstance()->AppendCommonDataContext(PrivacyGuardState::GenerateCommonDataContextObject(env,
-                                                                            domainName,
-                                                                            machineName,
-                                                                            userName,
-                                                                            userAlias,
-                                                                            ipAddresses,
-                                                                            languageIdentifiers,
-                                                                            machineIds,
-                                                                            outOfScopeIdentifiers));
+    pgInstance->AppendCommonDataContext(GenerateCommonDataContextObject(env,
+                                                                                      domainName,
+                                                                                      machineName,
+                                                                                      userName,
+                                                                                      userAlias,
+                                                                                      ipAddresses,
+                                                                                      languageIdentifiers,
+                                                                                      machineIds,
+                                                                                      outOfScopeIdentifiers));
 
     return true;
 }
@@ -120,14 +118,15 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIE
         jstring eventName,
         jstring fieldName,
         jint dataConcern) {
-    if (!PrivacyGuardState::isPrivacyGuardInstanceInitialized()) {
+    auto pgInstance = GetPrivacyGuardInstance();
+    if (pgInstance == nullptr) {
         return;
     }
 
     auto eventNameStr = JStringToStdString(env, eventName);
     auto fieldNameStr = JStringToStdString(env, fieldName);
     auto dataConcernInt = static_cast<uint8_t>(dataConcern);
-    PrivacyGuardState::getPrivacyGuardInstance()->AddIgnoredConcern(eventNameStr, fieldNameStr, static_cast<DataConcernType >(dataConcernInt));
+    pgInstance->AddIgnoredConcern(eventNameStr, fieldNameStr, static_cast<DataConcernType >(dataConcernInt));
 }
 
 }

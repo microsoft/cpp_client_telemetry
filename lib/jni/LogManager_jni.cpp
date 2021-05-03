@@ -1544,13 +1544,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     return false;
 #else
     auto logManager = getLogManager(native_log_manager);
-    if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
-    {
-        InitializationConfiguration config;
-        config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
-        PrivacyGuardState::setPrivacyGuardInstance(std::make_shared<PrivacyGuard>(config));
-    }
-    logManager->SetDataInspector(PrivacyGuardState::getPrivacyGuardInstance());
+    logManager->SetDataInspector(GetOrCreatePrivacyGuardInstance(reinterpret_cast<ILogger*>(iLoggerNativePtr)));
     return true;
 #endif
 }
@@ -1575,22 +1569,16 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     return false;
 #else
     auto logManager = getLogManager(native_log_manager);
-    if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
-    {
-        InitializationConfiguration config;
-        config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
-        config.CommonContext = PrivacyGuardState::GenerateCommonDataContextObject(env,
-                                                                                  domainName,
-                                                                                  machineName,
-                                                                                  userName,
-                                                                                  userAlias,
-                                                                                  ipAddresses,
-                                                                                  languageIdentifiers,
-                                                                                  machineIds,
-                                                                                  outOfScopeIdentifiers);
-        PrivacyGuardState::setPrivacyGuardInstance(std::make_shared<PrivacyGuard>(config));
-    }
-    logManager->SetDataInspector(PrivacyGuardState::getPrivacyGuardInstance());
+    logManager->SetDataInspector(GetOrCreatePrivacyGuardInstanceWithDataContext(env,
+                                                        reinterpret_cast<ILogger*>(iLoggerNativePtr),
+                                                        domainName,
+                                                        machineName,
+                                                        userName,
+                                                        userAlias,
+                                                        ipAddresses,
+                                                        languageIdentifiers,
+                                                        machineIds,
+                                                        outOfScopeIdentifiers));
     return true;
 #endif
 }
@@ -1606,11 +1594,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     return false;
 #else
     auto logManager = getLogManager(native_log_manager);
-    if(!PrivacyGuardState::isPrivacyGuardInstanceInitialized())
+    if(!IsPrivacyGuardInstanceInitialized())
     {
         return false;
     }
-    logManager->RemoveDataInspector(PrivacyGuardState::getPrivacyGuardInstance()->GetName());
+    logManager->RemoveDataInspector(GetPrivacyGuardInstance()->GetName());
     return true;
 #endif
 }
