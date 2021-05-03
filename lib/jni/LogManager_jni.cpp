@@ -1594,11 +1594,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     return false;
 #else
     auto logManager = getLogManager(native_log_manager);
-    if(!IsPrivacyGuardInstanceInitialized())
-    {
+    auto pgInstance = GetPrivacyGuardInstance();
+    if (pgInstance == nullptr) {
         return false;
     }
-    logManager->RemoveDataInspector(GetPrivacyGuardInstance()->GetName());
+    logManager->RemoveDataInspector(pgInstance->GetName());
     return true;
 #endif
 }
