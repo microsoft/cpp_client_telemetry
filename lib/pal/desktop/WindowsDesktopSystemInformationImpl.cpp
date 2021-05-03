@@ -31,12 +31,6 @@
 
 #include <string>
 
-// This define is only available for TH1+
-// Issue #61 now tracks a fix that should work for win7+
-#ifndef RRF_SUBKEY_WOW6464KEY
-#define RRF_SUBKEY_WOW6464KEY  0x00010000  // when opening the subkey (if provided) force open from the 64bit location (only one SUBKEY_WOW64* flag can be set or RegGetValue will fail with ERROR_INVALID_PARAMETER)
-#endif
-
 using namespace MAT;
 
 namespace PAL_NS_BEGIN {
