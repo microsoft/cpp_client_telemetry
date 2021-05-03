@@ -7,9 +7,9 @@
 
 namespace MAT_NS_BEGIN
 {
-/*static*/ std::mutex s_pgInstanceGuard;
-/*static*/ std::shared_ptr<PrivacyGuard> s_pgInstance = nullptr;
-/*static*/ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
+std::mutex s_pgInstanceGuard;
+std::shared_ptr<PrivacyGuard> s_pgInstance = nullptr;
+CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
                                                   jstring domainName,
                                                   jstring machineName,
                                                   jstring userName,
@@ -31,13 +31,13 @@ namespace MAT_NS_BEGIN
     return cdc;
 }
 
-/*static*/ std::shared_ptr<PrivacyGuard> GetPrivacyGuardInstance()
+std::shared_ptr<PrivacyGuard> GetPrivacyGuardInstance()
 {
     std::lock_guard<std::mutex> lock(s_pgInstanceGuard);
     return s_pgInstance;
 }
 
-/*static*/ std::shared_ptr<PrivacyGuard> GetOrCreatePrivacyGuardInstance(ILogger* loggerInstance)
+std::shared_ptr<PrivacyGuard> GetOrCreatePrivacyGuardInstance(ILogger* loggerInstance)
 {
     std::lock_guard<std::mutex> lock(s_pgInstanceGuard);
     if(s_pgInstance == nullptr)
@@ -49,7 +49,7 @@ namespace MAT_NS_BEGIN
     return s_pgInstance;
 }
 
-/*static*/ std::shared_ptr<PrivacyGuard> GetOrCreatePrivacyGuardInstanceWithDataContext(JNIEnv* env,
+std::shared_ptr<PrivacyGuard> GetOrCreatePrivacyGuardInstanceWithDataContext(JNIEnv* env,
                                                                                         ILogger* loggerInstance,
                                                                                         jstring domainName,
                                                                                         jstring machineName,
@@ -79,13 +79,13 @@ namespace MAT_NS_BEGIN
     return s_pgInstance;
 }
 
-/*static*/ void ResetPrivacyGuardInstance()
+void ResetPrivacyGuardInstance()
 {
     std::lock_guard<std::mutex> lock(s_pgInstanceGuard);
     s_pgInstance = nullptr;
 }
 
-/*static*/ bool IsPrivacyGuardInstanceInitialized()
+bool IsPrivacyGuardInstanceInitialized()
 {
     std::lock_guard<std::mutex> lock(s_pgInstanceGuard);
     return s_pgInstance != nullptr;
