@@ -311,4 +311,7 @@ static BOOL _initialized = false;
         LogManager::SetContext(strKey, strValue, piiValue);
     });
 }
++(void)applicationWillTerminate {
+    canUseSDK = false;
+}
 @end

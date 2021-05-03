@@ -149,6 +149,10 @@ typedef NS_ENUM(NSInteger, ODWStatus)
 +(void)setContextWithName:(nonnull NSString*)name
               stringValue:(nonnull NSString*)value
                   piiKind:(enum ODWPiiKind)piiKind;
+/*!
+ @brief This method notifies the  SDK of applicationWillTerminate. The SDK makes all the methods in ODWLoggerManager and ODWLogger a no-op.
+ */
++(void)applicationWillTerminate;
 @end
 
 NS_ASSUME_NONNULL_END
