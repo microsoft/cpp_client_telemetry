@@ -75,12 +75,6 @@
 #pragma comment (lib, "Rpcrt4.lib")
 #endif
 
-/* Windows.h overrides the definition of min and max macros, which breaks std::min and std::max */
-#ifdef min
-#undef min
-#undef max
-#endif
-
 #ifdef HAVE_SYSLOG
 #include <syslog.h>
 #include <stdarg.h>
