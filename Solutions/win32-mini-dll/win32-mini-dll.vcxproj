@@ -202,11 +202,11 @@
       <SmallerTypeCheck Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</SmallerTypeCheck>
       <SmallerTypeCheck Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</SmallerTypeCheck>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</RemoveUnreferencedCodeData>
-      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</RuntimeTypeInfo>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</RuntimeTypeInfo>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RemoveUnreferencedCodeData>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</RemoveUnreferencedCodeData>
-      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</RuntimeTypeInfo>
-      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</RuntimeTypeInfo>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RuntimeTypeInfo>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</RuntimeTypeInfo>
       <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Size</FavorSizeOrSpeed>
       <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</InlineFunctionExpansion>
@@ -339,9 +339,9 @@
       <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Fast</FloatingPointModel>
       <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Fast</FloatingPointModel>
       <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Fast</FloatingPointModel>
-      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</RuntimeTypeInfo>
-      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</RuntimeTypeInfo>
-      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</RuntimeTypeInfo>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</RuntimeTypeInfo>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</RuntimeTypeInfo>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" />
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />

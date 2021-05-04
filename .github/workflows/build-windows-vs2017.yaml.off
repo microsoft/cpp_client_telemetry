@@ -1,0 +1,33 @@
+name: C/C++ CI on Windows (vs2017)
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  build:
+
+    runs-on: windows-2016
+    name: Build
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+      continue-on-error: true
+
+    - name: Setup Tools
+      shell: cmd
+      run: tools\setup-buildtools.cmd
+
+    - name: Build
+      env:
+        SKIP_ARM_BUILD: 1
+        SKIP_ARM64_BUILD: 1
+        SKIP_DEBUG_BUILD: 1
+      shell: cmd
+      run: build-all.bat

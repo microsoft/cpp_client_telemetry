@@ -54,7 +54,7 @@ using namespace MAT;
         std::string strUserId = std::string([userId UTF8String]);
         _wrappedSemanticContext->SetUserId(strUserId, piiValue);
     } else {
-        [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"Invalid Pii type is passed. Expected ODWPiiKindNone or ODWPiiKindIdentity only."]];
+        [NSException raise:@"1DSSDKException" format:@"Invalid Pii type is passed. Expected ODWPiiKindNone or ODWPiiKindIdentity only."];
     }
 }
 

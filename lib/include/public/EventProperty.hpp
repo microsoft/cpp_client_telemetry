@@ -78,6 +78,21 @@ namespace MAT_NS_BEGIN
         /// The time_ticks_t copy constructor.
         /// </summary>
         time_ticks_t(const time_ticks_t& t);
+
+        /// <summary>
+        /// The time_ticks_t move constructor.
+        /// </summary>
+        time_ticks_t(time_ticks_t&& t) noexcept;
+
+        /// <summary>
+        /// The time_ticks_t copy assignment operator.
+        /// </summary>
+        time_ticks_t& operator=(const time_ticks_t& t) noexcept;
+
+        /// <summary>
+        /// The time_ticks_t move assignment operator.
+        /// </summary>
+        time_ticks_t& operator=(time_ticks_t&& t) noexcept;
     };
 
     /// <summary>
@@ -157,6 +172,24 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <param name="guid">A GUID_t object.</param>
         GUID_t(const GUID_t& guid);
+
+        /// <summary>
+        /// The GUID_t move constructor.
+        /// </summary>
+        /// <param name="guid">A GUID_t object.</param>
+        GUID_t(GUID_t&& guid) noexcept;
+
+        /// <summary>
+        /// The GUID_t copy-assignment operator.
+        /// </summary>
+        /// <param name="guid">A GUID_t object.</param>
+        GUID_t& operator=(const GUID_t& guid) noexcept;
+
+        /// <summary>
+        /// The GUID_t move assignment operator.
+        /// </summary>
+        /// <param name="guid">A GUID_t object.</param>
+        GUID_t& operator=(GUID_t&& guid) noexcept;
 
 #ifdef _WIN32
         /// <summary>

@@ -26,5 +26,5 @@ jobs:
         ./bin/misspell -error ./**/*.md
         ./bin/misspell -error ./**/*.txt
         ./bin/misspell -error ./examples/**/*
-        ./bin/misspell -error ./lib/**/*
+        find . -type f -wholename './lib/*.*' | grep -v json\\.hpp | xargs ./bin/misspell -error
         ./bin/misspell -error ./tests/**/*

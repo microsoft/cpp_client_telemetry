@@ -1,6 +1,7 @@
 #!/bin/sh
 
 if [ -f /bin/yum ]; then
+if [ `cat /etc/redhat-release | tr -dc '0-9.'|cut -d \. -f1` == "7" ]; then
 # Prefer yum over apt-get
 yum -y install automake
 yum -y install autoconf
@@ -40,6 +41,9 @@ make install
 cd ..
 fi
 
+else
+echo "*** Nothing to install for that version CentOS  ***"
+fi
 else
 # Use apt-get
 export DEBIAN_FRONTEND=noninteractive

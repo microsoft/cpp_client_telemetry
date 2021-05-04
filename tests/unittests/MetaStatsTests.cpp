@@ -36,10 +36,6 @@ TEST_F(MetaStatsTests, NoInputGeneratesNoEvents)
 TEST_F(MetaStatsTests, GenerateStartEvent)
 {
     unsigned const postDataLength         = 234;
-    unsigned const lowLatencyCount       = 1;
-    unsigned const normalLatencyCount    = 2;
-    unsigned const highLatencyCount      = 3;
-    unsigned const immediateLatencyCount = 1;
     EXPECT_CALL(runtimeConfigMock, GetMetaStatsSendIntervalSec()).WillRepeatedly(Return(0));
     EXPECT_CALL(runtimeConfigMock, GetMetaStatsTenantToken()).WillRepeatedly(Return("metastats-tenant-token"));
     stats.updateOnStorageOpened("MyStorage/Normal");

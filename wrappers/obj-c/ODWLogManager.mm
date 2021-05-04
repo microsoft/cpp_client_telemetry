@@ -106,7 +106,6 @@ static BOOL _initialized = false;
 +(nullable ODWLogger *)initForTenant:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
 {
     ILogger *logger = [ODWLogManager initializeLogManager:tenantToken withConfig:config];
-    _initialized = logger != NULL;
 
     if (!logger) return nil;
 
@@ -143,7 +142,7 @@ static BOOL _initialized = false;
             }
             else
             {
-                [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"%@", error.localizedDescription]];
+                [ODWLogger raiseException: [error.localizedDescription UTF8String]];
             }
         }
 
@@ -194,6 +193,8 @@ static BOOL _initialized = false;
         }
         [ODWLogger traceException: e.what()];
     }
+
+    _initialized = logger != NULL;
     return logger;
 }
 

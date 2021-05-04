@@ -65,7 +65,7 @@ void EventDecoderListener::OnDebugEvent(DebugEvent &evt)
 {
     auto PrintEvent = [](const char *lbl, const DebugEvent &e)
     {
-        printf("%20s: seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", lbl, e.seq, e.ts, e.type, e.param1, e.param2);
+        printf("%20s: seq=%llu, ts=%llu, type=0x%08x, p1=%zu, p2=%zu\n", lbl, static_cast<unsigned long long>(e.seq), static_cast<unsigned long long>(e.ts), e.type, e.param1, e.param2);
     };
 
     // lock for the duration of the print, so that we don't mess up the prints

@@ -306,7 +306,7 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
 +(nullable ODWLogConfiguration *)getLogConfigurationCopy
 {
     auto& config = LogManager::GetLogConfiguration();
-    ILogConfiguration configCopy(config);
+    static ILogConfiguration configCopy(config);
     return [[ODWLogConfiguration alloc] initWithILogConfiguration: &configCopy];
 }
 
@@ -428,8 +428,32 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
 
 -(void)set:(nonnull NSString *)key withValue:(nonnull NSString *)value
 {
-    ILogConfiguration wrappedConfig = *_wrappedConfiguration;
-    wrappedConfig[[key UTF8String]] = [value UTF8String];
+    (*_wrappedConfiguration)[[key UTF8String]] = [value UTF8String];
+}
+
+-(nullable NSString *)valueForKey:(nonnull NSString *)key
+{
+    std::string strValue = (*_wrappedConfiguration)[[key UTF8String]];
+    if (strValue.empty())
+    {
+         return nil;
+    }
+    return [NSString stringWithCString:strValue.c_str() encoding:NSUTF8StringEncoding];
+}
+
+-(void)setHost:(nonnull NSString *)host
+{
+    (*_wrappedConfiguration)[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST] = [host UTF8String];
+}
+
+-(nullable NSString *)host
+{
+    std::string strHost = (*_wrappedConfiguration)[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST];
+    if (strHost.empty())
+    {
+         return nil;
+    }
+    return [NSString stringWithCString:strHost.c_str() encoding:NSUTF8StringEncoding];
 }
 
 @end

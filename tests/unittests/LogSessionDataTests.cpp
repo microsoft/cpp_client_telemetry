@@ -25,50 +25,38 @@ uint64_t sessionFirstTimeLaunch;
 TEST(LogSessionDataTests, parse_EmptyString_ReturnsFalse)
 {   
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
-   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
    ASSERT_FALSE(logSessionDataProvider.parse(std::string {}, sessionFirstTimeLaunch, sessionSDKUid));
-   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_OneLine_ReturnsFalse)
 {
 
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
-   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
    ASSERT_FALSE(logSessionDataProvider.parse(std::string {"foo" }, sessionFirstTimeLaunch, sessionSDKUid));
-   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_ThreeLines_ReturnsFalse)
 {
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
-   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
    ASSERT_FALSE(logSessionDataProvider.parse(std::string { "foo\nbar\n\baz" }, sessionFirstTimeLaunch, sessionSDKUid));
-   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_TwoLinesFirstLaunchNotNumber_ReturnsFalse)
 {
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
-   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
    ASSERT_FALSE(logSessionDataProvider.parse(std::string { "foo\nbar" }, sessionFirstTimeLaunch, sessionSDKUid));
-   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_TwoLinesFirstLaunchTooLarge_ReturnsFalse)
 {
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
-   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
    ASSERT_FALSE(logSessionDataProvider.parse(std::string { "1111111111111111111111111111111111111111111111111111111111111111111\nbar" },
                sessionFirstTimeLaunch, sessionSDKUid));
-   UNREFERENCED_PARAMETER(logSessionData);
 }
 
 TEST(LogSessionDataTests, parse_ValidInput_ReturnsTrue)
 {
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
-   auto logSessionData =  logSessionDataProvider.GetLogSessionData();
    ASSERT_TRUE(logSessionDataProvider.parse(std::string { "1234567890\nbar" }, sessionFirstTimeLaunch, sessionSDKUid));
-   UNREFERENCED_PARAMETER(logSessionData);
 }
 

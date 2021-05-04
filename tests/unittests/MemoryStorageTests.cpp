@@ -254,6 +254,11 @@ TEST(MemoryStorageTests, GetAndReserveSome)
     auto totalCount = storage.GetRecordCount();
     constexpr size_t howMany = 32;
     std::vector<StorageRecord> someRecords;
+
+#if defined(__clang__)
+#pragma clang diagnostic push                              // This appears to be a detection bug with constexpr variables in Clang9
+#pragma clang diagnostic ignored "-Wunused-lambda-capture" // error : lambda capture 'howMany' is not required to be captured for this use[-Werror, -Wunused - lambda - capture]
+#endif
     storage.GetAndReserveRecords(
         [&someRecords, howMany] (StorageRecord && record)->bool
         {
@@ -265,6 +270,10 @@ TEST(MemoryStorageTests, GetAndReserveSome)
         },
         EventLatency_Normal
     );
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
     EXPECT_EQ(howMany, someRecords.size());
     EXPECT_EQ(howMany, storage.LastReadRecordCount());
     EXPECT_EQ(totalCount - howMany, storage.GetRecordCount());

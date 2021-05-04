@@ -4,6 +4,7 @@
 //
 package com.microsoft.applications.events;
 
+import androidx.annotation.Keep;
 import java.util.Date;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ public class LogManagerProvider {
   protected static native long nativeCreateLogManager(ILogConfiguration config);
 
   static class LogManagerImpl implements ILogManager {
+    @Keep
     long nativeLogManager = 0;
 
     private LogManagerImpl() {}
@@ -27,7 +29,11 @@ public class LogManagerProvider {
 
     @Override
     public ILogger getLogger(String token, String source, String scope) {
-      return new Logger(nativeGetLogger(token, source, scope));
+      long nativeLogger = nativeGetLogger(token, source, scope);
+      if (nativeLogger == 0) {
+        throw new NullPointerException("Null native logger pointer");
+      }
+      return new Logger(nativeLogger);
     }
 
     @Override
@@ -214,7 +220,9 @@ public class LogManagerProvider {
     }
 
     protected static class LogSessionDataImpl implements LogSessionData {
+      @Keep
       private long m_first_time;
+      @Keep
       private String m_uuid;
 
       public LogSessionDataImpl() {

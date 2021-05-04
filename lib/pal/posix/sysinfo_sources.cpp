@@ -103,6 +103,13 @@ inline std::string ReadFile(const char *filename)
  * @param cmd Command to execute
  * @return output
  */
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"  // Used on non-Apple platforms. See sysinfo_sources_impl()
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"  // Used on non-Apple platforms. See sysinfo_sources_impl()
+#endif
 static std::string Exec(const char* cmd)
 {
     std::array<char, 128> buffer;
@@ -128,6 +135,11 @@ static std::string Exec(const char* cmd)
 
     return result;
 }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 /**
  * Read node value, preprocess it using regexp and store result in cache
@@ -214,8 +226,24 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     // add("proc_uptime", {"/proc/uptime", "(.*)[\n]*"});
 
     time_t t = time(NULL);
-    struct tm lt = { 0 };
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ‘tm::tm_min’ [-Werror=missing-field-initializers]
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ‘tm::tm_min’ [-Werror=missing-field-initializers]
+#endif
+
+    struct tm lt { 0 };
     localtime_r(&t, &lt);
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
     int hh = lt.tm_gmtoff / 3600;
     int mm = (lt.tm_gmtoff / 60) % 60;
     std::ostringstream oss;
