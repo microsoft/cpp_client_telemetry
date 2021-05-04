@@ -270,6 +270,9 @@
       <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</SupportJustMyCode>
       <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</SupportJustMyCode>
       <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</SupportJustMyCode>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">/DNOMINMAX</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/DNOMINMAX</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -335,6 +338,9 @@
       <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">false</SupportJustMyCode>
       <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">false</SupportJustMyCode>
       <SupportJustMyCode Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">false</SupportJustMyCode>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">/DNOMINMAX</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">/DNOMINMAX</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -408,6 +414,9 @@
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Guard</ControlFlowGuard>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Guard</ControlFlowGuard>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Guard</ControlFlowGuard>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">/DNOMINMAX</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/DNOMINMAX</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -481,6 +490,9 @@
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">Guard</ControlFlowGuard>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">Guard</ControlFlowGuard>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">Guard</ControlFlowGuard>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">/DNOMINMAX</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">/DNOMINMAX</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

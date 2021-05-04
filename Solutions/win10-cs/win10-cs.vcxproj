@@ -181,6 +181,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -218,6 +219,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -249,6 +251,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -283,6 +286,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -315,6 +319,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -349,6 +354,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -372,6 +378,7 @@
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
       <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -389,6 +396,7 @@
       <CompileAsManaged>false</CompileAsManaged>
       <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>

@@ -185,6 +185,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -221,6 +222,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
       <CompileAsManaged>false</CompileAsManaged>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -250,6 +252,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -283,6 +286,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
       <CompileAsManaged>false</CompileAsManaged>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -314,6 +318,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -347,6 +352,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
       <CompileAsManaged>false</CompileAsManaged>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -371,6 +377,7 @@
       <WarningLevel>Level3</WarningLevel>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>true</CompileAsWinRT>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -394,6 +401,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>true</CompileAsWinRT>
+      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
