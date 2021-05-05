@@ -312,6 +312,8 @@ static BOOL _initialized = false;
     });
 }
 +(void)applicationWillTerminate {
+    [ODWLogManager pauseTransmission];
     canUseSDK = false;
+    [ODWLogManager FlushAndTeardown];
 }
 @end

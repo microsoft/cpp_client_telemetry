@@ -150,7 +150,8 @@ typedef NS_ENUM(NSInteger, ODWStatus)
               stringValue:(nonnull NSString*)value
                   piiKind:(enum ODWPiiKind)piiKind;
 /*!
- @brief This method notifies the  SDK of applicationWillTerminate. The SDK makes all the methods in ODWLoggerManager and ODWLogger a no-op.
+ @brief Host apps should call this method when the app recieves applicationWillTerminate notification.
+ @details Calling this API ensures safe termination of the logging library on exit.
  */
 +(void)applicationWillTerminate;
 @end
