@@ -47,7 +47,7 @@ set(SRCS
 )
 
 # Turn off warnings for INSTANTIATE_TEST_CASE_P usage as we are using old version of gtest.
-set_source_files_properties(OfflineStorageTests_SQLite.cpp PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
 if (APPLE)
   if (BUILD_IOS)
