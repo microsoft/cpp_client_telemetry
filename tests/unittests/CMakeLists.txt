@@ -172,4 +172,4 @@ endif()
 add_test(UnitTests UnitTests "--gtest_output=xml:${CMAKE_BINARY_DIR}/test-reports/UnitTests.xml")
 
 # Turn off warnings for INSTANTIATE_TEST_CASE_P usage as we are using old version of gtest.
-set_source_files_properties(OfflineStorageTests_SQLite.cpp PROPERTIES COMPILE_FLAGS -Wnoall)
+set_source_files_properties(OfflineStorageTests_SQLite.cpp PROPERTIES COMPILE_FLAGS -Wno-all)
