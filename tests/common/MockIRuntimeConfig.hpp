@@ -21,18 +21,18 @@ namespace testing {
     protected:
         std::unique_ptr<ILogConfiguration>& GetStaticConfig()
         {
-            static std::unique_ptr<ILogConfiguration> config;
-            return config;
+            static std::unique_ptr<ILogConfiguration> staticConfig;
+            return staticConfig;
         }
 
         MAT::ILogConfiguration& GetDefaultConfig()
         {
-            std::unique_ptr<ILogConfiguration>& config = GetStaticConfig();
-            if (!config)
+            std::unique_ptr<ILogConfiguration>& staticConfig = GetStaticConfig();
+            if (!staticConfig)
             {
-                config = std::make_unique<ILogConfiguration>();
+                staticConfig = std::make_unique<ILogConfiguration>();
             }
-            return *config;
+            return *staticConfig;
         }
 
     public:
