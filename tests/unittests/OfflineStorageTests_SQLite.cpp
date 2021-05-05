@@ -532,6 +532,12 @@ TEST_P(GoodRecordsTests, RecordStoredAndRetrievedCorrectlyAfterDbReopen)
     EXPECT_THAT(storedRecord.reservedUntil, record.reservedUntil);
 }
 
+INSTANTIATE_TEST_SUITE_P(StorageTestSuite, GoodRecordsTests, {
+    { "{ guid-\"' ", "tenant -to\"ken'", EventLatency_Normal, EventPersistence_Normal, INT64_MAX, StorageBlob{ 1, 2, 3, 4, 5, 6, 7 } },
+    { "guid",        "tenant-token",     EventLatency_Max, EventPersistence_Critical, 1, StorageBlob(1024 * 1024, uint8_t(7)) },
+    { "guid",        "tenant-token",     EventLatency_Off, EventPersistence_Normal, 1, {} }
+});
+
 class BadRecordsTests : public OfflineStorageTests_SQLite,
                         public WithParamInterface<StorageRecord>
 {
@@ -549,22 +555,13 @@ TEST_P(BadRecordsTests, BadRecordStoredIsNotFoundInDb)
     ASSERT_THAT(consumer.records.size(), 0);
 }
 
-StorageRecord GOOD_RECORDS[] = {
-    { "{ guid-\"' ", "tenant -to\"ken'", EventLatency_Normal, EventPersistence_Normal, INT64_MAX, StorageBlob{ 1, 2, 3, 4, 5, 6, 7 } },
-    { "guid",        "tenant-token",     EventLatency_Max, EventPersistence_Critical, 1, StorageBlob(1024 * 1024, uint8_t(7)) },
-    { "guid",        "tenant-token",     EventLatency_Off, EventPersistence_Normal, 1, {} }
-};
-
-StorageRecord BAD_RECORDS[] = {
+INSTANTIATE_TEST_SUITE_P(StorageTestSuite, BadRecordsTests, {
     { "",     "tenant-token", EventLatency_Normal, EventPersistence_Normal,                2, { 1, 2, 3 } },
     { "guid", "",             EventLatency_Normal, EventPersistence_Normal,                2, { 1, 2, 3 } },
     { "guid", "tenant-token", EventLatency_Unspecified,EventPersistence_Normal,       0, {} },
     { "guid", "tenant-token", static_cast<EventLatency>(987),EventPersistence_Normal,  0, {} },
     { "guid", "tenant-token", EventLatency_Normal, EventPersistence_Normal,            -1, {} }
-};
-
-INSTANTIATE_TEST_CASE_P(OfflineStorageTests_SQLite, GoodRecordsTests, ::testing::ValuesIn(GOOD_RECORDS));
-INSTANTIATE_TEST_CASE_P(OfflineStorageTests_SQLite, BadRecordsTests,  ::testing::ValuesIn(BAD_RECORDS));
+});
 
 //--- Settings tests
 
