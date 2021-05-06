@@ -230,7 +230,7 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     {
         std::string contents = get("osName");
         size_t pos_end_quote = contents.rfind('"');
-        if (pos_end_quote > 0)
+        if (pos_end_quote != std::string::npos && pos_end_quote > 0)
         {
             cache["osName"] = contents.substr(1, pos_end_quote - 1);
         }
