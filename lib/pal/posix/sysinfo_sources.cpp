@@ -228,9 +228,12 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     // osName may contain quotes on openSUSE
     if (get("osName").find('"') == 0)
     {
-        (*this).erase("osName");
-        cache.erase("osName");
-        add("osName", {"/etc/os-release", ".*ID=\"(.*)\"[\n]+"});
+        std::string contents = get("osName");
+        size_t pos_end_quote = contents.rfind('"');
+        if (pos_end_quote > 0)
+        {
+            cache["osName"] = contents.substr(1, pos_end_quote - 1);
+        }
     }
 
     time_t t = time(NULL);
