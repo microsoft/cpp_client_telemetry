@@ -12,14 +12,8 @@ if DEFINED GIT_PULL_TOKEN (
   git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
 
-call tools\vcvars.cmd
-
-set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
-set platform=
-set SOLUTION=Solutions\MSTelemetrySDK.sln
-
 set CUSTOM_PROPS=
-if ("%1"=="") goto skip
+if ("%~1"=="") goto skip
 set CUSTOM_PROPS="/p:ForceImportBeforeCppTargets=%1"
 echo Using custom properties file for the build:
 echo %CUSTOM_PROPS%
@@ -28,45 +22,43 @@ echo %CUSTOM_PROPS%
 if NOT DEFINED SKIP_MD_BUILD (
   REM DLL and static /MD build
   REM Release
-  msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=Win32 %CUSTOM_PROPS%
-  msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=x64 %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests" %CUSTOM_PROPS%
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
-    msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=Win32 %CUSTOM_PROPS%
-    msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=x64 %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat Win32 Debug "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat x64 Debug "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_MT_BUILD (
   REM Static /MT build
   REM Release
-  msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release.vs2015.MT-sqlite /p:Platform=Win32 %CUSTOM_PROPS%
-  msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release.vs2015.MT-sqlite /p:Platform=x64 %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
-    msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug.vs2015.MT-sqlite /p:Platform=Win32 %CUSTOM_PROPS%
-    msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug.vs2015.MT-sqlite /p:Platform=x64 %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat Win32 Debug.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat x64 Debug.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_ARM_BUILD (
   REM ARM DLL build
-  call tools\vcvars-ext.cmd arm
   REM Release
-  msbuild %SOLUTION% /target:zlib,sqlite-uwp,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat ARM Release "zlib,sqlite-uwp,win10-cs,win10-dll" %CUSTOM_PROPS%
   if NOT DEFINED SKIP_DEBUG_BUILD (
     REM Debug
-    msbuild %SOLUTION% /target:zlib,sqlite-uwp,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat ARM Debug "zlib,sqlite-uwp,win10-cs,win10-dll" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_ARM64_BUILD (
   REM ARM64 DLL build
-  call tools\vcvars-ext.cmd arm64
   REM Release
-  msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM64 %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat ARM64 Release "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll" %CUSTOM_PROPS%
   if NOT DEFINED SKIP_DEBUG_BUILD (
     REM Debug
-    msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM64 %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat ARM64 Debug "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll" %CUSTOM_PROPS%
   )
 )
