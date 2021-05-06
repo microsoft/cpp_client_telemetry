@@ -222,13 +222,15 @@ namespace MAT_NS_BEGIN {
                 if (m_initAndShutdownLock && m_instanceCount)
                 {
                     LOCKGUARD(*m_initAndShutdownLock);
-                    *m_instanceCount = *m_instanceCount > 0 ? *m_instanceCount + 1 : 1;
-                    if (*m_instanceCount == 1)
-                    {
+                    if (*m_instanceCount > 0) {
+                        *m_instanceCount += 1;
+                    } else {
                         result = g_sqlite3Proxy->sqlite3_initialize();
+                        if (result == SQLITE_OK) {
+                            *m_instanceCount = 1;
+                        }
                     }
-                } else
-                {
+                } else {
                     result = g_sqlite3Proxy->sqlite3_initialize();
                 }
 
@@ -292,9 +294,10 @@ namespace MAT_NS_BEGIN {
                 if (m_initAndShutdownLock && m_instanceCount)
                 {
                     LOCKGUARD(*m_initAndShutdownLock);
-                    *m_instanceCount -= 1;
-                    if (*m_instanceCount <= 0)
-                    {
+                    if (*m_instanceCount > 1) {
+                        *m_instanceCount -= 1;
+                    } else {
+                        *m_instanceCount = 0;
                         g_sqlite3Proxy->sqlite3_shutdown();
                     }
                 } else

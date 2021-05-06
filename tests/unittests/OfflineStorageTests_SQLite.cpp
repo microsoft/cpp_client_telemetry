@@ -79,16 +79,14 @@ struct OfflineStorageTests_SQLite : public Test
 
     void shutdownAndRemoveFile()
     {
-        if (!storageInitialized)
+        if (storageInitialized)
         {
-          return;
+            storageInitialized = false;
+            offlineStorage->Shutdown();
+            EXPECT_THAT(fileExists(storageFilename), true);
+            ::remove(storageFilename.c_str());
+            EXPECT_THAT(fileExists(storageFilename), false);
         }
-
-        storageInitialized = false;
-        offlineStorage->Shutdown();
-        EXPECT_THAT(fileExists(storageFilename), true);
-        ::remove(storageFilename.c_str());
-        ASSERT_THAT(fileExists(storageFilename), false);
     }
 
     bool fileExists(std::string const& filename)
