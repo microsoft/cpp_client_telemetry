@@ -424,6 +424,9 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsRecordsSortedByTim
     EXPECT_THAT(consumer.records[2].id, StrEq("guid-3"));
 }
 
+// Timing tests do not make sense in debug builds.
+#ifdef NDEBUG
+
 TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
 {
     initializeStorage();
@@ -441,6 +444,8 @@ TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
     uint64_t deltaMaxMs = 1000;
     EXPECT_THAT(endTimeMs - startTimeMs, Le(deltaMaxMs));
 }
+
+#endif  // NDEBUG
 
 TEST_F(OfflineStorageTests_SQLite, OnInvalidFilename)
 {
