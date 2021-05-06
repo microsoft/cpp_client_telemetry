@@ -68,11 +68,14 @@ depending on what Visual Studio version you are using.
 
 ### 1. Include the main 1DS C++ SDK header file in your main.cpp by adding the following statement to the top of your app's implementation file
 
+- Make sure you added the [public SDK headers](https://github.com/microsoft/cpp_client_telemetry/tree/master/lib/include/public) in your project include path.
+- Make sure you added the SDK that you built, e.g. `ClientTelemetry.lib` to your project library path.
+
 ```cpp
 #include "LogManager.hpp"
 ```
 
-### 2. Introduce the 1DS SDK (Beta) namespace by adding the following statement after your include statements at the top of your app's implementation file
+### 2. Introduce the 1DS SDK namespace by adding the following statement after your include statements at the top of your app's implementation file
 
 ```cpp
 using namespace Microsoft::Applications::Events;
