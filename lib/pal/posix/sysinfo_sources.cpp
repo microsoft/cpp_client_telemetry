@@ -218,7 +218,7 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
 #if defined(__linux__)
     // Obtain Linux system information from filesystem
     add("devId", { "/etc/machine-id", "*"});
-    add("osName", {"/etc/os-release", ".*ID=(.*)[\n]+"});
+    add("osName", {"/etc/os-release", ".*ID=\"(.*)\"[\n]+|.*ID=(.*)[\n]+"});
     add("osVer", {"/etc/os-release", ".*VERSION_ID=\"(.*)\".*"});
     add("osRel", {"/etc/os-release", ".*VERSION=\"(.*)\".*"});
     add("osBuild", {"/proc/version", "(.*)[\n]+"});
