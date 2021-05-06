@@ -296,7 +296,7 @@ namespace MAT_NS_BEGIN {
                     LOCKGUARD(*m_initAndShutdownLock);
                     if (*m_instanceCount > 1) {
                         *m_instanceCount -= 1;
-                    } else {
+                    } else if (*m_instanceCount == 1) {
                         *m_instanceCount = 0;
                         g_sqlite3Proxy->sqlite3_shutdown();
                     }
