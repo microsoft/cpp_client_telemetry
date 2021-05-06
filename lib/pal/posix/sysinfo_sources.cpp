@@ -225,6 +225,14 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     // add("proc_loadavg", {"/proc/loadavg", "(.*)[\n]*"});
     // add("proc_uptime", {"/proc/uptime", "(.*)[\n]*"});
 
+    // osName may contain quotes on openSUSE
+    if (get("osName").find('"') == 0)
+    {
+        (*this).erase("osName");
+        cache.erase("osName");
+        add("osName", {"/etc/os-release", ".*ID=\"(.*)\"[\n]+"});
+    }
+
     time_t t = time(NULL);
 
 #if defined(__clang__)
