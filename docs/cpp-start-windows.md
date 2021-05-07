@@ -109,7 +109,7 @@ More examples can be found under *examples* folder.
 ### Additional Resources
 
 - [Walkthrough: Create and use your own Dynamic Link Library - C/C++](https://docs.microsoft.com/cpp/build/walkthrough-creating-and-using-a-dynamic-link-library-cpp)
-- [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild)
+- [MSBuild](https://docs.microsoft.com/visualstudio/msbuild/msbuild)
 - [CMake Tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/index.html)
 - [Runtime Library Variants: static vs dynamic runtime](https://www.oreilly.com/library/view/c-cookbook/0596007612/ch01s24.html)
 
