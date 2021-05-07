@@ -14,6 +14,8 @@
 
 using namespace MAT;
 
+std::atomic<bool> canUseSDK = { true };
+
 @implementation ODWLogger
 {
     ILogger* _wrappedLogger;
@@ -384,6 +386,9 @@ using namespace MAT;
 
 void PerformActionWithCppExceptionsCatch(void (^block)())
 {
+    if (!canUseSDK) {
+        return;
+    }
     try
     {
         block();
@@ -402,5 +407,4 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
 {    
     [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWCommonDataContext:commonDataContextsObject];
 }
-
 @end
