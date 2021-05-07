@@ -16,7 +16,7 @@ If your project requires the Universal Telemetry Client (a.k.a. UTC) to send tel
 
 ## **Windows prerequisites and dependencies for building from source**
 
-* Visual Studio 2017 or 2019. 2019 is recommended.
+* Visual Studio 2017 or 2019 (2019 is recommended).
 * C++ Dev Tools
 
 ## **Option 1: Build the SDK from source using Visual Studio**
