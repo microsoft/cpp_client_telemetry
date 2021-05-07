@@ -8,16 +8,18 @@ This tutorial guides you through the process of integrating the 1DS C++ SDK into
 
 ```git clone https://github.com/microsoft/cpp_client_telemetry.git```
 
-to clone the repo. If your project requires UTC to send telemetry, you need to add `--recurse-submodules` while cloning to tell git to add `lib/modules` repo that contains various proprietary Microsoft modules, including Universal Telemetry Client support.
+to clone the repo.
+
+If your project requires UTC to send telemetry, you need to add `--recurse-submodules` while cloning to tell git to add `lib/modules` repo that contains various **proprietary** Microsoft modules, including Universal Telemetry Client support. The access to proprietary modules can be obtained by Microsoft-authorized contributors [here](https://aka.ms/1ds.sdk.cpp).
 
 ### 2. You will be asked for your credentials to clone the repo. Generate a PAT token using GitHub UI, use your username and PAT token to clone the repo. See [Generating PAT token for command line clone](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
 
 ## **Windows prerequisites and dependencies for building from source**
 
-* Visual Studio 2017 or 2019
+* Visual Studio 2017 or 2019. 2019 is recommended.
 * C++ Dev Tools
 
-## **Build the SDK from source using Visual Studio**
+## **Option 1: Build the SDK from source using Visual Studio**
 
 * Open the *cpp_client_telemetry/Solutions/MSTelemetrySDK.sln* solution in Visual Studio.
 * Alternatively you can use *build-all.bat* located in workspace root folder to build from command line
@@ -39,7 +41,7 @@ See:
 * [How to add optional components in Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/modify-visual-studio?view=vs-2017)
 * [Download Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 
-## **Windows prerequisites and dependencies for building from source using LLVM compiler**
+## **Option 2: Build the SDK from source using LLVM compiler**
 
 * Visual Studio
 * [LLVM compiler](https://releases.llvm.org/download.html)
@@ -66,10 +68,10 @@ depending on what Visual Studio version you are using.
 
 ## **Instrument your code to send a telemetry event**
 
-### 1. Include the main 1DS C++ SDK header file in your main.cpp by adding the following statement to the top of your app's implementation file
+- Make sure you added the [public SDK headers](https://github.com/microsoft/cpp_client_telemetry/tree/master/lib/include/public) to [your project include path](https://docs.microsoft.com/en-us/cpp/build/reference/c-cpp-prop-page?view=msvc-160#additional-include-directories).
+- Make sure you added the SDK that you built, e.g. `ClientTelemetry.lib` to [your project library path](https://docs.microsoft.com/en-us/cpp/build/reference/vcpp-directories-property-page).
 
-- Make sure you added the [public SDK headers](https://github.com/microsoft/cpp_client_telemetry/tree/master/lib/include/public) in your project include path.
-- Make sure you added the SDK that you built, e.g. `ClientTelemetry.lib` to your project library path.
+### 1. Include the main 1DS C++ SDK header file in your main.cpp by adding the following statement to the top of your app's implementation file
 
 ```cpp
 #include "LogManager.hpp"
@@ -103,3 +105,12 @@ _**Important!** Replace the place-holder application key value with the actual v
 *You're done! You can now compile and run your app, and it will send a telemetry event.*
 
 More examples can be found under *examples* folder.
+
+### Additional Resources
+
+- [Walkthrough: Create and use your own Dynamic Link Library - C/C++](https://docs.microsoft.com/en-us/cpp/build/walkthrough-creating-and-using-a-dynamic-link-library-cpp)
+- [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild)
+- [CMake Tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/index.html)
+- [Runtime Library Variants: static vs dynamic runtime](https://www.oreilly.com/library/view/c-cookbook/0596007612/ch01s24.html)
+
+If you encounter troubles building the project, please refer to our CI/Build pipeline settings [here](https://github.com/microsoft/cpp_client_telemetry/blob/master/.github/workflows/build-windows-vs2019.yaml). This pipeline runs on a standard GitHub image with a standard Visual Studio 2019 installation. If you are still stuck, please log your building question as [GitHub issue](https://github.com/microsoft/cpp_client_telemetry/issues) with a label `question`.
