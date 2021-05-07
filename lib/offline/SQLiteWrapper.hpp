@@ -204,18 +204,36 @@ namespace MAT_NS_BEGIN {
     class SqliteDB {
         std::mutex m_lock;
     public:
-        SqliteDB(bool skipInitAndShutdown)
+        SqliteDB(bool skipInitAndShutdown,
+                 std::mutex* initAndShutdownLock = nullptr,
+                 int* instanceCount = nullptr)
             : m_db(nullptr),
-            m_skipInitAndShutdown(skipInitAndShutdown)
+              m_skipInitAndShutdown(skipInitAndShutdown),
+              m_initAndShutdownLock(initAndShutdownLock),
+              m_instanceCount(instanceCount)
         {
         }
 
         bool initialize(std::string const& filename, bool deletePrevious, size_t maxHeapLimit = 0)
         {
-            int result;
+            int result = SQLITE_OK;
 
             if (!m_skipInitAndShutdown) {
-                result = g_sqlite3Proxy->sqlite3_initialize();
+                if (m_initAndShutdownLock && m_instanceCount)
+                {
+                    LOCKGUARD(*m_initAndShutdownLock);
+                    if (*m_instanceCount > 0) {
+                        *m_instanceCount += 1;
+                    } else {
+                        result = g_sqlite3Proxy->sqlite3_initialize();
+                        if (result == SQLITE_OK) {
+                            *m_instanceCount = 1;
+                        }
+                    }
+                } else {
+                    result = g_sqlite3Proxy->sqlite3_initialize();
+                }
+
                 if (result != SQLITE_OK) {
                     LOG_ERROR("Failed to initialize SQLite (%d)", result);
                     return false;
@@ -232,9 +250,7 @@ namespace MAT_NS_BEGIN {
                 }
                 else if (result != SQLITE_IOERR_DELETE_NOENT) {
                     LOG_WARN("Failed to delete unusable database file (%d)", result);
-                    if (!m_skipInitAndShutdown) {
-                        g_sqlite3Proxy->sqlite3_shutdown();
-                    }
+                    shutdown_sqlite();
                     return false;
                 }
             }
@@ -252,9 +268,7 @@ namespace MAT_NS_BEGIN {
                     g_sqlite3Proxy->sqlite3_close_v2(m_db);
                     m_db = nullptr;
                 }
-                if (!m_skipInitAndShutdown) {
-                    g_sqlite3Proxy->sqlite3_shutdown();
-                }
+                shutdown_sqlite();
                 return false;
             }
 
@@ -271,6 +285,26 @@ namespace MAT_NS_BEGIN {
 
             LOG_TRACE("Database file was successfully opened");
             return true;
+        }
+
+        void shutdown_sqlite()
+        {
+            if (!m_skipInitAndShutdown)
+            {
+                if (m_initAndShutdownLock && m_instanceCount)
+                {
+                    LOCKGUARD(*m_initAndShutdownLock);
+                    if (*m_instanceCount > 1) {
+                        *m_instanceCount -= 1;
+                    } else if (*m_instanceCount == 1) {
+                        *m_instanceCount = 0;
+                        g_sqlite3Proxy->sqlite3_shutdown();
+                    }
+                } else
+                {
+                    g_sqlite3Proxy->sqlite3_shutdown();
+                }
+            }
         }
 
         void shutdown()
@@ -290,10 +324,7 @@ namespace MAT_NS_BEGIN {
 
             g_sqlite3Proxy->sqlite3_close_v2(m_db);
             m_db = nullptr;
-
-            if (!m_skipInitAndShutdown) {
-                g_sqlite3Proxy->sqlite3_shutdown();
-            }
+            shutdown_sqlite();
         }
 
         size_t prepare(char const* statement)
@@ -466,6 +497,8 @@ namespace MAT_NS_BEGIN {
         std::vector<sqlite3_stmt*> m_statements;
         // int                        m_statementsOffset;
         bool                       m_skipInitAndShutdown;
+        std::mutex*                m_initAndShutdownLock;
+        int*                       m_instanceCount;
 
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
