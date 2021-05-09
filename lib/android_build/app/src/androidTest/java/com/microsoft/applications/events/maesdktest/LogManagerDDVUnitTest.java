@@ -248,7 +248,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
   }
 
   @Test
-  public void startPrivacyGuardonLogManager() {
+  public void startPrivacyGuardWithMultipleLogManagers() {
     System.loadLibrary("maesdk");
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
     if (s_client == null) {
@@ -269,8 +269,12 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     final ILogger initialLogger = LogManager.initialize(token);
 
+    // Init Privacy Guard
     PrivacyGuard.initialize(initialLogger, new CommonDataContext());
+
+    // Register PG with default LogManager.
     assertThat(LogManager.registerPrivacyGuard(), is(true));
+
     ILogConfiguration custom = LogManager.getLogConfigurationCopy();
     custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
     custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
@@ -286,8 +290,16 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
             copyConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
     final ILogger secondaryLogger = secondaryManager.getLogger(contosoToken, "contoso", "");
 
+    // Register PG with secondary LogManager
     assertThat(secondaryManager.registerPrivacyGuard(), is(true));
+
+    // Unregister PG with secondary LogManager
     assertThat(secondaryManager.unregisterPrivacyGuard(), is(true));
+
+    // Unregister PG with Default LogManager
+    // This can also be done above after registration.
+    assertThat(LogManager.unregisterPrivacyGuard(), is(true));
+
     LogManager.flushAndTeardown();
   }
 
