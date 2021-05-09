@@ -296,13 +296,13 @@ extern "C"
     Java_com_microsoft_applications_events_LogManager_nativeUnregisterPrivacyGuardOnDefaultLogManager(
             JNIEnv* env,
             jclass /* this */) {
-    #if HAS_PG
+#if HAS_PG
         auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
             if (pg != nullptr) {
                 WrapperLogManager::GetInstance()->RemoveDataInspector(pg->GetName());
                 return true;
             }
-    #endif
+#endif
         return false;
     }
 }

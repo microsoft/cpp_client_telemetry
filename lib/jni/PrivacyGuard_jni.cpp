@@ -38,8 +38,6 @@ std::shared_ptr<PrivacyGuard> PrivacyGuardHelper::GetPrivacyGuardPtr() noexcept
 }
 
 extern "C"
-{
-
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuardWithoutCommonDataContext(
         JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr) {
@@ -53,6 +51,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     return true;
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard(
         JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr,
@@ -84,8 +83,9 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     return true;
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
-        Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(JNIEnv *env, jclass /*this*/)
+Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(JNIEnv *env, jclass /*this*/)
 {
     if(spPrivacyGuard == nullptr)
     {
@@ -97,6 +97,7 @@ JNIEXPORT jboolean JNICALL
     return true;
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jclass /*this*/,
                                                                jboolean isEnabled) {
@@ -107,11 +108,13 @@ Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jcla
     return true;
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(JNIEnv *env, jclass /*this*/) {
     return spPrivacyGuard != nullptr && spPrivacyGuard->IsEnabled();
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContext(
         JNIEnv *env, jclass /* this */,
@@ -140,6 +143,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
     return true;
 }
 
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIEnv *env,
         jclass /* this */,
@@ -156,10 +160,9 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIE
     spPrivacyGuard->AddIgnoredConcern(eventNameStr, fieldNameStr, static_cast<DataConcernType >(dataConcernInt));
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_isInitialized(JNIEnv *env, jclass/* this */){
     return spPrivacyGuard != nullptr;
-}
-
 }
 

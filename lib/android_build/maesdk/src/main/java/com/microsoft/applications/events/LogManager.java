@@ -924,10 +924,12 @@ public class LogManager {
   private static native boolean nativeUnregisterPrivacyGuardOnDefaultLogManager();
 
   /**
-   * Register the default instance of Privacy Guard with current LogManager instance.
-   * @return `true` if Privacy Guard is initialized and was registered successfully, `false` otherwise.
+   * Unregister the default instance of Privacy Guard from current LogManager instance.
+   * @return `true` if Privacy Guard is initialized and was unregistered successfully, `false` otherwise.
    */
   public static boolean unregisterPrivacyGuard() {
+    // We need the PG ptr to get the data inspector name to remove it. If PG is already uninitialized,
+    // we should let LogManager remove it when it d'tors.
     return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuardOnDefaultLogManager();
   }
 }

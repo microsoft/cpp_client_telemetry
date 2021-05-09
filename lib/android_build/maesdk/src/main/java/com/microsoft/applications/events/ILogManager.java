@@ -66,5 +66,6 @@ public interface ILogManager extends AutoCloseable {
   public void removeEventListener(DebugEventType eventType, DebugEventListener listener);
 
   public boolean registerPrivacyGuard();
+
   public boolean unregisterPrivacyGuard();
 }
