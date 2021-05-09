@@ -85,7 +85,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 }
 
 JNIEXPORT jboolean JNICALL
-        Java_com_microsoft_applications_events_PrivacyGuard_uninitializePrivacyGuard(JNIEnv *env, jclass /*this*/)
+        Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(JNIEnv *env, jclass /*this*/)
 {
     if(spPrivacyGuard == nullptr)
     {

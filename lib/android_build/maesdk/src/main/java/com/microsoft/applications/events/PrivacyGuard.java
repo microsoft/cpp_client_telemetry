@@ -27,7 +27,7 @@ public class PrivacyGuard {
      * @return true if Privacy Guard is successfully initialized, false otherwise. Try UnInit before re-init.
      * @throws IllegalArgumentException if loggerInstance is null.
      */
-    public static boolean initializePrivacyGuard(ILogger loggerInstance, final CommonDataContext dataContext)
+    public static boolean initialize(ILogger loggerInstance, final CommonDataContext dataContext)
     {
         if(loggerInstance == null)
         {
@@ -56,7 +56,7 @@ public class PrivacyGuard {
      * This is useful if the app would like to change the logger associated with the instance of Privacy Guard.
      * @return True if Privacy Guard was uninitialized, false if Privacy Guard had not been initialized before.
      */
-    public static native boolean uninitializePrivacyGuard();
+    public static native boolean uninitialize();
 
     /**
      * Check if Privacy Guard has been initialized or not.

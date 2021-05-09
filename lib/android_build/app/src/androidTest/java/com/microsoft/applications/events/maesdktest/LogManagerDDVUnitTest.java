@@ -4,7 +4,6 @@
 //
 package com.microsoft.applications.events.maesdktest;
 
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
@@ -18,7 +17,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import android.content.Context;
-import android.util.ArraySet;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.microsoft.applications.events.CommonDataContext;
@@ -44,9 +43,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.FutureTask;
-import java.util.regex.Pattern;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -272,7 +269,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     final ILogger initialLogger = LogManager.initialize(token);
 
-    PrivacyGuard.initializePrivacyGuard(initialLogger, new CommonDataContext());
+    PrivacyGuard.initialize(initialLogger, new CommonDataContext());
     assertThat(LogManager.registerPrivacyGuard(), is(true));
     ILogConfiguration custom = LogManager.getLogConfigurationCopy();
     custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
