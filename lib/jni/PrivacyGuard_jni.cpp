@@ -4,7 +4,7 @@
 //
 #include "JniConvertors.hpp"
 #include "modules/privacyguard/PrivacyGuard.hpp"
-#include "WrapperLogManager.hpp"
+#include "PrivacyGuardHelper.hpp"
 
 using namespace MAT;
 
@@ -30,9 +30,15 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
     return cdc;
 }
 
+std::shared_ptr<PrivacyGuard> spPrivacyGuard;
+
+std::shared_ptr<PrivacyGuard> PrivacyGuardHelper::GetPrivacyGuardPtr() noexcept
+{
+    return spPrivacyGuard;
+}
+
 extern "C"
 {
-std::shared_ptr<PrivacyGuard> spPrivacyGuard;
 
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuardWithoutCommonDataContext(
@@ -44,7 +50,6 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     InitializationConfiguration config;
     config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
-    WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
 
@@ -76,7 +81,6 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 
     config.LoggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
-    WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
 
@@ -88,7 +92,6 @@ JNIEXPORT jboolean JNICALL
         return false;
     }
 
-    WrapperLogManager::GetInstance()->ClearDataInspectors();
     spPrivacyGuard.reset();
 
     return true;
@@ -151,6 +154,11 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIE
     auto fieldNameStr = JStringToStdString(env, fieldName);
     auto dataConcernInt = static_cast<uint8_t>(dataConcern);
     spPrivacyGuard->AddIgnoredConcern(eventNameStr, fieldNameStr, static_cast<DataConcernType >(dataConcernInt));
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_PrivacyGuard_isInitialized(JNIEnv *env, jclass/* this */){
+    return spPrivacyGuard != nullptr;
 }
 
 }

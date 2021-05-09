@@ -909,6 +909,26 @@ public class LogManager {
    *
    * @return string denoting the DDV endpoint, empty string if not currently streaming
    */
-  public native static String getCurrentEndpoint();
+  public static native String getCurrentEndpoint();
+
+  private static native boolean nativeRegisterPrivacyGuardOnDefaultLogManager();
+
+  /**
+   * Register the default instance of Privacy Guard with current LogManager instance.
+   * @return `true` if Privacy Guard is initialized and was registered successfully, `false` otherwise.
+   */
+  public static boolean registerPrivacyGuard() {
+    return PrivacyGuard.isInitialized() && nativeRegisterPrivacyGuardOnDefaultLogManager();
+  }
+
+  private static native boolean nativeUnregisterPrivacyGuardOnDefaultLogManager();
+
+  /**
+   * Register the default instance of Privacy Guard with current LogManager instance.
+   * @return `true` if Privacy Guard is initialized and was registered successfully, `false` otherwise.
+   */
+  public static boolean unregisterPrivacyGuard() {
+    return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuardOnDefaultLogManager();
+  }
 }
 

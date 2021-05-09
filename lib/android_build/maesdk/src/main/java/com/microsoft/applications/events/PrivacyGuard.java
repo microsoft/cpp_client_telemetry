@@ -59,6 +59,12 @@ public class PrivacyGuard {
     public static native boolean uninitializePrivacyGuard();
 
     /**
+     * Check if Privacy Guard has been initialized or not.
+     * @return `True` if Privacy Guard was initialized, `False` otherwise.
+     */
+    public static native boolean isInitialized();
+
+    /**
      * Set the Enabled state for Privacy Guard
      * @param isEnabled New Enabled value
      * @return True if Privacy Guard was initialized and the enabled state update was conveyed, False otherwise.

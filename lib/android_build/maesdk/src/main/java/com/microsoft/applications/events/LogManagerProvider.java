@@ -271,5 +271,27 @@ public class LogManagerProvider {
     public void removeEventListener(DebugEventType eventType, DebugEventListener listener) {
       nativeRemoveEventListener(nativeLogManager, eventType.value(), listener.nativeIdentity);
     }
+
+    private native boolean nativeRegisterPrivacyGuard(long nativeLogManager);
+
+    /**
+     * Register the default instance of Privacy Guard with current LogManager instance.
+     * @return `true` if Privacy Guard is initialized and was registered successfully, `false` otherwise.
+     */
+    @Override
+    public boolean registerPrivacyGuard() {
+      return PrivacyGuard.isInitialized() && nativeRegisterPrivacyGuard(nativeLogManager);
+    }
+
+    private native boolean nativeUnregisterPrivacyGuard(long nativeLogManager);
+
+    /**
+     * Unregister the default instance of Privacy Guard with current LogManager instance.
+     * @return `true` if Privacy Guard is initialized and was unregistered successfully, `false` otherwise.
+     */
+    @Override
+    public boolean unregisterPrivacyGuard() {
+      return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuard(nativeLogManager);
+    }
   }
 }
