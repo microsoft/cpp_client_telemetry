@@ -10,7 +10,6 @@
 #endif
 #endif
 
-#endif
 #include <utils/Utils.hpp>
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
