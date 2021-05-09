@@ -15,11 +15,11 @@
 
 #endif
 #include <utils/Utils.hpp>
-#include "android/log.h"
-#include "config/RuntimeConfig_Default.hpp"
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
+#include "android/log.h"
+#include "config/RuntimeConfig_Default.hpp"
 
 using namespace MAT;
 
@@ -1530,94 +1530,4 @@ Java_com_microsoft_applications_events_ILogConfiguration_getDefaultConfiguration
     RuntimeConfig_Default defaultConfig(emptyConfig);
     ConfigConstructor builder(env);
     return builder.mapTranslate(*emptyConfig);
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeInitializePrivacyGuardWithoutDataContext(
-                JNIEnv *env,
-                jobject thiz,
-                jlong native_log_manager,
-                jlong iLoggerNativePtr)
-{
-#ifndef HAS_PRIVACYGUARD
-    return false;
-#else
-    auto logManager = getLogManager(native_log_manager);
-    logManager->SetDataInspector(GetOrCreatePrivacyGuardInstance(reinterpret_cast<ILogger*>(iLoggerNativePtr)));
-    return true;
-#endif
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeInitializePrivacyGuardWithDataContext(
-        JNIEnv *env,
-        jobject thiz,
-        jlong native_log_manager,
-        jlong iLoggerNativePtr,
-        jstring domainName,
-        jstring machineName,
-        jstring userName,
-        jstring userAlias,
-        jobjectArray ipAddresses,
-        jobjectArray languageIdentifiers,
-        jobjectArray machineIds,
-        jobjectArray outOfScopeIdentifiers)
-{
-#ifndef HAS_PRIVACYGUARD
-    return false;
-#else
-    auto logManager = getLogManager(native_log_manager);
-    logManager->SetDataInspector(GetOrCreatePrivacyGuardInstanceWithDataContext(env,
-                                                        reinterpret_cast<ILogger*>(iLoggerNativePtr),
-                                                        domainName,
-                                                        machineName,
-                                                        userName,
-                                                        userAlias,
-                                                        ipAddresses,
-                                                        languageIdentifiers,
-                                                        machineIds,
-                                                        outOfScopeIdentifiers));
-    return true;
-#endif
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterPrivacyGuard(
-        JNIEnv *env,
-        jobject thiz,
-        jlong native_log_manager)
-{
-#ifndef HAS_PRIVACYGUARD
-    return false;
-#else
-    auto logManager = getLogManager(native_log_manager);
-    auto pgInstance = GetPrivacyGuardInstance();
-    if (pgInstance == nullptr) {
-        return false;
-    }
-    logManager->RemoveDataInspector(pgInstance->GetName());
-    return true;
-#endif
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeIsPrivacyGuardEnabled(
-        JNIEnv *env,
-        jobject thiz,
-        jlong native_log_manager)
-{
-#ifndef HAS_PRIVACYGUARD
-    return false;
-#else
-    auto logManager = getLogManager(native_log_manager);
-    auto pgInstance = GetPrivacyGuardInstance();
-    if (pgInstance == nullptr) {
-        return logManager->GetDataInspector("PrivacyGuard") != nullptr;
-    }
-    return logManager->GetDataInspector(pgInstance->GetName()) != nullptr;
-#endif
 }
