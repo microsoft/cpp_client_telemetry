@@ -8,9 +8,6 @@
 #include "modules/dataviewer/DefaultDataViewer.hpp"
 #define HAS_DDV true
 #endif
-#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
-#include "PrivacyGuardHelper.hpp"
-#define HAS_PRIVACYGUARD true
 #endif
 
 #endif
