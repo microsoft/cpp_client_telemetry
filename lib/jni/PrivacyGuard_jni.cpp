@@ -10,6 +10,7 @@
 #define HAS_PG true
 #else
 struct PrivacyGuard;
+struct CommonDataContext;
 #endif
 #endif
 
@@ -28,6 +29,7 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
                                                   jobjectArray outOfScopeIdentifiers)
 {
     CommonDataContext cdc;
+#if HAS_PG
     cdc.DomainName = JStringToStdString(env, domainName);
     cdc.MachineName = JStringToStdString(env, machineName);
     cdc.UserName = JStringToStdString(env, userName);
@@ -38,6 +40,7 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
     cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
     cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
     cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
+#endif
     return cdc;
 }
 
