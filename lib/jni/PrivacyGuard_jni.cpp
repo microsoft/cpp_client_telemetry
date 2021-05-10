@@ -40,13 +40,34 @@ std::shared_ptr<PrivacyGuard> PrivacyGuardHelper::GetPrivacyGuardPtr() noexcept
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuardWithoutCommonDataContext(
-        JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr) {
+        JNIEnv *env, jclass /* this */,
+        jlong iLoggerNativePtr,
+        jstring NotificationEventName,
+        jstring SemanticContextEventName,
+        jstring SummaryEventName,
+        jboolean UseEventFieldPrefix,
+        jboolean ScanForUrls) {
     if (spPrivacyGuard != nullptr) {
         return false;
     }
 
     InitializationConfiguration config;
     config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
+    if (NotificationEventName != NULL) {
+        config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
+    }
+
+    if (SemanticContextEventName != NULL) {
+        config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
+    }
+
+    if (SummaryEventName != NULL) {
+        config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
+    }
+
+    config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
+    config.ScanForUrls = static_cast<bool>(ScanForUrls);
+
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
     return true;
 }
@@ -54,7 +75,13 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard(
-        JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr,
+        JNIEnv *env, jclass /* this */,
+        jlong iLoggerNativePtr,
+        jstring NotificationEventName,
+        jstring SemanticContextEventName,
+        jstring SummaryEventName,
+        jboolean UseEventFieldPrefix,
+        jboolean ScanForUrls,
         jstring domainName,
         jstring machineName,
         jstring userName,
@@ -79,6 +106,21 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                                            outOfScopeIdentifiers);
 
     config.LoggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
+    if (NotificationEventName != NULL) {
+        config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
+    }
+
+    if (SemanticContextEventName != NULL) {
+        config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
+    }
+
+    if (SummaryEventName != NULL) {
+        config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
+    }
+
+    config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
+    config.ScanForUrls = static_cast<bool>(ScanForUrls);
+
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
     return true;
 }

@@ -36,6 +36,7 @@ import com.microsoft.applications.events.LogManagerProvider;
 import com.microsoft.applications.events.LogSessionData;
 import com.microsoft.applications.events.OfflineRoom;
 import com.microsoft.applications.events.PrivacyGuard;
+import com.microsoft.applications.events.PrivacyGuardInitConfig;
 import com.microsoft.applications.events.Status;
 import java.util.Arrays;
 import java.util.Collections;
@@ -269,8 +270,12 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     final ILogger initialLogger = LogManager.initialize(token);
 
+    PrivacyGuardInitConfig config = new PrivacyGuardInitConfig();
+    config.loggerInstance = initialLogger;
+    config.ScanForURLs = false;
+    config.UseEventFieldPrefix = true;
     // Init Privacy Guard
-    PrivacyGuard.initialize(initialLogger, new CommonDataContext());
+    PrivacyGuard.initialize(config);
 
     // Register PG with default LogManager.
     assertThat(LogManager.registerPrivacyGuard(), is(true));
@@ -292,7 +297,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     // Register PG with secondary LogManager
     assertThat(secondaryManager.registerPrivacyGuard(), is(true));
-
+    secondaryLogger.logEvent("some.event");
     // Unregister PG with secondary LogManager
     assertThat(secondaryManager.unregisterPrivacyGuard(), is(true));
 

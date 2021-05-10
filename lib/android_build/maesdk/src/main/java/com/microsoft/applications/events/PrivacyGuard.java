@@ -9,6 +9,11 @@ public class PrivacyGuard {
     //Initialize PG
     private static native boolean nativeInitializePrivacyGuard(
             long iLoggerNativePtr,
+            String NotificationEventName,
+            String SemanticContextEventName,
+            String SummaryEventName,
+            boolean UseEventFieldPrefix,
+            boolean ScanForUrls,
             String domainName,
             String machineName,
             String userName,
@@ -18,36 +23,59 @@ public class PrivacyGuard {
             Object[] machineIds,
             Object[] outOfScopeIdentifiers);
 
-    private static native boolean nativeInitializePrivacyGuardWithoutCommonDataContext(long iLoggerNativePtr);
+    private static native boolean nativeInitializePrivacyGuardWithoutCommonDataContext(
+            long iLoggerNativePtr,
+            String NotificationEventName,
+            String SemanticContextEventName,
+            String SummaryEventName,
+            boolean UseEventFieldPrefix,
+            boolean ScanForUrls
+            );
 
     /**
      * Initialize Privacy Guard from ILogger
-     * @param loggerInstance ILogger instance that will be used to send data concerns to
-     * @param dataContext Common Data Context to initialize Privacy Guard with.
-     * @return true if Privacy Guard is successfully initialized, false otherwise. Try UnInit before re-init.
+     * @param initConfig Initialization configuration for Privacy Guard
+     * @return true if Privacy Guard is successfully initialized, false otherwise.
      * @throws IllegalArgumentException if loggerInstance is null.
      */
-    public static boolean initialize(ILogger loggerInstance, final CommonDataContext dataContext)
+    public static boolean initialize(PrivacyGuardInitConfig initConfig)
     {
-        if(loggerInstance == null)
+        if(initConfig == null)
         {
-            throw new IllegalArgumentException(("loggerInstance cannot be null."));
+            throw new IllegalArgumentException("initConfig cannot be null");
         }
 
-        if(dataContext != null)
+        if(initConfig.loggerInstance == null)
         {
-            return nativeInitializePrivacyGuard(loggerInstance.getNativeILoggerPtr(),
-                    dataContext.domainName,
-                    dataContext.machineName,
-                    dataContext.userName,
-                    dataContext.userAlias,
-                    dataContext.ipAddresses.toArray(),
-                    dataContext.languageIdentifiers.toArray(),
-                    dataContext.machineIds.toArray(),
-                    dataContext.outOfScopeIdentifiers.toArray());
+            throw new IllegalArgumentException(("loggerInstance cannot be null in initConfig."));
+        }
+
+        if(initConfig.dataContext != null)
+        {
+            return nativeInitializePrivacyGuard(initConfig.loggerInstance.getNativeILoggerPtr(),
+                    initConfig.NotificationEventName,
+                    initConfig.SemanticContextNotificationEventName,
+                    initConfig.SummaryEventName,
+                    initConfig.UseEventFieldPrefix,
+                    initConfig.ScanForURLs,
+                    initConfig.dataContext.domainName,
+                    initConfig.dataContext.machineName,
+                    initConfig.dataContext.userName,
+                    initConfig.dataContext.userAlias,
+                    initConfig.dataContext.ipAddresses.toArray(),
+                    initConfig.dataContext.languageIdentifiers.toArray(),
+                    initConfig.dataContext.machineIds.toArray(),
+                    initConfig.dataContext.outOfScopeIdentifiers.toArray());
         } else
         {
-            return nativeInitializePrivacyGuardWithoutCommonDataContext(loggerInstance.getNativeILoggerPtr());
+            return nativeInitializePrivacyGuardWithoutCommonDataContext(
+                    initConfig.loggerInstance.getNativeILoggerPtr(),
+                    initConfig.NotificationEventName,
+                    initConfig.SemanticContextNotificationEventName,
+                    initConfig.SummaryEventName,
+                    initConfig.UseEventFieldPrefix,
+                    initConfig.ScanForURLs
+            );
         }
     }
 
