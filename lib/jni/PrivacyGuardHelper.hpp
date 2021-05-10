@@ -3,14 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "ctmacros.hpp"
-#if defined(__has_include)
-#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "modules/privacyguard/PrivacyGuard.hpp"
-#define HAS_PG true
-#else
-struct PrivacyGuard;
-#endif
-#endif
 
 namespace MAT_NS_BEGIN
 {
