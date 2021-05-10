@@ -199,9 +199,6 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     }
   }
 
-  /*
-  Disabling this test since it requires private modules.
-
   @Test
   public void startDDVonLogManager() {
     System.loadLibrary("maesdk");
@@ -249,7 +246,9 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     }
     LogManager.flushAndTeardown();
   }
-   */
+
+  /*
+  Disabling this test since it requires private modules.
 
   @Test
   public void startPrivacyGuardWithMultipleLogManagers() {
@@ -310,6 +309,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     LogManager.flushAndTeardown();
   }
+   */
 
   @Test
   public void pauseAndResume() {

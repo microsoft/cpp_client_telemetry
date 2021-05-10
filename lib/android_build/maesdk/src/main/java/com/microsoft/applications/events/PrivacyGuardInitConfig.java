@@ -7,12 +7,12 @@ public class PrivacyGuardInitConfig {
     /**
      * (REQUIRED) ILogger where the Privacy Concern events are sent.
      */
-    public ILogger loggerInstance;
+    public ILogger LoggerInstance;
 
     /**
      * (REQUIRED) Common Data Context to use for Privacy Guard.
      */
-    public CommonDataContext dataContext;
+    public CommonDataContext DataContext;
 
     /**
      * (OPTIONAL) Custom event name to use when logging privacy concerns.

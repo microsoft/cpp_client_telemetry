@@ -12,9 +12,7 @@ using namespace MAT;
 CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
                                                   jstring domainName,
                                                   jstring machineName,
-                                                  jstring userName,
                                                   jobjectArray userNames,
-                                                  jstring userAlias,
                                                   jobjectArray userAliases,
                                                   jobjectArray ipAddresses,
                                                   jobjectArray languageIdentifiers,
@@ -24,9 +22,7 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
     CommonDataContext cdc;
     cdc.DomainName = JStringToStdString(env, domainName);
     cdc.MachineName = JStringToStdString(env, machineName);
-    cdc.UserName = JStringToStdString(env, userName);
     cdc.UserNames = ConvertJObjectArrayToStdStringVector(env, userNames);
-    cdc.UserAlias = JStringToStdString(env, userAlias);
     cdc.UserAliases = ConvertJObjectArrayToStdStringVector(env, userAliases);
     cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
     cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
@@ -89,9 +85,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         jboolean ScanForUrls,
         jstring domainName,
         jstring machineName,
-        jstring userName,
         jobjectArray userNames,
-        jstring userAlias,
         jobjectArray userAliases,
         jobjectArray ipAddresses,
         jobjectArray languageIdentifiers,
@@ -105,9 +99,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     config.CommonContext = GenerateCommonDataContextObject(env,
                                                            domainName,
                                                            machineName,
-                                                           userName,
                                                            userNames,
-                                                           userAlias,
                                                            userAliases,
                                                            ipAddresses,
                                                            languageIdentifiers,
@@ -170,9 +162,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
         JNIEnv *env, jclass /* this */,
         jstring domainName,
         jstring machineName,
-        jstring userName,
         jobjectArray userNames,
-        jstring userAlias,
         jobjectArray userAliases,
         jobjectArray ipAddresses,
         jobjectArray languageIdentifiers,
@@ -185,9 +175,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
     spPrivacyGuard->AppendCommonDataContext(GenerateCommonDataContextObject(env,
                                                                             domainName,
                                                                             machineName,
-                                                                            userName,
                                                                             userNames,
-                                                                            userAlias,
                                                                             userAliases,
                                                                             ipAddresses,
                                                                             languageIdentifiers,

@@ -24,19 +24,9 @@ public class CommonDataContext {
     public String machineName = "";
 
     /**
-    * Unique UserName such as the log-in name
-    */
-    public String userName = "";
-
-    /**
      * List of multiple usernames for multi-user scenarios.
      */
     public Vector<String> userNames = new Vector<>();
-
-    /**
-    * Unique User Alias, if different than UserName
-    */
-    public String userAlias = "";
 
     /**
      * List of multiple User Aliases for multi-user scenarios.

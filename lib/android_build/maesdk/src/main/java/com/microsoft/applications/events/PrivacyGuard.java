@@ -16,9 +16,7 @@ public class PrivacyGuard {
             boolean ScanForUrls,
             String domainName,
             String machineName,
-            String userName,
             Object[] userNames,
-            String userAlias,
             Object[] userAliases,
             Object[] ipAddresses,
             Object[] languageIdentifiers,
@@ -47,33 +45,31 @@ public class PrivacyGuard {
             throw new IllegalArgumentException("initConfig cannot be null");
         }
 
-        if(initConfig.loggerInstance == null)
+        if(initConfig.LoggerInstance == null)
         {
             throw new IllegalArgumentException(("loggerInstance cannot be null in initConfig."));
         }
 
-        if(initConfig.dataContext != null)
+        if(initConfig.DataContext != null)
         {
-            return nativeInitializePrivacyGuard(initConfig.loggerInstance.getNativeILoggerPtr(),
+            return nativeInitializePrivacyGuard(initConfig.LoggerInstance.getNativeILoggerPtr(),
                     initConfig.NotificationEventName,
                     initConfig.SemanticContextNotificationEventName,
                     initConfig.SummaryEventName,
                     initConfig.UseEventFieldPrefix,
                     initConfig.ScanForURLs,
-                    initConfig.dataContext.domainName,
-                    initConfig.dataContext.machineName,
-                    initConfig.dataContext.userName,
-                    initConfig.dataContext.userNames.toArray(),
-                    initConfig.dataContext.userAlias,
-                    initConfig.dataContext.userAliases.toArray(),
-                    initConfig.dataContext.ipAddresses.toArray(),
-                    initConfig.dataContext.languageIdentifiers.toArray(),
-                    initConfig.dataContext.machineIds.toArray(),
-                    initConfig.dataContext.outOfScopeIdentifiers.toArray());
+                    initConfig.DataContext.domainName,
+                    initConfig.DataContext.machineName,
+                    initConfig.DataContext.userNames.toArray(),
+                    initConfig.DataContext.userAliases.toArray(),
+                    initConfig.DataContext.ipAddresses.toArray(),
+                    initConfig.DataContext.languageIdentifiers.toArray(),
+                    initConfig.DataContext.machineIds.toArray(),
+                    initConfig.DataContext.outOfScopeIdentifiers.toArray());
         } else
         {
             return nativeInitializePrivacyGuardWithoutCommonDataContext(
-                    initConfig.loggerInstance.getNativeILoggerPtr(),
+                    initConfig.LoggerInstance.getNativeILoggerPtr(),
                     initConfig.NotificationEventName,
                     initConfig.SemanticContextNotificationEventName,
                     initConfig.SummaryEventName,
@@ -112,9 +108,7 @@ public class PrivacyGuard {
     private static native boolean nativeAppendCommonDataContext(
             String domainName,
             String machineName,
-            String userName,
             Object[] userNames,
-            String userAlias,
             Object[] userAliases,
             Object[] ipAddresses,
             Object[] languageIdentifiers,
@@ -137,9 +131,7 @@ public class PrivacyGuard {
         return nativeAppendCommonDataContext(
                 freshDataContext.domainName,
                 freshDataContext.machineName,
-                freshDataContext.userName,
                 freshDataContext.userNames.toArray(),
-                freshDataContext.userAlias,
                 freshDataContext.userAliases.toArray(),
                 freshDataContext.ipAddresses.toArray(),
                 freshDataContext.languageIdentifiers.toArray(),
