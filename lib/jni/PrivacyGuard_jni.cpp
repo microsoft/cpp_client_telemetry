@@ -28,8 +28,8 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
                                                   jobjectArray machineIds,
                                                   jobjectArray outOfScopeIdentifiers)
 {
-    CommonDataContext cdc;
 #if HAS_PG
+    CommonDataContext cdc;
     cdc.DomainName = JStringToStdString(env, domainName);
     cdc.MachineName = JStringToStdString(env, machineName);
     cdc.UserName = JStringToStdString(env, userName);
@@ -40,8 +40,9 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
     cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
     cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
     cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
-#endif
     return cdc;
+#endif
+    return CommonDataContext();
 }
 
 std::shared_ptr<PrivacyGuard> spPrivacyGuard;
