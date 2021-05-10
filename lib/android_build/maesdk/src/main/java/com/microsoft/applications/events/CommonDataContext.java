@@ -29,10 +29,19 @@ public class CommonDataContext {
     public String userName = "";
 
     /**
+     * List of multiple usernames for multi-user scenarios.
+     */
+    public Vector<String> userNames = new Vector<>();
+
+    /**
     * Unique User Alias, if different than UserName
     */
     public String userAlias = "";
 
+    /**
+     * List of multiple User Aliases for multi-user scenarios.
+     */
+    public Vector<String> userAliases = new Vector<>();
     /**
     * IP Addresses for local network ports such as IPv4, IPv6, etc.
     */

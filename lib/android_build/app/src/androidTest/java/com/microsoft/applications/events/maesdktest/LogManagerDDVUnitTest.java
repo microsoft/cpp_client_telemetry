@@ -20,7 +20,6 @@ import android.content.Context;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import com.microsoft.applications.events.CommonDataContext;
 import com.microsoft.applications.events.DebugEvent;
 import com.microsoft.applications.events.DebugEventListener;
 import com.microsoft.applications.events.DebugEventType;
