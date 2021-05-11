@@ -7,7 +7,7 @@
 #import "ODWLogger.h"
 #import "ODWEventProperties.h"
 #import "ODWPrivacyGuard.h"
-#import "ODWCommondataContext.h"
+#import "ODWCommonDataContext.h"
 
 int main(int argc, char** argv){
     @autoreleasepool{
