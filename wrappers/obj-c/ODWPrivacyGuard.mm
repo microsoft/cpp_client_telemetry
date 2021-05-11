@@ -10,6 +10,7 @@
 #import "ODWLogConfiguration.h"
 #import "ODWPrivacyGuard.h"
 #import "ODWPrivacyGuard_private.h"
+#import "ODWPrivacyGuardInitConfig.h"
 
 using namespace MAT;
 
@@ -81,11 +82,25 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     return cdc;
 }
 
-+(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
++(void)initializePrivacyGuard:(ILogger *)logger withODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
 {
     InitializationConfiguration config;
     config.LoggerInstance = logger;
-    config.CommonContext = [ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject];
+    config.CommonContext = [ODWPrivacyGuard convertToNativeCommonDataContexts:[initConfigObject DataContext]];
+    if ([initConfigObject NotificationEventName] != nil)
+    {
+        config.NotificationEventName = [[initConfigObject NotificationEventName] UTF8String];
+    }
+    if ([initConfigObject SemanticContextNotificationEventName] != nil)
+    {
+        config.SemanticContextNotificationEventName = [[initConfigObject SemanticContextNotificationEventName] UTF8String];
+    }
+    if ([initConfigObject SummaryEventName] != nil)
+    {
+        config.SummaryEventName = [[initConfigObject SummaryEventName] UTF8String];
+    }
+    config.UseEventFieldPrefix = [initConfigObject UseEventFieldPrefix];
+    config.ScanForUrls = [initConfigObject ScanForUrls];
     _privacyGuardPtr = std::make_shared<PrivacyGuard>(config);
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
 }

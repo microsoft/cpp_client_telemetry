@@ -3,12 +3,17 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "objc_begin.h"
+#import "ODWCommonDataContext.h"
 
 NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief Privacy Guard Initialization Configuration
  */
 @interface ODWPrivacyGuardInitConfig : NSObject
+/*!
+ @brief (REQUIRED) Data Context to use with Privacy Guard.
+ */
+@property(readwrite, copy, nonatomic) ODWCommonDataContext* DataContext;
 /*!
  @brief (OPTIONAL) Custom event name to use when logging privacy concerns. Default value is `PrivacyConcern`.
  */

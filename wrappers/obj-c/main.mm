@@ -16,28 +16,31 @@ int main(int argc, char** argv){
 
         ODWLogger* myLogger = [ODWLogManager loggerWithTenant: token];
 
-        ODWCommonDataContext* cdc = [[ODWCommonDataContext alloc] init];        
+        ODWPrivacyGuardInitConfig* pgInitConfig = [[ODWPrivacyGuardInitConfig alloc] init];
+        [[pgInitConfig UseEventFieldPrefix]: TRUE]
+
+        [pgInitConfig DataContext] = [[ODWCommonDataContext alloc] init];
         /*
-         * Values below are case-insensitive.
+         * Values below are case-insensitive, except for User Names.
          * PrivacyGuard converts everything to uppercase and uses that for comparison
          */
-        [cdc setDomainName:@"TEST.MICROSOFT.COM"];
-        [cdc setMachineName:@"Motherboard"];
-        [cdc setUserName:@"Awesome Username"];
-        [cdc setUserAlias:@"awesomeuser" ];
-        [[cdc IpAddresses] addObject:@"10.0.1.1"];
-        [[cdc IpAddresses] addObject:@"192.168.1.1"];
-        [[cdc IpAddresses] addObject:@"1234:4578:9abc:def0:bea4:ca4:ca1:d0g"];
-        [[cdc LanguageIdentifiers] addObject:@"en-US"];
-        [[cdc LanguageIdentifiers] addObject:@"English (United States)"];
-        [[cdc MachineIds] addObject:@"0450fe66-aeed-4059-99ca-4dd8702cbd1f"];
-        [[cdc OutOfScopeIdentifiers] addObject:@"43efb3b1-c7a3-4f29-beea-63ccb28160ac"];
-        [[cdc OutOfScopeIdentifiers] addObject:@"7d06a83a-200d-4ccb-bfc6-d0995c840bde"];
-        [[cdc OutOfScopeIdentifiers] addObject:@"e1b2ece8-2451-4ea9-997a-6f37b50be8de"];
-        
+        [[pgInitConfig DataContext] setDomainName:@"TEST.MICROSOFT.COM"];
+        [[pgInitConfig DataContext] setMachineName:@"Motherboard"];
+        [[[pgInitConfig DataContext] setUserNames] addObject:@"Awesome Username"];
+        [[[pgInitConfig DataContext] setUserAliases] addObject:@"awesomeuser" ];
+        [[[pgInitConfig DataContext] IpAddresses] addObject:@"10.0.1.1"];
+        [[[pgInitConfig DataContext] IpAddresses] addObject:@"192.168.1.1"];
+        [[[pgInitConfig DataContext] IpAddresses] addObject:@"1234:4578:9abc:def0:bea4:ca4:ca1:d0g"];
+        [[[pgInitConfig DataContext] LanguageIdentifiers] addObject:@"en-US"];
+        [[[pgInitConfig DataContext] LanguageIdentifiers] addObject:@"English (United States)"];
+        [[[pgInitConfig DataContext] MachineIds] addObject:@"0450fe66-aeed-4059-99ca-4dd8702cbd1f"];
+        [[[pgInitConfig DataContext] OutOfScopeIdentifiers] addObject:@"43efb3b1-c7a3-4f29-beea-63ccb28160ac"];
+        [[[pgInitConfig DataContext] OutOfScopeIdentifiers] addObject:@"7d06a83a-200d-4ccb-bfc6-d0995c840bde"];
+        [[[pgInitConfig DataContext] OutOfScopeIdentifiers] addObject:@"e1b2ece8-2451-4ea9-997a-6f37b50be8de"];
+
         if(myLogger){
             //If you have the logger, initializePrivacyGuard before logging data to ensure everything is inspected.
-            [myLogger initializePrivacyGuardWithODWCommonDataContext: cdc];
+            [myLogger initializePrivacyGuardWithODWPrivacyGuardInitConfig: pgInitConfig];
 
             [myLogger logEventWithName: @"Simple_ObjC_Event"];
         }
