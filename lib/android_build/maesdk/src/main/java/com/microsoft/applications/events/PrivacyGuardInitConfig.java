@@ -4,6 +4,26 @@ package com.microsoft.applications.events;
  * `PrivacyGuardInitConfig` provides ability to convey initialization parameters for Privacy Guard.
  */
 public class PrivacyGuardInitConfig {
+
+    /**
+     * Create a PrivacyGuardInitConfig Object
+     * @param logger ILogger where the Privacy Concern events are sent.
+     * @param context Common Data Context to use for Privacy Guard.
+     */
+    public PrivacyGuardInitConfig(ILogger logger, CommonDataContext context)
+    {
+        if(logger == null) {
+            throw new IllegalArgumentException("logger cannot be null");
+        }
+
+        if(context == null) {
+            throw new IllegalArgumentException("context cannot be null");
+        }
+
+        LoggerInstance = logger;
+        DataContext = context;
+    }
+
     /**
      * (REQUIRED) ILogger where the Privacy Concern events are sent.
      */

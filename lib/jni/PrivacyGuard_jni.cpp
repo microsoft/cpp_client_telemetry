@@ -57,8 +57,9 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         return false;
     }
 
-    InitializationConfiguration config;
-    config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
+    InitializationConfiguration config(
+            reinterpret_cast<ILogger*>(iLoggerNativePtr),
+            CommonDataContext{});
     if (NotificationEventName != nullptr) {
         config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
     }
@@ -100,18 +101,18 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         return false;
     }
 
-    InitializationConfiguration config;
-    config.CommonContext = GenerateCommonDataContextObject(env,
-                                                           domainName,
-                                                           machineName,
-                                                           userNames,
-                                                           userAliases,
-                                                           ipAddresses,
-                                                           languageIdentifiers,
-                                                           machineIds,
-                                                           outOfScopeIdentifiers);
+    InitializationConfiguration config(
+            reinterpret_cast<ILogger *>(iLoggerNativePtr),
+            GenerateCommonDataContextObject(env,
+                                            domainName,
+                                            machineName,
+                                            userNames,
+                                            userAliases,
+                                            ipAddresses,
+                                            languageIdentifiers,
+                                            machineIds,
+                                            outOfScopeIdentifiers));
 
-    config.LoggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
     if (NotificationEventName != NULL) {
         config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
     }
@@ -133,7 +134,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(JNIEnv *env, jclass /*this*/)
+Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(const JNIEnv *env, jclass /*this*/)
 {
     if(spPrivacyGuard == nullptr)
     {
@@ -147,7 +148,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(JNIEnv *env, jc
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jclass /*this*/, jboolean isEnabled) {
+Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(const JNIEnv *env, jclass /*this*/, jboolean isEnabled) {
     if (spPrivacyGuard == nullptr) {
         return false;
     }
@@ -157,7 +158,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jcla
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(JNIEnv *env, jclass /*this*/) {
+Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(const JNIEnv *env, jclass /*this*/) {
     return spPrivacyGuard != nullptr && spPrivacyGuard->IsEnabled();
 }
 
@@ -209,7 +210,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIE
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_PrivacyGuard_isInitialized(JNIEnv *env, jclass/* this */){
+Java_com_microsoft_applications_events_PrivacyGuard_isInitialized(const JNIEnv *env, jclass/* this */){
     return spPrivacyGuard != nullptr;
 }
 

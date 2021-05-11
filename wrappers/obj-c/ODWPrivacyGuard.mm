@@ -84,9 +84,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
 +(void)initializePrivacyGuard:(ILogger *)logger withODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
 {
-    InitializationConfiguration config;
-    config.LoggerInstance = logger;
-    config.CommonContext = [ODWPrivacyGuard convertToNativeCommonDataContexts:[initConfigObject DataContext]];
+    InitializationConfiguration config(logger, [ODWPrivacyGuard convertToNativeCommonDataContexts:[initConfigObject DataContext]]);
     if ([initConfigObject notificationEventName] != nil)
     {
         config.NotificationEventName = [[initConfigObject notificationEventName] UTF8String];
