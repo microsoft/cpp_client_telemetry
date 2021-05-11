@@ -13,31 +13,31 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief (REQUIRED) Data Context to use with Privacy Guard.
  */
-@property(readwrite, copy, nonatomic) ODWCommonDataContext* DataContext;
+@property(readwrite, copy, nonatomic) ODWCommonDataContext* dataContext;
 /*!
  @brief (OPTIONAL) Custom event name to use when logging privacy concerns. Default value is `PrivacyConcern`.
  */
-@property(readwrite, copy, nonatomic) NSString* NotificationEventName;
+@property(readwrite, copy, nonatomic) NSString* notificationEventName;
 
 /*!
  @brief (OPTIONAL) Custom event name to use when logging concerns identified in the Semantic Context. Default value is `SemanticContext`.
  */
-@property(readwrite, copy, nonatomic) NSString* SemanticContextNotificationEventName;
+@property(readwrite, copy, nonatomic) NSString* semanticContextNotificationEventName;
 
 /*!
  @brief (OPTIONAL) Custom event name to use when logging summary events. Default value is `PrivacyGuardSummary`.
  */
-@property(readwrite, copy, nonatomic) NSString* SummaryEventName;
+@property(readwrite, copy, nonatomic) NSString* summaryEventName;
 
 /*!
  @brief (OPTIONAL) Add `PG_` prefix to Notification and Summary event field names. Default value is `false`.
  */
-@property(readwrite, nonatomic) BOOL UseEventFieldPrefix;
+@property(readwrite, nonatomic) BOOL useEventFieldPrefix;
 
 /*!
  @brief (OPTIONAL) Should scan for URLs? Default value is `true`.
  */
-@property(readwrite, nonatomic) BOOL ScanForUrls;
+@property(readwrite, nonatomic) BOOL scanForUrls;
 
 @end
 NS_ASSUME_NONNULL_END

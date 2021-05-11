@@ -87,20 +87,20 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     InitializationConfiguration config;
     config.LoggerInstance = logger;
     config.CommonContext = [ODWPrivacyGuard convertToNativeCommonDataContexts:[initConfigObject DataContext]];
-    if ([initConfigObject NotificationEventName] != nil)
+    if ([initConfigObject notificationEventName] != nil)
     {
-        config.NotificationEventName = [[initConfigObject NotificationEventName] UTF8String];
+        config.NotificationEventName = [[initConfigObject notificationEventName] UTF8String];
     }
-    if ([initConfigObject SemanticContextNotificationEventName] != nil)
+    if ([initConfigObject semanticContextNotificationEventName] != nil)
     {
-        config.SemanticContextNotificationEventName = [[initConfigObject SemanticContextNotificationEventName] UTF8String];
+        config.SemanticContextNotificationEventName = [[initConfigObject semanticContextNotificationEventName] UTF8String];
     }
-    if ([initConfigObject SummaryEventName] != nil)
+    if ([initConfigObject summaryEventName] != nil)
     {
-        config.SummaryEventName = [[initConfigObject SummaryEventName] UTF8String];
+        config.SummaryEventName = [[initConfigObject summaryEventName] UTF8String];
     }
-    config.UseEventFieldPrefix = [initConfigObject UseEventFieldPrefix];
-    config.ScanForUrls = [initConfigObject ScanForUrls];
+    config.UseEventFieldPrefix = [initConfigObject useEventFieldPrefix];
+    config.ScanForUrls = [initConfigObject scanForUrls];
     _privacyGuardPtr = std::make_shared<PrivacyGuard>(config);
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
 }
