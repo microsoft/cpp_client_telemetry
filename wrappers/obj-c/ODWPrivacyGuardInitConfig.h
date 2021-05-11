@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief (OPTIONAL) Custom event name to use when logging concerns identified in the Semantic Context. Default value is `SemanticContext`.
  */
-@property(readwrite, copy, nonatomic) NSString* SemanticContextEventName;
+@property(readwrite, copy, nonatomic) NSString* SemanticContextNotificationEventName;
 
 /*!
  @brief (OPTIONAL) Custom event name to use when logging summary events. Default value is `PrivacyGuardSummary`.
@@ -32,12 +32,12 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief (OPTIONAL) Add `PG_` prefix to Notification and Summary event field names. Default value is `false`.
  */
-@property(readwrite, copy, nonatomic) BOOL UseEventFieldPrefix;
+@property(readwrite, nonatomic) BOOL UseEventFieldPrefix;
 
 /*!
  @brief (OPTIONAL) Should scan for URLs? Default value is `true`.
  */
-@property(readwrite, copy, nonatomic) BOOL ScanForURLs;
+@property(readwrite, nonatomic) BOOL ScanForUrls;
 
 @end
 NS_ASSUME_NONNULL_END
