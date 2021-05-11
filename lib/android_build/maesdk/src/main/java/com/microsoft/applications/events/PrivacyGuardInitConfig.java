@@ -42,5 +42,5 @@ public class PrivacyGuardInitConfig {
      * (OPTIONAL) Should scan for URLs?
      * Default value is `true`.
      */
-    public boolean ScanForURLs = true;
+    public boolean ScanForUrls = true;
 }

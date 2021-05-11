@@ -20,8 +20,13 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
                                                   jobjectArray outOfScopeIdentifiers)
 {
     CommonDataContext cdc;
-    cdc.DomainName = JStringToStdString(env, domainName);
-    cdc.MachineName = JStringToStdString(env, machineName);
+    if(domainName != nullptr) {
+        cdc.DomainName = JStringToStdString(env, domainName);
+    }
+    if(machineName != nullptr) {
+        cdc.MachineName = JStringToStdString(env, machineName);
+    }
+
     cdc.UserNames = ConvertJObjectArrayToStdStringVector(env, userNames);
     cdc.UserAliases = ConvertJObjectArrayToStdStringVector(env, userAliases);
     cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
@@ -54,15 +59,15 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 
     InitializationConfiguration config;
     config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
-    if (NotificationEventName != NULL) {
+    if (NotificationEventName != nullptr) {
         config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
     }
 
-    if (SemanticContextEventName != NULL) {
+    if (SemanticContextEventName != nullptr) {
         config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
     }
 
-    if (SummaryEventName != NULL) {
+    if (SummaryEventName != nullptr) {
         config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
     }
 

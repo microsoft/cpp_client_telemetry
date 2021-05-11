@@ -57,7 +57,7 @@ public class PrivacyGuard {
                     initConfig.SemanticContextNotificationEventName,
                     initConfig.SummaryEventName,
                     initConfig.UseEventFieldPrefix,
-                    initConfig.ScanForURLs,
+                    initConfig.ScanForUrls,
                     initConfig.DataContext.domainName,
                     initConfig.DataContext.machineName,
                     initConfig.DataContext.userNames.toArray(),
@@ -74,7 +74,7 @@ public class PrivacyGuard {
                     initConfig.SemanticContextNotificationEventName,
                     initConfig.SummaryEventName,
                     initConfig.UseEventFieldPrefix,
-                    initConfig.ScanForURLs
+                    initConfig.ScanForUrls
             );
         }
     }
