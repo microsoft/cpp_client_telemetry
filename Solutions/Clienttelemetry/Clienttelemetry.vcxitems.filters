@@ -19,6 +19,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\decoder\PayloadDecoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClient_CAPI.cpp" />
@@ -150,11 +151,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\KillSwitchManager.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\LogSessionDataProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.hpp" />
-    
-    
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageFactory.cpp" />
-    
-    
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\SQLiteWrapper.hpp" />
