@@ -5,7 +5,7 @@
 #include "objc_begin.h"
 #include "ILogger.hpp"
 #import "ODWPrivacyGuard.h"
-#import "ODWCommonDataContext.h"
+#import "ODWPrivacyGuardInitConfig.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -21,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param logger Logger used for reporting concerns
  @param commonDataContextsObject Common Data Contexts
  */
-+(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject;
++(void)initializePrivacyGuard:(ILogger *)logger withODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject;
 @end
 
 NS_ASSUME_NONNULL_END

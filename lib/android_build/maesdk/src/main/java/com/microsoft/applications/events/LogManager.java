@@ -909,6 +909,28 @@ public class LogManager {
    *
    * @return string denoting the DDV endpoint, empty string if not currently streaming
    */
-  public native static String getCurrentEndpoint();
+  public static native String getCurrentEndpoint();
+
+  private static native boolean nativeRegisterPrivacyGuardOnDefaultLogManager();
+
+  /**
+   * Register the default instance of Privacy Guard with current LogManager instance.
+   * @return `true` if Privacy Guard is initialized and was registered successfully, `false` otherwise.
+   */
+  public static boolean registerPrivacyGuard() {
+    return PrivacyGuard.isInitialized() && nativeRegisterPrivacyGuardOnDefaultLogManager();
+  }
+
+  private static native boolean nativeUnregisterPrivacyGuardOnDefaultLogManager();
+
+  /**
+   * Unregister the default instance of Privacy Guard from current LogManager instance.
+   * @return `true` if Privacy Guard is initialized and was unregistered successfully, `false` otherwise.
+   */
+  public static boolean unregisterPrivacyGuard() {
+    // We need the PG ptr to get the data inspector name to remove it. If PG is already uninitialized,
+    // we should let LogManager remove it when it d'tors.
+    return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuardOnDefaultLogManager();
+  }
 }
 

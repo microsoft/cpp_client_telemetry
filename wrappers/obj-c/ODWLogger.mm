@@ -403,8 +403,8 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
     }
 }
 
--(void)initializePrivacyGuardWithODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
+-(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
 {    
-    [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWCommonDataContext:commonDataContextsObject];
+    [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWPrivacyGuardInitConfig:initConfigObject];
 }
 @end
