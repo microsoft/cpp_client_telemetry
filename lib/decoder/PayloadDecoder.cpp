@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "PayloadDecoder.hpp"
+#include "mat/config.h"
 
 #if !defined(HAVE_MAT_ZLIB) || !defined(HAVE_MAT_JSONHPP)
 
