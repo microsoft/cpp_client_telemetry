@@ -22,12 +22,12 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief User Name such as the Login Name.
  */
-@property(readwrite, copy, nonatomic) NSString* UserName;
+@property(readwrite, copy, nonatomic) NSMutableArray* UserNames;
 
 /*!
  @brief User Alias, if different that UserName
  */
-@property(readwrite, copy, nonatomic) NSString* UserAlias;
+@property(readwrite, copy, nonatomic) NSMutableArray* UserAliases;
 
 /*!
  @brief IP Addresses for local network ports such as IPv4, IPv6, etc.

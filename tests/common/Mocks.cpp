@@ -32,8 +32,6 @@ namespace testing {
     MockIOfflineStorage::MockIOfflineStorage() {}
     MockIOfflineStorage::~MockIOfflineStorage() {}
 
-    MockIRuntimeConfig::~MockIRuntimeConfig() {}
-
     MockISemanticContext::MockISemanticContext() {}
     MockISemanticContext::~MockISemanticContext() {}
 

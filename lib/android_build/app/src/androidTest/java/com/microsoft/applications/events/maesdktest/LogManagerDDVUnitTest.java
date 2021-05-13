@@ -4,7 +4,6 @@
 //
 package com.microsoft.applications.events.maesdktest;
 
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
@@ -18,7 +17,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import android.content.Context;
-import android.util.ArraySet;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.microsoft.applications.events.DebugEvent;
@@ -35,6 +34,8 @@ import com.microsoft.applications.events.LogManager.LogConfigurationImpl;
 import com.microsoft.applications.events.LogManagerProvider;
 import com.microsoft.applications.events.LogSessionData;
 import com.microsoft.applications.events.OfflineRoom;
+import com.microsoft.applications.events.PrivacyGuard;
+import com.microsoft.applications.events.PrivacyGuardInitConfig;
 import com.microsoft.applications.events.Status;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,9 +43,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.FutureTask;
-import java.util.regex.Pattern;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -247,6 +246,70 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     }
     LogManager.flushAndTeardown();
   }
+
+  /*
+  Disabling this test since it requires private modules.
+
+  @Test
+  public void startPrivacyGuardWithMultipleLogManagers() {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    synchronized (s_client.urlMap) {
+      s_client.urlMap.clear();
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+            "0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123";
+    final String contosoToken =
+            "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String contosoUrl = "https://bozo.contoso.com/";
+    final String contosoName = "ContosoFactory";
+    final String contosoDatabase = "ContosoSequel";
+
+    final ILogger initialLogger = LogManager.initialize(token);
+
+    PrivacyGuardInitConfig config = new PrivacyGuardInitConfig();
+    config.loggerInstance = initialLogger;
+    config.ScanForURLs = false;
+    config.UseEventFieldPrefix = true;
+    // Init Privacy Guard
+    PrivacyGuard.initialize(config);
+
+    // Register PG with default LogManager.
+    assertThat(LogManager.registerPrivacyGuard(), is(true));
+
+    ILogConfiguration custom = LogManager.getLogConfigurationCopy();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, contosoToken);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, contosoUrl);
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, contosoName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, contosoDatabase);
+    assertThat(custom.getString(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN), is(contosoToken));
+    assertThat(custom.getString(LogConfigurationKey.CFG_STR_COLLECTOR_URL), is(contosoUrl));
+    assertThat(custom.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
+
+    final ILogManager secondaryManager = LogManagerProvider.createLogManager(custom);
+    final ILogConfiguration copyConfig = secondaryManager.getLogConfigurationCopy();
+    assertThat(
+            copyConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_TPM), is(not(nullValue())));
+    final ILogger secondaryLogger = secondaryManager.getLogger(contosoToken, "contoso", "");
+
+    // Register PG with secondary LogManager
+    assertThat(secondaryManager.registerPrivacyGuard(), is(true));
+    secondaryLogger.logEvent("some.event");
+    // Unregister PG with secondary LogManager
+    assertThat(secondaryManager.unregisterPrivacyGuard(), is(true));
+
+    // Unregister PG with Default LogManager
+    // This can also be done above after registration.
+    assertThat(LogManager.unregisterPrivacyGuard(), is(true));
+
+    LogManager.flushAndTeardown();
+  }
+   */
 
   @Test
   public void pauseAndResume() {

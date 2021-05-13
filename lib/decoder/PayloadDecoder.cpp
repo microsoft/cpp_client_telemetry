@@ -2,8 +2,35 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
+#include "mat/config.h"
+
 #include "PayloadDecoder.hpp"
 
+#if !defined(HAVE_MAT_ZLIB) || !defined(HAVE_MAT_JSONHPP)
+
+/* PayloadDecoder functionality requires ZLib and json.hpp.
+ * If these components are not included in the build, then
+ * replace decoder utility functions with stubs that return
+ * false.
+ */
+namespace MAT_NS_BEGIN
+{
+    namespace exporters
+    {
+        bool DecodeRecord(const CsProtocol::Record&, std::string&)
+        {
+            return false;
+        }
+
+        bool DecodeRequest(const std::vector<uint8_t>&, std::string&, bool)
+        {
+            return false;
+        }
+    };
+}
+MAT_NS_END
+
+#else
 #include <algorithm>
 #include <chrono>
 #include <fstream>
@@ -557,4 +584,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-
+#endif

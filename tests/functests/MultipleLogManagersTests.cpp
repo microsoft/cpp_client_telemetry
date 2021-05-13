@@ -204,8 +204,7 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
 {
     MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
-    InitializationConfiguration config;
-    config.LoggerInstance = &mockLogger;
+    InitializationConfiguration config(&mockLogger, CommonDataContext {});
     const auto privacyGuard = std::make_shared<PrivacyGuard>(config);
     mockLogger.m_logEventOverride = [&privacyConcernLogCount, &privacyGuard](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), privacyGuard->GetNotificationEventName()))

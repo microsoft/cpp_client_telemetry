@@ -269,9 +269,18 @@ static BOOL _initialized = false;
 
 +(void)pauseTransmission
 {
-    PerformActionWithCppExceptionsCatch(^(void) {
+    try
+    {
         LogManager::PauseTransmission();
-    });
+    }
+    catch (const std::exception &e)
+    {
+        if ([ODWLogConfiguration surfaceCppExceptions])
+        {
+            [ODWLogger raiseException: e.what()];
+        }
+        [ODWLogger traceException: e.what()];
+    }
 }
 
 +(void)resumeTransmission
@@ -310,5 +319,10 @@ static BOOL _initialized = false;
 
         LogManager::SetContext(strKey, strValue, piiValue);
     });
+}
++(void)applicationWillTerminate {
+    canUseSDK = false;
+    [ODWLogManager pauseTransmission];
+    [ODWLogManager flushAndTeardown];
 }
 @end
