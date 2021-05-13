@@ -989,6 +989,8 @@ static void logBenchMark(const char * label)
 #endif
 }
 
+#if 0
+ // https://github.com/microsoft/cpp_client_telemetry/issues/870
 TEST(APITest, LogManager_Reinitialize_UploadNow)
 {
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
@@ -1047,6 +1049,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
 
     EXPECT_GE(shutdownSec + 1, total_time);
 }
+#endif
 
 TEST(APITest, LogManager_BadStoragePath_Test)
 {
