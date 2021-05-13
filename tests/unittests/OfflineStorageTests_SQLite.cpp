@@ -2,10 +2,10 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
-#if 0
 #include "common/Common.hpp"
 #include "common/MockIOfflineStorageObserver.hpp"
 #include "common/MockIRuntimeConfig.hpp"
+#include "utils/Utils.hpp"
 #include "offline/OfflineStorage_SQLite.hpp"
 #include <stdio.h>
 #include <fstream>
@@ -27,6 +27,12 @@ class OfflineStorage_SQLiteNoAutoCommit : public OfflineStorage_SQLite
     {
     }
 
+    // Returns the number of active SQLiteDBs
+    int GetDbInstanceCount() {
+      std::lock_guard<std::mutex> lock(m_initAndShutdownLock);
+      return m_instanceCount;
+    }
+
     virtual void scheduleAutoCommitTransaction()
     {
     }
@@ -38,22 +44,17 @@ struct OfflineStorageTests_SQLite : public Test
     StrictMock<MockIRuntimeConfig>                      configMock;
     StrictMock<MockIOfflineStorageObserver>             observerMock;
     ILogManager *                                       logManager;
-    ILogConfiguration                                   configuration;
     std::unique_ptr<OfflineStorage_SQLiteNoAutoCommit>  offlineStorage;
+    std::string                                         storageFilename;
+    bool                                                storageInitialized = false;
 
     virtual void SetUp() override
     {
         static NullLogManager nullLogManager;
         logManager = &nullLogManager;
 
-        configuration["cacheFilePath"] = TEST_STORAGE_FILENAME;
-        EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
-
-        offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(*logManager, configMock));
-
-        EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Default"))
-            .RetiresOnSaturation();
-        offlineStorage->Initialize(observerMock);
+        storageFilename = MAT::GetAppLocalTempDirectory() + TEST_STORAGE_FILENAME;
+        configMock["cacheFilePath"] = storageFilename;
     }
 
     virtual void TearDown() override
@@ -61,12 +62,31 @@ struct OfflineStorageTests_SQLite : public Test
         shutdownAndRemoveFile();
     }
 
+    void initializeStorage(bool configureMaxSize = true)
+    {
+        if (configureMaxSize)
+        {
+            EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
+        }
+
+        storageInitialized = true;
+        offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(*logManager, configMock));
+
+        EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Default"))
+            .RetiresOnSaturation();
+        offlineStorage->Initialize(observerMock);
+    }
+
     void shutdownAndRemoveFile()
     {
-        offlineStorage->Shutdown();
-        EXPECT_THAT(fileExists(TEST_STORAGE_FILENAME), true);
-        ::remove(TEST_STORAGE_FILENAME);
-        ASSERT_THAT(fileExists(TEST_STORAGE_FILENAME), false);
+        if (storageInitialized)
+        {
+            storageInitialized = false;
+            offlineStorage->Shutdown();
+            EXPECT_THAT(fileExists(storageFilename), true);
+            ::remove(storageFilename.c_str());
+            EXPECT_THAT(fileExists(storageFilename), false);
+        }
     }
 
     bool fileExists(std::string const& filename)
@@ -97,10 +117,12 @@ class TestRecordConsumer {
 
 TEST_F(OfflineStorageTests_SQLite, InitializeAndShutdownCreateFileThatCanBeDeleted)
 {
+    initializeStorage();
 }
 
 TEST_F(OfflineStorageTests_SQLite, StorageRecordConstructorSetsAllFields)
 {
+    initializeStorage();
     StorageRecord record{ "guid", "token", EventLatency_RealTime, EventPersistence_Critical, INT64_MIN + 1, { 5, 4, 3, 2, 1 }, 77, INT64_MAX - 1 };
     EXPECT_THAT(record.id, StrEq("guid"));
     EXPECT_THAT(record.tenantToken, StrEq("token"));
@@ -113,6 +135,7 @@ TEST_F(OfflineStorageTests_SQLite, StorageRecordConstructorSetsAllFields)
 
 TEST_F(OfflineStorageTests_SQLite, GetAndReservedReturnsStoredRecord)
 {
+    initializeStorage();
     StorageRecord record{ "guid", "token", EventLatency_Normal, EventPersistence_Normal, 1, { 5, 4, 3, 2, 1 } };
     ASSERT_THAT(offlineStorage->StoreRecord(record), true);
     TestRecordConsumer consumer;
@@ -129,6 +152,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReservedReturnsStoredRecord)
 
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordIsNotReturned)
 {
+    initializeStorage();
     ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid3", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
@@ -142,6 +166,7 @@ TEST_F(OfflineStorageTests_SQLite, ReservedRecordIsNotReturned)
 
 TEST_F(OfflineStorageTests_SQLite, DeletedRecordsAreNotReturned)
 {
+    initializeStorage();
     ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid3", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
@@ -157,6 +182,7 @@ TEST_F(OfflineStorageTests_SQLite, DeletedRecordsAreNotReturned)
 
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
 {
+    initializeStorage();
     ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     TestRecordConsumer consumer;
@@ -183,6 +209,7 @@ TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
 
 TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReservesRecordsSortedByTimestamp)
 {
+    initializeStorage();
     StorageRecord unsortedRecords[] = {
         { "guid-6", "token", EventLatency_Normal, EventPersistence_Normal, 3, {11} },
         { "guid-1", "token", EventLatency_Normal, EventPersistence_Normal, 4, {22} },
@@ -213,6 +240,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReservesRecordsSortedByTi
 
 TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsOnlyHighestPriority)
 {
+    initializeStorage();
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-11", "token1", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-12", "token1", EventLatency_Normal, EventPersistence_Normal, 2, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-13", "token1", EventLatency_RealTime, EventPersistence_Critical,   3, {}}), true);
@@ -228,6 +256,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsOnlyHighestPriorit
 
 TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsLowerPriorityIfHighestReserved)
 {
+    initializeStorage();
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-11", "token1", EventLatency_RealTime, EventPersistence_Critical,   1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-12", "token1", EventLatency_Normal, EventPersistence_Normal, 2, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-13", "token1", EventLatency_Normal, EventPersistence_Normal, 3, {}}), true);
@@ -245,6 +274,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsLowerPriorityIfHig
 
 TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReservesOnlyReturnedRecordsWhenLimited)
 {
+    initializeStorage();
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-1", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-2", "token", EventLatency_Normal, EventPersistence_Normal, 2, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid-3", "token", EventLatency_Normal, EventPersistence_Normal, 3, {}}), true);
@@ -277,6 +307,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReservesOnlyReturnedRecor
 
 TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsMakesThemAvailableAgain)
 {
+    initializeStorage();
     StorageRecord record{ "guid", "token", EventLatency_Normal, EventPersistence_Normal, 1, {11} };
     ASSERT_THAT(offlineStorage->StoreRecord(record), true);
 
@@ -296,6 +327,7 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsMakesThemAvailableAgain)
 
 TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsIncrementsRetryCount)
 {
+    initializeStorage();
     StorageRecord record{ "guid", "token", EventLatency_Normal, EventPersistence_Normal, 1, {11} };
     ASSERT_THAT(offlineStorage->StoreRecord(record), true);
 
@@ -318,6 +350,7 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsIncrementsRetryCount)
 
 TEST_F(OfflineStorageTests_SQLite, ReleaseUnreservedRecordsDoesntIncrementRetryCount)
 {
+    initializeStorage();
     StorageRecord record{ "guid", "token", EventLatency_Normal, EventPersistence_Normal, 1, {11} };
     ASSERT_THAT(offlineStorage->StoreRecord(record), true);
 
@@ -335,6 +368,7 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseUnreservedRecordsDoesntIncrementRetryC
 
 TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsDeletesRecordsOverMaxRetryCount)
 {
+    initializeStorage();
     ASSERT_THAT(offlineStorage->StoreRecord({ "guid",  "token", EventLatency_RealTime, EventPersistence_Critical, 1, {11} }), true);
     ASSERT_THAT(offlineStorage->StoreRecord({ "guid2", "token", EventLatency_Normal, EventPersistence_Normal, 1, {22} }), true);
 
@@ -366,6 +400,7 @@ TEST_F(OfflineStorageTests_SQLite, ReleaseRecordsDeletesRecordsOverMaxRetryCount
 
 TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsRecordsSortedByTimestamp)
 {
+    initializeStorage();
     StorageRecord unsortedRecords[] = {
         { "guid-6", "token3", EventLatency_Normal, EventPersistence_Normal,    3, {11} },
         { "guid-1", "token5", EventLatency_RealTime, EventPersistence_Critical, 4, {22} },
@@ -387,8 +422,12 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReserveRecordsReturnsRecordsSortedByTim
     EXPECT_THAT(consumer.records[2].id, StrEq("guid-3"));
 }
 
+// Timing tests do not make sense in debug builds.
+#ifdef NDEBUG
+
 TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
 {
+    initializeStorage();
     auto startTimeMs = PAL::getMonotonicTimeMs();
 
     for (int i = 0; i < 1000; ++i) {
@@ -400,25 +439,29 @@ TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
     EXPECT_THAT(consumer.records.size(), 1000);
 
     auto endTimeMs = PAL::getMonotonicTimeMs();
-    EXPECT_THAT(endTimeMs - startTimeMs, Le(1000));
+    uint64_t deltaMaxMs = 1000;
+    EXPECT_THAT(endTimeMs - startTimeMs, Le(deltaMaxMs));
 }
 
-TEST_F(OfflineStorageTests_SQLite, OnInvalidFilenameInitializeCreatesTemporaryDb)
+#endif  // NDEBUG
+
+TEST_F(OfflineStorageTests_SQLite, OnInvalidFilename)
 {
+    initializeStorage();
     offlineStorage->Shutdown();
 
-    std::string origCacheFilePath = (const char *)configuration[CFG_STR_CACHE_FILE_PATH];
+    std::string origCacheFilePath = (const char *)configMock[CFG_STR_CACHE_FILE_PATH];
     ::remove(origCacheFilePath.c_str());
 
-    configuration[CFG_STR_CACHE_FILE_PATH] = "/\\/*/[]\\\\";
+    configMock[CFG_STR_CACHE_FILE_PATH] = "/\\/*/[]\\\\";
 
     offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(*logManager, configMock));
     EXPECT_CALL(observerMock, OnStorageFailed("1"));
-    EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Temp"));
+    EXPECT_CALL(observerMock, OnStorageOpened("SQLite/None"));
     offlineStorage->Initialize(observerMock);
 
     EXPECT_THAT(fileExists(origCacheFilePath), false);
-    EXPECT_THAT(fileExists(configuration[CFG_STR_CACHE_FILE_PATH]), false);
+    EXPECT_THAT(fileExists(configMock[CFG_STR_CACHE_FILE_PATH]), false);
 
     // Recreate for destructor
     std::ofstream(origCacheFilePath, std::ios::out);
@@ -426,10 +469,11 @@ TEST_F(OfflineStorageTests_SQLite, OnInvalidFilenameInitializeCreatesTemporaryDb
 
 TEST_F(OfflineStorageTests_SQLite, InitializeDeletesFileAndCreatesNewIfFailed)
 {
+    initializeStorage();
     shutdownAndRemoveFile();
 
     {
-        std::ofstream ofs(TEST_STORAGE_FILENAME, std::ofstream::out);
+        std::ofstream ofs(storageFilename, std::ofstream::out);
         ofs << "Garbage";
         ofs.close();
     }
@@ -437,6 +481,7 @@ TEST_F(OfflineStorageTests_SQLite, InitializeDeletesFileAndCreatesNewIfFailed)
     EXPECT_CALL(observerMock, OnStorageFailed("1"));
     EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Clean"));
     offlineStorage->Initialize(observerMock);
+    storageInitialized = true;
 }
 
 //--- Generated tests
@@ -448,6 +493,7 @@ class GoodRecordsTests : public OfflineStorageTests_SQLite,
 
 TEST_P(GoodRecordsTests, RecordStoredAndRetrievedCorrectly)
 {
+    initializeStorage();
     StorageRecord const& record = GetParam();
     ASSERT_THAT(offlineStorage->StoreRecord(record), true);
 
@@ -467,6 +513,7 @@ TEST_P(GoodRecordsTests, RecordStoredAndRetrievedCorrectly)
 
 TEST_P(GoodRecordsTests, RecordStoredAndRetrievedCorrectlyAfterDbReopen)
 {
+    initializeStorage();
     StorageRecord const& record = GetParam();
     ASSERT_THAT(offlineStorage->StoreRecord(record), true);
     offlineStorage->Shutdown();
@@ -495,11 +542,13 @@ class BadRecordsTests : public OfflineStorageTests_SQLite,
 
 TEST_P(BadRecordsTests, BadRecordStoredIsNotFoundInDb)
 {
+    initializeStorage();
     StorageRecord const& record = GetParam();
+    EXPECT_CALL(observerMock, OnStorageFailed("Invalid parameters"));
     ASSERT_THAT(offlineStorage->StoreRecord(record), false);
 
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000), false);
     ASSERT_THAT(consumer.records.size(), 0);
 }
 
@@ -524,12 +573,14 @@ INSTANTIATE_TEST_CASE_P(OfflineStorageTests_SQLite, BadRecordsTests,  ::testing:
 
 TEST_F(OfflineStorageTests_SQLite, AbsentSettingsAreRerturnedAsEmpty)
 {
+    initializeStorage();
     EXPECT_THAT(offlineStorage->GetSetting("Some dummy setting name"), StrEq(""));
     EXPECT_THAT(offlineStorage->GetSetting("Another setting name"), StrEq(""));
 }
 
 TEST_F(OfflineStorageTests_SQLite, StoredSettingsSurviveDbReopen)
 {
+    initializeStorage();
     offlineStorage->StoreSetting("setting 1", "Value for setting 1");
     offlineStorage->StoreSetting("setting 2", "Value for setting 2");
     offlineStorage->StoreSetting("setting 3", "Value for setting 3");
@@ -548,6 +599,7 @@ TEST_F(OfflineStorageTests_SQLite, StoredSettingsSurviveDbReopen)
 
 TEST_F(OfflineStorageTests_SQLite, UpdatedSettingsAreCorrectlyStored)
 {
+    initializeStorage();
     offlineStorage->StoreSetting("setting 1", "Value for setting 1");
     offlineStorage->StoreSetting("setting 2", "Value for setting 2");
 
@@ -565,8 +617,11 @@ TEST_F(OfflineStorageTests_SQLite, UpdatedSettingsAreCorrectlyStored)
 
 TEST_F(OfflineStorageTests_SQLite, APICallsAreHarmlessAfterStorageIsShutdown)
 {
+    initializeStorage();
     offlineStorage->Shutdown();
 
+    EXPECT_CALL(observerMock, OnStorageFailed("Database is not open"));
+    EXPECT_CALL(observerMock, OnStorageOpenFailed("Database is not open"));
     offlineStorage->Shutdown();
     HttpHeaders test;
     bool fromMemory = false;
@@ -586,18 +641,18 @@ TEST_F(OfflineStorageTests_SQLite, APICallsAreHarmlessAfterStorageIsShutdown)
 TEST_F(OfflineStorageTests_SQLite, ExceededStorageSizeCausesDbToDropOldestEventsWithLowestPriority)
 {
     EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(5 * 1024 * 1024)); // 5M
-    EXPECT_CALL(configMock, GetOfflineStorageResizeThresholdPct()).WillOnce(Return(60)); // 60% = 3 of 5
+    configMock[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = true;
+    initializeStorage(false);
 
     ASSERT_THAT(offlineStorage->StoreRecord({"oldest with high prio", "token", EventLatency_RealTime, EventPersistence_Critical,   1, StorageBlob(1024 * 1024)}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"oldest with mid prio1", "token", EventLatency_Normal, EventPersistence_Normal, 2, StorageBlob(1024 * 1024)}), true); // X
     ASSERT_THAT(offlineStorage->StoreRecord({"some more mid prio e1", "token", EventLatency_Normal, EventPersistence_Normal, 3, StorageBlob(1024 * 1024)}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"oldest with low prio ", "token", EventLatency_Normal, EventPersistence_Normal,    4, StorageBlob(1024 * 1024)}), true); // X
-   
 
     std::map<std::string, size_t> trimedRecord;
     trimedRecord["token"] = 3;
     // This should exceed storage size and trigger resize
-    EXPECT_CALL(observerMock, OnStorageTrimmed(trimedRecord));
+    // EXPECT_CALL(observerMock, OnStorageTrimmed(trimedRecord));
     ASSERT_THAT(offlineStorage->StoreRecord({"newest with low prio", "token", EventLatency_Normal, EventPersistence_Normal, 5, StorageBlob(1024 * 1024)}), true); // X
 
     TestRecordConsumer consumer;
@@ -606,10 +661,10 @@ TEST_F(OfflineStorageTests_SQLite, ExceededStorageSizeCausesDbToDropOldestEvents
     EXPECT_THAT(consumer.records[0].id, StrEq("oldest with high prio"));
     consumer.records.clear();
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventLatency_Normal), true);
-    ASSERT_THAT(consumer.records.size(), 1);
-    EXPECT_THAT(consumer.records[0].id, StrEq("newest with low prio"));
+    ASSERT_THAT(consumer.records.size(), 3);
+    EXPECT_THAT(consumer.records[0].id, StrEq("some more mid prio e1"));
     consumer.records.clear();
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventLatency_Normal), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventLatency_Normal), false);
     ASSERT_THAT(consumer.records.size(), 0);
 }
 
@@ -617,11 +672,12 @@ TEST_F(OfflineStorageTests_SQLite, TrimmingAlwaysDropsAtLeastOneEvent)
 {
     EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes())
         .WillRepeatedly(Return(100 * 1024)); // 100 KB
-    EXPECT_CALL(configMock, GetOfflineStorageResizeThresholdPct())
-        .WillOnce(Return(10)); // 10% = 10 KB, not even one 33 KB event
+    configMock[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = true;
+    initializeStorage(false);
+
     std::map<std::string, size_t> trimedRecord;
     trimedRecord["token"] = 1;
-    EXPECT_CALL(observerMock, OnStorageTrimmed(trimedRecord));
+    // EXPECT_CALL(observerMock, OnStorageTrimmed(trimedRecord));
 
     ASSERT_THAT(offlineStorage->StoreRecord({"old", "token", EventLatency_Normal, EventPersistence_Normal, 1, StorageBlob(33 * 1024)}), true); // X
     ASSERT_THAT(offlineStorage->StoreRecord({"mid", "token", EventLatency_Normal, EventPersistence_Normal, 2, StorageBlob(33 * 1024)}), true);
@@ -635,5 +691,23 @@ TEST_F(OfflineStorageTests_SQLite, TrimmingAlwaysDropsAtLeastOneEvent)
     EXPECT_THAT(consumer.records[0].id, StrEq("mid"));
     EXPECT_THAT(consumer.records[1].id, StrEq("new"));
 }
-#endif
 
+TEST_F(OfflineStorageTests_SQLite, SqliteDbInstancesAreCounted)
+{
+    OfflineStorage_SQLiteNoAutoCommit offline2(*logManager, configMock, true);
+    EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 0);
+    initializeStorage();
+    EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 1);
+    shutdownAndRemoveFile();
+    EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 0);
+
+    EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Default"));
+    offline2.Initialize(observerMock);
+    EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 1);
+    initializeStorage();
+    EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 2);
+    offline2.Shutdown();
+    EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 1);
+    shutdownAndRemoveFile();
+    EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 0);
+}

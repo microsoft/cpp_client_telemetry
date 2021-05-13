@@ -9,6 +9,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern std::atomic<bool> canUseSDK;
+
 using namespace MAT;
 
 #define EXCEPTION_TRACE_FORMAT @"C++ Exception: %s"

@@ -9,45 +9,73 @@ public class PrivacyGuard {
     //Initialize PG
     private static native boolean nativeInitializePrivacyGuard(
             long iLoggerNativePtr,
+            String NotificationEventName,
+            String SemanticContextEventName,
+            String SummaryEventName,
+            boolean UseEventFieldPrefix,
+            boolean ScanForUrls,
             String domainName,
             String machineName,
-            String userName,
-            String userAlias,
+            Object[] userNames,
+            Object[] userAliases,
             Object[] ipAddresses,
             Object[] languageIdentifiers,
             Object[] machineIds,
             Object[] outOfScopeIdentifiers);
 
-    private static native boolean nativeInitializePrivacyGuardWithoutCommonDataContext(long iLoggerNativePtr);
+    private static native boolean nativeInitializePrivacyGuardWithoutCommonDataContext(
+            long iLoggerNativePtr,
+            String NotificationEventName,
+            String SemanticContextEventName,
+            String SummaryEventName,
+            boolean UseEventFieldPrefix,
+            boolean ScanForUrls
+            );
 
     /**
      * Initialize Privacy Guard from ILogger
-     * @param loggerInstance ILogger instance that will be used to send data concerns to
-     * @param dataContext Common Data Context to initialize Privacy Guard with.
-     * @return true if Privacy Guard is successfully initialized, false otherwise. Try UnInit before re-init.
+     * @param initConfig Initialization configuration for Privacy Guard
+     * @return true if Privacy Guard is successfully initialized, false otherwise.
      * @throws IllegalArgumentException if loggerInstance is null.
      */
-    public static boolean initializePrivacyGuard(ILogger loggerInstance, final CommonDataContext dataContext)
+    public static boolean initialize(PrivacyGuardInitConfig initConfig)
     {
-        if(loggerInstance == null)
+        if(initConfig == null)
         {
-            throw new IllegalArgumentException(("loggerInstance cannot be null."));
+            throw new IllegalArgumentException("initConfig cannot be null");
         }
 
-        if(dataContext != null)
+        if(initConfig.LoggerInstance == null)
         {
-            return nativeInitializePrivacyGuard(loggerInstance.getNativeILoggerPtr(),
-                    dataContext.domainName,
-                    dataContext.machineName,
-                    dataContext.userName,
-                    dataContext.userAlias,
-                    dataContext.ipAddresses.toArray(),
-                    dataContext.languageIdentifiers.toArray(),
-                    dataContext.machineIds.toArray(),
-                    dataContext.outOfScopeIdentifiers.toArray());
+            throw new IllegalArgumentException(("loggerInstance cannot be null in initConfig."));
+        }
+
+        if(initConfig.DataContext != null)
+        {
+            return nativeInitializePrivacyGuard(initConfig.LoggerInstance.getNativeILoggerPtr(),
+                    initConfig.NotificationEventName,
+                    initConfig.SemanticContextNotificationEventName,
+                    initConfig.SummaryEventName,
+                    initConfig.UseEventFieldPrefix,
+                    initConfig.ScanForUrls,
+                    initConfig.DataContext.domainName,
+                    initConfig.DataContext.machineName,
+                    initConfig.DataContext.userNames.toArray(),
+                    initConfig.DataContext.userAliases.toArray(),
+                    initConfig.DataContext.ipAddresses.toArray(),
+                    initConfig.DataContext.languageIdentifiers.toArray(),
+                    initConfig.DataContext.machineIds.toArray(),
+                    initConfig.DataContext.outOfScopeIdentifiers.toArray());
         } else
         {
-            return nativeInitializePrivacyGuardWithoutCommonDataContext(loggerInstance.getNativeILoggerPtr());
+            return nativeInitializePrivacyGuardWithoutCommonDataContext(
+                    initConfig.LoggerInstance.getNativeILoggerPtr(),
+                    initConfig.NotificationEventName,
+                    initConfig.SemanticContextNotificationEventName,
+                    initConfig.SummaryEventName,
+                    initConfig.UseEventFieldPrefix,
+                    initConfig.ScanForUrls
+            );
         }
     }
 
@@ -56,7 +84,13 @@ public class PrivacyGuard {
      * This is useful if the app would like to change the logger associated with the instance of Privacy Guard.
      * @return True if Privacy Guard was uninitialized, false if Privacy Guard had not been initialized before.
      */
-    public static native boolean uninitializePrivacyGuard();
+    public static native boolean uninitialize();
+
+    /**
+     * Check if Privacy Guard has been initialized or not.
+     * @return `True` if Privacy Guard was initialized, `False` otherwise.
+     */
+    public static native boolean isInitialized();
 
     /**
      * Set the Enabled state for Privacy Guard
@@ -74,8 +108,8 @@ public class PrivacyGuard {
     private static native boolean nativeAppendCommonDataContext(
             String domainName,
             String machineName,
-            String userName,
-            String userAlias,
+            Object[] userNames,
+            Object[] userAliases,
             Object[] ipAddresses,
             Object[] languageIdentifiers,
             Object[] machineIds,
@@ -97,8 +131,8 @@ public class PrivacyGuard {
         return nativeAppendCommonDataContext(
                 freshDataContext.domainName,
                 freshDataContext.machineName,
-                freshDataContext.userName,
-                freshDataContext.userAlias,
+                freshDataContext.userNames.toArray(),
+                freshDataContext.userAliases.toArray(),
                 freshDataContext.ipAddresses.toArray(),
                 freshDataContext.languageIdentifiers.toArray(),
                 freshDataContext.machineIds.toArray(),

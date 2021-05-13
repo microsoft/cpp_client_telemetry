@@ -163,6 +163,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
           list(APPEND SRCS
           ../wrappers/obj-c/ODWCommonDataContext.mm
           ../wrappers/obj-c/ODWPrivacyGuard.mm
+          ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
           )
     endif()
   endif()

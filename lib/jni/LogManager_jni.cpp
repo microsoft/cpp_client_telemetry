@@ -8,6 +8,11 @@
 #include "modules/dataviewer/DefaultDataViewer.hpp"
 #define HAS_DDV true
 #endif
+#if __has_include("modules/privacyguard/PrivacyGuard.hpp")
+#include "modules/privacyguard/PrivacyGuard.hpp"
+#include "PrivacyGuardHelper.hpp"
+#define HAS_PG true
+#endif
 #endif
 
 #include <utils/Utils.hpp>
@@ -271,6 +276,34 @@ extern "C"
         auto source = JStringToStdString(env, jstrSource);
         ILogger* logger = WrapperLogManager::GetLogger(tenantToken, source);
         return reinterpret_cast<jlong>(logger);
+    }
+
+    JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeRegisterPrivacyGuardOnDefaultLogManager(
+            JNIEnv* env,
+            jclass /* this */) {
+#if HAS_PG
+        auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
+        if (pg != nullptr) {
+            WrapperLogManager::GetInstance()->SetDataInspector(pg);
+            return true;
+        }
+#endif
+        return false;
+    }
+
+    JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeUnregisterPrivacyGuardOnDefaultLogManager(
+            JNIEnv* env,
+            jclass /* this */) {
+#if HAS_PG
+        auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
+            if (pg != nullptr) {
+                WrapperLogManager::GetInstance()->RemoveDataInspector(pg->GetName());
+                return true;
+            }
+#endif
+        return false;
     }
 }
 
@@ -1527,3 +1560,38 @@ Java_com_microsoft_applications_events_ILogConfiguration_getDefaultConfiguration
     ConfigConstructor builder(env);
     return builder.mapTranslate(*emptyConfig);
 }
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRegisterPrivacyGuard(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager) {
+#if HAS_PG
+    auto logManager = getLogManager(native_log_manager);
+    auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
+    if(pg != nullptr) {
+        logManager->SetDataInspector(pg);
+        return true;
+    }
+#endif
+    return false;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterPrivacyGuard(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager) {
+#if HAS_PG
+    auto logManager = getLogManager(native_log_manager);
+    auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
+    if(pg != nullptr) {
+        logManager->RemoveDataInspector(pg->GetName());
+        return true;
+    }
+#endif
+    return false;
+}
+
