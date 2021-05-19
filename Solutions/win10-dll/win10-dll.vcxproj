@@ -172,7 +172,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_DEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
@@ -185,7 +185,6 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -209,7 +208,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;NDEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -222,7 +221,6 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
       <CompileAsManaged>false</CompileAsManaged>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -240,7 +238,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_DEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -252,7 +250,6 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -273,7 +270,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;NDEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -286,7 +283,6 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
       <CompileAsManaged>false</CompileAsManaged>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -305,7 +301,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_DEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
@@ -318,7 +314,6 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -339,7 +334,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;NDEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -352,7 +347,6 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BrowseInformation>false</BrowseInformation>
       <CompileAsManaged>false</CompileAsManaged>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -372,12 +366,11 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_WINDLL;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SupportJustMyCode>false</SupportJustMyCode>
       <WarningLevel>Level3</WarningLevel>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -393,7 +386,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;_WINDLL;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <Optimization>MinSpace</Optimization>
@@ -401,7 +394,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>

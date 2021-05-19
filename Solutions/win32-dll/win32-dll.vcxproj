@@ -150,7 +150,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ORIGINAL_FILENAME="ClientTelemetry.dll";ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ORIGINAL_FILENAME="ClientTelemetry.dll";ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>false</CompileAsManaged>
@@ -195,9 +195,6 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</RemoveUnreferencedCodeData>
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RuntimeTypeInfo>
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</RuntimeTypeInfo>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">/DNOMINMAX</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/DNOMINMAX</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -244,7 +241,7 @@
       <Optimization Condition="'$(Platform)'=='ARM64'">MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;WINVER=_WIN32_WINNT_WIN7;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -282,9 +279,6 @@
       <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MultiProcessorCompilation>
       <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</MultiProcessorCompilation>
       <MultiProcessorCompilation Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">/DNOMINMAX</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/DNOMINMAX</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

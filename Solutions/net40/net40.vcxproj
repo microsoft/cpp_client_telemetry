@@ -109,7 +109,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;_DEBUG;_WINDOWS;_USRDLL;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAsManaged>true</CompileAsManaged>
@@ -136,8 +136,6 @@
       <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ShowIncludes>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ControlFlowGuard>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ControlFlowGuard>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/DNOMINMAX</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -194,7 +192,7 @@
       <Optimization Condition="'$(Platform)'=='x64'">Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB=1;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;NDEBUG;_WINDOWS;_USRDLL;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib\shared;$(ProjectDir)..\..\lib\shared\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>true</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -212,8 +210,6 @@
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatWarningAsError>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ControlFlowGuard>
       <ControlFlowGuard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ControlFlowGuard>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/DNOMINMAX</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

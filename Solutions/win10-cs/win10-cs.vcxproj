@@ -168,7 +168,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;_CRTDBG_MAP_ALLOC;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;_CRTDBG_MAP_ALLOC;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
@@ -181,7 +181,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -206,7 +205,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -219,7 +218,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -240,7 +238,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAsManaged>false</CompileAsManaged>
@@ -251,7 +249,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -273,7 +270,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_PHONE_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -286,7 +283,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -307,7 +303,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;USE_TIMERSHIM2;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
@@ -319,7 +315,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode>false</SupportJustMyCode>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -341,7 +336,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_WINRT_DLL;MATSDK_SHARED_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -354,7 +349,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -377,8 +371,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CompileAsManaged>false</CompileAsManaged>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -394,9 +387,8 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include\public;$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
-      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZLIB_WINAPI;WIN32;MATSDK_SHARED_LIB;_WINRT_DLL;_CRT_SECURE_NO_WARNINGS;WIN10_CS;WINAPI_FAMILY=WINAPI_FAMILY_APP;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalOptions>/DNOMINMAX</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>sqlite-uwp.lib;zlib.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
