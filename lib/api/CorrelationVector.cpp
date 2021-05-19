@@ -13,10 +13,6 @@ using std::string;
 using std::mutex;
 using std::vector;
 
-#ifdef max
-#undef max
-#endif
-
 namespace MAT_NS_BEGIN
 {
     // Note: CV spec reserves the last character for the "!" suffix identifying sealed values.
