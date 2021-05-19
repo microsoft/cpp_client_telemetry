@@ -977,6 +977,53 @@ TEST(APITest, SemanticContext_Test)
     LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
 
+TEST(APITest, SetType_Test)
+{
+    TestDebugEventListener debugListener;
+    for (auto customPrefix : {EVENTRECORD_TYPE_CUSTOM_EVENT, ""})
+    {
+        auto config = LogManager::GetLogConfiguration();
+        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+        config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test
+        config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+        // Iterate over default ("custom") and empty prefix.
+        config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX] = customPrefix;
+        // Register a listener.
+        LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+        // Clean storage to avoid polluting our test callback by unwanted events.
+        CleanStorage();
+        auto logger = LogManager::Initialize(TEST_TOKEN);
+        unsigned totalEvents = 0;
+        // We don't need to upload for this test.
+        LogManager::PauseTransmission();
+        // Verify that record.baseType have been properly decorated.
+        debugListener.OnLogX = [&](::CsProtocol::Record& record) {
+            totalEvents++;
+            std::string prefix = static_cast<std::string>(config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX]);
+            if (prefix == EVENTRECORD_TYPE_CUSTOM_EVENT)
+            {
+                EXPECT_STREQ(record.baseType.c_str(), "custom.MyEventType");
+            };
+            if (prefix == "")
+            {
+                EXPECT_STREQ(record.baseType.c_str(), "MyEventType");
+            };
+        };
+        // Ingest some valuable event.
+        EventProperties myEvent("fooBarEvent");
+        // Specify totally custom base type for export to other pipelines.
+        myEvent.SetType("MyEventType");
+        logger->LogEvent(myEvent);
+        LogManager::FlushAndTeardown();
+        LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
+    }
+    // When we are done, the configuration static object is never gone.
+    // We restore the compat prefix to defaults, that is to avoid
+    // breaking some other subsequent test expectations.
+    auto config = LogManager::GetLogConfiguration();
+    config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX] = EVENTRECORD_TYPE_CUSTOM_EVENT;
+}
+
 static void logBenchMark(const char * label)
 {
 #ifdef DEBUG_PERF

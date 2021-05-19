@@ -102,6 +102,7 @@ namespace MAT_NS_BEGIN
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
         m_allowDotsInType = m_config[CFG_MAP_COMPAT][CFG_BOOL_COMPAT_DOTS];
+        m_customTypePrefix = static_cast<std::string>(m_config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX]);
         m_resetSessionOnEnd = m_config[CFG_BOOL_SESSION_RESET_ENABLED];
 
         // Special scope "-" - means opt-out from parent context variables auto-capture.
@@ -491,12 +492,15 @@ namespace MAT_NS_BEGIN
         }
 
         record.name = properties.GetName();
-        record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
+        record.baseType = m_customTypePrefix;
 
         std::string evtType = properties.GetType();
         if (!evtType.empty())
         {
-            record.baseType.append(".");
+            if (!record.baseType.empty())
+            {
+                record.baseType.append(".");
+            }
             if (!m_allowDotsInType)
             {
                 std::replace(evtType.begin(), evtType.end(), '.', '_');
