@@ -65,7 +65,7 @@ public:
     std::atomic<unsigned>   storageFullPct;
     std::atomic<bool>       storageFailed;
 
-    std::function<void(::CsProtocol::Record &)> OnLogX;
+    std::function<void(::CsProtocol::Record&)> OnLogX;
 
     TestDebugEventListener() :
         netChanged(false),
@@ -107,20 +107,20 @@ public:
         resetOnLogX();
     }
 
-    virtual void OnLogXDefault(::CsProtocol::Record &)
+    virtual void OnLogXDefault(::CsProtocol::Record&)
     {
 
     };
 
     void resetOnLogX()
     {
-        OnLogX = [this](::CsProtocol::Record & record)
+        OnLogX = [this](::CsProtocol::Record& record)
         {
             OnLogXDefault(record);
         };
     }
 
-    virtual void OnDebugEvent(DebugEvent &evt)
+    virtual void OnDebugEvent(DebugEvent& evt)
     {
         switch (evt.type) {
         case EVT_LOG_EVENT:
@@ -135,7 +135,7 @@ public:
         case EVT_LOG_SESSION:
             {
                 /* Test-only code */
-                ::CsProtocol::Record & record = *static_cast<::CsProtocol::Record *>(evt.data);
+                ::CsProtocol::Record& record = *static_cast<::CsProtocol::Record *>(evt.data);
                 numLogged++;
                 OnLogX(record);
             }
@@ -281,7 +281,7 @@ TEST(APITest, LogManager_Initialize_Default_Test)
 /// <returns></returns>
 TEST(APITest, LogManager_Initialize_Custom)
 {
-    auto &configuration = LogManager::GetLogConfiguration();
+    auto& configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     configuration[CFG_STR_COLLECTOR_URL] = "https://127.0.0.1/";
@@ -316,7 +316,7 @@ TEST(APITest, LogManager_KilledEventsAreDropped)
     constexpr static unsigned MAX_ITERATIONS = 100;
     TestDebugEventListener debugListener;
 
-    auto &configuration = LogManager::GetLogConfiguration();
+    auto& configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
@@ -369,7 +369,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
 
     TestDebugEventListener debugListener;
 
-    auto &configuration = LogManager::GetLogConfiguration();
+    auto& configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
@@ -451,7 +451,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
 
 #ifdef _WIN32
 TEST(APITest, LogManager_UTCSingleEventSent) {
-    auto &configuration = LogManager::GetLogConfiguration();
+    auto& configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
@@ -545,7 +545,7 @@ unsigned StressSingleThreaded(ILogConfiguration& config)
 
 TEST(APITest, LogManager_Stress_SingleThreaded)
 {
-    auto &config = LogManager::GetLogConfiguration();
+    auto& config = LogManager::GetLogConfiguration();
     EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
 }
 
@@ -595,7 +595,7 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
 
 TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
 {
-    auto &config = LogManager::GetLogConfiguration();
+    auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
     StressUploadLockMultiThreaded(config);
     // Basic expectation here is just that we do not crash..
@@ -671,7 +671,7 @@ TEST(APITest, C_API_Test)
     // event[2].value.as_double = 100.0f;
 
     unsigned totalEvents = 0;
-    debugListener.OnLogX = [&](::CsProtocol::Record & record)
+    debugListener.OnLogX = [&](::CsProtocol::Record&  record)
     {
         totalEvents++;
         // Verify event name
@@ -746,7 +746,7 @@ TEST(APITest, UTC_Callback_Test)
 {
     TestDebugEventListener debugListener;
 
-    auto &configuration = LogManager::GetLogConfiguration();
+    auto& configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
 
     std::time_t now = time(0);
@@ -755,7 +755,7 @@ TEST(APITest, UTC_Callback_Test)
     LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
     auto logger = LogManager::Initialize(TEST_TOKEN);
     unsigned totalEvents = 0;
-    debugListener.OnLogX = [&](::CsProtocol::Record & record)
+    debugListener.OnLogX = [&](::CsProtocol::Record& record)
     {
         totalEvents++;
         // Verify event name
@@ -818,7 +818,7 @@ TEST(APITest, Pii_DROP_Test)
 {
     TestDebugEventListener debugListener;
 
-    auto &config = LogManager::GetLogConfiguration();
+    auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
@@ -831,7 +831,7 @@ TEST(APITest, Pii_DROP_Test)
 
     // verify that we get one regular event with real device id,
     // as well as more events with anonymous random device id.
-    debugListener.OnLogX = [&](::CsProtocol::Record & record)
+    debugListener.OnLogX = [&](::CsProtocol::Record& record)
     {
         totalEvents++;
         if (record.name == "Regular.Event")
@@ -897,7 +897,7 @@ TEST(APITest, SemanticContext_Test)
 {
     TestDebugEventListener debugListener;
 
-    auto &config = LogManager::GetLogConfiguration();
+    auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
@@ -982,7 +982,7 @@ TEST(APITest, SetType_Test)
     TestDebugEventListener debugListener;
     for (auto customPrefix : {EVENTRECORD_TYPE_CUSTOM_EVENT, ""})
     {
-        auto &config = LogManager::GetLogConfiguration();
+        auto& config = LogManager::GetLogConfiguration();
         config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
         config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test
         config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
@@ -1020,7 +1020,7 @@ TEST(APITest, SetType_Test)
     // When we are done, the configuration static object is never gone.
     // We restore the compat prefix to defaults, that is to avoid
     // breaking some other subsequent test expectations.
-    auto &config = LogManager::GetLogConfiguration();
+    auto& config = LogManager::GetLogConfiguration();
     config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX] = EVENTRECORD_TYPE_CUSTOM_EVENT;
 }
 
@@ -1101,7 +1101,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
 TEST(APITest, LogManager_BadStoragePath_Test)
 {
     TestDebugEventListener debugListener;
-    auto &config = LogManager::GetLogConfiguration();
+    auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
     config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 16;
@@ -1119,7 +1119,7 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 #endif
     };
 
-    for (const auto &path : paths)
+    for (const auto& path : paths)
     {
         debugListener.storageFailed = false;
         config[CFG_STR_CACHE_FILE_PATH] = path.c_str();
@@ -1252,7 +1252,7 @@ TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
         }));
     }
     // Wait for completion
-    for (auto &thread : threads)
+    for (auto& thread : threads)
         thread.join();
     logBenchMark("destroyed");
     LogManager::FlushAndTeardown();
