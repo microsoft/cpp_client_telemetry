@@ -171,6 +171,8 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
  add_definitions(-DZLIB_WINAPI)
 endif()
 
+add_definitions(-DNOMINMAX)
+
 ################################################################################################
 # Build prefix and version
 ################################################################################################

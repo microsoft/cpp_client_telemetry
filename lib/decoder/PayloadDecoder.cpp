@@ -37,10 +37,6 @@ MAT_NS_END
 
 #ifdef _WIN32
 #include <Windows.h>
-#ifdef max
-#undef max
-#undef min
-#endif
 #endif
 
 #ifndef TEST_LOG_ERROR
