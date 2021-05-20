@@ -299,6 +299,20 @@ public:
         return SV;
     }
 
+    operator std::string()
+    {
+        VARIANT_LOCKGUARD(lock_object);
+        std::string result;
+        if (type==TYPE_STRING2)
+        {
+            result = SV;
+        } else if (type==TYPE_STRING)
+        {
+            result = sV;
+        }
+        return result;
+    }
+
     Variant(const std::string& v) :
         SV(v),
         type(TYPE_STRING2)

@@ -746,7 +746,7 @@ TEST(APITest, UTC_Callback_Test)
 {
     TestDebugEventListener debugListener;
 
-    auto configuration = LogManager::GetLogConfiguration();
+    auto &configuration = LogManager::GetLogConfiguration();
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
 
     std::time_t now = time(0);
@@ -818,7 +818,7 @@ TEST(APITest, Pii_DROP_Test)
 {
     TestDebugEventListener debugListener;
 
-    auto config = LogManager::GetLogConfiguration();
+    auto &config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
@@ -897,7 +897,7 @@ TEST(APITest, SemanticContext_Test)
 {
     TestDebugEventListener debugListener;
 
-    auto config = LogManager::GetLogConfiguration();
+    auto &config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
@@ -982,14 +982,14 @@ TEST(APITest, SetType_Test)
     TestDebugEventListener debugListener;
     for (auto customPrefix : {EVENTRECORD_TYPE_CUSTOM_EVENT, ""})
     {
-        auto config = LogManager::GetLogConfiguration();
+        auto &config = LogManager::GetLogConfiguration();
         config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
         config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test
         config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
         // Iterate over default ("custom") and empty prefix.
         config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX] = customPrefix;
         // Register a listener.
-        LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+         LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
         // Clean storage to avoid polluting our test callback by unwanted events.
         CleanStorage();
         auto logger = LogManager::Initialize(TEST_TOKEN);
@@ -1002,11 +1002,11 @@ TEST(APITest, SetType_Test)
             std::string prefix = static_cast<std::string>(config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX]);
             if (prefix == EVENTRECORD_TYPE_CUSTOM_EVENT)
             {
-                EXPECT_STREQ(record.baseType.c_str(), "custom.MyEventType");
+                EXPECT_STREQ(record.baseType.c_str(), "custom.myeventtype");
             };
             if (prefix == "")
             {
-                EXPECT_STREQ(record.baseType.c_str(), "MyEventType");
+                EXPECT_STREQ(record.baseType.c_str(), "myeventtype");
             };
         };
         // Ingest some valuable event.
@@ -1020,7 +1020,7 @@ TEST(APITest, SetType_Test)
     // When we are done, the configuration static object is never gone.
     // We restore the compat prefix to defaults, that is to avoid
     // breaking some other subsequent test expectations.
-    auto config = LogManager::GetLogConfiguration();
+    auto &config = LogManager::GetLogConfiguration();
     config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX] = EVENTRECORD_TYPE_CUSTOM_EVENT;
 }
 
