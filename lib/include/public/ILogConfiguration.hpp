@@ -317,6 +317,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_COMPAT_DOTS = "dotType";
 
     /// <summary>
+    /// Compatibility configuration: custom type prefix. Default value: "custom"
+    /// </summary>
+    static constexpr const char* const CFG_STR_COMPAT_PREFIX = "customTypePrefix";
+
+    /// <summary>
     /// LogManagerFactory: is this log manager instance in host mode?
     /// </summary>
     static constexpr const char* const CFG_BOOL_HOST_MODE = "hostMode";
