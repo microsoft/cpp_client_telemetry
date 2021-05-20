@@ -105,7 +105,7 @@ namespace MAT_NS_BEGIN
         {
             MAT::VariantMap& cfg = m_config[CFG_MAP_COMPAT];
             m_allowDotsInType = cfg[CFG_BOOL_COMPAT_DOTS];
-            m_customTypePrefix = static_cast<std::string>(cfg[CFG_STR_COMPAT_PREFIX]);
+            m_customTypePrefix = static_cast<std::string&>(cfg[CFG_STR_COMPAT_PREFIX]);
         }
         m_resetSessionOnEnd = m_config[CFG_BOOL_SESSION_RESET_ENABLED];
 
