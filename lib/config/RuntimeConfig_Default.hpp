@@ -6,6 +6,7 @@
 
 #pragma once
 #include "api/IRuntimeConfig.hpp"
+#include "CommonFields.h"
 
 namespace MAT_NS_BEGIN
 {
@@ -65,7 +66,8 @@ namespace MAT_NS_BEGIN
          }},
         {CFG_MAP_COMPAT,
          {
-             {CFG_BOOL_COMPAT_DOTS, true}  // false: v1 backwards-compat: event.SetType("My.Custom.Type") => custom.my_custom_type
+             {CFG_BOOL_COMPAT_DOTS, true}, // false: v1 backwards-compat: event.SetType("My.Custom.Type") => custom.my_custom_type
+             {CFG_STR_COMPAT_PREFIX, EVENTRECORD_TYPE_CUSTOM_EVENT} // custom type prefix for Interchange / Geneva / Cosmos flow
          }},
         {"sample",
          {{"rate", 0}}}};
