@@ -263,6 +263,8 @@ namespace MAT_NS_BEGIN
         std::string m_sessionId;
 
         bool m_allowDotsInType;
+        std::string m_customTypePrefix;
+
         bool m_resetSessionOnEnd;
         EventFilterCollection m_filters;
 
