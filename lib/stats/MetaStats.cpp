@@ -10,11 +10,6 @@
 namespace MAT_NS_BEGIN {
 
     /// <summary>
-    /// Lock metaStats counts when rejected events come in via a separate thread
-    /// </summary>
-    static std::mutex rejected_callback_mtx;
-
-    /// <summary>
     /// Converts RollUpKind enum value to string name.
     /// </summary>
     /// <param name="rollupKind">Kind of the rollup.</param>
