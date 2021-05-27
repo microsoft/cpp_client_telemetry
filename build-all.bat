@@ -34,12 +34,12 @@ if NOT DEFINED SKIP_MD_BUILD (
 if NOT DEFINED SKIP_MT_BUILD (
   REM Static /MT build
   REM Release
-  call tools\RunMsBuild.bat Win32 Release.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
-  call tools\RunMsBuild.bat x64 Release.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release.vc14x.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release.vc14x.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
-    call tools\RunMsBuild.bat Win32 Debug.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
-    call tools\RunMsBuild.bat x64 Debug.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat Win32 Debug.vc14x.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat x64 Debug.vc14x.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
   )
 )
 
