@@ -69,7 +69,7 @@ public enum Status {
         static final int VALUE_EFAIL = -1;
         static final int VALUE_SUCCESS = 0;
         static final int VALUE_EPERM = 1;
-        static final int VALUE_EALREADY = 103;
+        static final int VALUE_EALREADY = 114;
         static final int VALUE_ENOSYS = 40;
         static final int VALUE_ENOTSUP = 129;
     }
