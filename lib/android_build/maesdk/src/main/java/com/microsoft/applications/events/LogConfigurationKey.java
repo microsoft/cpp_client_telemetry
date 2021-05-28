@@ -145,6 +145,9 @@ public enum LogConfigurationKey {
 
   CFG_BOOL_COMPAT_DOTS("dotType", Boolean.class),
 
+  /** Compatibility configuration: custom type prefix. */
+  CFG_STR_COMPAT_PREFIX("customTypePrefix", String.class),
+
   CFG_BOOL_HOST_MODE("hostMode", Boolean.class),
 
   CFG_MAP_HTTP("http", ILogConfiguration.class),

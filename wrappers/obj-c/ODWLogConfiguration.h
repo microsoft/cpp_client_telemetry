@@ -227,6 +227,11 @@ extern NSString * _Nonnull const ODWCFG_MAP_COMPAT;
 extern NSString * _Nonnull const ODWCFG_BOOL_COMPAT_DOTS;
 
 /*!
+ Compatibility configuration: custom type prefix
+*/
+extern NSString * _Nonnull const ODWCFG_STR_COMPAT_PREFIX;
+
+/*!
  LogManagerFactory: is this log manager instance in host mode?
 */
 extern NSString * _Nonnull const ODWCFG_BOOL_HOST_MODE;
