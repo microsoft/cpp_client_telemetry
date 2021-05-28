@@ -29,17 +29,17 @@ echo Using custom properties file for the build:
 echo %CUSTOM_PROPS%
 
 REM DLL and static /MD build
-msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=Win32 %CUSTOM_PROPS%
-msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=Win32 %CUSTOM_PROPS%
-msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=x64 %CUSTOM_PROPS%
-msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=x64 %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:zlib:Rebuild,win10-dll:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=Win32 %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:zlib:Rebuild,win10-dll:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=Win32 %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:zlib:Rebuild,win10-dll:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=x64 %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:zlib:Rebuild,win10-dll:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=x64 %CUSTOM_PROPS%
 
 REM ARM DLL build
 call tools\vcvars-ext.cmd arm
-msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM %CUSTOM_PROPS%
-msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:zlib:Rebuild,win10-dll:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:zlib:Rebuild,win10-dll:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM %CUSTOM_PROPS%
 
 REM ARM64 DLL build
 call tools\vcvars-ext.cmd arm64
-msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM64 %CUSTOM_PROPS%
-msbuild %SOLUTION% /target:zlib,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM64 %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:zlib:Rebuild,win10-dll:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM64 %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:zlib:Rebuild,win10-dll:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM64 %CUSTOM_PROPS%

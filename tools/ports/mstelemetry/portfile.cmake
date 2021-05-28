@@ -71,7 +71,7 @@ else()
         OPTIONS /p:MATSDK_SHARED_LIB=1
         PLATFORM ${VCPKG_TARGET_ARCHITECTURE}
         PLATFORM_TOOLSET v142
-        TARGET sqlite,win32-lib
+        TARGET sqlite:Rebuild,win32-lib:Rebuild
         USE_VCPKG_INTEGRATION
     )
 
