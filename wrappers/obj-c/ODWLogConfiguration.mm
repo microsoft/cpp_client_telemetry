@@ -233,6 +233,11 @@ NSString *const ODWCFG_MAP_COMPAT = @"compat";
 NSString *const ODWCFG_BOOL_COMPAT_DOTS = @"dotType";
 
 /*!
+ Compatibility configuration: custom type prefix
+*/
+NSString *const ODWCFG_STR_COMPAT_PREFIX = @"customTypePrefix";
+
+/*!
  LogManagerFactory: is this log manager instance in host mode?
 */
 NSString *const ODWCFG_BOOL_HOST_MODE = @"hostMode";
