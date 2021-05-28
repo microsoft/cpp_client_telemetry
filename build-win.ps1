@@ -60,7 +60,7 @@ foreach ($arch in $archs) {
     foreach ($config in $configs) {
       $actualConfig = $config
       if ($binType -eq "lib") {
-        $actualConfig += ".vs2015.MT-sqlite"
+        $actualConfig += ".vc14x.MT-sqlite"
       }
 
       echo "Building $actualArch|$actualConfig|$binType..."
