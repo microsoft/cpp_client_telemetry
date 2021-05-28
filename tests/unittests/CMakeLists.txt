@@ -23,6 +23,7 @@ set(SRCS
   HttpRequestEncoderTests.cpp
   HttpResponseDecoderTests.cpp
   HttpServerTests.cpp
+  InformationProviderImplTests.cpp
   LoggerTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp

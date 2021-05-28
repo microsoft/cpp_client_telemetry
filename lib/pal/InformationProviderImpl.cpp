@@ -40,11 +40,17 @@ namespace PAL_NS_BEGIN {
 
     void InformatonProviderImpl::UnRegisterInformationChangedCallback(int callbackToken)
     {
-        size_t index = (size_t)(callbackToken - 1);
+        // The callbackToken cannot be less than 1.
+        if (callbackToken < 1)
+        {
+            return;
+        }
+
+        size_t index = static_cast<size_t>(callbackToken - 1);
 
         std::lock_guard<std::mutex> lock(m_lock);
         size_t count = m_callbacks.size();
-        if (index > 0 && index < count)
+        if (index < count)
         {
             // Don't ever delete the item from the vector.
             // Just set it to NULL.

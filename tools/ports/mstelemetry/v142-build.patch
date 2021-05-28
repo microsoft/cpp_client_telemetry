@@ -363,7 +363,7 @@ index c1d9667a..6880136b 100644
      <WholeProgramOptimization>false</WholeProgramOptimization>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
      <CharacterSet>Unicode</CharacterSet>
@@ -377,7 +377,7 @@ index c1d9667a..6880136b 100644
      <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
      <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -398,14 +398,14 @@ index c1d9667a..6880136b 100644
      <WholeProgramOptimization>false</WholeProgramOptimization>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
      <CharacterSet>Unicode</CharacterSet>
      <WholeProgramOptimization>false</WholeProgramOptimization>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
      <CharacterSet>Unicode</CharacterSet>
@@ -427,14 +427,14 @@ index c1d9667a..6880136b 100644
      <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
      <WholeProgramOptimization>false</WholeProgramOptimization>
      <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
      <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -516,7 +516,7 @@ index edc2828f..6da2528e 100644
      <WholeProgramOptimization>false</WholeProgramOptimization>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
      <CharacterSet>Unicode</CharacterSet>
@@ -530,7 +530,7 @@ index edc2828f..6da2528e 100644
      <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
      <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -551,14 +551,14 @@ index edc2828f..6da2528e 100644
      <WholeProgramOptimization>false</WholeProgramOptimization>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
      <CharacterSet>Unicode</CharacterSet>
      <WholeProgramOptimization>false</WholeProgramOptimization>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
      <CharacterSet>Unicode</CharacterSet>
@@ -579,14 +579,14 @@ index edc2828f..6da2528e 100644
      <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
      <WholeProgramOptimization>false</WholeProgramOptimization>
      <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'" Label="Configuration">
      <ConfigurationType>StaticLibrary</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
      <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -824,7 +824,7 @@ index f8154a7e..ab8b5fb6 100644
 +    <PlatformToolset>v142</PlatformToolset>
      <CharacterSet>Unicode</CharacterSet>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -847,7 +847,7 @@ index f8154a7e..ab8b5fb6 100644
      <WholeProgramOptimization>true</WholeProgramOptimization>
      <CharacterSet>Unicode</CharacterSet>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -876,7 +876,7 @@ index f8154a7e..ab8b5fb6 100644
 +    <PlatformToolset>v142</PlatformToolset>
      <CharacterSet>Unicode</CharacterSet>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -890,7 +890,7 @@ index f8154a7e..ab8b5fb6 100644
 +    <PlatformToolset>v142</PlatformToolset>
      <CharacterSet>Unicode</CharacterSet>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -921,7 +921,7 @@ index f8154a7e..ab8b5fb6 100644
      <WholeProgramOptimization>true</WholeProgramOptimization>
      <CharacterSet>Unicode</CharacterSet>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -937,7 +937,7 @@ index f8154a7e..ab8b5fb6 100644
      <WholeProgramOptimization>true</WholeProgramOptimization>
      <CharacterSet>Unicode</CharacterSet>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -1379,7 +1379,7 @@ index a2891ace..e232a2e4 100644
      <CharacterSet>Unicode</CharacterSet>
      <UseOfMfc>Static</UseOfMfc>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -1405,7 +1405,7 @@ index a2891ace..e232a2e4 100644
      <CharacterSet>Unicode</CharacterSet>
      <UseOfMfc>Static</UseOfMfc>
 @@ -123,7 +123,7 @@
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -1438,7 +1438,7 @@ index a2891ace..e232a2e4 100644
      <CharacterSet>Unicode</CharacterSet>
      <UseOfMfc>Static</UseOfMfc>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -1454,7 +1454,7 @@ index a2891ace..e232a2e4 100644
      <CharacterSet>Unicode</CharacterSet>
      <UseOfMfc>Static</UseOfMfc>
    </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>true</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -1489,7 +1489,7 @@ index a2891ace..e232a2e4 100644
      <CharacterSet>Unicode</CharacterSet>
      <UseOfMfc>Static</UseOfMfc>
 @@ -197,7 +197,7 @@
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -1507,7 +1507,7 @@ index a2891ace..e232a2e4 100644
      <CharacterSet>Unicode</CharacterSet>
      <UseOfMfc>Static</UseOfMfc>
 @@ -213,7 +213,7 @@
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'" Label="Configuration">
      <ConfigurationType>Application</ConfigurationType>
      <UseDebugLibraries>false</UseDebugLibraries>
 -    <PlatformToolset>v141</PlatformToolset>
@@ -3280,20 +3280,20 @@ index 5ff55579..77518e48 100644
 -﻿<?xml version="1.0" encoding="utf-8"?>
 -<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 -  <ItemGroup Label="ProjectConfigurations">
--    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|ARM">
--      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+-    <ProjectConfiguration Include="Debug.vc14x.MT-sqlite|ARM">
+-      <Configuration>Debug.vc14x.MT-sqlite</Configuration>
 -      <Platform>ARM</Platform>
 -    </ProjectConfiguration>
--    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|ARM64">
--      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+-    <ProjectConfiguration Include="Debug.vc14x.MT-sqlite|ARM64">
+-      <Configuration>Debug.vc14x.MT-sqlite</Configuration>
 -      <Platform>ARM64</Platform>
 -    </ProjectConfiguration>
--    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|Win32">
--      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+-    <ProjectConfiguration Include="Debug.vc14x.MT-sqlite|Win32">
+-      <Configuration>Debug.vc14x.MT-sqlite</Configuration>
 -      <Platform>Win32</Platform>
 -    </ProjectConfiguration>
--    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|x64">
--      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
+-    <ProjectConfiguration Include="Debug.vc14x.MT-sqlite|x64">
+-      <Configuration>Debug.vc14x.MT-sqlite</Configuration>
 -      <Platform>x64</Platform>
 -    </ProjectConfiguration>
 -    <ProjectConfiguration Include="Debug|ARM">
@@ -3312,20 +3312,20 @@ index 5ff55579..77518e48 100644
 -      <Configuration>Debug</Configuration>
 -      <Platform>x64</Platform>
 -    </ProjectConfiguration>
--    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|ARM">
--      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+-    <ProjectConfiguration Include="Release.vc14x.MT-sqlite|ARM">
+-      <Configuration>Release.vc14x.MT-sqlite</Configuration>
 -      <Platform>ARM</Platform>
 -    </ProjectConfiguration>
--    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|ARM64">
--      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+-    <ProjectConfiguration Include="Release.vc14x.MT-sqlite|ARM64">
+-      <Configuration>Release.vc14x.MT-sqlite</Configuration>
 -      <Platform>ARM64</Platform>
 -    </ProjectConfiguration>
--    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|Win32">
--      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+-    <ProjectConfiguration Include="Release.vc14x.MT-sqlite|Win32">
+-      <Configuration>Release.vc14x.MT-sqlite</Configuration>
 -      <Platform>Win32</Platform>
 -    </ProjectConfiguration>
--    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|x64">
--      <Configuration>Release.vs2015.MT-sqlite</Configuration>
+-    <ProjectConfiguration Include="Release.vc14x.MT-sqlite|x64">
+-      <Configuration>Release.vc14x.MT-sqlite</Configuration>
 -      <Platform>x64</Platform>
 -    </ProjectConfiguration>
 -    <ProjectConfiguration Include="Release|ARM">
@@ -3359,7 +3359,7 @@ index 5ff55579..77518e48 100644
 -    <CharacterSet>Unicode</CharacterSet>
 -    <PlatformToolset>v141</PlatformToolset>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="Configuration">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'" Label="Configuration">
 -    <ConfigurationType>StaticLibrary</ConfigurationType>
 -    <UseOfMfc>false</UseOfMfc>
 -    <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -3382,7 +3382,7 @@ index 5ff55579..77518e48 100644
 -    <CharacterSet>Unicode</CharacterSet>
 -    <PlatformToolset>v141</PlatformToolset>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM'" Label="Configuration">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM'" Label="Configuration">
 -    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
 -    <ConfigurationType>StaticLibrary</ConfigurationType>
 -    <UseOfMfc>false</UseOfMfc>
@@ -3390,7 +3390,7 @@ index 5ff55579..77518e48 100644
 -    <CharacterSet>Unicode</CharacterSet>
 -    <PlatformToolset>v141</PlatformToolset>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'" Label="Configuration">
 -    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
 -    <ConfigurationType>StaticLibrary</ConfigurationType>
 -    <UseOfMfc>false</UseOfMfc>
@@ -3404,7 +3404,7 @@ index 5ff55579..77518e48 100644
 -    <CharacterSet>Unicode</CharacterSet>
 -    <PlatformToolset>v141</PlatformToolset>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="Configuration">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'" Label="Configuration">
 -    <ConfigurationType>StaticLibrary</ConfigurationType>
 -    <UseOfMfc>false</UseOfMfc>
 -    <CharacterSet>Unicode</CharacterSet>
@@ -3424,14 +3424,14 @@ index 5ff55579..77518e48 100644
 -    <CharacterSet>Unicode</CharacterSet>
 -    <PlatformToolset>v141</PlatformToolset>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'" Label="Configuration">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'" Label="Configuration">
 -    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
 -    <ConfigurationType>StaticLibrary</ConfigurationType>
 -    <UseOfMfc>false</UseOfMfc>
 -    <CharacterSet>Unicode</CharacterSet>
 -    <PlatformToolset>v141</PlatformToolset>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="Configuration">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'" Label="Configuration">
 -    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
 -    <ConfigurationType>StaticLibrary</ConfigurationType>
 -    <UseOfMfc>false</UseOfMfc>
@@ -3445,7 +3445,7 @@ index 5ff55579..77518e48 100644
 -    <CharacterSet>Unicode</CharacterSet>
 -    <PlatformToolset>v141</PlatformToolset>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="Configuration">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'" Label="Configuration">
 -    <ConfigurationType>StaticLibrary</ConfigurationType>
 -    <UseOfMfc>false</UseOfMfc>
 -    <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -3458,7 +3458,7 @@ index 5ff55579..77518e48 100644
 -    <CharacterSet>Unicode</CharacterSet>
 -    <PlatformToolset>v141</PlatformToolset>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="Configuration">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'" Label="Configuration">
 -    <ConfigurationType>StaticLibrary</ConfigurationType>
 -    <UseOfMfc>false</UseOfMfc>
 -    <CharacterSet>Unicode</CharacterSet>
@@ -3470,7 +3470,7 @@ index 5ff55579..77518e48 100644
 -  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
--  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="PropertySheets">
+-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
 -  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
@@ -3479,16 +3479,16 @@ index 5ff55579..77518e48 100644
 -  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
--  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM'" Label="PropertySheets">
+-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
--  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="PropertySheets">
+-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
 -  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
--  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="PropertySheets">
+-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
 -  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
@@ -3497,29 +3497,29 @@ index 5ff55579..77518e48 100644
 -  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
--  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'" Label="PropertySheets">
+-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
--  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="PropertySheets">
+-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
 -  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
--  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="PropertySheets">
+-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
 -  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
--  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="PropertySheets">
+-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'" Label="PropertySheets">
 -    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 -  </ImportGroup>
 -  <PropertyGroup Label="UserMacros" />
 -  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
 -  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -3528,20 +3528,20 @@ index 5ff55579..77518e48 100644
 -  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'">
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'">
 -  </PropertyGroup>
 -  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
 -  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -3550,27 +3550,27 @@ index 5ff55579..77518e48 100644
 -  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'">
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
 -  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
 -    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'">
 -    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'">
 -  </PropertyGroup>
 -  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 -    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
--  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'">
 -    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
 -    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 -  </PropertyGroup>
@@ -3625,20 +3625,20 @@ index 5ff55579..77518e48 100644
 +﻿<?xml version="1.0" encoding="utf-8"?>
 +<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 +  <ItemGroup Label="ProjectConfigurations">
-+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|ARM">
-+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
++    <ProjectConfiguration Include="Debug.vc14x.MT-sqlite|ARM">
++      <Configuration>Debug.vc14x.MT-sqlite</Configuration>
 +      <Platform>ARM</Platform>
 +    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|ARM64">
-+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
++    <ProjectConfiguration Include="Debug.vc14x.MT-sqlite|ARM64">
++      <Configuration>Debug.vc14x.MT-sqlite</Configuration>
 +      <Platform>ARM64</Platform>
 +    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|Win32">
-+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
++    <ProjectConfiguration Include="Debug.vc14x.MT-sqlite|Win32">
++      <Configuration>Debug.vc14x.MT-sqlite</Configuration>
 +      <Platform>Win32</Platform>
 +    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Debug.vs2015.MT-sqlite|x64">
-+      <Configuration>Debug.vs2015.MT-sqlite</Configuration>
++    <ProjectConfiguration Include="Debug.vc14x.MT-sqlite|x64">
++      <Configuration>Debug.vc14x.MT-sqlite</Configuration>
 +      <Platform>x64</Platform>
 +    </ProjectConfiguration>
 +    <ProjectConfiguration Include="Debug|ARM">
@@ -3657,20 +3657,20 @@ index 5ff55579..77518e48 100644
 +      <Configuration>Debug</Configuration>
 +      <Platform>x64</Platform>
 +    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|ARM">
-+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
++    <ProjectConfiguration Include="Release.vc14x.MT-sqlite|ARM">
++      <Configuration>Release.vc14x.MT-sqlite</Configuration>
 +      <Platform>ARM</Platform>
 +    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|ARM64">
-+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
++    <ProjectConfiguration Include="Release.vc14x.MT-sqlite|ARM64">
++      <Configuration>Release.vc14x.MT-sqlite</Configuration>
 +      <Platform>ARM64</Platform>
 +    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|Win32">
-+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
++    <ProjectConfiguration Include="Release.vc14x.MT-sqlite|Win32">
++      <Configuration>Release.vc14x.MT-sqlite</Configuration>
 +      <Platform>Win32</Platform>
 +    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Release.vs2015.MT-sqlite|x64">
-+      <Configuration>Release.vs2015.MT-sqlite</Configuration>
++    <ProjectConfiguration Include="Release.vc14x.MT-sqlite|x64">
++      <Configuration>Release.vc14x.MT-sqlite</Configuration>
 +      <Platform>x64</Platform>
 +    </ProjectConfiguration>
 +    <ProjectConfiguration Include="Release|ARM">
@@ -3704,7 +3704,7 @@ index 5ff55579..77518e48 100644
 +    <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="Configuration">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'" Label="Configuration">
 +    <ConfigurationType>StaticLibrary</ConfigurationType>
 +    <UseOfMfc>false</UseOfMfc>
 +    <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -3727,7 +3727,7 @@ index 5ff55579..77518e48 100644
 +    <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM'" Label="Configuration">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM'" Label="Configuration">
 +    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
 +    <ConfigurationType>StaticLibrary</ConfigurationType>
 +    <UseOfMfc>false</UseOfMfc>
@@ -3735,7 +3735,7 @@ index 5ff55579..77518e48 100644
 +    <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="Configuration">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'" Label="Configuration">
 +    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
 +    <ConfigurationType>StaticLibrary</ConfigurationType>
 +    <UseOfMfc>false</UseOfMfc>
@@ -3749,7 +3749,7 @@ index 5ff55579..77518e48 100644
 +    <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="Configuration">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'" Label="Configuration">
 +    <ConfigurationType>StaticLibrary</ConfigurationType>
 +    <UseOfMfc>false</UseOfMfc>
 +    <CharacterSet>Unicode</CharacterSet>
@@ -3769,14 +3769,14 @@ index 5ff55579..77518e48 100644
 +    <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'" Label="Configuration">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'" Label="Configuration">
 +    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
 +    <ConfigurationType>StaticLibrary</ConfigurationType>
 +    <UseOfMfc>false</UseOfMfc>
 +    <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="Configuration">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'" Label="Configuration">
 +    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
 +    <ConfigurationType>StaticLibrary</ConfigurationType>
 +    <UseOfMfc>false</UseOfMfc>
@@ -3790,7 +3790,7 @@ index 5ff55579..77518e48 100644
 +    <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="Configuration">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'" Label="Configuration">
 +    <ConfigurationType>StaticLibrary</ConfigurationType>
 +    <UseOfMfc>false</UseOfMfc>
 +    <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -3803,7 +3803,7 @@ index 5ff55579..77518e48 100644
 +    <CharacterSet>Unicode</CharacterSet>
 +    <PlatformToolset>v142</PlatformToolset>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="Configuration">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'" Label="Configuration">
 +    <ConfigurationType>StaticLibrary</ConfigurationType>
 +    <UseOfMfc>false</UseOfMfc>
 +    <CharacterSet>Unicode</CharacterSet>
@@ -3815,7 +3815,7 @@ index 5ff55579..77518e48 100644
 +  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
-+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'" Label="PropertySheets">
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
 +  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
@@ -3824,16 +3824,16 @@ index 5ff55579..77518e48 100644
 +  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
-+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM'" Label="PropertySheets">
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
-+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'" Label="PropertySheets">
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
 +  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
-+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'" Label="PropertySheets">
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
 +  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
@@ -3842,29 +3842,29 @@ index 5ff55579..77518e48 100644
 +  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
-+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'" Label="PropertySheets">
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
-+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'" Label="PropertySheets">
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
 +  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
-+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'" Label="PropertySheets">
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
 +  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
-+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'" Label="PropertySheets">
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'" Label="PropertySheets">
 +    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
 +  </ImportGroup>
 +  <PropertyGroup Label="UserMacros" />
 +  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
 +  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -3873,20 +3873,20 @@ index 5ff55579..77518e48 100644
 +  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);%(AdditionalIncludeDirectories)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'">
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'">
 +  </PropertyGroup>
 +  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
 +  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -3895,27 +3895,27 @@ index 5ff55579..77518e48 100644
 +  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'">
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
 +  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
 +    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'">
 +    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'">
 +  </PropertyGroup>
 +  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 +    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'">
 +    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
 +    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
 +  </PropertyGroup>
@@ -3975,7 +3975,7 @@ index 5ff55579..77518e48 100644
 -      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 -    </Lib>
 -  </ItemDefinitionGroup>
--  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'">
 -    <Midl>
 -      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 -      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4030,7 +4030,7 @@ index 5ff55579..77518e48 100644
 +      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 +    </Lib>
 +  </ItemDefinitionGroup>
-+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|Win32'">
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'">
 +    <Midl>
 +      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4189,7 +4189,7 @@ index 5ff55579..77518e48 100644
 -      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 -    </Lib>
 -  </ItemDefinitionGroup>
--  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'">
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'">
 -    <Midl>
 -      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 -      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4241,7 +4241,7 @@ index 5ff55579..77518e48 100644
 -      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 -    </Lib>
 -  </ItemDefinitionGroup>
--  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'">
 -    <Midl>
 -      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 -      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4456,7 +4456,7 @@ index 5ff55579..77518e48 100644
 +      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 +    </Lib>
 +  </ItemDefinitionGroup>
-+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM'">
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM'">
 +    <Midl>
 +      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4508,7 +4508,7 @@ index 5ff55579..77518e48 100644
 +      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 +    </Lib>
 +  </ItemDefinitionGroup>
-+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|ARM64'">
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'">
 +    <Midl>
 +      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4621,7 +4621,7 @@ index 5ff55579..77518e48 100644
 -      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 -    </Lib>
 -  </ItemDefinitionGroup>
--  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'">
 -    <Midl>
 -      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 -      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4679,7 +4679,7 @@ index 5ff55579..77518e48 100644
 +      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 +    </Lib>
 +  </ItemDefinitionGroup>
-+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|Win32'">
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'">
 +    <Midl>
 +      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4855,7 +4855,7 @@ index 5ff55579..77518e48 100644
 -      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 -    </Lib>
 -  </ItemDefinitionGroup>
--  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM'">
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM'">
 -    <Midl>
 -      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 -      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -4910,7 +4910,7 @@ index 5ff55579..77518e48 100644
 -      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 -    </Lib>
 -  </ItemDefinitionGroup>
--  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'">
 -    <Midl>
 -      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 -      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -5133,7 +5133,7 @@ index 5ff55579..77518e48 100644
 +      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 +    </Lib>
 +  </ItemDefinitionGroup>
-+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM'">
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM'">
 +    <Midl>
 +      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -5188,7 +5188,7 @@ index 5ff55579..77518e48 100644
 +      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 +    </Lib>
 +  </ItemDefinitionGroup>
-+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|ARM64'">
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'">
 +    <Midl>
 +      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -5294,7 +5294,7 @@ index 5ff55579..77518e48 100644
 -      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 -    </Lib>
 -  </ItemDefinitionGroup>
--  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'">
 -    <Midl>
 -      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 -      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -5345,7 +5345,7 @@ index 5ff55579..77518e48 100644
 +      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 +    </Lib>
 +  </ItemDefinitionGroup>
-+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vs2015.MT-sqlite|x64'">
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'">
 +    <Midl>
 +      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -5512,7 +5512,7 @@ index 5ff55579..77518e48 100644
 -      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 -    </Lib>
 -  </ItemDefinitionGroup>
--  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'">
 -    <Midl>
 -      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 -      <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -5566,7 +5566,7 @@ index 5ff55579..77518e48 100644
 +      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
 +    </Lib>
 +  </ItemDefinitionGroup>
-+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vs2015.MT-sqlite|x64'">
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'">
 +    <Midl>
 +      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 +      <MkTypLibCompatible>true</MkTypLibCompatible>

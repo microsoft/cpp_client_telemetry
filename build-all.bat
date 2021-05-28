@@ -22,43 +22,43 @@ echo %CUSTOM_PROPS%
 if NOT DEFINED SKIP_MD_BUILD (
   REM DLL and static /MD build
   REM Release
-  call tools\RunMsBuild.bat Win32 Release "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests" %CUSTOM_PROPS%
-  call tools\RunMsBuild.bat x64 Release "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
-    call tools\RunMsBuild.bat Win32 Debug "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests" %CUSTOM_PROPS%
-    call tools\RunMsBuild.bat x64 Debug "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat Win32 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat x64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_MT_BUILD (
   REM Static /MT build
   REM Release
-  call tools\RunMsBuild.bat Win32 Release.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
-  call tools\RunMsBuild.bat x64 Release.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
-    call tools\RunMsBuild.bat Win32 Debug.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
-    call tools\RunMsBuild.bat x64 Debug.vs2015.MT-sqlite "sqlite,zlib,win32-lib" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat Win32 Debug.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat x64 Debug.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_ARM_BUILD (
   REM ARM DLL build
   REM Release
-  call tools\RunMsBuild.bat ARM Release "zlib,sqlite-uwp,win10-cs,win10-dll" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat ARM Release "zlib:Rebuild,sqlite-uwp:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild" %CUSTOM_PROPS%
   if NOT DEFINED SKIP_DEBUG_BUILD (
     REM Debug
-    call tools\RunMsBuild.bat ARM Debug "zlib,sqlite-uwp,win10-cs,win10-dll" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat ARM Debug "zlib:Rebuild,sqlite-uwp:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_ARM64_BUILD (
   REM ARM64 DLL build
   REM Release
-  call tools\RunMsBuild.bat ARM64 Release "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat ARM64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild" %CUSTOM_PROPS%
   if NOT DEFINED SKIP_DEBUG_BUILD (
     REM Debug
-    call tools\RunMsBuild.bat ARM64 Debug "sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat ARM64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild" %CUSTOM_PROPS%
   )
 )
