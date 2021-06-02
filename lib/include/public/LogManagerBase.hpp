@@ -117,6 +117,33 @@ namespace MAT_NS_BEGIN
     };
 #endif
 
+#if defined(HAVE_LEAKY_GLOBALS)
+    template <typename T>
+    class Leaky
+    {
+       public:
+        Leaky()
+        {
+            new (m_leaked) T();
+        }
+
+        ~Leaky() = default;
+
+        T& operator*()
+        {
+            return *get();
+        }
+
+        T* get()
+        {
+            return reinterpret_cast<T*>(m_leaked);
+        }
+
+       private:
+        alignas(T) char m_leaked[sizeof(T)];
+    };
+#endif
+
     /// <summary>
     /// This class is used to manage the Events  logging system
     /// </summary>
@@ -156,9 +183,14 @@ namespace MAT_NS_BEGIN
         /// </summary>
         static std::recursive_mutex& stateLock()
         {
+#if defined(HAVE_LEAKY_GLOBALS)
+            static Leaky<std::recursive_mutex> lock;
+            return *lock;
+#else
             // Magic static is thread-safe in C++
             static std::recursive_mutex lock;
             return lock;
+#endif
         }
 #endif
 
@@ -193,8 +225,13 @@ namespace MAT_NS_BEGIN
         /// </summary>
         static ILogConfiguration& GetLogConfiguration()
         {
+#if defined(HAVE_LEAKY_GLOBALS)
+            static Leaky<ModuleConfiguration> currentConfig;
+            return *currentConfig;
+#else
             static ModuleConfiguration currentConfig;
             return currentConfig;
+#endif
         }
 
         /// <summary>
