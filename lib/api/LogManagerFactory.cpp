@@ -5,6 +5,10 @@
 #include "LogManagerFactory.hpp"
 #include "LogManagerImpl.hpp"
 
+#if defined(HAVE_LEAKY_GLOBALS)
+#include "Leaky.hpp"
+#endif
+
 #include <cstdio>
 #include <cstdlib>
 
@@ -22,8 +26,27 @@ namespace MAT_NS_BEGIN
     // This mutex has to be recursive because we allow both
     // Destroy and destrutor to lock it. destructor could be
     // called directly, and Destroy calls destructor.
-    std::recursive_mutex ILogManagerInternal::managers_lock;
-    std::set<ILogManager*> ILogManagerInternal::managers;
+    std::recursive_mutex& ILogManagerInternal::managers_lock()
+    {
+#if defined(HAVE_LEAKY_GLOBALS)
+        static Leaky<std::recursive_mutex> managers_lock;
+        return *managers_lock;
+#else
+        static std::recursive_mutex managers_lock;
+        return managers_lock;
+#endif
+    }
+
+    std::set<ILogManager*>& ILogManagerInternal::managers()
+    {
+#if defined(HAVE_LEAKY_GLOBALS)
+        static Leaky<std::set<ILogManager*>> managers;
+        return *managers;
+#else
+        static std::set<ILogManager*> managers;
+        return managers;
+#endif
+    }
 
     /// <summary>
     /// Creates an instance of ILogManager using specified configuration.
@@ -32,9 +55,9 @@ namespace MAT_NS_BEGIN
     /// <returns>ILogManager instance</returns>
     ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration)
     {
-        LOCKGUARD(ILogManagerInternal::managers_lock);
+        LOCKGUARD(ILogManagerInternal::managers_lock());
         auto logManager = new LogManagerImpl(configuration);
-        ILogManagerInternal::managers.emplace(logManager);
+        ILogManagerInternal::managers().emplace(logManager);
         return logManager;
     }
 
@@ -50,11 +73,11 @@ namespace MAT_NS_BEGIN
             return STATUS_EFAIL;
         }
 
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        auto it = ILogManagerInternal::managers.find(instance);
-        if (it != std::end(ILogManagerInternal::managers))
+        LOCKGUARD(ILogManagerInternal::managers_lock());
+        auto it = ILogManagerInternal::managers().find(instance);
+        if (it != std::end(ILogManagerInternal::managers()))
         {
-            ILogManagerInternal::managers.erase(it);
+            ILogManagerInternal::managers().erase(it);
             delete instance;
             return STATUS_SUCCESS;
         }

@@ -94,8 +94,8 @@ namespace MAT_NS_BEGIN
 
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
-        // LOCKGUARD(ILogManagerInternal::managers_lock);
-        for (auto instance : ILogManagerInternal::managers)
+        // LOCKGUARD(ILogManagerInternal::managers_lock());
+        for (auto instance : ILogManagerInternal::managers())
         {
             instance->DispatchEvent(evt);
         }
@@ -353,8 +353,8 @@ namespace MAT_NS_BEGIN
     LogManagerImpl::~LogManagerImpl() noexcept
     {
         FlushAndTeardown();
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        ILogManagerInternal::managers.erase(this);
+        LOCKGUARD(ILogManagerInternal::managers_lock());
+        ILogManagerInternal::managers().erase(this);
     }
 
     size_t LogManagerImpl::GetDeadLoggerCount()

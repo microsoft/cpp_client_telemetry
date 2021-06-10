@@ -7,6 +7,10 @@
 
 #include "ctmacros.hpp"
 
+#if defined(HAVE_LEAKY_GLOBALS)
+#include "Leaky.hpp"
+#endif
+
 #include <cstdint>
 #include <map>
 #include <set>
@@ -226,9 +230,14 @@ namespace MAT_NS_BEGIN
         /// </summary>
         static std::recursive_mutex& stateLock()
         {
+#if defined(HAVE_LEAKY_GLOBALS)
+            static Leaky<std::recursive_mutex> lock;
+            return *lock;
+#else
             // Magic static is thread-safe in C++
             static std::recursive_mutex lock;
             return lock;
+#endif
         }
 #endif
 

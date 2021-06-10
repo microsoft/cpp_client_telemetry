@@ -36,6 +36,10 @@ ref class LogManagerLock
 
 #include "LogManagerProvider.hpp"
 
+#if defined(HAVE_LEAKY_GLOBALS)
+#include "Leaky.hpp"
+#endif
+
 #define LM_SAFE_CALL(method, ...)          \
     {                                      \
         LM_LOCKGUARD(stateLock());         \
@@ -117,33 +121,6 @@ namespace MAT_NS_BEGIN
     };
 #endif
 
-#if defined(HAVE_LEAKY_GLOBALS)
-    template <typename T>
-    class Leaky
-    {
-       public:
-        Leaky()
-        {
-            new (m_leaked) T();
-        }
-
-        ~Leaky() = default;
-
-        T& operator*()
-        {
-            return *get();
-        }
-
-        T* get()
-        {
-            return reinterpret_cast<T*>(m_leaked);
-        }
-
-       private:
-        alignas(T) char m_leaked[sizeof(T)];
-    };
-#endif
-
     /// <summary>
     /// This class is used to manage the Events  logging system
     /// </summary>
@@ -209,8 +186,13 @@ namespace MAT_NS_BEGIN
         /// </summary>
         static DebugEventSource& GetDebugEventSource()
         {
+#if defined(HAVE_LEAKY_GLOBALS)
+            static Leaky<DebugEventSource> debugEventSource;
+            return *debugEventSource;
+#else
             static DebugEventSource debugEventSource;
             return debugEventSource;
+#endif
         }
 
         static const char* GetPrimaryToken()
