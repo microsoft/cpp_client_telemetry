@@ -97,7 +97,7 @@ message("-- CMAKE_CXX_COMPILER_ID:  ${CMAKE_CXX_COMPILER_ID}")
 include(tools/ParseOsRelease.cmake)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-set(WARN_FLAGS "/W4")
+set(WARN_FLAGS "/W4 /WX")
 else()
 # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
 set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter")
