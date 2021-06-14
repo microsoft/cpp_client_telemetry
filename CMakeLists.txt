@@ -92,15 +92,22 @@ message("-- CMAKE_SYSTEM:           ${CMAKE_SYSTEM}")
 message("-- CMAKE_SYSTEM_VERSION:   ${CMAKE_SYSTEM_VERSION}")
 message("-- CMAKE_BUILD_TYPE:       ${CMAKE_BUILD_TYPE}")
 message("-- TARGET_ARCH:            ${TARGET_ARCH}")
+message("-- CMAKE_CXX_COMPILER_ID:  ${CMAKE_CXX_COMPILER_ID}")
 
 include(tools/ParseOsRelease.cmake)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+set(WARN_FLAGS "/W4 /WX")
+else()
 # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
 set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter")
+endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # Using GCC with -s and -Wl linker flags
   set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants -ffast-math")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  set(REL_FLAGS "${WARN_FLAGS}")
 else()
   # Using clang - strip unsupported GCC options
   set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")
@@ -114,7 +121,7 @@ endif()
 # Use libtcmalloc for Debug builds memory leaks detection
 set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  ${WARN_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   #TODO: -fno-rtti
   message("Building Release ...")
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
@@ -152,8 +159,12 @@ endif()
 include(tools/Utils.cmake)
 
 if (NOT DEFAULT_PAL_IMPLEMENTATION)
+if(MSVC)
+  set(DEFAULT_PAL_IMPLEMENTATION WIN32)
+else()
 # Linux, Mac OS X, MinGW, etc.
   set(DEFAULT_PAL_IMPLEMENTATION CPP11)
+endif()
 endif()
 
 set(PAL_IMPLEMENTATION ${DEFAULT_PAL_IMPLEMENTATION})
