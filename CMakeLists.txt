@@ -103,7 +103,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants -ffast-math")
 else()
   # Using clang - strip unsupported GCC options
-  set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")
+  if(BUILD_IOS)
+    set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants -ffast-math")
+  else()
+    set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")
+  endif()
 endif()
 
 ## Uncomment this to reduce the volume of note warnings on RPi4 w/gcc-8 Ref. https://gcc.gnu.org/ml/gcc/2017-05/msg00073.html
