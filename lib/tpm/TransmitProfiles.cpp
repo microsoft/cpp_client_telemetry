@@ -12,6 +12,10 @@
 
 #include "utils/Utils.hpp"
 
+#if defined(HAVE_LEAKY_GLOBALS)
+#include "Leaky.hpp"
+#endif
+
 #include <mutex>
 #include <set>
 
@@ -61,11 +65,21 @@ static void initTransmitProfileFields()
 };
 #endif
 
-#define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx)
+#define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx())
 
 namespace MAT_NS_BEGIN {
 
-    static std::recursive_mutex profiles_mtx;
+    static std::recursive_mutex& profiles_mtx()
+    {
+#if defined(HAVE_LEAKY_GLOBALS)
+        static Leaky<std::recursive_mutex> profiles_mtx;
+        return *profiles_mtx;
+#else
+        static std::recursive_mutex profiles_mtx;
+        return profiles_mtx;
+#endif
+    }
+
     map<string, TransmitProfileRules>      TransmitProfiles::profiles;
     string      TransmitProfiles::currProfileName = DEFAULT_PROFILE;
     size_t      TransmitProfiles::currRule = 0;
