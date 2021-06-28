@@ -142,7 +142,7 @@ static BOOL _initialized = false;
             }
             else
             {
-                [NSException raise:@"1DSSDKException" format:[NSString stringWithFormat:@"%@", error.localizedDescription]];
+                [ODWLogger raiseException: [error.localizedDescription UTF8String]];
             }
         }
 
@@ -310,5 +310,10 @@ static BOOL _initialized = false;
 
         LogManager::SetContext(strKey, strValue, piiValue);
     });
+}
++(void)applicationWillTerminate {
+    [ODWLogManager pauseTransmission];
+    canUseSDK = false;
+    [ODWLogManager flushAndTeardown];
 }
 @end

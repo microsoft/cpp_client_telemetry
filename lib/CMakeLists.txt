@@ -78,7 +78,6 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
-  add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
     modules/privacyguard/PrivacyGuard.cpp
     modules/privacyguard/RegisteredFileTypes.cpp
@@ -87,7 +86,6 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/ AND BUILD_LIVEEVENTINSPECTOR)
-  add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
   list(APPEND SRCS
     modules/liveeventinspector/LiveEventInspector.cpp
     modules/liveeventinspector/LiveEventInspector.hpp
@@ -165,6 +163,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
           list(APPEND SRCS
           ../wrappers/obj-c/ODWCommonDataContext.mm
           ../wrappers/obj-c/ODWPrivacyGuard.mm
+          ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
           )
     endif()
   endif()
