@@ -3,6 +3,12 @@ apply plugin: 'com.android.application'
 apply from: "$rootProject.projectDir/tools.gradle"
 
 android {
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
     defaultConfig {
         applicationId "com.microsoft.applications.events.maesdktest"
         versionCode 1
