@@ -96,6 +96,11 @@ std::atomic<bool> canUseSDK = { true };
             event.SetProperty(strPropertyName, [str UTF8String], piiKind);
         }
     }
+    NSString* type = [wrappedProperties eventType];
+    if([type length] != 0)
+    {
+        event.SetType([type UTF8String]);
+    }
 }
 
 -(void) logEventWithEventProperties: (nonnull ODWEventProperties*) properties

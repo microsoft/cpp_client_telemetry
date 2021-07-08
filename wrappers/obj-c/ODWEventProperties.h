@@ -96,6 +96,11 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
 @property(readonly, copy, nonatomic) NSDictionary<NSString*, NSNumber*> * piiTags;
 
 /*!
+ @brief Specify the Base Type of an event. This field is populated in Records.Type
+*/
+@property(readwrite, nonatomic) NSString* eventType;
+
+/*!
  @brief Constructs an ODWEventProperties object, taking an event name.
  @param name A string that contains the name of the event.
  @return An instance of the ODWEventProperties interface.
@@ -252,6 +257,11 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
  */
 -(void)setProperty:(NSString*)name withDateValue:(NSDate*)value withPiiKind:(ODWPiiKind)piiKind;
+
+/*!
+@brief Specify the Base Type of an event. This field is populated in Records.Type
+*/
+-(void)setType:(NSString*)type;
 
 @end
 

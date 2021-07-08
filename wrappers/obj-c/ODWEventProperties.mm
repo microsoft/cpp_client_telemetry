@@ -8,10 +8,12 @@
 @implementation ODWEventProperties {
 NSMutableDictionary<NSString *, id> * _properties;
 NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
+NSString* _eventType;
 }
 
 @dynamic properties;
 @dynamic piiTags;
+NSString* eventType;
 
 -(instancetype)initWithName:(nonnull NSString *)name
 {
@@ -147,6 +149,11 @@ NSMutableDictionary<NSString*, NSNumber*> * _piiTags;
 {
     [self setProperty:@"EventInfo.PrivTags" withUInt64Value:privTags];
     [self setProperty:@"EventInfo.Level" withUInt8Value:privLevel];
+}
+
+-(void)setType:(NSString*)type
+{
+    _eventType = type;
 }
 
 @end
