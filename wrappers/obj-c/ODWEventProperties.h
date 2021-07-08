@@ -259,7 +259,7 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
 -(void)setProperty:(NSString*)name withDateValue:(NSDate*)value withPiiKind:(ODWPiiKind)piiKind;
 
 /*!
-@brief Specify the Base Type of an event. This field is populated in Records.Type
+ @brief Specify the Base Type of an event. This field is populated in Records.Type
 */
 -(void)setType:(NSString*)type;
 
