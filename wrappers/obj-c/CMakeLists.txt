@@ -29,7 +29,7 @@ endif()
 set (PLATFORM_LIBS "")
 # Add flags for obtaining system UUID via IOKit
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-set (PLATFORM_LIBS "-framework Foundation -framework CoreFoundation -framework IOKit -framework Network")
+set (PLATFORM_LIBS "-framework Foundation -framework CoreFoundation -framework IOKit -framework Network -framework SystemConfiguration")
 endif()
 
 include_directories( 
