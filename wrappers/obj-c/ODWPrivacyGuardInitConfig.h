@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief (REQUIRED) Data Context to use with Privacy Guard.
  */
-@property(readwrite, copy, nonatomic) ODWCommonDataContext* dataContext;
+@property(readwrite, assign, nonatomic) ODWCommonDataContext* dataContext;
 /*!
  @brief (OPTIONAL) Custom event name to use when logging privacy concerns. Default value is `PrivacyConcern`.
  */

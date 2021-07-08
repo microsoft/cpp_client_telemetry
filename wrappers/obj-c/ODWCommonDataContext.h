@@ -22,32 +22,32 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief User Name such as the Login Name.
  */
-@property(readwrite, copy, nonatomic) NSMutableArray* UserNames;
+@property(readwrite, assign, nonatomic) NSMutableArray* UserNames;
 
 /*!
  @brief User Alias, if different that UserName
  */
-@property(readwrite, copy, nonatomic) NSMutableArray* UserAliases;
+@property(readwrite, assign, nonatomic) NSMutableArray* UserAliases;
 
 /*!
  @brief IP Addresses for local network ports such as IPv4, IPv6, etc.
  */
-@property(readwrite, copy, nonatomic) NSMutableArray* IpAddresses;
+@property(readwrite, assign, nonatomic) NSMutableArray* IpAddresses;
 
 /*!
  @brief Collection of Language Identifiers
  */
-@property(readwrite, copy, nonatomic) NSMutableArray* LanguageIdentifiers;
+@property(readwrite, assign, nonatomic) NSMutableArray* LanguageIdentifiers;
 
 /*!
  @brief Collection of Machine Identifies such as Machine Name, Motherboard ID, MAC Address, etc.
  */
-@property(readwrite, copy, nonatomic) NSMutableArray* MachineIds;
+@property(readwrite, assign, nonatomic) NSMutableArray* MachineIds;
 
 /*!
  @brief Collection of Out-of-Scope identifiers such as Client ID, etc.
  */
-@property(readwrite, copy, nonatomic) NSMutableArray* OutOfScopeIdentifiers;
+@property(readwrite, assign, nonatomic) NSMutableArray* OutOfScopeIdentifiers;
 
 @end
 NS_ASSUME_NONNULL_END
