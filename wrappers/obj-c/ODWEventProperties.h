@@ -96,7 +96,7 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
 @property(readonly, copy, nonatomic) NSDictionary<NSString*, NSNumber*> * piiTags;
 
 /*!
- @brief Specify the Base Type of an event. This field is populated in Records.Type
+ @brief Base Type of an event. This field is populated in Records.Type
 */
 @property(readwrite, nonatomic) NSString* eventType;
 
