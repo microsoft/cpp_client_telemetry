@@ -29,16 +29,12 @@ endif()
 set (PLATFORM_LIBS "")
 # Add flags for obtaining system UUID via IOKit
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-set (PLATFORM_LIBS "-framework Foundation -framework CoreFoundation -framework IOKit -framework Network -framework SystemConfiguration")
+set (PLATFORM_LIBS "-framework Foundation -framework CoreFoundation -framework IOKit -framework Network")
 endif()
 
 include_directories( 
     ../../lib/include/public/
     ../../lib/include/mat/
-    ../../lib/include/
-    ../../lib/modules/privacyguard/
-    ../../lib/
-    ../../third_party/Reachability/
     )
 
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
@@ -46,7 +42,7 @@ foreach(dir ${dirs})
     message(STATUS "dir='${dir}'")
 endforeach()
 
-set(PLATFORM_FILES main.mm ODWLogManager.mm ODWLogger.mm ODWEventProperties.mm ODWLogConfiguration.mm ODWSemanticContext.mm ODWCommonDataContext.mm ODWPrivacyGuardInitConfig.mm ODWPrivacyGuard.mm ../../lib/pal/posix/NetworkInformationImpl.mm ../../third_party/Reachability/ODWReachability.m)
+set(PLATFORM_FILES main.mm ODWLogManager.mm ODWLogger.mm ODWEventProperties.mm ODWLogConfiguration.mm ODWSemanticContext.mm)
 add_executable( sample ${PLATFORM_FILES} )
 target_link_libraries(sample ${MATSDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} ${PLATFORM_LIBS} dl)
 
