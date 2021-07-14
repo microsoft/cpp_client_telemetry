@@ -71,6 +71,11 @@ typedef NS_ENUM(NSUInteger, ODWDataConcernType)
  */
 +(void)addIgnoredConcern:(NSString *) EventName withNSString:(NSString *)FieldName withODWDataConcernType:(ODWDataConcernType)IgnoredConcern;
 
+/*!
+ @brief Reset the Privacy Guard instance. This should be used after LogManager::FlushAndTeardown is called.
+ */
++(void)resetPrivacyGuardInstance;
+
 @end
 
 NS_ASSUME_NONNULL_END
