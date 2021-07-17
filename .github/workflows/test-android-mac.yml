@@ -30,7 +30,7 @@ jobs:
       continue-on-error: true
 
     - name: Build and Test
-      uses: reactivecircus/android-emulator-runner@v2
+      uses: reactivecircus/android-emulator-runner@v2.19.0
       with:
         api-level: 29
         ndk: 21.1.6352462
