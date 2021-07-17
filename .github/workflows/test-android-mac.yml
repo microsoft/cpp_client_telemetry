@@ -17,9 +17,14 @@ on:
 
   schedule:
     - cron: '17 */4 * * *'
+
 jobs:
   build:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        api-level: [29]
+
     name: Android Unit Tests (Mac)
     steps:
 
@@ -29,14 +34,48 @@ jobs:
         submodules: 'true'
       continue-on-error: true
 
+    - name: Gradle cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
+
+    - name: AVD cache
+      uses: actions/cache@v2
+      id: avd-cache
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: avd-${{ matrix.api-level }}
+
+    - name: Create AVD and generate snapshot for caching
+      if: steps.avd-cache.outputs.cache-hit != 'true'
+      uses: reactivecircus/android-emulator-runner@v2.19.0
+      with:
+        api-level: ${{ matrix.api-level }}
+        ndk: 21.1.6352462
+        cmake: 3.10.2.4988404
+        force-avd-creation: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: false
+        working-directory: ./lib/android_build
+        script: echo "Generated AVD snapshot for caching."
+
     - name: Build and Test
       uses: reactivecircus/android-emulator-runner@v2.19.0
       with:
-        api-level: 29
+        force-avd-creation: false
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        api-level: ${{ matrix.api-level }}
         ndk: 21.1.6352462
         cmake: 3.10.2.4988404
         working-directory: ./lib/android_build
         script: ./testandlog
+
     - name: Upload
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
