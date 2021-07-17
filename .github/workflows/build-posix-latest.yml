@@ -4,11 +4,16 @@ on:
   push:
     branches:
     - master
+    - dev
+    - dev/*
     - release/*
     - buildme/*
+
   pull_request:
     branches:
     - master
+    - dev
+
   schedule:
   - cron: 0 2 * * 1-5
 

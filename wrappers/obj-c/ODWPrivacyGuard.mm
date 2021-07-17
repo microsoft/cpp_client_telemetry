@@ -84,6 +84,11 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
 
 +(void)initializePrivacyGuard:(ILogger *)logger withODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
 {
+    if (_privacyGuardPtr != nullptr)
+    {
+        return;
+    }
+
     InitializationConfiguration config(logger, [ODWPrivacyGuard convertToNativeCommonDataContexts:[initConfigObject dataContext]]);
     if ([initConfigObject notificationEventName] != nil)
     {
@@ -135,6 +140,11 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     const uint8_t ignoredConcern = (uint8_t)IgnoredConcern;
     
     _privacyGuardPtr->AddIgnoredConcern(eventName, fieldName, static_cast<DataConcernType>(ignoredConcern));
+}
+
++(void)resetPrivacyGuardInstance
+{
+    _privacyGuardPtr = nullptr;
 }
 
 @end

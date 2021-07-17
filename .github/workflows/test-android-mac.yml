@@ -4,12 +4,17 @@ on:
   push:
     branches:
     - master
+    - dev
+    - dev/*
     - release/*
     - buildme/*
     - maharrim/*
+
   pull_request:
     branches:
     - master
+    - dev
+
   schedule:
     - cron: '17 */4 * * *'
 jobs:

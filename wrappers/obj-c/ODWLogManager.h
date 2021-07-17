@@ -4,6 +4,7 @@
 //
 #include "objc_begin.h"
 #import "ODWLogger.h"
+#import "ODWLogConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
