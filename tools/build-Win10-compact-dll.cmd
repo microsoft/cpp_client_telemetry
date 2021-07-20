@@ -1,3 +1,4 @@
 @echo off
 cd ..
-build-all.bat %CD%\Solutions\build.compact-dll.props
+set NOSQLITE=TRUE
+build-all-v142.bat %CD%\Solutions\build.compact-dll.props
