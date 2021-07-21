@@ -52,9 +52,15 @@
 #endif
 
 // TODO: [MG] - ideally we'd like to use __attribute__((unused)) with gcc/clang
+#ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(...)
+#endif
+
 #define OACR_USE_PTR(...)
+
+#ifndef _Out_writes_bytes_
 #define _Out_writes_bytes_(...)
+#endif
 
 #endif
 
