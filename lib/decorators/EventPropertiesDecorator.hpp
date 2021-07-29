@@ -114,6 +114,9 @@ namespace MAT_NS_BEGIN {
                 record.data.push_back(data);
             }
 
+            if (eventProperties.GetTimestamp() != 0)
+                record.time = eventProperties.GetTimestamp();
+
             record.popSample = eventProperties.GetPopSample();
 
             // API surface tags('flags') are different from on-wire record.flags
