@@ -13,6 +13,7 @@ set(SRCS
   DeviceStateHandlerTests.cpp
   DiskLocalStorageTests.cpp
   EventFilterCollectionTests.cpp
+  EventPropertiesDecoratorTests.cpp
   EventPropertiesStorageTests.cpp
   EventPropertiesTests.cpp
   GuidTests.cpp

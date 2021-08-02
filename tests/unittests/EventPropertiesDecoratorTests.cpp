@@ -12,7 +12,7 @@ using namespace CsProtocol;
 
 constexpr int16_t NormalEventLatency = 0x100;
 constexpr int16_t RealtimeEventLatency = 0x200;
-constexpr int16_t CostDeferredEventLatecy = 0x300;
+constexpr int16_t CostDeferredEventLatency = 0x300;
 constexpr int8_t NormalEventPersistence = 0x1;
 constexpr int8_t CriticalEventPersistence = 0x2;
 
@@ -49,7 +49,7 @@ static std::unique_ptr<Record> PopulateRecordForDropPii()
     record->extSdk[0].installId = "installId";
     record->cV = "cV";
 
-    return std::move(record);
+    return record;
 }
 
 TEST(EventPropertiesDecoratorTests, Decorate_ZeroValueDoesNotAlterRecordTime)
@@ -128,6 +128,18 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventLatency_Normal)
 
     EXPECT_TRUE(decorator.decorate(record, latency, props));
     EXPECT_TRUE(record.flags & NormalEventLatency);
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventLatency_CostDeferred)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    EventLatency latency = EventLatency::EventLatency_CostDeferred;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+    EXPECT_TRUE(record.flags & CostDeferredEventLatency);
 }
 
 TEST(EventPropertiesDecoratorTests, Decorate_EventLatency_Realtime)
