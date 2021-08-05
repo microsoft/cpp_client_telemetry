@@ -179,6 +179,117 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventTag_MarkPii)
     EXPECT_TRUE(record.flags & RECORD_FLAGS_EVENTTAG_MARK_PII);
 }
 
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_StringProperty)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    props.SetProperty("StringProp", "StringValue");
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("StringProp");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.type, Eq(ValueKind::ValueString));
+    EXPECT_THAT(dataField->second.stringValue, Eq("StringValue"));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_Int64Property)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    props.SetProperty("Int64Prop", 12345);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.type, Eq(ValueKind::ValueInt64));
+    EXPECT_THAT(dataField->second.longValue, Eq(12345));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_DoubleProperty)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    props.SetProperty("DoubleProp", 12345.0);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("DoubleProp");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.type, Eq(ValueKind::ValueDouble));
+    EXPECT_THAT(dataField->second.doubleValue, Eq(12345.0));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_BooleanProperty)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    props.SetProperty("BooleanProp", true);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("BooleanProp");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.type, Eq(ValueKind::ValueBool));
+    EXPECT_THAT(dataField->second.longValue, Eq(1));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_TimeTicksProperty)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    props.SetProperty("TimeTicksProp", time_ticks_t {12345} );
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("TimeTicksProp");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.type, Eq(ValueKind::ValueDateTime));
+    EXPECT_THAT(dataField->second.longValue, Eq(12345));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_GuidProperty)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    GUID_t guid {"01234567-89ab-cdef-0123-456789abcdef"};
+    props.SetProperty("GuidProp", guid);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("GuidProp");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.type, Eq(ValueKind::ValueGuid));
+    EXPECT_THAT(dataField->second.guidValue[0], SizeIs(16));
+
+    uint8_t guidBytes[16] = {0};
+    guid.to_bytes(guidBytes);
+    auto guidByteVector = std::vector<uint8_t>(guidBytes, guidBytes + sizeof(guidBytes) / sizeof(guidBytes[0]));
+    for (uint8_t i = 0; i < dataField->second.guidValue.size(); i++)
+    {
+        EXPECT_THAT(dataField->second.guidValue[0][i], Eq(guidByteVector[i]));
+    }
+}
+
 TEST(EventPropertiesDecoratorTests, Decorate_EventTag_DropPii)
 {
     NullLogManager logManager;
@@ -200,7 +311,7 @@ TEST(EventPropertiesDecoratorTests, DropPiiPartA_StripsValues)
 
     decorator.dropPiiPartA(*record);
 
-    EXPECT_TRUE(record->extProtocol[0].ticketKeys.size() == 0);
+    EXPECT_THAT(record->extProtocol[0].ticketKeys, SizeIs(0));
     EXPECT_THAT(record->extDevice[0].localId, Eq(decorator.GetRandomLocalId()));
     EXPECT_THAT(record->extDevice[0].authId, Eq(""));
     EXPECT_THAT(record->extDevice[0].authSecId, Eq(""));
