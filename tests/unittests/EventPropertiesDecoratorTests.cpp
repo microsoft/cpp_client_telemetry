@@ -284,10 +284,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_GuidProperty)
     uint8_t guidBytes[16] = {0};
     guid.to_bytes(guidBytes);
     auto guidByteVector = std::vector<uint8_t>(guidBytes, guidBytes + sizeof(guidBytes) / sizeof(guidBytes[0]));
-    for (uint8_t i = 0; i < dataField->second.guidValue.size(); i++)
-    {
-        EXPECT_THAT(dataField->second.guidValue[0][i], Eq(guidByteVector[i]));
-    }
+    EXPECT_THAT(dataField->second.guidValue[0], Eq(guidByteVector));
 }
 
 TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_CustomerContentKind_GenericData)
