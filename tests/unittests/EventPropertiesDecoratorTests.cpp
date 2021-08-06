@@ -71,7 +71,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_SetToEventPropertiesTimestamp)
     EventPropertiesDecorator decorator(logManager);
     Record record;
     record.time = 1234;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetTimestamp(1234567);
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -85,7 +85,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_PopSample)
     EventPropertiesDecorator decorator(logManager);
     Record record;
     record.popSample = 1;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetPopsample(0.02);
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -98,7 +98,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventPersistence_Default)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     EventLatency latency = EventLatency::EventLatency_Normal;
 
     EXPECT_TRUE(decorator.decorate(record, latency, props));
@@ -110,7 +110,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventPersistence_Critical)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetPersistence(EventPersistence::EventPersistence_Critical);
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -123,7 +123,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventLatency_Normal)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     EventLatency latency = EventLatency::EventLatency_Normal;
 
     EXPECT_TRUE(decorator.decorate(record, latency, props));
@@ -135,7 +135,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventLatency_CostDeferred)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     EventLatency latency = EventLatency::EventLatency_CostDeferred;
 
     EXPECT_TRUE(decorator.decorate(record, latency, props));
@@ -147,7 +147,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventLatency_Realtime)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     EventLatency latency = EventLatency::EventLatency_RealTime;
 
     EXPECT_TRUE(decorator.decorate(record, latency, props));
@@ -159,7 +159,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventLatency_Max_FallbackToRealtime
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     EventLatency latency = EventLatency::EventLatency_Max;
 
     EXPECT_TRUE(decorator.decorate(record, latency, props));
@@ -171,7 +171,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventTag_MarkPii)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_MARK_PII);
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -184,7 +184,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_StringProperty)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetProperty("StringProp", "StringValue");
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -201,7 +201,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_Int64Property)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetProperty("Int64Prop", 12345);
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -218,7 +218,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_DoubleProperty)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetProperty("DoubleProp", 12345.0);
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -235,7 +235,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_BooleanProperty)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetProperty("BooleanProp", true);
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -252,7 +252,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_TimeTicksProperty)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetProperty("TimeTicksProp", time_ticks_t {12345} );
     EventLatency latency = EventLatency::EventLatency_Normal;
 
@@ -269,7 +269,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_GuidProperty)
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     Record record;
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     GUID_t guid {"01234567-89ab-cdef-0123-456789abcdef"};
     props.SetProperty("GuidProp", guid);
     EventLatency latency = EventLatency::EventLatency_Normal;
@@ -290,12 +290,236 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_GuidProperty)
     }
 }
 
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_CustomerContentKind_GenericData)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::CustomerContentKind_GenericData);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].customerContent[0].Kind, Eq(CustomerContentKind::GenericContent));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_DistinguishedName)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_DistinguishedName);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::DistinguishedName));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_Fqdn)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_Fqdn);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::Fqdn));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_GenericData)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_GenericData);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::GenericData));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_Identity)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_Identity);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::Identity));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_IPv4Address)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_IPv4Address);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::IPV4Address));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_IPv4AddressLegacy)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_IPv4AddressLegacy);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::IPV4AddressLegacy));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_IPv6Address)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_IPv6Address);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::IPv6Address));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_MailSubject)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_MailSubject);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::MailSubject));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_PhoneNumber)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_PhoneNumber);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::PhoneNumber));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_QueryString)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_QueryString);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::QueryString));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_SipAddress)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_SipAddress);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::SipAddress));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_SmtpAddress)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_SmtpAddress);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::SmtpAddress));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_Uri)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_Uri);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::Uri));
+}
+
 TEST(EventPropertiesDecoratorTests, Decorate_EventTag_DropPii)
 {
     NullLogManager logManager;
     EventPropertiesDecorator decorator(logManager);
     auto record = PopulateRecordForDropPii();
-    EventProperties props{"TestEvent"};
+    EventProperties props {"TestEvent"};
     props.SetPolicyBitFlags(MICROSOFT_EVENTTAG_DROP_PII);
     EventLatency latency = EventLatency::EventLatency_Normal;
 
