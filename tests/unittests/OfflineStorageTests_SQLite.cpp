@@ -2,6 +2,9 @@
 // Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
 // SPDX-License-Identifier: Apache-2.0
 //
+#include "mat/config.h"
+#ifdef HAVE_MAT_STORAGE
+
 #include "common/Common.hpp"
 #include "common/MockIOfflineStorageObserver.hpp"
 #include "common/MockIRuntimeConfig.hpp"
@@ -711,3 +714,4 @@ TEST_F(OfflineStorageTests_SQLite, SqliteDbInstancesAreCounted)
     shutdownAndRemoveFile();
     EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 0);
 }
+#endif
