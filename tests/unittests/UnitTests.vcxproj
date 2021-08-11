@@ -453,6 +453,7 @@
     <ClCompile Include="$(ProjectDir)\AIJsonSerializerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
     <ClCompile Include="$(ProjectDir)\InformationProviderImplTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventPropertiesDecoratorTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />

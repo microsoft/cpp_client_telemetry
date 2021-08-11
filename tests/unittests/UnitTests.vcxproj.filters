@@ -59,6 +59,7 @@
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyGuardTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\InformationProviderImplTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\EventPropertiesDecoratorTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
