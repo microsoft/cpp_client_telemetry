@@ -30,20 +30,11 @@ public:
         LOG_INFO("=== %s.%s [%s]", test.test_case_name(), test.name(), test.result()->Passed() ? "OK" : "FAILED");
         if(!test.result()->Passed())
         {
-#if 0
-// use something like this code after we switch to Xcode 12 and can
-// delete the deprecated code in the else block below. ADO 4251996
-            XCTSourceCodeLocation *location = [[[XCTSourceCodeLocation alloc] initWithFilePath:[NSString stringWithUTF8String:test.file()] lineNumber:test.line()] autorelease];
-            XCTSourceCodeContext *context = [[[XCTSourceCodeContext alloc] initWithLocation:location] autorelease];
-            XCTIssue *issue = [[[XCTIssue alloc] initWithType:XCTIssueTypeAssertionFailure compactDescription:[NSString stringWithUTF8String:test.test_case_name()] detailedDescription:nil sourceCodeContext:context associatedError:nil attachments:@[]] autorelease];
+            XCTSourceCodeLocation *location = [[XCTSourceCodeLocation alloc] initWithFilePath:[NSString stringWithUTF8String:test.file()] lineNumber:test.line()];
+            XCTSourceCodeContext *context = [[XCTSourceCodeContext alloc] initWithLocation:location];
+            XCTIssue *issue = [[XCTIssue alloc] initWithType:XCTIssueTypeAssertionFailure compactDescription:[NSString stringWithUTF8String:test.test_case_name()] detailedDescription:nil sourceCodeContext:context associatedError:nil attachments:@[]];
 
             [m_tests recordIssue:issue];
-#else
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-            [m_tests recordFailureWithDescription:[NSString stringWithUTF8String:test.test_case_name()] inFile:[NSString stringWithUTF8String:test.file()] atLine:test.line() expected:true];
-#pragma clang diagnostic pop
-#endif
         }
     }
 private:
