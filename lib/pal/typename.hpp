@@ -7,7 +7,7 @@
 #include <string>
 #include <typeinfo>
 
-#ifdef __GNUG__
+#if defined(_CPPRTTI) && defined(__GNUG__)
 #include <cstdlib>
 #include <memory>
 #include <cxxabi.h>
@@ -35,4 +35,3 @@ __inline static std::string demangle(const char* name) {
 #endif
 
 #endif
-
