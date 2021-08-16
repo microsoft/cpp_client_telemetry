@@ -1,3 +1,6 @@
+# Honor visibility properties for all target types
+cmake_policy(SET CMP0063 NEW)
+
 include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/Reachability ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
@@ -217,7 +220,7 @@ endif()
 
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
-  
+
   # include(FindCURL)
   # find_package(CURL REQUIRED)
   # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
@@ -256,12 +259,12 @@ else()
   if(PAL_IMPLEMENTATION STREQUAL "WIN32")
     target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   else()
-    add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    add_library(z STATIC IMPORTED GLOBAL)
+    # add_library(sqlite3 STATIC IMPORTED GLOBAL)
+    # add_library(z STATIC IMPORTED GLOBAL)
     #
     # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
     #
-    target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    # target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   endif()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()
