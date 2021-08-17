@@ -35,4 +35,3 @@ __inline static std::string demangle(const char* name) {
 #endif
 
 #endif
-
