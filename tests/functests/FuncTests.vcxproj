@@ -141,6 +141,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -189,6 +190,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -236,6 +238,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -285,6 +288,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -333,6 +337,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -379,6 +384,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4244</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MATSDK_PAL_WIN32=1;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -435,19 +441,19 @@
     <ClInclude Include="..\common\MockITenantDataSerializer.hpp" />
     <ClInclude Include="EventDecoderListener.hpp" />
   </ItemGroup>
-  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\exp')">
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\exp')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSConfigCacheFuncTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientFuncTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientRealworldFuncTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\..\lib\modules\exp\tests\functests\ECSClientCommon.hpp" />
   </ItemGroup>
-  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\functests\DefaultDataViewerFuncTests.cpp" />
   </ItemGroup>
-  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\functests\PrivacyGuardFuncTests.cpp" />
   </ItemGroup>
-  <ItemGroup Condition = "exists('$(ProjectDir)..\..\lib\modules\liveeventinspector')">
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\liveeventinspector')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\liveeventinspector\tests\functests\LiveEventInspectorFuncTests.cpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
