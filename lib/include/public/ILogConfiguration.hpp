@@ -185,6 +185,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_INT_MAX_TEARDOWN_TIME = "maxTeardownUploadTimeInSec";
 
     /// <summary>
+    /// Disable zombie logger logic.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_DISABLE_ZOMBIE_LOGGERS = "disableZombieLoggers";
+
+    /// <summary>
     /// The maximum number of pending HTTP requests.
     /// </summary>
     static constexpr const char* const CFG_INT_MAX_PENDING_REQ = "maxPendingHTTPRequests";
