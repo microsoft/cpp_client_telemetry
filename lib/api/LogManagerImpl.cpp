@@ -368,22 +368,30 @@ namespace MAT_NS_BEGIN
         LOCKGUARD(m_lock);
         if (m_alive)
         {
-            // before we do anything else, move our Logger instances
-            // to the shut-down state and the s_deadLoggers graveyard.
-            // Calls to these loggers will be benign: before we complete
-            // their RecordShutdown() call, this LogManagerImpl is alive
-            // and well and ILogger methods should work. After that
-            // RecordShutdown(), those ILogger methods do nothing and in
-            // particular do not touch this now-defunct LogManagerImpl.
-            for (auto& kv : m_loggers)
+            if (m_logConfiguration[CFG_BOOL_DISABLE_ZOMBIE_LOGGERS])
             {
-                // this waits until no active calls on this logger
-                kv.second->RecordShutdown();
+                m_loggers.clear();
             }
-            s_deadLoggers.AddMap(std::move(m_loggers));
+            else
+            {
+                // before we do anything else, move our Logger instances
+                // to the shut-down state and the s_deadLoggers graveyard.
+                // Calls to these loggers will be benign: before we complete
+                // their RecordShutdown() call, this LogManagerImpl is alive
+                // and well and ILogger methods should work. After that
+                // RecordShutdown(), those ILogger methods do nothing and in
+                // particular do not touch this now-defunct LogManagerImpl.
+                for (auto& kv : m_loggers)
+                {
+                    // this waits until no active calls on this logger
+                    kv.second->RecordShutdown();
+                }
 
-            // Ensure that AddMap clears m_loggers (it does, it should continue to).
-            assert(m_loggers.empty());
+                s_deadLoggers.AddMap(std::move(m_loggers));
+
+                // Ensure that AddMap clears m_loggers (it does, it should continue to).
+                assert(m_loggers.empty());
+            }
 
             LOG_INFO("Tearing down modules");
             TeardownModules();
