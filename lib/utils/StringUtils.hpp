@@ -17,7 +17,7 @@ namespace MAT_NS_BEGIN
     namespace StringUtils
     {
         void SplitString(const std::string& s, const char separator, std::vector<std::string>& parts);
-        bool AreAllCharactersWhitelisted(const std::string& stringToTest, const std::string& whitelist);
+        bool AreAllCharactersAllowlisted(const std::string& stringToTest, const std::string& allowlist);
     }
 
     std::string toString(char const* value);

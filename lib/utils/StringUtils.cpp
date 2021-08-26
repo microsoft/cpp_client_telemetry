@@ -31,9 +31,9 @@ namespace MAT_NS_BEGIN
         }
     }
 
-    bool StringUtils::AreAllCharactersWhitelisted(const string& stringToTest, const string& whitelist)
+    bool StringUtils::AreAllCharactersAllowlisted(const string& stringToTest, const string& allowlist)
     {
-        return (stringToTest.find_first_not_of(whitelist) == string::npos);
+        return (stringToTest.find_first_not_of(allowlist) == string::npos);
     }
 
 #ifdef __clang__
