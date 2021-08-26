@@ -7,27 +7,24 @@
 // WARNING: DO NOT MODIFY THIS FILE!
 // This file has been automatically generated, manual changes will be lost.
 #define BUILD_VERSION_STR "3.5.200.1"
-#define BUILD_VERSION 3, 5, 200, 1
+#define BUILD_VERSION 3,5,200,1
 
 #ifndef RESOURCE_COMPILER_INVOKED
 #include "ctmacros.hpp"
 #include <stdint.h>
 
-namespace MAT_NS_BEGIN
-{
-    uint64_t const Version =
-        ((uint64_t)3 << 48) |
-        ((uint64_t)5 << 32) |
-        ((uint64_t)200 << 16) |
-        ((uint64_t)1);
+namespace MAT_NS_BEGIN {
 
-}
-MAT_NS_END
+uint64_t const Version =
+    ((uint64_t)3 << 48) |
+    ((uint64_t)5 << 32) |
+    ((uint64_t)200 << 16) |
+    ((uint64_t)1);
 
-namespace PAL_NS_BEGIN
-{
-}
-PAL_NS_END
+} MAT_NS_END
 
-#endif  // RESOURCE_COMPILER_INVOKED
+namespace PAL_NS_BEGIN { } PAL_NS_END
+
+#endif // RESOURCE_COMPILER_INVOKED
 #endif
+
