@@ -72,7 +72,7 @@ TEST(StringUtilsTests, SplitString)
 TEST(StringUtilsTests, AreAllCharactersAllowlisted)
 {
 	// testing method
-	// bool AreAllCharactersAllowlisted(const std::string& stringToTest, const std::string& whitelist);
+	// bool AreAllCharactersAllowlisted(const std::string& stringToTest, const std::string& allowlist);
 
 	string allAsciiChars;
 
@@ -81,20 +81,20 @@ TEST(StringUtilsTests, AreAllCharactersAllowlisted)
 		allAsciiChars += ((char)i);
 	}
 
-	// any string is whitelisted against the full list of characters
+	// any string is allowed against the full list of characters
 	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted(allAsciiChars, allAsciiChars));
 	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", allAsciiChars));
 	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("a", allAsciiChars));
 	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("aaaaaaaaaaa", allAsciiChars));
 	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted(string(10000, ' '), allAsciiChars));
 
-	// any non-empty string is NOT whitelisted against an empty list of characters
+	// any non-empty string is NOT allowed against an empty list of characters
 	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted(allAsciiChars, ""));
 	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted("a", ""));
 	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted("aaaaaaaaaaa", ""));
 	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted(string(10000, ' '), ""));
 
-	// empty string is whitelisted against any whitelist of characters
+	// empty string is allowed against any list of characters
 	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", allAsciiChars));
 	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", ""));
 	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", "a"));
