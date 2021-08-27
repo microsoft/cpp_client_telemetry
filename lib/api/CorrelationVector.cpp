@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "CorrelationVector.hpp"
-#include "utils/StringUtils.hpp" // for SplitString and AreAllCharactersWhitelisted
+#include "utils/StringUtils.hpp" // for SplitString and AreAllCharactersAllowlisted
 
 #include <vector>
 #include <random>
@@ -246,14 +246,14 @@ namespace MAT_NS_BEGIN
                     return false;
                 }
                     
-                if (!StringUtils::AreAllCharactersWhitelisted(parts[i], s_base64CharSet))
+                if (!StringUtils::AreAllCharactersAllowlisted(parts[i], s_base64CharSet))
                 {
                     return false;
                 }
             }
             
             // all other character groups must be non-empty, decimal digits
-            if (i != 0 && (parts[i].length() == 0 || !StringUtils::AreAllCharactersWhitelisted(parts[i], s_base10CharSet)))
+            if (i != 0 && (parts[i].length() == 0 || !StringUtils::AreAllCharactersAllowlisted(parts[i], s_base10CharSet)))
             {
                 return false;
             }
