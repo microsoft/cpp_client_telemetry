@@ -1,5 +1,5 @@
 /* 
- * Copyright 2019 (c) Microsoft. All rights reserved. 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  * 
  * Custom build configuration / custom build recipe.
  */

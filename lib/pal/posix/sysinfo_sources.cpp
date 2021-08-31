@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 /*
@@ -240,10 +240,10 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
 
 #if defined(__clang__)
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ‘tm::tm_min’ [-Werror=missing-field-initializers]
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ï¿½tm::tm_minï¿½ [-Werror=missing-field-initializers]
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ‘tm::tm_min’ [-Werror=missing-field-initializers]
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ï¿½tm::tm_minï¿½ [-Werror=missing-field-initializers]
 #endif
 
     struct tm lt { 0 };
