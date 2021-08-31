@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) Microsoft. All rights reserved.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 
 from __future__ import print_function
 import argparse

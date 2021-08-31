@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 //
@@ -67,10 +67,10 @@ public:
 
 #if defined(__clang__)
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch" // error: enumeration value ‘Room’ not handled in switch [-Werror=switch]
+#pragma clang diagnostic ignored "-Wswitch" // error: enumeration value ï¿½Roomï¿½ not handled in switch [-Werror=switch]
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wswitch" // error: enumeration value ‘Room’ not handled in switch [-Werror=switch]
+#pragma GCC diagnostic ignored "-Wswitch" // error: enumeration value ï¿½Roomï¿½ not handled in switch [-Werror=switch]
 #endif
         switch (implementation) {
 #ifdef ANDROID
