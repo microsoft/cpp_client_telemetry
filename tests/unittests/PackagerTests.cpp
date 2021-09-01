@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved .
+// Copyright (c) Microsoft Corporation. All rights reserved.
 
 #include "common/Common.hpp"
 #include "common/MockIRuntimeConfig.hpp"
