@@ -1,6 +1,6 @@
 # 1DS C++ SDK iOS/macOS Podspec Onboarding
 
-This tutorial guides you through the process of integrating the [1DS SDK](https://github.com/microsoft/cpp_client_telemetry) into your existing iOS and macOS app. Here we consume the [Msblox Podspec]() and published [Obj-C Wrappers](https://github.com/microsoft/cpp_client_telemetry/tree/master/wrappers/obj-c). If you want to consume the C++ Library directly, please follow the tutorials at [Getting started - iOS](https://github.com/microsoft/cpp_client_telemetry/blob/master/docs/cpp-start-ios.md) and [Getting Started - Mac OS X](https://github.com/microsoft/cpp_client_telemetry/blob/master/docs/cpp-start-macosx.md)
+This tutorial guides you through the process of integrating the [1DS SDK](https://github.com/microsoft/cpp_client_telemetry) into your existing iOS and macOS app. Here we consume the [Msblox Podspec]() and published [Obj-C Wrappers](https://github.com/microsoft/cpp_client_telemetry/tree/main/wrappers/obj-c). If you want to consume the C++ Library directly, please follow the tutorials at [Getting started - iOS](https://github.com/microsoft/cpp_client_telemetry/blob/main/docs/cpp-start-ios.md) and [Getting Started - Mac OS X](https://github.com/microsoft/cpp_client_telemetry/blob/main/docs/cpp-start-macosx.md)
 
 ## Add OneDsCppSdk Cocoapod to the Podfile
 

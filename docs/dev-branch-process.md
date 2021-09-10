@@ -16,7 +16,7 @@ All of the existing tests are enabled on both `main` and `dev` branches. While i
 
 ## Documenting Feature and API changes
 
-Please use Markdown format to document any API changes from v3.x to v4.x in [docs directory](https://github.com/microsoft/cpp_client_telemetry/tree/main/docs).
+Please use Markdown format to document any API changes from v3.x to v4.x in [docs directory](../docs).
 
 ## Release labels for multiple versions
 

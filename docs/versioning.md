@@ -12,7 +12,7 @@ where:
 - `VER_MAJOR=3`
 - `VER_MINOR=5`
 - `VER_PATCH=200`
-with [Version.hpp](https://github.com/microsoft/cpp_client_telemetry/blob/main/lib/include/public/Version.hpp)
+with [Version.hpp](../lib/include/public/Version.hpp)
 containing runtime-accessible version information. `Version.hpp` file is auto-generated.
 
 Version details:
@@ -21,7 +21,7 @@ Version details:
 - `VER_PATCH` is a day number of the year.
 
 `Version.hpp` file is generated during Release publishing stage using cross-platform
-[gen-version](https://github.com/microsoft/cpp_client_telemetry/blob/main/tools/version.js) script written in `node.js`.
+[gen-version](../tools/version.js) script written in `node.js`.
 
 ## Release Process
 
@@ -70,7 +70,7 @@ maintainers must use their best judgement to decide on where MINOR increment is 
 
 C API is designed for plugins, or "SDK in SDK" scenarios and provides ABI stability guarantee.
 
-C API is described in [mat.h](https://github.com/microsoft/cpp_client_telemetry/blob/main/lib/include/public/mat.h) C header.
+C API is described in [mat.h](../lib/include/public/mat.h) C header.
 
 C API is forward-compatible and backwards-compatible: unsupported API calls are ignored and
 an error returned to the caller. Current version of C API is `3.1.0` with no immediate

@@ -137,9 +137,9 @@ LogManager::FlushAndTeardown();
 
 You're done! You can now compile and run your app, and it will send a telemetry event using your ingestion key to your tenant.
 
-Note that it is possible to use more than one log manager. See [examples/cpp/SampleCppLogManagers](https://github.com/microsoft/cpp_client_telemetry/tree/main/examples/cpp/SampleCppLogManagers) for a sample implementation.
+Note that it is possible to use more than one log manager. See [examples/cpp/SampleCppLogManagers](../examples/cpp/SampleCppLogManagers) for a sample implementation.
 
-Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/main/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/main/examples/cpp/). The lib/android_build gradle wrappers will use the Android gradle plugin, and that in turn will use CMake/nmake to build C++ object files.
+Please refer to [EventSender](../examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](../examples/cpp/). The lib/android_build gradle wrappers will use the Android gradle plugin, and that in turn will use CMake/nmake to build C++ object files.
 
 ## 4. Device File Locations
 
