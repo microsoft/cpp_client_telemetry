@@ -62,4 +62,4 @@ LogManager::FlushAndTeardown();
 
 You're done! You can now compile and run your app, and it will send a telemetry event using your ingestion key to your tenant.
 
-Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/). All of our SDK samples require CMake build system, but you may consume the SDK using any other alternate build system of your choice (GNU Make, gn, etc.).
+Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/main/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/main/examples/cpp/). All of our SDK samples require CMake build system, but you may consume the SDK using any other alternate build system of your choice (GNU Make, gn, etc.).

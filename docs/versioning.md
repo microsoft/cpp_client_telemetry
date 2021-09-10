@@ -7,12 +7,12 @@ If urgent critical fix is needed, then additional release could be published ahe
 
 SDK utilizes [SemVer 2.0](https://semver.org/) for its versioning.
 
-SDK version as of December 2020 is [v3.4.343](https://github.com/microsoft/cpp_client_telemetry/releases/tag/v3.4.343),
+SDK version as of September 2021 is [v3.5.200](https://github.com/microsoft/cpp_client_telemetry/releases/tag/v3.5.200),
 where:
 - `VER_MAJOR=3`
-- `VER_MINOR=4`
-- `VER_PATCH=343`
-with [Version.hpp](https://github.com/microsoft/cpp_client_telemetry/blob/master/lib/include/public/Version.hpp)
+- `VER_MINOR=5`
+- `VER_PATCH=200`
+with [Version.hpp](https://github.com/microsoft/cpp_client_telemetry/blob/main/lib/include/public/Version.hpp)
 containing runtime-accessible version information. `Version.hpp` file is auto-generated.
 
 Version details:
@@ -21,14 +21,14 @@ Version details:
 - `VER_PATCH` is a day number of the year.
 
 `Version.hpp` file is generated during Release publishing stage using cross-platform
-[gen-version](https://github.com/microsoft/cpp_client_telemetry/blob/master/tools/version.js) script written in `node.js`.
+[gen-version](https://github.com/microsoft/cpp_client_telemetry/blob/main/tools/version.js) script written in `node.js`.
 
 ## Release Process
 
 SDK maintainer preparing the release must:
 - run `tools/gen-version.cmd` on Windows (or `tools/gen-version.sh` on POSIX) to generate the `Version.hpp` file
 - commit the contents of `Version.hpp`
-- send a PR to merge it in the `master` branch
+- send a PR to merge it in the `main` branch
 - use [GitHub Release Management Tab](https://github.com/microsoft/cpp_client_telemetry/releases/new)
 to create a corresponding `v3.x.x` release tag with release notes
 
@@ -70,7 +70,7 @@ maintainers must use their best judgement to decide on where MINOR increment is 
 
 C API is designed for plugins, or "SDK in SDK" scenarios and provides ABI stability guarantee.
 
-C API is described in [mat.h](https://github.com/microsoft/cpp_client_telemetry/blob/master/lib/include/public/mat.h) C header.
+C API is described in [mat.h](https://github.com/microsoft/cpp_client_telemetry/blob/main/lib/include/public/mat.h) C header.
 
 C API is forward-compatible and backwards-compatible: unsupported API calls are ignored and
 an error returned to the caller. Current version of C API is `3.1.0` with no immediate
@@ -79,22 +79,21 @@ with various products using C API. Adding new C functions to C API should warran
 of C API to version `3.2.0`. Since C API is rather stable and does not change frequently,
 it may be missing some features recently added to C++ API.
 
-## Tentative Release schedule for 2021H1
+## Tentative Release schedule for 2021H2
 
 Release tag      | ETA Date | Branch
 -----------------|----------|--------
-v3.5.[1-31]      | Jan 2021 | master
-v3.5.[32-59]     | Feb 2021 | master
-v3.5.[60-90]     | Mar 2021 | master
-v3.6.[91-120]    | Apr 2021 | master
-v3.6.[121-151]   | May 2021 | master
-v3.6.[152-181]   | Jun 2021 | master
+v3.5.[240-270]   | Sept 2021 | main
+v3.5.[271-300]   | Oct 2021  | main
+v3.5.[301-330]   | Nov 2021  | main
+v3.6.[1-30]      | Dec 2021  | main
+
 
 NOTE: although this tentative schedule lists `v3.5` or `v3.6`, we live in agile environment.
-Due to various arising practical needs it may be necessary to update `VER_MINOR` to `6`, `7`,
-`8`, etc. in case of a need to add some new major feature or new protocol to SDK.
+Due to various arising practical needs it may be necessary to update `VER_MINOR` to `7`, `8`,
+`9`, etc. in case of a need to add some new major feature or new protocol to SDK.
 
-## Release schedule for 2021H2
+## Release schedule for 2022H1
 
 A separate feature branch may be needed to accommodate the integration with
 [OpenTelemetry C++ SDK](https://github.com/open-telemetry/opentelemetry-cpp).
