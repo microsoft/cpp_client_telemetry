@@ -108,7 +108,7 @@ as the communication channel for both feature requests and issues.
 
 This project does not accept *Public* contributions at this time.
 
-**Microsoft-authorized contributors - please refer to contributing instructions [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/main/CONTRIBUTING.md).**
+**Microsoft-authorized contributors - please refer to contributing instructions [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
 
 ## Versioning
 
