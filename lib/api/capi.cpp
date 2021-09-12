@@ -4,7 +4,7 @@
 #define MATSDK_DECLSPEC __declspec(dllexport)
 #endif
 
-#ifndef ANDROID
+#if !defined(ANDROID) || !defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
 #include "http/HttpClient_CAPI.hpp"
 #endif
 #include "LogManagerProvider.hpp"
@@ -130,7 +130,7 @@ evt_status_t mat_open_core(
     // Remember the original config string. Needed to avoid hash code collisions
     clients[code].ctx_data = config;
 
-#ifndef ANDROID
+#if !defined(ANDROID) || !defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
     // Create custom HttpClient
     if (httpSendFn != nullptr && httpCancelFn != nullptr)
     {
