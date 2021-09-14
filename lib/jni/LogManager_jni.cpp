@@ -1576,6 +1576,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
 #endif
     return false;
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_LogManager_pauseActivity(JNIEnv *env, jclass clazz) {
     WrapperLogManager::PauseActivity();
@@ -1652,6 +1655,8 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     return false;
 }
 
+extern "C"
+JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeStartActivity(
         JNIEnv *env, jobject thiz, jlong native_log_manager) {
     auto logManager = getLogManager(native_log_manager);
