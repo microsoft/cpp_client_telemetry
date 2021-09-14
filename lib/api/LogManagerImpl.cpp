@@ -364,6 +364,8 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::FlushAndTeardown()
     {
+        PauseActivity();
+        WaitPause();
         LOG_INFO("Shutting down...");
         LOCKGUARD(m_lock);
         if (m_alive)
@@ -746,7 +748,7 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::ResetLogSessionData()
     {
-        if (m_logSessionDataProvider) 
+        if (m_logSessionDataProvider)
         {
             m_logSessionDataProvider->ResetLogSessionData();
         }
@@ -860,25 +862,93 @@ namespace MAT_NS_BEGIN
     {
 
         LOCKGUARD(m_lock);
-        if (GetSystem()) 
+        if (GetSystem())
         {
             // cleanup pending http requests
-            GetSystem()->cleanup(); 
-        
+            GetSystem()->cleanup();
+
             // cleanup log session ( UUID)
             if (m_logSessionDataProvider)
             {
                 m_logSessionDataProvider->DeleteLogSessionData();
             }
-    
+
             // cleanup offline storage ( this will also cleanup retry queue for http requests
-            if (m_offlineStorage) 
-            {	
-                m_offlineStorage->DeleteAllRecords();	
+            if (m_offlineStorage)
+            {
+                m_offlineStorage->DeleteAllRecords();
             }
         }
         return STATUS_SUCCESS;
     }
+
+    // Pause/Resume interface
+
+    void LogManagerImpl::PauseActivity()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_state != PauseState::Active) {
+            return;
+        }
+
+        if (m_pause_active_count == 0)
+        {
+            m_pause_state = PauseState::Paused;
+            // notify under lock because a waiting thread
+            // may destroy objects (including this object)
+            m_pause_cv.notify_all();
+        }
+        else
+        {
+            m_pause_state = PauseState::Pausing;
+        }
+    }
+
+    void LogManagerImpl::ResumeActivity()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_state == PauseState::Active) {
+            return;
+        }
+        m_pause_state = PauseState::Active;
+        m_pause_cv.notify_all();
+    }
+
+    void LogManagerImpl::WaitPause()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_state != PauseState::Pausing) {
+            return;
+        }
+        m_pause_cv.wait(lock, [this]() -> bool {
+            return m_pause_state != PauseState::Pausing;
+        });
+    }
+
+    bool LogManagerImpl::StartActivity()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_state != PauseState::Active) {
+            return false;
+        }
+        m_pause_active_count += 1;
+        return true;
+    }
+
+    void LogManagerImpl::EndActivity()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_active_count == 0) {
+            return;
+        }
+        m_pause_active_count -= 1;
+        if (m_pause_active_count > 0) {
+            return;
+        }
+        if (m_pause_state == PauseState::Pausing) {
+            m_pause_state = PauseState::Paused;
+            m_pause_cv.notify_all();
+        }
+    }
 }
 MAT_NS_END
-

@@ -293,5 +293,36 @@ public class LogManagerProvider {
     public boolean unregisterPrivacyGuard() {
       return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuard(nativeLogManager);
     }
+    
+    protected native void nativePauseActivity(long nativeLogManager);
+    protected native void nativeResumeActivity(long nativeLogManager);
+    protected native void nativeWaitPause(long nativeLogManager);
+    protected native boolean nativeStartActivity(long nativeLogManager);
+    protected native void nativeEndActivity(long nativeLogManager);
+
+    @Override
+    public void pauseActivity() {
+      nativePauseActivity(nativeLogManager);
+    }
+
+    @Override
+    public void resumeActivity() {
+      nativeResumeActivity(nativeLogManager);
+    }
+
+    @Override
+    public void waitPause() {
+      nativeWaitPause(nativeLogManager);
+    }
+
+    @Override
+    public boolean startActivity() {
+      return nativeStartActivity(nativeLogManager);
+    }
+
+    @Override
+    public void endActivity() {
+      nativeEndActivity(nativeLogManager);
+    }
   }
 }
