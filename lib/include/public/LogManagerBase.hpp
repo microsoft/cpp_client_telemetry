@@ -694,6 +694,36 @@ namespace MAT_NS_BEGIN
 #endif
         }
 
+        static void PauseActivity()
+        {
+            LM_SAFE_CALL_VOID(PauseActivity);
+        }
+
+        static void ResumeActivity()
+        {
+            LM_SAFE_CALL_VOID(ResumeActivity)
+        }
+
+        static void WaitPause()
+        {
+            auto instance = GetInstance();
+            if (instance) {
+                // do not hold the stateLock() here!
+                instance->WaitPause();
+            }
+        }
+
+        static bool StartActivity()
+        {
+            LM_SAFE_CALL_RETURN(StartActivity);
+            return false;
+        }
+
+        static void EndActivity()
+        {
+            LM_SAFE_CALL_VOID(EndActivity);
+        }
+
         /// <summary>
         /// Obtain a raw pointer to the ILogManager singleton instance.
         /// NOTE: this API should not be used concurrently with Initialize or FlushAndTeardown API calls.
