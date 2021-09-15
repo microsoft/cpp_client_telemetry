@@ -186,5 +186,5 @@ this order:
 - Do white-space-only changes in a separate commit for clarity (null
     output for `git diff -w` etc.).
 - Squash small fixes and code-review changes into original commits.
-- Integrate changes from development branches to `master` using rebase
+- Integrate changes from development branches to `main` using rebase
     and fast-forward merge.
