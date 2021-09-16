@@ -108,7 +108,10 @@ as the communication channel for both feature requests and issues.
 
 This project does not accept *Public* contributions at this time.
 
-**Microsoft-authorized contributors - please refer to contributing instructions [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
+**[Microsoft-authorized
+contributors](https://github.com/orgs/microsoft/teams/everyone) - please refer
+to contributing instructions
+[here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
 
 ## Versioning
 
@@ -118,4 +121,3 @@ This library follows [Semantic Versioning](http://semver.org/).
 
 By contributing to 1DS C++ SDK repository, you agree that your contributions
 will be licensed under [Apache License 2.0](LICENSE).
-
