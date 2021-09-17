@@ -19,7 +19,7 @@ Please check if you can find the answer by following these three steps below:
 
 ## Step 1. Check our SDK Doxygen documentation
 
-You can generate the SDK HTML classes documentation [using this script](https://github.com/microsoft/cpp_client_telemetry/blob/master/tools/gen-docs.cmd).
+You can generate the SDK HTML classes documentation [using this script](../../tools/gen-docs.cmd).
 
 ## Step 2. Check our Markdown documents collection
 
@@ -28,8 +28,9 @@ Documents describing various SDK features are [available here](https://github.co
 ## Step 3. Learn by example
 
 Clone the repo and search for clues in:
-- [Examples directory](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples)
-- [API Functional tests](https://github.com/microsoft/cpp_client_telemetry/blob/master/tests/functests/APITest.cpp)
+
+- [Examples directory](https://github.com/microsoft/cpp_client_telemetry/tree/main/examples)
+- [API Functional tests](../../tests/functests/APITest.cpp)
 
 Both are good resources that showcase most of the SDK features and typical use-cases.
 
