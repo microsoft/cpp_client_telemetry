@@ -558,7 +558,7 @@ namespace MAT_NS_BEGIN {
 
             if (result)
             {
-                out = j.dump(2);
+                out = j.dump(2, ' ', false, nlohmann::detail::error_handler_t::replace);
             }
 
             return result;
