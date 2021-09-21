@@ -49,14 +49,23 @@
 #include <android/log.h>
 #endif
 
+#if defined(HAVE_LEAKY_GLOBALS)
+#include "Leaky.hpp"
+#endif
+
 #include <ctime>
 
 namespace PAL_NS_BEGIN {
 
     PlatformAbstractionLayer& GetPAL() noexcept
     {
+#if defined(HAVE_LEAKY_GLOBALS)
+        static Leaky<PlatformAbstractionLayer> pal;
+        return *pal;
+#else
         static PlatformAbstractionLayer pal;
         return pal;
+#endif
     }
 
 	 MATSDK_LOG_INST_COMPONENT_CLASS(PlatformAbstractionLayer, "MATSDK.PAL", "MSTel client - platform abstraction layer")
