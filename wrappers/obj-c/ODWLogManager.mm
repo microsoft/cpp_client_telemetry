@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #import <Foundation/Foundation.h>
@@ -156,8 +156,15 @@ static BOOL _initialized = false;
         // Obtain semantics values
         NSBundle* bundle = [NSBundle mainBundle];
         NSLocale* locale = [NSLocale currentLocale];
-        std::string strUserLocale = std::string([[locale languageCode] UTF8String]);
-        NSString* countryCode = [locale countryCode];
+        std::string strUserLocale;
+        NSString* countryCode = nil;
+
+        if (@available(iOS 10.0, macOS 10.12, *))
+        {
+            strUserLocale = std::string([[locale languageCode] UTF8String]);
+            countryCode = [locale countryCode];
+        }
+
         if ([countryCode length] != 0)
         {
             strUserLocale += [[NSString stringWithFormat:@"-%@", countryCode] UTF8String];

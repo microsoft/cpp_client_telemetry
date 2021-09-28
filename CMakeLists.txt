@@ -108,6 +108,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants -ffast-math")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(REL_FLAGS "${WARN_FLAGS}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  # AppleClang does not support -ffunction-sections and -fdata-sections with the -fembed-bitcode and -fembed-bitcode-marker
+  set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants -ffast-math")
 else()
   # Using clang - strip unsupported GCC options
   set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")

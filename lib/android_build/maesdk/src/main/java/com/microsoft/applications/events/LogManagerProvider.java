@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -292,6 +292,37 @@ public class LogManagerProvider {
     @Override
     public boolean unregisterPrivacyGuard() {
       return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuard(nativeLogManager);
+    }
+    
+    protected native void nativePauseActivity(long nativeLogManager);
+    protected native void nativeResumeActivity(long nativeLogManager);
+    protected native void nativeWaitPause(long nativeLogManager);
+    protected native boolean nativeStartActivity(long nativeLogManager);
+    protected native void nativeEndActivity(long nativeLogManager);
+
+    @Override
+    public void pauseActivity() {
+      nativePauseActivity(nativeLogManager);
+    }
+
+    @Override
+    public void resumeActivity() {
+      nativeResumeActivity(nativeLogManager);
+    }
+
+    @Override
+    public void waitPause() {
+      nativeWaitPause(nativeLogManager);
+    }
+
+    @Override
+    public boolean startActivity() {
+      return nativeStartActivity(nativeLogManager);
+    }
+
+    @Override
+    public void endActivity() {
+      nativeEndActivity(nativeLogManager);
     }
   }
 }

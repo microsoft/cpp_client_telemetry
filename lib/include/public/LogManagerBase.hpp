@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef MAT_LOGMANAGER_HPP
@@ -692,6 +692,36 @@ namespace MAT_NS_BEGIN
             static NullLogManager nullLogManager;
             return nullLogManager.GetDataViewerCollection();
 #endif
+        }
+
+        static void PauseActivity()
+        {
+            LM_SAFE_CALL_VOID(PauseActivity);
+        }
+
+        static void ResumeActivity()
+        {
+            LM_SAFE_CALL_VOID(ResumeActivity)
+        }
+
+        static void WaitPause()
+        {
+            auto instance = GetInstance();
+            if (instance) {
+                // do not hold the stateLock() here!
+                instance->WaitPause();
+            }
+        }
+
+        static bool StartActivity()
+        {
+            LM_SAFE_CALL_RETURN(StartActivity);
+            return false;
+        }
+
+        static void EndActivity()
+        {
+            LM_SAFE_CALL_VOID(EndActivity);
         }
 
         /// <summary>

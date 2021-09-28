@@ -15,9 +15,9 @@ using Foundation;
 [assembly: AssemblyTitle("1DS C++ SDK Xamarin.iOS Bindings")]
 [assembly: AssemblyDescription("iOS Xamarin bindings for the 1DS C++ SDK")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyCompany("Microsoft Corporation")]
 [assembly: AssemblyProduct("NativeLibrary")]
-[assembly: AssemblyCopyright("Copyright (c) 2020")]
+[assembly: AssemblyCopyright("Copyright (c) Microsoft Corporation. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

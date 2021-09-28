@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -68,4 +68,10 @@ public interface ILogManager extends AutoCloseable {
   public boolean registerPrivacyGuard();
 
   public boolean unregisterPrivacyGuard();
+  
+  public void pauseActivity();
+  public void resumeActivity();
+  public void waitPause();
+  public boolean startActivity();
+  public void endActivity();
 }

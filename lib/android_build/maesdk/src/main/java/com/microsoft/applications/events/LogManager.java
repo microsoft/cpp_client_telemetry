@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -932,5 +932,10 @@ public class LogManager {
     // we should let LogManager remove it when it d'tors.
     return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuardOnDefaultLogManager();
   }
-}
 
+  public static native void pauseActivity();
+  public static native void resumeActivity();
+  public static native void waitPause();
+  public static native boolean startActivity();
+  public static native void endActivity();
+}
