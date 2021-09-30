@@ -35,7 +35,7 @@
 
 #if defined(_MSC_VER) && !defined(_WIN64)
 #undef SQLITE_4_BYTE_ALIGNED_MALLOC
-#define SQLITE_4_BYTE_ALIGNED_MALLOC
+#define SQLITE_4_BYTE_ALIGNED_MALLOC 1
 #endif /* defined(_MSC_VER) && !defined(_WIN64) */
 
 #endif /* SQLITE_MSVC_H */
