@@ -19,9 +19,11 @@ cd `dirname $0`
 GTEST_PATH=googletest
 USE_LATEST_GTEST="false"
 OS_NAME=`uname -s`
+#TODO: switch all OS builds to Google Test located in third_party/googletest submodule
 case "$OS_NAME" in
 Darwin) 
   mac_os_ver=$(sw_vers -productVersion)
+  # Use new Google Test on macOS 11.0 or higher ; old one no longer compiles on 11.0
   if [[ $(echo "${mac_os_ver} >= 11.0"|bc) -gt 0 ]] ; then
     echo "running on Mac OS 11.0 or higher"
     USE_LATEST_GTEST="true"
