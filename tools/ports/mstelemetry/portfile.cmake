@@ -22,13 +22,13 @@ if (DEFINED REPO_NAME)
     get_filename_component(SOURCE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
     message("Using local source snapshot from ${SOURCE_PATH}")
 else()
-    # Fetch from GitHub master
+    # Fetch from GitHub main
     message("Fetching source code from GitHub...")
     if (UNIX)
         vcpkg_from_github(
             OUT_SOURCE_PATH SOURCE_PATH
             REPO microsoft/cpp_client_telemetry
-            HEAD_REF master
+            HEAD_REF main
         )
     else()
         vcpkg_from_github(
@@ -36,7 +36,7 @@ else()
             REPO microsoft/cpp_client_telemetry
             REF 4f60dd3bca305c2c0dd5ec2ed7b91d36b4de6dcf
             SHA512 9778df5aa65d95fe1d41739753495d29b3149676e98ac2e802a103604553f4f2b43bc2eb089c2e13dc695f70279287ea79ec6e2926fad03befe8a671f91d36fb
-            HEAD_REF master
+            HEAD_REF main
             PATCHES ${CMAKE_CURRENT_LIST_DIR}/v142-build.patch
         )
     endif()
