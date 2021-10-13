@@ -47,7 +47,7 @@ jobs:
         ANDROID_HOME: "C:\\Android\\android-sdk"
         ANDROID_NDK: "C:\\Android\\android-ndk-r20"
         ANDROID_NDK_HOME: "C:\\Android\\android-ndk-r20"
-        GRADLE_OPTS: "--refresh-dependencies"
+        GRADLE_OPTS: "--refresh-dependencies --info --debug --stacktrace"
     - name: Java Unit test
       run: |
         cd "$Env:GITHUB_WORKSPACE\lib\android_build"
@@ -57,7 +57,7 @@ jobs:
         ANDROID_HOME: "C:\\Android\\android-sdk"
         ANDROID_NDK: "C:\\Android\\android-ndk-r20"
         ANDROID_NDK_HOME: "C:\\Android\\android-ndk-r20"
-        GRADLE_OPTS: "--refresh-dependencies"
+        GRADLE_OPTS: "--refresh-dependencies --info --debug --stacktrace"
     - name: Upload Reports
       if: failure()
       uses: actions/upload-artifact@v1
