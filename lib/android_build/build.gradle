@@ -9,7 +9,7 @@ buildscript {
         maven { url 'https://maven.google.com' }
 
         jcenter()
-       // maven { url "https://jitpack.io" }
+        maven { url "https://jitpack.io" }
        // maven { url "https://jcenter.bintray.com" }
        // mavenCentral()        
     }
@@ -28,7 +28,7 @@ allprojects {
         maven { url 'https://maven.google.com' }
 
         jcenter()
-      //  maven { url "https://jitpack.io" }
+        maven { url "https://jitpack.io" }
       //  maven { url "https://jcenter.bintray.com" }
       //  mavenCentral()
 
