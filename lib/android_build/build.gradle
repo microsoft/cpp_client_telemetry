@@ -19,7 +19,6 @@ allprojects {
         google() // to fetch com.android.tools.build:gradle
         mavenCentral()
         jcenter()
-
     }
 }
 
