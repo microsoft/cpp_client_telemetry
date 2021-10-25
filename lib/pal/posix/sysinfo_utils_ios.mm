@@ -68,3 +68,19 @@ std::string GetDeviceOsRelease()
     return std::string { [[[UIDevice currentDevice] systemVersion] UTF8String] };
 }
 
+std::string GetDeviceClass() {
+#if TARGET_IPHONE_SIMULATOR
+    return "iOS.Emulator";
+#else
+    switch (UIDevice.currentDevice.userInterfaceIdiom) {
+        case UIUserInterfaceIdiomPhone:
+            return "iOS.Phone";
+        case UIUserInterfaceIdiomPad:
+            return "iOS.Tablet";
+        case UIUserInterfaceIdiomTV:
+            return "iOS.AppleTV";
+        default:
+            return {};
+    }
+#endif
+}
