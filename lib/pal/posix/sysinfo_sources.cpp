@@ -279,6 +279,7 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     cache["osVer"] = GetDeviceOsVersion();
     cache["osRel"] = GetDeviceOsRelease();
     cache["osBuild"] = GetDeviceOsBuild();
+    cache["devClass"] = GetDeviceClass();
 
     // Populate user timezone as hh:mm offset from UTC timezone. Example for PST: "-08:00"
     CFTimeZoneRef tz = CFTimeZoneCopySystem();

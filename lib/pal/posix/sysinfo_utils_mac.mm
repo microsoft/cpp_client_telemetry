@@ -83,3 +83,6 @@ std::string GetDeviceOsRelease()
     return GetDeviceOsVersion();
 }
 
+std::string GetDeviceClass() {
+  return {};
+}
