@@ -19,6 +19,7 @@ namespace PAL_NS_BEGIN {
         m_os_name = sysInfo.get("osName");
         m_os_major_version = sysInfo.get("osVer");
         m_os_full_version = sysInfo.get("osRel");
+        m_device_class = sysInfo.get("devClass");
     }
 
     SystemInformationImpl::~SystemInformationImpl()
