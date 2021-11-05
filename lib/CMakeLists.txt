@@ -256,15 +256,17 @@ if(BUILD_SHARED_LIBS STREQUAL "ON")
 else()
   message("-- Building static SDK library")
   add_library(mat STATIC ${SRCS})
-  if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-    target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-  else()
-    # add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    # add_library(z STATIC IMPORTED GLOBAL)
-    #
-    # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-    #
-    # target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+  if(LINK_STATIC_DEPENDS)
+    if(PAL_IMPLEMENTATION STREQUAL "WIN32")
+      target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    else()
+      add_library(sqlite3 STATIC IMPORTED GLOBAL)
+      add_library(z STATIC IMPORTED GLOBAL)
+      #
+      # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
+      #
+      target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    endif()
   endif()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()
