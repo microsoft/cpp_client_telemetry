@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -274,6 +275,8 @@ public class HttpClient {
 
     String time_zone = getTimeZone();
 
+    String device_class = getDeviceClass(context);
+
     String os_major_version = Build.VERSION.RELEASE;
     if (os_major_version == null) {
       os_major_version = "GECOS III"; // unexpected except in Java unit tests
@@ -285,7 +288,8 @@ public class HttpClient {
         app_language,
         os_major_version,
         os_full_version,
-        time_zone);
+        time_zone,
+        device_class);
   }
 
   private String calculateID(android.content.Context context) {
@@ -303,6 +307,14 @@ public class HttpClient {
       return "";
     } else {
       return "a:" + id;
+    }
+  }
+
+  private String getDeviceClass(android.content.Context context) {
+    if (context.getResources().getConfiguration().isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+      return "Android.PC";
+    } else {
+      return "Android.Phone";
     }
   }
 
@@ -348,7 +360,8 @@ public class HttpClient {
       String app_language,
       String os_major_version,
       String os_full_version,
-      String time_zone);
+      String time_zone,
+      String deviceClass);
 
   public native void dispatchCallback(String id, int response, Object[] headers, byte[] body);
 
