@@ -190,7 +190,7 @@ public class EventsUnitTest {
             assertEquals("GECOS III", os_major_version);
             assertEquals("GECOS III null", os_full_version);
             assertTrue(Pattern.matches("^([-+])\\d\\d:\\d\\d", time_zone));
-            assertEquals("Android.PC", device_class)
+            assertEquals("Android.PC", device_class);
         }
     }
 
