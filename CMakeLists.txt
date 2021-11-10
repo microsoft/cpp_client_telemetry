@@ -232,9 +232,9 @@ option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_PACKAGE      "Build package"           YES)
-option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
+option(BUILD_PRIVACYGUARD "Build Privacy Guard"     NO)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
-option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
+option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      NO)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
