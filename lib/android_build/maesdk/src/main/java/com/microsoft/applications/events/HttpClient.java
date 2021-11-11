@@ -185,6 +185,8 @@ class Request implements Runnable {
 
 public class HttpClient {
   private static final int MAX_HTTP_THREADS = 2; // Collector wants no more than 2 at a time
+  private static final String ANDROID_DEVICE_CLASS_PC = "Android.PC";
+  private static final String ANDROID_DEVICE_CLASS_PHONE = "Android.Phone";
 
   /** Shim FutureTask: we would like to @Keep the cancel method for JNI */
   static class FutureShim extends FutureTask<Boolean> {
@@ -271,11 +273,11 @@ public class HttpClient {
     if (pInfo != null && pInfo.versionName != null) {
       app_version = pInfo.versionName;
     }
-    String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
+    final String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
 
-    String time_zone = getTimeZone();
+    final String time_zone = getTimeZone();
 
-    String device_class = getDeviceClass(context);
+    final String device_class = getDeviceClass(context);
 
     String os_major_version = Build.VERSION.RELEASE;
     if (os_major_version == null) {
@@ -312,9 +314,9 @@ public class HttpClient {
 
   private String getDeviceClass(android.content.Context context) {
     if (context.getResources().getConfiguration().isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
-      return "Android.PC";
+      return ANDROID_DEVICE_CLASS_PC;
     } else {
-      return "Android.Phone";
+      return ANDROID_DEVICE_CLASS_PHONE;
     }
   }
 
