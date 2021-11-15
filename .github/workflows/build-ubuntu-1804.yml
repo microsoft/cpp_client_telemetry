@@ -1,4 +1,4 @@
-name: C/C++ CI on Linux and Mac
+name: C/C++ CI on Ubuntu 18:04
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         config: [release, debug]
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-18.04]
     
     steps:
     - name: Checkout
