@@ -11,6 +11,8 @@
 #include<cstdlib>
 #include<errno.h>
 
+#include <iostream>
+
 #ifndef _WIN32  /* Avoid warning under Windows */
 extern int errno;  
 #endif
@@ -140,7 +142,7 @@ namespace MAT_NS_BEGIN
         }
         std::vector<std::string> v;
         StringUtils::SplitString(content, '\n', v);
-        if (v.size() != 3) {
+        if (v.size() != 2) {
            return false;
         }
         remove_eol(v[0]);
@@ -184,7 +186,6 @@ namespace MAT_NS_BEGIN
         contents += toString(sessionFirstTimeLaunch);
         contents += '\n';
         contents += sessionSDKUid;
-        contents += '\n';
 
         //TBD (labhas) - validate if file is NOT a symlink/junction before trying to write.
         if (!MAT::FileWrite(path.c_str(), contents.c_str()))

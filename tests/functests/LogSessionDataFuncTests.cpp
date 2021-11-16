@@ -14,6 +14,7 @@ using namespace MAT;
 
 const std::string SessionFileArgument = "test";
 const char* const SessionFile = "test.ses";
+const char* const PathToNonExistingSesFile = "new.ses"; 
 
 class LogSessionDataFuncTests : public ::testing::Test
 {
@@ -118,4 +119,5 @@ TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWritte
     ASSERT_EQ(logSessionData->getSessionFirstTime(), properties.first);
     ASSERT_EQ(logSessionData->getSessionSDKUid(), properties.second);
 }
+
 
