@@ -157,7 +157,7 @@ namespace MAT_NS_BEGIN
     {
         uint64_t res = 0ull;
         char *endptr = nullptr;
-        res = std::strtol(s.c_str(), &endptr, 10);
+        res = std::strtoll(s.c_str(), &endptr, 10);
         if (errno == ERANGE && (res == LONG_MAX || res == 0 ))
         {
             LOG_WARN ("Converted value falls out of uint64_t range.");
@@ -186,7 +186,6 @@ namespace MAT_NS_BEGIN
         contents += sessionSDKUid;
         // Valid line ends with newline as per posix specs ( https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_206)
         contents += '\n';
-        
         //TBD (labhas) - validate if file is NOT a symlink/junction before trying to write.
         if (!MAT::FileWrite(path.c_str(), contents.c_str()))
         {
