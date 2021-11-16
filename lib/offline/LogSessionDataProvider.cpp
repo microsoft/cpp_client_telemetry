@@ -11,8 +11,6 @@
 #include<cstdlib>
 #include<errno.h>
 
-#include <iostream>
-
 #ifndef _WIN32  /* Avoid warning under Windows */
 extern int errno;  
 #endif

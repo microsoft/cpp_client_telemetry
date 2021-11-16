@@ -14,7 +14,6 @@ using namespace MAT;
 
 const std::string SessionFileArgument = "test";
 const char* const SessionFile = "test.ses";
-const char* const PathToNonExistingSesFile = "new.ses"; 
 
 class LogSessionDataFuncTests : public ::testing::Test
 {
