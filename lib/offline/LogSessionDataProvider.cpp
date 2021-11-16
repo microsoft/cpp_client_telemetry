@@ -140,7 +140,7 @@ namespace MAT_NS_BEGIN
         }
         std::vector<std::string> v;
         StringUtils::SplitString(content, '\n', v);
-        if (v.size() != 2) {
+        if (v.size() != 3) {
            return false;
         }
         remove_eol(v[0]);
