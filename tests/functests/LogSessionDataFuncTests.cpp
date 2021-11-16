@@ -118,5 +118,3 @@ TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWritte
     ASSERT_EQ(logSessionData->getSessionFirstTime(), properties.first);
     ASSERT_EQ(logSessionData->getSessionSDKUid(), properties.second);
 }
-
-
