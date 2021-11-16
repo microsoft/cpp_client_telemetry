@@ -55,16 +55,16 @@ TEST(LogSessionDataTests, parse_TwoLinesFirstLaunchTooLarge_ReturnsFalse)
                sessionFirstTimeLaunch, sessionSDKUid));
 }
 
-TEST(LogSessionDataTests, parse_ExtraNewLineAtEnd_ReturnsFalse)
+TEST(LogSessionDataTests, parse_MissingNewLineAtEnd_ReturnsFalse)
 {
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
-   ASSERT_FALSE(logSessionDataProvider.parse(std::string { "1234567890\nbar\n" }, sessionFirstTimeLaunch, sessionSDKUid));
+   ASSERT_FALSE(logSessionDataProvider.parse(std::string { "1234567890\nbar" }, sessionFirstTimeLaunch, sessionSDKUid));
 }
 
 TEST(LogSessionDataTests, parse_ValidInput_ReturnsTrue)
 {
    TestLogSessionDataProvider logSessionDataProvider(PathToTestSesFile);
-   ASSERT_TRUE(logSessionDataProvider.parse(std::string { "1234567890\nbar" }, sessionFirstTimeLaunch, sessionSDKUid));
+   ASSERT_TRUE(logSessionDataProvider.parse(std::string { "1234567890\nbar\n" }, sessionFirstTimeLaunch, sessionSDKUid));
    ASSERT_EQ(sessionFirstTimeLaunch, (uint64_t)1234567890);
    ASSERT_EQ(sessionSDKUid, "bar");
 }
