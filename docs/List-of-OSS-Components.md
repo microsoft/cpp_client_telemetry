@@ -40,7 +40,7 @@ Google's C++ benchmarking framework. Used only for tests and not included in pro
 
 Reachability is a drop-in replacement for Apple's Reachability class. It is ARC-compatible, and it uses the new GCD methods to notify of network interface changes.
 SDK maintains its own snapshot of the mainline `tonymillion/Reachability` [here](../third_party/Reachability). This code is not used nor included in the build of non-Apple OS.
-Please note if customer product is adding dependency to this component, they should ensure it meets their product security and licesing requiremets. 
+Please note if customer product is adding dependency to this component, they should ensure it meets their product security and licensing requirements. 
 
 ## SHA-1 by Steve Reid
 
