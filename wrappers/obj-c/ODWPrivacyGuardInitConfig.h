@@ -39,6 +39,11 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property(readwrite, nonatomic) BOOL scanForUrls;
 
+/*!
+ @brief (OPTIONAL) Should disable advanced scans such as location, URLs, Out-of-scope identifiers, etc.
+ */
+@property(readwrite, nonatomic) BOOL disableAdvancedScans;
+
 @end
 NS_ASSUME_NONNULL_END
 
