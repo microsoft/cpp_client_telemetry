@@ -7,7 +7,7 @@ These are the Open Source components used by Microsoft 1DS / C++ Client Telemetr
 ZLIB DATA COMPRESSION LIBRARY.
 
 SDK maintains its own snapshot of the mainline ZLib with some Intel architecture performance optimizations [here](../zlib). 
-It is customer product responsibility to ensure that a snapshot of zlib they use - meets their product security and licensing requirements
+It is the responsibility of product teams to ensure that a snapshot of zlib they use meets their product security and licensing requirements.
 
 ## [SQLite](https://www.sqlite.org/index.html)
 
