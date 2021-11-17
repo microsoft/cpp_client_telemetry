@@ -75,7 +75,7 @@ TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
    logSessionDataProvider1.CreateLogSessionData();
    auto logSessionData1 = logSessionDataProvider1.GetLogSessionData();
 
-   // Create another provider instance and valiate session data is not re-generated
+   // Create another provider instance and validate session data is not re-generated
    TestLogSessionDataProvider logSessionDataProvider2(PathToNonEmptyTestSesFile);
    logSessionDataProvider2.CreateLogSessionData();
    auto logSessionData2 = logSessionDataProvider2.GetLogSessionData();
