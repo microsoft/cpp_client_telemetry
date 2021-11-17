@@ -14,7 +14,7 @@ It is the responsibility of product teams to ensure that a snapshot of zlib they
 SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.
 
 SDK maintains its own snapshot of the mainline SQLite, which is used for Windows builds [here](../sqlite). Other platforms use platform-provided SQLite.
-It is customer product responsibility to ensure that a snapshot of SQLite they use - meets their product security and licensing requirements
+It is the responsibility of product teams to ensure that a snapshot of zlib they use meets their product security and licensing requirements.
 
 ## [nlohmann/json](https://github.com/nlohmann/json)
 
