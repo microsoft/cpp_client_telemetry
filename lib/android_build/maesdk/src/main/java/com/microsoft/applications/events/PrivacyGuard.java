@@ -29,7 +29,8 @@ public class PrivacyGuard {
             String SemanticContextEventName,
             String SummaryEventName,
             boolean UseEventFieldPrefix,
-            boolean ScanForUrls
+            boolean ScanForUrls,
+            boolean DisableAdvancedScans
             );
 
     /**
@@ -74,7 +75,8 @@ public class PrivacyGuard {
                     initConfig.SemanticContextNotificationEventName,
                     initConfig.SummaryEventName,
                     initConfig.UseEventFieldPrefix,
-                    initConfig.ScanForUrls
+                    initConfig.ScanForUrls,
+                    initConfig.DisableAdvancedScans
             );
         }
     }
