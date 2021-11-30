@@ -1,0 +1,118 @@
+cc_defaults {
+    name: "maesdk_defaults",
+    cflags: [
+        "-DBUILD_SHARED_LIBS=1",
+        "-DUSE_ROOM=1"
+    ],
+    cppflags: [
+        "-fexceptions",
+        "-Wno-missing-field-initializers",
+        "-Wno-non-virtual-dtor",
+        "-Wno-reorder-ctor",
+        "-Wno-unused-const-variable",
+        "-Wno-unused-parameter",
+        "-Wno-unused-variable"
+    ],
+    rtti: true,
+    vendor_available: true
+}
+
+cc_library_shared {
+    name: "libmaesdk",
+    defaults: ["maesdk_defaults"],
+    srcs: [
+        "lib/api/AllowedLevelsCollection.cpp",
+        "lib/api/AuthTokensController.cpp",
+        "lib/api/ContextFieldsProvider.cpp",
+        "lib/api/CorrelationVector.cpp",
+        "lib/api/DataViewerCollection.cpp",
+        "lib/api/ILogConfiguration.cpp",
+        "lib/api/LogConfiguration.cpp",
+        "lib/api/LogManager.cpp",
+        "lib/api/LogManagerFactory.cpp",
+        "lib/api/LogManagerImpl.cpp",
+        "lib/api/LogManagerProvider.cpp",
+        "lib/api/LogSessionData.cpp",
+        "lib/api/Logger.cpp",
+        "lib/api/capi.cpp",
+        "lib/backoff/IBackoff.cpp",
+        "lib/bond/BondSerializer.cpp",
+        "lib/callbacks/DebugSource.cpp",
+        "lib/compression/HttpDeflateCompression.cpp",
+        "lib/decorators/BaseDecorator.cpp",
+        "lib/filter/EventFilterCollection.cpp",
+        "lib/http/HttpClientFactory.cpp",
+        "lib/http/HttpClientManager.cpp",
+        "lib/http/HttpRequestEncoder.cpp",
+        "lib/http/HttpResponseDecoder.cpp",
+        "lib/jni/JniConvertors.cpp",
+        "lib/jni/LogManager_jni.cpp",
+        "lib/jni/Logger_jni.cpp",
+        "lib/jni/SemanticContext_jni.cpp",
+        "lib/jni/Utils_jni.cpp",
+        "lib/offline/MemoryStorage.cpp",
+        "lib/offline/LogSessionDataProvider.cpp",
+        "lib/offline/OfflineStorageFactory.cpp",
+        "lib/offline/OfflineStorageHandler.cpp",
+        "lib/offline/StorageObserver.cpp",
+        "lib/packager/BondSplicer.cpp",
+        "lib/packager/Packager.cpp",
+        "lib/pal/InformationProviderImpl.cpp",
+        "lib/pal/PAL.cpp",
+        "lib/pal/TaskDispatcher_CAPI.cpp",
+        "lib/pal/WorkerThread.cpp",
+        "lib/pal/posix/DeviceInformationImpl_Android.cpp",
+        "lib/pal/posix/NetworkInformationImpl_Android.cpp",
+        "lib/pal/posix/SystemInformationImpl_Android.cpp",
+        "lib/pal/posix/sysinfo_sources.cpp",
+        "lib/stats/MetaStats.cpp",
+        "lib/stats/Statistics.cpp",
+        "lib/system/EventProperties.cpp",
+        "lib/system/EventProperty.cpp",
+        "lib/system/TelemetrySystem.cpp",
+        "lib/tpm/DeviceStateHandler.cpp",
+        "lib/tpm/TransmissionPolicyManager.cpp",
+        "lib/tpm/TransmitProfiles.cpp",
+        "lib/utils/FileUtils.cpp",
+        "lib/utils/StringUtils.cpp",
+        "lib/utils/ZlibUtils.cpp",
+        "lib/utils/Utils.cpp",
+        "lib/offline/OfflineStorage_Room.cpp",
+        "lib/http/HttpClient_Android.cpp"
+    ],
+    local_include_dirs: [
+        "lib",
+        "lib/include/public",
+        "lib/include",
+        "lib/include/mat"
+    ],
+    min_sdk_version: "29",
+    shared_libs: [
+        "liblog"
+    ],
+    static_libs: [
+        "libz"
+    ]
+}
+
+android_library {
+    name: "maesdk",
+    srcs: [
+        "lib/android_build/maesdk/src/main/java/**/*.java"
+    ],
+    manifest: "lib/android_build/maesdk/src/main/AndroidManifest.xml",
+    resource_dirs: [
+        "lib/android_build/maesdk/src/main/res"
+    ],
+    libs: [
+        "androidx.room_room-runtime"
+    ],
+    plugins: [
+        "androidx.room_room-compiler-plugin"
+    ],
+    javacflags: [
+        "-Aroom.schemaLocation=lib/android_build/maesdk/schemas",
+        "-Aroom.incremental=true",
+        "-Aroom.expandProjection=true"
+    ]
+}
