@@ -156,8 +156,15 @@ static BOOL _initialized = false;
         // Obtain semantics values
         NSBundle* bundle = [NSBundle mainBundle];
         NSLocale* locale = [NSLocale currentLocale];
-        std::string strUserLocale = std::string([[locale languageCode] UTF8String]);
-        NSString* countryCode = [locale countryCode];
+        std::string strUserLocale;
+        NSString* countryCode = nil;
+
+        if (@available(iOS 10.0, macOS 10.12, *))
+        {
+            strUserLocale = std::string([[locale languageCode] UTF8String]);
+            countryCode = [locale countryCode];
+        }
+
         if ([countryCode length] != 0)
         {
             strUserLocale += [[NSString stringWithFormat:@"-%@", countryCode] UTF8String];

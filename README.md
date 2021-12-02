@@ -46,9 +46,9 @@ Other resources to learn how to setup the build system:
   | Mac OS X 10.12.6              | Clang Xcode 9.0, 9.1             |
   | Mac OS X 10.13.3              | Clang Xcode 9.2, 9.3, 10.0, 10.1 |
   | Raspbian GNU/Linux 8 (jessie) | GCC 4.9.2 (armv7l)               |
-  | Ubuntu 14.04.x LTS            | GCC 4.8.x, 4.9.4                 |
-  | Ubuntu 14.04.1 LTS            | GCC 5.x.x                        |
-  | Ubuntu 16.04 LTS              | GCC 5.x.x (armv7l)               |
+  | Ubuntu 14.04.x LTS            | GCC 5.x.x                        |
+  | Ubuntu 16.04 LTS              | GCC 5.x.x, GCC 5.x.x (armv7l)    |
+  | Ubuntu 18.04 LTS              | GCC 7.5.x                        |  
   | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
   | Windows Server 2019           | Visual Studio 2019 (vc142)       |
@@ -63,7 +63,9 @@ Other resources to learn how to setup the build system:
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
   | Mac OS X 10.11+                | :white_check_mark: |                    |
   | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |
-  | Ubuntu 14.04.x LTS             | :white_check_mark: | :white_check_mark: |
+  | Ubuntu 14.04.x LTS             | :white_check_mark: |                    |
+  | Ubuntu 16.04.x LTS             | :white_check_mark: |                    |
+  | Ubuntu 18.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
   | Windows 7.1                    | :white_check_mark: |                    |
   | Windows 8.1                    | :white_check_mark: |                    |
@@ -108,7 +110,10 @@ as the communication channel for both feature requests and issues.
 
 This project does not accept *Public* contributions at this time.
 
-**Microsoft-authorized contributors - please refer to contributing instructions [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
+**[Microsoft-authorized
+contributors](https://github.com/orgs/microsoft/teams/everyone) - please refer
+to contributing instructions
+[here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
 
 ## Versioning
 
@@ -118,4 +123,3 @@ This library follows [Semantic Versioning](http://semver.org/).
 
 By contributing to 1DS C++ SDK repository, you agree that your contributions
 will be licensed under [Apache License 2.0](LICENSE).
-

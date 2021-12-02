@@ -108,6 +108,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants -ffast-math")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(REL_FLAGS "${WARN_FLAGS}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  # AppleClang does not support -ffunction-sections and -fdata-sections with the -fembed-bitcode and -fembed-bitcode-marker
+  set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants -ffast-math")
 else()
   # Using clang - strip unsupported GCC options
   set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")
@@ -215,7 +218,7 @@ message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 # Only use custom curl if compiling with CPP11 PAL
 if (PAL_IMPLEMENTATION STREQUAL "CPP11")
-  
+
   if(NOT BUILD_IOS)
     include(FindCURL)
     find_package(CURL REQUIRED)
@@ -242,6 +245,7 @@ option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
 option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
+option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
@@ -255,7 +259,7 @@ if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
     add_library(gtest STATIC IMPORTED GLOBAL)
     message("Adding gmock")
     add_library(gmock STATIC IMPORTED GLOBAL)
-    
+
 #    message("Building libraries! - Path: ${CMAKE_CURRENT_SOURCE_DIR} ")
 #    message("Building gtest")
 #    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/)

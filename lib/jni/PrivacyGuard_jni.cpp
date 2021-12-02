@@ -52,7 +52,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         jstring SemanticContextEventName,
         jstring SummaryEventName,
         jboolean UseEventFieldPrefix,
-        jboolean ScanForUrls) {
+        jboolean ScanForUrls,
+        jboolean DisableAdvancedScans) {
     if (spPrivacyGuard != nullptr) {
         return false;
     }
@@ -74,6 +75,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
     config.ScanForUrls = static_cast<bool>(ScanForUrls);
+    config.DisableAdvancedScans = static_cast<bool>(DisableAdvancedScans);
 
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
     return true;
@@ -89,6 +91,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         jstring SummaryEventName,
         jboolean UseEventFieldPrefix,
         jboolean ScanForUrls,
+        jboolean DisableAdvancedScans,
         jstring domainName,
         jstring machineName,
         jobjectArray userNames,
@@ -127,6 +130,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
     config.ScanForUrls = static_cast<bool>(ScanForUrls);
+    config.DisableAdvancedScans = static_cast<bool>(DisableAdvancedScans);
 
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
     return true;
