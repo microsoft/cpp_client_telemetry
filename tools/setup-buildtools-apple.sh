@@ -5,14 +5,45 @@
 # control of the brew dirs. That causes the brew update to fail.
 # Temporarily allow the user to take over control of brew files.
 
-echo *** 
-echo *** You may need to enter your admin password to update the brew files:
-echo ***
+if [ -z "$NOROOT" ]; then
+  echo "***"
+  echo "*** You may need to enter your admin password to update the brew files:"
+  echo "***"
+fi
 
-sudo chown -R $(whoami) /usr/local/Cellar
-sudo chown -R $(whoami) /usr/local/Homebrew
-sudo chown -R $(whoami) /usr/local/var/homebrew
-sudo chown -R $(whoami) /usr/local/etc/bash_completion.d /usr/local/include /usr/local/lib/pkgconfig /usr/local/share/aclocal /usr/local/share/locale /usr/local/share/zsh /usr/local/share/zsh/site-functions /usr/local/var/homebrew/locks
+ensure_ownership () {
+  for PATH_TO_CHECK in "$@"; do
+    if [ ! -e "$PATH_TO_CHECK" ]; then
+      echo "ensure_ownership: $PATH_TO_CHECK doesn't exist, Homebrew may not be installed properly"
+      continue
+    fi
+
+    if [ -O "$PATH_TO_CHECK" ]; then
+      continue
+    fi
+
+    if [ -z "$NOROOT" ]; then
+      sudo chown -R $(whoami) "$PATH_TO_CHECK"
+      continue
+    fi
+
+    echo "ensure_ownership (NOROOT): Path $PATH_TO_CHECK is not owned by current user, Homebrew may not work properly and fail the build"
+    echo "ensure_ownership (NOROOT): Fix the ownership of required paths or run the build without NOROOT flag"
+  done
+}
+
+ensure_ownership \
+  /usr/local/Cellar \
+  /usr/local/Homebrew \
+  /usr/local/var/homebrew \
+  /usr/local/etc/bash_completion.d \
+  /usr/local/include \
+  /usr/local/lib/pkgconfig \
+  /usr/local/share/aclocal \
+  /usr/local/share/locale \
+  /usr/local/share/zsh \
+  /usr/local/share/zsh/site-functions \
+  /usr/local/var/homebrew/locks
 
 brew install cmake
 brew install wget
