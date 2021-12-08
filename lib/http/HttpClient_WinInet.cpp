@@ -33,7 +33,7 @@ class WinInetRequestWrapper
     SimpleHttpRequest*     m_request;
     BYTE                   m_buffer[1024] {0};
     DWORD                  m_bufferUsed {0};
-    std::vector<uint8_t>   m_bodyBuffer {};
+    std::vector<uint8_t>   m_bodyBuffer;
     bool                   m_responsePending {false};
     bool                   isCallbackCalled {false};
     bool                   isAborted {false};
