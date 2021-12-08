@@ -325,11 +325,7 @@ class WinInetRequestWrapper
             // trigger INTERNET_STATUS_REQUEST_COMPLETE again.
 
             m_bodyBuffer.insert(m_bodyBuffer.end(), m_buffer, m_buffer + m_bufferUsed);
-            do {
-                if (m_responsePending && m_bufferUsed == 0) {
-                    LOG_TRACE("InternetReadFile finished async");
-                    break;
-                }
+            while (!m_responsePending || m_bufferUsed != 0) {
                 BOOL bResult = ::InternetReadFile(m_hWinInetRequest, m_buffer, sizeof(m_buffer), &m_bufferUsed);
                 if (!bResult) {
                     dwError = GetLastError();
@@ -349,7 +345,7 @@ class WinInetRequestWrapper
                 }
 
                 m_bodyBuffer.insert(m_bodyBuffer.end(), m_buffer, m_buffer + m_bufferUsed);
-            } while (m_bufferUsed != 0);
+            }
         }
 
         std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
