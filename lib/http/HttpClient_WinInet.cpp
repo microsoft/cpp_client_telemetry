@@ -33,7 +33,8 @@ class WinInetRequestWrapper
     SimpleHttpRequest*     m_request;
     BYTE                   m_buffer[1024] {0};
     DWORD                  m_bufferUsed {0};
-    std::vector<uint8_t>   m_bodyBuffer{};
+    std::vector<uint8_t>   m_bodyBuffer {};
+    bool                   m_responsePending {false};
     bool                   isCallbackCalled {false};
     bool                   isAborted {false};
   public:
@@ -325,10 +326,15 @@ class WinInetRequestWrapper
 
             m_bodyBuffer.insert(m_bodyBuffer.end(), m_buffer, m_buffer + m_bufferUsed);
             do {
+                if (m_responsePending && m_bufferUsed == 0) {
+                    LOG_TRACE("InternetReadFile finished async");
+                    break;
+                }
                 BOOL bResult = ::InternetReadFile(m_hWinInetRequest, m_buffer, sizeof(m_buffer), &m_bufferUsed);
                 if (!bResult) {
                     dwError = GetLastError();
                     if (dwError == ERROR_IO_PENDING) {
+                        m_responsePending = true;
                         // Do not touch anything from this thread anymore.
                         // The buffer passed to InternetReadFile() and the
                         // read count will be filled asynchronously, so they
@@ -347,10 +353,10 @@ class WinInetRequestWrapper
         }
 
         std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
-        response->m_body = m_bodyBuffer;
 
         // SUCCESS with no IO_PENDING means we're done with the response body: try to parse the response headers.
         if (dwError == ERROR_SUCCESS) {
+            response->m_body = m_bodyBuffer;
             response->m_result = HttpResult_OK;
 
             uint32_t value = 0;
