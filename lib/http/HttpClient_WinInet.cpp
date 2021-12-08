@@ -34,7 +34,7 @@ class WinInetRequestWrapper
     BYTE                   m_buffer[1024] {0};
     DWORD                  m_bufferUsed {0};
     std::vector<uint8_t>   m_bodyBuffer;
-    bool                   m_responsePending {false};
+    bool                   m_readingData {false};
     bool                   isCallbackCalled {false};
     bool                   isAborted {false};
   public:
@@ -325,12 +325,12 @@ class WinInetRequestWrapper
             // trigger INTERNET_STATUS_REQUEST_COMPLETE again.
 
             m_bodyBuffer.insert(m_bodyBuffer.end(), m_buffer, m_buffer + m_bufferUsed);
-            while (!m_responsePending || m_bufferUsed != 0) {
+            while (!m_readingData || m_bufferUsed != 0) {
                 BOOL bResult = ::InternetReadFile(m_hWinInetRequest, m_buffer, sizeof(m_buffer), &m_bufferUsed);
+                m_readingData = true;
                 if (!bResult) {
                     dwError = GetLastError();
                     if (dwError == ERROR_IO_PENDING) {
-                        m_responsePending = true;
                         // Do not touch anything from this thread anymore.
                         // The buffer passed to InternetReadFile() and the
                         // read count will be filled asynchronously, so they
