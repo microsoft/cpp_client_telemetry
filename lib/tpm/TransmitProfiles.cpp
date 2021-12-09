@@ -80,8 +80,26 @@ namespace MAT_NS_BEGIN {
 #endif
     }
 
-    map<string, TransmitProfileRules>      TransmitProfiles::profiles;
-    string      TransmitProfiles::currProfileName = DEFAULT_PROFILE;
+    std::map<std::string, TransmitProfileRules>& TransmitProfiles::profiles() {
+#if defined(HAVE_LEAKY_GLOBALS)
+        static Leaky<std::map<std::string, TransmitProfileRules>> profiles;
+        return *profiles;
+#else
+        static std::map<std::string, TransmitProfileRules> profiles;
+        return profiles;
+#endif
+    }
+
+    string& TransmitProfiles::currProfileName() {
+#if defined(HAVE_LEAKY_GLOBALS)
+        static Leaky<string> currProfileName(DEFAULT_PROFILE);
+        return *currProfileName;
+#else
+        static string currProfileName = DEFAULT_PROFILE;
+        return currProfileName;
+#endif
+    }
+
     size_t      TransmitProfiles::currRule = 0;
     NetworkCost TransmitProfiles::currNetCost = NetworkCost::NetworkCost_Any;
     PowerSource TransmitProfiles::currPowState = PowerSource::PowerSource_Any;
@@ -93,7 +111,7 @@ namespace MAT_NS_BEGIN {
     /// <returns></returns>
     std::string& TransmitProfiles::getProfile() {
         LOCK_PROFILES;
-        return currProfileName;
+        return currProfileName();
     };
 
     /// <summary>
@@ -132,14 +150,14 @@ namespace MAT_NS_BEGIN {
     /// Remove custom profiles. This function is only called from parse and does not require the lock.
     /// </summary>
     void TransmitProfiles::removeCustomProfiles() {
-        auto it = profiles.begin();
-        while (it != profiles.end())
+        auto it = profiles().begin();
+        while (it != profiles().end())
         {
             if (defaultProfileNames.find((*it).first) != defaultProfileNames.end()) {
                 ++it;
                 continue;
             }
-            it = profiles.erase(it);
+            it = profiles().erase(it);
         }
     }
 
@@ -150,13 +168,13 @@ namespace MAT_NS_BEGIN {
         // Add new profiles
         for (const auto& profile : newProfiles)
         {
-            profiles[profile.name] = profile;
+            profiles()[profile.name] = profile;
         }
         // Check if profile is still valid. If no such profile loaded anymore, then switch to default.
-        auto it = profiles.find(currProfileName);
-        if (it == profiles.end())
+        auto it = profiles().find(currProfileName());
+        if (it == profiles().end())
         {
-            currProfileName = DEFAULT_PROFILE;
+            currProfileName() = DEFAULT_PROFILE;
             LOG_TRACE("Switched to profile %s", currProfileName.c_str());
         }
 
@@ -178,7 +196,7 @@ namespace MAT_NS_BEGIN {
 	 void TransmitProfiles::EnsureDefaultProfiles() noexcept
 	 {
         LOCK_PROFILES;
-        if (profiles.size() == 0)
+        if (profiles().size() == 0)
         {
             LOG_TRACE("Loading default profiles...");
             reset();
@@ -451,15 +469,15 @@ namespace MAT_NS_BEGIN {
 
         EnsureDefaultProfiles();
         LOCK_PROFILES;
-        auto it = profiles.find(profileName);
-        if (it != profiles.end()) {
-            currProfileName = profileName;
+        auto it = profiles().find(profileName);
+        if (it != profiles().end()) {
+            currProfileName() = profileName;
             LOG_INFO("selected profile %s ...", profileName.c_str());
             result = true;
         }
         else {
             LOG_WARN("profile %s not found!", profileName.c_str());
-            currProfileName = DEFAULT_PROFILE;
+            currProfileName() = DEFAULT_PROFILE;
             LOG_WARN("selected profile %s instead", currProfileName.c_str());
         }
         updateStates(currNetCost, currPowState);
@@ -474,10 +492,10 @@ namespace MAT_NS_BEGIN {
         EnsureDefaultProfiles();
 
         LOCK_PROFILES;
-        auto it = profiles.find(currProfileName);
+        auto it = profiles().find(currProfileName());
         // When we can't get timers, we won't set isTimerUpdated to false,
         // so we will keep calling getTimers from TransmissionPolicyManager.
-        if (it == profiles.end()) {
+        if (it == profiles().end()) {
             out.fill(-1);
             LOG_WARN("No active profile found, disabling all transmission timers.");
             return;
@@ -549,8 +567,8 @@ namespace MAT_NS_BEGIN {
         LOCK_PROFILES;
         currNetCost = netCost;
         currPowState = powState;
-        auto it = profiles.find(currProfileName);
-        if (it != profiles.end()) {
+        auto it = profiles().find(currProfileName());
+        if (it != profiles().end()) {
             auto &profile = it->second;
             // Search for a matching rule. If not found, then return the first (the most restrictive) rule in the list.
             currRule = 0;

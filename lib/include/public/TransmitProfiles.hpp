@@ -134,12 +134,12 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// A map that contains all transmit profiles.
         /// </summary>
-        static std::map<std::string, TransmitProfileRules> profiles;
+        static std::map<std::string, TransmitProfileRules>& profiles();
 
         /// <summary>
         /// A string that contains the name of the currently active transmit profile.
         /// </summary>
-        static std::string      currProfileName;
+        static std::string&     currProfileName();
 
         /// <summary>
         /// The size of the currently active transmit profile rule.

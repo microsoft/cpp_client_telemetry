@@ -7,6 +7,8 @@
 
 #include "ctmacros.hpp"
 
+#include <utility>
+
 namespace MAT_NS_BEGIN
 {
     template <typename T>
@@ -16,6 +18,16 @@ namespace MAT_NS_BEGIN
         Leaky()
         {
             new (m_leaked) T();
+        }
+
+        Leaky(const T& t)
+        {
+            new (m_leaked) T(t);
+        }
+
+        Leaky(T&& t)
+        {
+            new (m_leaked) T(std::move(t));
         }
 
         ~Leaky() = default;
