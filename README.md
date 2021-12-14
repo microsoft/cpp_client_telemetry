@@ -71,8 +71,8 @@ Other resources to learn how to setup the build system:
   | Windows 8.1                    | :white_check_mark: |                    |
   | Windows 10.x                   | :white_check_mark: |                    |
   | Windows Server 2012            | :white_check_mark: |                    |
-  | Windows Server 2016            | :white_check_mark: | :white_check_mark: |
-  | Windows Server 2019            | :white_check_mark: |                    |
+  | Windows Server 2016            | :white_check_mark: |                    |
+  | Windows Server 2019            | :white_check_mark: | :white_check_mark: |
   
 * **Supported** - these platforms are known to work well with the SDK in
     production.

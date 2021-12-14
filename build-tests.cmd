@@ -22,13 +22,6 @@ echo Using custom properties file for the build:
 echo %CUSTOM_PROPS%
 :skip
 
-REM Add path to vs2017 MSBuild.exe
-set "PATH=%PATH%;C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\"
-
-REM Try to setup vs2017 Dev environment if possible
-echo Building using Visual Studio 2017 tools
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
-
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set SOLUTION=Solutions\MSTelemetrySDK.sln
 
