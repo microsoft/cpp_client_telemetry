@@ -13,11 +13,23 @@
 #include <numeric>
 #include <set>
 
+#if defined(HAVE_LEAKY_GLOBALS)
+#include "Leaky.hpp"
+#endif
+
 namespace MAT_NS_BEGIN {
 
     constexpr static size_t kBlockSize = 8192;
 
-    std::mutex OfflineStorage_SQLite::m_initAndShutdownLock;
+    std::mutex* OfflineStorage_SQLite::m_initAndShutdownLock() {
+#if defined(HAVE_LEAKY_GLOBALS)
+      static Leaky<std::mutex> lock;
+      return lock.get();
+#else
+      static std::mutex lock;
+      return &lock;
+#endif
+    }
     int OfflineStorage_SQLite::m_instanceCount = 0;
 
     class DbTransaction {
@@ -97,7 +109,7 @@ namespace MAT_NS_BEGIN {
         m_observer = &observer;
 
         assert(!m_db);
-        m_db.reset(new SqliteDB(m_skipInitAndShutdown, &m_initAndShutdownLock,
+        m_db.reset(new SqliteDB(m_skipInitAndShutdown, m_initAndShutdownLock(),
                                 &m_instanceCount));
 
         LOG_TRACE("Initializing offline storage: %s", m_offlineStorageFileName.c_str());

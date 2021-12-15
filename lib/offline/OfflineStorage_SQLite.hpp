@@ -83,7 +83,7 @@ namespace MAT_NS_BEGIN {
         // SQLite initialization and shutdown isn't safe to call across multiple
         // threads, and shutdown cannot be called while there are any instances
         // of this class still using SQLite.
-        static std::mutex           m_initAndShutdownLock;
+        static std::mutex*          m_initAndShutdownLock();
         static int                  m_instanceCount;
 
         size_t                      m_stmtBeginTransaction {};
