@@ -328,9 +328,6 @@
     <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
       <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\win32-lib\win32-lib.vcxproj">
-      <Project>{1dc6b38a-b390-34ce-907f-4958807a3d42}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup Condition="'$(NoSqlite)'!='TRUE'">
     <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
