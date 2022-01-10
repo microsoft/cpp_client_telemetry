@@ -66,6 +66,9 @@ namespace MAT_NS_BEGIN {
 
     long GetCurrentProcessId();
 
+    /* Detects if current process is runing in a packaged app*/
+    bool IsRunningInApp();
+
     std::string GetTempDirectory();
     std::string GetAppLocalTempDirectory();
 
