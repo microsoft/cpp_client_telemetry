@@ -84,6 +84,7 @@ namespace MAT_NS_BEGIN {
         if (lpGetPackageFamilyName)
         {
             UINT32 size = 0;
+            // It returns APPMODEL_ERROR_NO_PACKAGE for un-packaged apps
             if (lpGetPackageFamilyName(&size, NULL) == ERROR_INSUFFICIENT_BUFFER)
                 isRunningInApp = true;
         }
@@ -147,7 +148,7 @@ namespace MAT_NS_BEGIN {
         char *tmp = getenv("TMPDIR");
         if (tmp != NULL) {
             result = tmp;
-        } 
+        }
         else {
 #ifdef P_tmpdir
             if (P_tmpdir != NULL)

@@ -35,7 +35,6 @@ namespace PAL_NS_BEGIN {
     {
         if (MAT::IsRunningInApp())
         {
-            Package^ package = Package::Current;
             auto version = Package::Current->Id->Version;
 
             m_app_id = FromPlatformString(Package::Current->Id->Name);
