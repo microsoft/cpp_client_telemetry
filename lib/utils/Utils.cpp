@@ -78,15 +78,14 @@ namespace MAT_NS_BEGIN {
     {
 #ifdef _WINRT_DLL  // Win 10 UWP
         typedef LONG (*LPFN_GPFN)(UINT32*, PWSTR);
-        bool isRunningInApp = false;
+        bool isRunningInApp = true;
 
         LPFN_GPFN lpGetPackageFamilyName = (LPFN_GPFN)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetCurrentPackageFamilyName");
         if (lpGetPackageFamilyName)
         {
             UINT32 size = 0;
-            // It returns APPMODEL_ERROR_NO_PACKAGE for un-packaged apps
-            if (lpGetPackageFamilyName(&size, NULL) == ERROR_INSUFFICIENT_BUFFER)
-                isRunningInApp = true;
+            if (lpGetPackageFamilyName(&size, NULL) == APPMODEL_ERROR_NO_PACKAGE)
+                isRunningInApp = false;
         }
         return isRunningInApp;
 #else
