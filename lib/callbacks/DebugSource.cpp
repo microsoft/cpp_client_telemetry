@@ -35,13 +35,14 @@ namespace MAT_NS_BEGIN {
     /// <summary>Microsoft Telemetry SDK invokes this method to dispatch event to client callback</summary>
     bool DebugEventSource::DispatchEvent(DebugEvent evt)
     {
-        seq++;
-        evt.seq = seq;
         evt.ts = PAL::getUtcSystemTime();
         bool dispatched = false;
-
+                
         {
             DE_LOCKGUARD(stateLock());
+            seq++;
+            evt.seq = seq;
+
             if (listeners.size()) {
                 // Events filter handlers list
                 auto &v = listeners[evt.type];
