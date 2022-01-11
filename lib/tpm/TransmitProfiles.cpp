@@ -31,11 +31,24 @@ static const char* const defaultRealTimeProfileName = "REAL_TIME";
 static const char* const defaultNearRealTimeProfileName = "NEAR_REAL_TIME";
 static const char* const defaultBestEffortProfileName = "BEST_EFFORT";
 
-static const set<string, std::greater<string>> defaultProfileNames = {
-    string{defaultRealTimeProfileName},
-    string{defaultNearRealTimeProfileName},
-    string{defaultBestEffortProfileName}
-};
+static const set<string, std::greater<string>>& defaultProfileNames() {
+    static
+#if defined(HAVE_LEAKY_GLOBALS)
+    Leaky<set<string, std::greater<string>>>
+#else
+    set<string, std::greater<string>>
+#endif
+    data({
+        string{defaultRealTimeProfileName},
+        string{defaultNearRealTimeProfileName},
+        string{defaultBestEffortProfileName},
+    });
+#if defined(HAVE_LEAKY_GLOBALS)
+    return *data;
+#else
+    return data;
+#endif
+}
 
 static const char* DEFAULT_PROFILE = defaultRealTimeProfileName;
 
@@ -44,24 +57,41 @@ static const char* DEFAULT_PROFILE = defaultRealTimeProfileName;
 /// This map greatly helps to simplify the serialization from JSON to binary.
 /// </summary>
 #ifdef HAVE_MAT_JSONHPP
-static std::map<std::string, int > transmitProfileNetCost;
-static std::map<std::string, int > transmitProfilePowerState;
+static std::map<std::string, int>& transmitProfileNetCost() {
+#if defined(HAVE_LEAKY_GLOBALS)
+    static Leaky<std::map<std::string, int>> data;
+    return *data;
+#else
+    static std::map<std::string, int> data;
+    return data;
+#endif
+}
+
+static std::map<std::string, int>& transmitProfilePowerState() {
+#if defined(HAVE_LEAKY_GLOBALS)
+    static Leaky<std::map<std::string, int>> data;
+    return *data;
+#else
+    static std::map<std::string, int> data;
+    return data;
+#endif
+}
 
 static void initTransmitProfileFields()
 {
-    transmitProfileNetCost["any"] = (NetworkCost_Any);
-    transmitProfileNetCost["unknown"] = (NetworkCost_Unknown);
-    transmitProfileNetCost["unmetered"] = (NetworkCost_Unmetered);
-    transmitProfileNetCost["low"] = (NetworkCost_Unmetered);
-    transmitProfileNetCost["metered"] = (NetworkCost_Metered);
-    transmitProfileNetCost["high"] = (NetworkCost_Metered);
-    transmitProfileNetCost["restricted"] = (NetworkCost_Roaming);
-    transmitProfileNetCost["roaming"] = (NetworkCost_Roaming);
+    transmitProfileNetCost()["any"] = (NetworkCost_Any);
+    transmitProfileNetCost()["unknown"] = (NetworkCost_Unknown);
+    transmitProfileNetCost()["unmetered"] = (NetworkCost_Unmetered);
+    transmitProfileNetCost()["low"] = (NetworkCost_Unmetered);
+    transmitProfileNetCost()["metered"] = (NetworkCost_Metered);
+    transmitProfileNetCost()["high"] = (NetworkCost_Metered);
+    transmitProfileNetCost()["restricted"] = (NetworkCost_Roaming);
+    transmitProfileNetCost()["roaming"] = (NetworkCost_Roaming);
 
-    transmitProfilePowerState["any"] = (PowerSource_Any);
-    transmitProfilePowerState["unknown"] = (PowerSource_Unknown);
-    transmitProfilePowerState["battery"] = (PowerSource_Battery);
-    transmitProfilePowerState["charging"] = (PowerSource_Charging);
+    transmitProfilePowerState()["any"] = (PowerSource_Any);
+    transmitProfilePowerState()["unknown"] = (PowerSource_Unknown);
+    transmitProfilePowerState()["battery"] = (PowerSource_Battery);
+    transmitProfilePowerState()["charging"] = (PowerSource_Charging);
 };
 #endif
 
@@ -153,7 +183,7 @@ namespace MAT_NS_BEGIN {
         auto it = profiles().begin();
         while (it != profiles().end())
         {
-            if (defaultProfileNames.find((*it).first) != defaultProfileNames.end()) {
+            if (defaultProfileNames().find((*it).first) != defaultProfileNames().end()) {
                 ++it;
                 continue;
             }
@@ -263,8 +293,8 @@ namespace MAT_NS_BEGIN {
                                     if (itRule.value().end() != itnetCost)
                                     {
                                         std::string netCost = itRule.value()["netCost"];
-                                        std::map<std::string, int>::const_iterator iter = transmitProfileNetCost.find(netCost);
-                                        if (iter != transmitProfileNetCost.end())
+                                        std::map<std::string, int>::const_iterator iter = transmitProfileNetCost().find(netCost);
+                                        if (iter != transmitProfileNetCost().end())
                                         {
                                             rule.netCost = static_cast<NetworkCost>(iter->second);
                                         }
@@ -274,8 +304,8 @@ namespace MAT_NS_BEGIN {
                                     if (itRule.value().end() != itpowerState)
                                     {
                                         std::string powerState = itRule.value()["powerState"];
-                                        std::map<std::string, int>::const_iterator iter = transmitProfilePowerState.find(powerState);
-                                        if (iter != transmitProfilePowerState.end())
+                                        std::map<std::string, int>::const_iterator iter = transmitProfilePowerState().find(powerState);
+                                        if (iter != transmitProfilePowerState().end())
                                         {
                                             rule.powerState = static_cast<PowerSource>(iter->second);
                                         }
@@ -440,7 +470,7 @@ namespace MAT_NS_BEGIN {
         std::string selectedProfileName;
         int index = 0;
         std::set<std::string>::iterator it;
-        for (it = defaultProfileNames.begin(); it != defaultProfileNames.end(); ++it)
+        for (it = defaultProfileNames().begin(); it != defaultProfileNames().end(); ++it)
         {
             selectedProfileName = *it;
             if (index == profileName)
