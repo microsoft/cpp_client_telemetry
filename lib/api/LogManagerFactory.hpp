@@ -9,7 +9,9 @@
 #include "ILogConfiguration.hpp"
 #include "ILogManager.hpp"
 
-#include "NullObjects.hpp"
+#if defined(HAVE_LEAKY_GLOBALS)
+#include "Leaky.hpp"
+#endif
 
 #include <map>
 #include <set>
@@ -67,13 +69,16 @@ namespace MAT_NS_BEGIN {
 
         //  C++11 Magic Statics (N2660)
         static LogManagerFactory& instance() {
+#if defined(HAVE_LEAKY_GLOBALS)
+            static Leaky<LogManagerFactory> impl;
+            return *impl;
+#else
             static LogManagerFactory impl;
             return impl;
+#endif
         }
 
     public:
-
-        static const NullLogManager   NULL_LOGMANAGER;
 
         /// <summary>
         /// Creates a new ILogManager instance
@@ -131,6 +136,7 @@ namespace MAT_NS_BEGIN {
                 STATUS_EFAIL;
         }
 
+        friend MAT::Leaky<LogManagerFactory>;
     };
 
 } MAT_NS_END
