@@ -23,6 +23,8 @@ namespace PAL_NS_BEGIN {
 
         static std::string s_time_zone;
 
+        static std::string s_device_class;
+
         static void setValue(JNIEnv *env, std::string & s, jstring js)
         {
             const char *start = env->GetStringUTFChars(js, nullptr);
@@ -45,6 +47,8 @@ namespace PAL_NS_BEGIN {
             jclass localeClass = pEnv->FindClass("java/util/Locale");
             jclass packageInfoClass = pEnv->FindClass("android/content/pm/PackageInfo");
             jclass packageManagerClass = pEnv->FindClass("android/content/pm/PackageManager");
+            jclass resourcesClass = pEnv->FindClass("android/content/res/Resources");
+            jclass configurationClass = pEnv->FindClass("android/content/res/Configuration");
 
             jfieldID sdkIntFid = pEnv->GetStaticFieldID(buildVersionClass, "SDK_INT", "I");
             int SDK_INT = pEnv->GetStaticIntField(buildVersionClass, sdkIntFid);
@@ -52,6 +56,7 @@ namespace PAL_NS_BEGIN {
             jfieldID versionNameFid = pEnv->GetFieldID(packageInfoClass, "versionName", "Ljava/lang/String;");
             jfieldID releaseFid = pEnv->GetStaticFieldID(buildVersionClass, "RELEASE", "Ljava/lang/String;");
             jfieldID incrementalFid = pEnv->GetStaticFieldID(buildVersionClass, "INCREMENTAL", "Ljava/lang/String;");
+            jfieldID screenLayoutSizeLargeFid = pEnv->GetStaticFieldID(configurationClass, "SCREENLAYOUT_SIZE_LARGE", "I");
 
             // public String getPackageName ()
             jmethodID getPackageNameMid = pEnv->GetMethodID(contextClass, "getPackageName", "()Ljava/lang/String;");
@@ -68,6 +73,29 @@ namespace PAL_NS_BEGIN {
 
             // public static Locale getDefault ()
             jmethodID getDefaultLocaleMid = pEnv->GetStaticMethodID(localeClass, "getDefault", "()Ljava/util/Locale;");
+         
+            // public abstract Resources getResources ()
+            jmethodID getResourceMid = pEnv->GetMethodID(contextClass, "getResources", "()Landroid/content/res/Resources");
+
+            // public abstract Configuration getConfiguration ()
+            jmethodID getConfigurationMid = pEnv->GetMethodID(resourcesClass, "getConfiguration", "()Landroid/content/res/Configuration");
+
+            // public abstract boolean isLayoutSizeAtLeast (int layoutSize)
+            jmethodID isLayoutSizeAtLeastMid = pEnv->GetMethodID(configurationClass, "isLayoutSizeAtLeast", "(I)Z");
+
+            jint screenLayoutSizeLargeJint = reinterpret_cast<jint>(pEnv->GetStaticIntField(configurationClass, screenLayoutSizeLargeFid));
+
+            // call context.getResources().getConfiguration().isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)
+            jobject resources = pEnv->CallObjectMethod(activity, getResourceMid);
+            jobject configuration = pEnv->CallObjectMethod(resources, getConfigurationMid);
+            jboolean isTablet = reinterpret_cast<jboolean>(pEnv->CallBooleanMethod(configuration, isLayoutSizeAtLeastMid, screenLayoutSizeLargeJint));
+            
+            std::string device_class;
+            if (isTablet) {
+                device_class = "Android.PC";
+            } else {
+                device_class = "Android.Phone";
+            }
 
             const char* jStr;
             jboolean isCopy;
@@ -117,6 +145,7 @@ namespace PAL_NS_BEGIN {
             AndroidSystemInformationConnector::s_app_version = std::move(versionName);
             AndroidSystemInformationConnector::s_os_full_version = std::move(osVersion);
             AndroidSystemInformationConnector::s_os_major_version = std::move(versionRelease);
+            AndroidSystemInformationConnector::s_device_class = (std::move(device_class));
         }
 
     };
@@ -130,6 +159,8 @@ namespace PAL_NS_BEGIN {
     std::string AndroidSystemInformationConnector::s_os_name;
 
     std::string AndroidSystemInformationConnector::s_time_zone;
+
+    std::string AndroidSystemInformationConnector::s_device_class;
 
     SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& configuration) :
         m_info_helper(),
@@ -148,6 +179,7 @@ namespace PAL_NS_BEGIN {
         m_os_major_version = AndroidSystemInformationConnector::s_os_major_version;
         m_os_full_version = AndroidSystemInformationConnector::s_os_full_version;
         m_user_timezone = AndroidSystemInformationConnector::s_time_zone;
+        m_device_class = AndroidSystemInformationConnector::s_device_class;
     }
 
     SystemInformationImpl::~SystemInformationImpl()
@@ -179,7 +211,9 @@ extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpCli
 
     jstring os_major_version,
     jstring os_full_version,
-    jstring time_zone
+    jstring time_zone,
+
+    jstring deviceClass
 )
 {
     PAL::AndroidSystemInformationConnector::setValue(
@@ -206,5 +240,9 @@ extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpCli
         env,
         PAL::AndroidSystemInformationConnector::s_time_zone,
         time_zone);
+    PAL::AndroidSystemInformationConnector::setValue(
+        env,
+        PAL::AndroidSystemInformationConnector::s_device_class,
+        deviceClass);
 }
 
