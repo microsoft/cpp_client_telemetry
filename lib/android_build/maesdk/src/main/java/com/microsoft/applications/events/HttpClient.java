@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -184,6 +185,8 @@ class Request implements Runnable {
 
 public class HttpClient {
   private static final int MAX_HTTP_THREADS = 2; // Collector wants no more than 2 at a time
+  private static final String ANDROID_DEVICE_CLASS_PC = "Android.PC";
+  private static final String ANDROID_DEVICE_CLASS_PHONE = "Android.Phone";
 
   /** Shim FutureTask: we would like to @Keep the cancel method for JNI */
   static class FutureShim extends FutureTask<Boolean> {
@@ -270,9 +273,11 @@ public class HttpClient {
     if (pInfo != null && pInfo.versionName != null) {
       app_version = pInfo.versionName;
     }
-    String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
+    final String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
 
-    String time_zone = getTimeZone();
+    final String time_zone = getTimeZone();
+
+    final String device_class = getDeviceClass(context);
 
     String os_major_version = Build.VERSION.RELEASE;
     if (os_major_version == null) {
@@ -285,7 +290,8 @@ public class HttpClient {
         app_language,
         os_major_version,
         os_full_version,
-        time_zone);
+        time_zone,
+        device_class);
   }
 
   private String calculateID(android.content.Context context) {
@@ -303,6 +309,14 @@ public class HttpClient {
       return "";
     } else {
       return "a:" + id;
+    }
+  }
+
+  private String getDeviceClass(android.content.Context context) {
+    if (context.getResources().getConfiguration().isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+      return ANDROID_DEVICE_CLASS_PC;
+    } else {
+      return ANDROID_DEVICE_CLASS_PHONE;
     }
   }
 
@@ -348,7 +362,8 @@ public class HttpClient {
       String app_language,
       String os_major_version,
       String os_full_version,
-      String time_zone);
+      String time_zone,
+      String deviceClass);
 
   public native void dispatchCallback(String id, int response, Object[] headers, byte[] body);
 

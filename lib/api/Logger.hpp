@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef LOGGER_HPP
@@ -269,6 +269,8 @@ namespace MAT_NS_BEGIN
         std::string m_sessionId;
 
         bool m_allowDotsInType;
+        std::string m_customTypePrefix;
+
         bool m_resetSessionOnEnd;
         EventFilterCollection m_filters;
 

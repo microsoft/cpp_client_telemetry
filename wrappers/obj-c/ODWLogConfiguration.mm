@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #import <Foundation/Foundation.h>
@@ -231,6 +231,11 @@ NSString *const ODWCFG_MAP_COMPAT = @"compat";
  Compatibility configuration: dot mode
 */
 NSString *const ODWCFG_BOOL_COMPAT_DOTS = @"dotType";
+
+/*!
+ Compatibility configuration: custom type prefix
+*/
+NSString *const ODWCFG_STR_COMPAT_PREFIX = @"customTypePrefix";
 
 /*!
  LogManagerFactory: is this log manager instance in host mode?

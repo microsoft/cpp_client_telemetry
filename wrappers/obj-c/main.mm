@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #import <Foundation/Foundation.h>
@@ -7,6 +7,7 @@
 #import "ODWLogger.h"
 #import "ODWEventProperties.h"
 #import "ODWPrivacyGuard.h"
+#import "ODWPrivacyGuardInitConfig.h"
 #import "ODWCommonDataContext.h"
 
 int main(int argc, char** argv){
@@ -17,29 +18,30 @@ int main(int argc, char** argv){
         ODWLogger* myLogger = [ODWLogManager loggerWithTenant: token];
 
         ODWPrivacyGuardInitConfig* pgInitConfig = [[ODWPrivacyGuardInitConfig alloc] init];
-        [[pgInitConfig useEventFieldPrefix]: TRUE]
+		[pgInitConfig setUseEventFieldPrefix:TRUE];
 
-        [pgInitConfig dataContext] = [[ODWCommondataContext alloc] init];
+        [pgInitConfig setDataContext:
+		 [[ODWCommonDataContext alloc] init]];
         /*
          * Values below are case-insensitive, except for User Names.
          * PrivacyGuard converts everything to uppercase and uses that for comparison
          */
         [[pgInitConfig dataContext] setDomainName:@"TEST.MICROSOFT.COM"];
         [[pgInitConfig dataContext] setMachineName:@"Motherboard"];
-        [[pgInitConfig dataContext] UserNames] = [[NSMutableArray alloc] init];
+        [[pgInitConfig dataContext] setUserNames: [[NSMutableArray alloc] init]];
         [[[pgInitConfig dataContext] UserNames] addObject:@"Awesome Username"];
-        [[pgInitConfig dataContext] UserAliases] = [[NSMutableArray alloc] init];
+        [[pgInitConfig dataContext] setUserAliases: [[NSMutableArray alloc] init]];
         [[[pgInitConfig dataContext] UserAliases] addObject:@"awesomeuser" ];
-        [[pgInitConfig dataContext] IpAddresses] = [[NSMutableArray alloc] init];
+        [[pgInitConfig dataContext] setIpAddresses: [[NSMutableArray alloc] init]];
         [[[pgInitConfig dataContext] IpAddresses] addObject:@"10.0.1.1"];
         [[[pgInitConfig dataContext] IpAddresses] addObject:@"192.168.1.1"];
         [[[pgInitConfig dataContext] IpAddresses] addObject:@"1234:4578:9abc:def0:bea4:ca4:ca1:d0g"];
-        [[pgInitConfig dataContext] LanguageIdentifiers] = [[NSMutableArray alloc] init];
+        [[pgInitConfig dataContext] setLanguageIdentifiers: [[NSMutableArray alloc] init]];
         [[[pgInitConfig dataContext] LanguageIdentifiers] addObject:@"en-US"];
         [[[pgInitConfig dataContext] LanguageIdentifiers] addObject:@"English (United States)"];
-        [[pgInitConfig dataContext] MachineIds] = [[NSMutableArray alloc] init];
+        [[pgInitConfig dataContext] setMachineIds: [[NSMutableArray alloc] init]];
         [[[pgInitConfig dataContext] MachineIds] addObject:@"0450fe66-aeed-4059-99ca-4dd8702cbd1f"];
-        [[pgInitConfig dataContext] OutOfScopeIdentifiers] = [[NSMutableArray alloc] init];
+        [[pgInitConfig dataContext] setOutOfScopeIdentifiers: [[NSMutableArray alloc] init]];
         [[[pgInitConfig dataContext] OutOfScopeIdentifiers] addObject:@"43efb3b1-c7a3-4f29-beea-63ccb28160ac"];
         [[[pgInitConfig dataContext] OutOfScopeIdentifiers] addObject:@"7d06a83a-200d-4ccb-bfc6-d0995c840bde"];
         [[[pgInitConfig dataContext] OutOfScopeIdentifiers] addObject:@"e1b2ece8-2451-4ea9-997a-6f37b50be8de"];
@@ -84,6 +86,7 @@ int main(int argc, char** argv){
 
         [logger2 logEventWithName:@"SemanticContext_EmptyEvent"];
         [ODWLogManager flushAndTeardown];
+        [ODWPrivacyGuard resetPrivacyGuardInstance];
     }
     return 0;
 }

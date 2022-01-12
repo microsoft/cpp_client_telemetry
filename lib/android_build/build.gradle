@@ -1,12 +1,15 @@
 ext {
     debugJniDebuggable = true
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 buildscript {
     repositories {
-        google()
+        google() // to fetch com.android.tools.build:gradle
+        mavenCentral()
+        maven { url 'https://maven.google.com' }
         jcenter()
-        
+        maven { url "https://jitpack.io" }
+        maven { url "https://jcenter.bintray.com" }
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.0.1'
@@ -15,11 +18,15 @@ buildscript {
         // in the individual module build.gradle files
     }
 }
-
 allprojects {
     repositories {
-        google()
-        jcenter()        
+        google() // to fetch com.android.tools.build:gradle
+        mavenCentral()
+        maven { url 'https://maven.google.com' }
+        jcenter()
+        maven { url "https://jitpack.io" }
+        maven { url "https://jcenter.bintray.com" }
+        mavenCentral()
     }
 }
 

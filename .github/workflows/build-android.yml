@@ -4,12 +4,19 @@ on:
   push:
     branches:
     - master
+    - main
+    - dev
+    - dev/*
     - release/*
     - buildme/*
     - maharrim/*
+
   pull_request:
     branches:
     - master
+    - main
+    - dev
+
 jobs:
   build:
     runs-on: windows-latest

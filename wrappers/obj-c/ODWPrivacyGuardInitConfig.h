@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "objc_begin.h"
@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief (REQUIRED) Data Context to use with Privacy Guard.
  */
-@property(readwrite, copy, nonatomic) ODWCommonDataContext* dataContext;
+@property(readwrite, nonatomic) ODWCommonDataContext* dataContext;
 /*!
  @brief (OPTIONAL) Custom event name to use when logging privacy concerns. Default value is `PrivacyConcern`.
  */
@@ -38,6 +38,11 @@ NS_ASSUME_NONNULL_BEGIN
  @brief (OPTIONAL) Should scan for URLs? Default value is `true`.
  */
 @property(readwrite, nonatomic) BOOL scanForUrls;
+
+/*!
+ @brief (OPTIONAL) Should disable advanced scans such as location, URLs, Out-of-scope identifiers, etc.
+ */
+@property(readwrite, nonatomic) BOOL disableAdvancedScans;
 
 @end
 NS_ASSUME_NONNULL_END

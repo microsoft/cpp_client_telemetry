@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef STRINGUTILS_HPP
@@ -17,7 +17,7 @@ namespace MAT_NS_BEGIN
     namespace StringUtils
     {
         void SplitString(const std::string& s, const char separator, std::vector<std::string>& parts);
-        bool AreAllCharactersWhitelisted(const std::string& stringToTest, const std::string& whitelist);
+        bool AreAllCharactersAllowlisted(const std::string& stringToTest, const std::string& allowlist);
     }
 
     std::string toString(char const* value);

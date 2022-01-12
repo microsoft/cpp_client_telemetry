@@ -92,15 +92,25 @@ message("-- CMAKE_SYSTEM:           ${CMAKE_SYSTEM}")
 message("-- CMAKE_SYSTEM_VERSION:   ${CMAKE_SYSTEM_VERSION}")
 message("-- CMAKE_BUILD_TYPE:       ${CMAKE_BUILD_TYPE}")
 message("-- TARGET_ARCH:            ${TARGET_ARCH}")
+message("-- CMAKE_CXX_COMPILER_ID:  ${CMAKE_CXX_COMPILER_ID}")
 
 include(tools/ParseOsRelease.cmake)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+set(WARN_FLAGS "/W4 /WX")
+else()
 # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
 set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter")
+endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # Using GCC with -s and -Wl linker flags
   set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants -ffast-math")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  set(REL_FLAGS "${WARN_FLAGS}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  # AppleClang does not support -ffunction-sections and -fdata-sections with the -fembed-bitcode and -fembed-bitcode-marker
+  set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants -ffast-math")
 else()
   # Using clang - strip unsupported GCC options
   set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")
@@ -114,7 +124,7 @@ endif()
 # Use libtcmalloc for Debug builds memory leaks detection
 set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  ${WARN_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   #TODO: -fno-rtti
   message("Building Release ...")
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
@@ -152,8 +162,12 @@ endif()
 include(tools/Utils.cmake)
 
 if (NOT DEFAULT_PAL_IMPLEMENTATION)
+if(MSVC)
+  set(DEFAULT_PAL_IMPLEMENTATION WIN32)
+else()
 # Linux, Mac OS X, MinGW, etc.
   set(DEFAULT_PAL_IMPLEMENTATION CPP11)
+endif()
 endif()
 
 set(PAL_IMPLEMENTATION ${DEFAULT_PAL_IMPLEMENTATION})
@@ -170,6 +184,8 @@ endif()
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
  add_definitions(-DZLIB_WINAPI)
 endif()
+
+add_definitions(-DNOMINMAX)
 
 ################################################################################################
 # Build prefix and version
@@ -202,7 +218,7 @@ message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 # Only use custom curl if compiling with CPP11 PAL
 if (PAL_IMPLEMENTATION STREQUAL "CPP11")
-  
+
   if(NOT BUILD_IOS)
     include(FindCURL)
     find_package(CURL REQUIRED)
@@ -229,6 +245,7 @@ option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
 option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
+option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
@@ -242,7 +259,7 @@ if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
     add_library(gtest STATIC IMPORTED GLOBAL)
     message("Adding gmock")
     add_library(gmock STATIC IMPORTED GLOBAL)
-    
+
 #    message("Building libraries! - Path: ${CMAKE_CURRENT_SOURCE_DIR} ")
 #    message("Building gtest")
 #    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/)

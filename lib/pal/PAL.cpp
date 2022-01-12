@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "PAL.hpp"
@@ -401,14 +401,19 @@ namespace PAL_NS_BEGIN {
         char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
 
 #if defined(__GNUC__) && !defined(__clang__)
+#include <features.h>
+#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"  // error: ‘T’ directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Werror=format-truncation=]
+#pragma GCC diagnostic ignored "-Wformat-truncation"  // error: 'T' directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Werror=format-truncation=]
+#endif
 #endif
         (void)snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
                        1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
                        tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
 #if defined(__GNUC__) && !defined(__clang__)
+#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
 #pragma GCC diagnostic pop
+#endif
 #endif
 #endif
         return buf;

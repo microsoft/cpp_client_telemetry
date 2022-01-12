@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events.maesdktest;
@@ -583,6 +583,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     ILogConfiguration compat = defaultConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_COMPAT);
     assertThat(compat, is(notNullValue()));
     assertThat(compat.getBoolean(LogConfigurationKey.CFG_BOOL_COMPAT_DOTS), is(true));
+    assertThat(compat.getString(LogConfigurationKey.CFG_STR_COMPAT_PREFIX), isA(String.class));
 
     assertThat(defaultConfig, is(instanceOf(LogManager.LogConfigurationImpl.class)));
 

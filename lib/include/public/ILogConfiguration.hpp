@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef MAT_ILOGCONFIGURATION_HPP
@@ -185,6 +185,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_INT_MAX_TEARDOWN_TIME = "maxTeardownUploadTimeInSec";
 
     /// <summary>
+    /// Disable zombie logger logic.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_DISABLE_ZOMBIE_LOGGERS = "disableZombieLoggers";
+
+    /// <summary>
     /// The maximum number of pending HTTP requests.
     /// </summary>
     static constexpr const char* const CFG_INT_MAX_PENDING_REQ = "maxPendingHTTPRequests";
@@ -315,6 +320,11 @@ namespace MAT_NS_BEGIN
     /// Compatibility configuration: dot mode
     /// </summary>
     static constexpr const char* const CFG_BOOL_COMPAT_DOTS = "dotType";
+
+    /// <summary>
+    /// Compatibility configuration: custom type prefix. Default value: "custom"
+    /// </summary>
+    static constexpr const char* const CFG_STR_COMPAT_PREFIX = "customTypePrefix";
 
     /// <summary>
     /// LogManagerFactory: is this log manager instance in host mode?

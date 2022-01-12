@@ -1,9 +1,10 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "objc_begin.h"
 #import "ODWLogger.h"
+#import "ODWLogConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

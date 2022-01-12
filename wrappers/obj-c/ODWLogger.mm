@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "ILogger.hpp"
@@ -95,6 +95,11 @@ std::atomic<bool> canUseSDK = { true };
             NSString* str = (NSString*)value;
             event.SetProperty(strPropertyName, [str UTF8String], piiKind);
         }
+    }
+    NSString* type = [wrappedProperties eventType];
+    if([type length] != 0)
+    {
+        event.SetType([type UTF8String]);
     }
 }
 

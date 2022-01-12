@@ -1,7 +1,9 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
+#include "mat/config.h"
+
 #include "PayloadDecoder.hpp"
 
 #if !defined(HAVE_MAT_ZLIB) || !defined(HAVE_MAT_JSONHPP)
@@ -35,10 +37,6 @@ MAT_NS_END
 
 #ifdef _WIN32
 #include <Windows.h>
-#ifdef max
-#undef max
-#undef min
-#endif
 #endif
 
 #ifndef TEST_LOG_ERROR

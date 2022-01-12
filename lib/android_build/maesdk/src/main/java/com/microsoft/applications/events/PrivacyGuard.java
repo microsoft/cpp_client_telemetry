@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -29,7 +29,8 @@ public class PrivacyGuard {
             String SemanticContextEventName,
             String SummaryEventName,
             boolean UseEventFieldPrefix,
-            boolean ScanForUrls
+            boolean ScanForUrls,
+            boolean DisableAdvancedScans
             );
 
     /**
@@ -74,7 +75,8 @@ public class PrivacyGuard {
                     initConfig.SemanticContextNotificationEventName,
                     initConfig.SummaryEventName,
                     initConfig.UseEventFieldPrefix,
-                    initConfig.ScanForUrls
+                    initConfig.ScanForUrls,
+                    initConfig.DisableAdvancedScans
             );
         }
     }

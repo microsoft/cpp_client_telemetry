@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifdef _MSC_VER
@@ -364,26 +364,36 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::FlushAndTeardown()
     {
+        PauseActivity();
+        WaitPause();
         LOG_INFO("Shutting down...");
         LOCKGUARD(m_lock);
         if (m_alive)
         {
-            // before we do anything else, move our Logger instances
-            // to the shut-down state and the s_deadLoggers graveyard.
-            // Calls to these loggers will be benign: before we complete
-            // their RecordShutdown() call, this LogManagerImpl is alive
-            // and well and ILogger methods should work. After that
-            // RecordShutdown(), those ILogger methods do nothing and in
-            // particular do not touch this now-defunct LogManagerImpl.
-            for (auto& kv : m_loggers)
+            if (m_logConfiguration[CFG_BOOL_DISABLE_ZOMBIE_LOGGERS])
             {
-                // this waits until no active calls on this logger
-                kv.second->RecordShutdown();
+                m_loggers.clear();
             }
-            s_deadLoggers.AddMap(std::move(m_loggers));
+            else
+            {
+                // before we do anything else, move our Logger instances
+                // to the shut-down state and the s_deadLoggers graveyard.
+                // Calls to these loggers will be benign: before we complete
+                // their RecordShutdown() call, this LogManagerImpl is alive
+                // and well and ILogger methods should work. After that
+                // RecordShutdown(), those ILogger methods do nothing and in
+                // particular do not touch this now-defunct LogManagerImpl.
+                for (auto& kv : m_loggers)
+                {
+                    // this waits until no active calls on this logger
+                    kv.second->RecordShutdown();
+                }
 
-            // Ensure that AddMap clears m_loggers (it does, it should continue to).
-            assert(m_loggers.empty());
+                s_deadLoggers.AddMap(std::move(m_loggers));
+
+                // Ensure that AddMap clears m_loggers (it does, it should continue to).
+                assert(m_loggers.empty());
+            }
 
             LOG_INFO("Tearing down modules");
             TeardownModules();
@@ -746,7 +756,7 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::ResetLogSessionData()
     {
-        if (m_logSessionDataProvider) 
+        if (m_logSessionDataProvider)
         {
             m_logSessionDataProvider->ResetLogSessionData();
         }
@@ -860,25 +870,93 @@ namespace MAT_NS_BEGIN
     {
 
         LOCKGUARD(m_lock);
-        if (GetSystem()) 
+        if (GetSystem())
         {
             // cleanup pending http requests
-            GetSystem()->cleanup(); 
-        
+            GetSystem()->cleanup();
+
             // cleanup log session ( UUID)
             if (m_logSessionDataProvider)
             {
                 m_logSessionDataProvider->DeleteLogSessionData();
             }
-    
+
             // cleanup offline storage ( this will also cleanup retry queue for http requests
-            if (m_offlineStorage) 
-            {	
-                m_offlineStorage->DeleteAllRecords();	
+            if (m_offlineStorage)
+            {
+                m_offlineStorage->DeleteAllRecords();
             }
         }
         return STATUS_SUCCESS;
     }
+
+    // Pause/Resume interface
+
+    void LogManagerImpl::PauseActivity()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_state != PauseState::Active) {
+            return;
+        }
+
+        if (m_pause_active_count == 0)
+        {
+            m_pause_state = PauseState::Paused;
+            // notify under lock because a waiting thread
+            // may destroy objects (including this object)
+            m_pause_cv.notify_all();
+        }
+        else
+        {
+            m_pause_state = PauseState::Pausing;
+        }
+    }
+
+    void LogManagerImpl::ResumeActivity()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_state == PauseState::Active) {
+            return;
+        }
+        m_pause_state = PauseState::Active;
+        m_pause_cv.notify_all();
+    }
+
+    void LogManagerImpl::WaitPause()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_state != PauseState::Pausing) {
+            return;
+        }
+        m_pause_cv.wait(lock, [this]() -> bool {
+            return m_pause_state != PauseState::Pausing;
+        });
+    }
+
+    bool LogManagerImpl::StartActivity()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_state != PauseState::Active) {
+            return false;
+        }
+        m_pause_active_count += 1;
+        return true;
+    }
+
+    void LogManagerImpl::EndActivity()
+    {
+        std::unique_lock<std::mutex> lock(m_pause_mutex);
+        if (m_pause_active_count == 0) {
+            return;
+        }
+        m_pause_active_count -= 1;
+        if (m_pause_active_count > 0) {
+            return;
+        }
+        if (m_pause_state == PauseState::Pausing) {
+            m_pause_state = PauseState::Paused;
+            m_pause_cv.notify_all();
+        }
+    }
 }
 MAT_NS_END
-

@@ -1,7 +1,7 @@
 #ifndef LIB_PAL_POSIX_SYSINFO_UTILS_IOS_HPP_
 #define LIB_PAL_POSIX_SYSINFO_UTILS_IOS_HPP_
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -21,5 +21,6 @@ std::string GetDeviceModel();
 
 std::string GetDeviceId();
 
+std::string GetDeviceClass();
 #endif /* LIB_PAL_POSIX_SYSINFO_UTILS_IOS_HPP_ */
 

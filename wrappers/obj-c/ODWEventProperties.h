@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "objc_begin.h"
@@ -94,6 +94,11 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
  @brief Event PII (personal identifiable information ) tags. Key is property name, value is ODWPiiKind value.
 */
 @property(readonly, copy, nonatomic) NSDictionary<NSString*, NSNumber*> * piiTags;
+
+/*!
+ @brief Base Type of an event. This field is populated in Records.Type
+*/
+@property(readwrite, nonatomic) NSString* eventType;
 
 /*!
  @brief Constructs an ODWEventProperties object, taking an event name.
@@ -252,6 +257,11 @@ typedef NS_ENUM(uint8_t, ODWDiagLevel)
  @param piiKind The kind of Personal Identifiable Information (PII), as one of the ::ODWPiiKind enumeration values.
  */
 -(void)setProperty:(NSString*)name withDateValue:(NSDate*)value withPiiKind:(ODWPiiKind)piiKind;
+
+/*!
+ @brief Specify the Base Type of an event. This field is populated in Records.Type
+*/
+-(void)setType:(NSString*)type;
 
 @end
 
