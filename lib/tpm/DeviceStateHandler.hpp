@@ -13,6 +13,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 
 namespace MAT_NS_BEGIN {
@@ -44,6 +45,7 @@ private:
     std::shared_ptr<PAL::IDeviceInformation> m_deviceInformation;
     int m_deviceInformationToken;
 
+    std::mutex m_lock;
 };
 
 } MAT_NS_END
