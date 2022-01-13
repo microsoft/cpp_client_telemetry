@@ -26,6 +26,7 @@ using namespace PAL;
 void DeviceStateHandler::Start()
 {
 	// TRACE("_RetrieveAndRegisterForDeviceConditionChange");
+	LOCKGUARD(m_lock);
 
 	m_networkInformation = PAL::GetNetworkInformation();
 	if (m_networkInformation)
@@ -63,6 +64,7 @@ void DeviceStateHandler::Start()
 void DeviceStateHandler::Stop()
 {
 	// TRACE("Enter stop transmission policy manager");
+	LOCKGUARD(m_lock);
 
 	// 4. Stop listening to platform network, power and device info changes
 	if (m_networkInformation)
@@ -91,7 +93,7 @@ void DeviceStateHandler::OnChanged(
 {
     // TRACE("OnChanged: Platform network callback with Name=%s, Val=%s",
  //       propertyName.c_str(), propertyValue.c_str());
-
+    LOCKGUARD(m_lock);
 
     if (propertyName.compare(NETWORK_TYPE) == 0)
     {
@@ -117,6 +119,8 @@ void DeviceStateHandler::OnChanged(
  ******************************************************************************/
  void DeviceStateHandler::_UpdateDeviceCondition()
 {
+     LOCKGUARD(m_lock);
+	 
 #ifdef _WIN32
      if (m_networkInformation)
      {
