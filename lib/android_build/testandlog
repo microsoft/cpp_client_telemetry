@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-./gradlew app:connectedDebugAndroidTest
+./gradlew app:connectedDebugAndroidTest --refresh-dependencies
 RC=$?
 adb logcat -t 2000 MAE:D '*:E' > ./logcat.txt
 exit $RC

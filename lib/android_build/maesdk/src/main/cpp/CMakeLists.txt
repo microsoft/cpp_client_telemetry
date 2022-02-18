@@ -10,6 +10,10 @@ set(CMAKE_CXX_STANDARD 11)
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 
+if(ENABLE_CAPI_HTTP_CLIENT)
+  add_definitions(-DENABLE_CAPI_HTTP_CLIENT)
+endif()
+
 string(REPLACE "/lib/android_build/maesdk/src/main/cpp" "" SDK_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (USE_CURL)
@@ -114,6 +118,10 @@ if (USE_CURL)
         list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Curl.cpp)
 else()
         list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_Android.cpp)
+endif()
+
+if (ENABLE_CAPI_HTTP_CLIENT)
+        list(APPEND SRCS ${SDK_ROOT}/lib/http/HttpClient_CAPI.cpp)
 endif()
 
 add_library(${TARGETNAME} ${SRCS})
