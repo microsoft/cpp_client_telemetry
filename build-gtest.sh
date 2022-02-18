@@ -23,8 +23,9 @@ OS_NAME=`uname -s`
 case "$OS_NAME" in
 Darwin) 
   mac_os_ver=$(sw_vers -productVersion)
+  IFS='.' read -r -a mac_ver_arr <<< "$mac_os_ver"
   # Use new Google Test on macOS 11.0 or higher ; old one no longer compiles on 11.0
-  if [[ "${mac_os_ver}" >= "11.0.*" ]] ; then
+  if [[ "$mac_ver_arr[1]" -ge 11 ]] ; then
     echo "running on Mac OS 11.0 or higher"
     USE_LATEST_GTEST="true"
   else
