@@ -27,6 +27,8 @@ Darwin)
   if [[ $(echo "${mac_os_ver} >= 11.0"|bc) -gt 0 ]] ; then
     echo "running on Mac OS 11.0 or higher"
     USE_LATEST_GTEST="true"
+  else
+    echo "running older MacOS $mac_os_ver"
   fi
   ;;
 Linux)
