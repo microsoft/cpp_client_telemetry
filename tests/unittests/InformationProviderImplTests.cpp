@@ -15,9 +15,11 @@ using namespace PAL;
 
 namespace
 {
+    using Callbacks = std::vector<std::pair<std::string, std::string>>;
+
     class PropertyChangedCallbackSink : public IPropertyChangedCallback
     {
-        std::vector<std::pair<std::string, std::string>> callbacks;
+        Callbacks callbacks;
 
         void OnChanged(std::string const& propertyName, std::string const& propertyValue) override
         {
@@ -27,7 +29,7 @@ namespace
     public:
         PropertyChangedCallbackSink() = default;
 
-        const auto& GetCallbacks() { return callbacks; }
+        const Callbacks& GetCallbacks() { return callbacks; }
     };
 }
 
