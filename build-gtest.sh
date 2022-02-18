@@ -52,7 +52,7 @@ if [ "$USE_LATEST_GTEST" == "true" ]; then
 else
   echo "Installing existing(older) googletest"
 fi
-
+echo "installing googletest from $GTEST_PATH"
 pushd $GTEST_PATH
 set -evx
 env | sort
@@ -69,5 +69,9 @@ cmake -Dgtest_build_samples=OFF \
       ..
 make
 popd
+lsinclude=`ls ${GTEST_PATH}\include`"
+lsbuild=`ls ${GTEST_PATH}\build`"
+echo "Googletest installed..Build.. ${lsbuild}"
+echo "Googletest installed..Include.. ${lsinclude}"
 # CTEST_OUTPUT_ON_FAILURE=1 make test
 # make install
