@@ -1,1 +1,1 @@
-python ..\googletest\googlemock\scripts\generator\gmock_gen.py %1
+python ..\third_party\googletest\googlemock\scripts\generator\gmock_gen.py %1

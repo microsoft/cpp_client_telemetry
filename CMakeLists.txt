@@ -262,9 +262,9 @@ if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
 
 #    message("Building libraries! - Path: ${CMAKE_CURRENT_SOURCE_DIR} ")
 #    message("Building gtest")
-#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/)
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/)
 #    message("Building gmock")
-#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googlemock/)
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/)
 endif()
 
 if(BUILD_APPLE_HTTP)
