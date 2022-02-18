@@ -48,6 +48,10 @@ if [ "$USE_LATEST_GTEST" == "true" ]; then
   if [ ! "$(ls -A $GTEST_PATH)" ]; then      
     echo Clone googletest from google/googletest:master ...
     git clone https://github.com/google/googletest $GTEST_PATH
+  else
+    echo "Using existing googletest from thirdparty/modules"
+    lsinclude=`ls ${GTEST_PATH}`
+    echo "Inclide:${lsinclude}"
   fi
 else
   echo "Installing existing(older) googletest"
