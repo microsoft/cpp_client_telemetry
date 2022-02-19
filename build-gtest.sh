@@ -18,9 +18,12 @@ cd `dirname $0`
 
 GTEST_PATH=googletest
 USE_LATEST_GTEST="false"
+
 echo "Not an ios build. Check for newer googletest requirement"
 OS_NAME=`uname -s`
+
 #TODO: switch all OS builds to Google Test located in third_party/googletest submodule
+if [[ ${IOS_BUID} == "NO" ]]; then
 case "$OS_NAME" in
 Darwin) 
   mac_os_ver=$(sw_vers -productVersion)
@@ -43,6 +46,7 @@ Linux)
   fi
   ;;
 esac
+fi
 
 if [ "$USE_LATEST_GTEST" == "true" ]; then
   echo "Using latest googletest"
