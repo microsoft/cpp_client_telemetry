@@ -21,7 +21,7 @@ on:
 
 jobs:
   build:
-    runs-on: macOS-latest
+    runs-on: macOS-10.15
     strategy:
         matrix:
             config: [release, debug]
