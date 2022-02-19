@@ -34,6 +34,7 @@ Darwin)
   ;;
 Linux)
   source /etc/os-release
+  echo $VERSION_ID
   # Use new Google Test on latest Ubuntu 20.04 : old one no longer compiles on 20
   if [ "$VERSION_ID" == "20.04" ]; then
     echo "Running on Ubuntu 20.04"
@@ -45,19 +46,17 @@ esac
 if [ "$USE_LATEST_GTEST" == "true" ]; then
   echo "Using latest googletest"
   lsinclude=`ls -l third_party/googletest`
-  echo "Include BEGIN: ${lsinclude}"
-  echo "Include END"
   GTEST_PATH=third_party/googletest
   if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
     echo Clone googletest from google/googletest:master ...
+    rm -rf ${GTEST_PATH} #delete just if empty directory exists
     git clone https://github.com/google/googletest $GTEST_PATH
   else
-    echo "Using existing googletest from thirdparty/modules"
+    echo "Using existing googletest from thirdparty/"
   fi
 else
-  echo "Installing existing(older) googletest"
+  echo "Using existing(older) googletest from repo root"
 fi
-echo "installing googletest from $GTEST_PATH"
 pushd $GTEST_PATH
 set -evx
 env | sort
@@ -74,9 +73,5 @@ cmake -Dgtest_build_samples=OFF \
       ..
 make
 popd
-lsinclude=`ls ${GTEST_PATH}\include`"
-lsbuild=`ls ${GTEST_PATH}\build`"
-echo "Googletest installed..Build.. ${lsbuild}"
-echo "Googletest installed..Include.. ${lsinclude}"
 # CTEST_OUTPUT_ON_FAILURE=1 make test
 # make install
