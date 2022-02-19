@@ -43,9 +43,9 @@ Linux)
 esac
 
 if [ "$USE_LATEST_GTEST" == "true" ]; then
-  echo "Installing latest googletest"
+  echo "Using latest googletest"
   GTEST_PATH=third_party/googletest
-  if [ ! "$(ls -A $GTEST_PATH)/CMakeLists.txt" ]; then      
+  if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then      
     echo Clone googletest from google/googletest:master ...
     git clone https://github.com/google/googletest $GTEST_PATH
   else
