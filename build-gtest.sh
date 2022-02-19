@@ -23,7 +23,7 @@ echo "Not an ios build. Check for newer googletest requirement"
 OS_NAME=`uname -s`
 
 #TODO: switch all OS builds to Google Test located in third_party/googletest submodule
-if [[ ${IOS_BUID} == "NO" ]]; then
+if [[ ${IOS_BUILD} == "NO" ]]; then
 case "$OS_NAME" in
 Darwin) 
   mac_os_ver=$(sw_vers -productVersion)
