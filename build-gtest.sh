@@ -16,6 +16,7 @@ fi
 
 cd `dirname $0`
 
+echo "Check for the appropriate googletest version :${IOS_BUILD}"
 GTEST_PATH=googletest
 USE_LATEST_GTEST="false"
 if [[ $IOS_BUILD == "NO" ]]; then
