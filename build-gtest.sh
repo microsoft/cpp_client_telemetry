@@ -18,7 +18,8 @@ cd `dirname $0`
 
 GTEST_PATH=googletest
 USE_LATEST_GTEST="false"
-if [[ "$IOS_BUILD" == "NO" ]]; then
+if [[ $IOS_BUILD == "NO" ]]; then
+echo "Not an ios build. Check for newer googletest requirement"
 OS_NAME=`uname -s`
 #TODO: switch all OS builds to Google Test located in third_party/googletest submodule
 case "$OS_NAME" in
