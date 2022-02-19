@@ -65,8 +65,8 @@
 		4301030C235E6A8B00836D50 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		4301030E235E6AA800836D50 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
 		43010310235E6AB000836D50 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		43010312235E6AE200836D50 /* libgmock.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgmock.a; path = ../../../googletest/build/googlemock/libgmock.a; sourceTree = "<group>"; };
-		43010314235E6B1600836D50 /* libgtest.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgtest.a; path = ../../../googletest/build/googlemock/gtest/libgtest.a; sourceTree = "<group>"; };
+		43010312235E6AE200836D50 /* libgmock.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgmock.a; path = ../../../third_party/googletest/build/lib/libgmock.a; sourceTree = "<group>"; };
+		43010314235E6B1600836D50 /* libgtest.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgtest.a; path = ../../../third_party/googletest/build/lib/libgtest.a; sourceTree = "<group>"; };
 		FE51D93E243ED8D200E54890 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
@@ -324,6 +324,8 @@
 					../../lib/pal/,
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
+                                        ../../third_party/googletest/googletest/include/,
+                                        ../../third_party/googletest/googlemock/include/,
 					../common/,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
@@ -387,6 +389,8 @@
 					../../lib/pal/,
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
+                                        ../../third_party/googletest/googletest/include/,
+                                        ../../third_party/googletest/googlemock/include/,
 					../common/,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
