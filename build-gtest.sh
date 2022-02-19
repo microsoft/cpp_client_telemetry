@@ -44,15 +44,15 @@ esac
 
 if [ "$USE_LATEST_GTEST" == "true" ]; then
   echo "Using latest googletest"
+  lsinclude=`ls -l third_party/googletest`
+  echo "Include BEGIN: ${lsinclude}"
+  echo "Include END"
   GTEST_PATH=third_party/googletest
-  if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then      
+  if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
     echo Clone googletest from google/googletest:master ...
     git clone https://github.com/google/googletest $GTEST_PATH
   else
     echo "Using existing googletest from thirdparty/modules"
-    lsinclude=`ls -l third_party/googletest`
-    echo "Include BEGIN: ${lsinclude}"
-    echo "Include END"
   fi
 else
   echo "Installing existing(older) googletest"
