@@ -18,6 +18,7 @@ cd `dirname $0`
 
 GTEST_PATH=googletest
 USE_LATEST_GTEST="false"
+if [[ "$IOS_BUILD" == "NO" ]]; then
 OS_NAME=`uname -s`
 #TODO: switch all OS builds to Google Test located in third_party/googletest submodule
 case "$OS_NAME" in
@@ -42,10 +43,10 @@ Linux)
   fi
   ;;
 esac
+fi
 
 if [ "$USE_LATEST_GTEST" == "true" ]; then
   echo "Using latest googletest"
-  lsinclude=`ls -l third_party/googletest`
   GTEST_PATH=third_party/googletest
   if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
     echo Clone googletest from google/googletest:master ...
@@ -57,6 +58,7 @@ if [ "$USE_LATEST_GTEST" == "true" ]; then
 else
   echo "Using existing(older) googletest from repo root"
 fi
+
 pushd $GTEST_PATH
 set -evx
 env | sort
