@@ -153,12 +153,12 @@
 		431EFE4F233EBE54002FCC18 /* HttpResponseDecoderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpResponseDecoderTests.cpp; sourceTree = "<group>"; };
 		431EFE7B233EC413002FCC18 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		431EFE7F233EC413002FCC18 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		431EFE93233EC560002FCC18 /* libgmock.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgmock.a; path = ../../../googletest/build/googlemock/libgmock.a; sourceTree = "<group>"; };
+		431EFE93233EC560002FCC18 /* libgmock.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgmock.a; path = ../../../third_party/googletest/build/googlemock/libgmock.a; sourceTree = "<group>"; };
 		431EFEBD233EC5C9002FCC18 /* libmat.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libmat.a; path = ../../../out/lib/libmat.a; sourceTree = "<group>"; };
 		431EFEC0233EC680002FCC18 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		431EFEC2233EC688002FCC18 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		431EFEC4233EC6A0002FCC18 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		431EFEC6233EC6DE002FCC18 /* libgtest.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgtest.a; path = ../../../googletest/build/googlemock/gtest/libgtest.a; sourceTree = "<group>"; };
+		431EFEC6233EC6DE002FCC18 /* libgtest.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgtest.a; path = ../../../third_party/googletest/build/googlemock/gtest/libgtest.a; sourceTree = "<group>"; };
 		431EFEC8233EC74E002FCC18 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		431EFED0233ECB0F002FCC18 /* libUnitTests.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libUnitTests.a; path = ../../../out/tests/unittests/libUnitTests.a; sourceTree = "<group>"; };
 		431EFED223425535002FCC18 /* DataViewerCollectionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataViewerCollectionTests.cpp; sourceTree = "<group>"; };
@@ -523,6 +523,8 @@
 					../../lib/pal/,
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
+                                        ../../third_party/googletest/googlemock/include/,
+                                        ../../third_party/googletest/googlemock/include/,
 					../common/,
 					"../../wrappers/obj-c/",
 				);
@@ -588,6 +590,8 @@
 					../../lib/pal/,
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
+                                        ../../third_party/googletest/googletest/include/,
+                                        ../../third_party/googlemock/googletest/include/,
 					../common/,
 					"../../wrappers/obj-c/",
 				);
@@ -612,6 +616,8 @@
 					../../lib/pal/,
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
+                                        ../../third_party/googletest/googletest/include/,
+                                        ../../third_party/googletest/googlemock/include/,
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -635,6 +641,8 @@
 					../../lib/pal/,
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
+                                        ../../third_party/googletest/googletest/include/,
+                                        ../../third_party/googletest/googlemock/include/,
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -659,6 +667,8 @@
 					../../lib/pal/,
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
+                                        ../../third_party/googletest/googletest/include/,
+                                        ../../third_party/googletest/googlemock/include/,
 					../../common/,
 					"../../wrappers/obj-c/",
 				);
@@ -690,6 +700,8 @@
 					../../lib/pal/,
 					../../googletest/googletest/include/,
 					../../googletest/googlemock/include/,
+                                        ../../third_party/googletest/googletest/include/,
+                                        ../../third_party/googletest/googlemock/include/,
 					../../common/,
 					"../../wrappers/obj-c/",
 				);
