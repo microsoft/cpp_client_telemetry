@@ -112,8 +112,8 @@
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\third_party\googletest\build\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(SolutionDir)..\third_party\googletest\googletest\include\gtest;$(SolutionDir)..\third_party\googletest\googlemock\include\gmock;$(IncludePath)</IncludePath>
     <ExcludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);$(VC_LibraryPath_x64);</ExcludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
