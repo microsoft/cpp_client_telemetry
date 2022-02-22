@@ -16,16 +16,50 @@ fi
 
 cd `dirname $0`
 
-GTEST_PATH=third_party/googletest
-if [ ! "$(ls -A $GTEST_PATH)" ]; then      
-  echo Clone googletest from google/googletest:master ...
-  git clone https://github.com/google/googletest $GTEST_PATH
+GTEST_PATH=googletest
+USE_LATEST_GTEST="false"
+
+echo "Not an ios build. Check for newer googletest requirement"
+OS_NAME=`uname -s`
+
+#TODO: switch all OS builds to Google Test located in third_party/googletest submodule
+if [[ ${IOS_BUILD} == "NO" ]]; then
+case "$OS_NAME" in
+Darwin) 
+  mac_os_ver=$(sw_vers -productVersion)
+  IFS='.' read -r -a mac_ver_first_octet <<< "$mac_os_ver"
+  # Use new Google Test on macOS 11.0 or higher ; old one no longer compiles on 11.0
+  if [[ "$mac_ver_first_octet" -ge 11 ]] ; then
+    echo "running on Mac OS 11.0 or higher"
+    USE_LATEST_GTEST="true"
+  else
+    echo "running older MacOS $mac_os_ver"
+  fi
+  ;;
+Linux)
+  source /etc/os-release
+  echo $VERSION_ID
+  # Use new Google Test on latest Ubuntu 20.04 : old one no longer compiles on 20
+  if [ "$VERSION_ID" == "20.04" ]; then
+    echo "Running on Ubuntu 20.04"
+    USE_LATEST_GTEST="true"
+  fi
+  ;;
+esac
 fi
 
-# Use latest Google Test for Ubuntu 20.04
-# TODO: switch all OS builds to Google Test located in third_party/googletest submodule
-if [ -f /etc/os-release ]; then
-  source /etc/os-release
+if [ "$USE_LATEST_GTEST" == "true" ]; then
+  echo "Using latest googletest"
+  GTEST_PATH=third_party/googletest
+  if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
+    echo Clone googletest from google/googletest:master ...
+    rm -rf ${GTEST_PATH} #delete just if empty directory exists
+    git clone https://github.com/google/googletest $GTEST_PATH
+  else
+    echo "Using existing googletest from thirdparty/"
+  fi
+else
+  echo "Using existing(older) googletest from repo root"
 fi
 
 pushd $GTEST_PATH
