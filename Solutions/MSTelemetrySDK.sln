@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31205.134
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite", "..\sqlite\sqlite.vcxproj", "{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}"
 EndProject
@@ -409,42 +409,6 @@ Global
 		{DC91621E-A203-42DF-8E03-3A23DD0602B1}.Release|Win32.Build.0 = Release|Win32
 		{DC91621E-A203-42DF-8E03-3A23DD0602B1}.Release|x64.ActiveCfg = Release|x64
 		{DC91621E-A203-42DF-8E03-3A23DD0602B1}.Release|x64.Build.0 = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.static|ARM.ActiveCfg = Debug|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.static|ARM64.ActiveCfg = Debug|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.static|ARM64.Build.0 = Debug|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.static|Win32.ActiveCfg = Debug|Win32
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.static|x64.ActiveCfg = Debug|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.vc14x.MT-sqlite|ARM.ActiveCfg = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.vc14x.MT-sqlite|ARM.Deploy.0 = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.vc14x.MT-sqlite|ARM64.ActiveCfg = Debug|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.vc14x.MT-sqlite|ARM64.Build.0 = Debug|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.vc14x.MT-sqlite|Win32.ActiveCfg = Debug|Win32
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug.vc14x.MT-sqlite|x64.ActiveCfg = Debug|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug|ARM.ActiveCfg = Debug|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug|ARM64.ActiveCfg = Debug|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug|ARM64.Build.0 = Debug|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug|Win32.Build.0 = Debug|Win32
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug|x64.ActiveCfg = Debug|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Debug|x64.Build.0 = Debug|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.static|ARM.ActiveCfg = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.static|ARM64.ActiveCfg = Release|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.static|ARM64.Build.0 = Release|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.static|Win32.ActiveCfg = Release|Win32
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.static|x64.ActiveCfg = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.vc14x.MT-sqlite|ARM.ActiveCfg = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.vc14x.MT-sqlite|ARM.Deploy.0 = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.vc14x.MT-sqlite|ARM64.ActiveCfg = Release|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.vc14x.MT-sqlite|Win32.ActiveCfg = Release|Win32
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.vc14x.MT-sqlite|x64.ActiveCfg = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release.vc14x.MT-sqlite|x64.Deploy.0 = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release|ARM.ActiveCfg = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release|ARM64.ActiveCfg = Release|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release|ARM64.Build.0 = Release|ARM64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release|Win32.ActiveCfg = Release|Win32
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release|Win32.Build.0 = Release|Win32
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release|x64.ActiveCfg = Release|x64
-		{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}.Release|x64.Build.0 = Release|x64
 		{6883A688-89F5-424A-9BFA-50D42F691B29}.Debug.static|ARM.ActiveCfg = Debug|ARM
 		{6883A688-89F5-424A-9BFA-50D42F691B29}.Debug.static|ARM64.ActiveCfg = Debug|ARM64
 		{6883A688-89F5-424A-9BFA-50D42F691B29}.Debug.static|ARM64.Build.0 = Debug|ARM64
