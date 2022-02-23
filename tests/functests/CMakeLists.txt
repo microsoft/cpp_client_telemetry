@@ -101,14 +101,14 @@ else()
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/Debug
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/googlemock/gtest/
   )
 
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/Debug
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/googlemock/
   )
 
