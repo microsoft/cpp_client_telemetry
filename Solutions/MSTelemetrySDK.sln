@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32210.238
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite", "..\sqlite\sqlite.vcxproj", "{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}"
 EndProject
@@ -23,9 +23,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "net40", "net40\net40.vcxpro
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{250EFB82-2F0E-4781-94BB-8313201ABDF0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmock", "..\third_party\googletest\googlemock\msvc\2015\gmock.vcxproj", "{34681F0D-CE45-415D-B5F2-5C662DFE3BD5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmock", "..\third_party\googletest\build\googlemock\gmock.vcxproj", "{34681F0D-CE45-415D-B5F2-5C662DFE3BD5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "..\third_party\googletest\googletest\msvc\gtest.vcxproj", "{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "..\third_party\googletest\build\googletest\gtest.vcxproj", "{C8F6C172-56F2-4E76-B5FA-C3B423B31BE7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite-uwp", "..\sqliteUWP\sqlite-uwp.vcxproj", "{6883A688-89F5-424A-9BFA-50D42F691B29}"
 EndProject
