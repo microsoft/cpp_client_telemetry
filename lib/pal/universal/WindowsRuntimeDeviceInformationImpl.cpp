@@ -120,8 +120,11 @@ namespace PAL_NS_BEGIN {
                         }
                     });
 
-                    token1 = ::Windows::System::Power::PowerManager::BatteryStatusChanged += onPowerSourceChanged;
-                    token2 = ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged += onPowerSourceChanged;
+                    if (MAT::IsRunningInApp())
+                    {
+                        token1 = ::Windows::System::Power::PowerManager::BatteryStatusChanged += onPowerSourceChanged;
+                        token2 = ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged += onPowerSourceChanged;
+                    }
 
 #endif
                 }
@@ -133,8 +136,11 @@ namespace PAL_NS_BEGIN {
 
                 DeviceInformationImpl::~DeviceInformationImpl()
                 {
-                     ::Windows::System::Power::PowerManager::BatteryStatusChanged -= token1;
-                     ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged -= token2;
+                    if (MAT::IsRunningInApp())
+                    {
+                        ::Windows::System::Power::PowerManager::BatteryStatusChanged -= token1;
+                        ::Windows::System::Power::PowerManager::PowerSupplyStatusChanged -= token2;
+                    }
                 }
 
                 std::shared_ptr<IDeviceInformation> DeviceInformationImpl::Create(IRuntimeConfig& configuration)

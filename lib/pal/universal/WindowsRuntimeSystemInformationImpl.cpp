@@ -33,11 +33,17 @@ namespace PAL_NS_BEGIN {
     SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& /*configuration*/)
         : m_info_helper()
     {
-        auto version = Package::Current->Id->Version;
+        if (MAT::IsRunningInApp())
+        {
+            auto version = Package::Current->Id->Version;
 
-        m_app_id = FromPlatformString(Package::Current->Id->Name);
-        m_app_version = std::to_string(version.Major) + "." + std::to_string(version.Minor)
-            + "." + std::to_string(version.Build) + "." + std::to_string(version.Revision);
+            m_app_id = FromPlatformString(Package::Current->Id->Name);
+            m_app_version = std::to_string(version.Major) + "." + std::to_string(version.Minor) + "." + std::to_string(version.Build) + "." + std::to_string(version.Revision);
+        }
+        else
+        {
+            LOG_WARN("Not running in packaged app. Unable to obtain app id and version!");
+        }
 
         m_user_language = "en";
         try {
