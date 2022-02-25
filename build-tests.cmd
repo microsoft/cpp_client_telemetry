@@ -25,17 +25,6 @@ echo %CUSTOM_PROPS%
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set SOLUTION=Solutions\MSTelemetrySDK.sln
 
-if exist third_party\googletest\build (
-	pushd third_party\googletest\build
-) else (
-	mkdir pushd third_party\googletest\build
-	pushd third_party\googletest\build
-)
-
-cmake --build . --config=%CONFIGURATION%
-
-popd
-
 msbuild %SOLUTION% /target:sqlite:Rebuild,zlib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=%CONFIGURATION% /p:Platform=%PLAT% %CUSTOM_PROPS%
 if errorLevel 1 goto end
 Solutions\out\%CONFIGURATION%\%PLAT%\UnitTests\UnitTests.exe
