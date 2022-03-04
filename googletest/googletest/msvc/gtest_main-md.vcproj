@@ -58,7 +58,7 @@
 			IntermediateDirectory="$(OutDir)/$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="2"
-			ReferencesPath="&quot;..\include&quot;;&quot;..&quot;">
+			ReferencesPath="&quot;..\..\..\third_party\googletest\googletest\include&quot;;&quot;..&quot;">
 			<Tool
 				Name="VCCLCompilerTool"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
@@ -103,18 +103,18 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath="..\src\gtest_main.cc">
+				RelativePath="..\..\..\third_party\googletest\googletest\src\gtest_main.cc">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="&quot;..&quot;;&quot;..\include&quot;"/>
+						AdditionalIncludeDirectories="&quot;..\..\..\third_party\googletest\googletest\&quot;;&quot;..\..\..\third_party\googletest\googletest\include&quot;"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="&quot;..&quot;;&quot;..\include&quot;"/>
+						AdditionalIncludeDirectories="&quot;..\..\..\third_party\googletest\googletest\&quot;;&quot;..\..\..\third_party\googletest\googletest\include&quot;"/>
 				</FileConfiguration>
 			</File>
 		</Filter>

@@ -116,13 +116,13 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath="..\test\gtest_unittest.cc">
+				RelativePath="..\..\..\third_party\googletest\googletest\test\gtest_unittest.cc">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="1"
-						AdditionalIncludeDirectories="&quot;..&quot;;&quot;..\include&quot;"
+						AdditionalIncludeDirectories="&quot;..\..\..\third_party\googletest\googletest\&quot;;&quot;..\..\..\third_party\googletest\googletest\include&quot;"
 						BasicRuntimeChecks="0"
 						UsePrecompiledHeader="0"
 						DebugInformationFormat="3"/>
@@ -131,7 +131,7 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="&quot;..&quot;;&quot;..\include&quot;"
+						AdditionalIncludeDirectories="&quot;..\..\..\third_party\googletest\googletest\&quot;;&quot;..\..\..\third_party\googletest\googletest\include&quot;"
 						UsePrecompiledHeader="0"/>
 				</FileConfiguration>
 			</File>

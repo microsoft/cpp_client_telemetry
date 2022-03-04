@@ -147,16 +147,12 @@ else()
     NAMES libgtest.a
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
   target_link_libraries(UnitTests 
