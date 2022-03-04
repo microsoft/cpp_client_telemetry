@@ -17,7 +17,7 @@ set APP_HOME=%DIRNAME%
 set GTEST_PATH=..\..\third_party\googletest
 if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
   git clone --depth 1 --branch release-1.11.0 %GTEST_PATH%
-  dir %GTEST_PATH%\googletest/src/gtest-all.cc
+  dir %GTEST_PATH%\googletest\src\gtest-all.cc
 )
 
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
