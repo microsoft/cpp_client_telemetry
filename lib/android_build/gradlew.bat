@@ -16,7 +16,7 @@ set APP_HOME=%DIRNAME%
 @rem Download googletest if not already existing
 set GTEST_PATH=..\..\third_party\googletest
 if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
-  git clone --depth 1 --branch release-1.11.0 %GTEST_PATH%
+  git clone --depth 1 --branch release-1.11.0 https://github.com/google/googletest %GTEST_PATH%
   dir %GTEST_PATH%\googletest\src\gtest-all.cc
 )
 
