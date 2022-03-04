@@ -14,7 +14,7 @@ set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
 
 @rem Download googletest if not already existing
-set GTEST_PATH=third_party\googletest
+set GTEST_PATH=..\..\third_party\googletest
 if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
   git clone https://github.com/google/googletest %GTEST_PATH%
 )
