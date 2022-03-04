@@ -569,8 +569,8 @@ StorageRecord BAD_RECORDS[] = {
     { "guid", "tenant-token", EventLatency_Normal, EventPersistence_Normal,            -1, {} }
 };
 
-INSTANTIATE_TEST_CASE_P(OfflineStorageTests_SQLite, GoodRecordsTests, ::testing::ValuesIn(GOOD_RECORDS));
-INSTANTIATE_TEST_CASE_P(OfflineStorageTests_SQLite, BadRecordsTests,  ::testing::ValuesIn(BAD_RECORDS));
+INSTANTIATE_TEST_SUITE_P(OfflineStorageTests_SQLite, GoodRecordsTests, ::testing::ValuesIn(GOOD_RECORDS));
+INSTANTIATE_TEST_SUITE_P(OfflineStorageTests_SQLite, BadRecordsTests,  ::testing::ValuesIn(BAD_RECORDS));
 
 //--- Settings tests
 
