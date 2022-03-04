@@ -8,6 +8,11 @@ if DEFINED GIT_PULL_TOKEN (
   git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
 
+set GTEST_PATH=third_party\googletest
+if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
+  git clone https://github.com/google/googletest %GTEST_PATH%
+)
+
 set PLATFORM=
 
 REM Possible platforms: Win32|x64
