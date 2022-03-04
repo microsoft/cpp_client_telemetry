@@ -19,7 +19,7 @@ GTEST_PATH=third_party/googletest
 if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
   echo Clone googletest from google/googletest:master ...
   rm -rf ${GTEST_PATH} #delete just if empty directory exists
-  git clone https://github.com/google/googletest $GTEST_PATH
+  git clone --depth 1 --branch release-1.11.0 https://github.com/google/googletest $GTEST_PATH
 else
   echo "Using existing googletest from thirdparty/"
 fi
