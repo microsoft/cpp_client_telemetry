@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="gtest_main-md"
-	ProjectGUID="{3AF54C8A-10BF-4332-9147-F68ED9862033}"
+	Name="gtest_unittest-md"
+	ProjectGUID="{4D9FDFB5-986A-4139-823C-F4EE0ED481A2}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -14,25 +14,29 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionName)/$(ConfigurationName)"
 			IntermediateDirectory="$(OutDir)/$(ProjectName)"
-			ConfigurationType="4"
-			CharacterSet="2"
-			ReferencesPath="">
+			ConfigurationType="1"
+			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="3"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="4"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/$(ProjectName)d.lib"/>
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/gtest_unittest.exe"
+				LinkIncremental="2"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/gtest_unittest.pdb"
+				SubSystem="1"
+				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -47,6 +51,8 @@
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
 			<Tool
 				Name="VCManagedWrapperGeneratorTool"/>
 			<Tool
@@ -56,22 +62,27 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionName)/$(ConfigurationName)"
 			IntermediateDirectory="$(OutDir)/$(ProjectName)"
-			ConfigurationType="4"
-			CharacterSet="2"
-			ReferencesPath="&quot;..\..\..\third_party\googletest\googletest\include&quot;;&quot;..&quot;">
+			ConfigurationType="1"
+			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="3"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/$(ProjectName).lib"/>
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/gtest_unittest.exe"
+				LinkIncremental="1"
+				GenerateDebugInformation="TRUE"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -87,6 +98,8 @@
 			<Tool
 				Name="VCXMLDataGeneratorTool"/>
 			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
 				Name="VCManagedWrapperGeneratorTool"/>
 			<Tool
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
@@ -94,8 +107,8 @@
 	</Configurations>
 	<References>
 		<ProjectReference
-			ReferencedProjectIdentifier="{C8F6C172-56F2-4E76-B5FA-C3B423B31BE8}"
-			Name="gtest-md"/>
+			ReferencedProjectIdentifier="{3AF54C8A-10BF-4332-9147-F68ED9862033}"
+			Name="gtest_main-md"/>
 	</References>
 	<Files>
 		<Filter
@@ -103,18 +116,23 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath="..\..\..\third_party\googletest\googletest\src\gtest_main.cc">
+				RelativePath="..\..\..\..\third_party\googletest\googletest\test\gtest_unittest.cc">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="&quot;..\..\..\third_party\googletest\googletest\&quot;;&quot;..\..\..\third_party\googletest\googletest\include&quot;"/>
+						Optimization="1"
+						AdditionalIncludeDirectories="&quot;..\..\..\..\third_party\googletest\googletest\&quot;;&quot;..\..\..\..\third_party\googletest\googletest\include&quot;"
+						BasicRuntimeChecks="0"
+						UsePrecompiledHeader="0"
+						DebugInformationFormat="3"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="&quot;..\..\..\third_party\googletest\googletest\&quot;;&quot;..\..\..\third_party\googletest\googletest\include&quot;"/>
+						AdditionalIncludeDirectories="&quot;..\..\..\..\third_party\googletest\googletest\&quot;;&quot;..\..\..\..\third_party\googletest\googletest\include&quot;"
+						UsePrecompiledHeader="0"/>
 				</FileConfiguration>
 			</File>
 		</Filter>
