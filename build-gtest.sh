@@ -15,52 +15,42 @@ else
 fi
 
 cd `dirname $0`
-
-GTEST_PATH=googletest
-USE_LATEST_GTEST="false"
-
-echo "Not an ios build. Check for newer googletest requirement"
-OS_NAME=`uname -s`
-
-#TODO: switch all OS builds to Google Test located in third_party/googletest submodule
-if [[ ${IOS_BUILD} == "NO" ]]; then
-case "$OS_NAME" in
-Darwin) 
-  mac_os_ver=$(sw_vers -productVersion)
-  IFS='.' read -r -a mac_ver_first_octet <<< "$mac_os_ver"
-  # Use new Google Test on macOS 11.0 or higher ; old one no longer compiles on 11.0
-  if [[ "$mac_ver_first_octet" -ge 11 ]] ; then
-    echo "running on Mac OS 11.0 or higher"
-    USE_LATEST_GTEST="true"
-  else
-    echo "running older MacOS $mac_os_ver"
-  fi
-  ;;
-Linux)
-  source /etc/os-release
-  echo $VERSION_ID
-  # Use new Google Test on latest Ubuntu 20.04 : old one no longer compiles on 20
-  if [ "$VERSION_ID" == "20.04" ]; then
-    echo "Running on Ubuntu 20.04"
-    USE_LATEST_GTEST="true"
-  fi
-  ;;
-esac
-fi
-
-if [ "$USE_LATEST_GTEST" == "true" ]; then
-  echo "Using latest googletest"
-  GTEST_PATH=third_party/googletest
-  if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
-    echo Clone googletest from google/googletest:master ...
-    rm -rf ${GTEST_PATH} #delete just if empty directory exists
-    git clone https://github.com/google/googletest $GTEST_PATH
-  else
-    echo "Using existing googletest from thirdparty/"
-  fi
+GTEST_PATH=third_party/googletest
+if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
+  echo Clone googletest from google/googletest:master ...
+  rm -rf ${GTEST_PATH} #delete just if empty directory exists
+  git clone --depth 1 --branch release-1.11.0 https://github.com/google/googletest $GTEST_PATH
 else
-  echo "Using existing(older) googletest from repo root"
+  echo "Using existing googletest from thirdparty/"
 fi
+
+echo "Add ios and arm64 build steps for googletest"
+cat > $GTEST_PATH/CMakeLists_temp.txt << EOF
+# If building for iOS, set all the iOS options
+if(BUILD_IOS) 
+  set(TARGET_ARCH "APPLE") 
+  set(IOS True)
+  set(APPLE True)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+  set(CMAKE_C_FLAGS "\${CMAKE_C_FLAGS} -miphoneos-version-min=10.0")
+  set(CMAKE_CXX_FLAGS "\${CMAKE_CXX_FLAGS} -miphoneos-version-min=10.0 -std=c++11")
+  set(IOS_PLATFORM "iphonesimulator")
+  set(CMAKE_SYSTEM_PROCESSOR x86_64)
+  execute_process(COMMAND xcodebuild -version -sdk \${IOS_PLATFORM} Path
+    OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message("-- CMAKE_OSX_SYSROOT       \${CMAKE_OSX_SYSROOT}")
+elseif(\${ARCH} STREQUAL "arm64")
+  set(CMAKE_C_FLAGS "\${CMAKE_C_FLAGS} -arch arm64")
+  set(CMAKE_CXX_FLAGS "\${CMAKE_CXX_FLAGS} -arch arm64")
+  set(CMAKE_SYSTEM_PROCESSOR arm64)
+  set(APPLE True)
+endif()
+EOF
+
+sed -i -e "/^cmake_minimum_required/r $GTEST_PATH/CMakeLists_temp.txt"  $GTEST_PATH/CMakeLists.txt
+rm $GTEST_PATH/CMakeLists_temp.txt
 
 pushd $GTEST_PATH
 set -evx

@@ -631,7 +631,7 @@ auto values = Values(StorageImplementation::SQLite, StorageImplementation::Memor
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"  // INSTANTIATE_TEST_CASE_P is deprecated in some versions of GTest, but not in older ones.
 #endif
-INSTANTIATE_TEST_CASE_P(Storage,
+INSTANTIATE_TEST_SUITE_P(Storage,
         OfflineStorageTestsRoom,
         values,
         [](const testing::TestParamInfo<OfflineStorageTestsRoom::ParamType>& info)->std::string {
