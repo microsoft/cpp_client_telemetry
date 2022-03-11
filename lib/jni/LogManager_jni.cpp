@@ -907,22 +907,30 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return 0;
     }
     auto LogManagerProviderClassID = env->GetObjectClass(thiz);
-    if (env->ExceptionCheck()) {
+    if (env->ExceptionCheck())
+    {
         env->ExceptionDescribe();
+        LOG_WARN("GetLogManagerProvider failed");
         return 0;
     }
-    if (!LogManagerProviderClassID) {
+    if (!LogManagerProviderClassID)
+    {
+        LOG_WARN("GetLogManagerProvider null");
         return 0;
     }
     auto nativeLogManagerID =
         env->GetFieldID(LogManagerProviderClassID, "nativeLogManager", "J");
-    if (env->ExceptionCheck()) {
+    if (env->ExceptionCheck())
+    {
         env->ExceptionDescribe();
+        LOG_WARN("GetLogManager failed");
         return 0;
     }
     auto nativeLogManagerIndex = env->GetLongField(thiz, nativeLogManagerID);
-    if (env->ExceptionCheck()) {
+    if (env->ExceptionCheck())
+    {
         env->ExceptionDescribe();
+        LOG_WARN("GetLogManagerIndex failed");
         return 0;
     }
     ManagerAndConfig* mc;
@@ -930,11 +938,15 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         std::lock_guard<std::mutex> lock(jniManagersMutex);
         if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= jniManagers.size())
         {
+            LOG_WARN("LogManagerProvider out of range");
             return 0;
         }
         mc = jniManagers[nativeLogManagerIndex].get();
         if (!mc)
+        {
+            LOG_WARN("jniManager null");
             return 0;
+        }
     }
     auto tokenUtf = env->GetStringUTFChars(jToken, nullptr);
     std::string token{tokenUtf};
