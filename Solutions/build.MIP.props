@@ -11,6 +11,7 @@
   <PropertyGroup>
     <DisableWinRT>true</DisableWinRT>
     <PlatformToolset>v141</PlatformToolset>
+    <VCToolsVersion>14.1</VCToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RootNamespace)'=='ClientTelemetry'">
     <TargetName>mip_ClientTelemetry</TargetName>
