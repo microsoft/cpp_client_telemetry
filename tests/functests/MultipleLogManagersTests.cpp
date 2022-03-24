@@ -127,9 +127,6 @@ class MultipleLogManagersTests : public ::testing::Test
     void waitForRequestsMultipleLogManager(unsigned timeout, unsigned expectedCount1 = 1, unsigned expectedCount2 = 1, unsigned expectedCount3 = 1)
     {
         auto start = PAL::getUtcSystemTimeMs();
-        std::ofstream foutput; foutput.open ("/tmp/apnd.txt",std::ios::app);  
-        foutput << "\nCOUNTS: " << callback1.GetRequestCount() << " " << callback2.GetRequestCount() << " " << callback3.GetRequestCount() << "\n";
-        foutput.close();
         while (callback1.GetRequestCount() < expectedCount1 || callback2.GetRequestCount() < expectedCount2 || callback3.GetRequestCount() < expectedCount3)
         {
             if (PAL::getUtcSystemTimeMs() - start >= timeout)
@@ -173,14 +170,12 @@ TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
     std::unique_ptr<ILogManager> lm2(LogManagerFactory::Create(config2));
     std::unique_ptr<ILogManager> lm3(LogManagerFactory::Create(config3));
 
-
     lm1->SetContext("test1", "abc");
-
     lm2->GetSemanticContext().SetAppId("123");
     
-    ILogger* l1a = lm1->GetLogger("aaa");
-    ILogger* l2a = lm2->GetLogger("aaaq", "aaa-source");
-    ILogger* l3a = lm3->GetLogger("bbb", "bbb-source");
+    ILogger* l1a = lm1->GetLogger("lm1_token1");
+    ILogger* l2a = lm2->GetLogger("lm2_token1", "aaa-source");
+    ILogger* l3a = lm3->GetLogger("lm3_token1", "bbb-source");
 
     EventProperties l2a1p("l2a1");
     l2a1p.SetProperty("x", "y");
@@ -190,9 +185,9 @@ TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
     l1a1p.SetProperty("X", "Y");
     l1a->LogEvent(l1a1p);
 
-    ILogger* l1b = lm1->GetLogger("bbb");
+    ILogger* l1b = lm1->GetLogger("lm1_token2");
     EventProperties l1b1p("l1b1");
-    l1b1p.SetProperty("asdf", 1234);
+    l1b1p.SetProperty("X", "Y");
     l1b->LogEvent(l1b1p);
 
     EventProperties l3a1p("l3a1");
@@ -203,12 +198,7 @@ TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
     lm2->GetLogController()->UploadNow();
     lm3->GetLogController()->UploadNow();
 
-    
-
     waitForRequestsMultipleLogManager(10000, 1, 1, 1);
-    EXPECT_TRUE(true);
-
-    // Add more tests
 
     lm1.reset();
     lm2.reset();
