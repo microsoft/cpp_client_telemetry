@@ -33,16 +33,38 @@
 #endif
 //End Privacy Guard Includes
 
+#include <fstream>
 using namespace testing;
 using namespace MAT;
 
-class MultipleLogManagersTests : public ::testing::Test,
-                                 public HttpServer::Callback
+class RequestHandler : public HttpServer::Callback 
+{
+    public:
+    RequestHandler() : count_(0){}
+
+    int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
+    {
+        UNREFERENCED_PARAMETER(response);
+        UNREFERENCED_PARAMETER(request);
+        count_++;
+        return 200;
+    }
+
+    size_t GetRequestCount() {
+        return count_;
+    }
+
+    private:
+        size_t count_;
+};
+
+class MultipleLogManagersTests : public ::testing::Test
 {
    protected:
-    std::list<HttpServer::Request> receivedRequests;
     std::string serverAddress;
-    ILogConfiguration config1, config2;
+    ILogConfiguration config1, config2, config3;
+    RequestHandler callback1, callback2, callback3;
+
     HttpServer server;
 
    public:
@@ -54,8 +76,9 @@ class MultipleLogManagersTests : public ::testing::Test,
         server.setServerName(os.str());
         serverAddress = "http://" + os.str();
 
-        server.addHandler("/1/", *this);
-        server.addHandler("/2/", *this);
+        server.addHandler("/1/", callback1);
+        server.addHandler("/2/", callback2);
+        server.addHandler("/3/", callback3);
 
         server.start();
 
@@ -80,6 +103,15 @@ class MultipleLogManagersTests : public ::testing::Test,
         config1["name"] = "Instance2";
         config1["version"] = "1.0.0";
         config1["config"]["host"] = "Instance2";  // host
+
+        // Config for instance #3
+        config3["cacheFilePath"] = "lm3.db";
+        ::remove(config3["cacheFilePath"]);
+        config3[CFG_STR_COLLECTOR_URL] = serverAddress + "/3/";
+        config3["name"] = "Instance3";
+        config3["version"] = "1.0.0";
+        config3["config"]["host"] = "Instance3";  // host
+
     }
 
     virtual void TearDown() override
@@ -88,20 +120,32 @@ class MultipleLogManagersTests : public ::testing::Test,
         server.stop();
         ::remove(config1["cacheFilePath"]);
         ::remove(config2["cacheFilePath"]);
+        ::remove(config3["cacheFilePath"]);
+
     }
 
-    virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
-    {
-        UNREFERENCED_PARAMETER(response);
-        receivedRequests.push_back(request);
-        return 200;
-    }
 
-    void waitForRequests(unsigned timeout, unsigned expectedCount = 1)
+    void waitForRequestsMultipleLogManager(unsigned timeout, unsigned expectedCount1 = 1, unsigned expectedCount2 = 1, unsigned expectedCount3 = 1)
     {
-        auto sz = receivedRequests.size();
         auto start = PAL::getUtcSystemTimeMs();
-        while (receivedRequests.size() - sz < expectedCount)
+        std::ofstream foutput; foutput.open ("/tmp/apnd.txt",std::ios::app);  
+        foutput << "\nCOUNTS: " << callback1.GetRequestCount() << " " << callback2.GetRequestCount() << " " << callback3.GetRequestCount() << "\n";
+        foutput.close();
+        while (callback1.GetRequestCount() < expectedCount1 || callback2.GetRequestCount() < expectedCount2 || callback3.GetRequestCount() < expectedCount3)
+        {
+            if (PAL::getUtcSystemTimeMs() - start >= timeout)
+            {
+                GTEST_FATAL_FAILURE_("Didn't receive request within given timeout");
+            }
+            PAL::sleep(100);
+        }
+    }
+
+    void waitForRequestsSingleLogManager(unsigned timeout, unsigned expectedCount = 1)
+    {
+        auto sz = callback1.GetRequestCount();
+        auto start = PAL::getUtcSystemTimeMs();
+        while (callback1.GetRequestCount()  - sz < expectedCount)
         {
             if (PAL::getUtcSystemTimeMs() - start >= timeout)
             {
@@ -124,18 +168,21 @@ class MultipleLogManagersTests : public ::testing::Test,
     */
 };
 
-TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
+TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
 {
     std::unique_ptr<ILogManager> lm1(LogManagerFactory::Create(config1));
     std::unique_ptr<ILogManager> lm2(LogManagerFactory::Create(config2));
+    std::unique_ptr<ILogManager> lm3(LogManagerFactory::Create(config3));
+
 
     lm1->SetContext("test1", "abc");
 
     lm2->GetSemanticContext().SetAppId("123");
-
+    
     ILogger* l1a = lm1->GetLogger("aaa");
+    ILogger* l2a = lm2->GetLogger("aaaq", "aaa-source");
+    ILogger* l3a = lm3->GetLogger("bbb", "bbb-source");
 
-    ILogger* l2a = lm2->GetLogger("aaa", "aaa-source");
     EventProperties l2a1p("l2a1");
     l2a1p.SetProperty("x", "y");
     l2a->LogEvent(l2a1p);
@@ -149,15 +196,24 @@ TEST_F(MultipleLogManagersTests, TwoInstancesCoexist)
     l1b1p.SetProperty("asdf", 1234);
     l1b->LogEvent(l1b1p);
 
+    EventProperties l3a1p("l3a1");
+    l3a1p.SetProperty("test", 1234);
+    l3a->LogEvent(l3a1p);
+
     lm1->GetLogController()->UploadNow();
     lm2->GetLogController()->UploadNow();
+    lm3->GetLogController()->UploadNow();
 
-    waitForRequests(5000, 2);
+    
+
+    waitForRequestsMultipleLogManager(10000, 1, 1, 1);
+    EXPECT_TRUE(true);
 
     // Add more tests
 
     lm1.reset();
     lm2.reset();
+    lm3.reset();
 }
 
 constexpr static unsigned max_iterations = 2000;
@@ -181,7 +237,7 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     CAPTURE_PERF_STATS("Events Sent");
     lm->GetLogController()->UploadNow();
     CAPTURE_PERF_STATS("Events Uploaded");
-    waitForRequests(10000, 2);
+    waitForRequestsSingleLogManager(10000, 1);
     lm.reset();
     CAPTURE_PERF_STATS("Log Manager deleted");
 }
