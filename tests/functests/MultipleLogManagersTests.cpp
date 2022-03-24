@@ -226,7 +226,7 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     CAPTURE_PERF_STATS("Events Sent");
     lm->GetLogController()->UploadNow();
     CAPTURE_PERF_STATS("Events Uploaded");
-    waitForRequestsSingleLogManager(10000, 1);
+    waitForRequestsSingleLogManager(10000, 2);
     lm.reset();
     CAPTURE_PERF_STATS("Log Manager deleted");
 }
