@@ -33,13 +33,12 @@
 #endif
 //End Privacy Guard Includes
 
-#include <fstream>
 using namespace testing;
 using namespace MAT;
 
 class RequestHandler : public HttpServer::Callback 
 {
-    public:
+   public:
     RequestHandler() : count_(0){}
 
     int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
@@ -54,8 +53,8 @@ class RequestHandler : public HttpServer::Callback
         return count_;
     }
 
-    private:
-        size_t count_;
+   private:
+    size_t count_;
 };
 
 class MultipleLogManagersTests : public ::testing::Test
