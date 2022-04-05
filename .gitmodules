@@ -7,11 +7,6 @@
 	url = ../cpp_client_telemetry_modules.git
 	branch = master
 
-[submodule "third_party/krabsetw"]
-	path = third_party/krabsetw
-	url = https://github.com/Microsoft/krabsetw
-	branch = master
-
 [submodule "third_party/googletest"]
 	path = third_party/googletest
 	url = https://github.com/google/googletest
