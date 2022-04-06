@@ -5,10 +5,9 @@ param (
   [string]$enableWin10 = "true",
   [string]$enableMini = "true",
   [string]$enableTests = "true",
-  [string]$customProps = ""
+  [string]$customProps = "",
+  [string]$vsDevCmdBat = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
 )
-
-$vsDevCmdBat = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
 
 $solution = "Solutions\MSTelemetrySDK.sln"
 $cpuCount = $env:NUMBER_OF_PROCESSORS
