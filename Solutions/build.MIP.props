@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);CONFIG_CUSTOM_H="config-MIP.h"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);CONFIG_CUSTOM_H="config-MIP.h";MATSDK_SHARED_LIB=1;</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <DelayLoadDLLs Condition="'$(Configuration)'=='Debug'">ucrtbased.dll; %(DelayLoadDLLs)</DelayLoadDLLs>
@@ -10,6 +10,8 @@
   </ItemDefinitionGroup>
   <PropertyGroup>
     <DisableWinRT>true</DisableWinRT>
+    <PlatformToolset>v141</PlatformToolset>
+    <VCToolsVersion>14.1</VCToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RootNamespace)'=='ClientTelemetry'">
     <TargetName>mip_ClientTelemetry</TargetName>

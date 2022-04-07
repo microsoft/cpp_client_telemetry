@@ -1,0 +1,11 @@
+version: 2
+
+submodules:
+  exclude: all
+
+python:
+   install:
+   - requirements: docs/public/requirements.txt
+
+sphinx:
+   configuration: docs/public/conf.py

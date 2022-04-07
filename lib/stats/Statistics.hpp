@@ -73,7 +73,6 @@ namespace MAT_NS_BEGIN {
         bool                        m_isStarted;
 
         std::int64_t                m_statEventSentTime;
-        unsigned                    m_intervalMs;
 
     public:
 
