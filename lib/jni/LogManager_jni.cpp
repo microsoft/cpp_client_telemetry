@@ -910,11 +910,17 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     if (env->ExceptionCheck())
     {
         env->ExceptionDescribe();
+        __android_log_print(ANDROID_LOG_ERROR,
+                        "MAE",
+                        "GetLogManagerProvider failed");
         LOG_WARN("GetLogManagerProvider failed");
         return 0;
     }
     if (!LogManagerProviderClassID)
     {
+        __android_log_print(ANDROID_LOG_ERROR,
+                        "MAE",
+                        "GetLogManagerProvider null");
         LOG_WARN("GetLogManagerProvider null");
         return 0;
     }
@@ -923,6 +929,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     if (env->ExceptionCheck())
     {
         env->ExceptionDescribe();
+        __android_log_print(ANDROID_LOG_ERROR,
+                        "MAE",
+                        "GetLogManager failed");
         LOG_WARN("GetLogManager failed");
         return 0;
     }
@@ -930,6 +939,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     if (env->ExceptionCheck())
     {
         env->ExceptionDescribe();
+        __android_log_print(ANDROID_LOG_ERROR,
+                        "MAE",
+                        "GetLogManagerIndex failed");
         LOG_WARN("GetLogManagerIndex failed");
         return 0;
     }
@@ -938,12 +950,18 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         std::lock_guard<std::mutex> lock(jniManagersMutex);
         if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= jniManagers.size())
         {
+            __android_log_print(ANDROID_LOG_ERROR,
+                            "MAE",
+                            "LogManagerProvider out of range");
             LOG_WARN("LogManagerProvider out of range");
             return 0;
         }
         mc = jniManagers[nativeLogManagerIndex].get();
         if (!mc)
         {
+            __android_log_print(ANDROID_LOG_ERROR,
+                            "MAE",
+                            "jniManager null");
             LOG_WARN("jniManager null");
             return 0;
         }
