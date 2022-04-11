@@ -19,6 +19,7 @@
 #include "http/HttpClientFactory.hpp"
 #include "pal/TaskDispatcher.hpp"
 #include "utils/Utils.hpp"
+#include <android/log.h>
 
 #ifdef HAVE_MAT_UTC
 #if defined __has_include
@@ -208,6 +209,7 @@ namespace MAT_NS_BEGIN
             std::string transmitProfile = m_logConfiguration[CFG_STR_START_PROFILE_NAME];
             if (!transmitProfile.empty())
             {
+                __android_log_print(ANDROID_LOG_INFO, "MAE", "Setting custom transmit profile %s", transmitProfile.c_str());
                 LOG_INFO("Setting custom transmit profile %s", transmitProfile.c_str());
                 SetTransmitProfile(transmitProfile);
             }
