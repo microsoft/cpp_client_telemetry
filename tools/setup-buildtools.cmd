@@ -17,7 +17,11 @@ if ERRORLEVEL 0 (
 )
 
 REM Install tools needed to build SDK with either Visual Studio or CMake
-choco install -y cmake svn git llvm zip
+where /Q vswhere || choco install -y vswhere
+where /Q cmake || choco install -y cmake
+where /Q git || choco install -y git
+where /Q llvm || choco install -y llvm
+where /Q zip || choco install -y zip
 
 REM Try to autodetect Visual Studio
 call "%~dp0\vcvars.cmd"
@@ -55,6 +59,8 @@ REM Install it
 vcpkg install gtest:x64-windows
 vcpkg install --overlay-ports=%~dp0\ports benchmark:x64-windows
 vcpkg install ms-gsl:x64-windows
+vcpkg install zlib:x64-windows
+vcpkg install sqlite3:x64-windows
 
 if DEFINED INSTALL_LLVM (
   REM Required for LLVM Clang build on Windows

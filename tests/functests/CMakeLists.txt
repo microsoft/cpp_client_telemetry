@@ -30,7 +30,7 @@ endif()
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
     list(APPEND SRCS
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTestzlibs.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
         )
@@ -46,21 +46,25 @@ else()
 endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
+  find_package(gtest REQUIRED)
+  find_package(sqlite3 REQUIRED)
+  find_package( ZLIB REQUIRED )
   # Link against prebuilt libraries on Windows
   message("--- WIN32: Linking against prebuilt libraries")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
-  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
-  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
+  include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
+  include_directories( ${ZLIB_INCLUDE_DIRS} )
+  message("GTEST_INCLUDE_DIRS   = ${GTEST_INCLUDE_DIRS}")
+  message("GTEST_BOTH_LIBRARIES = ${GTEST_BOTH_LIBRARIES}")
+  message("SQLITE3_LIBRARIES = ${SQLITE3_LIBRARIES}")
+  message("ZLIB_LIBRARIES = ${ZLIB_LIBRARIES}")
+
   target_link_libraries(FuncTests
   	mat
 	wininet.lib
-	${CMAKE_BINARY_DIR}/gtest/gtest.lib
-	${CMAKE_BINARY_DIR}/gmock/gmock.lib
-	${CMAKE_BINARY_DIR}/zlib/zlib.lib
-	${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
+  ${GTEST_BOTH_LIBRARIES}
+  ${SQLite3_LIBRARIES}
+  ${ZLIB_LIBRARIES}
   )
 else()
 
