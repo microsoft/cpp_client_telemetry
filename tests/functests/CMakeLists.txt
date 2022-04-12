@@ -30,7 +30,7 @@ endif()
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
     list(APPEND SRCS
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTestzlibs.cpp
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
         )
