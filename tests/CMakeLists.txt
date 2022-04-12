@@ -24,7 +24,6 @@ if(BUILD_UNIT_TESTS)
 endif()
 
 if (WIN32 AND (BUILD_FUNC_TESTS OR BUILD_UNIT_TEST))
-message("LALIT-->Checkig..")
 find_package(GTest)
 if(NOT (GTEST_FOUND OR GTest_FOUND))
   install_windows_deps()
