@@ -47,16 +47,18 @@ endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   find_package(gtest REQUIRED)
-  find_package(sqlite3 REQUIRED)
+  find_package(SQLite3 REQUIRED)
   find_package( ZLIB REQUIRED )
   # Link against prebuilt libraries on Windows
   message("--- WIN32: Linking against prebuilt libraries")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
-  include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
+  include_directories( ${GTEST_INCLUDE_DIRS} )
+  include_directories( ${GMOCK_INCLUDE_DIRS} )
   include_directories( ${ZLIB_INCLUDE_DIRS} )
+  include_directories(${SQLite3_INCLUDE_DIRS} )
   message("GTEST_INCLUDE_DIRS   = ${GTEST_INCLUDE_DIRS}")
   message("GTEST_BOTH_LIBRARIES = ${GTEST_BOTH_LIBRARIES}")
-  message("SQLITE3_LIBRARIES = ${SQLITE3_LIBRARIES}")
+  message("SQLite3_LIBRARIES = ${SQLite3_LIBRARIES} ${SQLite3_INCLUDE_DIRS}")
   message("ZLIB_LIBRARIES = ${ZLIB_LIBRARIES}")
 
   target_link_libraries(FuncTests
