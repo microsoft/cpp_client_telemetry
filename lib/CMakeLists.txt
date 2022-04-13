@@ -173,7 +173,14 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
+if (CMAKE_TOOLCHAIN_FILE)
+  find_package(SQLite3 REQUIRED)
+  find_package(ZLIB REQUIRED)
+  include_directories( ${ZLIB_INCLUDE_DIRS})
+  include_directories(${SQLite3_INCLUDE_DIRS})
+else()
+  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
+endif()
 add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
   list(APPEND SRCS

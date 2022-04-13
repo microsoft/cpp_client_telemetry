@@ -11,7 +11,7 @@ set(TESTS_COMMON_SRCS
 )
 
 if (BUILD_FUNC_TESTS OR BUILD_UNIT_TEST)
-  if (WIN32)
+  if (WIN32 AND CNAKE_TOOLCHAIN_FILE)
     find_package(GTest)
     if(NOT (GTEST_FOUND OR GTest_FOUND))
       install_windows_deps()

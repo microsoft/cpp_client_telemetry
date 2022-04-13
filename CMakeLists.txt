@@ -31,6 +31,10 @@ if(VCPKG_CHAINLOAD_TOOLCHAIN_FILE)
   include("${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
 endif()
 
+if (DEFINED CMAKE_TOOLCHAIN_FILE AND WIN32)
+  install_windows_deps()
+endif()
+
 # Begin Uncomment for i386 build
 #set(CMAKE_SYSTEM_PROCESSOR i386)
 #set(CMAKE_C_FLAGS -m32)

@@ -48,7 +48,12 @@ endif()
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   find_package(gtest REQUIRED)
   find_package(SQLite3 REQUIRED)
-  find_package( ZLIB REQUIRED )
+  find_package(ZLIB REQUIRED)
+  find_library(GOOGLE_MOCK gmock REQUIRED) 
+  find_library(GOOGLE_MOCK_MAIN gmock_main REQUIRED)
+  find_library(GOOGLE_MOCKD gmockd REQUIRED) 
+  find_library(GOOGLE_MOCK_MAIND gmock_maind REQUIRED)
+  add_definitions(-DGTEST_LINKED_AS_SHARED_LIBRARY)
   # Link against prebuilt libraries on Windows
   message("--- WIN32: Linking against prebuilt libraries")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
@@ -58,15 +63,20 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   include_directories(${SQLite3_INCLUDE_DIRS} )
   message("GTEST_INCLUDE_DIRS   = ${GTEST_INCLUDE_DIRS}")
   message("GTEST_BOTH_LIBRARIES = ${GTEST_BOTH_LIBRARIES}")
+  message("GOOGLE_MOCK = ${GOOGLE_MOCK} ${GOOGLE_MOCK_MAIN}")
   message("SQLite3_LIBRARIES = ${SQLite3_LIBRARIES} ${SQLite3_INCLUDE_DIRS}")
   message("ZLIB_LIBRARIES = ${ZLIB_LIBRARIES}")
 
   target_link_libraries(FuncTests
   	mat
 	wininet.lib
+  crypt32.lib
   ${GTEST_BOTH_LIBRARIES}
+  ${GOOGLE_MOCK} ${GOOGLE_MOCKD}
+  ${GOOGLE_MOCK_MAIN} ${GOOGLE_MOCK_MAIND}
   ${SQLite3_LIBRARIES}
   ${ZLIB_LIBRARIES}
+
   )
 else()
 
