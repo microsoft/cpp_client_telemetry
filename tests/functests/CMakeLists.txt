@@ -46,7 +46,24 @@ else()
 endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-  if (CMAKE_TOOLCHAIN_FILE)
+  if (NOT CMAKE_TOOLCHAIN_FILE)
+    # Link against prebuilt libraries on Windows
+    message("--- WIN32: Linking against prebuilt libraries")
+    message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
+    message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
+    message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
+    message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
+    # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
+    include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
+    target_link_libraries(FuncTests
+  	  mat
+	    wininet.lib
+	    ${CMAKE_BINARY_DIR}/gtest/gtest.lib
+	    ${CMAKE_BINARY_DIR}/gmock/gmock.lib
+	    ${CMAKE_BINARY_DIR}/zlib/zlib.lib
+	    ${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
+    )
+  else()
     target_link_libraries(FuncTests
   	  mat
 	    wininet.lib
@@ -56,24 +73,7 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
       ${GOOGLE_MOCK_MAIN} ${GOOGLE_MOCK_MAIND}
       ${SQLite3_LIBRARIES}
       ${ZLIB_LIBRARIES}
-    )
-  else()
-      # Link against prebuilt libraries on Windows
-      message("--- WIN32: Linking against prebuilt libraries")
-      message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-      message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
-      message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
-      message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
-      # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
-      include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
-      target_link_libraries(FuncTests
-  	    mat
-	      wininet.lib
-	      ${CMAKE_BINARY_DIR}/gtest/gtest.lib
-	      ${CMAKE_BINARY_DIR}/gmock/gmock.lib
-	      ${CMAKE_BINARY_DIR}/zlib/zlib.lib
-	      ${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
-      ) 
+    ) 
   endif()
 else()
   # Prefer linking to more recent local sqlite3
