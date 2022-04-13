@@ -280,13 +280,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
 endif()
 
-if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
-    message("Adding gtest")
-    add_library(gtest STATIC IMPORTED GLOBAL)
-    message("Adding gmock")
-    add_library(gmock STATIC IMPORTED GLOBAL)
-endif()
-
 if(BUILD_APPLE_HTTP)
   add_definitions(-DAPPLE_HTTP=1)
 endif()
