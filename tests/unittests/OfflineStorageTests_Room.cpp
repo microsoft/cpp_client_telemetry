@@ -202,7 +202,7 @@ TEST_P(OfflineStorageTestsRoom, TestBadFile)
     }
     badStorage->Initialize(observerMock);
     std::atomic<size_t> found(0);
-    EXPECT_FALSE(badStorage->GetAndReserveRecords( [&found](StorageRecord && record)->bool {
+    EXPECT_FALSE(badStorage->GetAndReserveRecords( [&found](StorageRecord && /*record*/)->bool {
       found += 1;
       return true;
     }, 5));
@@ -500,7 +500,7 @@ TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
             );
     offlineStorage->StoreRecord(r);
     offlineStorage->GetAndReserveRecords(
-            [](StorageRecord && record)->bool
+            [](StorageRecord && /*record*/)->bool
             {
                 return false;
             },
@@ -518,7 +518,7 @@ TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
     EXPECT_EQ(unsigned { 1 }, offlineStorage->LastReadRecordCount());
     EXPECT_EQ(size_t { 1 }, records.size());
     offlineStorage->GetAndReserveRecords(
-            [] (StorageRecord && record)->bool
+            [] (StorageRecord && /*record*/)->bool
             {
                 ADD_FAILURE();
                 return false;
@@ -592,7 +592,8 @@ TEST_P(OfflineStorageTestsRoom, StoreManyRecords)
     StorageBlob masterBlob;
     masterBlob.reserve(blobSize);
     while (masterBlob.size() < blobSize) {
-        masterBlob.push_back(randomByte(gen));
+        auto random_byte = randomByte(gen);
+        masterBlob.push_back((uint8_t)random_byte);
     }
     size_t blocks = 0;
     StorageRecordVector records;

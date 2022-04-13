@@ -19,7 +19,7 @@ TEST(EventPropertiesTests, Construction)
     EXPECT_THAT(ep.GetProperties(), SizeIs(1));
     EXPECT_THAT(ep.GetPiiProperties(), IsEmpty());
     EXPECT_TRUE(std::get<0>(ep.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(ep.TryGetLevel()), DIAG_LEVEL_OPTIONAL);
+    EXPECT_THAT(std::get<1>(ep.TryGetLevel()), (uint8_t)DIAG_LEVEL_OPTIONAL);
 }
 
 TEST(EventPropertiesTests, Name)
@@ -45,21 +45,21 @@ TEST(EventPropertiesTests, DiagnosticLevel)
     EventProperties epOptional("Optional", DIAG_LEVEL_OPTIONAL);
     EXPECT_THAT(epOptional.GetName(), Eq("Optional"));
     EXPECT_TRUE(std::get<0>(epOptional.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(epOptional.TryGetLevel()), DIAG_LEVEL_OPTIONAL);
+    EXPECT_THAT(std::get<1>(epOptional.TryGetLevel()), (uint8_t)DIAG_LEVEL_OPTIONAL);
 
     epOptional.SetLevel(DIAG_LEVEL_REQUIRED);
     EXPECT_TRUE(std::get<0>(epOptional.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(epOptional.TryGetLevel()), DIAG_LEVEL_REQUIRED);
+    EXPECT_THAT(std::get<1>(epOptional.TryGetLevel()), (uint8_t)DIAG_LEVEL_REQUIRED);
 
     EventProperties epRequired("Required", DIAG_LEVEL_REQUIRED);
     EXPECT_THAT(epRequired.GetName(), Eq("Required"));
     EXPECT_TRUE(std::get<0>(epRequired.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(epRequired.TryGetLevel()), DIAG_LEVEL_REQUIRED);
+    EXPECT_THAT(std::get<1>(epRequired.TryGetLevel()), (uint8_t)DIAG_LEVEL_REQUIRED);
 
     EventProperties epCustom("Custom", 55);
     EXPECT_THAT(epCustom.GetName(), Eq("Custom"));
     EXPECT_TRUE(std::get<0>(epCustom.TryGetLevel()));
-    EXPECT_THAT(std::get<1>(epCustom.TryGetLevel()), 55);
+    EXPECT_THAT(std::get<1>(epCustom.TryGetLevel()), (uint8_t)55);
 }
 
 TEST(EventPropertiesTests, Timestamp)
@@ -203,7 +203,7 @@ TEST(EventPropertiesTests, TryGetLevel_NotTheRightType_ReturnsFalseAndZero)
     properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, "Not a number");
     auto result = properties.TryGetLevel();
     EXPECT_FALSE(std::get<0>(result));
-    EXPECT_EQ(std::get<1>(result), 0);
+    EXPECT_EQ(std::get<1>(result), (uint8_t)0);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_ValueLargerThanUint8_ReturnsFalseAndZero)
@@ -212,7 +212,7 @@ TEST(EventPropertiesTests, TryGetLevel_ValueLargerThanUint8_ReturnsFalseAndZero)
     properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, 257);
     auto result = properties.TryGetLevel();
     EXPECT_FALSE(std::get<0>(result));
-    EXPECT_EQ(std::get<1>(result), 0);
+    EXPECT_EQ(std::get<1>(result), (uint8_t)0);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_ValueLessThanZero_ReturnsFalseAndZero)
@@ -221,7 +221,7 @@ TEST(EventPropertiesTests, TryGetLevel_ValueLessThanZero_ReturnsFalseAndZero)
     properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, -1);
     auto result = properties.TryGetLevel();
     EXPECT_FALSE(std::get<0>(result));
-    EXPECT_EQ(std::get<1>(result), 0);
+    EXPECT_EQ(std::get<1>(result), (uint8_t)0);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_ValidValue_ReturnsTrueAndCorrectValue)
@@ -230,7 +230,7 @@ TEST(EventPropertiesTests, TryGetLevel_ValidValue_ReturnsTrueAndCorrectValue)
     properties.SetProperty(COMMONFIELDS_EVENT_LEVEL, 42);
     auto result = properties.TryGetLevel();
     EXPECT_TRUE(std::get<0>(result));
-    EXPECT_EQ(std::get<1>(result), 42);
+    EXPECT_EQ(std::get<1>(result), (uint8_t)42);
 }
 
 TEST(EventPropertiesTests, TryGetLevel_ValueSetBySetLevel_ReturnsTrueAndCorrectValue)
@@ -239,5 +239,5 @@ TEST(EventPropertiesTests, TryGetLevel_ValueSetBySetLevel_ReturnsTrueAndCorrectV
     properties.SetLevel(42);
     auto result = properties.TryGetLevel();
     EXPECT_TRUE(std::get<0>(result));
-    EXPECT_EQ(std::get<1>(result), 42);
+    EXPECT_EQ(std::get<1>(result), (uint8_t)42);
 }

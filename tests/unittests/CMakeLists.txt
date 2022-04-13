@@ -48,7 +48,9 @@ set(SRCS
   ZlibUtilsTests.cpp
 )
 
-set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+if (NOT WIN32)
+  set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+endif()
 
 if (APPLE)
   if (BUILD_IOS)
@@ -90,22 +92,35 @@ else()
 endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-  # Link against prebuilt libraries on Windows
-  message("--- WIN32: Linking against prebuilt libraries")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
-  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/)
-  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
-  target_link_libraries(UnitTests
-        mat
-	wininet.lib
-	${CMAKE_BINARY_DIR}/gtest/gtest.lib
-	${CMAKE_BINARY_DIR}/gmock/gmock.lib
-	${CMAKE_BINARY_DIR}/zlib/zlib.lib
-	${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
-  )
+  if (CMAKE_TOOLCHAIN_FILE)
+    target_link_libraries(UnitTests
+      mat
+      wininet.lib
+      crypt32.lib
+      ${GTEST_BOTH_LIBRARIES}
+      ${GOOGLE_MOCK} ${GOOGLE_MOCKD}
+      ${GOOGLE_MOCK_MAIN} ${GOOGLE_MOCK_MAIND}
+      ${SQLite3_LIBRARIES}
+      ${ZLIB_LIBRARIES}
+    )
+  else()
+    # Link against prebuilt libraries on Windows
+    message("--- WIN32: Linking against prebuilt libraries")
+    message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
+    message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock")
+    message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
+    message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
+    # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/)
+    include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
+    target_link_libraries(UnitTests
+      mat
+	    wininet.lib
+	    ${CMAKE_BINARY_DIR}/gtest/gtest.lib
+	    ${CMAKE_BINARY_DIR}/gmock/gmock.lib
+	    ${CMAKE_BINARY_DIR}/zlib/zlib.lib
+	    ${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
+    )
+  endif()
 else()
 
   # Prefer linking to more recent local sqlite3

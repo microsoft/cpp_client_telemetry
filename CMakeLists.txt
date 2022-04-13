@@ -32,7 +32,11 @@ if(VCPKG_CHAINLOAD_TOOLCHAIN_FILE)
 endif()
 
 if (DEFINED CMAKE_TOOLCHAIN_FILE AND WIN32)
-  install_windows_deps()
+  find_package(GTest)
+  if(NOT (GTEST_FOUND OR GTest_FOUND))
+    install_windows_deps()
+  endif()
+  find_package(GTest REQUIRED)
 endif()
 
 # Begin Uncomment for i386 build
