@@ -56,17 +56,17 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
     # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
     include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
     target_link_libraries(FuncTests
-  	  mat
-	    wininet.lib
-	    ${CMAKE_BINARY_DIR}/gtest/gtest.lib
-	    ${CMAKE_BINARY_DIR}/gmock/gmock.lib
-	    ${CMAKE_BINARY_DIR}/zlib/zlib.lib
-	    ${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
+      mat
+      wininet.lib
+      ${CMAKE_BINARY_DIR}/gtest/gtest.lib
+      ${CMAKE_BINARY_DIR}/gmock/gmock.lib
+      ${CMAKE_BINARY_DIR}/zlib/zlib.lib
+      ${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
     )
   else()
     target_link_libraries(FuncTests
-  	  mat
-	    wininet.lib
+      mat
+      wininet.lib
       crypt32.lib
       ${GTEST_BOTH_LIBRARIES}
       ${GOOGLE_MOCK} ${GOOGLE_MOCKD}
