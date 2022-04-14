@@ -2,8 +2,9 @@
 
 ### Pre-requisite:
 
- - Windows SDK for C++
- - CMake
+ - VS 2017/2019
+ - Chocolatey Package Manager
+ - CMake 3.1.0 or higher
 
 ### Steps:
 
