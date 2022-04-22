@@ -19,7 +19,12 @@ TEST_F(PalTests, UuidGeneration)
 
     std::string mask = uuid0;
     for (char& ch : mask) {
-        if (::isdigit(ch) || (::isupper(ch) && ::isxdigit(ch))) {
+#ifdef _WIN32
+        if (::isdigit(ch) || (::isupper(ch) && ::isxdigit(ch)))
+#else
+        if (::isdigit(ch) || (::islower(ch) && ::isxdigit(ch)))
+#endif
+	{
             ch = 'x';
         }
     }

@@ -328,6 +328,7 @@ namespace PAL_NS_BEGIN {
             CFStringGetCString(uuidStrRef, &uuidStr[0], uuidNullTerminatedSize, kCFStringEncodingASCII);
         }
         CFRelease(uuidStrRef);
+	std::transform(uuidStr.begin(), uuidStr.end(), uuidStr.begin(), ::tolower);
         return uuidStr;
 #else
         static std::once_flag flag;
