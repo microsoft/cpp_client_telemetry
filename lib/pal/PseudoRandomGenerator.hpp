@@ -10,7 +10,7 @@ namespace PAL_NS_BEGIN
     // Pseudo-random number generator (not for cryptographic usage).
     // The instances are not thread-safe, serialize access externally if needed.
     class PseudoRandomGenerator {
-#ifdef _WIN32
+#if  defined(_WIN32)  || defined (__APPLE__)
     public:
         double getRandomDouble()
         {
