@@ -199,7 +199,7 @@ namespace MAT_NS_BEGIN {
         
         if (operation != nullptr)
         {
-            operation->Cancel();//lgtm [cpp/uninitializedptrfield]
+            operation->Cancel();// CodeQL [cpp/uninitializedptrfield] operation is explicitly constructed with with so it will never hold garbage value
         }
     }
 

@@ -4697,7 +4697,7 @@ std::size_t hash(const BasicJsonType& j)
         }
 
         default: // LCOV_EXCL_LINE
-            JSON_ASSERT(false); //lgtm[cpp/missing-return]
+            JSON_ASSERT(false); // LCOV_EXCL_LINE
     }
 }
 
@@ -6842,7 +6842,7 @@ class lexer : public lexer_base<BasicJsonType>
           locale's decimal point is used instead of `.` to work with the
           locale-dependent converters.
     */
-    token_type scan_number()  // lgtm [cpp/reporting/alert-suppression]
+    token_type scan_number()  // CodeQL [cpp/use-of-goto] We explicitly allow the use of goto in this func
     {
         // reset token_buffer to store the number's bytes
         reset();
