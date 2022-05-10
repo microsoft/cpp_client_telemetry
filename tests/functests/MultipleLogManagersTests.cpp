@@ -39,12 +39,14 @@ using namespace MAT;
 class RequestHandler : public HttpServer::Callback 
 {
    public:
-    RequestHandler() : count_(0){}
+    RequestHandler(int id) : count_(0), id_(id){}
 
     int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
     {
         UNREFERENCED_PARAMETER(response);
         UNREFERENCED_PARAMETER(request);
+        std::string expected_url = "/" + std::to_string(id_) + "/";
+        EXPECT_EQ(request.uri, expected_url);
         count_++;
         return 200;
     }
@@ -55,6 +57,7 @@ class RequestHandler : public HttpServer::Callback
 
    private:
     size_t count_;
+    int id_ ;
 };
 
 class MultipleLogManagersTests : public ::testing::Test
@@ -62,7 +65,9 @@ class MultipleLogManagersTests : public ::testing::Test
    protected:
     std::string serverAddress;
     ILogConfiguration config1, config2, config3;
-    RequestHandler callback1, callback2, callback3;
+    RequestHandler callback1 = RequestHandler(1);
+    RequestHandler callback2 = RequestHandler(2);
+    RequestHandler callback3 = RequestHandler(3);
 
     HttpServer server;
 
@@ -99,9 +104,9 @@ class MultipleLogManagersTests : public ::testing::Test
         config2["cacheFilePath"] = "lm2.db";
         ::remove(config2["cacheFilePath"]);
         config2[CFG_STR_COLLECTOR_URL] = serverAddress + "/2/";
-        config1["name"] = "Instance2";
-        config1["version"] = "1.0.0";
-        config1["config"]["host"] = "Instance2";  // host
+        config2["name"] = "Instance2";
+        config2["version"] = "1.0.0";
+        config2["config"]["host"] = "Instance2";  // host
 
         // Config for instance #3
         config3["cacheFilePath"] = "lm3.db";
@@ -173,26 +178,21 @@ TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
     lm1->SetContext("test1", "abc");
     lm2->GetSemanticContext().SetAppId("123");
     
-    ILogger* l1a = lm1->GetLogger("lm1_token1");
-    ILogger* l2a = lm2->GetLogger("lm2_token1", "aaa-source");
-    ILogger* l3a = lm3->GetLogger("lm3_token1", "bbb-source");
+    ILogger* l1 = lm1->GetLogger("lm1_token1", "aaa-source");
+    ILogger* l2 = lm2->GetLogger("lm2_token1", "bbb-source");
+    ILogger* l3 = lm3->GetLogger("lm3_token1", "ccc-source");
 
-    EventProperties l2a1p("l2a1");
-    l2a1p.SetProperty("x", "y");
-    l2a->LogEvent(l2a1p);
+    EventProperties l1_prop("l1a1");
+    l1_prop.SetProperty("X", "Y");
+    l1->LogEvent(l1_prop);
 
-    EventProperties l1a1p("l1a1");
-    l1a1p.SetProperty("X", "Y");
-    l1a->LogEvent(l1a1p);
+    EventProperties l2_prop("l2a1");
+    l2_prop.SetProperty("x", "y");
+    l2->LogEvent(l2_prop);
 
-    ILogger* l1b = lm1->GetLogger("lm1_token2");
-    EventProperties l1b1p("l1b1");
-    l1b1p.SetProperty("X", "Y");
-    l1b->LogEvent(l1b1p);
-
-    EventProperties l3a1p("l3a1");
-    l3a1p.SetProperty("test", 1234);
-    l3a->LogEvent(l3a1p);
+    EventProperties l3_prop("l3a1");
+    l3_prop.SetProperty("test", 1234);
+    l3->LogEvent(l3_prop);
 
     lm1->GetLogController()->UploadNow();
     lm2->GetLogController()->UploadNow();
