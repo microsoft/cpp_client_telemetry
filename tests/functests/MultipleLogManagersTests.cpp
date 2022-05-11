@@ -39,25 +39,23 @@ using namespace MAT;
 class RequestHandler : public HttpServer::Callback 
 {
    public:
-    RequestHandler(int id) : count_(0), id_(id){}
+    RequestHandler(int id) : m_count(0), m_id(id){}
 
-    int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
+    int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& /*response*/) override
     {
-        UNREFERENCED_PARAMETER(response);
-        UNREFERENCED_PARAMETER(request);
-        std::string expected_url = "/" + std::to_string(id_) + "/";
+        std::string expected_url = "/" + std::to_string(m_id) + "/";
         EXPECT_EQ(request.uri, expected_url);
-        count_++;
+        m_count++;
         return 200;
     }
 
     size_t GetRequestCount() {
-        return count_;
+        return m_count;
     }
 
    private:
-    size_t count_;
-    int id_ ;
+    size_t m_count;
+    int m_id ;
 };
 
 class MultipleLogManagersTests : public ::testing::Test
