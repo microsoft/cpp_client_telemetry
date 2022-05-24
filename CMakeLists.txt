@@ -25,12 +25,17 @@ if(APPLE)
 
   # iOS build options
   option(BUILD_IOS           "Build for iOS"               NO)
+  option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" ON)
 
   if(BUILD_IOS)
     set(TARGET_ARCH "APPLE")
     set(IOS True)
     set(APPLE True)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+
+    if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
+      set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+    endif()
+    
     if((${IOS_PLAT} STREQUAL "iphonesimulator") AND (${IOS_ARCH} STREQUAL "arm64"))
       # iOS arm64 simulator is supported starting BigSur
       # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
