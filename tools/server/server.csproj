@@ -19,7 +19,7 @@
     <PackageReference Include="Bond.Compiler" Version="9.0.4" />
     <PackageReference Include="Bond.Core.CSharp" Version="9.0.3" />
     <PackageReference Include="Bond.Runtime.CSharp" Version="9.0.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <Import Project="../decoder/decoder.projitems" Label="Shared" />
