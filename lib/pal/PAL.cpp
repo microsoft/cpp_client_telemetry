@@ -345,9 +345,9 @@ namespace PAL_NS_BEGIN {
         for (size_t i = 0; i < sizeof(uuid.Data4); i++)
             uuid.Data4[i] = static_cast<uint8_t>(std::rand());
 
-        // TODO: [MG] - replace this sprintf by more robust GUID to string converter
+        // TODO: [MG] - replace this snprintf by more robust GUID to string converter
         char buf[40] = { 0 };
-        sprintf(buf,
+        snprintf(buf, sizeof(buf),
             "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
             uuid.Data1, uuid.Data2, uuid.Data3,
             uuid.Data4[0], uuid.Data4[1], uuid.Data4[2], uuid.Data4[3],
