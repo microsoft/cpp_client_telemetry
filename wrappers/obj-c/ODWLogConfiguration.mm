@@ -311,8 +311,8 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
 +(nullable ODWLogConfiguration *)getLogConfigurationCopy
 {
     auto& config = LogManager::GetLogConfiguration();
-    static ILogConfiguration configCopy(config);
-    return [[ODWLogConfiguration alloc] initWithILogConfiguration: &configCopy];
+    auto configCopy = new ILogConfiguration(config);
+    return [[ODWLogConfiguration alloc] initWithILogConfiguration: configCopy];
 }
 
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
