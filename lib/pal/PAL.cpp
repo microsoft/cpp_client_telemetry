@@ -26,6 +26,10 @@
 #include "utils/Utils.hpp"
 #include <sys/types.h>
 
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #ifndef _WIN32
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -300,6 +304,32 @@ namespace PAL_NS_BEGIN {
         /* CoCreateGuid` will possiblity never fail, so ignoring the result */
         UNREFERENCED_PARAMETER(hr);
         return MAT::to_string(uuid);
+#elif defined(__APPLE__)
+        auto uuid {CFUUIDCreate(kCFAllocatorDefault)};
+        if(!uuid)
+        {
+            return {};
+        }
+        auto uuidStrRef {CFUUIDCreateString(kCFAllocatorDefault, uuid)};
+        CFRelease(uuid);
+        if(!uuidStrRef)
+        {
+            return {};
+        }
+        std::string uuidStr;
+        if(CFStringGetCStringPtr(uuidStrRef, kCFStringEncodingASCII))
+        {
+            uuidStr = CFStringGetCStringPtr(uuidStrRef, kCFStringEncodingASCII);
+        }
+        else
+        {
+            const auto uuidNullTerminatedSize {CFStringGetLength(uuidStrRef) + 1};
+            uuidStr.resize(uuidNullTerminatedSize);
+            CFStringGetCString(uuidStrRef, &uuidStr[0], uuidNullTerminatedSize, kCFStringEncodingASCII);
+        }
+        CFRelease(uuidStrRef);
+	std::transform(uuidStr.begin(), uuidStr.end(), uuidStr.begin(), ::tolower);
+        return uuidStr;
 #else
         static std::once_flag flag;
         std::call_once(flag, [](){
@@ -398,14 +428,19 @@ namespace PAL_NS_BEGIN {
         char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
 
 #if defined(__GNUC__) && !defined(__clang__)
+#include <features.h>
+#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"  // error: 'T' directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Werror=format-truncation=]
+#endif
 #endif
         (void)snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
                        1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
                        tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
 #if defined(__GNUC__) && !defined(__clang__)
+#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
 #pragma GCC diagnostic pop
+#endif
 #endif
 #endif
         return buf;

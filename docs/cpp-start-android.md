@@ -12,7 +12,7 @@ You will ideally build the SDK using the same versions of the Android SDK, NDK, 
 
 The Gradle wrapper in ```android_build``` builds two modules, ```app``` and ```maesdk```. The ```maesdk``` module is the SDK packaged as an AAR, with both the Java and C++ components included. The AAR includes C++ shared libraries for four ABIs (two ARM ABIs for devices and two Intel ABIs for the emulator). Android Gradle (as usual) supports debug and release builds, and the Gradle task ```maesdk:assemble``` should build both flavors of AAR.
 
-On Android, there are two database implementations to choose from. By default (the master branch on Github), the SDK will use the Android-supported androidx.Room database package. This reduces APK size because we don't need to compile and link in a copy of SQLite in native code (SQLite is hundreds of kB per ABI of APK file size). Room does have a slight CPU performance disadvantage since database transactions cross the JNI boundary when native code uses it. If you wish to change from Room to the native SQLite implementation, you should change the two module ```build.gradle``` files (app and maesdk). In those files, you will see an argument to CMake to select Room: ```"-DUSE_ROOM=1"```. Change this to ```"-DUSE_ROOM=0``` to select the native SQLite.
+On Android, there are two database implementations to choose from. By default (the main branch on Github), the SDK will use the Android-supported androidx.Room database package. This reduces APK size because we don't need to compile and link in a copy of SQLite in native code (SQLite is hundreds of kB per ABI of APK file size). Room does have a slight CPU performance disadvantage since database transactions cross the JNI boundary when native code uses it. If you wish to change from Room to the native SQLite implementation, you should change the two module ```build.gradle``` files (app and maesdk). In those files, you will see an argument to CMake to select Room: ```"-DUSE_ROOM=1"```. Change this to ```"-DUSE_ROOM=0``` to select the native SQLite.
 
 The Room database implementation adds one additional initialization requirement, since it needs a pointer to the JVM and an object reference to the application context. See below (4.5) for the required call to either ```connectContext``` (in Java) or ```ConnectJVM``` (in C++) to set this up.
 
@@ -137,9 +137,9 @@ LogManager::FlushAndTeardown();
 
 You're done! You can now compile and run your app, and it will send a telemetry event using your ingestion key to your tenant.
 
-Note that it is possible to use more than one log manager. See [examples/cpp/SampleCppLogManagers](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/SampleCppLogManagers) for a sample implementation.
+Note that it is possible to use more than one log manager. See [examples/cpp/SampleCppLogManagers](../examples/cpp/SampleCppLogManagers) for a sample implementation.
 
-Please refer to [EventSender](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/examples/cpp/). The lib/android_build gradle wrappers will use the Android gradle plugin, and that in turn will use CMake/nmake to build C++ object files.
+Please refer to [EventSender](../examples/cpp/EventSender) sample for more details. Other sample apps can be found [here](../examples/cpp/). The lib/android_build gradle wrappers will use the Android gradle plugin, and that in turn will use CMake/nmake to build C++ object files.
 
 ## 4. Device File Locations
 

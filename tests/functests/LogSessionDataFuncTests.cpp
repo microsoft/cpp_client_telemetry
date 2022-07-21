@@ -44,7 +44,7 @@ void ConstructSesFile(const char* sessionFile, const std::string& contents)
 void ConstructSesFile(const char* sessionFile, const std::string& utcTimeMs, const std::string& skuID)
 {
     std::ostringstream stream;
-    stream << utcTimeMs << '\n' << skuID;
+    stream << utcTimeMs << '\n' << skuID << '\n'; 
     ConstructSesFile(sessionFile, stream.str());
 }
 
@@ -118,4 +118,3 @@ TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWritte
     ASSERT_EQ(logSessionData->getSessionFirstTime(), properties.first);
     ASSERT_EQ(logSessionData->getSessionSDKUid(), properties.second);
 }
-
