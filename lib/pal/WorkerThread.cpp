@@ -182,7 +182,7 @@ namespace PAL_NS_BEGIN {
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
             for (;;) {
-                #ifdef MacOS
+                #ifdef __APPLE__
                 @autoreleasepool
                 #endif
                 {
