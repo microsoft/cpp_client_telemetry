@@ -182,74 +182,69 @@ namespace PAL_NS_BEGIN {
             LOG_INFO("Running thread %u", std::this_thread::get_id());
 
             for (;;) {
-                #ifdef __APPLE__
-                @autoreleasepool
-                #endif
+                std::unique_ptr<MAT::Task> item = nullptr;
+                wakeupCount++;
+                unsigned nextTimerInMs = MAX_FUTURE_DELTA_MS;
                 {
-                    std::unique_ptr<MAT::Task> item = nullptr;
-                    wakeupCount++;
-                    unsigned nextTimerInMs = MAX_FUTURE_DELTA_MS;
-                    {
-                        LOCKGUARD(self->m_lock);
+                    LOCKGUARD(self->m_lock);
 
-                        auto now = getMonotonicTimeMs();
-                        if (!self->m_timerQueue.empty()) {
-                            const auto currTargetTime = self->m_timerQueue.front()->TargetTime;
-                            if (currTargetTime <= now) {
-                                // process the item at the front immediately
-                                item = std::unique_ptr<MAT::Task>(self->m_timerQueue.front());
-                                self->m_timerQueue.pop_front();
-                            } else {
-                               // timed call in future, we need to resort the items in the queue
-                               const auto delta = currTargetTime - now;
-                               if (delta > MAX_FUTURE_DELTA_MS) {
-                                   const auto itemPtr = self->m_timerQueue.front();
-                                   self->m_timerQueue.pop_front();
-                                   itemPtr->TargetTime = now + MAX_FUTURE_DELTA_MS;
-                                   self->Queue(itemPtr);
-                                   continue;
-                               }
-                               // value used for sleep in case if m_queue ends up being empty
-                               nextTimerInMs = static_cast<unsigned>(delta);
-                            }
-                        }
-
-                        if (!self->m_queue.empty() && !item) {
-                            item = std::unique_ptr<MAT::Task>(self->m_queue.front());
-                            self->m_queue.pop_front();
-                        }
-
-                        if (item) {
-                            self->m_itemInProgress = item.get();
+                    auto now = getMonotonicTimeMs();
+                    if (!self->m_timerQueue.empty()) {
+                        const auto currTargetTime = self->m_timerQueue.front()->TargetTime;
+                        if (currTargetTime <= now) {
+                            // process the item at the front immediately
+                            item = std::unique_ptr<MAT::Task>(self->m_timerQueue.front());
+                            self->m_timerQueue.pop_front();
+                        } else {
+                           // timed call in future, we need to resort the items in the queue
+                           const auto delta = currTargetTime - now;
+                           if (delta > MAX_FUTURE_DELTA_MS) {
+                               const auto itemPtr = self->m_timerQueue.front();
+                               self->m_timerQueue.pop_front();
+                               itemPtr->TargetTime = now + MAX_FUTURE_DELTA_MS;
+                               self->Queue(itemPtr);
+                               continue;
+                           }
+                           // value used for sleep in case if m_queue ends up being empty
+                           nextTimerInMs = static_cast<unsigned>(delta);
                         }
                     }
 
-                    if (!item) {
-                        if (!self->m_event.Reset())
-                            self->m_event.wait(nextTimerInMs);
-                        continue;
+                    if (!self->m_queue.empty() && !item) {
+                        item = std::unique_ptr<MAT::Task>(self->m_queue.front());
+                        self->m_queue.pop_front();
                     }
 
-                    if (item->Type == MAT::Task::Shutdown) {
-                        item.reset();
+                    if (item) {
+                        self->m_itemInProgress = item.get();
+                    }
+                }
+
+                if (!item) {
+                    if (!self->m_event.Reset())
+                        self->m_event.wait(nextTimerInMs);
+                    continue;
+                }
+
+                if (item->Type == MAT::Task::Shutdown) {
+                    item.reset();
+                    self->m_itemInProgress = nullptr;
+                    break;
+                }
+
+                {
+                    std::lock_guard<std::timed_mutex> lock(self->m_execution_mutex);
+
+                    // Item wasn't cancelled before it could be executed
+                    if (self->m_itemInProgress != nullptr) {
+                        LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
+                        (*item)();
                         self->m_itemInProgress = nullptr;
-                        break;
                     }
 
-                    {
-                        std::lock_guard<std::timed_mutex> lock(self->m_execution_mutex);
-
-                        // Item wasn't cancelled before it could be executed
-                        if (self->m_itemInProgress != nullptr) {
-                            LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
-                            (*item)();
-                            self->m_itemInProgress = nullptr;
-                        }
-
-                        if (item) {
-                            item->Type = MAT::Task::Done;
-                            item = nullptr;
-                        }
+                    if (item) {
+                        item->Type = MAT::Task::Done;
+                        item = nullptr;
                     }
                 }
             }
