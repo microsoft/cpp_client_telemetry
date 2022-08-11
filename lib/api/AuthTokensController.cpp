@@ -28,7 +28,8 @@ namespace MAT_NS_BEGIN {
         {
             if (type == TicketType::TicketType_MSA_Device ||
                 type == TicketType::TicketType_AAD ||
-                type == TicketType::TicketType_XAuth_Device)
+                type == TicketType::TicketType_XAuth_Device ||
+                type == TicketType::TicketType_AAD_Device)
             {
                 m_deviceTokens[type] = std::string(tokenValue);
             }

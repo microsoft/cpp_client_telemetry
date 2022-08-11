@@ -17,7 +17,9 @@ public enum TicketType {
 
     AAD_User(5),
 
-    AAD_JWT(6);
+    AAD_JWT(6),
+
+    AAD_Device(7);
 
     private final int m_value;
 
