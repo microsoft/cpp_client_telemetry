@@ -49,34 +49,49 @@ namespace PAL_NS_BEGIN {
     std::string getDeviceId()
     {
         std::string devId = devIdDefault;
-        ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
 
-    retry_bigger_buffer:
-        PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
-        if (pAdapterInfo != NULL)
+        /* Watson shows a number of missing Iphlpapi.dll, so load it dynamically.
+         * (https://microsoft.visualstudio.com/Edge/_workitems/edit/32490359).
+         * This module load failure may be due to anti-virus activity.
+         */
+        static HINSTANCE hinstLib = LoadLibrary(TEXT("Iphlpapi.dll"));
+        if (hinstLib != NULL)
         {
-            pAdapterInfo->AdapterName[0] = 0;
-            DWORD result = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
-            if (result == ERROR_BUFFER_OVERFLOW)
+            typedef BOOL (WINAPI *GETADAPTERSINFO)(PIP_ADAPTER_INFO, PULONG SizePointer);
+            static GETADAPTERSINFO getAdaptersInfoAddr =
+                (GETADAPTERSINFO)GetProcAddress(hinstLib, "GetAdaptersInfo");
+            if (getAdaptersInfoAddr != NULL)
             {
-                /* The buffer to receive the adapter information is too small.
-                 * This value is returned if the buffer size indicated by the ulOutBufLen parameter
-                 * is too small to hold the adapter information... When this error code is returned,
-                 * the ulOutBufLen parameter contains the required buffer size, so we retry with
-                 * suggested value of ulOutBufLen, assuming it is bigger than the default.
-                 */
-                if (ulOutBufLen > sizeof(IP_ADAPTER_INFO))
+                ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+
+            retry_bigger_buffer:
+                PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
+                if (pAdapterInfo != NULL)
                 {
+                    pAdapterInfo->AdapterName[0] = 0;
+                    DWORD result = getAdaptersInfoAddr(pAdapterInfo, &ulOutBufLen);
+                    if (result == ERROR_BUFFER_OVERFLOW)
+                    {
+                        /* The buffer to receive the adapter information is too small.
+                        * This value is returned if the buffer size indicated by the ulOutBufLen parameter
+                        * is too small to hold the adapter information... When this error code is returned,
+                        * the ulOutBufLen parameter contains the required buffer size, so we retry with
+                        * suggested value of ulOutBufLen, assuming it is bigger than the default.
+                        */
+                        if (ulOutBufLen > sizeof(IP_ADAPTER_INFO))
+                        {
+                            FREE(pAdapterInfo);
+                            goto retry_bigger_buffer;
+                        }
+                    }
+                    if ((result == ERROR_SUCCESS) && (pAdapterInfo->AdapterName[0] != 0))
+                    {
+                        std::string adapterName{ toLower(pAdapterInfo->AdapterName) };
+                        devId = adapterName;
+                    }
                     FREE(pAdapterInfo);
-                    goto retry_bigger_buffer;
                 }
             }
-            if ((result == ERROR_SUCCESS) && (pAdapterInfo->AdapterName[0] != 0))
-            {
-                std::string adapterName{ toLower(pAdapterInfo->AdapterName) };
-                devId = adapterName;
-            }
-            FREE(pAdapterInfo);
         }
         return devId;
     }
