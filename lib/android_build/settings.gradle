@@ -1,4 +1,4 @@
-include ':app', ':maesdk'
+include ':app', ':maesdk', ':maesdk-okhttp'
 rootProject.name='EventsTest'
 
 if (file('settings.gradle.user').exists()) {
