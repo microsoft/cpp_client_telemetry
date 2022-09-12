@@ -131,15 +131,6 @@ namespace MAT_NS_BEGIN
     class TransmitProfiles {
 
     protected:
-        /// <summary>
-        /// A map that contains all transmit profiles.
-        /// </summary>
-        static std::map<std::string, TransmitProfileRules> profiles;
-
-        /// <summary>
-        /// A string that contains the name of the currently active transmit profile.
-        /// </summary>
-        static std::string      currProfileName;
 
         /// <summary>
         /// The size of the currently active transmit profile rule.
@@ -161,12 +152,25 @@ namespace MAT_NS_BEGIN
         /// </summary>
         static bool isTimerUpdated;
 
+        static std::map<std::string, TransmitProfileRules>& GetProfiles() noexcept;
+        
         static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
 
         static void EnsureDefaultProfiles() noexcept;
 
-    public:
+        /// <summary>
+        /// Removes custom profiles.
+        /// This method is called from parse only, and does not require the lock.
+        /// <b>Note:</b> This function is not thread safe.
+        /// </summary>
+        static void removeCustomProfiles();
 
+        /// <summary>
+        /// A timer update event handler.
+        /// </summary>
+        static void onTimersUpdated();
+
+    public:
 
         /// <summary>
         /// The TransmitProfiles default constructor.
@@ -182,13 +186,6 @@ namespace MAT_NS_BEGIN
         /// Prints transmit profiles to the debug log.
         /// </summary>
         static void dump();
-
-        /// <summary>
-        /// Removes custom profiles.
-        /// This method is called from parse only, and does not require the lock.
-        /// <b>Note:</b> This function is not thread safe.
-        /// </summary>
-        static void removeCustomProfiles();
 
         /// <summary>
         /// Parses transmit profiles from JSON.
@@ -248,11 +245,6 @@ namespace MAT_NS_BEGIN
         /// <param name="netCost">A reference to an instance of a MAT::NetworkCost enumeration.</param>
         /// <param name="powState">A reference to an instance of a MAT::PowerSource enumeration.</param>
         static void getDeviceState(NetworkCost &netCost, PowerSource &powState);
-
-        /// <summary>
-        /// A timer update event handler.
-        /// </summary>
-        static void onTimersUpdated();
 
         /// <summary>
         /// Determines whether a timer should be updated.

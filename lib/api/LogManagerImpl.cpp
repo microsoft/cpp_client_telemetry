@@ -74,6 +74,24 @@
 
 namespace MAT_NS_BEGIN
 {
+    // This mutex has to be recursive because we allow both
+    // Destroy and destrutor to lock it. destructor could be
+    // called directly, and Destroy calls destructor.
+
+    // static
+    std::recursive_mutex& ILogManagerInternal::GetManagersLock()
+    {
+        static std::recursive_mutex managers_lock;
+        return managers_lock;
+    };
+    
+    // static
+    std::set<ILogManager*>& ILogManagerInternal::GetManagers() noexcept
+    {
+        static std::set<ILogManager*> managers;
+        return managers;
+    }
+
     void DeadLoggers::AddMap(LoggerMap&& source)
     {
         std::lock_guard<std::mutex> lock(m_deadLoggersMutex);
@@ -94,8 +112,8 @@ namespace MAT_NS_BEGIN
 
     bool ILogManager::DispatchEventBroadcast(DebugEvent evt)
     {
-        // LOCKGUARD(ILogManagerInternal::managers_lock);
-        for (auto instance : ILogManagerInternal::managers)
+        // LOCKGUARD(ILogManagerInternal::GetManagersLock());
+        for (auto instance : ILogManagerInternal::GetManagers())
         {
             instance->DispatchEvent(evt);
         }
@@ -353,8 +371,8 @@ namespace MAT_NS_BEGIN
     LogManagerImpl::~LogManagerImpl() noexcept
     {
         FlushAndTeardown();
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        ILogManagerInternal::managers.erase(this);
+        LOCKGUARD(ILogManagerInternal::GetManagersLock());
+        ILogManagerInternal::GetManagers().erase(this);
     }
 
     size_t LogManagerImpl::GetDeadLoggerCount()

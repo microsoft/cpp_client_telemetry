@@ -61,17 +61,38 @@ static void initTransmitProfileFields()
 };
 #endif
 
-#define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx)
+#define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(GetProfilesMutex())
 
 namespace MAT_NS_BEGIN {
 
-    static std::recursive_mutex profiles_mtx;
-    map<string, TransmitProfileRules>      TransmitProfiles::profiles;
-    string      TransmitProfiles::currProfileName = DEFAULT_PROFILE;
+    std::recursive_mutex& GetProfilesMutex()
+    {
+        static std::recursive_mutex profiles_mtx;
+        return profiles_mtx;
+    }
+
+    /// <summary>
+    /// A string that contains the name of the currently active transmit profile.
+    /// </summary>
+    std::string& GetCurrProfileName()
+    {
+        static std::string currProfileName = DEFAULT_PROFILE;
+        return currProfileName;
+    }
+
     size_t      TransmitProfiles::currRule = 0;
     NetworkCost TransmitProfiles::currNetCost = NetworkCost::NetworkCost_Any;
     PowerSource TransmitProfiles::currPowState = PowerSource::PowerSource_Any;
     bool        TransmitProfiles::isTimerUpdated = true;
+
+    /// <summary>
+    /// A map that contains all transmit profiles.
+    /// </summary>
+    std::map<std::string, TransmitProfileRules>& TransmitProfiles::GetProfiles() noexcept
+    {
+        static std::map<std::string, TransmitProfileRules> profiles;
+        return profiles;
+    }
 
     /// <summary>
     /// Get current transmit profile name
@@ -79,7 +100,7 @@ namespace MAT_NS_BEGIN {
     /// <returns></returns>
     std::string& TransmitProfiles::getProfile() {
         LOCK_PROFILES;
-        return currProfileName;
+        return GetCurrProfileName();
     };
 
     /// <summary>
@@ -98,6 +119,7 @@ namespace MAT_NS_BEGIN {
     void TransmitProfiles::dump() {
 #ifdef HAVE_MAT_LOGGING
         LOCK_PROFILES;
+        std::map<std::string, TransmitProfileRules>& profiles = GetProfiles();
         for (auto &kv : profiles) {
             auto &profile = kv.second;
             LOG_TRACE("name=%s", profile.name.c_str());
@@ -118,6 +140,7 @@ namespace MAT_NS_BEGIN {
     /// Remove custom profiles. This function is only called from parse and does not require the lock.
     /// </summary>
     void TransmitProfiles::removeCustomProfiles() {
+        std::map<std::string, TransmitProfileRules>& profiles = GetProfiles();
         auto it = profiles.begin();
         while (it != profiles.end())
         {
@@ -133,12 +156,14 @@ namespace MAT_NS_BEGIN {
     {
         LOCK_PROFILES;
         removeCustomProfiles();
+        std::map<std::string, TransmitProfileRules>& profiles = GetProfiles();
         // Add new profiles
         for (const auto& profile : newProfiles)
         {
             profiles[profile.name] = profile;
         }
         // Check if profile is still valid. If no such profile loaded anymore, then switch to default.
+        std::string& currProfileName = GetCurrProfileName();
         auto it = profiles.find(currProfileName);
         if (it == profiles.end())
         {
@@ -164,7 +189,7 @@ namespace MAT_NS_BEGIN {
 	 void TransmitProfiles::EnsureDefaultProfiles() noexcept
 	 {
         LOCK_PROFILES;
-        if (profiles.size() == 0)
+        if (GetProfiles().size() == 0)
         {
             LOG_TRACE("Loading default profiles...");
             reset();
@@ -437,6 +462,8 @@ namespace MAT_NS_BEGIN {
 
         EnsureDefaultProfiles();
         LOCK_PROFILES;
+        std::map<std::string, TransmitProfileRules>& profiles = GetProfiles();
+        std::string& currProfileName = GetCurrProfileName();
         auto it = profiles.find(profileName);
         if (it != profiles.end()) {
             currProfileName = profileName;
@@ -460,6 +487,8 @@ namespace MAT_NS_BEGIN {
         EnsureDefaultProfiles();
 
         LOCK_PROFILES;
+        std::map<std::string, TransmitProfileRules>& profiles = GetProfiles();
+        std::string& currProfileName = GetCurrProfileName();
         auto it = profiles.find(currProfileName);
         // When we can't get timers, we won't set isTimerUpdated to false,
         // so we will keep calling getTimers from TransmissionPolicyManager.
@@ -511,7 +540,8 @@ namespace MAT_NS_BEGIN {
     void TransmitProfiles::onTimersUpdated() {
         isTimerUpdated = true;
 #ifdef HAVE_MAT_LOGGING
-        auto it = profiles.find(currProfileName);
+        std::map<std::string, TransmitProfileRules>& profiles = GetProfiles();
+        auto it = profiles.find(GetCurrProfileName());
         if (it != profiles.end()) {
             /* Debug routine to print the list of currently selected timers */
             TransmitProfileRule &rule = (it->second).rules[currRule];
@@ -535,7 +565,8 @@ namespace MAT_NS_BEGIN {
         LOCK_PROFILES;
         currNetCost = netCost;
         currPowState = powState;
-        auto it = profiles.find(currProfileName);
+        std::map<std::string, TransmitProfileRules>& profiles = GetProfiles();
+        auto it = profiles.find(GetCurrProfileName());
         if (it != profiles.end()) {
             auto &profile = it->second;
             // Search for a matching rule. If not found, then return the first (the most restrictive) rule in the list.
