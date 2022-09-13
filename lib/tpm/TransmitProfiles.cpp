@@ -71,15 +71,6 @@ namespace MAT_NS_BEGIN {
         return profiles_mtx;
     }
 
-    /// <summary>
-    /// A string that contains the name of the currently active transmit profile.
-    /// </summary>
-    std::string& GetCurrProfileName()
-    {
-        static std::string currProfileName = DEFAULT_PROFILE;
-        return currProfileName;
-    }
-
     size_t      TransmitProfiles::currRule = 0;
     NetworkCost TransmitProfiles::currNetCost = NetworkCost::NetworkCost_Any;
     PowerSource TransmitProfiles::currPowState = PowerSource::PowerSource_Any;
@@ -92,6 +83,15 @@ namespace MAT_NS_BEGIN {
     {
         static std::map<std::string, TransmitProfileRules> profiles;
         return profiles;
+    }
+
+    /// <summary>
+    /// A string that contains the name of the currently active transmit profile.
+    /// </summary>
+    std::string& TransmitProfiles::GetCurrProfileName() noexcept
+    {
+        static std::string currProfileName = DEFAULT_PROFILE;
+        return currProfileName;
     }
 
     /// <summary>
