@@ -29,6 +29,8 @@ static std::string NextRespId()
     return std::string("RESP-") + std::to_string(seq.fetch_add(1));
 }
 
+static NSURLSession* m_session = nil;
+
 class HttpRequestApple : public SimpleHttpRequest
 {
 public:
@@ -50,9 +52,11 @@ public:
         {
             m_callback = callback;
             NSString* url = [[NSString alloc] initWithUTF8String:m_url.c_str()];
-            NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
             m_urlRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
-            m_session = [NSURLSession sessionWithConfiguration:sessionConfig];
+            if(m_session == nil) {
+                NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
+                m_session = [NSURLSession sessionWithConfiguration:sessionConfig];
+            }
             m_session.sessionDescription = url;
 
             for(const auto& header : m_headers)
@@ -150,7 +154,6 @@ public:
 private:
     HttpClient_Apple* m_parent = nullptr;
     IHttpResponseCallback* m_callback = nullptr;
-    NSURLSession* m_session = nullptr;
     NSURLSessionDataTask* m_dataTask = nullptr;
     NSMutableURLRequest* m_urlRequest = nullptr;
     void (^m_completionMethod)(NSData* data, NSURLResponse* response, NSError* error);
