@@ -39,6 +39,10 @@ public:
         m_parent(parent)
     {
         m_parent->Add(static_cast<IHttpRequest*>(this));
+        if(m_session == nil) {
+            NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
+            m_session = [NSURLSession sessionWithConfiguration:sessionConfig];
+        }
     }
 
     ~HttpRequestApple() noexcept
@@ -53,11 +57,6 @@ public:
             m_callback = callback;
             NSString* url = [[NSString alloc] initWithUTF8String:m_url.c_str()];
             m_urlRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
-            if(m_session == nil) {
-                NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
-                m_session = [NSURLSession sessionWithConfiguration:sessionConfig];
-            }
-            m_session.sessionDescription = url;
 
             for(const auto& header : m_headers)
             {
