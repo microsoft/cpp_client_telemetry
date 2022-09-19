@@ -29,6 +29,7 @@ static std::string NextRespId()
     return std::string("RESP-") + std::to_string(seq.fetch_add(1));
 }
 
+static dispatch_once_t once;
 static NSURLSession* m_session = nil;
 
 class HttpRequestApple : public SimpleHttpRequest
@@ -39,10 +40,10 @@ public:
         m_parent(parent)
     {
         m_parent->Add(static_cast<IHttpRequest*>(this));
-        if(m_session == nil) {
+        dispatch_once(&once, ^{
             NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
             m_session = [NSURLSession sessionWithConfiguration:sessionConfig];
-        }
+        });
     }
 
     ~HttpRequestApple() noexcept
