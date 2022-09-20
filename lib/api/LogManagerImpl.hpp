@@ -114,8 +114,8 @@ namespace MAT_NS_BEGIN
     class ILogManagerInternal : public ILogManager
     {
        public:
-        static std::recursive_mutex managers_lock;
-        static std::set<ILogManager*> managers;
+        static std::recursive_mutex& GetManagersLock();
+        static std::set<ILogManager*>& GetManagers() noexcept;
 
         /// <summary>
         /// Optional decorator runs on event before passing it to sendEvent

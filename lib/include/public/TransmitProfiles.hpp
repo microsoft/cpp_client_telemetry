@@ -131,15 +131,6 @@ namespace MAT_NS_BEGIN
     class TransmitProfiles {
 
     protected:
-        /// <summary>
-        /// A map that contains all transmit profiles.
-        /// </summary>
-        static std::map<std::string, TransmitProfileRules> profiles;
-
-        /// <summary>
-        /// A string that contains the name of the currently active transmit profile.
-        /// </summary>
-        static std::string      currProfileName;
 
         /// <summary>
         /// The size of the currently active transmit profile rule.
@@ -161,12 +152,21 @@ namespace MAT_NS_BEGIN
         /// </summary>
         static bool isTimerUpdated;
 
+        /// <summary>
+        /// A map that contains all transmit profiles.
+        /// </summary>
+        static std::map<std::string, TransmitProfileRules>& GetProfiles() noexcept;
+
+        /// <summary>
+        /// A string that contains the name of the currently active transmit profile.
+        /// </summary>
+        static std::string& GetCurrProfileName() noexcept;
+        
         static void UpdateProfiles(const std::vector<TransmitProfileRules>& newProfiles) noexcept;
 
         static void EnsureDefaultProfiles() noexcept;
 
     public:
-
 
         /// <summary>
         /// The TransmitProfiles default constructor.

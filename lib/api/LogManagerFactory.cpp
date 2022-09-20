@@ -19,12 +19,6 @@
 
 namespace MAT_NS_BEGIN
 {
-    // This mutex has to be recursive because we allow both
-    // Destroy and destrutor to lock it. destructor could be
-    // called directly, and Destroy calls destructor.
-    std::recursive_mutex ILogManagerInternal::managers_lock;
-    std::set<ILogManager*> ILogManagerInternal::managers;
-
     /// <summary>
     /// Creates an instance of ILogManager using specified configuration.
     /// </summary>
@@ -32,9 +26,9 @@ namespace MAT_NS_BEGIN
     /// <returns>ILogManager instance</returns>
     ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration)
     {
-        LOCKGUARD(ILogManagerInternal::managers_lock);
+        LOCKGUARD(ILogManagerInternal::GetManagersLock());
         auto logManager = new LogManagerImpl(configuration);
-        ILogManagerInternal::managers.emplace(logManager);
+        ILogManagerInternal::GetManagers().emplace(logManager);
         return logManager;
     }
 
@@ -50,11 +44,12 @@ namespace MAT_NS_BEGIN
             return STATUS_EFAIL;
         }
 
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        auto it = ILogManagerInternal::managers.find(instance);
-        if (it != std::end(ILogManagerInternal::managers))
+        LOCKGUARD(ILogManagerInternal::GetManagersLock());
+        std::set<ILogManager*>& managers = ILogManagerInternal::GetManagers();
+        auto it = managers.find(instance);
+        if (it != std::end(managers))
         {
-            ILogManagerInternal::managers.erase(it);
+            managers.erase(it);
             delete instance;
             return STATUS_SUCCESS;
         }

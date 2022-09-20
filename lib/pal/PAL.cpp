@@ -96,9 +96,18 @@ namespace PAL_NS_BEGIN {
         bool isLoggingInited = false;
 
 #ifdef HAVE_MAT_LOGGING
-        std::recursive_mutex          debugLogMutex;
-        std::string                   debugLogPath;
-        std::unique_ptr<std::fstream> debugLogStream;
+
+        std::recursive_mutex& GetDebugLogMutex()
+        {
+            static std::recursive_mutex debugLogMutex;
+            return debugLogMutex;
+        }
+        
+        std::shared_ptr<std::fstream>& GetDebugLogStream() noexcept
+        {
+            static std::shared_ptr<std::fstream> debugLogStream;
+            return debugLogStream;
+        }
 
         bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
         {
@@ -108,18 +117,19 @@ namespace PAL_NS_BEGIN {
             }
 
             bool result = true;
-            if (debugLogStream != nullptr)
+            if (GetDebugLogStream() != nullptr)
             {
                 return result;
             }
 
-            debugLogMutex.lock();
-            debugLogPath = traceFolderPath;
+            std::lock_guard<std::recursive_mutex> lockguard(GetDebugLogMutex());
+            std::string debugLogPath = traceFolderPath;
             debugLogPath += "mat-debug-";
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
 
-            debugLogStream = std::unique_ptr<std::fstream>(new std::fstream());
+            std::shared_ptr<std::fstream>& debugLogStream = GetDebugLogStream();
+            debugLogStream = std::make_shared<std::fstream>();
             debugLogStream->open(debugLogPath, std::fstream::out);
             if (!debugLogStream->is_open())
             {
@@ -127,19 +137,18 @@ namespace PAL_NS_BEGIN {
                 debugLogStream->open(DEBUG_LOG_NULL);
                 result = false;
             }
-            debugLogMutex.unlock();
             return result;
         }
 
         void log_done()
         {
-            debugLogMutex.lock();
-            if (debugLogStream)
+            std::lock_guard<std::recursive_mutex> lockguard(GetDebugLogMutex());
+            std::shared_ptr<std::fstream>& debugLogStream = GetDebugLogStream();
+            if (debugLogStream != nullptr)
             {
                 debugLogStream = nullptr;
                 isLoggingInited = false;
             }
-            debugLogMutex.unlock();
         }
 #else
         bool log_init(bool /*isTraceEnabled*/, const std::string& /*traceFolderPath*/)
@@ -258,14 +267,14 @@ namespace PAL_NS_BEGIN {
                 // Make sure all of our debug strings contain EOL
                 buffer[len] = '\n';
                 // Log to debug log file if enabled
-                debugLogMutex.lock();
+                std::lock_guard<std::recursive_mutex> lockguard(GetDebugLogMutex());
+                std::shared_ptr<std::fstream> debugLogStream = GetDebugLogStream();
                 if (debugLogStream->good())
                 {
                     (*debugLogStream) << buffer;
                     // flush is not very efficient, but needed to get realtime file updates
                     debugLogStream->flush();
                 }
-                debugLogMutex.unlock();
             }
             va_end(ap);
 #endif
