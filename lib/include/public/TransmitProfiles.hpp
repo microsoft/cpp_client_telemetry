@@ -166,18 +166,6 @@ namespace MAT_NS_BEGIN
 
         static void EnsureDefaultProfiles() noexcept;
 
-        /// <summary>
-        /// Removes custom profiles.
-        /// This method is called from parse only, and does not require the lock.
-        /// <b>Note:</b> This function is not thread safe.
-        /// </summary>
-        static void removeCustomProfiles();
-
-        /// <summary>
-        /// A timer update event handler.
-        /// </summary>
-        static void onTimersUpdated();
-
     public:
 
         /// <summary>
@@ -194,6 +182,13 @@ namespace MAT_NS_BEGIN
         /// Prints transmit profiles to the debug log.
         /// </summary>
         static void dump();
+
+        /// <summary>
+        /// Removes custom profiles.
+        /// This method is called from parse only, and does not require the lock.
+        /// <b>Note:</b> This function is not thread safe.
+        /// </summary>
+        static void removeCustomProfiles();
 
         /// <summary>
         /// Parses transmit profiles from JSON.
@@ -253,6 +248,11 @@ namespace MAT_NS_BEGIN
         /// <param name="netCost">A reference to an instance of a MAT::NetworkCost enumeration.</param>
         /// <param name="powState">A reference to an instance of a MAT::PowerSource enumeration.</param>
         static void getDeviceState(NetworkCost &netCost, PowerSource &powState);
+
+        /// <summary>
+        /// A timer update event handler.
+        /// </summary>
+        static void onTimersUpdated();
 
         /// <summary>
         /// Determines whether a timer should be updated.

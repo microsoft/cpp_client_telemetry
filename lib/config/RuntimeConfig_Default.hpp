@@ -20,7 +20,7 @@ namespace MAT_NS_BEGIN
        protected:
         ILogConfiguration& config;
        
-       private:
+       public:
         static ILogConfiguration& GetDefaultRuntimeConfig()
         {
             static ILogConfiguration defaultRuntimeConfig {
@@ -88,7 +88,6 @@ namespace MAT_NS_BEGIN
             return defaultRuntimeConfig;
         }
         
-       public:
         RuntimeConfig_Default(ILogConfiguration& customConfig) :
             config(customConfig)
         {

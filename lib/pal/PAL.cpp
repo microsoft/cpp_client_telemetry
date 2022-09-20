@@ -103,9 +103,9 @@ namespace PAL_NS_BEGIN {
             return debugLogMutex;
         }
         
-        std::unique_ptr<std::fstream>& GetDebugLogStream() noexcept
+        std::shared_ptr<std::fstream>& GetDebugLogStream() noexcept
         {
-            static std::unique_ptr<std::fstream> debugLogStream;
+            static std::shared_ptr<std::fstream> debugLogStream;
             return debugLogStream;
         }
 
@@ -128,8 +128,8 @@ namespace PAL_NS_BEGIN {
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
 
-            std::unique_ptr<std::fstream>& debugLogStream = GetDebugLogStream();
-            debugLogStream = std::unique_ptr<std::fstream>(new std::fstream());
+            std::shared_ptr<std::fstream>& debugLogStream = GetDebugLogStream();
+            debugLogStream = std::make_shared<std::fstream>();
             debugLogStream->open(debugLogPath, std::fstream::out);
             if (!debugLogStream->is_open())
             {
@@ -143,7 +143,7 @@ namespace PAL_NS_BEGIN {
         void log_done()
         {
             std::lock_guard<std::recursive_mutex> lockguard(GetDebugLogMutex());
-            std::unique_ptr<std::fstream>& debugLogStream = GetDebugLogStream();
+            std::shared_ptr<std::fstream>& debugLogStream = GetDebugLogStream();
             if (debugLogStream != nullptr)
             {
                 debugLogStream = nullptr;
@@ -268,7 +268,7 @@ namespace PAL_NS_BEGIN {
                 buffer[len] = '\n';
                 // Log to debug log file if enabled
                 std::lock_guard<std::recursive_mutex> lockguard(GetDebugLogMutex());
-                std::unique_ptr<std::fstream>& debugLogStream = GetDebugLogStream();
+                std::shared_ptr<std::fstream> debugLogStream = GetDebugLogStream();
                 if (debugLogStream->good())
                 {
                     (*debugLogStream) << buffer;
