@@ -192,6 +192,11 @@ namespace MAT_NS_BEGIN
         /// <returns>Provider Group Id</returns>
         virtual const char* GetProviderGroupId() = 0;
 
+        /// <summary>
+        /// Get whether to skip registering the iKey with UTC
+        /// </summary>
+        virtual bool SkipIKeyRegistration() const = 0;
+
         virtual ~IRuntimeConfig() {};
     };
 

@@ -185,6 +185,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_STR_PROVIDER_GROUP_ID = "providerGroupId";
 
     /// <summary>
+    /// Skip registering the iKey with UTC, so that a pre-existing provider can be used.
+    /// </summary>
+    static constexpr const char* const CFG_STR_SKIP_IKEY_REGISTRATION = "skipIKeyRegistration";
+
+    /// <summary>
     /// The maximum teardown time.
     /// </summary>
     static constexpr const char* const CFG_INT_MAX_TEARDOWN_TIME = "maxTeardownUploadTimeInSec";
