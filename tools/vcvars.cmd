@@ -73,6 +73,27 @@ if exist "%VSDEVCMD%" (
   goto tools_configured
 )
 
+:vs2022
+:vs2022_enterprise
+SET VSVERSION=2022
+set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
+if exist "%VSDEVCMD%" (
+  set "VSINSTALLDIR=%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise"
+  echo Building with vs2022 Enterprise...
+  call "%VSDEVCMD%"
+  goto tools_configured
+)
+
+:vs2022_community
+SET VSVERSION=2022
+set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
+if exist "%VSDEVCMD%" (
+  set "VSINSTALLDIR=%ProgramFiles%\Microsoft Visual Studio\2022\Community"
+  echo Building with vs2022 Community...
+  call "%VSDEVCMD%"
+  goto tools_configured
+)
+
 echo WARNING:*********************************************
 echo WARNING: cannot auto-detect Visual Studio version !!!
 echo WARNING:*********************************************
