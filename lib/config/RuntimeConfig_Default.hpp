@@ -38,10 +38,11 @@ namespace MAT_NS_BEGIN
         {"utc",
          {
 #ifdef HAVE_MAT_UTC
-             {"providerGroupId", "780dddc8-18a1-5781-895a-a690464fa89c"},
+             {CFG_STR_PROVIDER_GROUP_ID, "780dddc8-18a1-5781-895a-a690464fa89c"},
              {CFG_BOOL_UTC_ENABLED, true},
              {CFG_BOOL_UTC_ACTIVE, false},
-             {CFG_BOOL_UTC_LARGE_PAYLOADS, false}
+             {CFG_BOOL_UTC_LARGE_PAYLOADS, false},
+             {CFG_STR_SKIP_IKEY_REGISTRATION, false},
 #else
              {CFG_BOOL_UTC_ENABLED, false}
 #endif
