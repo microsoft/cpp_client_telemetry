@@ -197,6 +197,11 @@ namespace MAT_NS_BEGIN
             return config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID];
         }
 
+        virtual const char* GetProviderName() override
+        {
+            return config[CFG_STR_UTC][CFG_STR_UTC_PROVIDER_NAME];
+        }
+
         virtual bool SkipIKeyRegistration() const override
         {
             return config[CFG_STR_UTC][CFG_STR_SKIP_IKEY_REGISTRATION];

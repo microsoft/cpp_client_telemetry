@@ -193,6 +193,12 @@ namespace MAT_NS_BEGIN
         virtual const char* GetProviderGroupId() = 0;
 
         /// <summary>
+        /// Get UTC channel provider name
+        /// </summary>
+        /// <returns>Provider Name</returns>
+        virtual const char* GetProviderName() = 0;
+
+        /// <summary>
         /// Get whether to skip registering the iKey with UTC
         /// </summary>
         virtual bool SkipIKeyRegistration() const = 0;
