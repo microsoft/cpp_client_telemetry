@@ -247,7 +247,6 @@ namespace MAT_NS_BEGIN
             // UTC is active
             configuration[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE] = true;
             LOG_TRACE("Initializing UTC physical layer...");
-
             m_system.reset(new UtcTelemetrySystem(*this, *m_config, *m_taskDispatcher));
             if (!deferSystemStart)
             {
