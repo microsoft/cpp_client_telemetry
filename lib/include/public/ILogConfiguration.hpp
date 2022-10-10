@@ -175,9 +175,19 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_STR_UTC = "utc";
 
     /// <summary>
+    /// Sets the provider name when in UTC mode.
+    /// </summary>
+    static constexpr const char* const CFG_STR_UTC_PROVIDER_NAME = "providerName";
+
+    /// <summary>
     /// Set the provider group directly with a string (which will be converted to a GUID).
     /// </summary>
     static constexpr const char* const CFG_STR_PROVIDER_GROUP_ID = "providerGroupId";
+
+    /// <summary>
+    /// Skip registering the iKey with UTC, so that a pre-existing provider can be used.
+    /// </summary>
+    static constexpr const char* const CFG_STR_SKIP_IKEY_REGISTRATION = "skipIKeyRegistration";
 
     /// <summary>
     /// The maximum teardown time.
