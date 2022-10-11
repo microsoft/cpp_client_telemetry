@@ -128,6 +128,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     if(BUILD_APPLE_HTTP OR BUILD_IOS)
       list(APPEND SRCS
         http/HttpClient_Apple.mm
+        http/HttpRequestApple.mm
       )
     else()
       list(APPEND SRCS
