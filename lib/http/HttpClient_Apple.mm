@@ -12,152 +12,11 @@
 #import <CFNetwork/CFNetwork.h>
 
 #include "HttpClient_Apple.hpp"
+#include "HttpRequestApple.hpp"
 #include "utils/StringUtils.hpp"
 #include "utils/Utils.hpp"
 
 namespace MAT_NS_BEGIN {
-
-static std::string NextReqId()
-{
-    static std::atomic<uint64_t> seq;
-    return std::string("REQ-") + std::to_string(seq.fetch_add(1));
-}
-
-static std::string NextRespId()
-{
-    static std::atomic<uint64_t> seq;
-    return std::string("RESP-") + std::to_string(seq.fetch_add(1));
-}
-
-static dispatch_once_t once;
-static NSURLSession* m_session = nil;
-
-class HttpRequestApple : public SimpleHttpRequest
-{
-public:
-    HttpRequestApple(HttpClient_Apple* parent) :
-        SimpleHttpRequest(NextReqId()),
-        m_parent(parent)
-    {
-        m_parent->Add(static_cast<IHttpRequest*>(this));
-        dispatch_once(&once, ^{
-            NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
-            m_session = [NSURLSession sessionWithConfiguration:sessionConfig];
-        });
-    }
-
-    ~HttpRequestApple() noexcept
-    {
-        m_parent->Erase(static_cast<IHttpRequest*>(this));
-    }
-
-    void SendAsync(IHttpResponseCallback* callback)
-    {
-        @autoreleasepool
-        {
-            m_callback = callback;
-            NSString* url = [[NSString alloc] initWithUTF8String:m_url.c_str()];
-            m_urlRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
-
-            for(const auto& header : m_headers)
-            {
-                NSString* name = [[NSString alloc] initWithUTF8String:header.first.c_str()];
-                NSString* value = [[NSString alloc] initWithUTF8String:header.second.c_str()];
-                [m_urlRequest setValue:value forHTTPHeaderField:name];
-            }
-
-            m_completionMethod =
-                ^(NSData *data, NSURLResponse *response, NSError *error)
-                {
-                    HandleResponse(data, response, error);
-                };
-
-            if(equalsIgnoreCase(m_method, "get"))
-            {
-                [m_urlRequest setHTTPMethod:@"GET"];
-                m_dataTask = [m_session dataTaskWithRequest:m_urlRequest completionHandler:m_completionMethod];
-            }
-            else
-            {
-                [m_urlRequest setHTTPMethod:@"POST"];
-                NSData* postData = [NSData dataWithBytes:m_body.data() length:m_body.size()];
-                m_dataTask = [m_session uploadTaskWithRequest:m_urlRequest fromData:postData completionHandler:m_completionMethod];
-            }
-
-            [m_dataTask resume];
-        }
-    }
-
-    void HandleResponse(NSData* data, NSURLResponse* response, NSError* error)
-    {
-        @autoreleasepool
-        {
-            NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
-            auto simpleResponse = new SimpleHttpResponse { NextRespId() };
-
-            simpleResponse->m_statusCode = httpResp.statusCode;
-
-            NSDictionary *responseHeaders = [httpResp allHeaderFields];
-            for (id key in responseHeaders)
-            {
-                simpleResponse->m_headers.add([key UTF8String], [responseHeaders[key] UTF8String]);
-            }
-
-            if (error)
-            {
-                NSString* errorDomain = [error domain];
-                long errorCode = [error code];
-
-                if ([errorDomain isEqualToString:@"NSURLErrorDomain"] && (errorCode == NSURLErrorCancelled))
-                {
-                    simpleResponse->m_result = HttpResult_Aborted;
-                }
-                else
-                {
-                    LOG_TRACE("HTTP response error code: %li", errorCode);
-                    simpleResponse->m_result = HttpResult_NetworkFailure;
-                }
-            }
-            else
-            {
-                simpleResponse->m_result = HttpResult_OK;
-                auto body = static_cast<const uint8_t*>([data bytes]);
-                simpleResponse->m_body.reserve(data.length);
-                std::copy(body, body + data.length, std::back_inserter(simpleResponse->m_body));
-            }
-            m_callback->OnHttpResponse(simpleResponse);
-        }
-    }
-
-    void Cancel()
-    {
-        [m_dataTask cancel];
-        [m_session getTasksWithCompletionHandler:^(NSArray* dataTasks, NSArray* uploadTasks, NSArray* downloadTasks)
-        {
-            for (NSURLSessionTask* _task in dataTasks)
-            {
-                [_task cancel];
-            }
-
-            for (NSURLSessionTask* _task in downloadTasks)
-            {
-                [_task cancel];
-            }
-
-            for (NSURLSessionTask* _task in uploadTasks)
-            {
-                [_task cancel];
-            }
-        }];
-    }
-
-private:
-    HttpClient_Apple* m_parent = nullptr;
-    IHttpResponseCallback* m_callback = nullptr;
-    NSURLSessionDataTask* m_dataTask = nullptr;
-    NSMutableURLRequest* m_urlRequest = nullptr;
-    void (^m_completionMethod)(NSData* data, NSURLResponse* response, NSError* error);
-};
 
 HttpClient_Apple::HttpClient_Apple()
 {
@@ -236,4 +95,3 @@ void HttpClient_Apple::Add(IHttpRequest* req)
 } MAT_NS_END
 
 #endif
-
