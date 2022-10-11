@@ -8,13 +8,8 @@
 // e.g. WinInet.dll or Win 10 HTTP client instead
 #if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
 
-#import <Foundation/Foundation.h>
-#import <CFNetwork/CFNetwork.h>
-
 #include "HttpClient_Apple.hpp"
 #include "HttpRequestApple.hpp"
-#include "utils/StringUtils.hpp"
-#include "utils/Utils.hpp"
 
 namespace MAT_NS_BEGIN {
 
