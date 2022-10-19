@@ -18,7 +18,7 @@
 namespace MAT_NS_BEGIN {
 
 static dispatch_once_t once;
-static NSURLSession* m_session;
+static NSURLSession* session;
 
 static std::string NextReqId()
 {
@@ -39,7 +39,7 @@ HttpRequestApple::HttpRequestApple(HttpClient_Apple* parent) :
     m_parent->Add(static_cast<IHttpRequest*>(this));
     dispatch_once(&once, ^{
         NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
-        m_session = [NSURLSession sessionWithConfiguration:sessionConfig];
+        session = [NSURLSession sessionWithConfiguration:sessionConfig];
     });
 }
 
@@ -72,13 +72,13 @@ void HttpRequestApple::SendAsync(IHttpResponseCallback* callback)
         if(equalsIgnoreCase(m_method, "get"))
         {
             [m_urlRequest setHTTPMethod:@"GET"];
-            m_dataTask = [m_session dataTaskWithRequest:m_urlRequest completionHandler:m_completionMethod];
+            m_dataTask = [session dataTaskWithRequest:m_urlRequest completionHandler:m_completionMethod];
         }
         else
         {
             [m_urlRequest setHTTPMethod:@"POST"];
             NSData* postData = [NSData dataWithBytes:m_body.data() length:m_body.size()];
-            m_dataTask = [m_session uploadTaskWithRequest:m_urlRequest fromData:postData completionHandler:m_completionMethod];
+            m_dataTask = [session uploadTaskWithRequest:m_urlRequest fromData:postData completionHandler:m_completionMethod];
         }
 
         [m_dataTask resume];
@@ -129,7 +129,7 @@ void HttpRequestApple::HandleResponse(NSData* data, NSURLResponse* response, NSE
 void HttpRequestApple::Cancel()
 {
     [m_dataTask cancel];
-    [m_session getTasksWithCompletionHandler:^(NSArray* dataTasks, NSArray* uploadTasks, NSArray* downloadTasks)
+    [session getTasksWithCompletionHandler:^(NSArray* dataTasks, NSArray* uploadTasks, NSArray* downloadTasks)
     {
         for (NSURLSessionTask* _task in dataTasks)
         {
