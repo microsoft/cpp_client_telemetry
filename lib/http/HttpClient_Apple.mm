@@ -57,7 +57,6 @@ public:
         {
             m_callback = callback;
             NSString* url = [[NSString alloc] initWithUTF8String:m_url.c_str()];
-            NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
             m_urlRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
 
             for(const auto& header : m_headers)
@@ -159,7 +158,6 @@ private:
     NSMutableURLRequest* m_urlRequest = nullptr;
     void (^m_completionMethod)(NSData* data, NSURLResponse* response, NSError* error);
 };
-
 
 HttpClient_Apple::HttpClient_Apple()
 {
