@@ -29,6 +29,9 @@ static std::string NextRespId()
     return std::string("RESP-") + std::to_string(seq.fetch_add(1));
 }
 
+static dispatch_once_t once;
+static NSURLSession* session;
+
 class HttpRequestApple : public SimpleHttpRequest
 {
 public:
@@ -37,6 +40,10 @@ public:
         m_parent(parent)
     {
         m_parent->Add(static_cast<IHttpRequest*>(this));
+        dispatch_once(&once, ^{
+            NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
+            session = [NSURLSession sessionWithConfiguration:sessionConfig];
+        });
     }
 
     ~HttpRequestApple() noexcept
@@ -50,10 +57,7 @@ public:
         {
             m_callback = callback;
             NSString* url = [[NSString alloc] initWithUTF8String:m_url.c_str()];
-            NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
             m_urlRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
-            m_session = [NSURLSession sessionWithConfiguration:sessionConfig];
-            m_session.sessionDescription = url;
 
             for(const auto& header : m_headers)
             {
@@ -71,13 +75,13 @@ public:
             if(equalsIgnoreCase(m_method, "get"))
             {
                 [m_urlRequest setHTTPMethod:@"GET"];
-                m_dataTask = [m_session dataTaskWithRequest:m_urlRequest completionHandler:m_completionMethod];
+                m_dataTask = [session dataTaskWithRequest:m_urlRequest completionHandler:m_completionMethod];
             }
             else
             {
                 [m_urlRequest setHTTPMethod:@"POST"];
                 NSData* postData = [NSData dataWithBytes:m_body.data() length:m_body.size()];
-                m_dataTask = [m_session uploadTaskWithRequest:m_urlRequest fromData:postData completionHandler:m_completionMethod];
+                m_dataTask = [session uploadTaskWithRequest:m_urlRequest fromData:postData completionHandler:m_completionMethod];
             }
 
             [m_dataTask resume];
@@ -128,7 +132,7 @@ public:
     void Cancel()
     {
         [m_dataTask cancel];
-        [m_session getTasksWithCompletionHandler:^(NSArray* dataTasks, NSArray* uploadTasks, NSArray* downloadTasks)
+        [session getTasksWithCompletionHandler:^(NSArray* dataTasks, NSArray* uploadTasks, NSArray* downloadTasks)
         {
             for (NSURLSessionTask* _task in dataTasks)
             {
@@ -150,7 +154,6 @@ public:
 private:
     HttpClient_Apple* m_parent = nullptr;
     IHttpResponseCallback* m_callback = nullptr;
-    NSURLSession* m_session = nullptr;
     NSURLSessionDataTask* m_dataTask = nullptr;
     NSMutableURLRequest* m_urlRequest = nullptr;
     void (^m_completionMethod)(NSData* data, NSURLResponse* response, NSError* error);
@@ -233,4 +236,3 @@ void HttpClient_Apple::Add(IHttpRequest* req)
 } MAT_NS_END
 
 #endif
-
