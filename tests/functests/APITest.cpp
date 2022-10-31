@@ -1455,6 +1455,49 @@ TEST(APITest, Custom_Decorator)
     config.AddModule(CFG_MODULE_DECORATOR, nullptr);
 }
 
+TEST(APITest, TraceContext)
+{
+    auto& config = LogManager::GetLogConfiguration();
+    LogManager::Initialize(TEST_TOKEN, config);
+    auto logger = LogManager::GetLogger();
+    auto context = logger->GetSemanticContext();
+
+    // Information that is propagated in W3C TraceContext header.
+    // These fields must be formatted as strings comforming to W3C spec:
+    // https://www.w3.org/TR/trace-context/#traceparent-header-field-values
+    context->SetTraceId("0af7651916cd43dd8448eb211c80319c");
+    context->SetSpanId("b9c7c989f97918e1");
+    context->SetTraceFlags(1);
+
+    // Information that allows to stitch this span to its remote parent, e.g.
+    // SpanId='00f067aa0ba902b7' is parent of SpanId='b9c7c989f97918e1'.
+    // ParentId is not sent as part of W3C TraceContext header, but it is
+    // logged via 1DS pipeline in order to allow attaching local telemetry
+    // to remote context.
+    context->SetParentId("00f067aa0ba902b7");
+
+    // All events emitted by this logger contain the same trace context.
+    EventProperties myEvent("MyEvent.With.TraceContext",
+        {
+            {"message", "Hello, W3CTraceContext!"}
+        });
+    logger->LogEvent(myEvent);
+
+    {
+        // Verify that individual events are capable of overridding the context.
+        EventProperties myEvent2("MyEvent2.With.TraceContext",
+            {
+                {"message", "Hello again, W3CTraceContext!"}
+            });
+        // This event borrows the logger context TraceId, is manually
+        // parented to previous SpanId and carries its own SpanId.
+        myEvent2.SetProperty(COMMONFIELDS_DT_PARENTID, "b9c7c989f97918e1");
+        myEvent2.SetProperty(COMMONFIELDS_DT_SPANID, "b9c7c989f97918c2");
+        logger->LogEvent(myEvent2);
+    }
+    LogManager::FlushAndTeardown();
+}
+
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)
