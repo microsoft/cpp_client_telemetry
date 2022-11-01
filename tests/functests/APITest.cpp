@@ -1463,7 +1463,7 @@ TEST(APITest, TraceContext)
     auto context = logger->GetSemanticContext();
 
     // Information that is propagated in W3C TraceContext header.
-    // These fields must be formatted as strings comforming to W3C spec:
+    // These fields must be formatted as strings conforming to W3C spec:
     // https://www.w3.org/TR/trace-context/#traceparent-header-field-values
     context->SetTraceId("0af7651916cd43dd8448eb211c80319c");
     context->SetSpanId("b9c7c989f97918e1");
