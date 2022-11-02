@@ -8,7 +8,7 @@ yum -y install autoconf
 yum -y install libtool
 yum -y install make gcc gcc-c++
 yum -y install wget
-yum -y install libcurl
+yum -y install libcurl nghttp2
 yum -y install zlib-devel
 yum -y install git
 yum -y install gperftools-libs
@@ -53,7 +53,7 @@ apt-get install -y libtool-bin
 apt-get install -y cmake
 apt-get install -y sqlite
 apt-get install -y curl
-apt-get install -y libcurl4-openssl-dev
+apt-get install -y libcurl4-openssl-dev nghttp2
 apt-get install -y zlib1g-dev
 apt-get install -y git
 apt-get install -y build-essential
