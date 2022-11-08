@@ -26,7 +26,10 @@ namespace CommonSchema.Server
         public static void Main(string[] args)
         {
             CreateWebHostBuilder(args)
-            .UseKestrel()
+            .UseKestrel(options =>
+            {
+                options.AllowSynchronousIO = true;
+            })
             .UseContentRoot(Directory.GetCurrentDirectory())
             .UseWebRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
             .ConfigureAppConfiguration((hostingContext, config) =>
