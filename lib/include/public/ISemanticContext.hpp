@@ -141,7 +141,7 @@ namespace MAT_NS_BEGIN
                 break;
 
             default:
-                assert(!"Unknown NetworkCost enum value");
+                // assert(!"Unknown NetworkCost enum value");
                 value = "";
                 break;
             }
@@ -180,7 +180,7 @@ namespace MAT_NS_BEGIN
                 break;
 
             default:
-                assert(!"Unknown NetworkType enum value");
+                // assert(!"Unknown NetworkType enum value");
                 value = "";
                 break;
             }

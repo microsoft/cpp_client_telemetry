@@ -725,10 +725,10 @@ namespace MAT_NS_BEGIN
 
         static void WaitPause()
         {
-            auto instance = GetInstance();
-            if (instance) {
+            auto logManagerinstance = GetInstance();
+            if (logManagerinstance) {
                 // do not hold the stateLock() here!
-                instance->WaitPause();
+                logManagerinstance->WaitPause();
             }
         }
 
