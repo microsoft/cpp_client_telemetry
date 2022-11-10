@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace CommonSchema
 {
@@ -20,6 +21,13 @@ namespace CommonSchema
         public class Startup
         {
             private int seq = 0;
+
+            public Startup(IConfiguration configuration)
+            {
+                Configuration = configuration;
+            }
+
+            public IConfiguration Configuration { get; }
 
             // This method gets called by the runtime. Use this method to add services to the container.
             // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -54,24 +62,38 @@ namespace CommonSchema
                     try
                     {
                         string path = context.Request.Path.Value;
+                        if (path.StartsWith("/OneCollectorWriteToFile"))
+                        {
+                            string result = DecodeTelemetryRequest(context, decoderLogger);
+                            var fileName = Configuration.GetSection("FileNameToStoreTelemetryData")?.Value;
+                            if (!string.IsNullOrEmpty(fileName))
+                            {
+                                if (File.Exists(fileName))
+                                {
+                                    var formattedResult = result.Replace("[", "").Replace("]", "");
+                                    var currentContent = File.ReadAllText(fileName);
+                                    var updatedContent = string.Concat(currentContent.Replace("]", ","), formattedResult, "]");
+                                    File.WriteAllText(fileName, updatedContent);
+                                }
+                                else
+                                {
+                                    File.AppendAllText(fileName, result);
+                                }
+                            }
+                            else
+                            {
+                                requestLogger.LogError("Parameter FileNameToStoreTelemetryData from appsettings.json, where data should be stored is not specified. As a result telemetry data won't be saved to file, but will be visible in the console");
+                            }
+
+                            // Echo the body converted to JSON array
+                            context.Response.StatusCode = 200;
+                            requestLogger.LogInformation(result);
+                            await context.Response.WriteAsync(result);
+                        }
+                        else
                         if (path.StartsWith("/OneCollector/"))
                         {
-                            int length = Int32.Parse(context.Request.Headers["Content-Length"]);
-                            BinaryReader reader = new BinaryReader(context.Request.Body);
-
-                            // Read body fully before decoding it
-                            byte[] buffer = reader.ReadBytes(length);
-
-                            Dictionary<string, string> headers = new Dictionary<string, string>();
-                            foreach (KeyValuePair<string, StringValues> entry in context.Request.Headers)
-                            {
-                                // Our decoder only needs to know the 1st header value, do not need a multimap
-                                headers[entry.Key] = entry.Value.ElementAt(0);
-                            };
-                            Decoder decoder = new Decoder(headers, buffer);
-                            // Supply the logger
-                            decoder.Logger = decoderLogger;
-                            string result = decoder.ToJson(false, true, 2);
+                            string result = DecodeTelemetryRequest(context, decoderLogger);
 
                             // Echo the body converted to JSON array
                             context.Response.StatusCode = 200;
@@ -125,6 +147,27 @@ namespace CommonSchema
                     }
                 });
 
+            }
+
+            private static string DecodeTelemetryRequest(HttpContext context, ILogger decoderLogger)
+            {
+                int length = Int32.Parse(context.Request.Headers["Content-Length"]);
+                BinaryReader reader = new BinaryReader(context.Request.Body);
+
+                // Read body fully before decoding it
+                byte[] buffer = reader.ReadBytes(length);
+
+                Dictionary<string, string> headers = new Dictionary<string, string>();
+                foreach (KeyValuePair<string, StringValues> entry in context.Request.Headers)
+                {
+                    // Our decoder only needs to know the 1st header value, do not need a multimap
+                    headers[entry.Key] = entry.Value.ElementAt(0);
+                };
+                Decoder decoder = new Decoder(headers, buffer);
+                // Supply the logger
+                decoder.Logger = decoderLogger;
+                string result = decoder.ToJson(false, true, 2);
+                return result;
             }
         }
     }
