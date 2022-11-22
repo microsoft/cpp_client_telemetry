@@ -21,6 +21,7 @@ namespace CommonSchema
         public class Startup
         {
             private int seq = 0;
+            private static object locker = new Object();
 
             public Startup(IConfiguration configuration)
             {
@@ -68,16 +69,19 @@ namespace CommonSchema
                             var fileName = Configuration.GetSection("FileNameToStoreTelemetryData")?.Value;
                             if (!string.IsNullOrEmpty(fileName))
                             {
-                                if (File.Exists(fileName))
+                                lock (locker) 
                                 {
-                                    var formattedResult = result.Replace("[", "").Replace("]", "");
-                                    var currentContent = File.ReadAllText(fileName);
-                                    var updatedContent = string.Concat(currentContent.Replace("]", ","), formattedResult, "]");
-                                    File.WriteAllText(fileName, updatedContent);
-                                }
-                                else
-                                {
-                                    File.AppendAllText(fileName, result);
+                                    if (File.Exists(fileName))
+                                    {
+                                        var formattedResult = result.Replace("[", "").Replace("]", "");
+                                        var currentContent = File.ReadAllText(fileName);
+                                        var updatedContent = string.Concat(currentContent.Replace("]", ","), formattedResult, "]");
+                                        File.WriteAllText(fileName, updatedContent);
+                                    }
+                                    else
+                                    {
+                                        File.AppendAllText(fileName, result);
+                                    }
                                 }
                             }
                             else
