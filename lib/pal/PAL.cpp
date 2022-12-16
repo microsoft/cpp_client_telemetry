@@ -223,7 +223,22 @@ namespace PAL_NS_BEGIN {
 
             buffer[std::min<size_t>(len + 0, sizeof(buffer) - 2)] = '\n';
             buffer[std::min<size_t>(len + 1, sizeof(buffer) - 1)] = '\0';
-            ::OutputDebugStringA(buffer);
+            if (IsDebuggerPresent())
+            {
+                ::OutputDebugStringA(buffer);
+            }
+            else
+            {
+                // Log to debug log file if enabled
+                debugLogMutex.lock();
+                if (debugLogStream->good())
+                {
+                    (*debugLogStream) << buffer;
+                    // flush is not very efficient, but needed to get realtime file updates
+                    debugLogStream->flush();
+                }
+                debugLogMutex.unlock();
+            }
 #else
             auto now = std::chrono::system_clock::now();
             int64_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
