@@ -72,6 +72,19 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_SUBSTRATESIGNALS
+#if defined __has_include
+#if __has_include("modules/substratesignals/SubstrateSignals.hpp")
+#include "modules/substratesignals/SubstrateSignals.hpp"
+#else
+/* Compiling without Substrate Signals support because Substrate Signals private header is unavailable */
+#undef HAVE_MAT_SUBSTRATESIGNALS
+#endif
+#else
+#include "modules/substratesignals/SubstrateSignals.hpp"
+#endif
+#endif
+
 namespace MAT_NS_BEGIN
 {
     void DeadLoggers::AddMap(LoggerMap&& source)
