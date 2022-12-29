@@ -301,7 +301,7 @@ endif()
 # Packaging
 ################################################################################################
 
-if (false)
+if (BUILD_PACKAGE)
   if (${CMAKE_PACKAGE_TYPE} STREQUAL "deb")
     # FIXME: hardcode it for 64-bit Linux for now
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
