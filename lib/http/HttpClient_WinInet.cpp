@@ -211,8 +211,8 @@ class WinInetRequestWrapper
             INTERNET_FLAG_RELOAD | (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
             reinterpret_cast<DWORD_PTR>(this));
         if (m_hWinInetRequest == NULL) {
-            DWORD dwError = ::GetLastError();
-            LOG_WARN("HttpOpenRequest() failed: %d", dwError);
+            // DWORD dwError = ::GetLastError();
+            // LOG_WARN("HttpOpenRequest() failed: %d", dwError);
             // Request cannot be opened to given URL because of some connectivity issue
             DispatchEvent(OnConnectFailed);
             onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
