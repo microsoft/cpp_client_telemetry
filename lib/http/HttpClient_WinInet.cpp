@@ -194,8 +194,8 @@ class WinInetRequestWrapper
         m_hWinInetSession = ::InternetConnectA(m_parent.m_hInternet, hostname, urlc.nPort,
             NULL, NULL, INTERNET_SERVICE_HTTP, 0, reinterpret_cast<DWORD_PTR>(this));
         if (m_hWinInetSession == NULL) {
-            DWORD dwError = ::GetLastError();
-            LOG_WARN("InternetConnect() failed: %d", dwError);
+            // DWORD dwError = ::GetLastError();
+            // LOG_WARN("InternetConnect() failed: %d", dwError);
             // Cannot connect to host
             DispatchEvent(OnConnectFailed);
             onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
