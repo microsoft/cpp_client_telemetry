@@ -183,8 +183,8 @@ class WinInetRequestWrapper
         urlc.dwUrlPathLength = sizeof(path);
         if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc))
         {
-            DWORD dwError = ::GetLastError();
-            LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
+            // DWORD dwError = ::GetLastError();
+            // LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
             // Invalid URL passed to WinInet API
             DispatchEvent(OnConnectFailed);
             onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
