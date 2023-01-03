@@ -240,8 +240,8 @@ class WinInetRequestWrapper
 
         if (!::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
         {
-            DWORD dwError = ::GetLastError();
-            LOG_WARN("HttpAddRequestHeadersA() failed: %d", dwError);
+            // DWORD dwError = ::GetLastError();
+            // LOG_WARN("HttpAddRequestHeadersA() failed: %d", dwError);
             // Unable to add request headers. There's no point in proceeding with upload because
             // our server is expecting those custom request headers to always be there.
             DispatchEvent(OnConnectFailed);
