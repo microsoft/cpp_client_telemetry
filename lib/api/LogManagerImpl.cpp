@@ -408,10 +408,10 @@ namespace MAT_NS_BEGIN
 
             m_filters.UnregisterAllFilters();
 
-            auto shutTime = GetUptimeMs();
+            // auto shutTime = GetUptimeMs();
             PAL::shutdown();
-            shutTime = GetUptimeMs() - shutTime;
-            LOG_INFO("Shutdown complete in %lld ms", shutTime);
+            // shutTime = GetUptimeMs() - shutTime;
+            // LOG_INFO("Shutdown complete in %lld ms", shutTime);
         }
         m_alive = false;
     }
