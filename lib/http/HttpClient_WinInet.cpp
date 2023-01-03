@@ -257,8 +257,8 @@ class WinInetRequestWrapper
         DWORD dwError = GetLastError();
 
         if (bResult == TRUE && dwError != ERROR_IO_PENDING) {
-            dwError = ::GetLastError();
-            LOG_WARN("HttpSendRequest() failed: %d", dwError);
+            // dwError = ::GetLastError();
+            // LOG_WARN("HttpSendRequest() failed: %d", dwError);
             // Unable to send requerst
             DispatchEvent(OnSendFailed);
             onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
