@@ -326,7 +326,7 @@ namespace PAL_NS_BEGIN {
 
         // TODO: [MG] - replace this sprintf by more robust GUID to string converter
         char buf[40] = { 0 };
-        sprintf(buf,
+        snprintf(buf, sizeof(buf) / sizeof(buf[0]),
             "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
             uuid.Data1, uuid.Data2, uuid.Data3,
             uuid.Data4[0], uuid.Data4[1], uuid.Data4[2], uuid.Data4[3],
