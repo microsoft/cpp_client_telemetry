@@ -163,7 +163,7 @@ evt_status_t mat_open_core(
     }
 
     status_t status = static_cast<status_t>(EFAULT);
-    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, status);
+    clients[code].logmanager = LogManagerFactory::Get(clients[code].config, status);
 
     // Verify that the instance pointer is valid
     if (clients[code].logmanager == nullptr)

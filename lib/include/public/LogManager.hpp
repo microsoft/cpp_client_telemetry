@@ -12,7 +12,5 @@ namespace MAT_NS_BEGIN {
     class LogManager : public LogManagerBase<ModuleLogConfiguration> {};
 } MAT_NS_END
 
-#define LOGMANAGER_INSTANCE namespace MAT_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } MAT_NS_END
-
 #endif
 

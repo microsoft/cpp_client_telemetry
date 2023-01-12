@@ -97,7 +97,8 @@ class AISendTests : public ::testing::Test,
     std::string serverAddress;
     HttpServer server;
 
-    ILogger* logger;
+    ILogConfiguration configuration;
+    std::unique_ptr<ILogManager> logManager;
 
     std::atomic<bool> isSetup;
     std::atomic<bool> isRunning;
@@ -147,7 +148,8 @@ class AISendTests : public ::testing::Test,
     virtual void Initialize(DebugEventListener& debugListener, std::string const& path, bool compression)
     {
         receivedRequests.clear();
-        auto configuration = LogManager::GetLogConfiguration();
+        configuration = ILogConfiguration{};
+        configuration[CFG_STR_PRIMARY_TOKEN] = std::string{TEST_TOKEN};
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes_AI;
         configuration[CFG_STR_COLLECTOR_URL] = (serverAddress + path).c_str();
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = compression;
@@ -167,32 +169,32 @@ class AISendTests : public ::testing::Test,
         configuration["version"] = "1.0.0";
         configuration["config"] = {{"host", __FILE__}};  // Host instance
 
-        LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, {DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX});
-        LogManager::ResumeTransmission();
+        logManager = LogManagerProvider::CreateLogManager(configuration);
+        logManager->Initialize(TEST_TOKEN, configuration);
+        logManager->SetLevelFilter(DIAG_LEVEL_DEFAULT, {DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX});
+        logManager->ResumeTransmission();
 
-        LogManager::AddEventListener(DebugEventType::EVT_HTTP_OK, debugListener);
-        LogManager::AddEventListener(DebugEventType::EVT_HTTP_ERROR, debugListener);
-        LogManager::AddEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
-        LogManager::AddEventListener(DebugEventType::EVT_HTTP_STATE, debugListener);
-        LogManager::AddEventListener(DebugEventType::EVT_ADDED, debugListener);
+        logManager->AddEventListener(DebugEventType::EVT_HTTP_OK, debugListener);
+        logManager->AddEventListener(DebugEventType::EVT_HTTP_ERROR, debugListener);
+        logManager->AddEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
+        logManager->AddEventListener(DebugEventType::EVT_HTTP_STATE, debugListener);
+        logManager->AddEventListener(DebugEventType::EVT_ADDED, debugListener);
 
-        logger = LogManager::GetLogger(TEST_TOKEN);
+        logger = logManager->GetLogger(TEST_TOKEN);
     }
 
     virtual void FlushAndTeardown(DebugEventListener& debugListener)
     {
-        LogManager::Flush();
+        logManager->Flush();
 
-        LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_OK, debugListener);
-        LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_ERROR, debugListener);
-        LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
-        LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_STATE, debugListener);
-        LogManager::RemoveEventListener(DebugEventType::EVT_ADDED, debugListener);
+        logManager->RemoveEventListener(DebugEventType::EVT_HTTP_OK, debugListener);
+        logManager->RemoveEventListener(DebugEventType::EVT_HTTP_ERROR, debugListener);
+        logManager->RemoveEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
+        logManager->RemoveEventListener(DebugEventType::EVT_HTTP_STATE, debugListener);
+        logManager->RemoveEventListener(DebugEventType::EVT_ADDED, debugListener);
 
-        LogManager::FlushAndTeardown();
+        logManager->FlushAndTeardown();
 
-        auto &configuration = LogManager::GetLogConfiguration();
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes_CS;
     }
 

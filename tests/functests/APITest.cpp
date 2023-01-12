@@ -38,8 +38,6 @@
 
 using namespace MAT;
 
-LOGMANAGER_INSTANCE
-
 // 1DSCppSdkTest sandbox key
 #define TEST_TOKEN      "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
 
@@ -218,44 +216,44 @@ public:
 /// Add all event listeners
 /// </summary>
 /// <param name="listener"></param>
-void addAllListeners(DebugEventListener& listener)
+void addAllListeners(ILogManager& logManager, DebugEventListener& listener)
 {
-    LogManager::AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_REJECTED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_FAILED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SENT, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_CACHED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_FILTERED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_LOG_EVENT, listener);
+    logManager.AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
+    logManager.AddEventListener(DebugEventType::EVT_REJECTED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_SEND_FAILED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_SENT, listener);
+    logManager.AddEventListener(DebugEventType::EVT_DROPPED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
+    logManager.AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
+    logManager.AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
+    logManager.AddEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_CACHED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_NET_CHANGED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
+    logManager.AddEventListener(DebugEventType::EVT_FILTERED, listener);
 }
 
 /// <summary>
 /// Remove all event listeners
 /// </summary>
 /// <param name="listener"></param>
-void removeAllListeners(DebugEventListener& listener)
+void removeAllListeners(ILogManager& logManager, DebugEventListener& listener)
 {
-    LogManager::RemoveEventListener(DebugEventType::EVT_LOG_EVENT, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_LOG_SESSION, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_REJECTED, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_SEND_FAILED, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_SENT, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_OK, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_SEND_RETRY, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_CACHED, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_NET_CHANGED, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_FILTERED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_LOG_EVENT, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_LOG_SESSION, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_REJECTED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_SEND_FAILED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_SENT, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_HTTP_OK, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_SEND_RETRY, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_SEND_RETRY_DROPPED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_CACHED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_NET_CHANGED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_STORAGE_FULL, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_FILTERED, listener);
 }
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
@@ -268,9 +266,10 @@ void removeAllListeners(DebugEventListener& listener)
 /// <returns></returns>
 TEST(APITest, LogManager_Initialize_Default_Test)
 {
-    ILogger *result = LogManager::Initialize(TEST_TOKEN);
-    EXPECT_EQ(true, (result != NULL));
-    LogManager::FlushAndTeardown();
+    ILogConfiguration config;
+    auto logManager = LogManagerProvider::CreateLogManager(config);
+    ILogger *logger = logManager->GetLogger(TEST_TOKEN);
+    EXPECT_NE(logger, nullptr);
 }
 
 /// <summary>
@@ -281,13 +280,13 @@ TEST(APITest, LogManager_Initialize_Default_Test)
 /// <returns></returns>
 TEST(APITest, LogManager_Initialize_Custom)
 {
-    auto& configuration = LogManager::GetLogConfiguration();
+    ILogConfiguration configuration;
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     configuration[CFG_STR_COLLECTOR_URL] = "https://127.0.0.1/";
-    ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
-    EXPECT_EQ(true, (result != NULL));
-    LogManager::FlushAndTeardown();
+    auto logManager = LogManagerProvider::CreateLogManager(configuration);
+    ILogger *logger =logManager->GetLogger(TEST_TOKEN);
+    EXPECT_NE(logger, nullptr);
 }
 
 #define TEST_STORAGE_FILENAME   "offlinestorage.db"
@@ -369,7 +368,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
 
     TestDebugEventListener debugListener;
 
-    auto& configuration = LogManager::GetLogConfiguration();
+    auto configuration = ILogConfiguration{};
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128;     // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;    // Don't log too much on a slow machine
     configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;

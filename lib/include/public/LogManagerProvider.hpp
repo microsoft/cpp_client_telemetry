@@ -39,7 +39,7 @@ namespace MAT_NS_BEGIN
         /// <param name="status">Status.</param>
         /// <param name="wantController">WantController.</param>
         /// </summary>
-        static ILogManager* MATSDK_SPEC CreateLogManager(
+        static std::unique_ptr<ILogManager> MATSDK_SPEC CreateLogManager(
             char const* id,
             bool wantController,
             ILogConfiguration& cfg,
@@ -93,7 +93,7 @@ namespace MAT_NS_BEGIN
         /// <param name="id">Instance Id.</param>
         /// <param name="status">Status.</param>
         /// </summary>
-        static ILogManager* MATSDK_SPEC CreateLogManager(char const* id,
+        static std::unique_ptr<ILogManager> MATSDK_SPEC CreateLogManager(char const* id,
             status_t& status,
             uint64_t targetVersion = MAT::Version)
         {
@@ -105,7 +105,7 @@ namespace MAT_NS_BEGIN
             );
         }
 
-        static ILogManager* MATSDK_SPEC CreateLogManager(
+        static std::unique_ptr<ILogManager> MATSDK_SPEC CreateLogManager(
             ILogConfiguration& cfg,
             status_t& status)
         {
@@ -139,12 +139,12 @@ namespace MAT_NS_BEGIN
         // methods deprecated.
         //
 
-        static ILogManager * MATSDK_SPEC Get(
+        static std::unique_ptr<ILogManager> MATSDK_SPEC Get(
             ILogConfiguration & cfg,
             status_t &status
         );
 
-        static ILogManager* MATSDK_SPEC Get(
+        static std::unique_ptr<ILogManager> MATSDK_SPEC Get(
             const char * id,
             status_t& status
         );
