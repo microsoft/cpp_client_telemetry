@@ -23,7 +23,7 @@ IOS_ARCH="x86_64"
 fi
 
 # Set Platform: device or simulator
-if [ "$2" == "device" ] || [ "$3" == "device" ]; then
+if [ "$2" == "device" ] || [ "$3" == "device" ] || [ "$4" == "device" ]; then
 IOS_PLAT="iphoneos"
 else
 IOS_PLAT="iphonesimulator"
