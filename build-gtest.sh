@@ -27,8 +27,8 @@ fi
 echo "Add ios and arm64 build steps for googletest"
 cat > $GTEST_PATH/CMakeLists_temp.txt << EOF
 # If building for iOS, set all the iOS options
-if(BUILD_IOS) 
-  set(TARGET_ARCH "APPLE") 
+if(BUILD_IOS)
+  set(TARGET_ARCH "APPLE")
   set(IOS True)
   set(APPLE True)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)

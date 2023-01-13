@@ -21,6 +21,7 @@ fi
 
 if [ "$1" == "release" ] || [ "$2" == "release" ] || [ "$3" == "release" ]; then
   BUILD_TYPE="Release"
+  shift;
 else
   BUILD_TYPE="Debug"
 fi
@@ -162,7 +163,7 @@ make package
 
 # Install newly generated package
 if [ -f /usr/bin/dpkg ]; then
-  # Ubuntu / Debian / Raspbian 
+  # Ubuntu / Debian / Raspbian
   [[ -z "$NOROOT" ]] && sudo dpkg -i *.deb || echo "No root: skipping package deployment."
 elif [ -f /usr/bin/rpmbuild ]; then
   # Redhat / Centos
