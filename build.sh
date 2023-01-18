@@ -92,7 +92,7 @@ fi
 
 # Set target MacOS minver
 if [ "$MAC_ARCH" == "arm64" ]; then
-  export MACOSX_DEPLOYMENT_TARGET=11.0
+  export MACOSX_DEPLOYMENT_TARGET=11.10
 else
   export MACOSX_DEPLOYMENT_TARGET=10.10
 fi
