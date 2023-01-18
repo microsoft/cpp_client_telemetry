@@ -15,7 +15,7 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 set(CMAKE_CXX_STANDARD 14)
 
 if (NOT TARGET_ARCH)
-  set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+  # set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
 # Enable ARC for obj-c on Apple
@@ -40,8 +40,8 @@ if(APPLE)
       # iOS arm64 simulator is supported starting BigSur
       # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
     else()
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+      # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+      # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
     endif()
 
     if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator"))
