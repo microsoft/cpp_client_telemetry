@@ -293,7 +293,20 @@ public class LogManagerProvider {
     public boolean unregisterPrivacyGuard() {
       return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuard(nativeLogManager);
     }
-    
+
+    private native boolean nativeRegisterSubstrateSignals(long nativeLogManager);
+    @Override
+    public boolean registerSubstrateSignals() {
+      return SubstrateSignals.isInitialized() && nativeRegisterSubstrateSignals(nativeLogManager);
+    }
+
+
+    private native boolean nativeUnregisterSubstrateSignals(long nativeLogManager);
+    @Override
+    public boolean unregisterSubstrateSignals() {
+      return SubstrateSignals.isInitialized() && nativeUnregisterSubstrateSignals(nativeLogManager);
+    }
+
     protected native void nativePauseActivity(long nativeLogManager);
     protected native void nativeResumeActivity(long nativeLogManager);
     protected native void nativeWaitPause(long nativeLogManager);
