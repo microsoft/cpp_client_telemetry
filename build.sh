@@ -92,7 +92,8 @@ fi
 
 # Set target MacOS minver
 if [ "$MAC_ARCH" == "arm64" ]; then
-  export MACOSX_DEPLOYMENT_TARGET=11.10
+#The first macOS version ever supporting the Apple Silicon (ARM) architecture was macOS 11.0
+  export MACOSX_DEPLOYMENT_TARGET=11.0
 else
   export MACOSX_DEPLOYMENT_TARGET=10.10
 fi
