@@ -15,7 +15,7 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 set(CMAKE_CXX_STANDARD 14)
 
 if (NOT TARGET_ARCH)
-  # set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+  set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
 # Enable ARC for obj-c on Apple
@@ -33,7 +33,7 @@ if(APPLE)
     set(APPLE True)
 
     if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
-      set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+      # set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
     endif()
 
     if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
