@@ -486,7 +486,9 @@ TEST(APITest, LogManager_SemanticAPI)
     bool failed = false;
     try
     {
-        ILogger *result = LogManager::Initialize(TEST_TOKEN);
+        ILogConfiguration config;
+        auto logManager = LogManagerProvider::CreateLogManager(config);
+        ILogger* result = logManager->GetLogger(TEST_TOKEN);
         // ISemanticContext *context = result->GetSemanticContext();
 
         {
@@ -513,8 +515,6 @@ TEST(APITest, LogManager_SemanticAPI)
             PageActionData data("page_action", ActionType_Unknown);
             result->LogPageAction(data, props);
         }
-
-        LogManager::FlushAndTeardown();
     }
     catch (...)
     {
@@ -897,7 +897,6 @@ TEST(APITest, SemanticContext_Test)
     TestDebugEventListener debugListener;
 
     ILogConfiguration config;
-    auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
@@ -996,7 +995,7 @@ TEST(APITest, SetType_Test)
         auto logger = logManager->GetLogger(TEST_TOKEN);
         unsigned totalEvents = 0;
         // We don't need to upload for this test.
-        LogManager::PauseTransmission();
+        logManager->PauseTransmission();
         // Verify that record.baseType have been properly decorated.
         debugListener.OnLogX = [&](::CsProtocol::Record& record) {
             totalEvents++;
@@ -1018,11 +1017,6 @@ TEST(APITest, SetType_Test)
         logManager->FlushAndTeardown();
         logManager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
     }
-    // When we are done, the configuration static object is never gone.
-    // We restore the compat prefix to defaults, that is to avoid
-    // breaking some other subsequent test expectations.
-    auto& config = LogManager::GetLogConfiguration();
-    config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX] = EVENTRECORD_TYPE_CUSTOM_EVENT;
 }
 
 static void logBenchMark(const char * label)

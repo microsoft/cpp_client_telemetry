@@ -1342,6 +1342,37 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
 {
     CleanStorage();
 
+	 std::unique_ptr<ILogManager> logManagerA, logManagerB;
+
+    // string values in ILogConfiguration must stay immutable for the duration of the run
+	 ILogConfiguration aConfiguration, bConfiguration;
+    {   // LogManager A
+        aConfiguration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        aConfiguration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        aConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
+        aConfiguration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        aConfiguration[CFG_INT_MAX_TEARDOWN_TIME] = 1;
+        aConfiguration[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        aConfiguration["name"] = "LogManagerA";
+        aConfiguration["version"] = "1.0.0";
+        aConfiguration["config"]["host"] = "LogManagerA";
+		  logManagerA = LogManagerProvider::CreateLogManager(aConfiguration);
+		  EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 1);
+    }
+    {   // LogManager B
+        bConfiguration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        bConfiguration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        bConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
+        bConfiguration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        bConfiguration[CFG_INT_MAX_TEARDOWN_TIME] = 1;
+        bConfiguration[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        bConfiguration["name"] = "LogManagerB";
+        bConfiguration["version"] = "1.0.0";
+        bConfiguration["config"]["host"] = "LogManagerB";
+		  logManagerB = LogManagerProvider::CreateLogManager(bConfiguration);
+		  EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 2);
+    }
+    
     RequestMonitor listener;
     auto eventsList = {
         DebugEventType::EVT_HTTP_OK,
@@ -1350,35 +1381,9 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
     // Add event listeners
     for (auto evt : eventsList)
     {
-        LogManagerA::AddEventListener(evt, listener);
-        LogManagerB::AddEventListener(evt, listener);
+        logManagerA->AddEventListener(evt, listener);
+        logManagerB->AddEventListener(evt, listener);
     };
-
-    // string values in ILogConfiguration must stay immutable for the duration of the run
-    {   // LogManager A
-        auto& configuration = LogManagerA::GetLogConfiguration();
-        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
-        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 1;
-        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
-        configuration["name"] = "LogManagerA";
-        configuration["version"] = "1.0.0";
-        configuration["config"]["host"] = "LogManagerA";
-    }
-    {   // LogManager B
-        auto& configuration = LogManagerB::GetLogConfiguration();
-        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
-        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 1;
-        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
-        configuration["name"] = "LogManagerB";
-        configuration["version"] = "1.0.0";
-        configuration["config"]["host"] = "LogManagerB";
-    }
 
     std::atomic<bool> testRunning(true);
     auto t = std::thread([&]() {
@@ -1387,32 +1392,31 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
             // Abuse LogManagerA and LogManagerB badly.
             // Both may or may not have a valid implementation instance.
             // PAL could be dead while this abuse is happening.
-            LogManagerA::UploadNow();
-            LogManagerB::UploadNow();
+            logManagerA->UploadNow();
+            logManagerB->UploadNow();
         }
     });
 
     for (size_t i = 0; i < MAX_TEST_RETRIES; i++)
     {
-        auto loggerA = LogManagerA::Initialize(TEST_TOKEN);
-        EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 1);
-
-        auto loggerB = LogManagerB::Initialize(TEST_TOKEN);
-        EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 2);
+        logManagerA = LogManagerProvider::CreateLogManager(aConfiguration);
+		logManagerB = LogManagerProvider::CreateLogManager(bConfiguration);
+		auto loggerA = logManagerA->GetLogger(TEST_TOKEN);
+        auto loggerB = logManagerB->GetLogger(TEST_TOKEN);
 
         EventProperties evtCritical("BasicFuncTests.stress_test_critical_A");
         evtCritical.SetPriority(EventPriority_Immediate);
         evtCritical.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY | MICROSOFT_KEYWORD_CRITICAL_DATA);
         loggerA->LogEvent("BasicFuncTests.stress_test_A");
-        LogManagerA::UploadNow();
+        logManagerA->UploadNow();
 
         loggerB->LogEvent("BasicFuncTests.stress_test_B");
-        LogManagerB::UploadNow();
+        logManagerB->UploadNow();
 
-        EXPECT_EQ(LogManagerB::FlushAndTeardown(), STATUS_SUCCESS);
+        EXPECT_EQ(logManagerB->FlushAndTeardown(), STATUS_SUCCESS);
         EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 1);
 
-        EXPECT_EQ(LogManagerA::FlushAndTeardown(), STATUS_SUCCESS);
+        EXPECT_EQ(logManagerA->FlushAndTeardown(), STATUS_SUCCESS);
         EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 0);
     }
 
@@ -1421,7 +1425,7 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
     {
         t.join();
     }
-    catch (std::exception)
+    catch (const std::exception&)
     {
         // catch exception if can't join because the thread is already gone
     };
@@ -1429,26 +1433,26 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
     // Remove event listeners
     for (auto evt : eventsList)
     {
-        LogManagerB::RemoveEventListener(evt, listener);
-        LogManagerA::RemoveEventListener(evt, listener);
+        logManagerB->RemoveEventListener(evt, listener);
+        logManagerA->RemoveEventListener(evt, listener);
     }
     CleanStorage();
 }
 #endif
 
-TEST_F(BasicFuncTests, logManager_getLogManagerInstance_uninitializedReturnsNull)
-{
-    auto lm = LogManager::GetInstance();
-    EXPECT_EQ(lm,nullptr);
-}
+//TEST_F(BasicFuncTests, logManager_getLogManagerInstance_uninitializedReturnsNull)
+//{
+//    auto lm = LogManager::GetInstance();
+//    EXPECT_EQ(lm,nullptr);
+//}
 
-TEST_F(BasicFuncTests, logManager_getLogManagerInstance_initializedReturnsNonnull)
-{
-    LogManager::Initialize();
-    auto lm = LogManager::GetInstance();
-    EXPECT_NE(lm,nullptr);
-    LogManager::FlushAndTeardown();
-}
+//TEST_F(BasicFuncTests, logManager_getLogManagerInstance_initializedReturnsNonnull)
+//{
+//    LogManager::Initialize();
+//    auto lm = LogManager::GetInstance();
+//    EXPECT_NE(lm,nullptr);
+//    LogManager::FlushAndTeardown();
+//}
 
 #ifndef ANDROID
 TEST_F(BasicFuncTests, deleteEvents)
@@ -1460,7 +1464,7 @@ TEST_F(BasicFuncTests, deleteEvents)
     size_t iteration = 0;
 
     // pause the transmission so events get collected in storage
-    LogManager::PauseTransmission();
+    logManager->PauseTransmission();
     std::string eventset1 = "EventSet1_";
     std::vector<EventProperties> events1;
     while ( iteration++ < max_events )
@@ -1472,9 +1476,9 @@ TEST_F(BasicFuncTests, deleteEvents)
         events1.push_back(event);
         logger->LogEvent(event);
     }
-    LogManager::DeleteData();
-    LogManager::ResumeTransmission();
-    LogManager::UploadNow(); //forc upload if something is there in local storage
+    logManager->DeleteData();
+    logManager->ResumeTransmission();
+    logManager->UploadNow(); //force upload if something is there in local storage
     PAL::sleep(2000) ; //wait for some time.
     for (auto &e: events1) {
         ASSERT_EQ(find(e.GetName()).name, "");
@@ -1493,7 +1497,7 @@ TEST_F(BasicFuncTests, deleteEvents)
         events2.push_back(event);
         logger->LogEvent(event);
     }
-    LogManager::UploadNow(); //forc upload if something is there in local storage
+    logManager->UploadNow(); //forc upload if something is there in local storage
     waitForEvents(3 /*timeout*/, max_events /*expected count*/);
     for (auto &e: events2) {
         verifyEvent(e, find(e.GetName()));
