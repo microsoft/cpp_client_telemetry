@@ -99,6 +99,7 @@ class AISendTests : public ::testing::Test,
 
     ILogConfiguration configuration;
     std::unique_ptr<ILogManager> logManager;
+    ILogger* logger;
 
     std::atomic<bool> isSetup;
     std::atomic<bool> isRunning;
@@ -170,7 +171,6 @@ class AISendTests : public ::testing::Test,
         configuration["config"] = {{"host", __FILE__}};  // Host instance
 
         logManager = LogManagerProvider::CreateLogManager(configuration);
-        logManager->Initialize(TEST_TOKEN, configuration);
         logManager->SetLevelFilter(DIAG_LEVEL_DEFAULT, {DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX});
         logManager->ResumeTransmission();
 

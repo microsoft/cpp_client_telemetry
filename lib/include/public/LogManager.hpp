@@ -13,4 +13,3 @@ namespace MAT_NS_BEGIN {
 } MAT_NS_END
 
 #endif
-

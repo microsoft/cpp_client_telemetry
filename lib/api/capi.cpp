@@ -8,6 +8,7 @@
 #if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
 #include "http/HttpClient_CAPI.hpp"
 #endif
+#include "LogManagerFactory.hpp"
 #include "LogManagerProvider.hpp"
 #include "mat.h"
 #include "pal/TaskDispatcher_CAPI.hpp"

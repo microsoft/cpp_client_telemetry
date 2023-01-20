@@ -384,22 +384,25 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     eventToLog.SetLevel(DIAG_LEVEL_REQUIRED);
 
     CleanStorage();
-    addAllListeners(debugListener);
+    auto logManager = LogManagerProvider::CreateLogManager(configuration);
+    addAllListeners(*logManager, debugListener);
     {
-        LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::PauseTransmission();
+        logManager->PauseTransmission();
         size_t numIterations = MAX_ITERATIONS * 1000; // 100K events
         while (numIterations--)
         {
-            LogManager::GetLogger()->LogEvent(eventToLog);
+            logManager->GetLogger(TEST_TOKEN)->LogEvent(eventToLog);
         }
-        LogManager::Flush();
+        logManager->Flush();
         EXPECT_GE(debugListener.storageFullPct.load(), (unsigned)100);
-        LogManager::FlushAndTeardown();
+        logManager = nullptr;
 
         debugListener.storageFullPct = 0;
-        LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::FlushAndTeardown();
+
+        logManager = LogManagerProvider::CreateLogManager(configuration);
+        addAllListeners(*logManager, debugListener);
+        logManager->GetLogger(TEST_TOKEN);
+        logManager = nullptr;
         EXPECT_EQ(debugListener.storageFullPct.load(), 0u);
 
     }
@@ -408,7 +411,9 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     debugListener.numLogged = 0;
 
     CleanStorage();
-    ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
+    logManager = LogManagerProvider::CreateLogManager(configuration);
+    addAllListeners(*logManager, debugListener);
+    ILogger* result = logManager->GetLogger(TEST_TOKEN);
 
     // Log some foo
     size_t numIterations = MAX_ITERATIONS;
@@ -419,11 +424,11 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     EXPECT_EQ(0u, debugListener.numDropped);
     EXPECT_EQ(0u, debugListener.numReject);
 
-    LogManager::UploadNow();             // Try to upload whatever we got
+    logManager->UploadNow();             // Try to upload whatever we got
     PAL::sleep(1000);                    // Give enough time to upload at least one event
     EXPECT_NE(0u, debugListener.numSent); // Some posts must succeed within 500ms
-    LogManager::PauseTransmission();     // There could still be some pending at this point
-    LogManager::Flush();                 // Save all pending to disk
+    logManager->PauseTransmission();     // There could still be some pending at this point
+    logManager->Flush();                 // Save all pending to disk
 
     numIterations = MAX_ITERATIONS;
     debugListener.numLogged = 0;         // Reset the logged counter
@@ -434,23 +439,22 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
         result->LogEvent(eventToStore);  // New events go straight to offline storage
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numLogged);
 
-    LogManager::Flush();
+    logManager->Flush();
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numCached);
 
-    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
-    LogManager::ResumeTransmission();
-    LogManager::FlushAndTeardown();
+    logManager->SetTransmitProfile(TransmitProfile_RealTime);
+    logManager->ResumeTransmission();
+    logManager->FlushAndTeardown();
 
     // Check that we sent all of logged + whatever left overs
     // prior to PauseTransmission
     EXPECT_GE(debugListener.numSent, debugListener.numLogged);
     debugListener.printStats();
-    removeAllListeners(debugListener);
 }
 
 #ifdef _WIN32
 TEST(APITest, LogManager_UTCSingleEventSent) {
-    auto& configuration = LogManager::GetLogConfiguration();
+    ILogConfiguration configuration;
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF ^ 128; // API calls + Global mask for general messages - less SQL
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Info;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
@@ -470,9 +474,10 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     event.SetLatency(EventLatency_Normal);
     event.SetLevel(DIAG_LEVEL_REQUIRED);
 
-    ILogger *logger = LogManager::Initialize(TEST_TOKEN, configuration);
+    auto logManager = LogManagerProvider::CreateLogManager(configuration);
+    ILogger *logger = logManager->GetLogger(TEST_TOKEN);
     logger->LogEvent(event);
-    LogManager::FlushAndTeardown();
+    logger->FlushAndTeardown();
 }
 #endif
 
@@ -526,25 +531,22 @@ unsigned StressSingleThreaded(ILogConfiguration& config)
 {
     TestDebugEventListener debugListener;
 
-    addAllListeners(debugListener);
-    ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+    auto logManager = LogManagerProvider::CreateLogManager(config);
+    addAllListeners(*logManager, debugListener);
+    ILogger *result = logManager->GetLogger(TEST_TOKEN);
     size_t numIterations = MAX_ITERATIONS;
     while (numIterations--)
     {
         EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
     }
-    LogManager::FlushAndTeardown();
-
     unsigned retVal = debugListener.numLogged;
-    removeAllListeners(debugListener);
-
     return retVal;
 }
 
 TEST(APITest, LogManager_Stress_SingleThreaded)
 {
-    auto& config = LogManager::GetLogConfiguration();
+    ILogConfiguration config;
     EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
 }
 
@@ -559,7 +561,8 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     TestDebugEventListener debugListener;
 
-    addAllListeners(debugListener);
+    auto logManager = LogManagerProvider::CreateLogManager(config);
+    addAllListeners(*logManager, debugListener);
     size_t numIterations = MAX_ITERATIONS_MT;
 
     std::mutex m_threads_mtx;
@@ -567,7 +570,7 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
 
     while (numIterations--)
     {
-        ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
+        ILogger *result = logManager->GetLogger(TEST_TOKEN);
         // Keep spawning UploadNow threads while the main thread is trying to perform
         // Initialize and Teardown, but no more than MAX_THREADS at a time.
         for (size_t i = 0; i < MAX_THREADS; i++)
@@ -577,7 +580,7 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
                 auto t = std::thread([&]()
                 {
                     std::this_thread::yield();
-                    LogManager::UploadNow();
+                    logManager->UploadNow();
                     const auto randTimeSub2ms = std::rand() % 2;
                     PAL::sleep(randTimeSub2ms);
                     threadCount--;
@@ -587,14 +590,12 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
         };
         EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
-        LogManager::FlushAndTeardown();
     }
-    removeAllListeners(debugListener);
 }
 
 TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
 {
-    auto& config = LogManager::GetLogConfiguration();
+    ILogConfiguration config;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
     StressUploadLockMultiThreaded(config);
     // Basic expectation here is just that we do not crash..
@@ -607,9 +608,10 @@ TEST(APITest, LogManager_Reinitialize_Test)
     size_t numIterations = 5;
     while (numIterations--)
     {
-        ILogger *result = LogManager::Initialize(TEST_TOKEN);
+        ILogConfiguration config;
+        auto logManager = LogManagerProvider::CreateLogManager(config);
+        ILogger *result = logManager->GetLogger(TEST_TOKEN);
         EXPECT_EQ(true, (result != NULL));
-        LogManager::FlushAndTeardown();
     }
 }
 
@@ -745,14 +747,15 @@ TEST(APITest, UTC_Callback_Test)
 {
     TestDebugEventListener debugListener;
 
-    auto& configuration = LogManager::GetLogConfiguration();
+    ILogConfiguration configuration;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
 
     std::time_t now = time(0);
     MAT::time_ticks_t ticks(&now);
 
-    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
-    auto logger = LogManager::Initialize(TEST_TOKEN);
+    auto logManager = LogManagerProvider::CreateLogManager(configuration);
+    logManager->AddEventListener(EVT_LOG_EVENT, debugListener);
+    auto logger = logManager->GetLogger(TEST_TOKEN);
     unsigned totalEvents = 0;
     debugListener.OnLogX = [&](::CsProtocol::Record& record)
     {
@@ -808,8 +811,6 @@ TEST(APITest, UTC_Callback_Test)
         event.SetTimestamp((int64_t)(now * 1000L));
         logger->LogEvent(event);
     }
-    LogManager::FlushAndTeardown();
-    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
 #endif
 
@@ -817,14 +818,15 @@ TEST(APITest, Pii_DROP_Test)
 {
     TestDebugEventListener debugListener;
 
-    auto& config = LogManager::GetLogConfiguration();
+    ILogConfiguration config;
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
 
     // register a listener
-    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
-    auto logger = LogManager::Initialize(TEST_TOKEN);
+    auto logManager = LogManagerProvider::CreateLogManager(config);
+    logManager->AddEventListener(EVT_LOG_EVENT, debugListener);
+    auto logger = logManager->GetLogger(TEST_TOKEN);
     unsigned totalEvents = 0;
     std::string realDeviceId;
 
@@ -884,10 +886,8 @@ TEST(APITest, Pii_DROP_Test)
         logger->LogEvent(event);
     }
 
-    LogManager::FlushAndTeardown();
+    logManager->FlushAndTeardown();
     ASSERT_EQ(totalEvents, 4u);
-    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
-
 }
 
 #endif
@@ -896,16 +896,18 @@ TEST(APITest, SemanticContext_Test)
 {
     TestDebugEventListener debugListener;
 
+    ILogConfiguration config;
     auto& config = LogManager::GetLogConfiguration();
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
     config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;        // avoid sending stats for this test
     config[CFG_INT_MAX_TEARDOWN_TIME] = 1;  // give enough time to upload
 
     // register a listener
-    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+    auto logManager = LogManagerProvider::CreateLogManager(config);
+    logManager->AddEventListener(EVT_LOG_EVENT, debugListener);
 
     CleanStorage();
-    auto logger = LogManager::Initialize(TEST_TOKEN);
+    auto logger = logManager->GetLogger(TEST_TOKEN);
     unsigned totalEvents = 0;
 
     // Verify that semantic context fields have been set on record
@@ -970,10 +972,9 @@ TEST(APITest, SemanticContext_Test)
 
     logger->LogEvent("LoggerContext.Event");
 
-    LogManager::FlushAndTeardown();
+    logManager->FlushAndTeardown();
 
     ASSERT_EQ(totalEvents, 1u);
-    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
 
 TEST(APITest, SetType_Test)
@@ -981,17 +982,18 @@ TEST(APITest, SetType_Test)
     TestDebugEventListener debugListener;
     for (auto customPrefix : {EVENTRECORD_TYPE_CUSTOM_EVENT, ""})
     {
-        auto& config = LogManager::GetLogConfiguration();
+        ILogConfiguration config;
         config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
         config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test
         config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
         // Iterate over default ("custom") and empty prefix.
         config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX] = customPrefix;
         // Register a listener.
-         LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
+        auto logManager = LogManagerProvider::CreateLogManager(config);
+        logManager->AddEventListener(EVT_LOG_EVENT, debugListener);
         // Clean storage to avoid polluting our test callback by unwanted events.
         CleanStorage();
-        auto logger = LogManager::Initialize(TEST_TOKEN);
+        auto logger = logManager->GetLogger(TEST_TOKEN);
         unsigned totalEvents = 0;
         // We don't need to upload for this test.
         LogManager::PauseTransmission();
@@ -1013,8 +1015,8 @@ TEST(APITest, SetType_Test)
         // Specify totally custom base type for export to other pipelines.
         myEvent.SetType("MyEventType");
         logger->LogEvent(myEvent);
-        LogManager::FlushAndTeardown();
-        LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
+        logManager->FlushAndTeardown();
+        logManager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
     }
     // When we are done, the configuration static object is never gone.
     // We restore the compat prefix to defaults, that is to avoid
@@ -1050,7 +1052,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
     while (numIterations--)
     {
         logBenchMark("started");
-        auto& config = LogManager::GetLogConfiguration();
+        ILogConfiguration config;
         logBenchMark("created");
 
         config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
@@ -1060,31 +1062,32 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
         config[CFG_INT_MAX_TEARDOWN_TIME] = 1;
         logBenchMark("config ");
 
-        ILogger *logger = LogManager::Initialize(TEST_TOKEN, config);
+        auto logManager = LogManagerProvider::CreateLogManager(config);
+        ILogger *logger = logManager->GetLogger(TEST_TOKEN);
         logBenchMark("inited ");
 
         logger->LogEvent("test");
         logBenchMark("logged ");
 
         // Try to switch transmit profile
-        LogManager::SetTransmitProfile(TRANSMITPROFILE_REALTIME);
+        logManager->SetTransmitProfile(TRANSMITPROFILE_REALTIME);
         logBenchMark("profile");
 
         if (flipFlop)
         {
-            LogManager::PauseTransmission();
+            logManager->PauseTransmission();
         }
         else
         {
-            LogManager::ResumeTransmission();
+            logManager->ResumeTransmission();
         }
         logBenchMark("flipflp");
 
         logBenchMark("upload ");
-        LogManager::UploadNow();
+        logManager->UploadNow();
 
         logBenchMark("flush  ");
-        LogManager::FlushAndTeardown();
+        logManager->FlushAndTeardown();
 
         logBenchMark("done   ");
         flipFlop = !flipFlop;
@@ -1100,7 +1103,7 @@ TEST(APITest, LogManager_Reinitialize_UploadNow)
 TEST(APITest, LogManager_BadStoragePath_Test)
 {
     TestDebugEventListener debugListener;
-    auto& config = LogManager::GetLogConfiguration();
+    ILogConfiguration config;
     config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF; // API calls + Global mask for general messages - less SQL
     config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     config[CFG_INT_MAX_TEARDOWN_TIME] = 16;
@@ -1122,13 +1125,14 @@ TEST(APITest, LogManager_BadStoragePath_Test)
     {
         debugListener.storageFailed = false;
         config[CFG_STR_CACHE_FILE_PATH] = path.c_str();
-        ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
-        LogManager::AddEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
+        auto logManager = LogManagerProvider::CreateLogManager(config);
+        ILogger *result = logManager->GetLogger(TEST_TOKEN);
+        logManager->AddEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
         EXPECT_EQ(true, (result != NULL));
         result->LogEvent("test");
-        LogManager::Flush();
-        LogManager::FlushAndTeardown();
-        LogManager::RemoveEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
+        logManager->Flush();
+        logManager->FlushAndTeardown();
+        logManager->RemoveEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
         EXPECT_EQ(true, debugListener.storageFailed);
     }
 
@@ -1152,7 +1156,7 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
     {
         CleanStorage();
 
-        auto& config = LogManager::GetLogConfiguration();
+        ILogConfiguration config;
         config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test, just customer events
         config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
         config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK] = std::get<1>(params);  // MS root check depends on what URL we are sending to
@@ -1160,13 +1164,12 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
         config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
         auto expectedHttpCount = std::get<2>(params);
 
-        auto logger = LogManager::Initialize(TEST_TOKEN, config);
+        auto logManager = LogManagerProvider::CreateLogManager(config);
+        auto logger = logManager->GetLogger(TEST_TOKEN);
 
         debugListener.reset();
-        addAllListeners(debugListener);
+        addAllListeners(*logManager, debugListener);
         logger->LogEvent("fooBar");
-        LogManager::FlushAndTeardown();
-        removeAllListeners(debugListener);
 
         // Connection is a best-effort, occasionally we can't connect,
         // but we MUST NOT connect to end-point that doesn't have the
@@ -1177,7 +1180,7 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
 #endif
 TEST(APITest, LogManager_BadNetwork_Test)
 {
-    auto& config = LogManager::GetLogConfiguration();
+    ILogConfiguration config;
 
     // Clean temp file first
     const char *cacheFilePath = "bad-network.db";
@@ -1215,12 +1218,13 @@ TEST(APITest, LogManager_BadNetwork_Test)
 
 TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
 {
-    auto& config = LogManager::GetLogConfiguration();
+    ILogConfiguration config;
+    auto logManager = LogManagerProvider::CreateLogManager(config);
 
-    auto logger0 = LogManager::Initialize(TEST_TOKEN, config);
-    auto logger1 = LogManager::GetLogger();
-    auto logger2 = LogManager::GetLogger("my_source");
-    auto logger3 = LogManager::GetLogger(TEST_TOKEN, "my_source");
+    auto logger0 = logManager->GetLogger(TEST_TOKEN);
+    auto logger1 = logManager->GetLogger(TEST_TOKEN);
+    auto logger2 = logManager->GetLogger(TEST_TOKEN, "my_source");
+    auto logger3 = logManager->GetLogger(TEST_TOKEN, "my_source");
 
     EXPECT_EQ(logger0, logger1);
     EXPECT_EQ(logger2, logger3);
@@ -1237,13 +1241,13 @@ TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
     std::vector<std::thread> threads;
     for (size_t i = 0; i < numThreads; i++)
     {
-        threads.push_back(std::thread([logger1, logger2, logger3]() {
+        threads.push_back(std::thread([&logManager, logger1, logger2, logger3]() {
             size_t count = 1000;
             while (count--)
             {
-                auto myLogger1 = LogManager::GetLogger();
-                auto myLogger2 = LogManager::GetLogger("my_source");
-                auto myLogger3 = LogManager::GetLogger(TEST_TOKEN, "my_source");
+                auto myLogger1 = logManager->GetLogger(TEST_TOKEN);
+                auto myLogger2 = logManager->GetLogger(TEST_TOKEN,"my_source");
+                auto myLogger3 = logManager->GetLogger(TEST_TOKEN, "my_source");
                 EXPECT_EQ(myLogger1, logger1);
                 EXPECT_EQ(myLogger2, logger2);
                 EXPECT_EQ(myLogger3, logger3);
@@ -1254,30 +1258,28 @@ TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
     for (auto& thread : threads)
         thread.join();
     logBenchMark("destroyed");
-    LogManager::FlushAndTeardown();
-
-    LogManager::GetLogger();
 }
 
 TEST(APITest, LogManager_DiagLevels)
 {
     TestDebugEventListener eventListener;
 
-    auto& config = LogManager::GetLogConfiguration();
+    ILogConfiguration config;
+    auto logManager = LogManagerProvider::CreateLogManager(config);
 
     // default
-    auto logger0 = LogManager::Initialize(TEST_TOKEN, config);
-    LogManager::GetEventFilters().UnregisterAllFilters();
+    auto logger0 = logManager->GetLogger(TEST_TOKEN);
+    logManager->GetEventFilters().UnregisterAllFilters();
 
     // inherit diagnostic level from parent (basic)
-    auto logger1 = LogManager::GetLogger();
+    auto logger1 = logManager->GetLogger(TEST_TOKEN);
 
     // set diagnostic level to optional
-    auto logger2 = LogManager::GetLogger(TEST_TOKEN, "my_optional_source");
+    auto logger2 = logManager->GetLogger(TEST_TOKEN, "my_optional_source");
     logger2->SetLevel(DIAG_LEVEL_OPTIONAL);
 
     // set diagnostic level to a custom value
-    auto logger3 = LogManager::GetLogger("my_custom_source");
+    auto logger3 = logManager->GetLogger("my_custom_source");
     logger3->SetLevel(5);
     
     std::set<uint8_t> logNone  = { DIAG_LEVEL_NONE };
@@ -1288,14 +1290,14 @@ TEST(APITest, LogManager_DiagLevels)
 
     size_t expectedCounts[] = { 12, 0, 8 };
 
-    addAllListeners(eventListener);
+    addAllListeners(*logManager, eventListener);
 
     // Filter test
     size_t i = 0;
     for (auto filter : filters)
     {
         // Specify diagnostic level filter
-        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
+        logManager->SetLevelFilter(DIAG_LEVEL_DEFAULT, filter);
         for (auto logger : { logger0, logger1, logger2, logger3 })
         {
             EventProperties defLevelEvent("My.DefaultLevelEvent");
@@ -1313,14 +1315,12 @@ TEST(APITest, LogManager_DiagLevels)
         eventListener.numFiltered = 0;
         i++;
     }
-    removeAllListeners(eventListener);
-    LogManager::FlushAndTeardown();
 }
 
 TEST(APITest, Pii_Kind_E2E_Test)
 {
-    auto& config = LogManager::GetLogConfiguration();
-    LogManager::Initialize(TEST_TOKEN, config);
+    ILogConfiguration config;
+    auto logManager = LogManagerProvider::CreateLogManager(config);
     // Log detailed event with various properties
     EventProperties detailed_event("MyApp.DetailedEvent.Pii",
         {
@@ -1353,10 +1353,10 @@ TEST(APITest, Pii_Kind_E2E_Test)
             { "guidKey2", GUID_t("00010203-0405-0607-0809-0A0B0C0D0E0F") },
             { "timeKey1",  time_ticks_t((uint64_t)0) },     // time in .NET ticks
         });
-    auto logger = LogManager::GetLogger();
+    auto logger = logManager->GetLogger(TEST_TOKEN);
     EXPECT_NE(logger, nullptr);
     logger->LogEvent(detailed_event);
-    LogManager::FlushAndTeardown();
+
     // Verify that contents get hashed by server
 }
 
@@ -1437,17 +1437,18 @@ CustomDecorator myDecorator;
 
 TEST(APITest, Custom_Decorator)
 {
-    auto& config = LogManager::GetLogConfiguration();
+    ILogConfiguration config;
     config.AddModule(CFG_MODULE_DECORATOR, std::make_shared<CustomDecorator>(myDecorator) );
-    LogManager::Initialize(TEST_TOKEN, config);
-    LogManager::GetLogger()->LogEvent("foobar");
+    auto logManager = LogManagerProvider::CreateLogManager(config);
+    auto logger = logManager->GetLogger(TEST_TOKEN);
+    logger->LogEvent("foobar");
     EventProperties myEvent2("MyEvent.With.Props",
     {
         {"keyString", "Hello World!"},
         {"keyGuid", GUID_t("{76ce7649-3a58-4861-8202-7d7fdfaed483}")}
     });
-    LogManager::GetLogger()->LogEvent(myEvent2);
-    LogManager::FlushAndTeardown();
+    logger->LogEvent(myEvent2);
+    logManager->FlushAndTeardown();
     // In-lieu of RemoveModule(...) the current solution is to set the module to nullptr.
     // This is functionally nearly equivalent to unsetting it since GetModule(CFG_MODULE_DECORATOR)
     // for non-existing module also returns nullptr.

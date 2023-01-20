@@ -70,26 +70,6 @@ namespace PAL_NS_BEGIN
 }
 PAL_NS_END;
 
-namespace MAT_NS_BEGIN
-{
-    class ModuleA : public ILogConfiguration
-    {
-    };
-    class LogManagerA : public LogManagerBase<ModuleA>
-    {
-    };
-    class ModuleB : public ILogConfiguration
-    {
-    };
-    class LogManagerB : public LogManagerBase<ModuleB>
-    {
-    };
-    // Two distinct LogManagerX 'singelton' instances
-    DEFINE_LOGMANAGER(LogManagerB, ModuleB);
-    DEFINE_LOGMANAGER(LogManagerA, ModuleA);
-}
-MAT_NS_END
-
 char const* const TEST_STORAGE_FILENAME = "BasicFuncTests.db";
 
 // 1DSCppSdktest sandbox key
@@ -130,6 +110,9 @@ protected:
     std::vector<HttpServer::Request> receivedRequests;
     std::string serverAddress;
     HttpServer server;
+
+	ILogConfiguration configuration;
+	std::unique_ptr<ILogManager> logManager;
 
     ILogger* logger;
     ILogger* logger2;
@@ -184,7 +167,7 @@ public:
     virtual void Initialize()
     {
         receivedRequests.clear();
-        auto configuration = LogManager::GetLogConfiguration();
+        configuration = ILogConfiguration{};
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
 #ifdef NDEBUG
@@ -205,18 +188,16 @@ public:
         configuration["version"] = "1.0.0";
         configuration["config"] = { { "host", __FILE__ } }; // Host instance
 
-        LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
-        LogManager::ResumeTransmission();
+        logManager = LogManagerProvider::CreateLogManager(configuration);
+        logManager->SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
 
-        logger  = LogManager::GetLogger(TEST_TOKEN, "source1");
-        logger2 = LogManager::GetLogger(TEST_TOKEN, "source2");
+        logger  = logManager->GetLogger(TEST_TOKEN, "source1");
+        logger2 = logManager->GetLogger(TEST_TOKEN, "source2");
     }
 
     virtual void FlushAndTeardown()
     {
-        LogManager::Flush();
-        LogManager::FlushAndTeardown();
+        logManager->FlushAndTeardown();
     }
 
     virtual int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
@@ -547,7 +528,7 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     EventProperties event("first_event");
     event.SetProperty("property", "value");
     logger->LogEvent(event);
-    LogManager::UploadNow();
+    logManager->UploadNow();
     PAL::sleep(500); // for a certain value of immediately
     FlushAndTeardown();
     EXPECT_GE(receivedRequests.size(), (size_t)1); // at least 1 HTTP request with customer payload and stats
@@ -562,7 +543,7 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
      - public MAT::exporters::DecodeRequest(...) via debug callback
      */
     HttpPostListener listener;
-    LogManager::AddEventListener(EVT_HTTP_OK, listener);
+    logManager->AddEventListener(EVT_HTTP_OK, listener);
 
     EventProperties event("first_event");
     event.SetProperty("property", "value");
@@ -573,10 +554,10 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
     event2.SetProperty("property2", "another value");
     logger->LogEvent(event2);
 
-    LogManager::UploadNow();
+    logManager->UploadNow();
     waitForEvents(1, 3);
     EXPECT_GE(receivedRequests.size(), (size_t)1);
-    LogManager::RemoveEventListener(EVT_HTTP_OK, listener);
+    logManager->RemoveEventListener(EVT_HTTP_OK, listener);
     FlushAndTeardown();
 
     if (receivedRequests.size() >= 1)
@@ -671,7 +652,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
 
     logger->LogEvent(event2);
 
-    LogManager::UploadNow();
+    logManager->UploadNow();
     // 2 x customer events + 1 x evt_stats on start
     waitForEvents(1, 3);
 
@@ -718,7 +699,7 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 
     logger2->LogEvent(event2);
 
-    LogManager::UploadNow();
+    logManager->UploadNow();
 
     // 2 x customer events + 1 x evt_stats on start
     waitForEvents(1, 3);
@@ -748,7 +729,7 @@ TEST_F(BasicFuncTests, configDecorations)
     EventProperties event4("4th_event");
     logger->LogEvent(event4);
 
-    LogManager::UploadNow();
+    logManager->UploadNow();
     waitForEvents(2, 5);
 
     for (const auto &evt : { event1, event2, event3, event4 })
@@ -765,7 +746,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         CleanStorage();
         Initialize();
         // This code is a bit racy because ResumeTransmission is done in Initialize
-        LogManager::PauseTransmission();
+        logManager->PauseTransmission();
         EventProperties event1("first_event");
         EventProperties event2("second_event");
         event1.SetProperty("property1", "value1");
@@ -784,8 +765,8 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         EventProperties fooEvent("fooEvent");
         fooEvent.SetLatency(EventLatency_RealTime);
         fooEvent.SetPersistence(EventPersistence_Critical);
-        LogManager::GetLogger()->LogEvent(fooEvent);
-        LogManager::UploadNow();
+        logger->LogEvent(fooEvent);
+        logManager->UploadNow();
 
         // 1st request for realtime event
         waitForEvents(3, 5); // start, first_event, second_event, ongoing, stop, start, fooEvent
@@ -879,7 +860,7 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     CleanStorage();
     // Run offline
     Initialize();
-    LogManager::PauseTransmission();
+    logManager->PauseTransmission();
 
     EventProperties event1("first_event");
     event1.SetPriority(EventPriority_High);
@@ -896,8 +877,8 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 
     // Check
     Initialize();
-    LogManager::ResumeTransmission(); // ?
-    LogManager::UploadNow();
+    logManager->ResumeTransmission(); // ?
+    logManager->UploadNow();
     PAL::sleep(2000);
 
     auto r2 = records();
@@ -915,7 +896,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
 {
     CleanStorage();
     Initialize();
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
+    logManager->SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     EventProperties eventWithoutLevel("EventWithoutLevel");
     logger->LogEvent(eventWithoutLevel);
 
@@ -927,7 +908,7 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
     eventWithAllowedLevel.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(eventWithAllowedLevel);
 
-    LogManager::UploadNow();
+    logManager->UploadNow();
     waitForEvents(1 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
 
     ASSERT_EQ(records().size(), static_cast<size_t>(2)); // Start and EventWithAllowedLevel
@@ -964,13 +945,13 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
     CleanStorage();
     Initialize();
 
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
+    logManager->SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
-    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
+    logManager->SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
-    LogManager::UploadNow();
+    logManager->UploadNow();
     waitForEvents(2 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
 
     auto sentRecords = records();
@@ -1102,33 +1083,33 @@ public :
     }
 };
 
-void addListeners(DebugEventListener &listener) {
-    LogManager::AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_REJECTED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_SENT, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_HTTP_FAILURE, listener);
-    LogManager::AddEventListener(DebugEventType::EVT_CACHED, listener);
+void addListeners(ILogManager& logManager, DebugEventListener &listener) {
+    logManager.AddEventListener(DebugEventType::EVT_LOG_SESSION, listener);
+    logManager.AddEventListener(DebugEventType::EVT_REJECTED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_SENT, listener);
+    logManager.AddEventListener(DebugEventType::EVT_DROPPED, listener);
+    logManager.AddEventListener(DebugEventType::EVT_HTTP_OK, listener);
+    logManager.AddEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
+    logManager.AddEventListener(DebugEventType::EVT_HTTP_FAILURE, listener);
+    logManager.AddEventListener(DebugEventType::EVT_CACHED, listener);
 }
 
-void removeListeners(DebugEventListener &listener) {
-    LogManager::RemoveEventListener(DebugEventType::EVT_LOG_SESSION, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_REJECTED, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_SENT, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_OK, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_FAILURE, listener);
-    LogManager::RemoveEventListener(DebugEventType::EVT_CACHED, listener);
+void removeListeners(ILogManager& logManager, DebugEventListener &listener) {
+    logManager.RemoveEventListener(DebugEventType::EVT_LOG_SESSION, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_REJECTED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_SENT, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_HTTP_OK, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_HTTP_ERROR, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_HTTP_FAILURE, listener);
+    logManager.RemoveEventListener(DebugEventType::EVT_CACHED, listener);
 }
 
 TEST_F(BasicFuncTests, killSwitchWorks)
 {
     CleanStorage();
     // Create the configuration to send to fake server
-    auto configuration = LogManager::GetLogConfiguration();
+    ILogConfiguration myConfiguration;
 
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
@@ -1148,14 +1129,14 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     // set the killed token on the server
     server.setKilledToken(KILLED_TOKEN, 6384);
     KillSwitchListener listener;
-    addListeners(listener);
+
+	 auto myLogManager = LogManagerProvider::CreateLogManager(myConfiguration);
+	 addListeners(*myLogManager, listener);
     // Log 100 events from valid and invalid 4 times
     int repetitions = 4;
     for (int i = 0; i < repetitions; i++) {
         // Initialize the logger for the valid token and log 100 events
-        LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::ResumeTransmission();
-        auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
+        auto myLogger = myLogManager->GetLogger(TEST_TOKEN, "killed");
         int numIterations = 100;
         while (numIterations--) {
             EventProperties event1("fooEvent");
@@ -1163,9 +1144,8 @@ TEST_F(BasicFuncTests, killSwitchWorks)
             myLogger->LogEvent(event1);
         }
         // Initialize the logger for the killed token and log 100 events
-        LogManager::Initialize(KILLED_TOKEN, configuration);
-        LogManager::ResumeTransmission();
-        myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+        myLogManager->ResumeTransmission();
+        myLogger = myLogManager->GetLogger(KILLED_TOKEN, "killed");
         numIterations = 100;
         while (numIterations--) {
             EventProperties event2("failEvent");
@@ -1174,13 +1154,12 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         }
     }
     // Try to upload and wait for 2 seconds to complete
-    LogManager::UploadNow();
+    myLogManager->UploadNow();
     PAL::sleep(2000);
 
     // Log 100 events with valid logger
-    LogManager::Initialize(TEST_TOKEN, configuration);
-    LogManager::ResumeTransmission();
-    auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
+    myLogManager->ResumeTransmission();
+    auto myLogger = myLogManager->GetLogger(TEST_TOKEN, "killed");
     int numIterations = 100;
     while (numIterations--) {
         EventProperties event1("fooEvent");
@@ -1188,9 +1167,8 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         myLogger->LogEvent(event1);
     }
 
-    LogManager::Initialize(KILLED_TOKEN, configuration);
-    LogManager::ResumeTransmission();
-    myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+    myLogManager->ResumeTransmission();
+    myLogger = myLogManager->GetLogger(KILLED_TOKEN, "killed");
     numIterations = 100;
     while (numIterations--) {
         EventProperties event2("failEvent");
@@ -1199,10 +1177,9 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     }
     // Expect all events to be dropped
     EXPECT_EQ(uint32_t { 100 }, listener.numDropped);
-    LogManager::FlushAndTeardown();
-
+    myLogManager->FlushAndTeardown();
     listener.printStats();
-    removeListeners(listener);
+    removeListeners(*myLogManager, listener);
     server.clearKilledTokens();
 }
 
@@ -1210,7 +1187,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
 {
     CleanStorage();
     // Create the configuration to send to fake server
-    auto configuration = LogManager::GetLogConfiguration();
+    ILogConfiguration configuration;
 
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
@@ -1230,14 +1207,14 @@ TEST_F(BasicFuncTests, killIsTemporary)
     // set the killed token on the server
     server.setKilledToken(KILLED_TOKEN, 10);
     KillSwitchListener listener;
-    addListeners(listener);
+	auto myLogManager = LogManagerProvider::CreateLogManager(configuration);
+	addListeners(*myLogManager, listener);
     // Log 100 events from valid and invalid 4 times
     int repetitions = 4;
     for (int i = 0; i < repetitions; i++) {
         // Initialize the logger for the valid token and log 100 events
-        LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::ResumeTransmission();
-        auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
+        myLogManager->ResumeTransmission();
+        auto myLogger = myLogManager->GetLogger(TEST_TOKEN, "killed");
         int numIterations = 100;
         while (numIterations--) {
             EventProperties event1("fooEvent");
@@ -1245,9 +1222,8 @@ TEST_F(BasicFuncTests, killIsTemporary)
             myLogger->LogEvent(event1);
         }
         // Initialize the logger for the killed token and log 100 events
-        LogManager::Initialize(KILLED_TOKEN, configuration);
-        LogManager::ResumeTransmission();
-        myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+        myLogManager->ResumeTransmission();
+        myLogger = myLogManager->GetLogger(KILLED_TOKEN, "killed");
         numIterations = 100;
         while (numIterations--) {
             EventProperties event2("failEvent");
@@ -1256,15 +1232,15 @@ TEST_F(BasicFuncTests, killIsTemporary)
         }
     }
     // Try and wait to upload
-    LogManager::UploadNow();
+    myLogManager->UploadNow();
     PAL::sleep(2000);
     // Sleep for 11 seconds so the killed time has expired, clear the killed tokens on server
     PAL::sleep(11000);
     server.clearKilledTokens();
     // Log 100 events with valid logger
-    LogManager::Initialize(TEST_TOKEN, configuration);
-    LogManager::ResumeTransmission();
-    auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
+    myLogManager->ResumeTransmission();
+    auto myLogger = myLogManager->GetLogger(TEST_TOKEN, "killed");
+
     int numIterations = 100;
     while (numIterations--) {
         EventProperties event1("fooEvent");
@@ -1272,9 +1248,9 @@ TEST_F(BasicFuncTests, killIsTemporary)
         myLogger->LogEvent(event1);
     }
 
-    LogManager::Initialize(KILLED_TOKEN, configuration);
-    LogManager::ResumeTransmission();
-    myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+    myLogManager->ResumeTransmission();
+    myLogger = myLogManager->GetLogger(KILLED_TOKEN, "killed");
+
     numIterations = 100;
     while (numIterations--) {
         EventProperties event2("failEvent");
@@ -1283,10 +1259,10 @@ TEST_F(BasicFuncTests, killIsTemporary)
     }
     // Expect to 0 events to be dropped
     EXPECT_EQ(uint32_t { 0 }, listener.numDropped);
-    LogManager::FlushAndTeardown();
+    myLogManager->FlushAndTeardown();
 
     listener.printStats();
-    removeListeners(listener);
+    removeListeners(*myLogManager, listener);
     server.clearKilledTokens();
 }
 
@@ -1310,16 +1286,28 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 
     for (size_t i = 0; i < 20; i++)
     {
-        auto &configuration = LogManager::GetLogConfiguration();
-        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
-        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-        configuration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
-        configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
-        configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-        LogManager::Initialize(TEST_TOKEN);
-        auto myLogger = LogManager::GetLogger();
+        ILogConfiguration myConfiguration;
+        myconfiguration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        myconfiguration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        myconfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
+        myconfiguration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        myconfiguration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
+        myconfiguration[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        myconfiguration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+        auto myLogManager = LogManagerProvider::CreateLogManager(myConfiguration);
+
+        auto eventsList = {
+            DebugEventType::EVT_HTTP_OK,
+            DebugEventType::EVT_HTTP_ERROR,
+            DebugEventType::EVT_HTTP_FAILURE
+        };
+        // Add event listeners
+        for (auto evt : eventsList)
+        {
+            myLogManager->AddEventListener(evt, listener);
+        }
+
+        auto myLogger = myLogManager->GetLogger(TEST_TOKEN);
         for (size_t j = 0; j < 200; j++)
         {
             EventProperties myEvent1("sample_realtime");
@@ -1330,7 +1318,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
             myLogger->LogEvent(myEvent2);
         }
         // force upload
-        LogManager::UploadNow();
+        myLogManager->UploadNow();
         if ((i % 3) == 0)
         {
             PAL::sleep(100);
@@ -1343,15 +1331,9 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
                 std::this_thread::yield();
             }
         }
-        LogManager::FlushAndTeardown();
     }
 
     listener.dump();
-    // Remove event listeners
-    for (auto evt : eventsList)
-    {
-        LogManager::RemoveEventListener(evt, listener);
-    }
 }
 
 #define MAX_TEST_RETRIES 10

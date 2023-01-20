@@ -112,6 +112,12 @@ namespace MAT_NS_BEGIN
             return Get(cfg, status);
         }
 
+        static std::unique_ptr<ILogManager> MATSDK_SPEC CreateLogManager(ILogConfiguration& cfg)
+        {
+            status_t status;
+            return Get(cfg, status);
+        }
+        
         /// <summary>
         /// Releases a guest or host LogManager by its instance id.
         /// <param name="id">Instance Id.</param>
