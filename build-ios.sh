@@ -30,7 +30,7 @@ IOS_PLAT="iphonesimulator"
 fi
 
 # Set target iOS minver
-IOS_DEPLOYMENT_TARGET=10.0
+IOS_DEPLOYMENT_TARGET=15.0
 
 # Install build tools and recent sqlite3
 FILE=.buildtools

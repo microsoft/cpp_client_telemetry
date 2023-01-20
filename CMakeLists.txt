@@ -25,7 +25,7 @@ if(APPLE)
 
   # iOS build options
   option(BUILD_IOS           "Build for iOS"               NO)
-  option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" YES)
+  option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" N0)
 
   if(BUILD_IOS)
     set(TARGET_ARCH "APPLE")
@@ -33,7 +33,7 @@ if(APPLE)
     set(APPLE True)
 
     if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
-      # set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+      set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
     endif()
 
     if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
