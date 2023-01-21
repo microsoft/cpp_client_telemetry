@@ -1,9 +1,8 @@
 #!/bin/sh
 cd "${0%/*}"
 SKU=${1:-release}
-LIBRARY=${2:-static}
 echo Building and running $SKU tests...
-./build.sh ${SKU} -l ${LIBRARY}
+./build.sh ${SKU}
 # Fail on test errors
 set -e
 cd out
