@@ -21,7 +21,6 @@ fi
 
 if [ "$1" == "release" ] || [ "$2" == "release" ] || [ "$3" == "release" ]; then
   BUILD_TYPE="Release"
-  shift;
 else
   BUILD_TYPE="Debug"
 fi
