@@ -629,7 +629,7 @@ namespace MAT_NS_BEGIN
         return m_logConfiguration;
     }
 
-    ILogger* LogManagerImpl::GetLogger(const std::string& tenantToken, const std::string& source, const std::string& scope)
+    std::shared_ptr<ILogger> LogManagerImpl::GetLogger(const std::string& tenantToken, const std::string& source, const std::string& scope)
     {
         {
             LOCKGUARD(m_lock);
@@ -653,7 +653,7 @@ namespace MAT_NS_BEGIN
         auto it = m_loggers.find(hash);
         if (it == std::end(m_loggers))
         {
-            m_loggers[hash] = std::make_unique<Logger>(
+            m_loggers[hash] = std::make_shared<Logger>(
                 normalizedTenantToken, normalizedSource, scope,
                 *this, m_context, *m_config);
         }
@@ -662,7 +662,7 @@ namespace MAT_NS_BEGIN
         {
             m_loggers[hash]->SetLevel(level);
         }
-        return m_loggers[hash].get();
+        return std::static_pointer_cast<ILogger>(m_loggers[hash]);
     }
 
     /// <summary>

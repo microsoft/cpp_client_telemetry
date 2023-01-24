@@ -268,7 +268,7 @@ TEST(APITest, LogManager_Initialize_Default_Test)
 {
     ILogConfiguration config;
     auto logManager = LogManagerProvider::CreateLogManager(config);
-    ILogger *logger = logManager->GetLogger(TEST_TOKEN);
+    auto logger = logManager->GetLogger(TEST_TOKEN);
     EXPECT_NE(logger, nullptr);
 }
 
@@ -285,7 +285,7 @@ TEST(APITest, LogManager_Initialize_Custom)
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Trace;
     configuration[CFG_STR_COLLECTOR_URL] = "https://127.0.0.1/";
     auto logManager = LogManagerProvider::CreateLogManager(configuration);
-    ILogger *logger =logManager->GetLogger(TEST_TOKEN);
+    auto logger =logManager->GetLogger(TEST_TOKEN);
     EXPECT_NE(logger, nullptr);
 }
 
@@ -413,7 +413,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     CleanStorage();
     logManager = LogManagerProvider::CreateLogManager(configuration);
     addAllListeners(*logManager, debugListener);
-    ILogger* result = logManager->GetLogger(TEST_TOKEN);
+    auto result = logManager->GetLogger(TEST_TOKEN);
 
     // Log some foo
     size_t numIterations = MAX_ITERATIONS;
@@ -488,7 +488,7 @@ TEST(APITest, LogManager_SemanticAPI)
     {
         ILogConfiguration config;
         auto logManager = LogManagerProvider::CreateLogManager(config);
-        ILogger* result = logManager->GetLogger(TEST_TOKEN);
+        auto result = logManager->GetLogger(TEST_TOKEN);
         // ISemanticContext *context = result->GetSemanticContext();
 
         {
@@ -533,7 +533,7 @@ unsigned StressSingleThreaded(ILogConfiguration& config)
 
     auto logManager = LogManagerProvider::CreateLogManager(config);
     addAllListeners(*logManager, debugListener);
-    ILogger *result = logManager->GetLogger(TEST_TOKEN);
+    auto result = logManager->GetLogger(TEST_TOKEN);
     size_t numIterations = MAX_ITERATIONS;
     while (numIterations--)
     {
@@ -570,7 +570,7 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
 
     while (numIterations--)
     {
-        ILogger *result = logManager->GetLogger(TEST_TOKEN);
+        auto result = logManager->GetLogger(TEST_TOKEN);
         // Keep spawning UploadNow threads while the main thread is trying to perform
         // Initialize and Teardown, but no more than MAX_THREADS at a time.
         for (size_t i = 0; i < MAX_THREADS; i++)
@@ -610,7 +610,7 @@ TEST(APITest, LogManager_Reinitialize_Test)
     {
         ILogConfiguration config;
         auto logManager = LogManagerProvider::CreateLogManager(config);
-        ILogger *result = logManager->GetLogger(TEST_TOKEN);
+        auto result = logManager->GetLogger(TEST_TOKEN);
         EXPECT_EQ(true, (result != NULL));
     }
 }
@@ -1120,7 +1120,7 @@ TEST(APITest, LogManager_BadStoragePath_Test)
         debugListener.storageFailed = false;
         config[CFG_STR_CACHE_FILE_PATH] = path.c_str();
         auto logManager = LogManagerProvider::CreateLogManager(config);
-        ILogger *result = logManager->GetLogger(TEST_TOKEN);
+        auto result = logManager->GetLogger(TEST_TOKEN);
         logManager->AddEventListener(DebugEventType::EVT_STORAGE_FAILED, debugListener);
         EXPECT_EQ(true, (result != NULL));
         result->LogEvent("test");

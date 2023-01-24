@@ -201,7 +201,7 @@ namespace MAT_NS_BEGIN
         /// Initializes the telemetry logging system with default configuration and HTTPClient.
         /// </summary>
         /// <returns>A logger instance instantiated with the default tenantToken.</returns>
-        static ILogger* Initialize()
+        static std::shared_ptr<ILogger> Initialize()
         {
             return Initialize(std::string{});
         }
@@ -211,7 +211,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
-        inline static ILogger* Initialize(const std::string& tenantToken)
+        inline static std::shared_ptr<ILogger> Initialize(const std::string& tenantToken)
         {
             return Initialize(tenantToken, GetLogConfiguration());
         }
@@ -222,7 +222,7 @@ namespace MAT_NS_BEGIN
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="configuration">ILogConfiguration to be used.</param>
         /// <returns>A logger instance instantiated with the tenantToken.</returns>
-        static ILogger* Initialize(
+        static std::shared_ptr<ILogger> Initialize(
             const std::string& tenantToken,
             ILogConfiguration& configuration)
         {
@@ -559,7 +559,7 @@ namespace MAT_NS_BEGIN
         /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
         /// </summary>
         /// <returns>Pointer to the Ilogger interface of an logger instance</returns>
-        static ILogger* GetLogger()
+        static std::shared_ptr<ILogger> GetLogger()
             LM_SAFE_CALL_PTR(GetLogger, GetPrimaryToken());
 
         /// <summary>
@@ -567,7 +567,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <param name="source">Source name of events sent by this logger instance</param>
         /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
-        static ILogger* GetLogger(const std::string& source)
+        static std::shared_ptr<ILogger> GetLogger(const std::string& source)
             LM_SAFE_CALL_PTR(GetLogger, GetPrimaryToken(), source);
 
         /// <summary>
@@ -576,7 +576,7 @@ namespace MAT_NS_BEGIN
         /// <param name="tenantToken">Token of the tenant with which the application is associated for collecting telemetry</param>
         /// <param name="source">Source name of events sent by this logger instance</param>
         /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
-        static ILogger* GetLogger(const std::string& tenantToken, const std::string& source)
+        static std::shared_ptr<ILogger> GetLogger(const std::string& tenantToken, const std::string& source)
             LM_SAFE_CALL_PTR(GetLogger, tenantToken, source);
 
         /// <summary>

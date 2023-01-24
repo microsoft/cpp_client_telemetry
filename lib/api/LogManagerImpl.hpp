@@ -129,7 +129,7 @@ namespace MAT_NS_BEGIN
 
     class Logger;
 
-    using LoggerMap = std::map<std::string, std::unique_ptr<Logger>>;
+    using LoggerMap = std::map<std::string, std::shared_ptr<Logger>>;
 
     class DeadLoggers
     {
@@ -137,7 +137,7 @@ namespace MAT_NS_BEGIN
         void AddMap(LoggerMap&& source);
         size_t GetDeadLoggerCount() const noexcept;
 
-        std::vector<std::unique_ptr<Logger>> m_deadLoggers;
+        std::vector<std::shared_ptr<Logger>> m_deadLoggers;
         mutable std::mutex m_deadLoggersMutex;
     };
 
@@ -227,7 +227,7 @@ namespace MAT_NS_BEGIN
 
         virtual ILogConfiguration& GetLogConfiguration() override;
 
-        virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scopeId = std::string()) override;
+        virtual std::shared_ptr<ILogger> GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scopeId = std::string()) override;
 
         LogSessionData* GetLogSessionData() override;
         void ResetLogSessionData() override;

@@ -285,7 +285,7 @@ namespace MAT_NS_BEGIN
         /// <param name="scope">A string that contains the logger scope/project set (reserved for future use).</param>
         ///
         /// <returns>A pointer to the ILogger instance.</returns>
-        virtual ILogger* GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scope = std::string()) = 0;
+        virtual std::shared_ptr<ILogger> GetLogger(std::string const& tenantToken, std::string const& source = std::string(), std::string const& scope = std::string()) = 0;
 
         /// <summary>Retrieves the current LogManager instance configuration</summary>
         virtual ILogConfiguration& GetLogConfiguration() = 0;

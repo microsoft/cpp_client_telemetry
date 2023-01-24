@@ -114,8 +114,8 @@ protected:
 	ILogConfiguration configuration;
 	std::unique_ptr<ILogManager> logManager;
 
-    ILogger* logger;
-    ILogger* logger2;
+    std::shared_ptr<ILogger> logger;
+    std::shared_ptr<ILogger> logger2;
 
     std::atomic<bool> isSetup;
     std::atomic<bool> isRunning;
@@ -946,10 +946,10 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
     Initialize();
 
     logManager->SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_REQUIRED });
-    SendEventWithOptionalThenRequired(logger);
+    SendEventWithOptionalThenRequired(logger.get());
 
     logManager->SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
-    SendEventWithOptionalThenRequired(logger);
+    SendEventWithOptionalThenRequired(logger.get());
 
     logManager->UploadNow();
     waitForEvents(2 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
