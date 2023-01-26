@@ -191,7 +191,7 @@ public:
         logManager = LogManagerProvider::CreateLogManager(configuration);
         logManager->SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
 
-        logger  = logManager->GetLogger(TEST_TOKEN, "source1");
+        logger = logManager->GetLogger(TEST_TOKEN, "source1");
         logger2 = logManager->GetLogger(TEST_TOKEN, "source2");
     }
 
@@ -746,7 +746,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         CleanStorage();
         Initialize();
         // This code is a bit racy because ResumeTransmission is done in Initialize
-        logManager->PauseTransmission();
+     //   logManager->PauseTransmission();
         EventProperties event1("first_event");
         EventProperties event2("second_event");
         event1.SetProperty("property1", "value1");
@@ -757,6 +757,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         event2.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
         logger->LogEvent(event1);
         logger->LogEvent(event2);
+        logManager->Flush();
         FlushAndTeardown();
     }
 
@@ -765,7 +766,9 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         EventProperties fooEvent("fooEvent");
         fooEvent.SetLatency(EventLatency_RealTime);
         fooEvent.SetPersistence(EventPersistence_Critical);
+
         logger->LogEvent(fooEvent);
+
         logManager->UploadNow();
 
         // 1st request for realtime event
@@ -870,6 +873,7 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     EventProperties event2("second_event");
     event2.SetProperty("property2", "value2");
     logger->LogEvent(event2);
+    logManager->Flush();
     FlushAndTeardown();
 
     auto r1 = records();
