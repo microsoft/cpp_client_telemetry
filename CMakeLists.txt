@@ -35,13 +35,15 @@ if(APPLE)
     if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
       set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
     endif()
-
-    if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
-      # iOS arm64 simulator is supported starting BigSur
-      # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
-    else()
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+    
+    if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
+      if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
+        # iOS arm64 simulator is supported starting BigSur
+        # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
+      else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+      endif()
     endif()
 
     if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator"))
