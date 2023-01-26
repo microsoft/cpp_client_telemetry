@@ -1115,20 +1115,20 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     // Create the configuration to send to fake server
     ILogConfiguration myConfiguration;
 
-    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
-    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    myConfiguration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+    myConfiguration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+    myConfiguration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
-    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
-    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-    configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
-    configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
+    myConfiguration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    myConfiguration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    myConfiguration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+    myConfiguration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
+    myConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
+    myConfiguration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
 
-    configuration["name"] = __FILE__;
-    configuration["version"] = "1.0.0";
-    configuration["config"] = { { "host", __FILE__ } }; // Host instance
+    myConfiguration["name"] = __FILE__;
+    myConfiguration["version"] = "1.0.0";
+    myConfiguration["config"] = { { "host", __FILE__ } }; // Host instance
 
     // set the killed token on the server
     server.setKilledToken(KILLED_TOKEN, 6384);
@@ -1191,27 +1191,27 @@ TEST_F(BasicFuncTests, killIsTemporary)
 {
     CleanStorage();
     // Create the configuration to send to fake server
-    ILogConfiguration configuration;
+    ILogConfiguration myConfiguration;
 
-    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
-    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    myConfiguration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+    myConfiguration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+    myConfiguration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
 
-    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
-    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-    configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
-    configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
+    myConfiguration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    myConfiguration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    myConfiguration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+    myConfiguration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
+    myConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
+    myConfiguration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
 
-    configuration["name"] = __FILE__;
-    configuration["version"] = "1.0.0";
-    configuration["config"] = { { "host", __FILE__ } }; // Host instance
+    myConfiguration["name"] = __FILE__;
+    myConfiguration["version"] = "1.0.0";
+    myConfiguration["config"] = { { "host", __FILE__ } }; // Host instance
 
     // set the killed token on the server
     server.setKilledToken(KILLED_TOKEN, 10);
     KillSwitchListener listener;
-	auto myLogManager = LogManagerProvider::CreateLogManager(configuration);
+	auto myLogManager = LogManagerProvider::CreateLogManager(myConfiguration);
 	addListeners(*myLogManager, listener);
     // Log 100 events from valid and invalid 4 times
     int repetitions = 4;
