@@ -25,7 +25,7 @@ if(APPLE)
 
   # iOS build options
   option(BUILD_IOS           "Build for iOS"               NO)
-  option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" YES)
+  option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" ${FORCE_RESET_DEPLOYMENT_TARGET})
 
   if(BUILD_IOS)
     set(TARGET_ARCH "APPLE")
