@@ -25,7 +25,7 @@ namespace MAT_NS_BEGIN
 
         ActiveLoggerCall(ActiveLoggerCall const& source) : m_logger(source.m_logger)
         {
-            m_unpaused = m_logger.m_logManager.StartActivity();
+            m_unpaused = m_logger.m_logManager->StartActivity();
             std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
             m_active = m_logger.m_active;
             if (m_active)
@@ -39,7 +39,7 @@ namespace MAT_NS_BEGIN
         explicit ActiveLoggerCall(const Logger& parent) :
             m_logger(parent)
         {
-            m_unpaused = m_logger.m_logManager.StartActivity();
+            m_unpaused = m_logger.m_logManager->StartActivity();
             std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
             m_active = m_logger.m_active;
             if (m_active)
@@ -54,7 +54,7 @@ namespace MAT_NS_BEGIN
         {
             if (m_unpaused)
             {
-                m_logger.m_logManager.EndActivity();
+                m_logger.m_logManager->EndActivity();
             }
             if (m_active)
             {
@@ -83,8 +83,7 @@ namespace MAT_NS_BEGIN
         const std::string& tenantToken,
         const std::string& source,
         const std::string& scope,
-
-        ILogManagerInternal& logManager,
+        std::shared_ptr<ILogManagerInternal> logManager,
         ContextFieldsProvider& parentContext,
         IRuntimeConfig& runtimeConfig) :
         m_tenantToken(tenantToken),
@@ -97,10 +96,10 @@ namespace MAT_NS_BEGIN
         m_context(&parentContext),
         m_config(runtimeConfig),
 
-        m_baseDecorator(logManager),
-        m_eventPropertiesDecorator(logManager),
-        m_semanticContextDecorator(logManager, m_context),
-        m_semanticApiDecorators(logManager),
+        m_baseDecorator(*logManager.get()),
+        m_eventPropertiesDecorator(*logManager.get()),
+        m_semanticContextDecorator(*logManager.get(), m_context),
+        m_semanticApiDecorators(*logManager.get()),
         m_sessionStartTime(0),
         m_allowDotsInType(false),
         m_resetSessionOnEnd(false)
@@ -539,7 +538,7 @@ namespace MAT_NS_BEGIN
         const auto policyBitFlags = props.GetPolicyBitFlags();
         const auto persistence = props.GetPersistence();
         const auto latency = props.GetLatency();
-        auto levelFilter = m_logManager.GetLevelFilter();
+        auto levelFilter = m_logManager->GetLevelFilter();
         if (levelFilter.IsLevelFilterEnabled())
         {
             const auto& m_props = props.GetProperties();
@@ -585,7 +584,7 @@ namespace MAT_NS_BEGIN
         IncomingEventContext event(PAL::generateUuidString(), m_tenantToken, latency, persistence, &record);
         event.policyBitFlags = policyBitFlags;
 
-        m_logManager.sendEvent(&event);
+        m_logManager->sendEvent(&event);
     }
 
     void Logger::onSubmitted()
@@ -793,7 +792,7 @@ namespace MAT_NS_BEGIN
             return;
         }
 
-        auto logSessionData = m_logManager.GetLogSessionData();
+        auto logSessionData = m_logManager->GetLogSessionData();
         std::string sessionSDKUid;
         unsigned long long sessionFirstTime = 0;
         if (logSessionData!=nullptr)
@@ -849,7 +848,7 @@ namespace MAT_NS_BEGIN
                 m_sessionStartTime = 0;
                 if (logSessionData!=nullptr)
                 {
-                    m_logManager.ResetLogSessionData();
+                    m_logManager->ResetLogSessionData();
                     LOG_TRACE("Resetting session data on session end");
                 }
             }
@@ -893,7 +892,7 @@ namespace MAT_NS_BEGIN
             return nullManager;
         }
 
-        return m_logManager;
+        return *m_logManager.get();
     }
 
     LogSessionData* Logger::GetLogSessionData()
@@ -904,7 +903,7 @@ namespace MAT_NS_BEGIN
             return nullManager.GetLogSessionData();
         }
 
-        return m_logManager.GetLogSessionData();
+        return m_logManager->GetLogSessionData();
     }
 
     IAuthTokensController* Logger::GetAuthTokensController()
@@ -915,7 +914,7 @@ namespace MAT_NS_BEGIN
             return nullManager.GetAuthTokensController();
         }
 
-        return m_logManager.GetAuthTokensController();
+        return m_logManager->GetAuthTokensController();
     }
 
     bool Logger::DispatchEvent(DebugEvent evt)
@@ -926,7 +925,7 @@ namespace MAT_NS_BEGIN
             return nullManager.DispatchEvent(std::move(evt));
         }
 
-        return m_logManager.DispatchEvent(std::move(evt));
+        return m_logManager->DispatchEvent(std::move(evt));
     }
 
     std::string Logger::GetSource()
@@ -947,7 +946,7 @@ namespace MAT_NS_BEGIN
             return false;
         }
 
-        return m_filters.CanEventPropertiesBeSent(properties) && m_logManager.GetEventFilters().CanEventPropertiesBeSent(properties);
+        return m_filters.CanEventPropertiesBeSent(properties) && m_logManager->GetEventFilters().CanEventPropertiesBeSent(properties);
     }
 
     void Logger::RecordShutdown()
