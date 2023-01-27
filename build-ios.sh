@@ -35,7 +35,7 @@ if [ -z $IOS_DEPLOYMENT_TARGET ]; then
   export IOS_DEPLOYMENT_TARGET=${default_ios_target}
   export FORCE_RESET_DEPLOYMENT_TARGET=YES
 else
-  export FORCE_RESET_DEPLOYMENT_TARGET=N0
+  export FORCE_RESET_DEPLOYMENT_TARGET=NO
 fi
 echo "ios deployment target="$IOS_DEPLOYMENT_TARGET
 echo "force reset deployment target="$FORCE_RESET_DEPLOYMENT_TARGET
