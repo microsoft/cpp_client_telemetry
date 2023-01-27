@@ -50,28 +50,28 @@ CMAKE_OPTS="${CMAKE_OPTS:-DBUILD_SHARED_LIBS=OFF}"
 while getopts "h?vl:D:" opt; do
     case "$opt" in
     h|\?)
-        echo "Usage: build.sh [clean] [arm64|universal] [CUSTOM_CMAKE_CXX_FLAGS=x] [noroot] [release] [MACOSX_DEPLOYMENT_TARGET=x] [-h|-?] [-l (static|shared)] [-D CMAKE_OPTION] [-v]"
-        echo "                                                                                           "
-        echo "options:                                                                                   "
-        echo "                                                                                           "
-        echo "Positional options (1st three arguments):                                                  "
-        echo "[clean]                    - perform clean build                                           "
-        echo "[arm64|universal]          - Apple platform build type. Not applicable to other OS.        "
-        echo "[CUSTOM_CMAKE_CXX_FLAGS]   - custom CXX compiler flags                                     "
-        echo "[noroot]                   - custom CXX compiler flags                                     "
-        echo "[release]                  - build for Release                                             "
-        echo "[MACOSX_DEPLOYMENT_TARGET] - macosx deployment target                                             "
-        echo "                                                                                           "
-        echo "Additional parameters:                                                                     "
-        echo " -h | -?                   - this help.                                                    "
-        echo " -l [static|shared]        - build static (default) or shared library.                     "
-        echo " -D [CMAKE_OPTION]         - additional options to pass to cmake. Could be multiple.       "
-        echo " -v                        - increase build verbosity (reserved for future use)            "
-        echo "                                                                                           "
-        echo "Environment variables:                                                                     "
-        echo "CMAKE_OPTS                 - any additional cmake options.                                 "
-        echo "GIT_PULL_TOKEN             - authorization token for Microsoft-proprietary modules.        "
-        echo "Plus any other environment variables respected by CMake build system.                      "
+        echo "Usage: build.sh [clean] [arm64|universal] [CUSTOM_CMAKE_CXX_FLAGS=x] [noroot] [release] [-h|-?] [-l (static|shared)] [-D CMAKE_OPTION] [-v]"
+        echo "                                                                                         "
+        echo "options:                                                                                 "
+        echo "                                                                                         "
+        echo "Positional options (1st three arguments):                                                "
+        echo "[clean]                  - perform clean build                                           "
+        echo "[arm64|universal]        - Apple platform build type. Not applicable to other OS.        "
+        echo "[CUSTOM_CMAKE_CXX_FLAGS] - custom CXX compiler flags                                     "
+        echo "[noroot]                 - custom CXX compiler flags                                     "
+        echo "[release]                - build for Release                                             "
+        echo "                                                                                         "
+        echo "Additional parameters:                                                                   "
+        echo " -h | -?                 - this help.                                                    "
+        echo " -l [static|shared]      - build static (default) or shared library.                     "
+        echo " -D [CMAKE_OPTION]       - additional options to pass to cmake. Could be multiple.       "
+        echo " -v                      - increase build verbosity (reserved for future use)            "
+        echo "                                                                                         "
+        echo "Environment variables:                                                                   "
+        echo "CMAKE_OPTS               - any additional cmake options.                                 "
+        echo "GIT_PULL_TOKEN           - authorization token for Microsoft-proprietary modules.        "
+        echo "MACOSX_DEPLOYMENT_TARGET - optional parameter for setting macosx deployment target       "
+        echo "Plus any other environment variables respected by CMake build system.                    "
         exit 0
         ;;
     :)  echo "Invalid option: $OPTARG requires an argument" 1>&2
@@ -92,19 +92,8 @@ if [ "$LINK_TYPE" == "shared" ]; then
 fi
 
 # Set target MacOS minver
-if [[ $3 == MACOSX_DEPLOYMENT_TARGET* ]] || [[ $4 == MACOSX_DEPLOYMENT_TARGET* ]] || [[ $5 == MACOSX_DEPLOYMENT_TARGET* ]]; then
-  if [[ $3 == MACOSX_DEPLOYMENT_TARGET* ]]; then
-  export MACOSX_DEPLOYMENT_TARGET=${3:25:999}
-  elif [[ $4 == MACOSX_DEPLOYMENT_TARGET* ]]; then
-  export MACOSX_DEPLOYMENT_TARGET=${4:25:999}
-  elif [[ $5 == MACOSX_DEPLOYMENT_TARGET* ]]; then
-  export MACOSX_DEPLOYMENT_TARGET=${5:25:999}
-  fi
-elif [ "$MAC_ARCH" == "arm64" ]; then
-  export MACOSX_DEPLOYMENT_TARGET=11.10
-else
-  export MACOSX_DEPLOYMENT_TARGET=10.10
-fi
+default_mac_os_target=$([ "$MAC_ARCH" == "arm64" ] && echo "11.10" || echo "10.10")
+[ -z $MACOSX_DEPLOYMENT_TARGET ] && export MACOSX_DEPLOYMENT_TARGET=${default_mac_os_target}
 echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 
 # Install build tools and recent sqlite3

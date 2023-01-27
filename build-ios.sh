@@ -30,19 +30,14 @@ IOS_PLAT="iphonesimulator"
 fi
 
 # Set target iOS minver
-IOS_DEPLOYMENT_TARGET=10.0
-FORCE_RESET_DEPLOYMENT_TARGET=YES
-if [[ $3 == IOS_DEPLOYMENT_TARGET* ]] || [[ $4 == IOS_DEPLOYMENT_TARGET* ]] || [[ $5 == IOS_DEPLOYMENT_TARGET* ]]; then
-  if [[ $3 == IOS_DEPLOYMENT_TARGET* ]]; then
-  IOS_DEPLOYMENT_TARGET=${3:22:999}
-  elif [[ $4 == IOS_DEPLOYMENT_TARGET* ]]; then
-  IOS_DEPLOYMENT_TARGET=${4:22:999}
-  elif [[ $5 == IOS_DEPLOYMENT_TARGET* ]]; then
-  IOS_DEPLOYMENT_TARGET=${5:22:999}
-  fi
-  FORCE_RESET_DEPLOYMENT_TARGET=N0
+default_ios_target=10.0
+if [ -z $IOS_DEPLOYMENT_TARGET ]; then
+  export IOS_DEPLOYMENT_TARGET=${default_ios_target}
+  export FORCE_RESET_DEPLOYMENT_TARGET=YES
+else
+  export FORCE_RESET_DEPLOYMENT_TARGET=N0
 fi
-echo "iOS deployment target="$IOS_DEPLOYMENT_TARGET
+echo "ios deployment target="$IOS_DEPLOYMENT_TARGET
 echo "force reset deployment target="$FORCE_RESET_DEPLOYMENT_TARGET
 
 # Install build tools and recent sqlite3
