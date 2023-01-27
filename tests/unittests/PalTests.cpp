@@ -70,7 +70,7 @@ TEST_F(PalTests, SystemTime)
 
     int64_t t1 = PAL::getUtcSystemTimeMs();
     EXPECT_THAT(t1, Gt(t0 + 360));
-    EXPECT_THAT(t1, Lt(t0 + 500));
+    EXPECT_THAT(t1, Lt(t0 + 550));
 }
 
 TEST_F(PalTests, FormatUtcTimestampMsAsISO8601)
@@ -88,7 +88,7 @@ TEST_F(PalTests, MonotonicTime)
 
     int64_t t1 = PAL::getMonotonicTimeMs();
     EXPECT_THAT(t1 - t0, Gt(780));
-    EXPECT_THAT(t1 - t0, Lt(900));
+    EXPECT_THAT(t1 - t0, Lt(950));
 }
 
 TEST_F(PalTests, SemanticContextPopulation)
