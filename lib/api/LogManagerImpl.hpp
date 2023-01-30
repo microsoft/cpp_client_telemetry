@@ -111,7 +111,7 @@ namespace MAT_NS_BEGIN
         std::set<uint8_t> m_levelSet;
     };
 
-    class ILogManagerInternal : public ILogManager, public std::enable_shared_from_this<ILogManagerInternal>
+    class ILogManagerInternal : public ILogManager
     {
        public:
         static std::recursive_mutex managers_lock;

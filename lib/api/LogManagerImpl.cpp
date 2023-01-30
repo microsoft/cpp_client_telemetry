@@ -655,7 +655,7 @@ namespace MAT_NS_BEGIN
         {
             m_loggers[hash] = std::make_shared<Logger>(
                 normalizedTenantToken, normalizedSource, scope,
-                this->shared_from_this(), m_context, *m_config);
+                *this, m_context, *m_config);
         }
         uint8_t level = m_diagLevelFilter.GetDefaultLevel();
         if (level != DIAG_LEVEL_DEFAULT)

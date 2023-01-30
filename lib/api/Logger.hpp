@@ -40,7 +40,7 @@ namespace MAT_NS_BEGIN
             const std::string& tenantToken,
             const std::string& source,
             const std::string& scope,
-            std::shared_ptr<ILogManagerInternal> logManager,
+            ILogManagerInternal& logManager,
             ContextFieldsProvider& parentContext,
             IRuntimeConfig& runtimeConfig);
         ~Logger() noexcept;
@@ -250,7 +250,7 @@ namespace MAT_NS_BEGIN
         std::string m_scope;
         uint8_t m_level;
 
-        std::shared_ptr<ILogManagerInternal> m_logManager;
+        ILogManagerInternal& m_logManager;
         ContextFieldsProvider m_context;
         IRuntimeConfig& m_config;
 

@@ -14,7 +14,7 @@ public:
     TestLogger(const std::string& tenantToken,
         const std::string& source,
         const std::string& scope,
-        std::shared_ptr<ILogManagerInternal> logManager,
+        ILogManagerInternal& logManager,
         ContextFieldsProvider& parentContext,
         IRuntimeConfig& runtimeConfig) noexcept
         : Logger(tenantToken, source, scope, logManager, parentContext, runtimeConfig) { }
@@ -31,21 +31,20 @@ class LoggerTests : public ::testing::Test
 {
 public:
     LoggerTests() noexcept
-        : logManager(std::make_shared<LogManagerImpl>(configuration))
+        : logManager(configuration)
         , runtimeConfig(configuration)
         , logger("", "", "", logManager, contextFieldsProvider, runtimeConfig)
     { }
 
     ILogConfiguration configuration;
-    std::shared_ptr<ILogManagerInternal> logManager;
-    //LogManagerImpl logManager;
+    LogManagerImpl logManager;
     ContextFieldsProvider contextFieldsProvider;
     RuntimeConfig_Default runtimeConfig;
     TestLogger logger;
 
     virtual void SetUp() override
     {
-        logManager->GetEventFilters().UnregisterAllFilters();
+        logManager.GetEventFilters().UnregisterAllFilters();
     }
 
 protected:
@@ -78,7 +77,7 @@ TEST_F(LoggerTests, CanEventPropertiesBeSent_FilterInLoggerReturnsTrue_ReturnsTr
 
 TEST_F(LoggerTests, CanEventPropertiesBeSent_FilterInLogManagerReturnsFalse_ReturnsTrue)
 {
-    logManager->GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
+    logManager.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
     EXPECT_TRUE(logger.CanEventPropertiesBeSent(EventProperties{}));
 }
 
@@ -90,28 +89,28 @@ TEST_F(LoggerTests, CanEventPropertiesBeSent_FilterInLoggerReturnsFalse_ReturnsF
 
 TEST_F(LoggerTests, CanEventPropertiesBeSent_FilterInLogManagerReturnsFalse_ReturnsFalse)
 {
-    logManager->GetEventFilters().RegisterEventFilter(MakeTestEventFilter(false));
+    logManager.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(false));
     EXPECT_FALSE(logger.CanEventPropertiesBeSent(EventProperties{}));
 }
 
 TEST_F(LoggerTests, CanEventPropertiesBeSent_FilterInLoggerReturnsTrueFilterInLogManagerReturnsFalse_ReturnsFalse)
 {
     logger.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
-    logManager->GetEventFilters().RegisterEventFilter(MakeTestEventFilter(false));
+    logManager.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(false));
     EXPECT_FALSE(logger.CanEventPropertiesBeSent(EventProperties{}));
 }
 
 TEST_F(LoggerTests, CanEventPropertiesBeSent_FilterInLoggerReturnsFalseFilterInLogManagerReturnsTrue_ReturnsFalse)
 {
     logger.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(false));
-    logManager->GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
+    logManager.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
     EXPECT_FALSE(logger.CanEventPropertiesBeSent(EventProperties{}));
 }
 
 TEST_F(LoggerTests, CanEventPropertiesBeSent_FilterInLoggerReturnsTrueFilterInLogManagerReturnsTrue_ReturnsTrue)
 {
     logger.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
-    logManager->GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
+    logManager.GetEventFilters().RegisterEventFilter(MakeTestEventFilter(true));
     EXPECT_TRUE(logger.CanEventPropertiesBeSent(EventProperties{}));
 }
 
