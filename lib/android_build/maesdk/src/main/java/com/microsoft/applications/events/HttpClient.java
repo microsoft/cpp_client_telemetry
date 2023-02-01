@@ -36,7 +36,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -97,7 +97,7 @@ class Request implements HttpClientRequest {
           String method,
           byte[] body,
           String request_id,
-          @NonNull Map<String, String> headers)
+          @NonNull Headers headers)
       throws java.io.IOException {
     m_parent = parent;
     m_connection = (HttpURLConnection) parent.newUrl(url).openConnection();
@@ -108,8 +108,9 @@ class Request implements HttpClientRequest {
       m_connection.setDoOutput(true);
     }
     m_request_id = request_id;
-    for (Map.Entry<String, String> header : headers.entrySet()) {
-      m_connection.setRequestProperty(header.getKey(), header.getValue());
+    while (headers.hasNext()) {
+      HeaderEntry header = headers.next();
+      m_connection.setRequestProperty(header.key, header.value);
     }
   }
 
@@ -184,22 +185,6 @@ public class HttpClient {
   private static final int MAX_HTTP_THREADS = 2; // Collector wants no more than 2 at a time
   private static final String ANDROID_DEVICE_CLASS_PC = "Android.PC";
   private static final String ANDROID_DEVICE_CLASS_PHONE = "Android.Phone";
-
-  static Map<String, String> convertHeaders(
-          int[] header_length,
-          byte[] header_buffer
-  ) {
-    int offset = 0;
-    Map<String, String> result = new HashMap<>(header_length.length);
-    for (int i = 0; i + 1 < header_length.length; i += 2) {
-      String k = new String(header_buffer, offset, header_length[i], UTF_8);
-      offset += header_length[i];
-      String v = new String(header_buffer, offset, header_length[i + 1], UTF_8);
-      offset += header_length[i + 1];
-      result.put(k, v);
-    }
-    return result;
-  }
 
   /** Shim FutureTask: we would like to @Keep the cancel method for JNI */
   static class FutureShim extends FutureTask<Boolean> {
@@ -394,7 +379,7 @@ public class HttpClient {
       int[] header_index,
       byte[] header_buffer) {
     try {
-      Map<String, String> headers = HttpClient.convertHeaders(header_index, header_buffer);
+      HttpClientRequest.Headers headers = new HttpClientRequest.Headers(header_index, header_buffer);
       HttpClientRequest r = m_requestFactory.create(this, url, method, body, request_id, headers);
       return new FutureShim(r);
     } catch (Exception e) {
