@@ -16,7 +16,6 @@
 #if __has_include("modules/substratesignals/SubstrateSignals.hpp")
 #include "SubstrateSignalsHelper.hpp"
 #include "modules/substratesignals/SubstrateSignals.hpp"
-
 #define HAS_SS true
 #endif
 #endif
@@ -308,6 +307,33 @@ extern "C"
                 WrapperLogManager::GetInstance()->RemoveDataInspector(pg->GetName());
                 return true;
             }
+#endif
+        return false;
+    }
+
+    JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeRegisterSubstrateSignalsOnDefaultLogManager(JNIEnv *env, jclass clazz) {
+#if HAS_SS
+        auto logManager = WrapperLogManager::GetInstance();
+        auto ss = SubstrateSignalsHelper::GetSubstrateSignalsInspector();
+        if (ss != nullptr) {
+            logManager->SetDataInspector(ss);
+            return true;
+        }
+#endif
+        return false;
+    }
+
+    JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeUnregisterSubstrateSignalsOnDefaultLogManager(
+            JNIEnv *env, jclass clazz) {
+#if HAS_SS
+        auto logManager = WrapperLogManager::GetInstance();
+        auto ss = SubstrateSignalsHelper::GetSubstrateSignalsInspector();
+        if (ss != nullptr) {
+            logManager->RemoveDataInspector(ss->GetName());
+            return true;
+        }
 #endif
         return false;
     }
@@ -1585,6 +1611,23 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 }
 
 extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRegisterSubstrateSignals(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager) {
+#if HAS_SS
+    auto logManager = getLogManager(native_log_manager);
+    auto ss = SubstrateSignalsHelper::GetSubstrateSignalsInspector();
+    if(ss != nullptr) {
+        logManager->SetDataInspector(ss);
+        return true;
+    }
+#endif
+    return false;
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_LogManager_pauseActivity(JNIEnv *env, jclass clazz) {
     WrapperLogManager::PauseActivity();
@@ -1655,6 +1698,23 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
     if(pg != nullptr) {
         logManager->RemoveDataInspector(pg->GetName());
+        return true;
+    }
+#endif
+    return false;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterSubstrateSignals(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager) {
+#if HAS_SS
+    auto logManager = getLogManager(native_log_manager);
+    auto ss = SubstrateSignalsHelper::GetSubstrateSignalsInspector();
+    if(ss != nullptr) {
+        logManager->RemoveDataInspector(ss->GetName());
         return true;
     }
 #endif
