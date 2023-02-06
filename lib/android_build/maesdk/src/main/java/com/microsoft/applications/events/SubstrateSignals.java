@@ -24,6 +24,4 @@ public class SubstrateSignals {
 
     public static native boolean isEnabled();
     public static native boolean setEnabled(boolean enabled);
-
-
 }
