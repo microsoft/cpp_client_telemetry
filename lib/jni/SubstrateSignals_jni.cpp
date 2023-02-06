@@ -7,8 +7,6 @@
 #include "modules/substratesignals/SubstrateSignals.hpp"
 #include "SubstrateSignalsHelper.hpp"
 #include "WrapperLogManager.hpp"
-// #include ""
-// #include "PrivacyGuardHelper.hpp"
 
 using namespace MAT;
 
@@ -23,14 +21,13 @@ std::shared_ptr<IDataInspector> SubstrateSignalsHelper::GetSubstrateSignalsInspe
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_SubstrateSignals_sendSignal(JNIEnv *env,
-                                                                              jclass clazz,
-                                                                              jlong nativeLoggerPtr,
-                                                                              jstring signal_item_json) {
+                                                                  jclass clazz,
+                                                                  jlong nativeLoggerPtr,
+                                                                  jstring signal_item_json) {
     jboolean isCopy = true;
     const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
     env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
 
-    // SubstrateSignals::CreateEventProperties(std::string json)
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
     EventProperties eventProperties = SubstrateSignals::CreateEventProperties(signalItemJson);
     logger->LogEvent(eventProperties);
