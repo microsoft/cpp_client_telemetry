@@ -2,7 +2,7 @@ package com.microsoft.applications.events;
 
 public class SubstrateSignals {
     /**
-     * Creates EventProperties object from json SignalItem.
+     * Sends the Signal.
      *
      * @param loggerPtr the ILogger pointer
      * @param signalItemJson the Signal Item in json format.
