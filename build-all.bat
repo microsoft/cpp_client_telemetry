@@ -14,7 +14,7 @@ if DEFINED GIT_PULL_TOKEN (
 
 set GTEST_PATH=third_party\googletest
 if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
- git clone --depth 1 --branch release-1.11.0 https://github.com/google/googletest %GTEST_PATH%
+ git clone --depth 1 --branch release-1.12.1 https://github.com/google/googletest %GTEST_PATH%
 )
 
 set CUSTOM_PROPS=
