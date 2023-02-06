@@ -1,5 +1,6 @@
 //
-// Created by lealves on 16/01/2023.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
 //
 
 #include "ctmacros.hpp"
