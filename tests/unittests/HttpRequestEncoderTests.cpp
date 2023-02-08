@@ -65,7 +65,7 @@ TEST_F(HttpRequestEncoderTests, SetsAllParameters)
 
     EXPECT_THAT(req->m_id, Eq("HttpRequestEncoderTests"));
     EXPECT_THAT(req->m_method, Eq("POST"));
-    EXPECT_THAT(req->m_url, Eq("https://self.events.data.microsoft.com/OneCollector/1.0/"));
+    EXPECT_THAT(req->m_url, Eq("https://mobile.events.data.microsoft.com/OneCollector/1.0/"));
     EXPECT_THAT(req->m_headers, Contains(Pair("Expect", "100-continue")));
     EXPECT_THAT(req->m_headers, Contains(Pair("SDK-Version", PAL::getSdkVersion())));
     EXPECT_THAT(req->m_headers, Contains(Pair("Client-Id", "NO_AUTH")));
