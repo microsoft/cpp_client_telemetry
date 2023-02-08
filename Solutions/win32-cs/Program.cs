@@ -54,7 +54,7 @@ namespace CLI
                 AutoLogAppSuspend = false,
                 AutoLogUnhandledException = false,
                 OfflineStorage = "offline.storage",
-                // CollectorURL = "https://pipe.int.trafficmanager.net/Collector/3.0/",	// INT collector example
+                // CollectorURL = "https://mobile.events-sandbox.data.microsoft.com/Collector/3.0/",	// INT collector example
                 MinTraceLevel = ACTTraceLevel.ACTTraceLevel_Trace,
                 TraceLevelMask = 0xFFFFFFFF, // API calls + Global mask for general messages                
                 MaxTeardownUploadTimeInSec = 5
