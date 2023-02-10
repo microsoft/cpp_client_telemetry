@@ -13,9 +13,9 @@
 #include "PrivacyGuardHelper.hpp"
 #define HAS_PG true
 #endif
-#if __has_include("modules/substratesignals/SubstrateSignals.hpp")
-#include "SubstrateSignalsHelper.hpp"
-#include "modules/substratesignals/SubstrateSignals.hpp"
+#if __has_include("modules/signals/Signals.hpp")
+#include "SignalsHelper.hpp"
+#include "modules/signals/Signals.hpp"
 #define HAS_SS true
 #endif
 #endif

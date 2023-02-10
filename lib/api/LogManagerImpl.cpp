@@ -72,16 +72,16 @@
 #endif
 #endif
 
-#ifdef HAVE_MAT_SUBSTRATESIGNALS
+#ifdef HAVE_MAT_SIGNALS
 #if defined __has_include
-#if __has_include("modules/substratesignals/SubstrateSignals.hpp")
-#include "modules/substratesignals/SubstrateSignals.hpp"
+#if __has_include("modules/signals/Signals.hpp")
+#include "modules/signals/Signals.hpp"
 #else
-/* Compiling without Substrate Signals support because Substrate Signals private header is unavailable */
-#undef HAVE_MAT_SUBSTRATESIGNALS
+/* Compiling without Signals support because Signals private header is unavailable */
+#undef HAVE_MAT_SIGNALS
 #endif
 #else
-#include "modules/substratesignals/SubstrateSignals.hpp"
+#include "modules/signals/Signals.hpp"
 #endif
 #endif
 

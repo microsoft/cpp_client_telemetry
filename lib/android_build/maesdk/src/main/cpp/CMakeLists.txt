@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 11)
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
-option(BUILD_SUBSTRATESIGNALS   "Build Substrate Signals"        YES)
+option(BUILD_SIGNALS      "Build Signals"           YES)
 
 if(ENABLE_CAPI_HTTP_CLIENT)
   add_definitions(-DENABLE_CAPI_HTTP_CLIENT)
@@ -105,11 +105,11 @@ if(EXISTS ${SDK_ROOT}/lib/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
         )
 endif()
 
-if (EXISTS ${SDK_ROOT}/lib/modules/substratesignals/ AND BUILD_SUBSTRATESIGNALS)
+if (EXISTS ${SDK_ROOT}/lib/modules/signals/ AND BUILD_SIGNALS)
         list(APPEND SRCS
-                ${SDK_ROOT}/lib/jni/SubstrateSignals_jni.cpp
-                ${SDK_ROOT}/lib/modules/substratesignals/SubstrateSignals.cpp
-                ${SDK_ROOT}/lib/modules/substratesignals/SignalsEncoder.cpp
+                ${SDK_ROOT}/lib/jni/Signals_jni.cpp
+                ${SDK_ROOT}/lib/modules/signals/Signals.cpp
+                ${SDK_ROOT}/lib/modules/signals/SignalsEncoder.cpp
         )
 endif()
 

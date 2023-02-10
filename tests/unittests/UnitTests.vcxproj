@@ -487,8 +487,8 @@
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
   </ItemGroup>
-  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\substratesignals')">
-	  <ClCompile Include="$(ProjectDir)..\..\lib\modules\substratesignals\tests\unittests\SubstrateSignalsTests.cpp" />
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\signals')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\unittests\SignalsTests.cpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
