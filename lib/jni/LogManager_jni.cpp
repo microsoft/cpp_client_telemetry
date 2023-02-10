@@ -312,10 +312,10 @@ extern "C"
     }
 
     JNIEXPORT jboolean JNICALL
-    Java_com_microsoft_applications_events_LogManager_nativeRegisterSubstrateSignalsOnDefaultLogManager(JNIEnv *env, jclass clazz) {
+    Java_com_microsoft_applications_events_LogManager_nativeRegisterSignalsOnDefaultLogManager(JNIEnv *env, jclass clazz) {
 #if HAS_SS
         auto logManager = WrapperLogManager::GetInstance();
-        auto ss = SubstrateSignalsHelper::GetSubstrateSignalsInspector();
+        auto ss = SignalsHelper::GetSignalsInspector();
         if (ss != nullptr) {
             logManager->SetDataInspector(ss);
             return true;
@@ -325,11 +325,11 @@ extern "C"
     }
 
     JNIEXPORT jboolean JNICALL
-    Java_com_microsoft_applications_events_LogManager_nativeUnregisterSubstrateSignalsOnDefaultLogManager(
+    Java_com_microsoft_applications_events_LogManager_nativeUnregisterSignalsOnDefaultLogManager(
             JNIEnv *env, jclass clazz) {
 #if HAS_SS
         auto logManager = WrapperLogManager::GetInstance();
-        auto ss = SubstrateSignalsHelper::GetSubstrateSignalsInspector();
+        auto ss = SignalsHelper::GetSignalsInspector();
         if (ss != nullptr) {
             logManager->RemoveDataInspector(ss->GetName());
             return true;
@@ -1612,13 +1612,13 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRegisterSubstrateSignals(
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRegisterSignals(
         JNIEnv *env,
         jobject thiz,
         jlong native_log_manager) {
 #if HAS_SS
     auto logManager = getLogManager(native_log_manager);
-    auto ss = SubstrateSignalsHelper::GetSubstrateSignalsInspector();
+    auto ss = SignalsHelper::GetSignalsInspector();
     if(ss != nullptr) {
         logManager->SetDataInspector(ss);
         return true;
@@ -1706,13 +1706,13 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterSubstrateSignals(
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterSignals(
         JNIEnv *env,
         jobject thiz,
         jlong native_log_manager) {
 #if HAS_SS
     auto logManager = getLogManager(native_log_manager);
-    auto ss = SubstrateSignalsHelper::GetSubstrateSignalsInspector();
+    auto ss = SignalsHelper::GetSignalsInspector();
     if(ss != nullptr) {
         logManager->RemoveDataInspector(ss->GetName());
         return true;

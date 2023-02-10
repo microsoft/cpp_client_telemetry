@@ -1,6 +1,6 @@
 package com.microsoft.applications.events;
 
-public class SubstrateSignals {
+public class Signals {
     /**
      * Sends the Signal.
      *
@@ -12,10 +12,10 @@ public class SubstrateSignals {
     public static native boolean isInitialized();
 
     public static boolean initialize() {
-        return initialize(new SubstrateSignalsOptions());
+        return initialize(new SignalsOptions());
     }
 
-    public static boolean initialize(SubstrateSignalsOptions options) {
+    public static boolean initialize(SignalsOptions options) {
         return nativeInitialize(options.baseUrl, options.timeoutMs, options.retryTimes, options.retryTimesToWait, options.retryStatusCodes);
     }
 

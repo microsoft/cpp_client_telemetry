@@ -4,8 +4,8 @@
 //
 
 #include "JniConvertors.hpp"
-#include "modules/substratesignals/SubstrateSignals.hpp"
-#include "SubstrateSignalsHelper.hpp"
+#include "modules/signals/Signals.hpp"
+#include "SignalsHelper.hpp"
 #include "WrapperLogManager.hpp"
 
 using namespace MAT;
@@ -13,17 +13,17 @@ using namespace MAT;
 
 std::shared_ptr<IDataInspector> spDataInspector;
 
-std::shared_ptr<IDataInspector> SubstrateSignalsHelper::GetSubstrateSignalsInspector() noexcept
+std::shared_ptr<IDataInspector> SignalsHelper::GetSignalsInspector() noexcept
 {
     return spDataInspector;
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_SubstrateSignals_sendSignal(JNIEnv *env,
-                                                                  jclass clazz,
-                                                                  jlong nativeLoggerPtr,
-                                                                  jstring signal_item_json) {
+Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
+                                                          jclass clazz,
+                                                          jlong nativeLoggerPtr,
+                                                          jstring signal_item_json) {
     jboolean isCopy = true;
     const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
     env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
@@ -36,17 +36,17 @@ Java_com_microsoft_applications_events_SubstrateSignals_sendSignal(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_SubstrateSignals_isInitialized(JNIEnv *env, jclass clazz) {
+Java_com_microsoft_applications_events_Signals_isInitialized(JNIEnv *env, jclass clazz) {
     return spDataInspector != nullptr;
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_SubstrateSignals_nativeInitialize(JNIEnv *env, jclass clazz,
-                                                                         jstring base_url,
-                                                                         jint timeout_ms,
-                                                                         jint retry_times,
-                                                                         jint retry_time_to_wait,
-                                                                         jintArray retry_status_codes) {
+Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jclass clazz,
+                                                                jstring base_url,
+                                                                jint timeout_ms,
+                                                                jint retry_times,
+                                                                jint retry_time_to_wait,
+                                                                jintArray retry_status_codes) {
     if (spDataInspector != nullptr) {
         return false;
     }
@@ -74,7 +74,7 @@ Java_com_microsoft_applications_events_SubstrateSignals_nativeInitialize(JNIEnv 
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_SubstrateSignals_nativeUnitialize(JNIEnv *env, jclass clazz) {
+Java_com_microsoft_applications_events_Signals_nativeUnitialize(JNIEnv *env, jclass clazz) {
     if (spDataInspector == nullptr) {
         return false;
     }
@@ -84,7 +84,7 @@ Java_com_microsoft_applications_events_SubstrateSignals_nativeUnitialize(JNIEnv 
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_SubstrateSignals_isEnabled(JNIEnv *env, jclass clazz) {
+Java_com_microsoft_applications_events_Signals_isEnabled(JNIEnv *env, jclass clazz) {
     if (spDataInspector == nullptr) {
         return false;
     }
@@ -93,8 +93,8 @@ Java_com_microsoft_applications_events_SubstrateSignals_isEnabled(JNIEnv *env, j
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_SubstrateSignals_setEnabled(JNIEnv *env, jclass clazz,
-                                                                   jboolean enabled) {
+Java_com_microsoft_applications_events_Signals_setEnabled(JNIEnv *env, jclass clazz,
+                                                          jboolean enabled) {
     if (spDataInspector == nullptr) {
         return false;
     }

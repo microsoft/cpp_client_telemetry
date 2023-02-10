@@ -4,15 +4,15 @@
 //
 
 #include "ctmacros.hpp"
-#include "modules/substratesignals/SubstrateSignals.hpp"
+#include "modules/signals/Signals.hpp"
 
 namespace MAT_NS_BEGIN
 {
-    struct SubstrateSignalsHelper {
+    struct SignalsHelper {
         /**
-         * Get the current instance of SubstrateSignals.
+         * Get the current instance of Signals.
          * @return SubstrateSignalsPtr if it is initialized, nullptr otherwise.
          */
-        static std::shared_ptr<IDataInspector> GetSubstrateSignalsInspector() noexcept;
+        static std::shared_ptr<IDataInspector> GetSignalsInspector() noexcept;
     };
 } MAT_NS_END
