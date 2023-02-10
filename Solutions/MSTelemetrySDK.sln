@@ -156,6 +156,7 @@ Global
 		..\lib\modules\filter\filter.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
+		..\lib\modules\signals\signals.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c33}*SharedItemsImports = 4
