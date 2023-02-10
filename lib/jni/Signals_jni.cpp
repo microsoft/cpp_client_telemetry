@@ -29,7 +29,7 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
     env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
 
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
-    EventProperties eventProperties = SubstrateSignals::CreateEventProperties(signalItemJson);
+    EventProperties eventProperties = Signals::CreateEventProperties(signalItemJson);
     logger->LogEvent(eventProperties);
     return true;
 }
@@ -69,7 +69,7 @@ Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jcl
     env->GetIntArrayRegion(retry_status_codes, jsize{0}, size, &retryStatusCodes[0] );
     config.ServiceRequestConfig.RetryStatusCodes = std::vector<int64_t>(retryStatusCodes.begin(), retryStatusCodes.end());
 
-    spDataInspector = SubstrateSignals::CreateSubstrateSignalsEventInspector(nullptr, config);
+    spDataInspector = Signals::CreateSignalsEventInspector(nullptr, config);
     return true;
 }
 extern "C"

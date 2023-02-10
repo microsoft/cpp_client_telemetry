@@ -11,7 +11,7 @@ namespace MAT_NS_BEGIN
     struct SignalsHelper {
         /**
          * Get the current instance of Signals.
-         * @return SubstrateSignalsPtr if it is initialized, nullptr otherwise.
+         * @return SignalsPtr if it is initialized, nullptr otherwise.
          */
         static std::shared_ptr<IDataInspector> GetSignalsInspector() noexcept;
     };
