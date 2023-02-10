@@ -300,7 +300,6 @@ public class LogManagerProvider {
       return Signals.isInitialized() && nativeRegisterSignals(nativeLogManager);
     }
 
-
     private native boolean nativeUnregisterSignals(long nativeLogManager);
     @Override
     public boolean unregisterSignals() {
