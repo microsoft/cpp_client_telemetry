@@ -17,20 +17,6 @@
 #include <Windows.h>
 #endif
 
-#ifdef __clang__
-#define PACKED_STRUCT __attribute__((packed))
-#define PACK_PUSH
-#define PACK_POP
-#elif __GNUC__
-#define PACKED_STRUCT __attribute__((packed))
-#define PACK_PUSH
-#define PACK_POP
-#else
-#define PACKED_STRUCT
-#define PACK_PUSH     __pragma(pack(push, 1))
-#define PACK_POP      __pragma(pack(pop))
-#endif
-
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600)
 /* Visual Studio 2010 */
 typedef	__int64				int64_t;
@@ -59,7 +45,7 @@ typedef int                 bool;
 extern "C" {
 #endif
 
-    typedef enum evt_call_t /* 32-bit */
+    typedef enum evt_call_t
     {
         EVT_OP_LOAD = 0x00000001,
         EVT_OP_UNLOAD = 0x00000002,
@@ -77,7 +63,7 @@ extern "C" {
         EVT_OP_MAXINT = 0xFFFFFFFF
     } evt_call_t;
 
-    typedef enum evt_prop_t /* 32-bit */
+    typedef enum evt_prop_t
     {
         /* Basic types */
         TYPE_STRING,
@@ -98,9 +84,9 @@ extern "C" {
         TYPE_MAXINT = 0xFFFFFFFF
     } evt_prop_t;
 
-    typedef struct PACKED_STRUCT evt_guid_t
+    typedef struct MATSDK_PACKED_STRUCT evt_guid_t
     {
-PACK_PUSH
+MATSDK_PACK_PUSH
         /**
          * <summary>
          * Specifies the first eight hexadecimal digits of the GUID.
@@ -128,22 +114,22 @@ PACK_PUSH
          * </summary>
          */
         uint8_t  Data4[8];
-PACK_POP
+MATSDK_PACK_POP
     } evt_guid_t;
 
     typedef int64_t  evt_handle_t;
     typedef int32_t  evt_status_t;
     typedef struct   evt_event evt_event;
 
-    typedef struct PACKED_STRUCT evt_context_t
+    typedef struct MATSDK_PACKED_STRUCT evt_context_t
     {
-PACK_PUSH
+MATSDK_PACK_PUSH
         evt_call_t      call;       /* In       */
         evt_handle_t    handle;     /* In / Out */
         void*           data;       /* In / Out */
         evt_status_t    result;     /* Out      */
         uint32_t        size;       /* In / Out */
-PACK_POP
+MATSDK_PACK_POP
     } evt_context_t;
 
     /**
@@ -203,14 +189,14 @@ PACK_POP
         uint64_t**          as_arr_time;
     } evt_prop_v;
 
-    typedef struct PACKED_STRUCT evt_prop
+    typedef struct MATSDK_PACKED_STRUCT evt_prop
     {
-PACK_PUSH
+MATSDK_PACK_PUSH
         const char*             name;
         evt_prop_t              type;
         evt_prop_v              value;
         uint32_t                piiKind;
-PACK_POP
+MATSDK_PACK_POP
     } evt_prop;
     
     /**
