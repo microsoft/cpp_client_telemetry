@@ -9,12 +9,26 @@
  * For version handshake check there is no mandatory requirement to update the $PATCH level.
  * Ref. https://semver.org/ for Semantic Versioning documentation.
  */
-#define TELEMETRY_EVENTS_VERSION	"3.1.0"
+#define TELEMETRY_EVENTS_VERSION "3.4.0"
 
 #include "ctmacros.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
+#endif
+
+#ifdef __clang__
+#define PACKED_STRUCT __attribute__((packed))
+#define PACK_PUSH
+#define PACK_POP
+#elif __GNUC__
+#define PACKED_STRUCT __attribute__((packed))
+#define PACK_PUSH
+#define PACK_POP
+#else
+#define PACKED_STRUCT
+#define PACK_PUSH     __pragma(pack(push, 1))
+#define PACK_POP      __pragma(pack(pop))
 #endif
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600)
@@ -45,7 +59,7 @@ typedef int                 bool;
 extern "C" {
 #endif
 
-    typedef enum evt_call_t
+    typedef enum evt_call_t /* 32-bit */
     {
         EVT_OP_LOAD = 0x00000001,
         EVT_OP_UNLOAD = 0x00000002,
@@ -59,10 +73,11 @@ extern "C" {
         EVT_OP_FLUSH = 0x0000000A,
         EVT_OP_VERSION = 0x0000000B,
         EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
-        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
+        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1,
+        EVT_OP_MAXINT = 0xFFFFFFFF
     } evt_call_t;
 
-    typedef enum evt_prop_t
+    typedef enum evt_prop_t /* 32-bit */
     {
         /* Basic types */
         TYPE_STRING,
@@ -79,11 +94,13 @@ extern "C" {
         TYPE_BOOL_ARRAY,
         TYPE_GUID_ARRAY,
         /* NULL-type */
-        TYPE_NULL
+        TYPE_NULL,
+        TYPE_MAXINT = 0xFFFFFFFF
     } evt_prop_t;
 
-    typedef struct evt_guid_t
+    typedef struct PACKED_STRUCT evt_guid_t
     {
+PACK_PUSH
         /**
          * <summary>
          * Specifies the first eight hexadecimal digits of the GUID.
@@ -111,19 +128,22 @@ extern "C" {
          * </summary>
          */
         uint8_t  Data4[8];
+PACK_POP
     } evt_guid_t;
 
     typedef int64_t  evt_handle_t;
     typedef int32_t  evt_status_t;
     typedef struct   evt_event evt_event;
 
-    typedef struct evt_context_t
+    typedef struct PACKED_STRUCT evt_context_t
     {
+PACK_PUSH
         evt_call_t      call;       /* In       */
         evt_handle_t    handle;     /* In / Out */
         void*           data;       /* In / Out */
         evt_status_t    result;     /* Out      */
         uint32_t        size;       /* In / Out */
+PACK_POP
     } evt_context_t;
 
     /**
@@ -183,12 +203,14 @@ extern "C" {
         uint64_t**          as_arr_time;
     } evt_prop_v;
 
-    typedef struct evt_prop
+    typedef struct PACKED_STRUCT evt_prop
     {
+PACK_PUSH
         const char*             name;
         evt_prop_t              type;
         evt_prop_v              value;
         uint32_t                piiKind;
+PACK_POP
     } evt_prop;
     
     /**
