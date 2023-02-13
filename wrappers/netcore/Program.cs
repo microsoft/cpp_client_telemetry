@@ -2,10 +2,15 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.IO;
-using System.Json;
 using System.Diagnostics;
-
 using Microsoft.Telemetry.Core;
+
+#if HAVE_SYSTEM_JSON
+// TODO: Unity 2021 doesn't have support for System.Json yet
+using System.Json;
+#else
+using Newtonsoft.Json.Linq;
+#endif
 
 namespace EventSender
 {
@@ -70,7 +75,11 @@ namespace EventSender
 
             // Parse to verify it is valid and print it out..
             // Parser should throw if config is invalid.
+#if HAVE_SYSTEM_JSON
             JsonObject jsonDoc = (JsonObject)JsonObject.Parse(cfg);
+#else
+            JObject jsonDoc = JObject.Parse(cfg);
+#endif
             Console.WriteLine("SDK configuration:\n{0}", jsonDoc.ToString());
 
             // Obtain SDK version from native library

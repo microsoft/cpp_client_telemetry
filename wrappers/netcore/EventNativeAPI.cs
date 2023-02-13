@@ -6,7 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.IO;
-using System.Json;
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections;
@@ -385,6 +385,32 @@ namespace Microsoft
                 public static implicit operator EventProperty(int v) => new EventProperty(v);
                 public static implicit operator EventProperty(double v) => new EventProperty(v);
                 public static implicit operator EventProperty(Guid v) => new EventProperty(v);
+
+                public static EventProperty FromObject(object v)
+                {
+                    if (v is Guid guid)
+                    {
+                        return new EventProperty(guid);
+                    }
+
+                    switch (Type.GetTypeCode(v.GetType()))
+                    {
+                        case TypeCode.String:
+                            return new EventProperty((string)v);
+                        case TypeCode.Int16:
+                        case TypeCode.Int32:
+                        case TypeCode.Int64:
+                            return new EventProperty((int)v);
+                        case TypeCode.Double:
+                            return new EventProperty((double)v);
+                        case TypeCode.Boolean:
+                            return new EventProperty((bool)v);
+                        default:
+                            break;
+                    }
+
+                    return new EventProperty(v.ToString());
+                }
             };
 
             public static class EventNativeAPI
