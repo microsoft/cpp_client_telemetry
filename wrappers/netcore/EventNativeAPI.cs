@@ -20,7 +20,7 @@ namespace Microsoft
             public class Constants
             {
                 public const string LIBRARY_NAME = "ClientTelemetry";
-                public const string VERSION = "3.4.0-netcore";
+                public const string VERSION = "3.7.0-netcore";
             }
 
             public enum EventCallType : UInt32
@@ -158,9 +158,9 @@ namespace Microsoft
                 /* Basic types */
                 [FieldOffset(0)] public UInt64 as_uint64;
                 [FieldOffset(0)] public IntPtr as_string;
-                [FieldOffset(0)] public Int64  as_int64;
+                [FieldOffset(0)] public Int64 as_int64;
                 [FieldOffset(0)] public double as_double;
-                [FieldOffset(0)] public bool   as_bool;
+                [FieldOffset(0)] public bool as_bool;
                 [FieldOffset(0)] public IntPtr as_guid;
                 [FieldOffset(0)] public UInt64 as_time;
 #if FALSE
@@ -228,7 +228,7 @@ namespace Microsoft
                 }
                 internal unsafe void AllocNative()
                 {
-                    nativeSize = (Count+1) * szEvtPropKV;
+                    nativeSize = (Count + 1) * szEvtPropKV;
                     nativeBuffer = Marshal.AllocHGlobal(nativeSize);// sizeof(EventPropertyKeyValue));
                     int i = 0;
                     EventPropertyKeyValue* propPtr = (EventPropertyKeyValue*)(IntPtr.Zero);
@@ -290,7 +290,7 @@ namespace Microsoft
 
                 internal unsafe void FreeNative()
                 {
-                    if (nativeBuffer==IntPtr.Zero)
+                    if (nativeBuffer == IntPtr.Zero)
                     {
                         throw new Exception("Memory not allocated!");
                     }
@@ -430,6 +430,14 @@ namespace Microsoft
                     return evt_api_call(ref context);
                 }
 
+                /**
+                 * REMEMBER! Privacy feature for OTEL C API client:
+                 *
+                 * C API customer that does not explicitly pass down JSON
+                 *   config["config]["scope"] = COMMONFIELDS_SCOPE_ALL;
+                 *
+                 * should not be able to capture the host's context vars.
+                 */
                 public static ulong evt_log(ulong inHandle, ref EventProperties properties)
                 {
                     ulong result = 0;
@@ -495,7 +503,7 @@ namespace Microsoft
                 {
                     EventContextType context = new EventContextType
                     {
-                        call = (Byte)EventCallType.EVT_OP_RESUME,
+                        call = (Byte)EventCallType.EVT_OP_UPLOAD,
                         handle = inHandle
                     };
                     return evt_api_call(ref context);

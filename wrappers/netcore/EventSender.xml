@@ -1,3 +1,4 @@
 <configuration>
+    <!-- Linux, Mac and Android shared library name mapping. -->
     <dllmap dll="ClientTelemetry" target="libmat"/>
 </configuration>
