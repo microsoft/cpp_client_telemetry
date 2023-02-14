@@ -343,19 +343,24 @@ namespace PAL_NS_BEGIN {
 	std::transform(uuidStr.begin(), uuidStr.end(), uuidStr.begin(), ::tolower);
         return uuidStr;
 #else
+        static std::mt19937 random_generator;
+        // Seed the PRNG
+
         static std::once_flag flag;
         std::call_once(flag, [](){
-            auto now = std::chrono::high_resolution_clock::now();
-            auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
-            std::srand(static_cast<unsigned int>(std::time(0) ^ nanos));
+			std::array<std::mt19937::result_type, std::mt19937::state_size> seed_data;
+			std::random_device rd;
+			std::generate_n(seed_data.data(), seed_data.size(), std::ref(rd));
+			std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+			random_generator.seed(seq);
         });
 
         GUID_t uuid;
-        uuid.Data1 = (static_cast<uint16_t>(std::rand()) << 16) | static_cast<uint16_t>(std::rand());
-        uuid.Data2 = static_cast<uint16_t>(std::rand());
-        uuid.Data3 = static_cast<uint16_t>(std::rand());
+        uuid.Data1 = (static_cast<uint16_t>(std::random_generator()) << 16) | static_cast<uint16_t>(std::random_generator());
+        uuid.Data2 = static_cast<uint16_t>(std::random_generator());
+        uuid.Data3 = static_cast<uint16_t>(std::random_generator());
         for (size_t i = 0; i < sizeof(uuid.Data4); i++)
-            uuid.Data4[i] = static_cast<uint8_t>(std::rand());
+            uuid.Data4[i] = static_cast<uint8_t>(std::random_generator());
 
         // TODO: [MG] - replace this sprintf by more robust GUID to string converter
         char buf[40] = { 0 };

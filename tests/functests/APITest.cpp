@@ -309,6 +309,17 @@ static void CleanStorage()
     std::remove(GetStoragePath().c_str());
 }
 
+static std::seed_seq seed_seq_mt()
+{
+	std::array<std::mt19937::result_type, std::mt19937::state_size> seed_data;
+	std::random_device rd;
+	std::generate_n(seed_data.data(), seed_data.size(), std::ref(rd));
+	return std::seed_seq (std::begin(seed_data), std::end(seed_data));
+}
+
+static std::seed_seq seed_data = seed_seq_mt();
+static std::mt19937 random_generator(seed_data);
+
 #if 0
 /* TODO: [maxgolov] - Issue #150: test needs to be reworked. Invalid tokens might noe get sporadically 'black-holed' with 200 OK */
 TEST(APITest, LogManager_KilledEventsAreDropped)
@@ -465,7 +476,7 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     event.SetName("MyProduct.TaggedEvent");
     event.SetType(evtType);
     event.SetProperty("result", "Success");
-    event.SetProperty("random", rand());
+    event.SetProperty("random", random_generator());
     event.SetProperty("secret", 5.6872);
     event.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_BrowsingHistory);
     event.SetLatency(EventLatency_Normal);
@@ -557,7 +568,6 @@ constexpr static unsigned MAX_THREADS = 25;
 /// <param name="config">The configuration.</param>
 void StressUploadLockMultiThreaded(ILogConfiguration& config)
 {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     TestDebugEventListener debugListener;
 
     addAllListeners(debugListener);
@@ -579,7 +589,7 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
                 {
                     std::this_thread::yield();
                     LogManager::UploadNow();
-                    const auto randTimeSub2ms = std::rand() % 2;
+                    const auto randTimeSub2ms = std::random_generator() % 2;
                     PAL::sleep(randTimeSub2ms);
                     threadCount--;
                 });
