@@ -1294,10 +1294,10 @@ TEST_F(BasicFuncTests, killIsTemporary)
 /* TODO: [MG] - debug why this stress-test is very slow on Mac, then re-enable for Mac */
 static std::seed_seq seed_seq_mt()
 {
-	std::array<std::mt19937::result_type, std::mt19937::state_size> seed_data;
-	std::random_device rd;
-	std::generate_n(seed_data.data(), seed_data.size(), std::ref(rd));
-	return std::seed_seq (std::begin(seed_data), std::end(seed_data));
+    std::array<std::mt19937::result_type, std::mt19937::state_size> seed_data;
+    std::random_device rd;
+    std::generate_n(seed_data.data(), seed_data.size(), std::ref(rd));
+    return std::seed_seq (std::begin(seed_data), std::end(seed_data));
 }
 
 static std::seed_seq seed_data = seed_seq_mt();
