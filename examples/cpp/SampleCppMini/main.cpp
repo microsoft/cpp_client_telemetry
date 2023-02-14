@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define API_KEY   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
+// #define API_KEY   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
+#define API_KEY "fba3c287ba474016b77e0ab612175255-8ef3561c-6103-4027-8ca0-2c79dcbd8901-6902"
 
 #include <cstdio>
 #include <cstdlib>
@@ -26,8 +27,19 @@ void test_cpp_api(const char * token, int ticketType, const char *ticket)
     auto& config = LogManager::GetLogConfiguration();
     // config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
 
+    // Disable stats event to avoid 403
+    config["stats"]["interval"] = 0;
+    config["maxTeardownUploadTimeInSec"] = 5;
+    config[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel::ACTTraceLevel_Debug;
+
     // LogManager initialization
     ILogger *logger = LogManager::Initialize(token);
+
+    // Print configuration
+    std::string dumpStr;
+    Variant::serialize((VariantMap&)config, dumpStr);
+    printf("\nJSON config:\n%s", dumpStr.c_str());
 
     if (ticket != nullptr)
     {
@@ -88,6 +100,7 @@ void test_cpp_api(const char * token, int ticketType, const char *ticket)
     logger->LogEvent(detailed_event);
 
     // Shutdown
+    LogManager::UploadNow();
     LogManager::FlushAndTeardown();
 
     printf("[ DONE ]\n");
@@ -103,7 +116,7 @@ int main(int argc, const char *argv[])
     const char *ticket = (argc > 3) ? argv[3] : nullptr;
 
     // Send event using C API
-    test_c_api(token);
+    // test_c_api(token);
 
     // Send event using C++ API
     test_cpp_api(token, type, ticket);

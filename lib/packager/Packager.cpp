@@ -13,10 +13,10 @@ namespace MAT_NS_BEGIN {
     Packager::Packager(IRuntimeConfig& runtimeConfig)
         : m_config(runtimeConfig)
     {
-        const char *forcedTenantToken = runtimeConfig["forcedTenantToken"];
-        if (forcedTenantToken != nullptr)
+        // Forced token used in tests
+        if (runtimeConfig.HasConfig("forcedTenantToken"))
         {
-            m_forcedTenantToken = forcedTenantToken;
+            m_forcedTenantToken = static_cast<const char *>(runtimeConfig["forcedTenantToken"]);
         }
     }
 

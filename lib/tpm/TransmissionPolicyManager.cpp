@@ -102,10 +102,13 @@ namespace MAT_NS_BEGIN {
     // If delayInMs is negative, do not schedule.
     void TransmissionPolicyManager::scheduleUpload(const std::chrono::milliseconds& delay, EventLatency latency, bool force)
     {
+        assert(EventLatency::EventLatency_Normal << latency);
+#if 0
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
             return;
         }
+#endif
         LOCKGUARD(m_scheduledUploadMutex);
         if (delay.count() < 0 || m_timerdelay.count() < 0)
         {
@@ -175,10 +178,12 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
+#if 0
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
             return;
         }
+#endif
         m_runningLatency = latency;
         m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
 
@@ -226,10 +231,13 @@ namespace MAT_NS_BEGIN {
             LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx.get());
         }
 
+#if 0
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
             return;
         }
+#endif
+
         // Rescheduling upload
         if (nextUpload.count() >= 0)
         {
@@ -284,7 +292,7 @@ namespace MAT_NS_BEGIN {
         }
 
         // Make sure we wait for all active upload callbacks to finish
-        while (uploadCount() > 0)
+        while (isUploadInProgress())
         {
             std::this_thread::yield();
         }
@@ -302,7 +310,7 @@ namespace MAT_NS_BEGIN {
      {
         cancelUploadTask();
         // Make sure ongoing uploads are finished.
-        while (uploadCount() > 0)
+        while (isUploadInProgress())
         {
             std::this_thread::yield();
         }
@@ -321,9 +329,11 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const& event)
     {
+/*
         if (m_isPaused) {
             return;
         }
+ */
         bool forceTimerRestart = false;
 
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */

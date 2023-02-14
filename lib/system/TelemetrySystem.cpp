@@ -204,7 +204,7 @@ namespace MAT_NS_BEGIN {
         size_t recordCount = storage.GetRecordCount();
         if (recordCount)
         {
-            tpm.scheduleUpload(std::chrono::milliseconds {}, EventLatency_Normal, true);
+            tpm.scheduleUpload(std::chrono::milliseconds {0}, EventLatency_Normal, true);
             return true;
         }
 
