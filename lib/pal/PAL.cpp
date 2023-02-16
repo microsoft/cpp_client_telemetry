@@ -356,11 +356,11 @@ namespace PAL_NS_BEGIN {
         });
 
         GUID_t uuid;
-        uuid.Data1 = (static_cast<uint16_t>(std::random_generator()) << 16) | static_cast<uint16_t>(std::random_generator());
-        uuid.Data2 = static_cast<uint16_t>(std::random_generator());
-        uuid.Data3 = static_cast<uint16_t>(std::random_generator());
+        uuid.Data1 = (static_cast<uint16_t>(random_generator()) << 16) | static_cast<uint16_t>(random_generator());
+        uuid.Data2 = static_cast<uint16_t>(random_generator());
+        uuid.Data3 = static_cast<uint16_t>(random_generator());
         for (size_t i = 0; i < sizeof(uuid.Data4); i++)
-            uuid.Data4[i] = static_cast<uint8_t>(std::random_generator());
+            uuid.Data4[i] = static_cast<uint8_t>(random_generator());
 
         // TODO: [MG] - replace this sprintf by more robust GUID to string converter
         char buf[40] = { 0 };
