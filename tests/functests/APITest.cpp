@@ -589,7 +589,7 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
                 {
                     std::this_thread::yield();
                     LogManager::UploadNow();
-                    const auto randTimeSub2ms = std::random_generator() % 2;
+                    const auto randTimeSub2ms = random_generator() % 2;
                     PAL::sleep(randTimeSub2ms);
                     threadCount--;
                 });
