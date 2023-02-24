@@ -68,7 +68,11 @@ public interface ILogManager extends AutoCloseable {
   public boolean registerPrivacyGuard();
 
   public boolean unregisterPrivacyGuard();
-  
+
+  public boolean registerSignals();
+
+  public boolean unregisterSignals();
+
   public void pauseActivity();
   public void resumeActivity();
   public void waitPause();
