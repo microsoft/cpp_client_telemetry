@@ -145,6 +145,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_INT_RAM_QUEUE_BUFFERS = "maxDBFlushQueues";
 
     /// <summary>
+    /// SQLite DB will be checkpointed when flushing.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_CHECKPOINT_DB_ON_FLUSH = "checkpointDBOnFlush";
+
+    /// <summary>
     /// The trace level mask.
     /// </summary>
     static constexpr const char* const CFG_INT_TRACE_LEVEL_MASK = "traceLevelMask";
