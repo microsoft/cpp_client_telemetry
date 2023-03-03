@@ -6,8 +6,8 @@
 #define MAT_VERSION_HPP
 // WARNING: DO NOT MODIFY THIS FILE!
 // This file has been automatically generated, manual changes will be lost.
-#define BUILD_VERSION_STR "3.6.187.1"
-#define BUILD_VERSION 3,6,187,1
+#define BUILD_VERSION_STR "3.7.46.1"
+#define BUILD_VERSION 3,7,46,1
 
 #ifndef RESOURCE_COMPILER_INVOKED
 #include "ctmacros.hpp"
@@ -17,8 +17,8 @@ namespace MAT_NS_BEGIN {
 
 uint64_t const Version =
     ((uint64_t)3 << 48) |
-    ((uint64_t)6 << 32) |
-    ((uint64_t)187 << 16) |
+    ((uint64_t)7 << 32) |
+    ((uint64_t)46 << 16) |
     ((uint64_t)1);
 
 } MAT_NS_END

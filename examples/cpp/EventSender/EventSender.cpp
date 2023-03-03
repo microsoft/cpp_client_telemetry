@@ -35,7 +35,7 @@ const char* defaultConfig = static_cast<const char *> JSON_CONFIG
             "dotType": true
         },
         "enableLifecycleSession" : false,
-        "eventCollectorUri" : "https://self.events.data.microsoft.com/OneCollector/1.0/",
+        "eventCollectorUri" : "https://mobile.events.data.microsoft.com/OneCollector/1.0/",
         "forcedTenantToken" : null,
         "hostMode" : true,
         "http" : {

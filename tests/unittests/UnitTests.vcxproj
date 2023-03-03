@@ -412,8 +412,6 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp" />
     <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
@@ -488,6 +486,9 @@
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DataViewerCollectionTests.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\signals')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\unittests\SignalsTests.cpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
