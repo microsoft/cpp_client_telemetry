@@ -22,6 +22,8 @@
     <Content Include="$(ProjectDir)\..\..\Solutions\out\Debug\x64\win32-dll\*.*" Visible="False" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Json" Version="4.7.0" />
+    <!-- Unfortunately we require Newtonsoft.JSON in Unity -->
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <!-- PackageReference Include="System.Json" Version="4.7.0" / -->
   </ItemGroup>
 </Project>

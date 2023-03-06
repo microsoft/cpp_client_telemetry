@@ -1,6 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
 using Microsoft.Telemetry.Core;
@@ -14,7 +12,6 @@ using Newtonsoft.Json.Linq;
 
 namespace EventSender
 {
-
     class Program
     {
 
@@ -25,11 +22,8 @@ namespace EventSender
         /// <returns></returns>
         static string ReadConfiguration(string filename)
         {
-            string result = "";
-            using (StreamReader sr = new StreamReader(filename))
-            {
-                result = sr.ReadToEnd();
-            }
+            using StreamReader sr = new StreamReader(filename);
+            string result = sr.ReadToEnd();
             return result;
         }
 
@@ -51,6 +45,11 @@ namespace EventSender
             }
 
             sw.Stop();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
             long total1 = GC.GetTotalMemory(true);
             long frag1 = GC.GetGCMemoryInfo().FragmentedBytes;
             // Print some benchmarking results for offline storage + serialization
@@ -90,6 +89,7 @@ namespace EventSender
             var handle = EventNativeAPI.evt_open(cfg);
             Console.WriteLine("handle={0}", handle);
 
+
             // Log something
             Console.WriteLine(">>> evt_log...");
             var props = new EventProperties() {
@@ -105,13 +105,13 @@ namespace EventSender
             StressTest(
                 (param1) =>
                 {
-                    var props = new EventProperties() {
+                    var eventProperties = new EventProperties() {
                         { "name", "SampleNetCore.PerfTest" },
                         { "intKey", param1 },
                     };
-                    EventNativeAPI.evt_log(handle, ref props);
+                    EventNativeAPI.evt_log(handle, ref eventProperties);
                 }
-                , 10 // number of iterations
+                , 100 // number of iterations
             );
 
             ulong result = 0;

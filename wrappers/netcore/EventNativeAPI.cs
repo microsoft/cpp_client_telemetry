@@ -1,15 +1,13 @@
 #pragma warning disable IDE1006 // ignore naming rule violations: we preserve original C API naming for clarity here
 #pragma warning disable IDE0044 // ignore readonly suggestion for field passed over P/Invoke
-#undef TRACE
+#undef TRACE                    // Comment this line to enable additional diagnostics to be printed to console
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.IO;
 
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Collections;
 
 namespace Microsoft
 {
@@ -21,9 +19,10 @@ namespace Microsoft
             {
                 public const string LIBRARY_NAME = "ClientTelemetry";
                 public const string VERSION = "3.7.0-netcore";
+                public const string ENTRYPOINT = "evt_api_call_default";
             }
 
-            public enum EventCallType : UInt32
+            enum EventCallType : UInt32
             {
                 EVT_OP_LOAD = 0x00000001,
                 EVT_OP_UNLOAD = 0x00000002,
@@ -40,15 +39,15 @@ namespace Microsoft
                 EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
             }
 
-            public enum EventPropertyType : UInt32
+            enum EventPropertyType : UInt32
             {
                 /* Basic types */
                 TYPE_STRING = 0,
                 TYPE_INT64 = 1,
                 TYPE_DOUBLE = 2,
-                TYPE_TIME = 3,
+                TYPE_TIME = 3,  /* not implemented yet */
                 TYPE_BOOLEAN = 4,
-                TYPE_GUID = 5,
+                TYPE_GUID = 5,  /* converted to string */
                 /* Arrays of basic types */
                 TYPE_STRING_ARRAY = 6,
                 TYPE_INT64_ARRAY = 7,
@@ -94,7 +93,7 @@ namespace Microsoft
             }
 
             [StructLayout(LayoutKind.Explicit, Size = 16, CharSet = CharSet.Ansi)]
-            public unsafe struct EventGUIDType
+            unsafe struct EventGUIDType
             {
                 /**
                  * <summary>
@@ -127,7 +126,7 @@ namespace Microsoft
             }
 
             [StructLayout(LayoutKind.Explicit, Size = 28, CharSet = CharSet.Ansi)]
-            public unsafe struct EventContextType
+            unsafe struct EventContextType
             {
                 [FieldOffset(0)] public UInt32 call;
                 [FieldOffset(4)] public ulong handle;
@@ -136,7 +135,7 @@ namespace Microsoft
                 [FieldOffset(24)] public UInt32 size;
             }
 
-            public enum EventOpenParamType
+            enum EventOpenParamType
             {
                 OPEN_PARAM_TYPE_HTTP_HANDLER_SEND = 0,
                 OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL = 1,
@@ -146,14 +145,14 @@ namespace Microsoft
             }
 
             [StructLayout(LayoutKind.Explicit, Size = 12, CharSet = CharSet.Ansi)]
-            public unsafe struct EventOpenParam
+            unsafe struct EventOpenParam
             {
                 [FieldOffset(0)] public UInt32 type;
                 [FieldOffset(4)] public IntPtr data;
             };
 
             [StructLayout(LayoutKind.Explicit, Size = 8, CharSet = CharSet.Ansi)]
-            public unsafe struct EventPropertyValue
+            unsafe struct EventPropertyValue
             {
                 /* Basic types */
                 [FieldOffset(0)] public UInt64 as_uint64;
@@ -189,15 +188,15 @@ namespace Microsoft
             // custom SDK build flag that enforces certain struct layout. i.e.
             // positioning the two pointers below as 64-bit integers instead of 32-bit.
             [StructLayout(LayoutKind.Explicit, Size = 20, CharSet = CharSet.Ansi)]
-            public unsafe struct EventOpenWithParamsDataType
+            unsafe struct EventOpenWithParamsDataType
             {
                 [FieldOffset(0)] public IntPtr config;
                 [FieldOffset(8)] public IntPtr parameters; /* pointer to array of EventOpenParam */
-                [FieldOffset(8)] public UInt32 paramsCount;
+                [FieldOffset(16)] public UInt32 paramsCount;
             }
 
             [StructLayout(LayoutKind.Explicit, Size = 24, CharSet = CharSet.Ansi)]
-            public unsafe struct EventPropertyKeyValue
+            unsafe struct EventPropertyKeyValue
             {
                 [FieldOffset(0)] public IntPtr name;
                 [FieldOffset(8)] public EventPropertyType type;
@@ -219,24 +218,25 @@ namespace Microsoft
             public class EventProperties : Dictionary<string, EventProperty>
             {
 
-                public IntPtr nativeBuffer = IntPtr.Zero;
-                public int nativeSize = 0;
-                public int szEvtPropKV = Marshal.SizeOf(typeof(EventPropertyKeyValue));
+                internal IntPtr _nativeBuffer = IntPtr.Zero;
+                internal int _nativeSize = 0;
+
+                private static readonly int SzEvtPropKv = Marshal.SizeOf(typeof(EventPropertyKeyValue));
 
                 public EventProperties()
                 {
                 }
                 internal unsafe void AllocNative()
                 {
-                    nativeSize = (Count + 1) * szEvtPropKV;
-                    nativeBuffer = Marshal.AllocHGlobal(nativeSize);// sizeof(EventPropertyKeyValue));
+                    _nativeSize = (Count + 1) * SzEvtPropKv;
+                    _nativeBuffer = Marshal.AllocHGlobal(_nativeSize);
                     int i = 0;
                     EventPropertyKeyValue* propPtr = (EventPropertyKeyValue*)(IntPtr.Zero);
                     foreach (KeyValuePair<string, EventProperty> item in this)
                     {
-                        propPtr = (EventPropertyKeyValue*)(nativeBuffer) + i;
+                        propPtr = (EventPropertyKeyValue*)(_nativeBuffer) + i;
                         (*propPtr).name = Marshal.StringToHGlobalAnsi(item.Key);
-                        (*propPtr).piiKind = 0; // TODO: add Pii Kind support
+                        (*propPtr).piiKind = item.Value.piiKind;
                         (*propPtr).type = item.Value.type;
 #if (TRACE)
                         Console.Write("0x{0:X} ", (long)propPtr);
@@ -256,7 +256,9 @@ namespace Microsoft
 #endif
                                 break;
                             case EventPropertyType.TYPE_GUID:
-                                // TODO: not implemented
+                                // Currently we are not using TYPE_GUID. All GUID values get converted to
+                                // TYPE_STRING on assignment. This also aligns well with how service
+                                // telemetry handles GUID type in OpenTelemetry and R9 SDKs.
 #if (TRACE)
                                 Console.WriteLine("guid    {0}={1}", item.Key, (*propPtr).value.as_guid);
 #endif
@@ -283,27 +285,27 @@ namespace Microsoft
                         i++;
                     }
                     /* NULL terminator property at the end of property list */
-                    propPtr = (EventPropertyKeyValue*)(nativeBuffer) + i;
+                    propPtr = (EventPropertyKeyValue*)(_nativeBuffer) + i;
                     (*propPtr).name = IntPtr.Zero;
                     (*propPtr).type = EventPropertyType.TYPE_NULL;
                 }
 
                 internal unsafe void FreeNative()
                 {
-                    if (nativeBuffer == IntPtr.Zero)
+                    if (_nativeBuffer == IntPtr.Zero)
                     {
                         throw new Exception("Memory not allocated!");
                     }
-                    // TODO: assert count==Count
-                    int count = nativeSize / szEvtPropKV;
+                    int count = _nativeSize / SzEvtPropKv;
+                    // Debug.Assert(count == Count + 1);
                     for (int i = 0; i < count; i++)
                     {
-                        EventPropertyKeyValue* propPtr = (EventPropertyKeyValue*)(nativeBuffer) + i;
-                        EventPropertyType type = (EventPropertyType)((*propPtr).type);
+                        EventPropertyKeyValue* propPtr = (EventPropertyKeyValue*)(_nativeBuffer) + i;
+                        EventPropertyType type = (*propPtr).type;
                         switch (type)
                         {
                             case EventPropertyType.TYPE_GUID:
-                                // TODO: not implemented
+                                // Unused. Guid type gets converted to String on assignment.
                                 break;
                             case EventPropertyType.TYPE_STRING:
                                 {
@@ -322,18 +324,18 @@ namespace Microsoft
                             Marshal.FreeHGlobal((*propPtr).name);
                         }
                     }
-                    Marshal.FreeHGlobal(nativeBuffer);
-                    nativeBuffer = IntPtr.Zero;
-                    nativeSize = 0;
+                    Marshal.FreeHGlobal(_nativeBuffer);
+                    _nativeBuffer = IntPtr.Zero;
+                    _nativeSize = 0;
                 }
             }
 
             public class EventProperty
             {
-                public EventPropertyType type;
-                public EventPropertyValue value;
-                public object objValue = null;
-                public UInt32 piiKind = 0;
+                internal EventPropertyType type;
+                internal EventPropertyValue value;
+                internal object objValue = null;
+                internal UInt32 piiKind = 0;
 
                 public EventProperty(string strValue)
                 {
@@ -350,9 +352,7 @@ namespace Microsoft
 
                 public EventProperty(Guid guidValue)
                 {
-                    // TODO: compact GUID on wire is not implemented!
-                    // Currently we flatten it to string.
-                    // type = EventPropertyType.TYPE_GUID;
+                    // All Guid types get converted to string representation.
                     type = EventPropertyType.TYPE_STRING;
                     objValue = guidValue.ToString();
                 }
@@ -411,20 +411,52 @@ namespace Microsoft
 
                     return new EventProperty(v.ToString());
                 }
+
+                public override String ToString()
+                {
+                    switch (type)
+                    {
+                        /* Basic types */
+                        case EventPropertyType.TYPE_STRING:
+                            return objValue.ToString();
+
+                        case EventPropertyType.TYPE_INT64:
+                            return $"{value.as_int64}";
+
+                        case EventPropertyType.TYPE_DOUBLE:
+                            return $"{value.as_double}";
+
+                        case EventPropertyType.TYPE_TIME:
+                            // Time type not implemented. Please use string or int64
+                            break;
+
+                        case EventPropertyType.TYPE_BOOLEAN:
+                            return $"{(value.as_bool ? "true" : "false")}";
+
+                        case EventPropertyType.TYPE_GUID:
+                            // Presently we are not using Guid type. Values get converted
+                            // to String type on assignment.
+                            break;
+
+                        default:
+                            break;
+                    }
+                    return "";
+                }
             };
 
             public static class EventNativeAPI
             {
-                // Conditional compilation: pass different library name depending on target OS
 
-                [DllImport(Constants.LIBRARY_NAME, EntryPoint = "evt_api_call_default")]
+                // Conditional compilation: pass different library name depending on target OS
+                [DllImport(Constants.LIBRARY_NAME, EntryPoint = Constants.ENTRYPOINT)]
                 internal static extern UInt32 evt_api_call([In, Out] ref EventContextType context);
 
                 /**
                  * <summary>
                  * Create or open existing SDK instance.
                  * </summary>
-                 * <param name="config">SDK configuration.</param>
+                 * <param name="cfg">SDK configuration.</param>
                  * <returns>SDK instance handle.</returns>
                  */
                 public static ulong evt_open(string cfg)
@@ -443,7 +475,7 @@ namespace Microsoft
                  * <summary>
                  * Destroy or close SDK instance by handle
                  * </summary>
-                 * <param name="handle">SDK instance handle.</param>
+                 * <param name="inHandle">SDK instance handle.</param>
                  * <returns>Status code.</returns>
                  */
                 public static ulong evt_close(ulong inHandle)
@@ -466,20 +498,16 @@ namespace Microsoft
                  */
                 public static ulong evt_log(ulong inHandle, ref EventProperties properties)
                 {
-                    ulong result = 0;
-                    unsafe
+                    properties.AllocNative();
+                    EventContextType context = new EventContextType
                     {
-                        properties.AllocNative();
-                        EventContextType context = new EventContextType
-                        {
-                            call = (Byte)EventCallType.EVT_OP_LOG,
-                            handle = inHandle,
-                            data = properties.nativeBuffer,
-                            size = 0 /* (uint)(properties.Count) */
-                        };
-                        result = evt_api_call(ref context);
-                        properties.FreeNative();
+                        call = (Byte)EventCallType.EVT_OP_LOG,
+                        handle = inHandle,
+                        data = properties._nativeBuffer,
+                        size = 0 /* (uint)(properties.Count) */
                     };
+                    ulong result = evt_api_call(ref context);
+                    properties.FreeNative();
                     return result;
                 }
 
@@ -487,7 +515,7 @@ namespace Microsoft
                  * <summary>
                  * Pauses transmission. In that mode events stay in ram or saved to disk, not sent.
                  * </summary>
-                 * <param name="handle">SDK handle.</param>
+                 * <param name="inHandle">SDK handle.</param>
                  * <returns>Status code.</returns>
                  */
                 public static ulong evt_pause(ulong inHandle)
@@ -504,7 +532,7 @@ namespace Microsoft
                  * <summary>
                  * Resumes transmission. Pending telemetry events should be attempted to be sent.
                  * </summary>
-                 * <param name="handle">SDK handle.</param>
+                 * <param name="inHandle">SDK handle.</param>
                  * <returns>Status code.</returns>
                  */
                 public static ulong evt_resume(ulong inHandle)
@@ -522,7 +550,7 @@ namespace Microsoft
                  * without waiting for the next batch timer interval. This API does not
                  * guarantee the upload.
                  * </summary>
-                 * <param name="handle">SDK handle.</param>
+                 * <param name="inHandle">SDK handle.</param>
                  * <returns>Status code.</returns>
                  */
                 public static ulong evt_upload(ulong inHandle)
@@ -538,7 +566,7 @@ namespace Microsoft
                 /** <summary>
                  * Save pending telemetry events to offline storage on disk.
                  * </summary>
-                 * <param name="handle">SDK handle.</param>
+                 * <param name="inHandle">SDK handle.</param>
                  * <returns>Status code.</returns>
                  */
                 public static ulong evt_flush(ulong inHandle)
@@ -557,11 +585,11 @@ namespace Microsoft
                  * It is up to app dev to verify the value returned, making a decision whether some SDK
                  * features are implemented/supported by particular SDK version or not.
                  * </summary>
-                 * <param name="libSemver">SDK header semver.</param>
                  * <returns>SDK library semver</returns>
                  */
                 public static string evt_version()
                 {
+                    string result = "";
                     byte[] data = Encoding.ASCII.GetBytes(Constants.VERSION);
                     var nativeDataPtr = Marshal.AllocHGlobal(data.Length + 1);
                     Marshal.Copy(data, 0, nativeDataPtr, data.Length);
@@ -571,8 +599,28 @@ namespace Microsoft
                         call = (Byte)EventCallType.EVT_OP_VERSION,
                         data = nativeDataPtr
                     };
-                    evt_api_call(ref context);
-                    string result = Marshal.PtrToStringAnsi(context.data);
+
+                    try
+                    {
+                        evt_api_call(ref context);
+                        result = Marshal.PtrToStringAnsi(context.data);
+#pragma warning disable CS0168 // Variable is declared but never used
+                    }
+                    catch (EntryPointNotFoundException ex)
+                    {
+#if (TRACE)
+                        // Library found, but entry point in the library not found.
+                        Console.Write("Method not found: {0}", Constants.ENTRYPOINT);
+#endif
+                    }
+                    catch (DllNotFoundException ex)
+                    {
+#if (TRACE)
+                        // Library not found.
+                        Console.Write("Library not found: {0}", Constants.LIBRARY_NAME);
+#endif
+                    }
+#pragma warning restore CS0168 // Variable is declared but never used
                     Marshal.FreeHGlobal(nativeDataPtr);
                     return result;
                 }

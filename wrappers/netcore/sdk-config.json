@@ -31,7 +31,7 @@
     "maxTeardownUploadTimeInSec": 5,
     "minimumTraceLevel": 1,
     "multiTenantEnabled": true,
-    "primaryToken": "fba3c287ba474016b77e0ab612175255-8ef3561c-6103-4027-8ca0-2c79dcbd8901-6902",
+    "primaryToken": "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991",
     "sample": {
         "rate": 0
     },
