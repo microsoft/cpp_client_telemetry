@@ -73,6 +73,11 @@ namespace MAT_NS_BEGIN {
             {
                 ctx->httpRequest->GetHeaders().set("Aad-Jwt-Token", map[TicketType::TicketType_AAD_JWT]);
             }
+
+            if (map.end() != map.find(TicketType::TicketType_AAD_Device))
+            {
+                ctx->httpRequest->GetHeaders().set("AadDeviceToken", map[TicketType::TicketType_AAD_Device]);
+            }
         }
 
         if (GetAuthTokensController() != nullptr && GetAuthTokensController()->GetUserTokens().size() > 0)

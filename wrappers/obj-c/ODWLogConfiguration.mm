@@ -311,8 +311,8 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
 +(nullable ODWLogConfiguration *)getLogConfigurationCopy
 {
     auto& config = LogManager::GetLogConfiguration();
-    static ILogConfiguration configCopy(config);
-    return [[ODWLogConfiguration alloc] initWithILogConfiguration: &configCopy];
+    auto configCopy = new ILogConfiguration(config);
+    return [[ODWLogConfiguration alloc] initWithILogConfiguration: configCopy];
 }
 
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
@@ -429,6 +429,22 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
         return nil;
     }
     return [NSString stringWithCString:strCacheFilePath.c_str() encoding:NSUTF8StringEncoding];
+}
+
++(void)setEnableDbCheckpointOnFlush:(bool)enabled
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH] = enabled;
+}
+
++(bool)enableDbCheckpointOnFlush
+{
+    auto& config = LogManager::GetLogConfiguration();
+    if (config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH)) {
+        return config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH];
+    } else {
+        return false;
+    }
 }
 
 -(void)set:(nonnull NSString *)key withValue:(nonnull NSString *)value

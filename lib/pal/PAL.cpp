@@ -26,6 +26,10 @@
 #include "utils/Utils.hpp"
 #include <sys/types.h>
 
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #ifndef _WIN32
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -222,7 +226,19 @@ namespace PAL_NS_BEGIN {
 
             buffer[std::min<size_t>(len + 0, sizeof(buffer) - 2)] = '\n';
             buffer[std::min<size_t>(len + 1, sizeof(buffer) - 1)] = '\0';
+#ifdef HAVE_MAT_WIN_LOG
+            // Log to debug log file if enabled
+            debugLogMutex.lock();
+            if (debugLogStream->good())
+            {
+                (*debugLogStream) << buffer;
+                // flush is not very efficient, but needed to get realtime file updates
+                debugLogStream->flush();
+            }
+            debugLogMutex.unlock();
+#else
             ::OutputDebugStringA(buffer);
+#endif //HAVE_MAT_WIN_LOG
 #else
             auto now = std::chrono::system_clock::now();
             int64_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
@@ -303,6 +319,32 @@ namespace PAL_NS_BEGIN {
         /* CoCreateGuid` will possiblity never fail, so ignoring the result */
         UNREFERENCED_PARAMETER(hr);
         return MAT::to_string(uuid);
+#elif defined(__APPLE__)
+        auto uuid {CFUUIDCreate(kCFAllocatorDefault)};
+        if(!uuid)
+        {
+            return {};
+        }
+        auto uuidStrRef {CFUUIDCreateString(kCFAllocatorDefault, uuid)};
+        CFRelease(uuid);
+        if(!uuidStrRef)
+        {
+            return {};
+        }
+        std::string uuidStr;
+        if(CFStringGetCStringPtr(uuidStrRef, kCFStringEncodingASCII))
+        {
+            uuidStr = CFStringGetCStringPtr(uuidStrRef, kCFStringEncodingASCII);
+        }
+        else
+        {
+            const auto uuidNullTerminatedSize {CFStringGetLength(uuidStrRef) + 1};
+            uuidStr.resize(uuidNullTerminatedSize);
+            CFStringGetCString(uuidStrRef, &uuidStr[0], uuidNullTerminatedSize, kCFStringEncodingASCII);
+        }
+        CFRelease(uuidStrRef);
+	std::transform(uuidStr.begin(), uuidStr.end(), uuidStr.begin(), ::tolower);
+        return uuidStr;
 #else
         static std::once_flag flag;
         std::call_once(flag, [](){

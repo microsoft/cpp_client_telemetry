@@ -70,6 +70,7 @@ while getopts "h?vl:D:" opt; do
         echo "Environment variables:                                                                   "
         echo "CMAKE_OPTS               - any additional cmake options.                                 "
         echo "GIT_PULL_TOKEN           - authorization token for Microsoft-proprietary modules.        "
+        echo "MACOSX_DEPLOYMENT_TARGET - optional parameter for setting macosx deployment target       "
         echo "Plus any other environment variables respected by CMake build system.                    "
         exit 0
         ;;
@@ -91,12 +92,9 @@ if [ "$LINK_TYPE" == "shared" ]; then
 fi
 
 # Set target MacOS minver
-if [ "$MAC_ARCH" == "arm64" ]; then
-  export MACOSX_DEPLOYMENT_TARGET=11.10
-else
-  export MACOSX_DEPLOYMENT_TARGET=10.10
-fi
-
+default_mac_os_target=$([ "$MAC_ARCH" == "arm64" ] && echo "11.10" || echo "10.10")
+[ -z $MACOSX_DEPLOYMENT_TARGET ] && export MACOSX_DEPLOYMENT_TARGET=${default_mac_os_target}
+echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 
 # Install build tools and recent sqlite3
 FILE=.buildtools

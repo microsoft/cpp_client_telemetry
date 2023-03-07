@@ -25,18 +25,26 @@ if(APPLE)
 
   # iOS build options
   option(BUILD_IOS           "Build for iOS"               NO)
+  option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" YES)
+  if (DEFINED FORCE_RESET_DEPLOYMENT_TARGET)
+    set(FORCE_RESET_OSX_DEPLOYMENT_TARGET ${FORCE_RESET_DEPLOYMENT_TARGET})
+  endif()
 
   if(BUILD_IOS)
     set(TARGET_ARCH "APPLE")
     set(IOS True)
     set(APPLE True)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-    if((${IOS_PLAT} STREQUAL "iphonesimulator") AND (${IOS_ARCH} STREQUAL "arm64"))
-      # iOS arm64 simulator is supported starting BigSur
-      # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
-    else()
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+
+    if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
+      set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+      
+      if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
+        # iOS arm64 simulator is supported starting BigSur
+        # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
+      else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+      endif()
     endif()
 
     if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator"))
@@ -49,12 +57,12 @@ if(APPLE)
       set(IOS_PLATFORM "iphonesimulator")
       set(CMAKE_SYSTEM_PROCESSOR x86_64)
     elseif(${IOS_ARCH} STREQUAL "arm64")
-      set(IOS_PLATFORM "iphoneos")
+      set(IOS_PLATFORM ${IOS_PLAT})
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
       set(CMAKE_SYSTEM_PROCESSOR arm64)
     elseif(${IOS_ARCH} STREQUAL "arm64e")
-      set(IOS_PLATFORM "iphoneos")
+      set(IOS_PLATFORM ${IOS_PLAT})
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
       set(CMAKE_SYSTEM_PROCESSOR arm64e)
@@ -245,6 +253,7 @@ option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
 option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
+option(BUILD_SIGNALS      "Build Signals"           YES)
 option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 
 # Enable Azure Monitor / Application Insights end-point support
