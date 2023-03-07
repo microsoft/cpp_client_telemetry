@@ -933,6 +933,18 @@ public class LogManager {
     return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuardOnDefaultLogManager();
   }
 
+  private static native boolean nativeRegisterSignalsOnDefaultLogManager();
+
+  public static boolean registerSignals() {
+    return Signals.isInitialized() && nativeRegisterSignalsOnDefaultLogManager();
+  }
+
+  private static native boolean nativeUnregisterSignalsOnDefaultLogManager();
+
+  public static boolean unregisterSignals() {
+    return Signals.isInitialized() && nativeUnregisterSignalsOnDefaultLogManager();
+  }
+
   public static native void pauseActivity();
   public static native void resumeActivity();
   public static native void waitPause();

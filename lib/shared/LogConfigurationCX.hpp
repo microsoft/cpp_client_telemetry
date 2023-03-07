@@ -43,19 +43,19 @@ namespace Microsoft {
                 {
                 public:
 #ifndef _WINRT_DLL  /* C# .NET implementation */
-                    static String^ CollectorUrlDefault      = L"https://self.events.data.microsoft.com/OneCollector/1.0/";
-                    static String^ CollectorUrlUnitedStates = L"https://noam.events.data.microsoft.com/OneCollector/1.0/";
-                    static String^ CollectorUrlGermany      = L"https://emea.events.data.microsoft.com/OneCollector/1.0/";
-                    static String^ CollectorUrlAustralia    = L"https://apac.events.data.microsoft.com/OneCollector/1.0/";
-                    static String^ CollectorUrlJapan        = L"https://apac.events.data.microsoft.com/OneCollector/1.0/";
-                    static String^ CollectorUrlEurope       = L"https://emea.events.data.microsoft.com/OneCollector/1.0/";
+                    static String^ CollectorUrlDefault      = L"https://mobile.events.data.microsoft.com/OneCollector/1.0/";
+                    static String^ CollectorUrlUnitedStates = L"https://us-mobile.events.data.microsoft.com/OneCollector/1.0/";
+                    static String^ CollectorUrlGermany      = L"https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/";
+                    static String^ CollectorUrlAustralia    = L"https://au-mobile.events.data.microsoft.com/OneCollector/1.0/";
+                    static String^ CollectorUrlJapan        = L"https://jp-mobile.events.data.microsoft.com/OneCollector/1.0/";
+                    static String^ CollectorUrlEurope       = L"https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/";
 #else               /* WinRT .winmd linkage implementation*/
-                    static property String^ CollectorUrlDefault      { String ^get() { return L"https://self.events.data.microsoft.com/OneCollector/1.0/"; } }
-                    static property String^ CollectorUrlUnitedStates { String ^get() { return L"https://noam.events.data.microsoft.com/OneCollector/1.0/"; } }
-                    static property String^ CollectorUrlGermany      { String ^get() { return L"https://emea.events.data.microsoft.com/OneCollector/1.0/"; } }
-                    static property String^ CollectorUrlAustralia    { String ^get() { return L"https://apac.events.data.microsoft.com/OneCollector/1.0/"; } }
-                    static property String^ CollectorUrlJapan        { String ^get() { return L"https://apac.events.data.microsoft.com/OneCollector/1.0/"; } }
-                    static property String^ CollectorUrlEurope       { String ^get() { return L"https://emea.events.data.microsoft.com/OneCollector/1.0/"; } }
+                    static property String^ CollectorUrlDefault      { String ^get() { return L"https://mobile.events.data.microsoft.com/OneCollector/1.0/"; } }
+                    static property String^ CollectorUrlUnitedStates { String ^get() { return L"https://us-mobile.events.data.microsoft.com/OneCollector/1.0/"; } }
+                    static property String^ CollectorUrlGermany      { String ^get() { return L"https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/"; } }
+                    static property String^ CollectorUrlAustralia    { String ^get() { return L"https://au-mobile.events.data.microsoft.com/OneCollector/1.0/"; } }
+                    static property String^ CollectorUrlJapan        { String ^get() { return L"https://jp-mobile.events.data.microsoft.com/OneCollector/1.0/"; } }
+                    static property String^ CollectorUrlEurope       { String ^get() { return L"https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/"; } }
 #endif
                     LogConfiguration()
                     {
