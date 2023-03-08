@@ -48,6 +48,7 @@ namespace MAT_NS_BEGIN {
             LOG_TRACE("Adding event %s:%s, size %u bytes",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str(), static_cast<unsigned>(record.blob.size()));
 
+            ctx->cvStr = record.cvStr;
             std::string const& tenantToken = m_forcedTenantToken.empty() ? record.tenantToken : m_forcedTenantToken;
             auto it = ctx->packageIds.lower_bound(tenantToken);
             if (it == ctx->packageIds.end() || it->first != tenantToken)

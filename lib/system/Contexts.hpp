@@ -34,7 +34,7 @@ namespace MAT_NS_BEGIN {
 
         IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::CsProtocol::Record* source)
             : source(source),
-            record{ id, tenantToken, latency, persistence },
+            record{ id, tenantToken, latency, persistence, source->cV },
 	    policyBitFlags(0)
         {
         }
@@ -88,6 +88,7 @@ namespace MAT_NS_BEGIN {
         unsigned                             maxUploadSize = 0;
         EventLatency                         latency = EventLatency_Unspecified;
         std::map<std::string, size_t>        packageIds;
+        std::string                          cvStr;
         std::map<std::string, std::string>   recordIdsAndTenantIds;
         std::vector<int64_t>                 recordTimestamps;
         unsigned                             maxRetryCountSeen = 0;

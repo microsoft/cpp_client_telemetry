@@ -33,12 +33,13 @@ namespace MAT_NS_BEGIN {
         StorageBlob     blob;
         int             retryCount = 0;
         int64_t         reservedUntil = 0;
+        std::string     cvStr;
 
         StorageRecord()
         {}
 
-        StorageRecord(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence)
-            : id(id), tenantToken(tenantToken), latency(latency), persistence(persistence)
+        StorageRecord(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, std::string cvStr)
+            : id(id), tenantToken(tenantToken), latency(latency), persistence(persistence), cvStr(cvStr)
         {}
 
         StorageRecord(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence,
