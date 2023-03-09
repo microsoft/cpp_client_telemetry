@@ -65,7 +65,8 @@ Other resources to learn how to setup the build system:
   | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |
   | Ubuntu 14.04.x LTS             | :white_check_mark: |                    |
   | Ubuntu 16.04.x LTS             | :white_check_mark: |                    |
-  | Ubuntu 18.04.x LTS             | :white_check_mark: | :white_check_mark: |
+  | Ubuntu 18.04.x LTS             | :white_check_mark: |                    |
+  | Ubuntu 20.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
   | Windows 7.1                    | :white_check_mark: |                    |
   | Windows 8.1                    | :white_check_mark: |                    |
