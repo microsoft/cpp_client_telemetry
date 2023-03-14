@@ -39,7 +39,7 @@ static BOOL _initialized = false;
     ILogger* logger = nullptr;
     try
     {
-        logger = LogManager::GetLogger(strToken, strSource).release();
+        logger = LogManager::GetLogger(strToken, strSource);
     }
     catch (const std::exception &e)
     {
@@ -75,7 +75,7 @@ static BOOL _initialized = false;
 
     ILogManager* manager = LogManagerProvider::CreateLogManager(
         *wrappedConfig,
-        status).release();
+        status);
 
     if (status == status_t::STATUS_SUCCESS && manager != nil)
     {
@@ -84,7 +84,7 @@ static BOOL _initialized = false;
         ILogger* logger = nullptr;
         try
         {
-            logger = manager->GetLogger(strToken, strSource).release();
+            logger = manager->GetLogger(strToken, strSource);
         }
         catch (const std::exception &e)
         {
@@ -211,7 +211,7 @@ static BOOL _initialized = false;
     ILogger* logger = nullptr;
     try
     {
-        logger = LogManager::GetLogger(strSource).release();
+        logger = LogManager::GetLogger(strSource);
     }
     catch (const std::exception &e)
     {

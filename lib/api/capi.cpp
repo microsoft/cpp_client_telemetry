@@ -272,7 +272,7 @@ evt_status_t mat_log(evt_context_t *ctx)
     const auto & it = m.find(COMMONFIELDS_EVENT_SOURCE);
     std::string source = ((it != m.cend()) && (it->second.type == EventProperty::TYPE_STRING)) ? it->second.as_string : "";
 
-    auto logger = client->logmanager->GetLogger(token, source, scope);
+    ILogger* logger = client->logmanager->GetLogger(token, source, scope);
     if (logger == nullptr)
     {
         ctx->result = EFAULT; /* invalid address */
