@@ -1407,7 +1407,7 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
         logManagerB->UploadNow();
 
         EXPECT_NO_THROW(logManagerB->FlushAndTeardown());
-        EXPECT_NO_THROW(PAL::PALTest::GetPalRefCount(), 1);
+        EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 1);
 
         EXPECT_NO_THROW(logManagerA->FlushAndTeardown());
         EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 0);
