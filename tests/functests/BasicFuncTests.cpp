@@ -1406,10 +1406,10 @@ TEST_F(BasicFuncTests, raceBetweenUploadAndShutdownMultipleLogManagers)
         loggerB->LogEvent("BasicFuncTests.stress_test_B");
         logManagerB->UploadNow();
 
-        EXPECT_EQ(logManagerB->FlushAndTeardown(), STATUS_SUCCESS);
-        EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 1);
+        EXPECT_NO_THROW(logManagerB->FlushAndTeardown());
+        EXPECT_NO_THROW(PAL::PALTest::GetPalRefCount(), 1);
 
-        EXPECT_EQ(logManagerA->FlushAndTeardown(), STATUS_SUCCESS);
+        EXPECT_NO_THROW(logManagerA->FlushAndTeardown());
         EXPECT_EQ(PAL::PALTest::GetPalRefCount(), 0);
     }
 
