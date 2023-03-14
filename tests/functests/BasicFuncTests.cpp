@@ -1277,17 +1277,6 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
     CleanStorage();
     RequestMonitor listener;
 
-    auto eventsList = {
-        DebugEventType::EVT_HTTP_OK,
-        DebugEventType::EVT_HTTP_ERROR,
-        DebugEventType::EVT_HTTP_FAILURE
-    };
-    // Add event listeners
-    for (auto evt : eventsList)
-    {
-        LogManager::AddEventListener(evt, listener);
-    }
-
     for (size_t i = 0; i < 20; i++)
     {
         ILogConfiguration myConfiguration;
