@@ -46,9 +46,9 @@ namespace MAT_NS_BEGIN {
 
         ctx->httpRequest->GetHeaders().set("Expect", "100-continue");
 
-#ifdef HAVE_MAT_EVT_TRACKINGID
+#ifdef HAVE_MAT_EVT_TRACEID 
         ctx->httpRequest->GetHeaders().set("Trace-Id", ctx->traceId);
-#endif //HAVE_MAT_EVT_TRACKINGID
+#endif //HAVE_MAT_EVT_TRACEID 
 
         ctx->httpRequest->GetHeaders().set("SDK-Version", PAL::getSdkVersion());
         ctx->httpRequest->GetHeaders().set("Client-Id", "NO_AUTH");

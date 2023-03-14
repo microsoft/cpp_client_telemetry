@@ -32,12 +32,21 @@ namespace MAT_NS_BEGIN {
         {
         }
 
+#ifdef HAVE_MAT_EVT_TRACEID   
         IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::CsProtocol::Record* source)
             : source(source),
             record{ id, tenantToken, latency, persistence, (source != nullptr) ? source->cV : "" },
 	    policyBitFlags(0)
         {
         }
+#else
+        IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::CsProtocol::Record* source)
+            : source(source),
+            record{ id, tenantToken, latency, persistence },
+	    policyBitFlags(0)
+        {
+        }
+#endif
 
         virtual ~IncomingEventContext()
         {
