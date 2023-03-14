@@ -747,12 +747,12 @@ namespace MAT_NS_BEGIN
 #elif defined(__APPLE__) && defined(MAT_USE_WEAK_LOGMANAGER)
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass) \
     template <>                                                   \
-    __attribute__((weak)) ILogManager* LogManagerBase<LogConfigurationClass>::instance{};
+    __attribute__((weak)) std::unique_ptr<ILogManager> LogManagerBase<LogConfigurationClass>::instance{};
 #else
 // ISO C++ -compliant declaration
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass) \
     template <>                                                   \
-    ILogManager* LogManagerBase<LogConfigurationClass>::instance{};
+    std::unique_ptr<ILogManager> LogManagerBase<LogConfigurationClass>::instance{};
 #endif
 
 }
