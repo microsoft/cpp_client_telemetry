@@ -293,7 +293,19 @@ public class LogManagerProvider {
     public boolean unregisterPrivacyGuard() {
       return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuard(nativeLogManager);
     }
-    
+
+    private native boolean nativeRegisterSignals(long nativeLogManager);
+    @Override
+    public boolean registerSignals() {
+      return Signals.isInitialized() && nativeRegisterSignals(nativeLogManager);
+    }
+
+    private native boolean nativeUnregisterSignals(long nativeLogManager);
+    @Override
+    public boolean unregisterSignals() {
+      return Signals.isInitialized() && nativeUnregisterSignals(nativeLogManager);
+    }
+
     protected native void nativePauseActivity(long nativeLogManager);
     protected native void nativeResumeActivity(long nativeLogManager);
     protected native void nativeWaitPause(long nativeLogManager);
