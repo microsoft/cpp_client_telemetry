@@ -604,10 +604,10 @@ TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
 
 TEST(APITest, LogManager_Reinitialize_Test)
 {
-    size_t numIterations = 2;
+    ILogConfiguration config;
+    size_t numIterations = 5;
     while (numIterations--)
     {
-        ILogConfiguration config;
         auto logManager = LogManagerProvider::CreateLogManager(config);
         auto result = logManager->GetLogger(TEST_TOKEN);
         EXPECT_EQ(true, (result != NULL));
