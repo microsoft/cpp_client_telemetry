@@ -13,7 +13,5 @@ namespace MAT_NS_BEGIN {
 } MAT_NS_END
 
 // Singleton LogManager Instance is deprecated.
-#if 0
 #define LOGMANAGER_INSTANCE namespace MAT_NS_BEGIN { DEFINE_LOGMANAGER(LogManager, ModuleLogConfiguration); } MAT_NS_END
-#endif
 #endif
