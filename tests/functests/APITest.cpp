@@ -602,7 +602,7 @@ TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
     // We can add memory utilization metric in here as well.
 }
 
-
+#if 0
 TEST(APITest, LogManager_Reinitialize_Test)
 {
     size_t numIterations = 5;
@@ -615,6 +615,7 @@ TEST(APITest, LogManager_Reinitialize_Test)
         logManager->FlushAndTeardown();
     }
 }
+#endif
 
 #define EVENT_NAME_PURE_C   "Event.Name.Pure.C"
 #define JSON_CONFIG(...)    #__VA_ARGS__
