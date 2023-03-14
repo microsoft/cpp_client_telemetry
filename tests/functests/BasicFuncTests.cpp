@@ -1291,13 +1291,13 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
     for (size_t i = 0; i < 20; i++)
     {
         ILogConfiguration myConfiguration;
-        myconfiguration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-        myconfiguration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        myconfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
-        myconfiguration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
-        myconfiguration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
-        myconfiguration[CFG_INT_TRACE_LEVEL_MASK] = 0;
-        myconfiguration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+        myConfiguration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+        myConfiguration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        myConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
+        myConfiguration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        myConfiguration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
+        myConfiguration[CFG_INT_TRACE_LEVEL_MASK] = 0;
+        myConfiguration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
         auto myLogManager = LogManagerProvider::CreateLogManager(myConfiguration);
 
         auto eventsList = {
