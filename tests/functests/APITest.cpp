@@ -475,9 +475,9 @@ TEST(APITest, LogManager_UTCSingleEventSent) {
     event.SetLevel(DIAG_LEVEL_REQUIRED);
 
     auto logManager = LogManagerProvider::CreateLogManager(configuration);
-    ILogger *logger = logManager->GetLogger(TEST_TOKEN);
+    auto logger = logManager->GetLogger(TEST_TOKEN);
     logger->LogEvent(event);
-    logger->FlushAndTeardown();
+    logManager->FlushAndTeardown();
 }
 #endif
 
