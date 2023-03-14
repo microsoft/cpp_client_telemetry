@@ -88,7 +88,7 @@ namespace MAT_NS_BEGIN {
         unsigned                             maxUploadSize = 0;
         EventLatency                         latency = EventLatency_Unspecified;
         std::map<std::string, size_t>        packageIds;
-        std::string                          cvStr;
+        std::string                          traceId;
         std::map<std::string, std::string>   recordIdsAndTenantIds;
         std::vector<int64_t>                 recordTimestamps;
         unsigned                             maxRetryCountSeen = 0;

@@ -26,6 +26,7 @@ Build recipe must contain the following preprocessor definitions:
 | HAVE_MAT_ZLIB | on | Use zlib for HTTP requests compression. This option must always be turned on for any high-volume telemetry project |
 | HAVE_MAT_LOGGING | on | Enable internal SDK tracing / debug logging |
 | HAVE_MAT_WIN_LOG | off | Will log statements to disk on windows if trace enabled and HAVE_MAT_LOGGING defined |
+| HAVE_MAT_EVT_TRACKINGID | off | Disable audit event tracking by adding event id (CV) to http request header on windows |
 | HAVE_MAT_STORAGE | on | Enable SQLite persistent offline storage |
 | HAVE_MAT_NETDETECT | on | _Win32 Desktop only_: Use NLM COM object for network cost detection on Windows 8+ |
 | HAVE_MAT_SHORT_NS | off | Use short "MAT::" namespace instead of "Microsoft::Applications::Events::" to reduce the .DLL size |
