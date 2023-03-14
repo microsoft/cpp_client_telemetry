@@ -59,6 +59,7 @@ static BOOL _initialized = false;
                   source:(nonnull NSString *)source
                   withConfig:(nonnull ODWLogConfiguration *)config
 {
+    static std::unique_ptr<ILogManager> manager = nullptr;
     // We expect that the static LogManager has already been initialized before this function is called
     // If not, return nil
     if (!_initialized)
@@ -73,9 +74,9 @@ static BOOL _initialized = false;
         return nil;
     }
 
-    ILogManager* manager = LogManagerProvider::CreateLogManager(
+    manager.reset(LogManagerProvider::CreateLogManager(
         *wrappedConfig,
-        status);
+        status));
 
     if (status == status_t::STATUS_SUCCESS && manager != nil)
     {
