@@ -34,7 +34,7 @@ namespace MAT_NS_BEGIN {
 
         IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::CsProtocol::Record* source)
             : source(source),
-            record{ id, tenantToken, latency, persistence, source->cV },
+            record{ id, tenantToken, latency, persistence, (source != nullptr) ? source->cV : "" },
 	    policyBitFlags(0)
         {
         }
