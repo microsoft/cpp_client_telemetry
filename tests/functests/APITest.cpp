@@ -612,6 +612,7 @@ TEST(APITest, LogManager_Reinitialize_Test)
         auto logManager = LogManagerProvider::CreateLogManager(config);
         auto result = logManager->GetLogger(TEST_TOKEN);
         EXPECT_EQ(true, (result != NULL));
+        logManager->FlushAndTeardown();
     }
 }
 
