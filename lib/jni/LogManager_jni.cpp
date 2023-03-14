@@ -30,7 +30,7 @@
 using namespace MAT;
 
 template <>
-ILogManager* LogManagerBase<WrapperConfig>::instance{};
+std::unique_ptr<ILogManager> LogManagerBase<WrapperConfig>::instance{};
 
 extern "C"
 {
