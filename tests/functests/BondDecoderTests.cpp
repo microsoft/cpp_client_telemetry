@@ -17,7 +17,8 @@
 #include "LogManager.hpp"
 
 #include <atomic>
-#include <cass
+#include <cassert>
+
 #include "EventDecoderListener.hpp"
 
 using namespace MAT;
