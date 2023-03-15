@@ -41,7 +41,7 @@ namespace MAT_NS_BEGIN {
 
             if (ctx->latency == EventLatency_Unspecified) {
                 ctx->latency = record.latency;
-                LOG_TRACE("The highest latency found was %d (%s)",
+                LOG_TRACE("The highest hello latency found was %d (%s)",
                     ctx->latency, latencyToStr(ctx->latency));
             }
 
