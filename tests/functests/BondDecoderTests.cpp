@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <cassert>
+
 #include "EventDecoderListener.hpp"
 
 using namespace MAT;
