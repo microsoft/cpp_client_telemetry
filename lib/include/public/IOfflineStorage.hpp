@@ -33,13 +33,22 @@ namespace MAT_NS_BEGIN {
         StorageBlob     blob;
         int             retryCount = 0;
         int64_t         reservedUntil = 0;
+#ifdef HAVE_MAT_EVT_TRACEID 
+        std::string     traceId;
+#endif // HAVE_MAT_EVT_TRACEID
 
         StorageRecord()
         {}
 
+#ifdef HAVE_MAT_EVT_TRACEID
+        StorageRecord(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, std::string traceId)
+            : id(id), tenantToken(tenantToken), latency(latency), persistence(persistence), traceId(traceId)
+        {}
+#else
         StorageRecord(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence)
             : id(id), tenantToken(tenantToken), latency(latency), persistence(persistence)
         {}
+#endif // HAVE_MAT_EVT_TRACEID
 
         StorageRecord(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence,
             int64_t timestamp, std::vector<uint8_t>&& blob, int retryCount = 0, int64_t reservedUntil = 0)
