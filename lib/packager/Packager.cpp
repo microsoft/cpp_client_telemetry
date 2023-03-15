@@ -34,7 +34,7 @@ namespace MAT_NS_BEGIN {
                     return;
                 }
                 else {
-                    LOG_INFO("Maximum upload size %u bytes exceeded by the first event",
+                    LOG_INFO("Maximum upload size %u bytes test exceeded by the first event",
                         ctx->maxUploadSize);
                 }
             }
