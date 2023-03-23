@@ -4,6 +4,21 @@
 using namespace testing;
 using namespace MAT;
 
+#if defined(_MSC_VER)
+#  pragma warning(push)
+#  pragma warning(disable: 26483  //ignore array out of bound
+#endif
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__apple_build_version__)
+#  if __GNUC__ >= 11
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Warray-bounds"
+#  endif
+#elif defined(__clang__) || defined(__apple_build_version__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Warray-bounds"
+#endif
+
+
 TEST(AnnexKTests, memcpy_s)
 {
     char    dest[10];
@@ -27,3 +42,15 @@ TEST(AnnexKTests, memcpy_s)
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s( dest, dest_len, src, dest_len + 1 ), EINVAL);
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s( dest, dest_len, dest + 1, src_len + 1 ), EINVAL);
 }
+
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__apple_build_version__)
+#  if __GNUC__ >= 11
+#    pragma GCC diagnostic pop
+#  endif
+#elif defined(__clang__) || defined(__apple_build_version__)
+#  pragma clang diagnostic pop
+#endif
+
+#if defined(_MSC_VER)
+#  pragma warning(pop)
+#endif
