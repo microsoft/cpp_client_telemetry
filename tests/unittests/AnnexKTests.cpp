@@ -11,15 +11,15 @@ TEST(AnnexKTests, memcpy_s)
 
     // success tests
     char    dest[10];
-    char    src[] = "VALUE";
+    char    src[] = "TEST";
     rsize_t dest_len = sizeof(dest);
     rsize_t src_len = sizeof(src);
 
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(dest, dest_len, src, 0), 0);
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s( dest, dest_len, src, src_len + 1), 0);
-    EXPECT_EQ(strlen(dest), strlen("VALUE"));
+    EXPECT_EQ(strlen(dest), strlen("TEST"));
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(dest, dest_len + 2, src, src_len + 1), 0);
-    EXPECT_EQ(strlen(dest), strlen("VALUE"));
+    EXPECT_EQ(strlen(dest), strlen("TEST"));
 
     // error tests
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(dest, 3, src, src_len), EINVAL);
