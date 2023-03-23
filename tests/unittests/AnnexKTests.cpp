@@ -1,14 +1,11 @@
-
 #include "utils/annex_k.hpp"
 #include "common/Common.hpp"
-
 
 using namespace testing;
 using namespace MAT;
 
 TEST(AnnexKTests, memcpy_s)
 {
-
     // success tests
     char    dest[10];
     char    src[] = "TEST";
