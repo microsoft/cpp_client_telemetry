@@ -139,7 +139,11 @@ class SocketAddr
         {
             inet4.sin_port = htons(atoi(colon + 1));
             char buf[16];
+#ifdef USE_ONEDS_BOUNDCHECK_METHODS
+            BoundCheckFunctions::oneds_memcpy_s(buf, sizeof(buf), addr, std::min<ptrdiff_t>(15, colon - addr));
+#else
             memcpy(buf, addr, std::min<ptrdiff_t>(15, colon - addr));
+#endif
             buf[15] = '\0';
             ::inet_pton(AF_INET, buf, &inet4.sin_addr);
         } else

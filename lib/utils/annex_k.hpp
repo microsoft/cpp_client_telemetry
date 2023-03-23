@@ -2,6 +2,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
+#include "ctmacros.hpp"
+
 #include <stddef.h>
 #include <errno.h>
 #include <string.h>
@@ -10,6 +12,8 @@
 #else
 #include <limits.h>
 #endif
+
+#include <iostream>
 
 #ifndef ANNEX_K_HPP
 #define ANNEX_K_HPP
@@ -27,8 +31,6 @@
 
 #endif
 
-#endif
-
 // restrict keyword needs c99 and above.
 #if __STDC_VERSION_ < 199901L
 #  define restrict
@@ -40,13 +42,16 @@ typedef size_t rsize_t;
 typedef int errno_t;
 #endif
 
-// prototype from https://en.cppreference.com/w/c/string/byte/strlen
-
-
-static inline bool oneds_buffer_region_overlap(const void *buffer1, size_t buffer1_len, const void *buffer2, size_t buffer2_len)
+namespace MAT_NS_BEGIN
 {
-    if (buffer2 >= buffer1) {
-        if (buffer1 + buffer1_len - 1 > buffer2 + buffer2_len )
+class BoundCheckFunctions
+{
+private:
+static bool oneds_buffer_region_overlap(const char *buffer1, size_t buffer1_len, const char *buffer2, size_t buffer2_len)
+{
+    if (buffer2 >= buffer1) 
+    {
+        if (buffer1 + buffer1_len - 1 > buffer2 )
         {
             return true;
         }
@@ -54,14 +59,20 @@ static inline bool oneds_buffer_region_overlap(const void *buffer1, size_t buffe
     else 
     {
         if (buffer2 + buffer2_len - 1 > buffer1)
-        {
+        { 
             return true;
         }
     }
-    return true; // non-reachable.
+    return false; 
 }
 
-static size_t oneds_strlen_s(const char *str, size_t strsz)
+public:
+// prototype - https://en.cppreference.com/w/c/string/byte/strlen
+//  Returns the length of the given null-terminated byte string
+//  - returns zero if str is a null pointer
+//  -  returns strsz if the null character was not found in the first strsz bytes of str.
+
+static size_t oneds_strnlen_s(const char *str, size_t strsz)
 {
    if ( str == NULL)
    {
@@ -70,7 +81,16 @@ static size_t oneds_strlen_s(const char *str, size_t strsz)
    return strnlen(str, strsz);
 }
 
-// definition from https://en.cppreference.com/w/c/string/byte/strncpy (strcpy, strcpy_s)
+// prototype - https://en.cppreference.com/w/c/string/byte/strncpy (strcpy, strcpy_s)
+// Copies at most count characters of the character array pointed to by src 
+//(including the terminating null character, but not any of the characters that follow 
+// the null character) to character array pointed to by dest.
+// Handles error conditions at runtime - 
+//   - src or dest is a null pointer
+//   - destsz is zero or greater than RSIZE_MAX
+//   - count is greater than RSIZE_MAX
+//   - count is greater or equal destsz, but destsz is less or equal strnlen_s(src, count), in other words, truncation would occur
+//   - overlap would occur between the source and the destination strings
 static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char *restrict src, rsize_t count)
 {
 #if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
@@ -86,25 +106,24 @@ static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char 
         return EINVAL;
     }
     if (count > RSIZE_MAX){
-        dest[0] = NULL;
+        dest = NULL;
         return EINVAL;
     }
-
-    if (count >= destsz && destsz <= oneds_strlen_s(src, destsz))
+    if (count >= destsz && destsz <= oneds_strnlen_s(src, count))
     {
-        dest[0] = NULL;
+        dest = NULL;
         return EINVAL;
     }
 
-    rsize_t src_len_to_read = oneds_strlen_s(src, count) + 1 ;
+    rsize_t src_len_to_read = oneds_strnlen_s(src, count) + 1 ;
     if (src_len_to_read < count) 
     {
         src_len_to_read = count;
     }
 
     // donot allow overflow
-    if (oneds_buffer_region_overlap((void *)dest, destsz, (void *)src, src_len_to_read)) {
-        dest[0] = NULL;
+    if (oneds_buffer_region_overlap(dest, destsz, src, src_len_to_read)) {
+        dest = NULL;
         return EINVAL;
     }
     if (src_len_to_read < destsz)
@@ -117,15 +136,28 @@ static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char 
 
 #endif
 
-// prototype from https://en.cppreference.com/w/c/string/byte/memcpy
-errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
+// prototype -  https://en.cppreference.com/w/c/string/byte/memcpy
+// Copies count characters from the object pointed to by src to the 
+// object pointed to by dest. Both objects are interpreted as arrays 
+// of unsigned char.
+// 
+// Handles error conditions at runtime - 
+//  - dest or src is a null pointer
+// - destsz or count is greater than RSIZE_MAX
+// - count is greater than destsz (buffer overflow would occur)
+// - the source and the destination objects overlap
+// 
+// In case of error, the entire destination range [dest, dest+destsz) is zeroed out 
+// (if both dest and destsz are valid))
+
+static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
                   const void *restrict src, rsize_t count )
 {
 
 #if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
        return memcpy_s(dest, destsz, src, count);     
 #else
-    if (dest == NULL || destsz == 0)
+    if (dest == NULL)
     {
         return EINVAL;
     }
@@ -133,7 +165,7 @@ errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
     {
         return EINVAL;
     }
-    if (src == NULL || count == 0)
+    if (src == NULL)
     {
         memset(dest, 0, destsz);
         return EINVAL;
@@ -144,11 +176,10 @@ errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
         return EINVAL;
     }
     // donot allow overflow
-    if (oneds_buffer_region_overlap(dest, destsz, src, count)) {
+    if (oneds_buffer_region_overlap((char *)dest, destsz, (char *)src, count)) {
         memset(dest, 0, destsz);
         return EINVAL;
     }
-
     void *result = memcpy(dest, src, count);
     if (result == (void *)NULL)
     {
@@ -158,3 +189,7 @@ errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
 
 #endif
 }
+};
+}
+MAT_NS_END
+#endif

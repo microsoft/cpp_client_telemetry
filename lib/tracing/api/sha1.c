@@ -25,6 +25,8 @@ A million repetitions of "a"
 
 #include "sha1.h"
 
+#include "utils/annex_k.hpp"
+
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
@@ -67,8 +69,11 @@ void SHA1Transform(
 #ifdef SHA1HANDSOFF
     CHAR64LONG16 block[1];      /* use array to appear as a pointer */
 
-    memcpy(block, buffer, 64);
+#ifdef USE_ONEDS_BOUNDCHECK_METHODS
+    BoundCheckFunctions::oneds_memcpy_s(block, 64, buffer, 64)
 #else
+    memcpy(block, buffer, 64);
+#endif
     /* The following had better never be used because it causes the
     * pointer-to-const buffer to be cast into a pointer to non-const.
     * And the result is written through.  I threw a "const" in, hoping
@@ -212,7 +217,12 @@ void SHA1Update(
     j = (j >> 3) & 63;
     if ((j + len) > 63)
     {
+#ifdef USE_ONEDS_BOUNDCHECK_METHODS
+        i = 64 - j;
+        BoundCheckFunctions::oneds_memcpy_s(&context->buffer[j], i, data, i);
+#else
         memcpy(&context->buffer[j], data, (i = 64 - j));
+#endif
         SHA1Transform(context->state, context->buffer);
         for (; i + 63 < len; i += 64)
         {
@@ -222,7 +232,11 @@ void SHA1Update(
     }
     else
         i = 0;
+#ifdef USE_ONEDS_BOUNDCHECK_METHODS
+    BoundCheckFunctions::oneds_memcpy_s(&context->buffer[j], len - i, &data[i], len - i);
+#else
     memcpy(&context->buffer[j], &data[i], len - i);
+#endif
 }
 
 
