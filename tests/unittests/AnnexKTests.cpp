@@ -7,8 +7,7 @@ using namespace MAT;
 #if defined(_MSC_VER)
 #  pragma warning(push)
 #  pragma warning(disable: 26483  //ignore array out of bound
-#endif
-#if defined(__GNUC__) && !defined(__clang__) && !defined(__apple_build_version__)
+#elif defined(__GNUC__) && !defined(__clang__) && !defined(__apple_build_version__)
 #  if __GNUC__ >= 11
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Warray-bounds"
@@ -49,8 +48,6 @@ TEST(AnnexKTests, memcpy_s)
 #  endif
 #elif defined(__clang__) || defined(__apple_build_version__)
 #  pragma clang diagnostic pop
-#endif
-
-#if defined(_MSC_VER)
+#elif defined(_MSC_VER)
 #  pragma warning(pop)
 #endif

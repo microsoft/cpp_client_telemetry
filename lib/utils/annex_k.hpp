@@ -130,9 +130,8 @@ static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char 
     }
     strncpy(dest, src, src_len_to_read);
     return 0;
-}
-
 #endif
+}
 
 // prototype -  https://en.cppreference.com/w/c/string/byte/memcpy
 // Copies count characters from the object pointed to by src to the 
@@ -151,7 +150,6 @@ static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char 
 static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
                   const void *restrict src, rsize_t count )
 {
-
 #if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
        return memcpy_s(dest, destsz, src, count);     
 #else
@@ -184,7 +182,6 @@ static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
         return -1;
     }
     return 0;
-
 #endif
 }
 };
