@@ -6,12 +6,12 @@ using namespace MAT;
 
 TEST(AnnexKTests, memcpy_s)
 {
-    // success tests
     char    dest[10];
     char    src[] = "TEST";
     rsize_t dest_len = sizeof(dest);
     rsize_t src_len = sizeof(src);
 
+    // success tests
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(dest, dest_len, src, 0), 0);
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s( dest, dest_len, src, src_len + 1), 0);
     EXPECT_EQ(strlen(dest), strlen("TEST"));

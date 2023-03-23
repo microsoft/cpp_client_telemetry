@@ -13,8 +13,6 @@
 #include <limits.h>
 #endif
 
-#include <iostream>
-
 #ifndef ANNEX_K_HPP
 #define ANNEX_K_HPP
 
