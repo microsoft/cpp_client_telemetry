@@ -217,7 +217,7 @@ void SHA1Update(
     j = (j >> 3) & 63;
     if ((j + len) > 63)
     {
-#ifdef USE_ONEDS_BOUNDCHECK_METHODS
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
         i = 64 - j;
         BoundCheckFunctions::oneds_memcpy_s(&context->buffer[j], i, data, i);
 #else

@@ -491,7 +491,7 @@ protected:
           TRACE("not enough memory (realloc returned NULL)\n");
           return 0;
         }
-#ifdef USE_ONEDS_BOUNDCHECK_METHODS
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
         BoundCheckFunctions::oneds_memcpy_s(&(mem->memory[mem->size]), realsize, contents, realsize);
 #else
         memcpy(&(mem->memory[mem->size]), contents, realsize);

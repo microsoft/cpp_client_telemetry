@@ -20,11 +20,11 @@ using namespace MAT;
 
 TEST(AnnexKTests, memcpy_s)
 {
-    char    dest[10];
+    char    *dest = (char*) malloc(sizeof(char) * 10);
     char    *src = (char*) malloc(sizeof(char) * 5);
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(src, 5, "TEST", 5), 0);
-    rsize_t dest_len = sizeof(dest);
-    rsize_t src_len = sizeof(src);
+    rsize_t dest_len = 10;
+    rsize_t src_len = 4;
 
     // success tests
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(dest, dest_len, src, 0), 0);
