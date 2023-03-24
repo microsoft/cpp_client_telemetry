@@ -4,27 +4,15 @@
 using namespace testing;
 using namespace MAT;
 
-#if defined(_MSC_VER)
-#  pragma warning(push)
-#  pragma warning(disable: 26483  //ignore array out of bound
-#elif defined(__GNUC__) && !defined(__clang__) && !defined(__apple_build_version__)
-#  if __GNUC__ >= 11
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Warray-bounds"
-#  endif
-#elif defined(__clang__) || defined(__apple_build_version__)
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Warray-bounds"
-#endif
-
-
 TEST(AnnexKTests, memcpy_s)
 {
-    void    *dest =  malloc(sizeof(char) * 10);
-    void    *src = malloc(sizeof(char) * 5);
+    volatile size_t dest_size =10;
+    volatile size_t src_size = 5;
+    void    *dest =  malloc(sizeof(char) * dest_size);
+    void    *src = malloc(sizeof(char) * src_size);
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(src, 5, "TEST", 5), 0);
-    rsize_t dest_len = 10;
-    rsize_t src_len = 4;
+    rsize_t dest_len = dest_size;
+    rsize_t src_len = src_size-1;
 
     // success tests
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(dest, dest_len, src, 0), 0);
@@ -42,13 +30,3 @@ TEST(AnnexKTests, memcpy_s)
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s( dest, dest_len, src, dest_len + 1 ), EINVAL);
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s( dest, dest_len, (void *)((char *)dest + 1), src_len + 1 ), EINVAL);
 }
-
-#if defined(__GNUC__) && !defined(__clang__) && !defined(__apple_build_version__)
-#  if __GNUC__ >= 11
-#    pragma GCC diagnostic pop
-#  endif
-#elif defined(__clang__) || defined(__apple_build_version__)
-#  pragma clang diagnostic pop
-#elif defined(_MSC_VER)
-#  pragma warning(pop)
-#endif
