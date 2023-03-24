@@ -29,7 +29,10 @@
 
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
+
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
 #include "utils/annex_k.hpp"
+#endif
 
 #define HTTP_CONN_TIMEOUT       5L
 #define HTTP_STATUS_REGEXP		"HTTP\\/\\d\\.\\d (\\d+)\\ .*"

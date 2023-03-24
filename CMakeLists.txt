@@ -191,7 +191,6 @@ endif()
 
 option(USE_ONEDS_BOUNDCHECK_METHODS "Use bound check methods for C99 functions" OFF)
 if (USE_ONEDS_BOUNDCHECK_METHODS)
-  message("------------HERE-------------")
   add_definitions(-DHAVE_ONEDS_BOUNDCHECK_METHODS)
 endif()
 

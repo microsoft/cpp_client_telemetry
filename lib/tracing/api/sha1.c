@@ -25,7 +25,9 @@ A million repetitions of "a"
 
 #include "sha1.h"
 
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
 #include "utils/annex_k.hpp"
+#endif
 
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
