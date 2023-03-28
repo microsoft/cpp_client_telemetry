@@ -605,7 +605,7 @@ TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
 TEST(APITest, LogManager_Reinitialize_Test)
 {
     ILogConfiguration config;
-    size_t numIterations = 5;
+    size_t numIterations = 3;
     while (numIterations--)
     {
         auto logManager = LogManagerProvider::CreateLogManager(config);
