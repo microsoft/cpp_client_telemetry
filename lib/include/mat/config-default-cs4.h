@@ -36,4 +36,5 @@
 //#define HAVE_CS3
 #define HAVE_CS4
 #define HAVE_CS4_FULL
+//#define HAVE_ONEDS_BOUNDCHECK_METHODS
 
