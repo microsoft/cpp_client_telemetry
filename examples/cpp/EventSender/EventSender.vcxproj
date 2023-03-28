@@ -24,7 +24,6 @@
     <ProjectGuid>{7DBFBA1F-520D-4C93-A33E-DD92FD4F9222}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>EventSender</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -24,7 +24,6 @@
     <ProjectGuid>{77053F92-F003-4D1C-A489-1DEB7CFEA4EC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SampleCppLogManagers</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

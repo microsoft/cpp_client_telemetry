@@ -4,6 +4,7 @@
 //
 #pragma once
 
+// TODO: [MG] - do not merge this
 #define HAVE_PRIVATE_MODULES
 
 #define EVTSDK_VERSION_PREFIX "EVT"
