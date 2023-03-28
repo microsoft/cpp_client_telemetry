@@ -59,6 +59,7 @@
     <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
     <!-- For this project we enforce build.compact-min configuration -->
     <CUSTOM_PROPS_VS>$(ProjectDir)..\build.compact-min.props</CUSTOM_PROPS_VS>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Label="OacrPath" Condition="'$(RunOACR)'=='Yes'">
     <OacrPath>OACR</OacrPath>

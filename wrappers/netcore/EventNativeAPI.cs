@@ -8,16 +8,25 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-
 namespace Microsoft
 {
     namespace Telemetry
     {
         namespace Core
         {
+
+            public class Handles
+            {
+                /// <summary>
+                /// Handles.InvalidHandle is returned if API call fails.
+                /// </summary>
+                public const ulong InvalidHandle = ulong.MaxValue;
+            }
+
             public class Constants
             {
                 public const string LIBRARY_NAME = "ClientTelemetry";
+
                 public const string VERSION = "3.7.0-netcore";
                 public const string ENTRYPOINT = "evt_api_call_default";
             }
@@ -466,16 +475,16 @@ namespace Microsoft
                         call = (Byte)EventCallType.EVT_OP_OPEN,
                         data = Marshal.StringToHGlobalAnsi(cfg)
                     };
-                    evt_api_call(ref context);
+                    uint result = evt_api_call(ref context);
                     Marshal.FreeHGlobal(context.data);
-                    return context.handle;
+                    return (result == 0) ? context.handle : Handles.InvalidHandle;
                 }
 
                 /**
                  * <summary>
                  * Destroy or close SDK instance by handle
                  * </summary>
-                 * <param name="inHandle">SDK instance handle.</param>
+                 * <param name="handle">SDK instance handle.</param>
                  * <returns>Status code.</returns>
                  */
                 public static ulong evt_close(ulong inHandle)

@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 
 #include "mat/config.h"
-#ifdef _WIN32
-#define MATSDK_DECLSPEC __declspec(dllexport)
-#endif
 
 #if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
 #include "http/HttpClient_CAPI.hpp"
@@ -356,7 +353,7 @@ extern "C" {
     /**
      * Simple stable backwards- / forward- compatible ABI interface
      */
-    evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t *ctx)
+    MATSDK_LIBABI evt_status_t EVTSDK_LIBABI_CDECL evt_api_call_default(evt_context_t* ctx)
     {
         evt_status_t result = EFAIL;
 

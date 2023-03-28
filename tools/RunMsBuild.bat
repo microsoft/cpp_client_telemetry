@@ -14,6 +14,9 @@ echo %CUSTOM_PROPS%
 
 call tools\vcvars.cmd
 
+REM nuget restore .\Solutions\win10-lib\packages.config -PackagesDirectory .\Solutions\packages
+REM nuget restore .\Solutions\win10-dll\packages.config -PackagesDirectory .\Solutions\packages
+
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set platform=
 set SOLUTION=Solutions\MSTelemetrySDK.sln

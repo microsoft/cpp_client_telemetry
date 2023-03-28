@@ -92,15 +92,16 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
-	<Import Project="..\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
-	<Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
-	<Import Project="..\..\lib\modules\exp\exp.vcxitems" Condition="exists('..\..\lib\modules\exp\exp.vcxitems')" Label="Shared" />
-	<Import Project="..\..\lib\modules\filter\filter.vcxitems" Condition="exists('..\..\lib\modules\filter\filter.vcxitems')" Label="Shared" />
-	<Import Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Condition="exists('..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Label="Shared" />
-	<Import Project="..\..\lib\modules\azmon\azmon.vcxitems" Condition="exists('..\..\lib\modules\azmon\azmon.vcxitems')" Label="Shared" />
-	<Import Project="..\..\lib\modules\privacyguard\privacyguard.vcxitems" Condition="exists('..\..\lib\modules\privacyguard\privacyguard.vcxitems')" Label="Shared" />
-	<Import Project="..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems" Condition="exists('..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems')" Label="Shared" />
-	<Import Project="..\..\lib\modules\cds\cds.vcxitems" Condition="exists('..\..\lib\modules\cds\cds.vcxitems')" Label="Shared" />
+    <Import Project="..\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
+    <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
+    <Import Project="..\..\lib\modules\exp\exp.vcxitems" Condition="exists('..\..\lib\modules\exp\exp.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\filter\filter.vcxitems" Condition="exists('..\..\lib\modules\filter\filter.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Condition="exists('..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\azmon\azmon.vcxitems" Condition="exists('..\..\lib\modules\azmon\azmon.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\privacyguard\privacyguard.vcxitems" Condition="exists('..\..\lib\modules\privacyguard\privacyguard.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems" Condition="exists('..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\cds\cds.vcxitems" Condition="exists('..\..\lib\modules\cds\cds.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\signals\signals.vcxitems" Condition="exists('..\..\lib\modules\signals\signals.vcxitems')" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -115,7 +116,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <LibraryWPath />
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
@@ -136,7 +137,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.pdb;*.obj.enc;*.ilk;*.ipdb;*.iobj;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <LibraryWPath />
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
