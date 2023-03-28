@@ -161,7 +161,17 @@ static BOOL _initialized = false;
 
         if (@available(iOS 10.0, macOS 10.12, *))
         {
-            strUserLocale = std::string([[locale languageCode] UTF8String]);
+            const char *localeCode = [[locale languageCode] UTF8String];
+
+            if (localeCode != nullptr)
+            {
+                strUserLocale = std::string(localeCode);
+            }
+            else
+            {
+                strUserLocale = "und";
+            }
+
             countryCode = [locale countryCode];
         }
 
