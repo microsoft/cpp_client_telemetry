@@ -50,7 +50,6 @@
     <Platform>Win32</Platform>
     <ProjectName>FuncTests</ProjectName>
     <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -456,6 +455,9 @@
   </ItemGroup>
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\liveeventinspector')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\liveeventinspector\tests\functests\LiveEventInspectorFuncTests.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\signals')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\functests\SignalsFuncTests.cpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

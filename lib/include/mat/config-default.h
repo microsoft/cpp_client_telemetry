@@ -26,10 +26,12 @@
 #define HAVE_MAT_ZLIB
 #define HAVE_MAT_LOGGING
 /* #define HAVE_MAT_WIN_LOG     */
+/* #define HAVE_MAT_EVT_TRACEID     */
 #define HAVE_MAT_STORAGE
 #define HAVE_MAT_DEFAULT_HTTP_CLIENT
 #define HAVE_MAT_LIVEEVENTINSPECTOR
 #define HAVE_MAT_PRIVACYGUARD
+#define HAVE_MAT_SIGNALS
 //#define HAVE_MAT_DEFAULT_FILTER
 #if defined(_WIN32) && !defined(_WINRT_DLL)
 #define HAVE_MAT_NETDETECT
@@ -37,4 +39,5 @@
 #define HAVE_CS3
 //#define HAVE_CS4
 //#define HAVE_CS4_FULL
+//#define HAVE_ONEDS_BOUNDCHECK_METHODS
 

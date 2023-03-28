@@ -69,4 +69,10 @@ public class PrivacyGuardInitConfig {
      * Default value is `false`.
      */
     public boolean DisableAdvancedScans = false;
+
+    /**
+     * (OPTIONAL) Should stamp the iKey for the scanned event as an additional property on Concerns.
+     * Default value is `false`.
+     */
+    public boolean StampEventIKeyForConcerns = false;
 }

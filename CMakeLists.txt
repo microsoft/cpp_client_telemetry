@@ -189,6 +189,11 @@ if(GCC5_CXX11_ABI_WORKAROUND)
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 endif()
 
+option(USE_ONEDS_BOUNDCHECK_METHODS "Use bound check methods for C99 functions" OFF)
+if (USE_ONEDS_BOUNDCHECK_METHODS)
+  add_definitions(-DHAVE_ONEDS_BOUNDCHECK_METHODS)
+endif()
+
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
  add_definitions(-DZLIB_WINAPI)
 endif()
@@ -253,6 +258,7 @@ option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
 option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
+option(BUILD_SIGNALS      "Build Signals"           YES)
 option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 
 # Enable Azure Monitor / Application Insights end-point support
