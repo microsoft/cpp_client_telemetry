@@ -605,12 +605,13 @@ TEST(APITest, LogManager_StressUploadLock_MultiThreaded)
 TEST(APITest, LogManager_Reinitialize_Test)
 {
     ILogConfiguration config;
-    size_t numIterations = 3;
+    size_t numIterations = 5;
     while (numIterations--)
     {
         auto logManager = LogManagerProvider::CreateLogManager(config);
         auto result = logManager->GetLogger(TEST_TOKEN);
         EXPECT_EQ(true, (result != NULL));
+        logManager->FlushAndTeardown();
     }
 }
 
