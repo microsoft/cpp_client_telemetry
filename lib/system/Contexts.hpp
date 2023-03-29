@@ -32,12 +32,21 @@ namespace MAT_NS_BEGIN {
         {
         }
 
+#ifdef HAVE_MAT_EVT_TRACEID   
+        IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::CsProtocol::Record* source)
+            : source(source),
+            record{ id, tenantToken, latency, persistence, (source != nullptr) ? source->cV : "" },
+	    policyBitFlags(0)
+        {
+        }
+#else
         IncomingEventContext(std::string const& id, std::string const& tenantToken, EventLatency latency, EventPersistence persistence, ::CsProtocol::Record* source)
             : source(source),
             record{ id, tenantToken, latency, persistence },
 	    policyBitFlags(0)
         {
         }
+#endif
 
         virtual ~IncomingEventContext()
         {
@@ -88,6 +97,9 @@ namespace MAT_NS_BEGIN {
         unsigned                             maxUploadSize = 0;
         EventLatency                         latency = EventLatency_Unspecified;
         std::map<std::string, size_t>        packageIds;
+#ifdef HAVE_MAT_EVT_TRACEID  
+        std::string                          traceId;
+#endif
         std::map<std::string, std::string>   recordIdsAndTenantIds;
         std::vector<int64_t>                 recordTimestamps;
         unsigned                             maxRetryCountSeen = 0;
