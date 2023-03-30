@@ -160,7 +160,7 @@ to never capture any telemetry contexts populated by the main application. For e
 application `ext.user.localId` or session `TraceId` cannot be shared with extension. There is no explicit
 permission model. Since most components are expected to be assembled and tested by product development teams,
 the team should audit the usage of Guest scope parameter by the plugins it is loading. There is runtime code
-isolation provided by this mechanism. It is based on trust thast all loadable modules excercise their due
+isolation provided by this mechanism. It is based on trust that all loadable modules exercise their due
 diligence while setting up their telemetry configuration.
 
 ### End-to-end  example
