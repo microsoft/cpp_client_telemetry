@@ -4,9 +4,6 @@
 //
 #pragma once
 
-// TODO: [MG] - do not merge this
-#define HAVE_PRIVATE_MODULES
-
 #define EVTSDK_VERSION_PREFIX "EVT"
 #if defined(_WIN32)
 #if defined __has_include
