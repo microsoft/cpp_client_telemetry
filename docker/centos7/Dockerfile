@@ -6,7 +6,7 @@ USER 0
 RUN yum update -y
 
 ## Common packages for linux build environment
-RUN yum install -y gcc gcc-c++ automake libtool-bin curl libcurl4-openssl-dev zlib1g-dev zlib-static build-essential libssl-dev clang python pkg-config git curl bzip2 unzip make wget sudo centos-release-scl devtoolset-7 devtoolset-7-valgrind
+RUN yum install -y gcc gcc-c++ automake libtool-bin curl nghttp2 libcurl4-openssl-dev zlib1g-dev zlib-static build-essential libssl-dev clang python pkg-config git curl bzip2 unzip make wget sudo centos-release-scl devtoolset-7 devtoolset-7-valgrind
 
 ## Add docker user
 RUN useradd -m docker

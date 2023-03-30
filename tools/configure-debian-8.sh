@@ -9,7 +9,7 @@ apt-get install -y zlib1g-dev libsqlite3-dev cmake
 apt-get install -y git
 apt-get install -y g++-5
 apt-get install -y build-essential
-apt-get install -y libcurl4-openssl-dev
+apt-get install -y libcurl4-openssl-dev nghttp2
 apt-get install -y libssl-dev
 update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
 # After gcc-5.x is deployed, you may remove 'unstable' deps
