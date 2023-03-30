@@ -215,7 +215,7 @@ class TestDebugEventListener : public DebugEventListener
 
 TestDebugEventListener debugListener;
 
-const int maxEventsCount = 1;
+const unsigned maxEventsCount = 1;
 
 unsigned totalEvents = 0;
 
