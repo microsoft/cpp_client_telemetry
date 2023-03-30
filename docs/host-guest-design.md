@@ -7,7 +7,7 @@ to Common Shared Telemetry library (1DS).
 
 In those scenarios all parts of application need to discover the SDK instance. For example:
 
-- App Core C++ SDK initializes Telemetry Stack as Telemetry "Host", letting other delay-loaded components
+- App Core C++ SDK initializes Telemetry Stack as Telemetry `Host`, letting other delay-loaded components
 of application to reuse its telemetry stack.
 - App Core C++ SDK could use `LogManager::SetContext(...)` and Semantic Context C++ APIs to populate some
 common low-level knowledge, accessible only from C++ layer, ex. `ext.user.localId`.
@@ -27,11 +27,11 @@ a system stack. From top C# / JS layers to the bottom C++ layer, spanning across
 libraries loaded in app context. Those libraries could consume telemetry stack via C API.
 
 Shared context properties could get stamped on all events emitted by a product, irrespective of whether
-these events originated from: ia high-level app written in C#, or a lower-level extension SDK written in C.
+these events originated from a high-level app written in C#, or a lower-level extension SDK written in C.
 
 ## Ultimate user guide to 1DS C/C++ SDK Host-Guest API
 
-Host-Guest API has been designed for the following scenarios:
+`Host`-`Guest` API has been designed for the following scenarios:
 
 ### Sharing telemetry stack
 
@@ -40,21 +40,22 @@ same shared dynamically loadable 1DS C++ SDK binary, e.g. `ClientTelemetry.dll`,
 `libcat.so` - whatever is the "distro" used to package 1DS C++ SDK.
 
 `Guest` could dynamically discover and load 1DS C++ via C API. It could latch to currently initialized
-instance of Main component `LogManager`. `Guest` could also create its own totally separate sandboxed
-instance of a Guest `LogManager`. `GetProcAddress` is supported on Windows. `dlsym` supported on Linux
+instance of its `Host` component `LogManager`. `Guest` could also create its own totally separate sandboxed
+instance of a `Guest` `LogManager`. `GetProcAddress` is supported on Windows. `dlsym` supported on Linux
 and Android. Lazy-binding (automagic binding / auto-discovery of `Host` telemetry stack) is supported
-on Linux, Mac and Android. PInvoke for C# is also fully supported since across platforms - C API provides
-one unified struct layout, with packed structs, approach that works on modern Intel-x64 and ARM64 OS.
+on Linux, Mac and Android. `P/Invoke` for C# is also fully supported cross-platform for .NET and Mono.
+1DS C API provides one unified struct layout, with packed structs approach that works on modern
+Intel-x64 and ARM64 OS. One single C# assembly could interoperate with 1DS C++ SDK in a uniform way.
 
 ### SDK-in-SDK scenario
 
-Native code SDK could loads another extension/accessory SDK. Both parts must share the same telemetry stack.
+Native code SDK could load another extension/accessory SDK. Both parts must share the same telemetry stack.
 Extension SDK could be written in C or C++. Main SDK is treated as `Host`, additional SDKs are treated
 as `Guests`. `Host` could also facilitate the ingection of Diagnostic Data Viewer plugin, in order to
 satisfy our Privacy and Compliance oblogations. Additional `Guest` modules could enrich the main `Host`
 shared telemetry context with their properties.
 
-### Telemetry flows and `Isolation` scenario
+### Telemetry flows and `Telemetry Data Isolation` scenarios
 
 In some cases many different application modules (plugins) get loaded into the main app address space.
 For example, `Azure Calling SDK` or `Microsoft Information Protection SDK` running in another product.
@@ -64,17 +65,18 @@ controlled separately, with Required Service Data flowing to Azure location of a
 while Optional Customer Data may need to flow to its own regional EUDB-compliant collector.
 
 `Host`-`Guest` API solves this challenge by providing partitioning for different components using the
-same telemetry SDK.
+same telemetry SDK. If necessary, different modules telemetry collection processes run totally isolated
+from one another.
 
 ## Common Considerations
 
 `HostGuestTests.cpp` module in functional test contains several usage examples.
 
-See detailed explanation of configuration and examples below.
+See detailed explanation of configuration options and examples below.
 
 ### Dissecting Host configuration
 
-Host configuration example:
+`Host` configuration example:
 
 ```json
 {
@@ -96,23 +98,23 @@ Host configuration example:
 }
 ```
 
-Host could specify the two matching parameters:
+`Host` could specify the two matching parameters:
 
 - `"host": "C-API-Host"`
 - `"name": "C-API-Host"`
 
-If host parameter matches the name parameter, then it assumed that the Host module acts as the one and
-only Host in the application. It will be creating its own data collection sandbox. It will not latch to
-any other Host modules that could be running in the same app. Multiple Host modules supported.
+If host parameter matches the name parameter, then it assumed that the `Host` module acts as the one and
+only `Host` in the application. It will be creating its own data collection sandbox. It will not latch to
+any other `Host` modules that could be running in the same app. Multiple `Host` modules supported.
 
-In some scenarios a Host would prefer to latch (join) an existing telemetry session. This is especially
+In some scenarios a `Host` would prefer to latch (join) an existing telemetry session. This is especially
 helpful if multiple Hosts need to share one data collection domain and their startup/load order is not
-clearly defined. In that case, a session initialized by first Host could be shared with other Hosts.
+clearly defined. In that case, a session initialized by first `Host` could be shared with other Hosts.
 Data collection domain performs ref-counting of instances latched to it.
 
-Hosts could specify `"host": "*"` to attach to existing data collection session. If first Host leaves
+Hosts could specify `"host": "*"` to attach to existing data collection session. If first `Host` leaves
 (unloads or closes its handle), remaining entities in that session continue operating until the last
-Host leaves the data collection domain.
+`Host` leaves the data collection domain.
 
 Both Guests and Hosts may utilize the `scope` parameter that controls if these would be sharing the
 same common telemetry context shared within a sandbox:
@@ -149,12 +151,12 @@ Guest configuration example:
 
 Guest entity:
 
-- specifies its own data storage file. This is helpful if Guest starts up prior to any other Host.
+- specifies its own data storage file. This is helpful if Guest starts up prior to any other `Host`.
 - `"host": "*"` parameter allows the Guest to latch to any host.
-- `"scope": "*"` parameter allows the Guest to contribute and share its telemetry context with other modules (Host and Guests).
+- `"scope": "*"` parameter allows the Guest to contribute and share its telemetry context with other modules (`Host` and Guests).
 - Hosts and Guests to present themselves with unique name, ex. `"name": "C-API-Guest"` and unique version, ex. `1.0.0`.
-- Guest must specify `"hostMode": false`. That is how SDK knows that a Guest is expected to join another Host's sandbox.
-- Guest may omit the scope parameter. In this case the Guest cannot capture the main Host telemetry contexts.
+- Guest must specify `"hostMode": false`. That is how SDK knows that a Guest is expected to join another `Host`'s sandbox.
+- Guest may omit the scope parameter. In this case the Guest cannot capture the main `Host` telemetry contexts.
 This is done intentionally as a security feature. Main application developers may ask their plugin developers
 to never capture any telemetry contexts populated by the main application. For example, in some cases - main
 application `ext.user.localId` or session `TraceId` cannot be shared with extension. There is no explicit
@@ -165,7 +167,7 @@ diligence while setting up their telemetry configuration.
 
 ### End-to-end  example
 
-Host code:
+`Host` code:
 
 ```cpp
     // Host JSON configuration:
@@ -186,7 +188,7 @@ Host code:
     evt_handle_t hostHandle = evt_open(hostConfig);
 
     // evt_prop[] array that contains common context properties.
- // Contexts between Hosts and Guests could be merged into one shared context.
+    // Contexts between Hosts and Guests could be merged into one shared context.
     evt_prop hostContext[] = TELEMETRY_EVENT(
         _STR("ext.device.localId", "a:4318b22fbc11ca8f"),
         _STR("ext.device.make", "Microsoft"),
@@ -216,11 +218,11 @@ Host code:
 
 In above example:
 
-- Host performs initialization.
+- `Host` performs initialization.
 - populates its top-level LogManager semantic context with known values.
 
-For example, the Host C++ layer could use native API to access the lower-level platform-specific
-Device Id, Device Make, Model. Host may emit a telemetry event that would combine the event data
+For example, the `Host` C++ layer could use native API to access the lower-level platform-specific
+Device Id, Device Make, Model. `Host` may emit a telemetry event that would combine the event data
 with its context data.
 
 Guest code:
@@ -270,7 +272,7 @@ Guest code:
 
 In above example:
 
-- Guest registers and shares the scope with the Host.
+- Guest registers and shares the scope with the `Host`.
 - Guest entity could operate on a totally different abstraction layer, e.g. higher-level Unity C# or Android Java app.
 It could obtain certain system parameters that are easily accessible only by the higher-level app. Such as, app store
 application name and version. It could be a layer that performs User Authentication and Authorization, subsequently
@@ -280,7 +282,7 @@ Reference design showing how to use 1DS C API from .NET Core, Mono and Unity app
 
 Above examples generate the following event payloads.
 
-Host Event payload in Common Schema notation:
+`Host` Event payload in Common Schema notation:
 
 ```json
 {
@@ -309,8 +311,8 @@ Host Event payload in Common Schema notation:
 }
 ```
 
-Guest Event payload in Common Schema notation. Note that Guest event emitted after Host initialization contains
-the superset of all consolidated common properties:
+Guest Event payload in Common Schema notation. Note that Guest event emitted after `Host` initialization
+contains the superset of all consolidated common properties:
 
 ```json
 {
@@ -350,9 +352,10 @@ the superset of all consolidated common properties:
 }
 ```
 
-Host-Guest approach allows us to share one common telemetry diagnostic context across the language boundaries
-in a hybrid applications designed with C/C++, C#, and JavaScript. Other programming languages may leverage
-Foreign Function Interface C API.
+`Host`-`Guest` approach allows us to share one common telemetry diagnostic context across the language
+boundaries in a hybrid application designed with different programming languages: C/C++, C#, and
+JavaScript. Other programming languages may easily leverage Foreign Function Interface and 1DS C API.
 
-Host-Guest interface plays a central role in aggregation of different module contexts in one shared telemetry
-context. C++ example is available in `SampleCppLogManagers` project.
+`Host`-`Guest` interface plays a central role in aggregation of different module contexts into one
+common shared telemetry context of application. C++ example is available in `SampleCppLogManagers`
+project.
