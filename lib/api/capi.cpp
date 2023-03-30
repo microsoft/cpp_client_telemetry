@@ -228,9 +228,12 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
 }
 
 /**
- * Marashal C struct to C++ API
+ * Marashal C struct to C++ API for the following methods:
+ * - ILogger->LogEvent(...)
+ * - ILogger->SetContext(...) - for each string key - prop value
+ * - ILogManager->SetContext(...) - for each string key - prop value
  */
-evt_status_t mat_log(evt_context_t *ctx)
+evt_status_t mat_sendprops(evt_context_t* ctx, evt_call_t op)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
 
@@ -286,12 +289,91 @@ evt_status_t mat_log(evt_context_t *ctx)
     if (logger == nullptr)
     {
         ctx->result = EFAULT; /* invalid address */
+        return ctx->result;
     }
-    else
+
+    // Enforce if scope sharing is not enabled (default).
+    // However, if a client / extension explicitly opts-in to append its
+    // context to host variables, then we respect their choice and append
+    // the corresponding host context values on guest events. This is
+    // required for the case where the app, SDK, and extension SDKs run
+    // within the same data silo / trust boundary, ensuring uniform and
+    // consistent symmetric data contract for all parties involved.
+    if (scope == CONTEXT_SCOPE_NONE)
     {
-        logger->SetParentContext(nullptr);
+        if (op == EVT_OP_SET_LOGMANAGER_CONTEXT)
+        {
+            // We are running in isolation. It does not make sense to propagate
+            // the context at LogManager (parent) -level since we do not have
+            // ability to modify it. Downgrade to EVT_OP_SET_LOGGER_CONTEXT.
+            op = EVT_OP_SET_LOGGER_CONTEXT;
+        }
+    }
+
+    // Allows to pass C API properties to ILogger or LogManager semantic context.
+    // Semantic context layer provides access to both - Common Fields (Part A),
+    // as well as Custom Fields (Part C). For C API due to performance reasons -
+    // the determination of what is considered Common versus Custom is done
+    // by checking the first 4 bytes of context property name:
+    // - This is in alignment with canonical Common Schema JSON notation.
+    // - This is much faster than validating the list of old-style COMMONFIELDS_
+    // aliases.
+    //
+    // Developers can find the mapping on 1DS site or use ContextFieldProvider.cpp
+    // as a reference.
+    auto populateContext = [m](ISemanticContext& context)
+    {
+        for (auto prop : m)
+        {
+            if (prop.first.rfind("ext.", 0) == 0)
+            {
+                context.SetCommonField(prop.first, prop.second);
+            }
+            else
+            {
+                context.SetCustomField(prop.first, prop.second);
+            }
+        }
+    };
+
+    switch (op)
+    {
+    // This path allows to implement common props stamping via C#->C->C++ API.
+    // Calls ILogger->SetContext(...) to populate the "local" current ILogger context.
+    case EVT_OP_SET_LOGGER_CONTEXT:
+        {
+            const auto loggerContext = logger->GetSemanticContext();
+            populateContext(*loggerContext);
+            ctx->result = EOK;
+        }
+        break;
+
+    // This path allows to implement common props stamping via C#->C->C++ API.
+    // Calls ILogManager->SetContext(...) to populate the "global" LogManager context.
+    case EVT_OP_SET_LOGMANAGER_CONTEXT:
+        {
+            auto& logManagerContext = client->logmanager->GetSemanticContext();
+            populateContext(logManagerContext);
+            ctx->result = EOK;
+        }
+        break;
+
+    // Original implementation of evt_log call remains unaltered. Note that the processing
+    // of Common Fields via C API could only done using:
+    // - set_logger_context(_s)
+    // - set_logmanager_context(_s)
+    // Practical reasons:
+    // - done intentionally to avoid altering behavior of legacy code.
+    // - Part A extension values typically remain constant for an app/user session.
+    case EVT_OP_LOG:
         logger->LogEvent(props);
         ctx->result = EOK;
+        break;
+
+    default:
+        // Unsupported API. Call failed.
+        ctx->result = EFAULT;
+        break;
     }
     return ctx->result;
 }
@@ -386,7 +468,7 @@ extern "C" {
                 break;
 
             case EVT_OP_LOG:
-                result = mat_log(ctx);
+                result = mat_sendprops(ctx, EVT_OP_LOG);
                 break;
 
             case EVT_OP_PAUSE:
@@ -420,6 +502,22 @@ extern "C" {
                 LOG_TRACE("library version: %s", ctx->data);
 
                 result = STATUS_SUCCESS;
+                break;
+
+            // New API in v3.7.1. This does not break ABI compat from v3.7.0.
+            // If v3.7.0 client calls into v3.7.1 implementation, then the
+            // call is a noop - handled by safely returning ENOTSUP.
+            // No new structs, no struct layout changes.
+            case EVT_OP_SET_LOGGER_CONTEXT:
+                result = mat_sendprops(ctx, EVT_OP_SET_LOGGER_CONTEXT);
+                break;
+
+            // New API in v3.7.1. This does not break ABI compat from v3.7.0.
+            // If v3.7.0 client calls into v3.7.1 implementation, then the
+            // call is a noop - handled by safely returning ENOTSUP.
+            // No new structs, no struct layout changes.
+            case EVT_OP_SET_LOGMANAGER_CONTEXT:
+                result = mat_sendprops(ctx, EVT_OP_SET_LOGMANAGER_CONTEXT);
                 break;
 
                 // Add more OPs here

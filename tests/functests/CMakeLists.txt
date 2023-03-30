@@ -2,6 +2,7 @@ message("--- functests")
 
 set(SRCS
   APITest.cpp
+  HostGuestTests.cpp
   BasicFuncTests.cpp
   LogSessionDataFuncTests.cpp
   Main.cpp
