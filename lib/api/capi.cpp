@@ -10,13 +10,17 @@
 #include "pal/TaskDispatcher_CAPI.hpp"
 #include "utils/Utils.hpp"
 
+#include "LogManager.hpp"
+
 #include "pal/PAL.hpp"
 
 #include "CommonFields.h"
+#include "config/RuntimeConfig_Default.hpp"
 
 #include <mutex>
 #include <map>
 #include <cstdint>
+#include <memory>
 
 static const char * libSemver = TELEMETRY_EVENTS_VERSION;
 
@@ -88,7 +92,8 @@ evt_status_t mat_open_core(
         {
             if (client->ctx_data == config)
             {
-                // Guest instance with the same config is already open
+                // Guest or Host instance with the same config is already open
+                ctx->handle = code;
                 return EALREADY;
             }
             // hash code is assigned to another client, increment and retry
@@ -99,11 +104,18 @@ evt_status_t mat_open_core(
         isHashFound = true;
     } while (!isHashFound);
 
+    // Make sure that we fully inherit the default configuration, then
+    // overlay custom configuraiton on top of default.
+    clients[code].config = ILogConfiguration();
+    Variant::merge_map(*clients[code].config, *defaultRuntimeConfig);
+
     // JSON configuration must start with {
     if (config[0] == '{')
     {
         // Create new configuration object from JSON
-        clients[code].config = MAT::FromJSON(config);
+        ILogConfiguration jsonConfig = MAT::FromJSON(config);
+        // Overwrite default values with custom configuration.
+        Variant::merge_map(*clients[code].config, *jsonConfig, true);
     }
     else
     {
@@ -111,7 +123,7 @@ evt_status_t mat_open_core(
         // That approach allows to consume the lightweght C API without JSON parser compiled in.
         std::string moduleName = "CAPI-Client-";
         moduleName += std::to_string(code);
-        clients[code].config =
+        VariantMap customConfig =
         {
             { CFG_STR_FACTORY_NAME, moduleName },
             { "version", "1.0.0" },
@@ -123,6 +135,8 @@ evt_status_t mat_open_core(
             },
             { CFG_STR_PRIMARY_TOKEN, config }
         };
+        // Overwrite host-guest related settings using VariantMap above.
+        Variant::merge_map(*clients[code].config, customConfig, true);
     }
 
     // Remember the original config string. Needed to avoid hash code collisions

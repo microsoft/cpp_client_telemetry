@@ -25,6 +25,30 @@ namespace MAT_NS_BEGIN
     std::recursive_mutex ILogManagerInternal::managers_lock;
     std::set<ILogManager*> ILogManagerInternal::managers;
 
+    // Internal utility function to validate if LogManager instance (handle)
+    // is still alive. Used in Host-Guest scenarios to determine if instance
+    // needs to be recreated. It will return `false` in case if ILogManager
+    // pointer does not refer to valid object, OR in case if instance has
+    // already called `FlushAndTeardown` method and destroyed its loggers.
+    static inline bool IsInstanceAlive(ILogManager* instance)
+    {
+        bool result = true;
+        // Quick peek at the list of LogManagers to check if this entity
+        // has been destroyed.
+        LOCKGUARD(ILogManagerInternal::managers_lock);
+        if (ILogManagerInternal::managers.count(instance))
+        {
+            // This is a valid instance. One of instances created via:
+            // > ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration)
+            // method. Instance type is (LogManagerImpl*) casted to ILogManager.
+            // Use static_cast<LogManagerImpl*> to reconstruct back to its actual type:
+            const auto instance_internal = static_cast<LogManagerImpl*>(instance);
+            // Call its internal method to check if FlushAndTeardown has been called:
+            result = instance_internal->IsAlive();
+        }
+        return result;
+    }
+
     /// <summary>
     /// Creates an instance of ILogManager using specified configuration.
     /// </summary>
@@ -159,6 +183,14 @@ namespace MAT_NS_BEGIN
 
         // If there was no module configuration supplied explicitly, then do we treat the client as host or guest?
         c[CFG_BOOL_HOST_MODE] = (name == host);
+        if (!IsInstanceAlive(shared[host].instance))
+        {
+            // "Reanimate" this instance by creating new instance using new config.
+            // This allows guests to reattach to the same host by name after its
+            // reinitialization, e.g. in EUDB scenarios where URL needs to change.
+            // Guests can keep holding on to the same instance handle.
+            shared[host].instance = Create(c);
+        }
         return shared[host].instance;
     }
 
@@ -177,9 +209,21 @@ namespace MAT_NS_BEGIN
             if (kv.second.names.count(name))
             {
                 kv.second.names.erase(name);
-                if (kv.second.names.empty())
+                auto instance = shared[host].instance;
+                const bool forceRelease = !IsInstanceAlive(instance);
+                const bool zeroGuestsRemaining = kv.second.names.empty();
+                if (zeroGuestsRemaining || forceRelease)
                 {
-                    // Last owner is gone, destroy
+                    if (!zeroGuestsRemaining)
+                    {
+                        // In this case the logs emitted by Guests attached to "stale" Host
+                        // would be lost. Emit a warning when that happens. Typically it
+                        // could happen when the main app is unloaded and shut down its
+                        // telemetry, but Guest library is still running some processing.
+                        LOG_WARN("Host released before Guests: %s", name.c_str());
+                        dump();
+                    }
+                    // Destroy it.
                     Destroy(shared[host].instance);
                     shared.erase(host);
                 }

@@ -308,6 +308,11 @@ namespace MAT_NS_BEGIN
         virtual bool StartActivity() override;
         virtual void EndActivity() override;
 
+        virtual bool IsAlive()
+        {
+            return m_alive;
+        }
+
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
         void InitializeModules() noexcept;

@@ -20,6 +20,7 @@ namespace MAT_NS_BEGIN {
         m_logManager(telemetrySystem.getLogManager()),
         m_baseDecorator(m_logManager),
         m_semanticContextDecorator(m_logManager),
+        m_isScheduled(false),
         m_isStarted(false)
     {
     }

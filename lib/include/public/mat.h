@@ -9,7 +9,13 @@
  * For version handshake check there is no mandatory requirement to update the $PATCH level.
  * Ref. https://semver.org/ for Semantic Versioning documentation.
  */
-#define TELEMETRY_EVENTS_VERSION "3.7.1"
+#ifdef HAVE_MAT_ABI_V3_1_0
+/* Allow to fallback to same C ABI interface as in old releases */
+#define TELEMETRY_EVENTS_VERSION "3.1.0"
+#else
+/* More modern "cross-arch" ABI interface with fixed padding.   */
+#define TELEMETRY_EVENTS_VERSION "3.7.0"
+#endif
 
 #include "ctmacros.hpp"
 
@@ -136,7 +142,7 @@ MATSDK_PACK_POP
 MATSDK_PACK_PUSH
         evt_call_t      call;       /* In       */
         evt_handle_t    handle;     /* In / Out */
-        void*           data;       /* In / Out */
+        MATSDK_ALIGN64(void* data);
         evt_status_t    result;     /* Out      */
         uint32_t        size;       /* In / Out */
 MATSDK_PACK_POP
@@ -202,7 +208,7 @@ MATSDK_PACK_POP
     typedef struct MATSDK_PACKED_STRUCT evt_prop
     {
 MATSDK_PACK_PUSH
-        const char*             name;
+        MATSDK_ALIGN64(const char* name);
         evt_prop_t              type;
         evt_prop_v              value;
         uint32_t                piiKind;

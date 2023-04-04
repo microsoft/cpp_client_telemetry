@@ -219,30 +219,43 @@ const unsigned maxEventsCount = 1;
 
 unsigned totalEvents = 0;
 
+/*
+
+//
+// EXAMPLE #1: configure host instance via C API.
+//
+
 const char* hostConfig = JSON_CONFIG(
     {
         "cacheFilePath" : "MyOfflineStorage.db",
         "config" : {
-            "host" : "C-API-Host",
+            "host" : "Mesh-Core-C-API-Host",
             "scope" : "*"
         },
         "stats" : {
             "interval" : 0
         },
-        "name" : "C-API-Host",
+        "name" : "Mesh-Core-C-API-Host",
         "version" : "1.0.0",
         "primaryToken" : "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991",
-        "maxTeardownUploadTimeInSec" : 0,
+        "maxTeardownUploadTimeInSec" : 1,
         "hostMode" : true,
         "minimumTraceLevel" : 0,
-        "sdkmode" : 0
+        "sdkmode" : 0,
+        "disableZombieLoggers": true
     });
+
+//
+// EXAMPLE #2: configure host instance in C++ via JSON configuration above.
+//
+
+static ILogConfiguration hostConfiguration = MAT::FromJSON(hostConfig);
+*/
 
 const char* guestConfig = JSON_CONFIG(
     {
-        "cacheFilePath" : "MyOfflineStorage.db",
         "config" : {
-            "host" : "*",
+            "host" : "C-API-Host",
             "scope" : "*"
         },
         "stats" : {
@@ -254,57 +267,32 @@ const char* guestConfig = JSON_CONFIG(
         "maxTeardownUploadTimeInSec" : 0,
         "hostMode" : false,
         "minimumTraceLevel" : 0,
-        "sdkmode" : 0
+        "sdkmode" : 0,
+        "disableZombieLoggers" : true
     });
 
 const char* guestConfigIsolation = JSON_CONFIG(
     {
-        "cacheFilePath" : "MyOfflineStorage2.db",
         "config" : {
-            "host" : "*",
+            "host" : "C-API-Host",
             "scope" : "-"
         },
         "stats" : {
             "interval" : 0
         },
-        "name" : "C-API-GuestIsolated",
+        "name" : "C-API-Guest2",
         "version" : "1.0.0",
         "primaryToken" : "ffffffffffffffffffffffffffffffff-ffffffff-ffff-ffff-ffff-ffffffffffff-ffff",
         "maxTeardownUploadTimeInSec" : 0,
         "hostMode" : false,
         "minimumTraceLevel" : 0,
-        "sdkmode" : 0
+        "sdkmode" : 0,
+        "disableZombieLoggers" : true
     });
 
 std::time_t now = time(0);
 
 MAT::time_ticks_t ticks(&now);
-
-evt_handle_t hostHandle = 0;
-
-evt_prop hostContext[] = TELEMETRY_EVENT(
-    _STR("ext.device.localId", "a:4318b22fbc11ca8f"),
-    _STR("ext.device.make", "Microsoft"),
-    _STR("ext.device.model", "Clippy"),
-    _STR("ext.os.name", "MS-DOS"),
-    _STR("ext.os.ver", "2100"));
-
-evt_prop hostEvent[] = TELEMETRY_EVENT(
-    // Part A/B
-    _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_HOST),                    // Event name
-    _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)),  // Epoch time
-    _DBL("popSample", 100.0),                                          // Effective sample rate
-    _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                               // iKey to send this event to
-    _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)),
-    _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
-    _INT(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED),
-    // Part C
-    _STR("strKey", "value1"),
-    _INT("intKey", 12345),
-    _DBL("dblKey", 3.14),
-    _BOOL("boolKey", true),
-    _GUID("guidKey", "{01020304-0506-0708-090a-0b0c0d0e0f00}"),
-    _TIME("timeKey", ticks.ticks));  // .NET ticks
 
 evt_prop guestContext[] = TELEMETRY_EVENT(
     _STR("ext.app.id", "com.Microsoft.Clippy"),
@@ -320,8 +308,8 @@ evt_prop guestEvent[] = TELEMETRY_EVENT(
     _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)),  // Epoch time
     _DBL("popSample", 100.0),                                          // Effective sample rate
     _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                               // iKey to send this event to
-    _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)),
-    _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
+//    _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)),
+//    _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
     _INT(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED),
     // Part C
     _STR("strKey", "value1"),
@@ -337,8 +325,9 @@ evt_prop guestEventIsolated[] = TELEMETRY_EVENT(
     _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_GUEST),                   // Event name
     _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)),  // Epoch time
     _DBL("popSample", 100.0),                                          // Effective sample rate
-    _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)),
-    _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
+    _STR(COMMONFIELDS_IKEY, DUMMY_TOKEN),                              // iKey to send this event to
+    // _INT(COMMONFIELDS_EVENT_PRIORITY, static_cast<int64_t>(EventPriority_Immediate)), // <-- Useful for realtime force-push
+    // _INT(COMMONFIELDS_EVENT_LATENCY, static_cast<int64_t>(EventLatency_Max)),
     _INT(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED),
     // Part C
     _STR("strKey", "value1"),
@@ -351,8 +340,19 @@ evt_prop guestEventIsolated[] = TELEMETRY_EVENT(
 //////////////////////////////////////////////////////////////////////////////////////////
 // HOST TEST
 //////////////////////////////////////////////////////////////////////////////////////////
-void createHost()
+void createHostCpp()
 {
+    auto& cfg = LogManager::GetLogConfiguration();
+    cfg["name"] = "C-API-Host";
+    cfg["version"] = "1.0.0";
+    cfg["config"]["host"] = "C-API-Host";
+    cfg["hostMode"] = true;
+    cfg["primaryToken"] = TEST_TOKEN;
+    cfg[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+    cfg["stats"]["interval"] = 0;           // no stats events
+    cfg["maxTeardownUploadTimeInSec"] = 0;  // fast teardown
+    cfg["disableZombieLoggers"] = true;
+
     totalEvents = 0;
     debugListener.OnLogX = [&](::CsProtocol::Record& record)
     {
@@ -367,11 +367,6 @@ void createHost()
         ASSERT_EQ(record.data[0].properties["intKey"].longValue, 12345);                  // Verify integer
         ASSERT_EQ(record.data[0].properties["dblKey"].doubleValue, 3.14);                 // Verify double
         ASSERT_EQ(record.data[0].properties["boolKey"].longValue, 1);                     // Verify boolean
-        auto guid = record.data[0].properties["guidKey"].guidValue[0].data();
-        auto guidStr = GUID_t(guid).to_string();
-        std::string guidStr2 = "01020304-0506-0708-090a-0b0c0d0e0f00";
-        ASSERT_STRCASEEQ(guidStr.c_str(), guidStr2.c_str());                              // Verify GUID
-        ASSERT_EQ(record.data[0].properties["timeKey"].longValue, (int64_t)ticks.ticks);  // Verify time
 
         ASSERT_EQ(record.extDevice[0].localId, "a:4318b22fbc11ca8f");  // Verify ext.device.localId
         ASSERT_EQ(record.extProtocol[0].devMake, "Microsoft");         // NOTE the schema quirk == ext.device.make
@@ -389,32 +384,44 @@ void createHost()
 #endif
     };
 
-    hostHandle = evt_open(hostConfig);
-    ASSERT_NE(hostHandle, 0);
-    evt_pause(hostHandle);
-    // Use self (LogManager) context to append additional context variables.
-    evt_set_logmanager_context(hostHandle, hostContext);
+    // C++ syntax for populating Common Part A properties in context.
+    const auto logger = LogManager::Initialize(TEST_TOKEN, cfg);
+    EXPECT_NE(logger, nullptr);
 
-    const auto client = capi_get_client(hostHandle);
-    ASSERT_NE(client, nullptr);
-    ASSERT_NE(client->logmanager, nullptr);
+    // Populate common Part A ext.* properties using `SetCommonField` API
+    // These properties would be inherited by Guest instances.
+    const auto context = LogManager::GetSemanticContext();
+    context->SetCommonField("ext.device.localId", "a:4318b22fbc11ca8f");
+    context->SetCommonField("ext.device.make", "Microsoft");
+    context->SetCommonField("ext.device.model", "Clippy");
+    context->SetCommonField("ext.os.name", "MS-DOS");
+    context->SetCommonField("ext.os.ver", "2100");
 
-    // Bind from C API LogManager instance to C++ DebugEventListener
-    // to verify event contents. Currently we do not support registering
-    // debug callbacks via C API, so we obtain the ILogManager first,
-    // then register event listener on it.
-    client->logmanager->AddEventListener(EVT_LOG_EVENT, debugListener);
+    const auto instance = LogManager::GetInstance();
+    EXPECT_NE(instance, nullptr);
+
+    LogManager::AddEventListener(EVT_LOG_EVENT, debugListener);
 
     for (size_t i = 0; i < maxEventsCount; i++)
     {
-        evt_log(hostHandle, hostEvent);
+        EventProperties props{
+            EVENT_NAME_HOST,
+            {{COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)},  // Epoch time
+                               {"popSample", 100.0},                                          // Effective sample rate
+                               {COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED},
+                               {"strKey", "value1"},
+                               {"intKey", 12345},
+                               {"dblKey", 3.14},
+                               {"boolKey", static_cast<bool>(true)}
+                      }
+        };
+        logger->LogEvent(props);
     }
 
     EXPECT_EQ(totalEvents, maxEventsCount);
-    evt_flush(hostHandle);
 
     // Remove debug listener
-    client->logmanager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
+    LogManager::RemoveEventListener(EVT_LOG_EVENT, debugListener);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -570,33 +577,43 @@ void createGuestIsolated()
     // Close guest
     evt_close(guestHandle);
     ASSERT_EQ(capi_get_client(guestHandle), nullptr);
-    //////////////////////////////////////////////////////////////////////////////////////////
 }
 
+// Create and teardown host.
+// Validate that events get emitted with right props.
 TEST(HostGuestTest, C_API_CreateHost)
 {
-    hostHandle = 0;
-    createHost();
-    evt_close(hostHandle);
-    ASSERT_EQ(capi_get_client(hostHandle), nullptr);
+    createHostCpp();
+    LogManager::FlushAndTeardown();
 }
 
+// Verify that we can create Host + Guest pair.
+// Validate that events get emitted with right props.
 TEST(HostGuestTest, C_API_CreateGuest)
 {
-    hostHandle = 0;
-    createHost();
+    createHostCpp();
     createGuest();
-    evt_close(hostHandle);
-    ASSERT_EQ(capi_get_client(hostHandle), nullptr);
+    LogManager::FlushAndTeardown();
 }
 
+// Verify that we properly deallocated all resources:
+// same Host + Guest pair can be recreated again.
+// Validate that events get emitted with right props.
+TEST(HostGuestTest, C_API_CreateGuestAgain)
+{
+    createHostCpp();
+    createGuest();
+    LogManager::FlushAndTeardown();
+}
+
+// Create Host with "sandboxed" Guest with limited scope
+// that does not inherit its Host context.
+// Validate that events get emitted with right props.
 TEST(HostGuestTest, C_API_CreateGuestIsolated)
 {
-    hostHandle = 0;
-    createHost();
+    createHostCpp();
     createGuestIsolated();
-    evt_close(hostHandle);
-    ASSERT_EQ(capi_get_client(hostHandle), nullptr);
+    LogManager::FlushAndTeardown();
 }
 
 // TEST_PULL_ME_IN(HostGuestTests)
