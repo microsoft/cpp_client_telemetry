@@ -105,7 +105,7 @@ evt_status_t mat_open_core(
     } while (!isHashFound);
 
     // Make sure that we fully inherit the default configuration, then
-    // overlay custom configuraiton on top of default.
+    // overlay custom configuration on top of default.
     clients[code].config = ILogConfiguration();
     Variant::merge_map(*clients[code].config, *defaultRuntimeConfig);
 
