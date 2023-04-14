@@ -585,6 +585,14 @@ namespace MAT_NS_BEGIN
         static IAuthTokensController* GetAuthTokensController()
             LM_SAFE_CALL_PTR(GetAuthTokensController);
 
+        ///Sets the ticket token with a value
+        static status_t SetTicketToken(TicketType type, const std::string& tokenValue)
+        {
+            if (isHost())
+                LM_SAFE_CALL(GetAuthTokensController()->SetTicketToken, type, tokenValue.c_str());
+            return STATUS_EPERM;  // Permission denied
+        }
+
         /// <summary>
         /// Obtain event filter collection.
         /// Notes:
