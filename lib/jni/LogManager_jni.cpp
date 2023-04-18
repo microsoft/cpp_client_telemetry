@@ -95,7 +95,7 @@ extern "C"
     }
 
     JNIEXPORT jint JNICALL
-    Java_com_microsoft_applications_events_LogManager_nativeSetTicketToken(
+    Java_com_microsoft_applications_events_LogManager_nativeSetIntTicketToken(
         JNIEnv* env,
         jclass /* this */,
         jint jType,
