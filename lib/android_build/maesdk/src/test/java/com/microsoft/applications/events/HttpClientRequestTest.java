@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
-package com.microsoft.applications.events.maesdktest;
+package com.microsoft.applications.events;
 
 import com.microsoft.applications.events.HttpClientRequest;
 
