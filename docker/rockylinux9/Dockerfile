@@ -1,12 +1,10 @@
-FROM mipsdkcontainer.azurecr.io/rockylinux:9
+FROM mipsdkcontainer.azurecr.io/rockylinux9
 
 ## Common packages for linux build environment
 RUN yum install -y yum-utils && \
 yum-config-manager --enable crb && \
 yum update -y && \
-yum -y group install "Development Tools" && \
-yum install -y curl libcurl-devel zlib-devel clang python pkg-config git bzip2 unzip make wget sudo cmake && \
-yum -y install epel-release && \
+yum install -y libcurl-devel zlib-devel clang python pkg-config git bzip2 unzip make wget sudo  && \
 yum install -y zlib-static gmock gtest
 
 CMD /bin/bash
