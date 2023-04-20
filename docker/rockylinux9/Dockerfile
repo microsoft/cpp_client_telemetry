@@ -1,4 +1,4 @@
-FROM rockylinux:9
+FROM mipsdkcontainer.azurecr.io/rockylinux9
 
 ## Common packages for linux build environment
 RUN yum install -y yum-utils && \
