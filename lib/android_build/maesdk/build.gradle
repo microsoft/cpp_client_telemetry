@@ -21,6 +21,7 @@ android {
                     args.add("-DBUILD_SHARED_LIBS=1")
                     args.add("-DUSE_ROOM=1")
                     String linkerFlag = project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ""
+                    linkerFlag = "-DCMAKE_SHARED_LINKER_FLAGS=" + linkerFlag
                     args.add(linkerFlag)
                     if (!cxxFlag.isEmpty()) {
                         args.add("-DCMAKE_CXX_FLAGS=\"" + cxxFlag + "\"")
