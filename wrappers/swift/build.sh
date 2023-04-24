@@ -3,5 +3,5 @@
 export PATH=/usr/local/bin:$PATH
 mkdir out
 cd out
-cmake .. -G Xcode
-xcodebuild -project *.xcodeproj -quiet
+cmake .. -G Xcode # Generate swift build files for xcode
+xcodebuild -quiet
