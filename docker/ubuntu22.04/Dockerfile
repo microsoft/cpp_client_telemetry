@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update
 
 ## Common packages for linux build environment
-RUN apt install -y clang python pkg-config git curl bzip2 unzip make wget cmake sudo
+RUN apt install -y clang python2 pkg-config git curl bzip2 unzip make wget cmake sudo
 
 RUN adduser --disabled-password --gecos '' docker
 RUN adduser docker sudo
