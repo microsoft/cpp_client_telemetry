@@ -19,6 +19,7 @@ foreach(dir ${dirs})
 endforeach()
 
 # Add source files to the target
-set(PLATFORM_FILES main.swift)
+set(PLATFORM_FILES main.swift EventProperties.swift)
+set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header Swift_Wrapper-Bridging-Header.h")
 add_executable(swift_sample ${PLATFORM_FILES})
 target_link_libraries(swift_sample)

@@ -3,4 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-// print ("hello swift wrappers !!")
+let props = EventProperties(name:"TestEvent")
+props.setProperty("PropName", withValue: ["Type":"SwiftWrappers"])
+props.setProperty("PropWithPII", withInt64Value: Int64(30), withPiiKind: ODWPiiKind.distinguishedName)
+print (props.properties)
+print (props.piiTags)
