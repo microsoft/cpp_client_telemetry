@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.2)
 
 PROJECT(Swift_Wrapper)
 
@@ -19,7 +19,7 @@ foreach(dir ${dirs})
 endforeach()
 
 # Add source files to the target
-set(PLATFORM_FILES main.swift EventProperties.swift)
+set(PLATFORM_FILES main.swift SDWEventProperties.swift)
 set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header Swift_Wrapper-Bridging-Header.h")
 add_executable(swift_sample ${PLATFORM_FILES})
 target_link_libraries(swift_sample)
