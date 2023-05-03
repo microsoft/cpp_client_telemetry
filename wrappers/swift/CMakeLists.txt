@@ -7,7 +7,7 @@
 # in the source folder to generate the required Obj-C library. It should be installed at /usr/local/lib
 #######################################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 
 PROJECT(Swift_Wrapper)
 message("${CMAKE_CURRENT_SOURCE_DIR}")
