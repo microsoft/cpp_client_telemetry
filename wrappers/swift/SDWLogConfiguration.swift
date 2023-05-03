@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+/// Reresents general logging properties.
 public class LogConfiguration {
     private var odwLogConfiguration: ODWLogConfiguration
 
