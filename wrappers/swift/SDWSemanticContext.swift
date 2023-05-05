@@ -64,7 +64,68 @@ public class SemanticContext {
         self.odwSemanticContext.setDeviceId(deviceID)
     }
 
+    /**
+    Set the user time zone context information of telemetry event.
+
+    - Parameters:
+        - userTimeZone: User's time zone relative to UTC, in ISO 8601 time zone format.
+    */
     public func setUserTimeZone(_ userTimeZone: String!) {
-        
+        self.odwSemanticContext.setUserTimeZone(userTimeZone)
+    }
+
+    /**
+    Specifies a unique user advertizing id to be included with every event.
+
+    - Parameters:
+        - userAdvertixingID: A `String` that contains the unique user advertising identifier.
+    */
+    public func setUserAdvertisingID(_ userAdvertixingID: String!) {
+        self.odwSemanticContext.setUserAdvertisingId(userAdvertixingID)
+    }
+
+    /**
+    Sets the experimentation IDs for determining the deployment configuration.
+
+    - Parameters:
+        - experimentIDs: A `String` that contains the experimentation IDs.
+    */
+    public func setAppExperimentIDs(_ experimentIDs: String!) {
+        self.odwSemanticContext.setAppExperimentIds(experimentIDs)
+    }
+
+    /**
+    Sets the experimentation IDs for the specified telemetry event.
+
+    - Parameters:
+        - experimentIDs: A `String` that contains the experimentation IDs.
+        - eventName: A `String` that contains the name of the event.
+    */
+    public func setAppExperimentIDs(_ experimentIDs: String!, forEvent eventName: String!) {
+        self.odwSemanticContext.setAppExperimentIds(experimentIDs, forEvent: eventName)
+    }
+
+    /**
+    Sets the experiment tag (experiment configuration) context information for telemetry events.
+    
+    - Note: This method removes any previously stored experiment IDs that were set using `setAppExperimentEtag`.
+
+    - Parameters:
+        - eTag: A `String` that contains the ETag which is a hash of the set of experiments.
+    */
+    public func setAppExperimentETag(_ eTag: String!) {
+        self.odwSemanticContext.setAppExperimentETag(eTag)
+    }
+
+    /**
+    Sets the impression ID (an identifier of the currently running flights) for an experiment.
+
+    - Parameters:
+        - impressionID: A `String` that contains the impression ID for the currently active configuration.
+
+    - Note: Calling this method removes the previously stored experimentation IDs and flight IDs.
+    */
+    public func setAppExperimentImpressionID(_ impressionID: String!) {
+        self.odwSemanticContext.setAppExperimentImpressionId(impressionID)
     }
 }
