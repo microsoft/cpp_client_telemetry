@@ -170,7 +170,7 @@ public class Logger {
 
     - Parameters:
         - name: A `String` that contains the name of the property.
-        - withDateValue: A `Bool` that contains the property of the value.
+        - withDateValue: A `Date` that contains the property of the value.
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String!, withDateValue value: Date!, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
@@ -183,7 +183,7 @@ public class Logger {
 
     - Parameters:
         - name: A `String` that contains the name of the property.
-        - withDoubleValue: A `Bool` that contains the property of the value.
+        - withDoubleValue: A `Double` that contains the property of the value.
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String!, withDoubleValue value: Double, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
@@ -196,7 +196,7 @@ public class Logger {
 
     - Parameters:
         - name: A `String` that contains the name of the property.
-        - withInt64Value: A `Bool` that contains the property of the value.
+        - withInt64Value: A `Int64` that contains the property of the value.
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String!, withInt64Value value: Int64, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
@@ -209,7 +209,7 @@ public class Logger {
 
     - Parameters:
         - name: A `String` that contains the name of the property.
-        - withInt32Value: A `Bool` that contains the property of the value.
+        - withInt32Value: A `Int32` that contains the property of the value.
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String!, withInt32Value value: Int32, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
@@ -222,7 +222,7 @@ public class Logger {
 
     - Parameters:
         - name: A `String` that contains the name of the property.
-        - withUUIDValue: A `Bool` that contains the property of the value.
+        - withUUIDValue: A `UUID` that contains the property of the value.
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String!, withUUIDValue value: UUID!, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {

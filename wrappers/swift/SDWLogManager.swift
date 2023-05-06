@@ -7,7 +7,7 @@
 public class LogManager {
 
     /**
-    Initializes the telemetry logging system with the speicified tenant token and custom configuration.
+    Initializes the telemetry logging system with the specified tenant token and custom configuration.
 
     - Parameters:
         - tenantToken: A `String` that contains the tenant token.
@@ -168,7 +168,7 @@ public class LogManager {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withValue: A `String` that contains the value of the property.
-        - withPiiKind: The kind of Personal Identifiable Information (PII), as one of the `ODWPiiKind` enum values. 
+        - withPiiKind: The kind of Personal Identifiable Information (PII), as one of the `ODWPiiKind` enum values.
     */
     public static func setContextWithName(name: String!, withValue value:String!, withPiiKind piiKind: ODWPiiKind) {
         ODWLogManager.setContextWithName(name, stringValue:value, piiKind: piiKind)
