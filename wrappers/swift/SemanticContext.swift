@@ -75,12 +75,12 @@ public class SemanticContext {
     }
 
     /**
-    Specifies a unique user advertizing id to be included with every event.
+    Specifies a unique user advertising id to be included with every event.
 
     - Parameters:
-        - userAdvertixingID: A `String` that contains the unique user advertising identifier.
+        - userAdvertisingID: A `String` that contains the unique user advertising identifier.
     */
-    public func setUserAdvertisingID(_ userAdvertixingID: String!) {
+    public func setUserAdvertisingID(_ userAdvertisingID: String!) {
         self.odwSemanticContext.setUserAdvertisingId(userAdvertixingID)
     }
 
@@ -107,7 +107,7 @@ public class SemanticContext {
 
     /**
     Sets the experiment tag (experiment configuration) context information for telemetry events.
-    
+
     - Note: This method removes any previously stored experiment IDs that were set using `setAppExperimentEtag`.
 
     - Parameters:
