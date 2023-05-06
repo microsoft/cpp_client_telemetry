@@ -14,7 +14,7 @@ message("${CMAKE_CURRENT_SOURCE_DIR}")
 enable_language(Swift)
 
 # Set flags and paths
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header Swift_Wrapper-Bridging-Header.h")
 set(INSTALLED_LIB_PATH "/usr/local/lib")
 
@@ -26,6 +26,14 @@ find_library(NETWORK_FRAMEWORK Network)
 # Add libmat.a library which has Obj-C dependencies built needed by Swift
 find_library(MAT_LIB libmat.a PATHS ${INSTALLED_LIB_PATH})
 find_library(SQLITE3_LIB libsqlite3.a PATH ${INSTALLED_LIB_PATH})
+
+if(NOT SQLITE3_LIB)
+    set(SQLITE3_LIB "sqlite3")
+endif()
+
+if(NOT MAT_LIB)
+    message(FATAL_ERROR, "libmat.a not found at /usr/local/lib. Please run ./build.sh at root and install libmat.a.")
+endif()
 
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
