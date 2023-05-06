@@ -90,29 +90,13 @@ public class LogManager {
     }
 
     /// Flushes pending telemetry events from memory to disk (to reduce possible data loss) and returns the flush operation's status.
-    public static func flush() throws -> ODWStatus {
-        do {
-            return ODWLogManager.flush()
-        } catch let exception as NSException {
-            if (LogConfiguration.surfaceCppExceptions()) {
-                try Logger.raiseException(withMessage: exception.reason)
-            }
-
-            return ODWStatus.efail
-        }
+    public static func flush() -> ODWStatus {
+        return ODWLogManager.flush()
     }
 
     /// Flushes pending telemetry events from memory to disk, tears-down the telemetry logging system, and returns the flush operation's status.
-    public static func flushAndTeardown() throws -> ODWStatus {
-        do {
-            return ODWLogManager.flushAndTeardown()
-        } catch let exception as NSException {
-            if (LogConfiguration.surfaceCppExceptions()) {
-                try Logger.raiseException(withMessage: exception.reason)
-            }
-
-            return ODWStatus.efail
-        }
+    public static func flushAndTeardown() -> ODWStatus {
+        return ODWLogManager.flushAndTeardown()
     }
 
     /**
@@ -131,14 +115,8 @@ public class LogManager {
 
     /// Pauses transmission of telemetry events to the data collector.
     /// While paused, events continue to be queued on the client side, cached either in memory or on disk.
-    public static func pauseTransmission() throws {
-        do {
-            ODWLogManager.pauseTransmission()
-        } catch let exception as NSException {
-            if (LogConfiguration.surfaceCppExceptions()) {
-                try Logger.raiseException(withMessage: exception.reason)
-            }
-        }
+    public static func pauseTransmission() {
+        ODWLogManager.pauseTransmission()
     }
 
     /// Resumes the transmission of the telemetry events to the data collector.

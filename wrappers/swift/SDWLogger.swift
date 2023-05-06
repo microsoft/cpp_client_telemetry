@@ -3,11 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-/// Errors thrown by Logger.
-enum SDKError: Error {
-    case ONEDSSDKError(reason: String)
-}
-
 /// Wrapper class around ObjC Logger class `ODWLogger` used to events.
 public class Logger {
     private var odwLogger: ODWLogger;
@@ -227,11 +222,5 @@ public class Logger {
     */
     public func setContextWithName(_ name: String!, withUUIDValue value: UUID!, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
         self.odwLogger.setContextWithName(name, uuidValue: value, piiKind: piiKind)
-    }
-
-    /// Raise exception based on the error message.
-    public static func raiseException(withMessage message: String?) throws {
-        let errorMesssage = message ?? "1DSSDKException: Unknown error in 1DSSDK"
-        throw SDKError.ONEDSSDKError(reason: errorMesssage)
     }
 }
