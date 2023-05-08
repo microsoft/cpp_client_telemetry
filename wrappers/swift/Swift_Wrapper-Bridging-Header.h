@@ -14,3 +14,4 @@
 #import "../obj-c/ODWPrivacyGuard.h"
 #import "../obj-c/ODWPrivacyGuardInitConfig.h"
 #import "../obj-c/ODWSemanticContext.h"
+#import "../obj-c/ODWDiagnosticDataViewer.h"
