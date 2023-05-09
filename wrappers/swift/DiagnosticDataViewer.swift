@@ -14,8 +14,8 @@ public class DiagnosticDataViewer {
     - Parameters:
         - machineIdentifier: `String` that contains the machine identifier.
     */
-    public static func initWithMachineIdentifier(machineIdentifier: String) {
-        ODWDiagnosticDataViewer.initializeWithMachineIdentifier(machineIdentifier)
+    public static func initViewerWithMachineIdentifier(machineIdentifier: String) {
+        ODWDiagnosticDataViewer.initializeViewer(withMachineIdentifier: machineIdentifier)
     }
 
     /// MARK: Behavior Methods
@@ -30,7 +30,7 @@ public class DiagnosticDataViewer {
     
     Execution is dispatched to queue with default priority.
     */
-    public static func enableRemoteViewer(endpoint: String, completionWithResult completion: (Bool) -> Void) {
+    public static func enableRemoteViewer(endpoint: String, completionWithResult completion: @escaping (Bool) -> Void) {
         ODWDiagnosticDataViewer.enableRemoteViewer(endpoint, completionWithResult: completion)
     }
 
@@ -53,13 +53,13 @@ public class DiagnosticDataViewer {
 
     Execution is dispatched to queue with default priority.
     */
-    public static func disableViewer(completionWithResult completion: (Bool) -> Void) {
+    public static func disableViewer(completionWithResult completion: @escaping (Bool) -> Void) {
         ODWDiagnosticDataViewer.disableViewer(completion)
     }
 
     /// Disables Data Viewer.
     public static func disableViewer() -> Bool {
-        return ODWDiagnosticDataViewer. disableViewer()
+        return ODWDiagnosticDataViewer.disableViewer()
     }
 
     /// Returns `True` if Data Viewer is enabled, `False` otherwise.
@@ -69,7 +69,7 @@ public class DiagnosticDataViewer {
 
 
     /// Returns current endpoint if it is set, empty `String` otherwise.
-    public static func currentEndpoint() -> String {
+    public static func currentEndpoint() -> String? {
         return ODWDiagnosticDataViewer.currentEndpoint()
     }
 
@@ -79,7 +79,7 @@ public class DiagnosticDataViewer {
     - Parameters:
         - callback: Code to execute when OnDisableNotification event occurs.
     */
-    public static func registerOnDisableNotification(callback: (Void) -> Void) {
-        ODWDiagnosticDataViewer.registerOnDisableNotification(callback)
+    public static func register(OnDisableNotification callback: @escaping () -> Void) {
+        ODWDiagnosticDataViewer.register(onDisableNotification: callback)
     }
 }
