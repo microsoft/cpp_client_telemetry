@@ -42,7 +42,6 @@ endforeach()
 
 # Add source files to the target
 file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.swift")
-#set(PLATFORM_FILES main.swift SDWEventProperties.swift SDWLogger.swift SDWLogManager.swift)
 add_executable(swift_sample ${SWIFT_FILES})
 
 target_link_libraries(swift_sample
