@@ -77,9 +77,9 @@ public class DiagnosticDataViewer {
     Sets callback for OnDisableNotification event.
 
     - Parameters:
-        - callback: Code to execute when OnDisableNotification event occurs.
+        - run: Code to execute when OnDisableNotification event occurs.
     */
-    public static func register(OnDisableNotification callback: @escaping () -> Void) {
+    public static func onDisableNotification(run callback: @escaping () -> Void) {
         ODWDiagnosticDataViewer.register(onDisableNotification: callback)
     }
 }
