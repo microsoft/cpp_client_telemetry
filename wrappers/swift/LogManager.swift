@@ -16,7 +16,7 @@ public class LogManager {
     - Returns:
         - A `Logger` instance.
     */
-    public static func initForTenant(tenantToken: String!, config: [AnyHashable: Any]? = nil) -> Logger? {
+    public static func initForTenant(tenantToken: String, config: [AnyHashable: Any]? = nil) -> Logger? {
         if let odwLogger = ODWLogManager.initForTenant(tenantToken, withConfig: config) {
             return Logger(logger: odwLogger)
         } else {
@@ -35,7 +35,7 @@ public class LogManager {
     - Returns:
         - A `Logger` instance that points to the logger for the specified tenant token and source.
     */
-    public static func loggerWithTenant(tenantToken: String!, withSource source: String! = "") -> Logger? {
+    public static func loggerWithTenant(tenantToken: String, withSource source: String = "") -> Logger? {
         if let odwLogger = ODWLogManager.logger(withTenant: tenantToken, source: source) {
             return Logger(logger: odwLogger)
         } else {
@@ -55,7 +55,7 @@ public class LogManager {
     - Returns:
         - A `Logger` instance that points to the logger for the specified tenant token and source.
     */
-    public static func loggerWithTenant(tenantToken: String!, withSource source: String!, withConfig config: ODWLogConfiguration!) -> Logger?{
+    public static func loggerWithTenant(tenantToken: String, withSource source: String, withConfig config: ODWLogConfiguration!) -> Logger?{
         if let odwLogger = ODWLogManager.logger(withTenant: tenantToken, source: source, withConfig: config) {
             return Logger(logger: odwLogger)
         } else {
@@ -75,7 +75,7 @@ public class LogManager {
     - Return:
         - A `Logger` instance that points to the logger for source.
     */
-    public static func loggerForSource(source: String!) -> Logger? {
+    public static func loggerForSource(source: String) -> Logger? {
         if let odwLogger = ODWLogManager.logger(forSource: source) {
             return Logger(logger: odwLogger)
         } else {
@@ -136,7 +136,7 @@ public class LogManager {
         - name: A `String` that contains the name of the property.
         - withValue: A `String` that contains the value of the property.
     */
-    public static func setContextWithName(name: String!, withValue value:String!) {
+    public static func setContextWithName(name: String, withValue value: String) {
         ODWLogManager.setContextWithName(name, stringValue:value)
     }
 
@@ -148,7 +148,7 @@ public class LogManager {
         - withValue: A `String` that contains the value of the property.
         - withPiiKind: The kind of Personal Identifiable Information (PII), as one of the `ODWPiiKind` enum values.
     */
-    public static func setContextWithName(name: String!, withValue value:String!, withPiiKind piiKind: ODWPiiKind) {
+    public static func setContextWithName(name: String, withValue value:String, withPiiKind piiKind: ODWPiiKind) {
         ODWLogManager.setContextWithName(name, stringValue:value, piiKind: piiKind)
     }
 
