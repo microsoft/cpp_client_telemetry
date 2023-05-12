@@ -32,7 +32,7 @@ public class LogConfiguration {
     - Parameters:
         - collectorUri: `String` for event collector uri.
     */
-    public static func setEventCollectorUri(_ collectorUri: String!) {
+    public static func setEventCollectorUri(_ collectorUri: String) {
         ODWLogConfiguration.setEventCollectorUri(collectorUri)
     }
 
@@ -157,7 +157,7 @@ public class LogConfiguration {
     - Parameters:
         - cacheFilePath: A `String` for the cache path.
     */
-    public static func setCacheFilePath(_ cacheFilePath: String!) {
+    public static func setCacheFilePath(_ cacheFilePath: String) {
         ODWLogConfiguration.setCacheFilePath(cacheFilePath)
     }
 
@@ -188,12 +188,12 @@ public class LogConfiguration {
         - key: A key as a `String`.
         - value: A value as a `String`.
     */
-    public func set(_ key: String!, havingValue value: String!) {
+    public func set(_ key: String, havingValue value: String) {
         self.odwLogConfiguration.set(key, withValue: value)
     }
 
     /// Returns the value as `String` for the given `String` key.
-    public func value(forKey key: String!) -> String? {
+    public func value(forKey key: String) -> String? {
         return self.odwLogConfiguration.value(forKey: key)
     }
 
@@ -203,7 +203,7 @@ public class LogConfiguration {
     - Parameters:
         - host: A host value as `String`.
     */
-    public func setHost(_ host: String!) {
+    public func setHost(_ host: String) {
         self.odwLogConfiguration.setHost(host)
     }
 
