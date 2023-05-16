@@ -4,7 +4,7 @@
 //
 
 /// Wrapper over ODWLogManager which manages the telemetry logging system.
-public class LogManager {
+public final class LogManager {
 
     /**
     Initializes the telemetry logging system with the specified tenant token and custom configuration.
@@ -55,7 +55,7 @@ public class LogManager {
     - Returns:
         - A `Logger` instance that points to the logger for the specified tenant token and source.
     */
-    public static func loggerWithTenant(tenantToken: String, withSource source: String, withConfig config: ODWLogConfiguration!) -> Logger?{
+    public static func loggerWithTenant(tenantToken: String, withSource source: String, withConfig config: ODWLogConfiguration) -> Logger?{
         if let odwLogger = ODWLogManager.logger(withTenant: tenantToken, source: source, withConfig: config) {
             return Logger(logger: odwLogger)
         } else {

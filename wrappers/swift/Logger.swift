@@ -5,11 +5,11 @@
 
 /// Wrapper class around ObjC Logger class `ODWLogger` used to events.
 public class Logger {
-    private var odwLogger: ODWLogger;
+    private var odwLogger: ODWLogger
 
     /// Constructs `Logger` with `ODWLogger` object which would be wrapped around.
     public init(logger: ODWLogger) {
-        odwLogger = logger
+        self.odwLogger = logger
     }
 
     // MARK: Basic LogEvent methods
