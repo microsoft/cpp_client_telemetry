@@ -4,14 +4,7 @@
 //
 
 /// Wrapper to `ODWPrivacyGuard` representing Privacy Guard Hook.
-public class PrivacyGuard {
-    private var odwPrivacyGuard: ODWPrivacyGuard
-
-    /// Constructs object with `ODWPrivacyGuard` object which is to be wrapped around.
-    public init(privacyGuard: ODWPrivacyGuard) {
-        self.odwPrivacyGuard = privacyGuard
-    }
-
+public final class PrivacyGuard {
     // MARK: Behavior methods
 
     /**

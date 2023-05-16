@@ -4,7 +4,7 @@
 //
 
 public class PrivacyGuardInitConfig {
-    private var odwPrivacyGuardInitConfig: ODWPrivacyGuardInitConfig
+    public let odwPrivacyGuardInitConfig: ODWPrivacyGuardInitConfig
 
     /**
     Constructor which inits with the `ODWPrivacyGuardInitConfig` object.
@@ -14,10 +14,5 @@ public class PrivacyGuardInitConfig {
     */
     public init(privacyGuardInitConfig: ODWPrivacyGuardInitConfig) {
         self.odwPrivacyGuardInitConfig = privacyGuardInitConfig
-    }
-
-    /// Returns the `ODWPrivacyGuardInitConfig` representing the corresponding ObjC object.
-    public func getODWPrivacyGuardInitConfig() -> ODWPrivacyGuardInitConfig {
-        return self.odwPrivacyGuardInitConfig
     }
 }
