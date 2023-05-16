@@ -4,7 +4,7 @@
 //
 
 /// Class wrapping `ODWLogConfiguration` ObjC class object, representing configuration related to events.
-public class LogConfiguration {
+public final class LogConfiguration {
     private var odwLogConfiguration: ODWLogConfiguration
 
     /**
