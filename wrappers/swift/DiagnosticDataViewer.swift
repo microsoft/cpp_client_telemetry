@@ -4,7 +4,7 @@
 //
 
 /// Wrapper class over `ODWDiagnosticDataViewer` representing Diagnostic Data Viewer Hook.
-public class DiagnosticDataViewer {
+public final class DiagnosticDataViewer {
 
     /// MARK: Initialization Methods
 
@@ -27,7 +27,7 @@ public class DiagnosticDataViewer {
         - endpoint: A `String` that contains endpoint to route events.
         - completionWithResult: Code to execute when enable is completed.
             - Note: This value can be null.
-    
+
     Execution is dispatched to queue with default priority.
     */
     public static func enableRemoteViewer(endpoint: String, completionWithResult completion: @escaping (Bool) -> Void) {
