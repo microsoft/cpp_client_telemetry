@@ -19,7 +19,7 @@ public class SemanticContext {
         - appID: A `String` that contains the application identifier.
     */
     public func setAppID(_ appID: String) {
-        self.odwSemanticContext.setAppId(appID)
+        odwSemanticContext.setAppId(appID)
     }
 
     /**
@@ -29,7 +29,7 @@ public class SemanticContext {
         - appVersion: Version of the application, retrieved programmatically where possible and is app/platform specific.
     */
     public func setAppVersion(_ appVersion: String) {
-        self.odwSemanticContext.setAppVersion(appVersion)
+        odwSemanticContext.setAppVersion(appVersion)
     }
 
     /**
@@ -39,7 +39,7 @@ public class SemanticContext {
         - appLanguage: A `String` that contains the spoken/written language used in the application.
     */
     public func setAppLanguage(_ appLanguage: String) {
-        self.odwSemanticContext.setAppLanguage(appLanguage)
+        odwSemanticContext.setAppLanguage(appLanguage)
     }
 
     /**
@@ -51,7 +51,7 @@ public class SemanticContext {
             - Note: Default value is `ODWPiiKind.identity`.
     */
     public func setUserID(_ userID: String, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.identity) {
-        self.odwSemanticContext.setUserId(userID)
+        odwSemanticContext.setUserId(userID)
     }
 
     /**
@@ -61,7 +61,7 @@ public class SemanticContext {
         - deviceID: A unique device identifier, retrieved programmatically where possible and is app/platform speicific.
     */
     public func setDeviceID(_ deviceID: String) {
-        self.odwSemanticContext.setDeviceId(deviceID)
+        odwSemanticContext.setDeviceId(deviceID)
     }
 
     /**
@@ -71,7 +71,7 @@ public class SemanticContext {
         - userTimeZone: User's time zone relative to UTC, in ISO 8601 time zone format.
     */
     public func setUserTimeZone(_ userTimeZone: String) {
-        self.odwSemanticContext.setUserTimeZone(userTimeZone)
+        odwSemanticContext.setUserTimeZone(userTimeZone)
     }
 
     /**
@@ -81,7 +81,7 @@ public class SemanticContext {
         - userAdvertisingID: A `String` that contains the unique user advertising identifier.
     */
     public func setUserAdvertisingID(_ userAdvertisingID: String) {
-        self.odwSemanticContext.setUserAdvertisingId(userAdvertixingID)
+        odwSemanticContext.setUserAdvertisingId(userAdvertixingID)
     }
 
     /**
@@ -91,7 +91,7 @@ public class SemanticContext {
         - experimentIDs: A `String` that contains the experimentation IDs.
     */
     public func setAppExperimentIDs(_ experimentIDs: String) {
-        self.odwSemanticContext.setAppExperimentIds(experimentIDs)
+        odwSemanticContext.setAppExperimentIds(experimentIDs)
     }
 
     /**
@@ -102,7 +102,7 @@ public class SemanticContext {
         - eventName: A `String` that contains the name of the event.
     */
     public func setAppExperimentIDs(_ experimentIDs: String, forEvent eventName: String) {
-        self.odwSemanticContext.setAppExperimentIds(experimentIDs, forEvent: eventName)
+        odwSemanticContext.setAppExperimentIds(experimentIDs, forEvent: eventName)
     }
 
     /**
@@ -114,7 +114,7 @@ public class SemanticContext {
         - eTag: A `String` that contains the ETag which is a hash of the set of experiments.
     */
     public func setAppExperimentETag(_ eTag: String) {
-        self.odwSemanticContext.setAppExperimentETag(eTag)
+        odwSemanticContext.setAppExperimentETag(eTag)
     }
 
     /**
@@ -126,6 +126,6 @@ public class SemanticContext {
     - Note: Calling this method removes the previously stored experimentation IDs and flight IDs.
     */
     public func setAppExperimentImpressionID(_ impressionID: String) {
-        self.odwSemanticContext.setAppExperimentImpressionId(impressionID)
+        odwSemanticContext.setAppExperimentImpressionId(impressionID)
     }
 }
