@@ -21,7 +21,7 @@ public class Logger {
         - name: A `String` that contains the name of the event.
     */
     public func logEvent(name: String) {
-        self.odwLogger.logEvent(withName: name)
+        odwLogger.logEvent(withName: name)
     }
 
     /**
@@ -31,7 +31,7 @@ public class Logger {
         - eventProperties: The custome event properties, as `EventProperties`.
     */
     public func logEvent(properties: EventProperties) {
-        self.odwLogger.logEvent(with: properties.getODWEventPropertiesObject())
+        odwLogger.logEvent(with: properties.getODWEventPropertiesObject())
     }
 
     // MARK: Semantic LogEvent methods
@@ -45,7 +45,7 @@ public class Logger {
         - eventProperties: Properties of the failure event, encapsulated within an `EventProperties`.
     */
     public func logFailureWithSignature(_ signature: String, eventDetail detail: String, eventProperties properties: EventProperties) {
-        self.odwLogger.logFailure(withSignature: signature, detail: detail, eventproperties: properties.getODWEventPropertiesObject())
+        odwLogger.logFailure(withSignature: signature, detail: detail, eventproperties: properties.getODWEventPropertiesObject())
     }
 
     /**
@@ -63,7 +63,7 @@ public class Logger {
                                         eventCategory category: String,
                                         eventID id: String,
                                         eventProperties properties: EventProperties) {
-        self.odwLogger.logFailure(withSignature: signature, detail: detail, category: category, id: id, eventProperties: properties.getODWEventPropertiesObject())
+        odwLogger.logFailure(withSignature: signature, detail: detail, category: category, id: id, eventProperties: properties.getODWEventPropertiesObject())
     }
 
     /**
@@ -75,7 +75,7 @@ public class Logger {
         - eventProperties: Properties of the failure event, encapsulated within an `EventProperties`.
     */
     public func logPageViewWithID(_ identifier: String, pageName: String, eventProperties properties: EventProperties) {
-        self.odwLogger.logPageView(withId: identifier, pageName: pageName, eventProperties: properties.getODWEventPropertiesObject())
+        odwLogger.logPageView(withId: identifier, pageName: pageName, eventProperties: properties.getODWEventPropertiesObject())
     }
 
     /**
@@ -95,7 +95,7 @@ public class Logger {
                                     uri: String,
                                     referrerURI: String,
                                     eventProperties properties: EventProperties) {
-        self.odwLogger.logPageView(withId: identifier, pageName: pageName, category: category, uri: uri, referrerUri: referrerURI, eventProperties: properties.getODWEventPropertiesObject())
+        odwLogger.logPageView(withId: identifier, pageName: pageName, category: category, uri: uri, referrerUri: referrerURI, eventProperties: properties.getODWEventPropertiesObject())
     }
 
     /**
@@ -107,7 +107,7 @@ public class Logger {
         - eventProperties: Properties of the failure event, encapsulated within an `EventProperties`.
     */
     public func logTraceWithTraceLevel(_ traceLevel: ODWTraceLevel, traceMessage message: String, eventProperties properties: EventProperties) {
-        self.odwLogger.logTrace(with: traceLevel, message: message, eventProperties: properties.getODWEventPropertiesObject())
+        odwLogger.logTrace(with: traceLevel, message: message, eventProperties: properties.getODWEventPropertiesObject())
     }
 
     /**
@@ -121,14 +121,14 @@ public class Logger {
         - eventProperties: Properties of the failure event, encapsulated within an `EventProperties`.
     */
     public func logSessionWithState(_ state: ODWSessionState, eventProperties properties: EventProperties) {
-        self.odwLogger.logSession(with: state, eventProperties: properties.getODWEventPropertiesObject())
+        odwLogger.logSession(with: state, eventProperties: properties.getODWEventPropertiesObject())
     }
 
     /**
     Initializes and gets an instance of Privacy Guard.
     */
     public func apply(config initConfigObject: PrivacyGuardInitConfig) {
-        self.odwLogger.initializePrivacyGuard(with: initConfigObject.getODWPrivacyGuardInitConfig())
+        odwLogger.initializePrivacyGuard(with: initConfigObject.getODWPrivacyGuardInitConfig())
     }
 
     // MARK: Set Context methods
@@ -143,7 +143,7 @@ public class Logger {
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String, withStringValue value: String, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
-        self.odwLogger.setContextWithName(name, stringValue: value, piiKind: piiKind)
+        odwLogger.setContextWithName(name, stringValue: value, piiKind: piiKind)
     }
 
     /**
@@ -156,7 +156,7 @@ public class Logger {
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String, withBoolValue value: Bool, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
-        self.odwLogger.setContextWithName(name, boolValue: value, piiKind: piiKind)
+        odwLogger.setContextWithName(name, boolValue: value, piiKind: piiKind)
     }
 
     /**
@@ -169,7 +169,7 @@ public class Logger {
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String, withDateValue value: Date, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
-        self.odwLogger.setContextWithName(name, dateValue: value, piiKind: piiKind)
+        odwLogger.setContextWithName(name, dateValue: value, piiKind: piiKind)
     }
 
     /**
@@ -182,7 +182,7 @@ public class Logger {
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String, withDoubleValue value: Double, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
-        self.odwLogger.setContextWithName(name, doubleValue: value, piiKind: piiKind)
+        odwLogger.setContextWithName(name, doubleValue: value, piiKind: piiKind)
     }
 
     /**
@@ -195,7 +195,7 @@ public class Logger {
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String, withInt64Value value: Int64, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
-        self.odwLogger.setContextWithName(name, int64Value: value, piiKind: piiKind)
+        odwLogger.setContextWithName(name, int64Value: value, piiKind: piiKind)
     }
 
     /**
@@ -208,7 +208,7 @@ public class Logger {
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String, withInt32Value value: Int32, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
-        self.odwLogger.setContextWithName(name, int32Value: value, piiKind: piiKind)
+        odwLogger.setContextWithName(name, int32Value: value, piiKind: piiKind)
     }
 
     /**
@@ -221,6 +221,6 @@ public class Logger {
         - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
     */
     public func setContextWithName(_ name: String, withUUIDValue value: UUID, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
-        self.odwLogger.setContextWithName(name, uuidValue: value, piiKind: piiKind)
+        odwLogger.setContextWithName(name, uuidValue: value, piiKind: piiKind)
     }
 }
