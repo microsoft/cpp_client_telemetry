@@ -1192,8 +1192,8 @@ TEST(APITest, LogManager_BadNetwork_Test)
 #if 0 /* [MG}: Temporary change to avoid GitHub Actions crash #92 */
         "https://0.0.0.0/",
         "https://127.0.0.1/",
-#endif
         "https://mobile.events-sandbox.data.microsoft.com/OneCollector/1.0/",
+#endif
         "https://invalid.host.name.microsoft.com/"
         })
     {
