@@ -172,8 +172,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
           list(APPEND SRCS
           ../wrappers/obj-c/ODWCommonDataContext.mm
-          ../wrappers/obj-c/ODWPrivacyGuard.mm
-          ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
           )
     endif()
   endif()

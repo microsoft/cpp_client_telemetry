@@ -8,7 +8,6 @@
 #import "ODWLogConfiguration.h"
 #import "ODWSemanticContext.h"
 #import "ODWSemanticContext_private.h"
-#import "ODWPrivacyGuard_private.h"
 
 #include "EventProperties.hpp"
 
@@ -408,8 +407,4 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
     }
 }
 
--(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
-{    
-    [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWPrivacyGuardInitConfig:initConfigObject];
-}
 @end
