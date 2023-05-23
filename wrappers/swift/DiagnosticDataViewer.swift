@@ -62,14 +62,13 @@ public final class DiagnosticDataViewer {
         return ODWDiagnosticDataViewer.disableViewer()
     }
 
-    /// Returns `True` if Data Viewer is enabled, `False` otherwise.
-    public static func viewerEnabled() -> Bool {
+    /// `True` if Data Viewer is enabled, `False` otherwise.
+    public static var viewerEnabled(): Bool {
         return ODWDiagnosticDataViewer.viewerEnabled()
     }
 
-
-    /// Returns current endpoint if it is set, empty `String` otherwise.
-    public static func currentEndpoint() -> String? {
+    /// current endpoint if it is set, empty `String` otherwise.
+    public static var currentEndpoint: String? {
         return ODWDiagnosticDataViewer.currentEndpoint()
     }
 
