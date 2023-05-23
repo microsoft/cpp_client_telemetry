@@ -63,7 +63,7 @@ public final class DiagnosticDataViewer {
     }
 
     /// `True` if Data Viewer is enabled, `False` otherwise.
-    public static var viewerEnabled(): Bool {
+    public static var viewerEnabled: Bool {
         return ODWDiagnosticDataViewer.viewerEnabled()
     }
 
