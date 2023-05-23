@@ -81,7 +81,7 @@ public class SemanticContext {
         - userAdvertisingID: A `String` that contains the unique user advertising identifier.
     */
     public func setUserAdvertisingID(_ userAdvertisingID: String) {
-        odwSemanticContext.setUserAdvertisingId(userAdvertixingID)
+        odwSemanticContext.setUserAdvertisingId(userAdvertisingID)
     }
 
     /**
