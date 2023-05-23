@@ -44,7 +44,7 @@ endif()
 set (PLATFORM_LIBS "")
 # Add flags for obtaining system UUID via IOKit
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework Foundation")
+  set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework Foundation -framework SystemConfiguration -framework Network")
 endif()
 
 # Raspberry Pi 4 with gcc-8 on ARMv7l requires -latomic
