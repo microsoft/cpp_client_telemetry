@@ -4,7 +4,7 @@
 //
 
 /// Wrapper class around ObjC Logger class `ODWLogger` used to events.
-public class Logger {
+public final class Logger {
     private var odwLogger: ODWLogger
 
     /// Constructs `Logger` with `ODWLogger` object which would be wrapped around.
