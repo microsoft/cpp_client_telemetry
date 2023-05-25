@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-public class PrivacyGuardInitConfig {
+public final class PrivacyGuardInitConfig {
     public let odwPrivacyGuardInitConfig: ODWPrivacyGuardInitConfig
 
     /**
@@ -14,5 +14,15 @@ public class PrivacyGuardInitConfig {
     */
     public init(privacyGuardInitConfig: ODWPrivacyGuardInitConfig) {
         self.odwPrivacyGuardInitConfig = privacyGuardInitConfig
+    }
+
+    /**
+    Returns the Obj-C object of the wrapper.
+
+    - Return:
+        `ODWPrivacyGuardInitConfig` object which class is wrapped around.
+    */
+    public func getODWPrivacyGuardInitConfig() -> ODWPrivacyGuardInitConfig {
+        return odwPrivacyGuardInitConfig
     }
 }

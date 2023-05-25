@@ -16,7 +16,7 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the event as a `String`.
     */
-    public init(name: String!) {
+    public init(name: String) {
         self.odwEventProperties = ODWEventProperties(name: name)
     }
 
@@ -27,7 +27,7 @@ public final class EventProperties {
         - name: Name of the event.
         - properties: Initial properties dictionary.
     */
-    public init(name: String!, properties: [String: Any]!) {
+    public init(name: String, properties: [String: Any]) {
         self.odwEventProperties = ODWEventProperties(name: name, properties: properties)
     }
 
@@ -39,7 +39,7 @@ public final class EventProperties {
         - properties: Initial properties dictionary.
         - piiTags: Initial PII tags.
     */
-    public init(name: String!, withProperties properties: [String: Any]!, withPiiTags piiTags: [String: NSNumber]!) {
+    public init(name: String, withProperties properties: [String: Any], withPiiTags piiTags: [String: NSNumber]) {
         self.odwEventProperties = ODWEventProperties(name: name, properties: properties, piiTags: piiTags)
     }
 
