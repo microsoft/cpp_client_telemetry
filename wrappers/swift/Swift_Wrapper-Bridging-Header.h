@@ -7,4 +7,11 @@
 
 #import <Foundation/Foundation.h>
 
+#import "../obj-c/ODWDiagnosticDataViewer.h"
 #import "../obj-c/ODWEventProperties.h"
+#import "../obj-c/ODWLogConfiguration.h"
+#import "../obj-c/ODWLogger.h"
+#import "../obj-c/ODWLogManager.h"
+#import "../obj-c/ODWPrivacyGuard.h"
+#import "../obj-c/ODWPrivacyGuardInitConfig.h"
+#import "../obj-c/ODWSemanticContext.h"
