@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Wrapper class over `ODWDiagnosticDataViewer` representing Diagnostic Data Viewer Hook.
 public final class DiagnosticDataViewer {
 
