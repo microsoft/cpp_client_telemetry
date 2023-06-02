@@ -1,3 +1,3 @@
 # SwiftWrapper
 
-A description of this package.
+Package contains Swift wrappers for 1DSSDK
