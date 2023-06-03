@@ -13,6 +13,9 @@
 #  if __has_include ("modules/utc/UtcTelemetrySystem.hpp")
 #    define HAVE_MAT_UTC
 #  endif
+#  if __has_include("modules/signals/Signals.hpp")
+#    define HAVE_MAT_SIGNALS
+#  endif
 #endif
 #endif
 #if defined(HAVE_PRIVATE_MODULES)
@@ -29,7 +32,6 @@
 #define HAVE_MAT_DEFAULT_HTTP_CLIENT
 #define HAVE_MAT_LIVEEVENTINSPECTOR
 #define HAVE_MAT_PRIVACYGUARD
-#define HAVE_MAT_SIGNALS
 //#define HAVE_MAT_DEFAULT_FILTER
 #if defined(_WIN32) && !defined(_WINRT_DLL)
 #define HAVE_MAT_NETDETECT
