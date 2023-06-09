@@ -12,9 +12,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 # Set build and path related variables
 string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
 set(PROJECT_NAME "OneDSSwift")
-set(SWIFT_MODULE_PATH ".build/${LOWER_BUILD_TYPE}")
+set(SWIFT_MODULE_PATH "{CMAKE_CURRENT_SOURCE_DIR}/.build/${LOWER_BUILD_TYPE}") # By default .build is the output folder of `swift build`
 set(SWIFT_OBJECT_OUTPUT_FOLDER "${SWIFT_MODULE_PATH}/${PROJECT_NAME}.build") # Swift object file output path: .build/debug/OneDSSwift.build/*.o
-set(SWIFT_STATIC_LIB "${CMAKE_BINARY_DIR}/StaticLibs/libonedsswift.a")
+set(SWIFT_STATIC_LIB "${CMAKE_BINARY_DIR}/StaticLibs/libonedsswift.a") # Putting newly created static libs in this folder
+set(OBJC_MODULE_DIR "{CMAKE_CURRENT_SOURCE_DIR}/Modules")
 
 PROJECT(${PROJECT_NAME})
 enable_language(Swift)
@@ -33,12 +34,21 @@ find_library(NETWORK_FRAMEWORK Network)
 find_library(MAT_LIB libmat.a PATHS ${INSTALLED_LIB_PATH})
 find_library(SQLITE3_LIB libsqlite3.a PATH ${INSTALLED_LIB_PATH})
 
+# Check and bail out if required libs don't exist
+if(NOT SQLITE3_LIB)
+    set(SQLITE3_LIB "sqlite3")
+endif()
+
+if(NOT MAT_LIB)
+    message(FATAL_ERROR, "libmat.a not found at /usr/local/lib. Please run ./build.sh at root and install libmat.a.")
+endif()
+
 # --------------------------------------------
 # Swift wrappers: Build and generate static lib
 # --------------------------------------------
 
 # Run swift build to compile and generate object files for swift
-message("Running swift build...")
+message("\nRunning swift build...")
 execute_process(
     COMMAND swift build -c ${LOWER_BUILD_TYPE}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -67,38 +77,42 @@ else()
 endif()
 
 # --------------------------
-# End Swift Wrappers build
+# End: Swift wrappers build
 # --------------------------
 
-if(NOT SQLITE3_LIB)
-    set(SQLITE3_LIB "sqlite3")
-endif()
-
-if(NOT MAT_LIB)
-    message(FATAL_ERROR, "libmat.a not found at /usr/local/lib. Please run ./build.sh at root and install libmat.a.")
-endif()
-
-get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-foreach(dir ${dirs})
-    message(STATUS "dir='${dir}'")
-endforeach()
+# -------------------------------------------
+# SwiftC: Invoke and generate sample_app exe
+# -------------------------------------------
 
 # Add swift files (outside of swift package) to the target
 file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sample/main.swift")
 
-# Collect all libs to be linked into variable
+# Collect all libs to be linked into single variable
 set(ADDITIONAL_LIBS
-    ${MAT_LIB}
+    ${MAT_LIB} # libmat.a contains ObjC symbols
     ${SYSTEM_CONFIGURATION}
     ${SQLITE3_LIB}
-    ${SWIFT_STATIC_LIB}
+    ${SWIFT_STATIC_LIB} # libonedsswift.a contains swift wrapper symbols
     stdc++
     ZLIB::ZLIB
     ${NETWORK_FRAMEWORK}
 )
 
-# execute_process(
-#     COMMAND swiftc -o sample_app ${SWIFT_FILES} -I ${SWIFT_MODULE_PATH} -Xlinker ${ADDITIONAL_LIBS}
-#     RESULT_VARIABLE SWIFTC_RESULT
-# )
-#add_executable(swift_sample_app ${SWIFT_FILES})
+# Collect all the modules to be included
+set(INCLUDE_MODULES
+    ${OBJC_MODULE_DIR} # Needed for Enums and others declared in ObjC headers
+    ${SWIFT_MODULE_PATH} # Swift wrappers module OneDSSwift, after the build
+)
+
+# Invoke swiftc to create the exe
+message("\nRunning swiftc...")
+execute_process(
+    COMMAND swiftc -o ${CMAKE_BINARY_DIR}/sample_app ${SWIFT_FILES} -I ${INCLUDE_MODULES} -Xlinker ${ADDITIONAL_LIBS}
+    RESULT_VARIABLE SWIFTC_RESULT
+)
+
+if(EXISTS ${CMAKE_BINARY_DIR}/sample_app)
+    message("\nExecutable is created at: ${CMAKE_BINARY_DIR}/sample_app")
+else()
+    message(FATALError, "\nExecutable creation failed.")
+endif()
