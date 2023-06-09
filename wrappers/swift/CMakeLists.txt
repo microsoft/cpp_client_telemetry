@@ -13,6 +13,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
 set(PROJECT_NAME "OneDSSwift")
 set(SWIFT_BINARY_OUTPUT_FOLDER ".build/${LOWER_BUILD_TYPE}/${PROJECT_NAME}.build") # Swift object file output path: .build/debug/OneDSSwift.build/*.o
+set(SWIFT_STATIC_LIB "${CMAKE_BINARY_DIR}/StaticLibs/libonedsswift.a")
 
 PROJECT(${PROJECT_NAME})
 enable_language(Swift)
@@ -27,9 +28,13 @@ find_library(SYSTEM_CONFIGURATION SystemConfiguration)
 find_package(ZLIB REQUIRED)
 find_library(NETWORK_FRAMEWORK Network)
 
-# Add libmat.a library which has Obj-C dependencies built needed by Swift
+# Add libmat.a library which has Obj-C dependencies built needed by Swift wrappers
 find_library(MAT_LIB libmat.a PATHS ${INSTALLED_LIB_PATH})
 find_library(SQLITE3_LIB libsqlite3.a PATH ${INSTALLED_LIB_PATH})
+
+# --------------------------------------------
+# Swift wrappers: Build and generate static lib
+# --------------------------------------------
 
 # Run swift build to compile and generate object files for swift
 execute_process(
@@ -44,24 +49,23 @@ if(SWIFT_BUILD_RESULT EQUAL 0)
     # Combine all the generated object files from swift code into static lib: lib onedsswift .a
     # swift build does not generate a single static lib file
     file(GLOB SWIFT_OBJECT_FILES "${SWIFT_BINARY_OUTPUT_FOLDER}/*.o")
-    message(${SWIFT_BINARY_OUTPUT_FOLDER})
-    message(${SWIFT_OBJECT_FILES})
-    # add_library(onedsswift STATIC ${SWIFT_OBJECT_FILES})
-    add_custom_command(
-        OUTPUT libonedsswift.a
-        COMMAND ar rcs libonedswift.a ${SWIFT_OBJECT_FILES}
-        DEPENDS ${SWIFT_OBJECT_FILES}
-        COMMENT "Creating static lib: libonedsswift.a"
+    execute_process(
+        COMMAND ar rcs ${SWIFT_STATIC_LIB} ${SWIFT_OBJECT_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-    if(EXISTS )
-        message("Swift wrapper static lib created at: ")
+    if(EXISTS ${SWIFT_STATIC_LIB})
+        message("Swift wrapper static lib created at: ${SWIFT_STATIC_LIB}")
     else()
         message(FATAL_ERROR, "Swift wrapper static lib creation failed.")
     endif()
 else()
     message(FATAL_ERROR, "Swift build failed with error code: ${SWIFT_BUILD_RESULT}")
 endif()
+
+# --------------------------
+# End Swift Wrappers build
+# --------------------------
 
 if(NOT SQLITE3_LIB)
     set(SQLITE3_LIB "sqlite3")
