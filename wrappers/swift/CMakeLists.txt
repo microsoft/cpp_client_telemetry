@@ -101,7 +101,7 @@ set(ADDITIONAL_LIBS
 # Collect all the modules to be included
 set(INCLUDE_MODULES
     ${OBJC_MODULE_DIR} # Needed for Enums and others declared in ObjC headers
-    ${SWIFT_MODULE_PATH} # Swift wrappers module OneDSSwift, after the build
+    ${SWIFT_MODULE_PATH} # Swift wrappers module OneDSSwift, generated after the build
 )
 
 # Invoke swiftc to create the exe
