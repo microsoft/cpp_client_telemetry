@@ -20,4 +20,4 @@ fi
 # Generate the build files and run build
 mkdir -p out/StaticLibs
 cd out
-cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..  -G Ninja # Generate swift project files for ninja
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..

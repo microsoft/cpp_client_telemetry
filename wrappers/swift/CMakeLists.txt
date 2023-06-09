@@ -1,11 +1,11 @@
-#######################################################################################################
+#############################################################################################################
 # Generates project files for Swift wrapper files and generates executable based on the main.swift file.
 #
 # Dependecies:
 # Please build Obj-c dependencies required by Swift by running
 # ./build.sh clean release
-# in the source folder to generate the required Obj-C library. It should be installed at /usr/local/lib
-#######################################################################################################
+# in the source root folder to generate the required Obj-C library. It should be installed at /usr/local/lib.
+#############################################################################################################
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 
@@ -15,15 +15,13 @@ set(PROJECT_NAME "OneDSSwift")
 set(SWIFT_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.build/${LOWER_BUILD_TYPE}") # By default .build is the output folder of `swift build`
 set(SWIFT_OBJECT_OUTPUT_FOLDER "${SWIFT_MODULE_PATH}/${PROJECT_NAME}.build") # Swift object file output path: .build/debug/OneDSSwift.build/*.o
 set(SWIFT_STATIC_LIB "${CMAKE_BINARY_DIR}/StaticLibs/libonedsswift.a") # Putting newly created static libs in this folder
-set(OBJC_MODULE_DIROBJC_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
+set(OBJC_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
+set(INSTALLED_LIB_PATH "/usr/local/lib")
 
 PROJECT(${PROJECT_NAME})
-enable_language(Swift)
 
-# Set flags and paths
+# Set flags
 set(CMAKE_CXX_STANDARD 11)
-#set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header ObjCModule-Bridging-Header.h")
-set(INSTALLED_LIB_PATH "/usr/local/lib")
 
 # Add system libs
 find_library(SYSTEM_CONFIGURATION SystemConfiguration)
@@ -88,26 +86,26 @@ endif()
 file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sample/main.swift")
 
 # Collect all libs to be linked into single variable
-set(ADDITIONAL_LIBS
+set(INCLUDE_LIBS
     ${MAT_LIB} # libmat.a contains ObjC symbols
-    ${SYSTEM_CONFIGURATION}
-    ${SQLITE3_LIB}
     ${SWIFT_STATIC_LIB} # libonedsswift.a contains swift wrapper symbols
-    stdc++
-    ZLIB::ZLIB
-    ${NETWORK_FRAMEWORK}
+    "-lC++"
 )
 
 # Collect all the modules to be included
 set(INCLUDE_MODULES
-    ${OBJC_MODULE_DIR} # Needed for Enums and others declared in ObjC headers
-    ${SWIFT_MODULE_PATH} # Swift wrappers module OneDSSwift, generated after the build
+    "-I${OBJC_MODULE_DIR}" # Needed for Enums and others declared in ObjC headers
+    "-I${SWIFT_MODULE_PATH}" # Swift wrappers module OneDSSwift, generated after the build
 )
 
 # Invoke swiftc to create the exe
 message("\nRunning swiftc...")
 execute_process(
-    COMMAND swiftc -o ${CMAKE_BINARY_DIR}/sample_app ${SWIFT_FILES} -I ${INCLUDE_MODULES} -Xlinker ${ADDITIONAL_LIBS}
+    COMMAND swiftc
+    -o ${CMAKE_BINARY_DIR}/sample_app
+    ${SWIFT_FILES} # Files to compile
+    ${INCLUDE_MODULES} # Modules to include
+    ${INCLUDE_LIBS} # Static libs to link
     RESULT_VARIABLE SWIFTC_RESULT
 )
 
