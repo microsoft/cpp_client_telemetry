@@ -12,7 +12,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 # Set build and path related variables
 string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
 set(PROJECT_NAME "OneDSSwift")
-set(SWIFT_BINARY_OUTPUT_FOLDER ".build/${LOWER_BUILD_TYPE}/${PROJECT_NAME}.build") # Swift object file output path: .build/debug/OneDSSwift.build/*.o
+set(SWIFT_MODULE_PATH ".build/${LOWER_BUILD_TYPE}")
+set(SWIFT_OBJECT_OUTPUT_FOLDER "${SWIFT_MODULE_PATH}/${PROJECT_NAME}.build") # Swift object file output path: .build/debug/OneDSSwift.build/*.o
 set(SWIFT_STATIC_LIB "${CMAKE_BINARY_DIR}/StaticLibs/libonedsswift.a")
 
 PROJECT(${PROJECT_NAME})
@@ -20,7 +21,7 @@ enable_language(Swift)
 
 # Set flags and paths
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header ObjCModule-Bridging-Header.h")
+#set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header ObjCModule-Bridging-Header.h")
 set(INSTALLED_LIB_PATH "/usr/local/lib")
 
 # Add system libs
@@ -37,6 +38,7 @@ find_library(SQLITE3_LIB libsqlite3.a PATH ${INSTALLED_LIB_PATH})
 # --------------------------------------------
 
 # Run swift build to compile and generate object files for swift
+message("Running swift build...")
 execute_process(
     COMMAND swift build -c ${LOWER_BUILD_TYPE}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -48,7 +50,7 @@ if(SWIFT_BUILD_RESULT EQUAL 0)
 
     # Combine all the generated object files from swift code into static lib: lib onedsswift .a
     # swift build does not generate a single static lib file
-    file(GLOB SWIFT_OBJECT_FILES "${SWIFT_BINARY_OUTPUT_FOLDER}/*.o")
+    file(GLOB SWIFT_OBJECT_FILES "${SWIFT_OBJECT_OUTPUT_FOLDER}/*.o")
     execute_process(
         COMMAND ar rcs ${SWIFT_STATIC_LIB} ${SWIFT_OBJECT_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -59,6 +61,7 @@ if(SWIFT_BUILD_RESULT EQUAL 0)
     else()
         message(FATAL_ERROR, "Swift wrapper static lib creation failed.")
     endif()
+
 else()
     message(FATAL_ERROR, "Swift build failed with error code: ${SWIFT_BUILD_RESULT}")
 endif()
@@ -80,14 +83,22 @@ foreach(dir ${dirs})
     message(STATUS "dir='${dir}'")
 endforeach()
 
-# Add source files to the target
-file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.swift")
-add_executable(swift_sample ${SWIFT_FILES})
+# Add swift files (outside of swift package) to the target
+file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sample/main.swift")
 
-target_link_libraries(swift_sample
+# Collect all libs to be linked into variable
+set(ADDITIONAL_LIBS
     ${MAT_LIB}
     ${SYSTEM_CONFIGURATION}
     ${SQLITE3_LIB}
+    ${SWIFT_STATIC_LIB}
     stdc++
     ZLIB::ZLIB
-    ${NETWORK_FRAMEWORK})
+    ${NETWORK_FRAMEWORK}
+)
+
+# execute_process(
+#     COMMAND swiftc -o sample_app ${SWIFT_FILES} -I ${SWIFT_MODULE_PATH} -Xlinker ${ADDITIONAL_LIBS}
+#     RESULT_VARIABLE SWIFTC_RESULT
+# )
+#add_executable(swift_sample_app ${SWIFT_FILES})
