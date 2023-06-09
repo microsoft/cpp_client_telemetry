@@ -9,19 +9,18 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 
-PROJECT(Swift_Wrapper)
-message("${CMAKE_CURRENT_SOURCE_DIR}")
-enable_language(Swift)
-
-# Set build related flags
-message("heha ${CMAKE_BUILD_TYPE}")
+# Set build and path related variables
 string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
+set(PROJECT_NAME "OneDSSwift")
+set(SWIFT_BINARY_OUTPUT_FOLDER ".build/${LOWER_BUILD_TYPE}/${PROJECT_NAME}.build") # Swift object file output path: .build/debug/OneDSSwift.build/*.o
+
+PROJECT(${PROJECT_NAME})
+enable_language(Swift)
 
 # Set flags and paths
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header ObjCModule-Bridging-Header.h")
 set(INSTALLED_LIB_PATH "/usr/local/lib")
-set(SWIFT_BINARY_OUTPUT_FOLDER "./build/${LOWER_BUILD_TYPE}")
 
 # Add system libs
 find_library(SYSTEM_CONFIGURATION SystemConfiguration)
@@ -45,7 +44,15 @@ if(SWIFT_BUILD_RESULT EQUAL 0)
     # Combine all the generated object files from swift code into static lib: lib onedsswift .a
     # swift build does not generate a single static lib file
     file(GLOB SWIFT_OBJECT_FILES "${SWIFT_BINARY_OUTPUT_FOLDER}/*.o")
-    add_library(onedsswift OBJECT ${SWIFT_OBJECT_FILES})
+    message(${SWIFT_BINARY_OUTPUT_FOLDER})
+    message(${SWIFT_OBJECT_FILES})
+    # add_library(onedsswift STATIC ${SWIFT_OBJECT_FILES})
+    add_custom_command(
+        OUTPUT libonedsswift.a
+        COMMAND ar rcs libonedswift.a ${SWIFT_OBJECT_FILES}
+        DEPENDS ${SWIFT_OBJECT_FILES}
+        COMMENT "Creating static lib: libonedsswift.a"
+    )
 
     if(EXISTS )
         message("Swift wrapper static lib created at: ")
