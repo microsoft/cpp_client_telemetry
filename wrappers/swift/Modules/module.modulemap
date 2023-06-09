@@ -1,0 +1,4 @@
+module ObjCModule {
+    header "../Headers/ObjCModule-Bridging-Header.h"
+    export *
+}
