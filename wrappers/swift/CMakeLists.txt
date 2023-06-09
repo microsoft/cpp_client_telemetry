@@ -12,10 +12,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 # Set build and path related variables
 string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
 set(PROJECT_NAME "OneDSSwift")
-set(SWIFT_MODULE_PATH "{CMAKE_CURRENT_SOURCE_DIR}/.build/${LOWER_BUILD_TYPE}") # By default .build is the output folder of `swift build`
+set(SWIFT_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.build/${LOWER_BUILD_TYPE}") # By default .build is the output folder of `swift build`
 set(SWIFT_OBJECT_OUTPUT_FOLDER "${SWIFT_MODULE_PATH}/${PROJECT_NAME}.build") # Swift object file output path: .build/debug/OneDSSwift.build/*.o
 set(SWIFT_STATIC_LIB "${CMAKE_BINARY_DIR}/StaticLibs/libonedsswift.a") # Putting newly created static libs in this folder
-set(OBJC_MODULE_DIR "{CMAKE_CURRENT_SOURCE_DIR}/Modules")
+set(OBJC_MODULE_DIROBJC_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
 
 PROJECT(${PROJECT_NAME})
 enable_language(Swift)
@@ -112,7 +112,7 @@ execute_process(
 )
 
 if(EXISTS ${CMAKE_BINARY_DIR}/sample_app)
-    message("\nExecutable is created at: ${CMAKE_BINARY_DIR}/sample_app")
+    message("Executable is created at: ${CMAKE_BINARY_DIR}/sample_app")
 else()
-    message(FATALError, "\nExecutable creation failed.")
+    message(FATALError, "Executable creation failed.")
 endif()
