@@ -6,7 +6,6 @@
 import ObjCModule // Required if Enums defined in ObjC headers are being used
 import OneDSSwift // Swift Package containing the wrappers over ObjC
 
-
 let props = EventProperties(name:"TestEvent")
 props.setProperty("PropName", withValue: ["Type":"SwiftWrappers"])
 props.setProperty("PropWithPII", withInt64Value: Int64(30), withPiiKind: ODWPiiKind.distinguishedName)
