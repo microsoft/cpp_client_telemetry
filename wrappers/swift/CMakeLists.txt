@@ -13,10 +13,15 @@ PROJECT(Swift_Wrapper)
 message("${CMAKE_CURRENT_SOURCE_DIR}")
 enable_language(Swift)
 
+# Set build related flags
+message("heha ${CMAKE_BUILD_TYPE}")
+string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
+
 # Set flags and paths
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header ObjCModule-Bridging-Header.h")
 set(INSTALLED_LIB_PATH "/usr/local/lib")
+set(SWIFT_BINARY_OUTPUT_FOLDER "./build/${LOWER_BUILD_TYPE}")
 
 # Add system libs
 find_library(SYSTEM_CONFIGURATION SystemConfiguration)
@@ -26,6 +31,30 @@ find_library(NETWORK_FRAMEWORK Network)
 # Add libmat.a library which has Obj-C dependencies built needed by Swift
 find_library(MAT_LIB libmat.a PATHS ${INSTALLED_LIB_PATH})
 find_library(SQLITE3_LIB libsqlite3.a PATH ${INSTALLED_LIB_PATH})
+
+# Run swift build to compile and generate object files for swift
+execute_process(
+    COMMAND swift build -c ${LOWER_BUILD_TYPE}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE SWIFT_BUILD_RESULT
+)
+
+if(SWIFT_BUILD_RESULT EQUAL 0)
+    message("Swift build succeeded!")
+
+    # Combine all the generated object files from swift code into static lib: lib onedsswift .a
+    # swift build does not generate a single static lib file
+    file(GLOB SWIFT_OBJECT_FILES "${SWIFT_BINARY_OUTPUT_FOLDER}/*.o")
+    add_library(onedsswift OBJECT ${SWIFT_OBJECT_FILES})
+
+    if(EXISTS )
+        message("Swift wrapper static lib created at: ")
+    else()
+        message(FATAL_ERROR, "Swift wrapper static lib creation failed.")
+    endif()
+else()
+    message(FATAL_ERROR, "Swift build failed with error code: ${SWIFT_BUILD_RESULT}")
+endif()
 
 if(NOT SQLITE3_LIB)
     set(SQLITE3_LIB "sqlite3")
