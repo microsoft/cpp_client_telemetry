@@ -91,7 +91,7 @@ endif()
 # -------------------------------------------
 
 # Add swift files (outside of swift package) to the target
-file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sample/main.swift")
+file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sample/*.swift")
 
 # Collect all libs to be linked into single variable
 set(INCLUDE_LIBS
