@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Wrapper over ODWLogManager which manages the telemetry logging system.
 public final class LogManager {
 

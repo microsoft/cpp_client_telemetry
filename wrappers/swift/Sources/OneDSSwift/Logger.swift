@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Wrapper class around ObjC Logger class `ODWLogger` used to events.
 public final class Logger {
     private var odwLogger: ODWLogger
