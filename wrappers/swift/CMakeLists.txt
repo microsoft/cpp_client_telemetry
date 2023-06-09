@@ -7,6 +7,14 @@
 # in the source root folder to generate the required Obj-C library. It should be installed at /usr/local/lib.
 #############################################################################################################
 
+# ------------------------------------------------------------------------------------------------------------
+# 1. Locate all the required static libs.
+# 2. Run swift build to build swift wrappers package.
+# 3. Combine all object files from swift wrappers to make a static lib.
+# 4. Invoke swiftc compiler to compile the sample swift code while including the modules (wrappers and objc)
+#    and linking the static libs to generate the executable.
+# ------------------------------------------------------------------------------------------------------------
+
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 
 # Set build and path related variables
