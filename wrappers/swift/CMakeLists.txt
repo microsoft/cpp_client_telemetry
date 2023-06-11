@@ -56,7 +56,9 @@ endif()
 # Run swift build to compile and generate object files for swift
 message("\nRunning swift build...")
 execute_process(
-    COMMAND swift build -c ${LOWER_BUILD_TYPE}
+    COMMAND swift build
+    -c ${LOWER_BUILD_TYPE}
+    --scratch-path ${CMAKE_BINARY_DIR}/${PROJECT_NAME}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE SWIFT_BUILD_RESULT
 )

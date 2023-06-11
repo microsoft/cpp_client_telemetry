@@ -14,7 +14,6 @@ if [ "$1" == "clean" ] || [ "$2" == "clean" ]; then
     echo "Cleaning output folders..."
     swift package clean
     rm -Rf out
-    rm -Rf .build
 fi
 
 # Generate the build files and run build
