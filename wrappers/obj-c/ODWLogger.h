@@ -6,6 +6,7 @@
 #import "ODWEventProperties.h"
 #import "ODWPrivacyGuardInitConfig.h"
 #import "ODWSemanticContext.h"
+#import "ODWSignalsOptions.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -127,6 +128,10 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  */
 -(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject;
 
+/*!
+ @brief Initialize and get an instance of Signals.
+ */
+-(void)initializeSignalsWithODWSignalsConfig:(ODWSignalsOptions *)signalsOptions;
 #pragma mark Set Context methods
 
 /*!

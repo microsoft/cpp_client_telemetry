@@ -176,6 +176,12 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
           ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
           )
     endif()
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals/ AND BUILD_SIGNALS)
+          list(APPEND SRCS
+          ../wrappers/obj-c/ODWSignals.mm
+          ../wrappers/obj-c/ODWSignalsOptions.mm
+          )
+    endif()
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
