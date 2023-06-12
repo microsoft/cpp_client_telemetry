@@ -32,4 +32,4 @@ jobs:
         submodules: 'true'
       continue-on-error: true
     - name: build
-      run: ./build-tests-ios.sh ${{ matrix.config }} ${{ matrix.simulator }}
+      run: export IOS_DEPLOYMENT_TARGET=11.0 && ./build-tests-ios.sh ${{ matrix.config }} ${{ matrix.simulator }}
