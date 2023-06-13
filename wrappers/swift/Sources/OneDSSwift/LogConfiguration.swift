@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Class wrapping `ODWLogConfiguration` ObjC class object, representing configuration related to events.
 public final class LogConfiguration {
     private var odwLogConfiguration: ODWLogConfiguration
