@@ -15,6 +15,8 @@ namespace MAT_NS_BEGIN {
     DEFINE_LOGMANAGER(LogManagerA, ModuleA);
 } MAT_NS_END
 
+LOGMANAGER_INSTANCE
+
 void twoModules_LogManagerTest() 
 {
     printf("Configuring two LogManager instances...\n");
@@ -133,7 +135,55 @@ void provider_LogManagerTest()
 
 int main()
 {
+
+    // Raw Test
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
+
+    // UTC config parameters - operate as MS telemetry, not third party
+    config[CFG_STR_UTC][CFG_STR_UTC_PROVIDER_NAME] = "AngelaTest";
+    config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID] = "5ECB0BAC-B930-47F5-A8A4-E8253529EDB7";  // s_microsoftPartnerGroupId
+    // config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID] = "4f50731a-89cf-4782-b3e0-dce8c90476ba"; //s_microsoftTelemetryGroupId
+    // config[CFG_STR_UTC][CFG_STR_SKIP_IKEY_REGISTRATION] = true;
+
+    auto logger = LogManager::Initialize("d0e0bd479af0445eb368d83796596621-e17eddf9-41cd-41b9-8b18-2f541bdd4117-7271");
+
+    // LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, {DIAG_LEVEL_REQUIRED});
+    LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, {DIAG_LEVEL_REQUIRED, DIAG_LEVEL_OPTIONAL});
+
+    printf("Logging event through UTC logger ...\n");
+    EventProperties required("Foo.Bar.Required");
+    required.SetProperty("x", "y");
+    required.SetProperty("result", "Success");
+    required.SetProperty("random", rand());
+    required.SetProperty("secret", (double)1.21872);
+    required.SetProperty("seq", (uint64_t)4);
+    required.SetPriority(EventPriority_Immediate);
+    required.SetPolicyBitFlags(MICROSOFT_EVENTTAG_CORE_DATA|MICROSOFT_KEYWORD_CRITICAL_DATA | MICROSOFT_EVENTTAG_REALTIME_LATENCY);
+    required.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+    required.SetProperty(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_REQUIRED);
+    logger->LogEvent(required);
+
+    EventProperties optional("Foo.Bar.Optional");
+    optional.SetProperty("x", "y");
+    optional.SetProperty("result", "Success");
+    optional.SetProperty("random", rand());
+    optional.SetProperty("secret", (double)1.21872);
+    optional.SetProperty("seq", (uint64_t)4);
+    optional.SetPriority(EventPriority_Immediate);
+    optional.SetPolicyBitFlags(MICROSOFT_KEYWORD_CRITICAL_DATA);
+    optional.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, PDT_ProductAndServicePerformance);
+    optional.SetProperty(COMMONFIELDS_EVENT_LEVEL, DIAG_LEVEL_OPTIONAL);
+    logger->LogEvent(optional);
+
+    LogManager::Flush();
+    LogManager::UploadNow();
+
     twoModules_LogManagerTest();
     provider_LogManagerTest();
+
+
+    //twoModules_LogManagerTest();
+    //provider_LogManagerTest();
     return 0;
 }
