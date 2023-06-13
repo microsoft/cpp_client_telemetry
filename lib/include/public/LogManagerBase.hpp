@@ -716,10 +716,11 @@ namespace MAT_NS_BEGIN
 
         static void WaitPause()
         {
-            auto instance = GetInstance();
-            if (instance) {
+            auto managerInstance = GetInstance();
+            if (managerInstance)
+            {
                 // do not hold the stateLock() here!
-                instance->WaitPause();
+                managerInstance->WaitPause();
             }
         }
 
