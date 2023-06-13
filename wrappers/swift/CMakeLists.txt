@@ -15,7 +15,7 @@ enable_language(Swift)
 
 # Set flags and paths
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header Swift_Wrapper-Bridging-Header.h")
+set(CMAKE_Swift_FLAGS "${CMAKE_Swift_FLAGS} -import-objc-header ObjCModule-Bridging-Header.h")
 set(INSTALLED_LIB_PATH "/usr/local/lib")
 
 # Add system libs
