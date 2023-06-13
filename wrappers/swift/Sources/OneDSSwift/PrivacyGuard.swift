@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Wrapper to `ODWPrivacyGuard` representing Privacy Guard Hook.
 public final class PrivacyGuard {
     // MARK: Behavior methods
