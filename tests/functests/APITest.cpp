@@ -999,7 +999,7 @@ TEST(APITest, SetType_Test)
         // Verify that record.baseType have been properly decorated.
         debugListener.OnLogX = [&](::CsProtocol::Record& record) {
             totalEvents++;
-            std::string& prefix = config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX];
+            const std::string& prefix = config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX];
             if (prefix == EVENTRECORD_TYPE_CUSTOM_EVENT)
             {
                 EXPECT_STREQ(record.baseType.c_str(), "custom.myeventtype");
