@@ -49,7 +49,7 @@ class RequestHandler : public HttpServer::Callback
         return 200;
     }
 
-    size_t GetRequestCount() {
+    size_t GetRequestCount() const noexcept {
         return m_count;
     }
 

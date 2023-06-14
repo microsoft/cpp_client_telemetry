@@ -4,8 +4,6 @@
 //
 package com.microsoft.applications.events;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -15,7 +13,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -36,7 +33,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -186,6 +182,17 @@ public class HttpClient {
   private static final String ANDROID_DEVICE_CLASS_PC = "Android.PC";
   private static final String ANDROID_DEVICE_CLASS_PHONE = "Android.Phone";
 
+  public interface Configuration {
+      boolean isInitializeDeviceInfo();
+
+      class Default implements Configuration {
+        @Override
+        public boolean isInitializeDeviceInfo() {
+          return true;
+        }
+      }
+  }
+
   /** Shim FutureTask: we would like to @Keep the cancel method for JNI */
   static class FutureShim extends FutureTask<Boolean> {
     FutureShim(HttpClientRequest inner) {
@@ -200,15 +207,21 @@ public class HttpClient {
   }
 
   public HttpClient(Context context) {
-    this(context, new HttpClientRequest.Factory.AndroidUrlConnection());
+    this(context, new HttpClientRequest.Factory.AndroidUrlConnection(), new Configuration.Default());
   }
 
   public HttpClient(Context context, HttpClientRequest.Factory requestFactory) {
+    this(context, requestFactory, new Configuration.Default());
+  }
+
+  public HttpClient(Context context, @NonNull HttpClientRequest.Factory requestFactory, @NonNull Configuration configuration) {
     m_context = context;
     m_requestFactory = requestFactory;
     String path = System.getProperty("java.io.tmpdir");
     setCacheFilePath(path);
-    setDeviceInfo(calculateID(context), Build.MANUFACTURER, Build.MODEL);
+    if (configuration.isInitializeDeviceInfo()) {
+      setDeviceInfo(calculateID(context), Build.MANUFACTURER, Build.MODEL);
+    }
     calculateAndSetSystemInfo(context);
     m_executor = createExecutor();
     createClientInstance();
@@ -316,7 +329,7 @@ public class HttpClient {
   }
 
   private String getDeviceClass(android.content.Context context) {
-    if (context.getResources().getConfiguration().isLayoutSizeAtLeast(Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+    if (context.getResources().getConfiguration().isLayoutSizeAtLeast(android.content.res.Configuration.SCREENLAYOUT_SIZE_LARGE)) {
       return ANDROID_DEVICE_CLASS_PC;
     } else {
       return ANDROID_DEVICE_CLASS_PHONE;
