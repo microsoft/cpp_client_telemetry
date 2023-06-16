@@ -100,12 +100,18 @@ set(INCLUDE_LIBS
     ${MAT_LIB} # libmat.a contains ObjC symbols
     ${SWIFT_STATIC_LIB} # libonedsswift.a contains swift wrapper symbols
     "-lC++"
+    "-lZ"
 )
 
 # Collect all the modules to be included
 set(INCLUDE_MODULES
     "-I${OBJC_MODULE_DIR}" # Needed for Enums and others declared in ObjC headers
     "-I${SWIFT_MODULE_PATH}" # Swift wrappers module OneDSSwift, generated after the build
+)
+
+# Collect all frameworks to be included
+set(INCLUDE_FRAMEWORKS
+    ${SYSTEM_CONFIGURATION}
 )
 
 # Invoke swiftc to create the exe
@@ -116,6 +122,8 @@ execute_process(
     ${SWIFT_FILES} # Files to compile
     ${INCLUDE_MODULES} # Modules to include
     ${INCLUDE_LIBS} # Static libs to link
+    -F ${FRAMEWORK_DIR}
+    ${INCLUDE_FRAMEWORKS}
     RESULT_VARIABLE SWIFTC_RESULT
 )
 
