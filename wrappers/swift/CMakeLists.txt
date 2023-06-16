@@ -99,6 +99,7 @@ file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sample/*.swift")
 set(INCLUDE_LIBS
     ${MAT_LIB} # libmat.a contains ObjC symbols
     ${SWIFT_STATIC_LIB} # libonedsswift.a contains swift wrapper symbols
+    ${SQLITE3_LIB}
     "-lC++"
     "-lZ"
 )
