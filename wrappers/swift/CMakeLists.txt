@@ -111,8 +111,11 @@ set(INCLUDE_MODULES
 
 # Collect all frameworks to be included
 set(INCLUDE_FRAMEWORKS
-    ${SYSTEM_CONFIGURATION}
+    -framework Network
+    -framework SystemConfiguration
 )
+
+get_filename_component(FRAMEWORK_DIR ${SYSTEM_CONFIGURATION} DIRECTORY)
 
 # Invoke swiftc to create the exe
 message("\nRunning swiftc...")
@@ -122,8 +125,8 @@ execute_process(
     ${SWIFT_FILES} # Files to compile
     ${INCLUDE_MODULES} # Modules to include
     ${INCLUDE_LIBS} # Static libs to link
-    -F ${FRAMEWORK_DIR}
-    ${INCLUDE_FRAMEWORKS}
+    -F ${FRAMEWORK_DIR} # Set Framework search directory
+    ${INCLUDE_FRAMEWORKS} # Frameworks to include
     RESULT_VARIABLE SWIFTC_RESULT
 )
 
