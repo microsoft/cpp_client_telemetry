@@ -14,7 +14,7 @@ import ObjCModule
 // ODWEventProperties.h
 public typealias PIIKind = ODWPiiKind
 public typealias PrivacyDataType = ODWPrivacyDataType
-public typealias DiagLevel = ODWDiagLevel
+public typealias DiagnosticLevel = ODWDiagLevel
 
 // ODWLogger.h
 public typealias TraceLevel = ODWTraceLevel
@@ -22,7 +22,7 @@ public typealias SessionState = ODWSessionState
 
 // ODWLogManager.h
 public typealias TransmissionProfile = ODWTransmissionProfile
-public typealias Status = ODWStatus
+public typealias FlushStatus = ODWStatus
 
 // ODWPrivacyGuard.h
 public typealias DataConcernType = ODWDataConcernType
