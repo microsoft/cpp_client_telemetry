@@ -5,15 +5,36 @@
 
 import OneDSSwift // Swift Package containing the wrappers over ObjC
 
-let props = EventProperties(name:"TestEvent")
-props.setProperty("PropName", withValue: ["Type":"SwiftWrappers"])
-props.setProperty("PropWithPII", withInt64Value: Int64(30), withPiiKind: PIIKind.distinguishedName)
-print(props.properties())
-
 let token: String = "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
-let myLogger: Logger = LogManager.loggerWithTenant(tenantToken: token)!
-
+let myLogger: Logger? = LogManager.loggerWithTenant(tenantToken: token)
 let pgInitConfig : PrivacyGuardInitConfig = PrivacyGuardInitConfig()
-pgInitConfig.getODWPrivacyGuardInitConfig().useEventFieldPrefix = false
 
-print(pgInitConfig.getODWPrivacyGuardInitConfig().useEventFieldPrefix)
+pgInitConfig.useEventFieldPrefix = true
+pgInitConfig.dataContext = CommonDataContext()
+
+pgInitConfig.dataContext.domainName = "TEST.MICROSOFT.COM"
+pgInitConfig.dataContext.machineName = "Motherboard"
+pgInitConfig.dataContext.userNames = [Any]()
+pgInitConfig.dataContext.userNames.append("awesomeuser")
+pgInitConfig.dataContext.userAliases = [Any]()
+pgInitConfig.dataContext.userAliases.append()
+pgInitConfig.dataContext.IPAddresses = [Any]()
+pgInitConfig.dataContext.IPAddresses.append("10.0.1.1")
+pgInitConfig.dataContext.IPAddresses.append("192.168.1.1")
+pgInitConfig.dataContext.IPAddresses.append("1234:4578:9abc:def0:bea4:ca4:ca1:d0g")
+pgInitConfig.dataContext.languageIdentifiers = [Any]()
+pgInitConfig.dataContext.languageIdentifiers.append("en-US")
+pgInitConfig.dataContext.languageIdentifiers.append("English (United States)")
+pgInitConfig.dataContext.machineIDs = [Any]()
+pgInitConfig.dataContext.machineIDs.append("0450fe66-aeed-4059-99ca-4dd8702cbd1f")
+pgInitConfig.dataContext.outOfScopeIdentifiers = [Any]()
+pgInitConfig.dataContext.outOfScopeIdentifiers.append("43efb3b1-c7a3-4f29-beea-63ccb28160ac")
+pgInitConfig.dataContext.outOfScopeIdentifiers.append("7d06a83a-200d-4ccb-bfc6-d0995c840bde")
+pgInitConfig.dataContext.outOfScopeIdentifiers.append("e1b2ece8-2451-4ea9-997a-6f37b50be8de")
+
+if (myLogger) {
+    myLogger.apply(config: pgInitConfig)
+    myLogger.logEventWithName("Simple_Swift_Event")
+}
+
+LogManager.uploadNow()

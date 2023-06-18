@@ -9,7 +9,7 @@ public final class PrivacyGuardInitConfig {
     public let odwPrivacyGuardInitConfig: ODWPrivacyGuardInitConfig
 
     /// Data Context to use with the Privacy Guard.
-    var dataContext: CommonDataContext {
+    public var dataContext: CommonDataContext {
         get {
             odwPrivacyGuardInitConfig.dataContext
         }
@@ -19,7 +19,7 @@ public final class PrivacyGuardInitConfig {
     }
 
     /// (OPTIONAL) Custom event name to use when logging privacy concerns. Default value is `PrivacyConcern`.
-    var notificationEventName: String {
+    public var notificationEventName: String {
         get {
             odwPrivacyGuardInitConfig.notificationEventName
         }
@@ -29,7 +29,7 @@ public final class PrivacyGuardInitConfig {
     }
 
     /// (OPTIONAL) Custom event name to use when logging concerns identified in the Semantic Context. Default value is `SemanticContext`.
-    var semanticContextNotificationEventName: String {
+    public var semanticContextNotificationEventName: String {
         get {
             odwPrivacyGuardInitConfig.semanticContextNotificationEventName
         }
@@ -39,7 +39,7 @@ public final class PrivacyGuardInitConfig {
     }
 
     /// (OPTIONAL) Custom event name to use when logging summary events. Default value is `PrivacyGuardSummary`.
-    var summaryEventName: String {
+    public var summaryEventName: String {
         get {
             odwPrivacyGuardInitConfig.summaryEventName
         }
@@ -49,7 +49,7 @@ public final class PrivacyGuardInitConfig {
     }
 
     /// (OPTIONAL) Add `PG_` prefix to Notification and Summary event field names. Default value is `false`.
-    var useEventFieldPrefix: Bool {
+    public var useEventFieldPrefix: Bool {
         get {
             odwPrivacyGuardInitConfig.useEventFieldPrefix
         }
@@ -59,7 +59,7 @@ public final class PrivacyGuardInitConfig {
     }
 
     /// (OPTIONAL) Should scan for URLs? Default value is `true`.
-    var scanForUrls: Bool {
+    public var scanForUrls: Bool {
         get {
             odwPrivacyGuardInitConfig.scanForUrls
         }
@@ -69,7 +69,7 @@ public final class PrivacyGuardInitConfig {
     }
 
     /// (OPTIONAL) Should disable advanced scans such as location, URLs, Out-of-scope identifiers, etc.
-    var disableAdvancedScans: {
+    public var disableAdvancedScans: Bool {
         get {
             odwPrivacyGuardInitConfig.disableAdvancedScans
         }
@@ -94,7 +94,7 @@ public final class PrivacyGuardInitConfig {
     - Return:
         `ODWPrivacyGuardInitConfig` object which class is wrapped around.
     */
-    public func getODWPrivacyGuardInitConfig() -> ODWPrivacyGuardInitConfig {
+    func getODWPrivacyGuardInitConfig() -> ODWPrivacyGuardInitConfig {
         return odwPrivacyGuardInitConfig
     }
 }
