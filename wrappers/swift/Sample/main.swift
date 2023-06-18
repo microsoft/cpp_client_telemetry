@@ -12,3 +12,8 @@ print(props.properties())
 
 let token: String = "7c8b1796cbc44bd5a03803c01c2b9d61-b6e370dd-28d9-4a52-9556-762543cf7aa7-6991"
 let myLogger: Logger = LogManager.loggerWithTenant(tenantToken: token)!
+
+let pgInitConfig : PrivacyGuardInitConfig = PrivacyGuardInitConfig()
+pgInitConfig.getODWPrivacyGuardInitConfig().useEventFieldPrefix = false
+
+print(pgInitConfig.getODWPrivacyGuardInitConfig().useEventFieldPrefix)

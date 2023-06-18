@@ -4,7 +4,7 @@
 //
 
 /// Contains alias for the types declared in the ObjC header files to make them available
-/// as part of the swift package module. 
+/// as part of the swift package module.
 /// To avoid clients not have to import ObjCModule explicitly.
 
 /// Check corresponding header file for the doc of each type.
@@ -26,3 +26,6 @@ public typealias FlushStatus = ODWStatus
 
 // ODWPrivacyGuard.h
 public typealias DataConcernType = ODWDataConcernType
+
+// ODWCommonDataContext.h
+public typealias CommonDataContext = ODWCommonDataContext
