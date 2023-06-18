@@ -38,3 +38,39 @@ if (myLogger) {
 }
 
 LogManager.uploadNow()
+
+let event: EventProperties = EventProperties(name: "WEvtProps_Swift_Event",
+                                        properties: [
+                                            "result": "Success",
+                                            "seq": 2,
+                                            "random": 3,
+                                            "secret": 5.75
+                                        ])
+
+let anotherLogger: Logger? = LogManager.loggerForSource(source: "anotherSource")
+
+if (anotherLogger) {
+    anotherLogger.logEvent(properties: event)
+}
+
+LogManager.uploadNow()
+
+let event2: EventProperties = EventProperties("SetProps_Swift_Event")
+event2.setProperty("result", withValue: "Failure")
+event2.setProperty("intVal", withInt64Value: Int64(8165))
+event2.setProperty("doubleVal", withDoubleValue: Double(1.24))
+event2.setProperty("wasSuccessful", withBoolValue: true)
+event2.setProperty("myDate", withDateValue: Date())
+event2.setProperty("transactionID", withUUIDValue: UUID("DEADBEEF-1234-2345-3456-123456789ABC"))
+
+anotherLogger.logEvent(properties: event2)
+
+anotherLogger.semanticContext.setAppID("MyAppID")
+anotherLogger.semanticContext.setUserID("m:10101010101010101010")
+anotherLogger.semanticContext.setUserAdvertisingID("p:00000000-0000-0000-0000-000000000000")
+
+let event3: EventProperties = EventProperties("SematicContext_Swift_Event")
+anotherLogger.logEvent(properties: event3)
+anotherLogger.logEventWithName("SemanticContext_Swift_EmtpyEvent")
+LogManager.flushAndTeardown()
+PrivacyGuard.resetPrivacyGuardInstance()
