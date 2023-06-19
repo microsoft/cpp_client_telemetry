@@ -1494,7 +1494,7 @@ TEST_F(BasicFuncTests, deleteEvents)
     LogManager::ResumeTransmission();
     LogManager::UploadNow(); //forc upload if something is there in local storage
     PAL::sleep(2000) ; //wait for some time.
-    for (auto &e: events1) {
+    for (const auto &e: events1) {
         ASSERT_EQ(find(e.GetName()).name, "");
     }
 
@@ -1513,7 +1513,7 @@ TEST_F(BasicFuncTests, deleteEvents)
     }
     LogManager::UploadNow(); //forc upload if something is there in local storage
     waitForEvents(3 /*timeout*/, max_events /*expected count*/);
-    for (auto &e: events2) {
+    for (const auto &e: events2) {
         verifyEvent(e, find(e.GetName()));
     }
 }
