@@ -19,7 +19,7 @@ public final class EventProperties {
         - name: Name of the event as a `String`.
     */
     public init(name: String) {
-        self.odwEventProperties = ODWEventProperties(name: name)
+        odwEventProperties = ODWEventProperties(name: name)
     }
 
     /**
