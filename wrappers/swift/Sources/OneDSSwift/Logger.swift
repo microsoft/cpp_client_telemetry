@@ -9,6 +9,13 @@ import ObjCModule
 public final class Logger {
     private var odwLogger: ODWLogger
 
+    /// Semantic context for the logger.
+    public var semanticContext:ODWSemanticContext {
+        get {
+            odwLogger.semanticContext
+        }
+    }
+
     /// Constructs `Logger` with `ODWLogger` object which would be wrapped around.
     public init(logger: ODWLogger) {
         self.odwLogger = logger
