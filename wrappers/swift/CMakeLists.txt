@@ -131,7 +131,7 @@ execute_process(
     RESULT_VARIABLE SWIFTC_RESULT
 )
 
-if(EXISTS ${CMAKE_BINARY_DIR}/sample_app)
+if((SWIFT_BUILD_RESULT EQUAL 0) AND (EXISTS ${CMAKE_BINARY_DIR}/sample_app))
     message("Executable is created at: ${CMAKE_BINARY_DIR}/sample_app")
 else()
     message(FATALError, "Executable creation failed.")

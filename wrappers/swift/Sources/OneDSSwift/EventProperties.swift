@@ -32,6 +32,13 @@ public final class EventProperties {
         }
     }
 
+    // Event properties. Key is the property name with value being property value.
+    public var properties: [String: Any] {
+        get {
+            odwEventProperties.properties
+        }
+    }
+
     /**
     Constructs EventProperties object with event name.
 
