@@ -77,16 +77,6 @@ public final class EventProperties {
         return odwEventProperties
     }
 
-    /// Returns all the properties as dictionary
-    public func properties() -> [String: Any] {
-        return odwEventProperties.properties
-    }
-
-    /// Returns all the piiTags as dictionary
-    public func piiTags() -> [String: Any] {
-        return odwEventProperties.piiTags
-    }
-
     /**
     Sets the base type of the event, populated in Records.Type.
 
