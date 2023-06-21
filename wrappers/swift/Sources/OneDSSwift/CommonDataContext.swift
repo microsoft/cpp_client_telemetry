@@ -8,7 +8,7 @@ import ObjCModule
 /// Wrapper over ODWCommonDataContext class.
 public final class CommonDataContext {
     ///
-    public let odwCommonDataContext: ODWCommonDataContext
+    public var odwCommonDataContext: ODWCommonDataContext
 
     /// Contructor initialized with ObjC wrapped object.
     public init(odwCommonDataContext: ODWCommonDataContext) {
@@ -58,10 +58,10 @@ public final class CommonDataContext {
     /// IP Addresses for local network ports such as IPv4, IPv6, etc.
     public var IPAddresses:[Any] {
         get {
-            odwCommonDataContext.IPAddresses as? [Any] ?? []
+            odwCommonDataContext.ipAddresses as? [Any] ?? []
         }
         set {
-            odwCommonDataContext.IPAddresses = NSMutableArray(array: newValue)
+            odwCommonDataContext.ipAddresses = NSMutableArray(array: newValue)
         }
     }
 
@@ -78,10 +78,10 @@ public final class CommonDataContext {
     /// Collection of Machine Identifies such as Machine Name, Motherboard ID, MAC Address, etc.
     public var machineIDs:[Any] {
         get {
-            odwCommonDataContext.machineIDs as? [Any] ?? []
+            odwCommonDataContext.machineIds as? [Any] ?? []
         }
         set {
-            odwCommonDataContext.machineIDs = NSMutableArray(array: newValue)
+            odwCommonDataContext.machineIds = NSMutableArray(array: newValue)
         }
     }
 
