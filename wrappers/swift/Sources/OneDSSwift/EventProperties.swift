@@ -33,9 +33,26 @@ public final class EventProperties {
     }
 
     // Event properties. Key is the property name with value being property value.
-    public var properties: [String: Any] {
+    public var properties:[String: Any] {
         get {
             odwEventProperties.properties
+        }
+    }
+
+    // Event PII (Personal Identifiable Information) tags. key is property name, value is PIIKind value.
+    public var PIITags:[String, NSNumber] {
+        get {
+            odwEventProperties.piiTags
+        }
+    }
+
+    // Base Type of an event. This field is populated in Records.Type.
+    public var eventType:String {
+        get {
+            odwEventProperties.eventType
+        }
+        set {
+            odwEventProperties.eventType = newValue
         }
     }
 
@@ -70,11 +87,6 @@ public final class EventProperties {
     */
     public init(name: String, withProperties properties: [String: Any], withPiiTags piiTags: [String: NSNumber]) {
         odwEventProperties = ODWEventProperties(name: name, properties: properties, piiTags: piiTags)
-    }
-
-    /// Returns ODWEventProperties object, around which the Swift class is wrapped.
-    public func getODWEventPropertiesObject() -> ODWEventProperties {
-        return odwEventProperties
     }
 
     /**
@@ -281,5 +293,10 @@ public final class EventProperties {
     public func setPrivacyMetadata(_ privTags: ODWPrivacyDataType, withdWDiagLevel privLevel: ODWDiagLevel) {
         odwEventProperties.setProperty("EventInfo.PrivTags", withUInt64Value: UInt64(privTags.rawValue))
         odwEventProperties.setProperty("EventInfo.Level", withUInt8Value: UInt8(privLevel.rawValue))
+    }
+
+    /// Returns ODWEventProperties object, around which the Swift class is wrapped.
+    func getODWEventPropertiesObject() -> ODWEventProperties {
+        return odwEventProperties
     }
 }
