@@ -15,6 +15,11 @@ public final class CommonDataContext {
         self.odwCommonDataContext = odwCommonDataContext
     }
 
+    /// Default constructor.
+    public init() {
+        odwCommonDataContext = ODWCommonDataContext()
+    }
+
     /// Domain Name for the current machine.
     public var domainName:String {
         get {
