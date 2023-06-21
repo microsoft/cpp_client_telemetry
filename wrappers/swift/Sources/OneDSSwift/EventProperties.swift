@@ -12,6 +12,26 @@ public final class EventProperties {
     /// Obj-C class object which swift is wrapped around.
     private let odwEventProperties: ODWEventProperties
 
+    // Event Name.
+    public var name:String {
+        get {
+            odwEventProperties.name
+        }
+        set {
+            odwEventProperties.name = newValue
+        }
+    }
+
+    // Event Priority.
+    public var priority:EventPriority {
+        get {
+            odwEventProperties.priority
+        }
+        set {
+            odwEventProperties.priority = newValue
+        }
+    }
+
     /**
     Constructs EventProperties object with event name.
 

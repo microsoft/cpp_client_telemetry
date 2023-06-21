@@ -12,6 +12,7 @@
 import ObjCModule
 
 // ODWEventProperties.h
+public typealias EventPriority = ODWEventPriority
 public typealias PIIKind = ODWPiiKind
 public typealias PrivacyDataType = ODWPrivacyDataType
 public typealias DiagnosticLevel = ODWDiagLevel
