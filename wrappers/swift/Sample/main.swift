@@ -72,5 +72,5 @@ anotherLogger!.semanticContext.setUserAdvertisingID("p:00000000-0000-0000-0000-0
 let event3: EventProperties = EventProperties(name: "SematicContext_Swift_Event")
 anotherLogger!.logEvent(properties: event3)
 anotherLogger!.logEvent(name :"SemanticContext_Swift_EmtpyEvent")
-LogManager.flushAndTeardown()
+_ = LogManager.flushAndTeardown()
 PrivacyGuard.resetPrivacyGuardInstance()

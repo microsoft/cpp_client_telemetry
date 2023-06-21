@@ -6,8 +6,8 @@
 import ObjCModule
 
 public final class PrivacyGuardInitConfig {
-    public let odwPrivacyGuardInitConfig: ODWPrivacyGuardInitConfig
-    public var commonDataContext: CommonDataContext
+    let odwPrivacyGuardInitConfig: ODWPrivacyGuardInitConfig
+    private var commonDataContext: CommonDataContext
 
     /// Data Context to use with the Privacy Guard.
     public var dataContext: CommonDataContext {
@@ -80,14 +80,9 @@ public final class PrivacyGuardInitConfig {
         }
     }
 
-    /**
-    Constructor which inits with the `ODWPrivacyGuardInitConfig` object.
-
-    - Parameters:
-        - privacyGuardInitConfig: `ODWPrivacyGuardInitConfig` object which would be wrapped around.
-    */
-    public init(privacyGuardInitConfig: ODWPrivacyGuardInitConfig? = nil) {
-        self.odwPrivacyGuardInitConfig = privacyGuardInitConfig ?? ODWPrivacyGuardInitConfig()
+    /// Default constructor.
+    public init() {
+        odwPrivacyGuardInitConfig = ODWPrivacyGuardInitConfig()
         odwPrivacyGuardInitConfig.dataContext = ODWCommonDataContext()
         commonDataContext = CommonDataContext(odwCommonDataContext: odwPrivacyGuardInitConfig.dataContext)
     }

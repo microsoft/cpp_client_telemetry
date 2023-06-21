@@ -7,7 +7,7 @@ import ObjCModule
 
 /// Class wrapping `ODWLogConfiguration` ObjC class object, representing configuration related to events.
 public final class LogConfiguration {
-    private var odwLogConfiguration: ODWLogConfiguration
+    var odwLogConfiguration: ODWLogConfiguration
 
     /**
     Constructs `self` with provided config as `ODWLogConfiguration` object.
@@ -15,7 +15,7 @@ public final class LogConfiguration {
     - Parameters:
         - config: `ODWLogConfiguration` object which would be wrapped to.
     */
-    public init(config: ODWLogConfiguration) {
+    init(config: ODWLogConfiguration) {
         self.odwLogConfiguration = config
     }
 

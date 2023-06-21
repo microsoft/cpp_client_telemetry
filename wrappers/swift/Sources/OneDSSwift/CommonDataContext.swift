@@ -7,11 +7,11 @@ import ObjCModule
 
 /// Wrapper over ODWCommonDataContext class.
 public final class CommonDataContext {
-    ///
-    public var odwCommonDataContext: ODWCommonDataContext
+    /// ObjC variable which is wrapped by swift.
+    var odwCommonDataContext: ODWCommonDataContext
 
     /// Contructor initialized with ObjC wrapped object.
-    public init(odwCommonDataContext: ODWCommonDataContext) {
+    init(odwCommonDataContext: ODWCommonDataContext) {
         self.odwCommonDataContext = odwCommonDataContext
     }
 
