@@ -10,8 +10,6 @@ let myLogger: Logger? = LogManager.loggerWithTenant(tenantToken: token)
 let pgInitConfig : PrivacyGuardInitConfig = PrivacyGuardInitConfig()
 
 pgInitConfig.useEventFieldPrefix = true
-pgInitConfig.dataContext = CommonDataContext()
-
 pgInitConfig.dataContext.domainName = "TEST.MICROSOFT.COM"
 pgInitConfig.dataContext.machineName = "Motherboard"
 pgInitConfig.dataContext.userNames = [Any]()
