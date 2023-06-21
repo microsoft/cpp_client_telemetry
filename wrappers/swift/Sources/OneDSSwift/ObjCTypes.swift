@@ -26,6 +26,3 @@ public typealias FlushStatus = ODWStatus
 
 // ODWPrivacyGuard.h
 public typealias DataConcernType = ODWDataConcernType
-
-// ODWCommonDataContext.h
-public typealias CommonDataContext = ODWCommonDataContext
