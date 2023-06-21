@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-// Contains all the Obj-C header files which are exposed to Swift
+// Contains all the Obj-C header files which are exposed to Swift.
 
 #import <Foundation/Foundation.h>
 

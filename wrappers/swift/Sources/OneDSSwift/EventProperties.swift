@@ -40,7 +40,7 @@ public final class EventProperties {
     }
 
     // Event PII (Personal Identifiable Information) tags. key is property name, value is PIIKind value.
-    public var PIITags:[String: PIIKind] {
+    public var PIITags:[String: NSNumber] {
         get {
             odwEventProperties.piiTags
         }
