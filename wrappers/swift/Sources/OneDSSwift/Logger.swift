@@ -8,17 +8,19 @@ import ObjCModule
 /// Wrapper class around ObjC Logger class `ODWLogger` used to events.
 public final class Logger {
     private var odwLogger: ODWLogger
+    private(set) var _semanticContext: SemanticContext
 
     /// Semantic context for the logger.
-    public var semanticContext:ODWSemanticContext {
+    public var semanticContext:SemanticContext {
         get {
-            odwLogger.semanticContext
+            _semanticContext
         }
     }
 
     /// Constructs `Logger` with `ODWLogger` object which would be wrapped around.
     public init(logger: ODWLogger) {
-        self.odwLogger = logger
+        odwLogger = logger
+        _semanticContext = SemanticContext(odwSemanticContext: odwLogger.semanticContext)
     }
 
     // MARK: Basic LogEvent methods
