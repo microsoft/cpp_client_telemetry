@@ -12,50 +12,6 @@ public final class EventProperties {
     /// Obj-C class object which swift is wrapped around.
     private let odwEventProperties: ODWEventProperties
 
-    // Event Name.
-    public var name:String {
-        get {
-            odwEventProperties.name
-        }
-        set {
-            odwEventProperties.name = newValue
-        }
-    }
-
-    // Event Priority.
-    public var priority:EventPriority {
-        get {
-            odwEventProperties.priority
-        }
-        set {
-            odwEventProperties.priority = newValue
-        }
-    }
-
-    // Event properties. Key is the property name with value being property value.
-    public var properties:[String: Any] {
-        get {
-            odwEventProperties.properties
-        }
-    }
-
-    // Event PII (Personal Identifiable Information) tags. key is property name, value is PIIKind value.
-    public var PIITags:[String: NSNumber] {
-        get {
-            odwEventProperties.piiTags
-        }
-    }
-
-    // Base Type of an event. This field is populated in Records.Type.
-    public var eventType:String {
-        get {
-            odwEventProperties.eventType
-        }
-        set {
-            odwEventProperties.eventType = newValue
-        }
-    }
-
     /**
     Constructs EventProperties object with event name.
 

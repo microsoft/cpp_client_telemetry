@@ -1,4 +1,5 @@
 #############################################################################################################
+#############################################################################################################
 # Generates project files for Swift wrapper files and generates executable based on the main.swift file.
 #
 # Dependecies:
@@ -24,6 +25,8 @@ set(SWIFT_MODULE_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${LOWER_BUILD_TYPE}")
 set(SWIFT_OBJECT_OUTPUT_FOLDER "${SWIFT_MODULE_PATH}/${PROJECT_NAME}.build") # Swift object file output path: debug/OneDSSwift.build/*.o
 set(SWIFT_STATIC_LIB "${CMAKE_BINARY_DIR}/StaticLibs/libonedsswift.a") # Putting newly created static libs in this folder
 set(OBJC_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
+
+# Set build and path related variables
 set(INSTALLED_LIB_PATH "/usr/local/lib")
 
 PROJECT(${PROJECT_NAME})
