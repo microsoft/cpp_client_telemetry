@@ -36,8 +36,8 @@ namespace MAT_NS_BEGIN
         return (stringToTest.find_first_not_of(allowlist) == string::npos);
     }
 
-    std::string toString(char const*        value) { return std::string(value); }
-    std::string toString(bool               value) { return value ? "true" : "false"; }
+    std::string toString(char const*        value) { return std::string { value }; }
+    std::string toString(bool               value) { return value ? std::string { "true" } : std::string { "false" }; }
     std::string toString(char               value) { return std::to_string(static_cast<signed char>(value)); }
     std::string toString(int                value) { return std::to_string(value); }
     std::string toString(long               value) { return std::to_string(value); }
