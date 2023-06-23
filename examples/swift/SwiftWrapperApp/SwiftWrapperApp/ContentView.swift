@@ -1,8 +1,6 @@
 //
-//  ContentView.swift
-//  SwiftWrapperApp
-//
-//  Created by Abhinav Saroj on 6/22/23.
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
 //
 
 import OneDSSwift
