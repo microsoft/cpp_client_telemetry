@@ -11,6 +11,12 @@
 		2711D2672A45438A000712BD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2711D2662A45438A000712BD /* ContentView.swift */; };
 		2711D2692A45438C000712BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2711D2682A45438C000712BD /* Assets.xcassets */; };
 		2711D26D2A45438C000712BD /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2711D26C2A45438C000712BD /* Preview Assets.xcassets */; };
+		A34744202A4642300039D419 /* OneDSSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A347441F2A4642300039D419 /* OneDSSwift */; };
+		A34744242A4643B20039D419 /* libmat.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A34744232A4643B20039D419 /* libmat.a */; };
+		A34744262A4643FE0039D419 /* libsqlite3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A34744252A4643FE0039D419 /* libsqlite3.a */; };
+		A34744282A46440F0039D419 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A34744272A46440F0039D419 /* SystemConfiguration.framework */; };
+		A347442A2A46441A0039D419 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A34744292A46441A0039D419 /* Network.framework */; };
+		A347442C2A46442C0039D419 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A347442B2A46442C0039D419 /* libz.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +28,11 @@
 		2711D26C2A45438C000712BD /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2711D2732A45452E000712BD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		277E76FF2A45FE4D004A3A8F /* swift */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = swift; path = ../../../wrappers/swift; sourceTree = "<group>"; };
+		A34744232A4643B20039D419 /* libmat.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmat.a; path = /usr/local/lib/libmat.a; sourceTree = "<group>"; };
+		A34744252A4643FE0039D419 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = /usr/local/lib/libsqlite3.a; sourceTree = "<group>"; };
+		A34744272A46440F0039D419 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
+		A34744292A46441A0039D419 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
+		A347442B2A46442C0039D419 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -29,6 +40,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A347442C2A46442C0039D419 /* libz.tbd in Frameworks */,
+				A347442A2A46441A0039D419 /* Network.framework in Frameworks */,
+				A34744282A46440F0039D419 /* SystemConfiguration.framework in Frameworks */,
+				A34744202A4642300039D419 /* OneDSSwift in Frameworks */,
+				A34744242A4643B20039D419 /* libmat.a in Frameworks */,
+				A34744262A4643FE0039D419 /* libsqlite3.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +58,7 @@
 				277E76FE2A45FE4D004A3A8F /* Packages */,
 				2711D2632A45438A000712BD /* SwiftWrapperApp */,
 				2711D2622A45438A000712BD /* Products */,
+				A347441E2A4642300039D419 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -81,6 +99,18 @@
 			name = Packages;
 			sourceTree = "<group>";
 		};
+		A347441E2A4642300039D419 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A347442B2A46442C0039D419 /* libz.tbd */,
+				A34744292A46441A0039D419 /* Network.framework */,
+				A34744272A46440F0039D419 /* SystemConfiguration.framework */,
+				A34744252A4643FE0039D419 /* libsqlite3.a */,
+				A34744232A4643B20039D419 /* libmat.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -98,6 +128,9 @@
 				277E77012A460B83004A3A8F /* PBXTargetDependency */,
 			);
 			name = SwiftWrapperApp;
+			packageProductDependencies = (
+				A347441F2A4642300039D419 /* OneDSSwift */,
+			);
 			productName = SwiftWrapperApp;
 			productReference = 2711D2612A45438A000712BD /* SwiftWrapperApp.app */;
 			productType = "com.apple.product-type.application";
@@ -305,6 +338,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = /usr/local/lib/;
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = OneDSSwift.SwiftWrapperApp;
@@ -342,6 +376,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = OneDSSwift.SwiftWrapperApp;
@@ -379,6 +414,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		277E77002A460B83004A3A8F /* OneDSSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OneDSSwift;
+		};
+		A347441F2A4642300039D419 /* OneDSSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = OneDSSwift;
 		};
