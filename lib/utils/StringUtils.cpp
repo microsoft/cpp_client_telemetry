@@ -36,28 +36,19 @@ namespace MAT_NS_BEGIN
         return (stringToTest.find_first_not_of(allowlist) == string::npos);
     }
 
-    /**
-     * Convert various numeric types and bool to string in an uniform manner.
-     */
-    template<typename T>
-    static std::string to_string(T&& value)
-    {
-       return std::to_string(value);
-    }
-
     std::string toString(char const*        value) { return std::string(value); }
     std::string toString(bool               value) { return value ? "true" : "false"; }
-    std::string toString(char               value) { return to_string(static_cast<signed char>(value)); }
-    std::string toString(int                value) { return to_string(value); }
-    std::string toString(long               value) { return to_string(value); }
-    std::string toString(long long          value) { return to_string(value); }
-    std::string toString(unsigned char      value) { return to_string(value); }
-    std::string toString(unsigned int       value) { return to_string(value); }
-    std::string toString(unsigned long      value) { return to_string(value); }
-    std::string toString(unsigned long long value) { return to_string(value); }
-    std::string toString(float              value) { return to_string(value); }
-    std::string toString(double             value) { return to_string(value); }
-    std::string toString(long double        value) { return to_string(value); }
+    std::string toString(char               value) { return std::to_string(static_cast<signed char>(value)); }
+    std::string toString(int                value) { return std::to_string(value); }
+    std::string toString(long               value) { return std::to_string(value); }
+    std::string toString(long long          value) { return std::to_string(value); }
+    std::string toString(unsigned char      value) { return std::to_string(value); }
+    std::string toString(unsigned int       value) { return std::to_string(value); }
+    std::string toString(unsigned long      value) { return std::to_string(value); }
+    std::string toString(unsigned long long value) { return std::to_string(value); }
+    std::string toString(float              value) { return std::to_string(value); }
+    std::string toString(double             value) { return std::to_string(value); }
+    std::string toString(long double        value) { return std::to_string(value); }
 
     std::string toLower(const std::string& str)
     {
