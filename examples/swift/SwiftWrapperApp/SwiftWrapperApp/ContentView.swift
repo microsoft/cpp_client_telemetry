@@ -39,7 +39,7 @@ struct ContentView: View {
 		event.setProperty("enteredtext", withValue: text)
 		event.setProperty("from", withValue: "Swift_Wrappers_Package_Example_Project")
 		
-		let logger: Logger? = LogManager.loggerForSource(source: "exmaple_proj_source")
+		let logger: Logger? = LogManager.loggerForSource(source: "example_proj_source")
 		if (logger != nil) {
 			logger!.logEvent(properties: event)
 		}

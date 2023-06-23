@@ -1,6 +1,6 @@
 # SwiftWrapperApp
 
-Contains a simple xcode project to import and showcase swift wrappers package.
+Contains a simple Xcode project to import and showcase swift wrappers package.
 
 Details:
 - Imports
