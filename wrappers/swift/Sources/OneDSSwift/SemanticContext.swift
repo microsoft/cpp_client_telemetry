@@ -10,8 +10,8 @@ public class SemanticContext {
     private var odwSemanticContext: ODWSemanticContext
 
     /// Contructs the object with ODWSemanticContext object to be wrapped around.
-    public init(semanticContext: ODWSemanticContext) {
-        self.odwSemanticContext = semanticContext
+    init(odwSemanticContext: ODWSemanticContext) {
+        self.odwSemanticContext = odwSemanticContext
     }
 
     /**
