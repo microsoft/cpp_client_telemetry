@@ -24,6 +24,8 @@ set(SWIFT_MODULE_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${LOWER_BUILD_TYPE}")
 set(SWIFT_OBJECT_OUTPUT_FOLDER "${SWIFT_MODULE_PATH}/${PROJECT_NAME}.build") # Swift object file output path: debug/OneDSSwift.build/*.o
 set(SWIFT_STATIC_LIB "${CMAKE_BINARY_DIR}/StaticLibs/libonedsswift.a") # Putting newly created static libs in this folder
 set(OBJC_MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
+
+# Set build and path related variables
 set(INSTALLED_LIB_PATH "/usr/local/lib")
 
 PROJECT(${PROJECT_NAME})
@@ -99,7 +101,9 @@ file(GLOB SWIFT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Sample/*.swift")
 set(INCLUDE_LIBS
     ${MAT_LIB} # libmat.a contains ObjC symbols
     ${SWIFT_STATIC_LIB} # libonedsswift.a contains swift wrapper symbols
+    ${SQLITE3_LIB}
     "-lC++"
+    "-lZ"
 )
 
 # Collect all the modules to be included
@@ -107,6 +111,14 @@ set(INCLUDE_MODULES
     "-I${OBJC_MODULE_DIR}" # Needed for Enums and others declared in ObjC headers
     "-I${SWIFT_MODULE_PATH}" # Swift wrappers module OneDSSwift, generated after the build
 )
+
+# Collect all frameworks to be included
+set(INCLUDE_FRAMEWORKS
+    -framework Network
+    -framework SystemConfiguration
+)
+
+get_filename_component(FRAMEWORK_DIR ${SYSTEM_CONFIGURATION} DIRECTORY)
 
 # Invoke swiftc to create the exe
 message("\nRunning swiftc...")
@@ -116,10 +128,12 @@ execute_process(
     ${SWIFT_FILES} # Files to compile
     ${INCLUDE_MODULES} # Modules to include
     ${INCLUDE_LIBS} # Static libs to link
+    -F ${FRAMEWORK_DIR} # Set Framework search directory
+    ${INCLUDE_FRAMEWORKS} # Frameworks to include
     RESULT_VARIABLE SWIFTC_RESULT
 )
 
-if(EXISTS ${CMAKE_BINARY_DIR}/sample_app)
+if((SWIFT_BUILD_RESULT EQUAL 0) AND (EXISTS ${CMAKE_BINARY_DIR}/sample_app))
     message("Executable is created at: ${CMAKE_BINARY_DIR}/sample_app")
 else()
     message(FATALError, "Executable creation failed.")
