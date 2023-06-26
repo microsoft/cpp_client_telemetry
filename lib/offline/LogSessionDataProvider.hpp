@@ -21,7 +21,7 @@ namespace MAT_NS_BEGIN
     {
     public:
         LogSessionDataProvider(
-            IOfflineStorage* offlineStorage)
+            IOfflineStorage* offlineStorage) noexcept
             :
             m_offlineStorage(offlineStorage),
             m_storageType(SessionStorageType::DatabaseStore),
@@ -41,7 +41,7 @@ namespace MAT_NS_BEGIN
         void CreateLogSessionData();
         void ResetLogSessionData();
         void DeleteLogSessionData();
-        LogSessionData *GetLogSessionData();
+        LogSessionData *GetLogSessionData() noexcept;
 
     protected:
         void CreateLogSessionDataFromFile();
@@ -55,7 +55,7 @@ namespace MAT_NS_BEGIN
         std::string const m_cacheFilePath;
         SessionStorageType m_storageType;
         std::unique_ptr<LogSessionData> m_logSessionData;
-        uint64_t convertStrToLong(const std::string&);
+        uint64_t convertStrToLong(const std::string&) noexcept;
         void writeFileContents(const std::string&, uint64_t, const std::string&);
         void remove_eol(std::string& );
     };
