@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef SOCKETTOOLS_HPP
@@ -14,6 +14,9 @@
 #include <cstring>
 #include <cstddef>
 #include <algorithm>
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
+#include "utils/annex_k.hpp"
+#endif
 
 #if defined(HAVE_CONSOLE_LOG) && !defined(LOG_DEBUG)
 /* Log to console if there's no standard log facility defined */
@@ -139,7 +142,11 @@ class SocketAddr
         {
             inet4.sin_port = htons(atoi(colon + 1));
             char buf[16];
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
+            MAT::BoundCheckFunctions::oneds_memcpy_s(buf, sizeof(buf), addr, std::min<ptrdiff_t>(15, colon - addr));
+#else
             memcpy(buf, addr, std::min<ptrdiff_t>(15, colon - addr));
+#endif
             buf[15] = '\0';
             ::inet_pton(AF_INET, buf, &inet4.sin_addr);
         } else

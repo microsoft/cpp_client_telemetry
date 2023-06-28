@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "common/Common.hpp"
@@ -44,7 +44,7 @@ void ConstructSesFile(const char* sessionFile, const std::string& contents)
 void ConstructSesFile(const char* sessionFile, const std::string& utcTimeMs, const std::string& skuID)
 {
     std::ostringstream stream;
-    stream << utcTimeMs << '\n' << skuID;
+    stream << utcTimeMs << '\n' << skuID << '\n'; 
     ConstructSesFile(sessionFile, stream.str());
 }
 
@@ -84,7 +84,7 @@ TEST(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToExi
 
     auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
     logSessionDataProvider.CreateLogSessionData();
-    auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+    const auto* logSessionData =  logSessionDataProvider.GetLogSessionData();
 
     ASSERT_EQ(logSessionData->getSessionFirstTime(), 123456ull);
     ASSERT_EQ(logSessionData->getSessionSDKUid(), validSkuId);
@@ -98,7 +98,7 @@ TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_MembersRegene
 
     auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
     logSessionDataProvider.CreateLogSessionData();
-    auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+    const auto* logSessionData = logSessionDataProvider.GetLogSessionData();
 
     ASSERT_NE(logSessionData->getSessionFirstTime(), 123456ull);
     ASSERT_NE(logSessionData->getSessionSDKUid(), validSkuId);
@@ -112,10 +112,9 @@ TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWritte
 
     auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
     logSessionDataProvider.CreateLogSessionData();
-    auto logSessionData =  logSessionDataProvider.GetLogSessionData();
+    const auto* logSessionData = logSessionDataProvider.GetLogSessionData();
     auto properties = ReadPropertiesFromSessionFile(SessionFile);
 
     ASSERT_EQ(logSessionData->getSessionFirstTime(), properties.first);
     ASSERT_EQ(logSessionData->getSessionSDKUid(), properties.second);
 }
-

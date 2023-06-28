@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include <stdexcept>
@@ -10,6 +10,7 @@
 #import "ODWLogConfiguration.h"
 #import "ODWPrivacyGuard.h"
 #import "ODWPrivacyGuard_private.h"
+#import "ODWPrivacyGuardInitConfig.h"
 
 using namespace MAT;
 
@@ -29,15 +30,21 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     {
         cdc.MachineName = [[odwCDC MachineName] UTF8String];
     }
-    
-    if([[odwCDC UserName] length] != 0)
+
+    if([odwCDC UserNames] != nil && [[odwCDC UserNames] count] != 0)
     {
-        cdc.UserName = [[odwCDC UserName] UTF8String];
+        for(NSString* userName in [odwCDC UserNames])
+        {
+            cdc.UserNames.push_back([userName UTF8String]);
+        }
     }
-    
-    if([[odwCDC UserAlias] length] != 0)
+
+    if([odwCDC UserAliases] != nil && [[odwCDC UserAliases] count] != 0)
     {
-        cdc.UserAlias = [[odwCDC UserAlias] UTF8String];
+        for(NSString* userAlias in [odwCDC UserAliases])
+        {
+            cdc.UserAliases.push_back([userAlias UTF8String]);
+        }
     }
 
     if([odwCDC IpAddresses] != nil && [[odwCDC IpAddresses] count] != 0)
@@ -75,11 +82,29 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     return cdc;
 }
 
-+(void)initializePrivacyGuard:(ILogger *)logger withODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
++(void)initializePrivacyGuard:(ILogger *)logger withODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
 {
-    InitializationConfiguration config;
-    config.LoggerInstance = logger;
-    config.CommonContext = [ODWPrivacyGuard convertToNativeCommonDataContexts:commonDataContextsObject];
+    if (_privacyGuardPtr != nullptr)
+    {
+        return;
+    }
+
+    InitializationConfiguration config(logger, [ODWPrivacyGuard convertToNativeCommonDataContexts:[initConfigObject dataContext]]);
+    if ([initConfigObject notificationEventName] != nil)
+    {
+        config.NotificationEventName = [[initConfigObject notificationEventName] UTF8String];
+    }
+    if ([initConfigObject semanticContextNotificationEventName] != nil)
+    {
+        config.SemanticContextNotificationEventName = [[initConfigObject semanticContextNotificationEventName] UTF8String];
+    }
+    if ([initConfigObject summaryEventName] != nil)
+    {
+        config.SummaryEventName = [[initConfigObject summaryEventName] UTF8String];
+    }
+    config.UseEventFieldPrefix = [initConfigObject useEventFieldPrefix];
+    config.ScanForUrls = [initConfigObject scanForUrls];
+    config.DisableAdvancedScans = [initConfigObject disableAdvancedScans];
     _privacyGuardPtr = std::make_shared<PrivacyGuard>(config);
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
 }
@@ -116,6 +141,11 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     const uint8_t ignoredConcern = (uint8_t)IgnoredConcern;
     
     _privacyGuardPtr->AddIgnoredConcern(eventName, fieldName, static_cast<DataConcernType>(ignoredConcern));
+}
+
++(void)resetPrivacyGuardInstance
+{
+    _privacyGuardPtr = nullptr;
 }
 
 @end

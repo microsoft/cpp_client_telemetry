@@ -1,11 +1,12 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
 #pragma once
-#include "api/IRuntimeConfig.hpp"
+#include <memory>
 
+#include "api/IRuntimeConfig.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
 namespace testing {
@@ -18,17 +19,29 @@ namespace testing {
     class MockIRuntimeConfig : public MAT::RuntimeConfig_Default /* MAT::IRuntimeConfig */ {
 
     protected:
-
-        MAT::ILogConfiguration & GetDefaultConfig()
+        std::unique_ptr<ILogConfiguration>& GetStaticConfig()
         {
-            static ILogConfiguration nullConfig;
-            return nullConfig;
+            static std::unique_ptr<ILogConfiguration> staticConfig;
+            return staticConfig;
+        }
+
+        MAT::ILogConfiguration& GetDefaultConfig()
+        {
+            std::unique_ptr<ILogConfiguration>& staticConfig = GetStaticConfig();
+            if (!staticConfig)
+            {
+                staticConfig = std::make_unique<ILogConfiguration>();
+            }
+            return *staticConfig;
         }
 
     public:
         MockIRuntimeConfig() : MAT::RuntimeConfig_Default(GetDefaultConfig()) {}
         MockIRuntimeConfig(ILogConfiguration& customConfig) : MAT::RuntimeConfig_Default(customConfig) {}
-        virtual ~MockIRuntimeConfig();
+        virtual ~MockIRuntimeConfig()
+        {
+            GetStaticConfig().reset(nullptr);
+        }
 
         MOCK_METHOD1(SetDefaultConfig, void(IRuntimeConfig &));
         MOCK_METHOD3(DecorateEvent, void(std::map<std::string, std::string> &, std::string const &, std::string const &));

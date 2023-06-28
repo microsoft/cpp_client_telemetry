@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -144,6 +144,9 @@ public enum LogConfigurationKey {
   CFG_MAP_COMPAT("compat", ILogConfiguration.class),
 
   CFG_BOOL_COMPAT_DOTS("dotType", Boolean.class),
+
+  /** Compatibility configuration: custom type prefix. */
+  CFG_STR_COMPAT_PREFIX("customTypePrefix", String.class),
 
   CFG_BOOL_HOST_MODE("hostMode", Boolean.class),
 

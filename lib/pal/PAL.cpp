@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "PAL.hpp"
@@ -25,6 +25,10 @@
 
 #include "utils/Utils.hpp"
 #include <sys/types.h>
+
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#endif
 
 #ifndef _WIN32
 #ifndef _GNU_SOURCE
@@ -206,7 +210,7 @@ namespace PAL_NS_BEGIN {
 
             int len = ::sprintf_s(buffer, "%04u-%02u-%02u %02u:%02u:%02u.%03u T#%u <%c> [%s] ",
                 st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-                ::GetCurrentThreadId(), levels[level], component);
+                static_cast<unsigned int>(::GetCurrentThreadId()), levels[level], component);
 
             va_list args;
             va_start(args, fmt);
@@ -215,7 +219,19 @@ namespace PAL_NS_BEGIN {
 
             buffer[std::min<size_t>(len + 0, sizeof(buffer) - 2)] = '\n';
             buffer[std::min<size_t>(len + 1, sizeof(buffer) - 1)] = '\0';
+#ifdef HAVE_MAT_WIN_LOG
+            // Log to debug log file if enabled
+            debugLogMutex.lock();
+            if (debugLogStream->good())
+            {
+                (*debugLogStream) << buffer;
+                // flush is not very efficient, but needed to get realtime file updates
+                debugLogStream->flush();
+            }
+            debugLogMutex.unlock();
+#else
             ::OutputDebugStringA(buffer);
+#endif //HAVE_MAT_WIN_LOG
 #else
             auto now = std::chrono::system_clock::now();
             int64_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
@@ -287,6 +303,32 @@ namespace PAL_NS_BEGIN {
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
         (void) CoCreateGuid(&uuid);
         return MAT::to_string(uuid);
+#elif defined(__APPLE__)
+        auto uuid {CFUUIDCreate(kCFAllocatorDefault)};
+        if(!uuid)
+        {
+            return {};
+        }
+        auto uuidStrRef {CFUUIDCreateString(kCFAllocatorDefault, uuid)};
+        CFRelease(uuid);
+        if(!uuidStrRef)
+        {
+            return {};
+        }
+        std::string uuidStr;
+        if(CFStringGetCStringPtr(uuidStrRef, kCFStringEncodingASCII))
+        {
+            uuidStr = CFStringGetCStringPtr(uuidStrRef, kCFStringEncodingASCII);
+        }
+        else
+        {
+            const auto uuidNullTerminatedSize {CFStringGetLength(uuidStrRef) + 1};
+            uuidStr.resize(uuidNullTerminatedSize);
+            CFStringGetCString(uuidStrRef, &uuidStr[0], uuidNullTerminatedSize, kCFStringEncodingASCII);
+        }
+        CFRelease(uuidStrRef);
+	std::transform(uuidStr.begin(), uuidStr.end(), uuidStr.begin(), ::tolower);
+        return uuidStr;
 #else
         static std::once_flag flag;
         std::call_once(flag, [](){
@@ -382,14 +424,19 @@ namespace PAL_NS_BEGIN {
         char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
 
 #if defined(__GNUC__) && !defined(__clang__)
+#include <features.h>
+#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"  // error: ‘T’ directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Werror=format-truncation=]
+#pragma GCC diagnostic ignored "-Wformat-truncation"  // error: 'T' directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Werror=format-truncation=]
+#endif
 #endif
         (void)snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
                        1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
                        tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
 #if defined(__GNUC__) && !defined(__clang__)
+#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
 #pragma GCC diagnostic pop
+#endif
 #endif
 #endif
         return buf;

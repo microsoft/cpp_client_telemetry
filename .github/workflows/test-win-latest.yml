@@ -4,23 +4,30 @@ on:
   push:
     branches:
     - master
+    - main
+    - dev
+    - dev/*
     - release/*
     - buildme/*
+
   pull_request:
     branches:
     - master
+    - main
+    - dev
+
   schedule:
   - cron: 0 2 * * 1-5
 
 jobs:
   test:
-    name: Test on Windows ${{ matrix.arch }}-${{ matrix.config }}
+    name: Test on Windows ${{ matrix.arch }}-${{ matrix.build }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         arch: [Win32, x64]
-        config: [Release, Debug]
-        os: [windows-2016]
+        build: [Release, Debug]
+        os: [windows-2019]
     
     steps:
 
@@ -28,6 +35,11 @@ jobs:
       uses: actions/checkout@v1
       continue-on-error: true
 
-    - name: Test ${{ matrix.arch }} ${{ matrix.config }}
+    - name: setup-msbuild
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        vs-version: '[16,)'
+
+    - name: Test ${{ matrix.arch }} ${{ matrix.build }}
       shell: cmd
-      run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.config }}
+      run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.build }}

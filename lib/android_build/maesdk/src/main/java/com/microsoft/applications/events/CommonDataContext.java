@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -24,15 +24,14 @@ public class CommonDataContext {
     public String machineName = "";
 
     /**
-    * Unique UserName such as the log-in name
-    */
-    public String userName = "";
+     * List of multiple usernames for multi-user scenarios.
+     */
+    public Vector<String> userNames = new Vector<>();
 
     /**
-    * Unique User Alias, if different than UserName
-    */
-    public String userAlias = "";
-
+     * List of multiple User Aliases for multi-user scenarios.
+     */
+    public Vector<String> userAliases = new Vector<>();
     /**
     * IP Addresses for local network ports such as IPv4, IPv6, etc.
     */

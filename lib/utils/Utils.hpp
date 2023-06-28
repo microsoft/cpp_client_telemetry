@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef LIB_UTILS_HPP
@@ -65,6 +65,9 @@ namespace MAT_NS_BEGIN {
     void sleep(unsigned delayMs);
 
     long GetCurrentProcessId();
+
+    /* Detects if current process is running in a packaged app*/
+    bool IsRunningInApp();
 
     std::string GetTempDirectory();
     std::string GetAppLocalTempDirectory();

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -26,6 +26,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CsProtocol;
 using System.Linq;
+using Fiddler;
 
 namespace CommonSchema
 {
@@ -324,6 +325,10 @@ namespace CommonSchema
                         jsonList.Add(j);
                         outputBuffer.SetLength(0);
                     } while (true);
+                }
+                catch (EndOfStreamException)
+                {
+                    Logger.LogDebug("End of Binary Stream");
                 }
                 catch (Exception ex)
                 {

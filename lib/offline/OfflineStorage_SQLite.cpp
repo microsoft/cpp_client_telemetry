@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "mat/config.h"
@@ -17,6 +17,9 @@
 namespace MAT_NS_BEGIN {
 
     constexpr static size_t kBlockSize = 8192;
+
+    std::mutex OfflineStorage_SQLite::m_initAndShutdownLock;
+    int OfflineStorage_SQLite::m_instanceCount = 0;
 
     class DbTransaction {
         SqliteDB* m_db;
@@ -95,7 +98,8 @@ namespace MAT_NS_BEGIN {
         m_observer = &observer;
 
         assert(!m_db);
-        m_db.reset(new SqliteDB(m_skipInitAndShutdown));
+        m_db.reset(new SqliteDB(m_skipInitAndShutdown, &m_initAndShutdownLock,
+                                &m_instanceCount));
 
         LOG_TRACE("Initializing offline storage: %s", m_offlineStorageFileName.c_str());
         auto sqlStartTime = GetUptimeMs();
@@ -131,6 +135,12 @@ namespace MAT_NS_BEGIN {
         }
     }
 
+    void OfflineStorage_SQLite::Flush() 
+    {
+        if (m_db)
+            m_db->flush();
+    }
+    
     void OfflineStorage_SQLite::Execute(std::string command)
     {
         if (m_db)

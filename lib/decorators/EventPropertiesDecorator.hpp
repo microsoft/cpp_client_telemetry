@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef EVENTPROPERTIESDECORATOR_HPP
@@ -113,6 +113,10 @@ namespace MAT_NS_BEGIN {
                 ::CsProtocol::Data data;
                 record.data.push_back(data);
             }
+
+            auto timestamp = eventProperties.GetTimestamp();
+            if (timestamp != 0)
+                record.time = timestamp;
 
             record.popSample = eventProperties.GetPopSample();
 

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "StringUtils.hpp"
@@ -31,47 +31,102 @@ namespace MAT_NS_BEGIN
         }
     }
 
-    bool StringUtils::AreAllCharactersWhitelisted(const string& stringToTest, const string& whitelist)
+    bool StringUtils::AreAllCharactersAllowlisted(const string& stringToTest, const string& allowlist)
     {
-        return (stringToTest.find_first_not_of(whitelist) == string::npos);
+        return (stringToTest.find_first_not_of(allowlist) == string::npos);
     }
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-value"
-#endif
-    /**
-     * Convert various numeric types and bool to string in an uniform manner.
-     */
-    template<typename T>
-    std::string to_string(char const* format, T value)
+    std::string toString(char const*        value) { return std::string { value }; }
+    std::string toString(bool               value) { return value ? std::string { "true" } : std::string { "false" }; }
+    std::string toString(char               value) { return std::to_string(static_cast<signed char>(value)); }
+    std::string toString(int                value) { return std::to_string(value); }
+    std::string toString(long               value) { return std::to_string(value); }
+    std::string toString(long long          value) { return std::to_string(value); }
+    std::string toString(unsigned char      value) { return std::to_string(value); }
+    std::string toString(unsigned int       value) { return std::to_string(value); }
+    std::string toString(unsigned long      value) { return std::to_string(value); }
+    std::string toString(unsigned long long value) { return std::to_string(value); }
+    std::string toString(float              value) { return std::to_string(value); }
+    std::string toString(double             value) { return std::to_string(value); }
+    std::string toString(long double        value) { return std::to_string(value); }
+
+    std::string to_string(const GUID_t& uuid)
     {
-        static const int buf_size = 40;
-        char buf[buf_size] = { 0 };
-#ifdef _WIN32
-        ::_snprintf_s(buf, buf_size, format, value);
-#else
-        snprintf(buf, buf_size, format, value);
-#endif
+        static char inttoHex[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
+        const unsigned buffSize = 36 + 1;  // 36 + null-termination
+        char buf[buffSize] = { 0 };
+
+        int  test = (uuid.Data1 >> 28 & 0x0000000F);
+        buf[0] = inttoHex[test];
+        test = (int)(uuid.Data1 >> 24 & 0x0000000F);
+        buf[1] = inttoHex[test];
+        test = (int)(uuid.Data1 >> 20 & 0x0000000F);
+        buf[2] = inttoHex[test];
+        test = (int)(uuid.Data1 >> 16 & 0x0000000F);
+        buf[3] = inttoHex[test];
+        test = (int)(uuid.Data1 >> 12 & 0x0000000F);
+        buf[4] = inttoHex[test];
+        test = (int)(uuid.Data1 >> 8 & 0x0000000F);
+        buf[5] = inttoHex[test];
+        test = (int)(uuid.Data1 >> 4 & 0x0000000F);
+        buf[6] = inttoHex[test];
+        test = (int)(uuid.Data1 & 0x0000000F);
+        buf[7] = inttoHex[test];
+        buf[8] = '-';
+        test = (int)(uuid.Data2 >> 12 & 0x000F);
+        buf[9] = inttoHex[test];
+        test = (int)(uuid.Data2 >> 8 & 0x000F);
+        buf[10] = inttoHex[test];
+        test = (int)(uuid.Data2 >> 4 & 0x000F);
+        buf[11] = inttoHex[test];
+        test = (int)(uuid.Data2 & 0x000F);
+        buf[12] = inttoHex[test];
+        buf[13] = '-';
+        test = (int)(uuid.Data3 >> 12 & 0x000F);
+        buf[14] = inttoHex[test];
+        test = (int)(uuid.Data3 >> 8 & 0x000F);
+        buf[15] = inttoHex[test];
+        test = (int)(uuid.Data3 >> 4 & 0x000F);
+        buf[16] = inttoHex[test];
+        test = (int)(uuid.Data3 & 0x000F);
+        buf[17] = inttoHex[test];
+        buf[18] = '-';
+        test = (int)(uuid.Data4[0] >> 4 & 0x0F);
+        buf[19] = inttoHex[test];
+        test = (int)(uuid.Data4[0] & 0x0F);
+        buf[20] = inttoHex[test];
+        test = (int)(uuid.Data4[1] >> 4 & 0x0F);
+        buf[21] = inttoHex[test];
+        test = (int)(uuid.Data4[1] & 0x0F);
+        buf[22] = inttoHex[test];
+        buf[23] = '-';
+        test = (int)(uuid.Data4[2] >> 4 & 0x0F);
+        buf[24] = inttoHex[test];
+        test = (int)(uuid.Data4[2] & 0x0F);
+        buf[25] = inttoHex[test];
+        test = (int)(uuid.Data4[3] >> 4 & 0x0F);
+        buf[26] = inttoHex[test];
+        test = (int)(uuid.Data4[3] & 0x0F);
+        buf[27] = inttoHex[test];
+        test = (int)(uuid.Data4[4] >> 4 & 0x0F);
+        buf[28] = inttoHex[test];
+        test = (int)(uuid.Data4[4] & 0x0F);
+        buf[29] = inttoHex[test];
+        test = (int)(uuid.Data4[5] >> 4 & 0x0F);
+        buf[30] = inttoHex[test];
+        test = (int)(uuid.Data4[5] & 0x0F);
+        buf[31] = inttoHex[test];
+        test = (int)(uuid.Data4[6] >> 4 & 0x0F);
+        buf[32] = inttoHex[test];
+        test = (int)(uuid.Data4[6] & 0x0F);
+        buf[33] = inttoHex[test];
+        test = (int)(uuid.Data4[7] >> 4 & 0x0F);
+        buf[34] = inttoHex[test];
+        test = (int)(uuid.Data4[7] & 0x0F);
+        buf[35] = inttoHex[test];
+        buf[36] = 0;
         return std::string(buf);
     }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-
-    std::string toString(char const*        value) { return std::string(value); }
-    std::string toString(bool               value) { return value ? "true" : "false"; }
-    std::string toString(char               value) { return to_string("%d", static_cast<signed char>(value)); }
-    std::string toString(int                value) { return to_string("%d", value); }
-    std::string toString(long               value) { return to_string("%ld", value); }
-    std::string toString(long long          value) { return to_string("%lld", value); }
-    std::string toString(unsigned char      value) { return to_string("%u", value); }
-    std::string toString(unsigned int       value) { return to_string("%u", value); }
-    std::string toString(unsigned long      value) { return to_string("%lu", value); }
-    std::string toString(unsigned long long value) { return to_string("%llu", value); }
-    std::string toString(float              value) { return to_string("%f", value); }
-    std::string toString(double             value) { return to_string("%f", value); }
-    std::string toString(long double        value) { return to_string("%Lf", value); }
 
     std::string toLower(const std::string& str)
     {

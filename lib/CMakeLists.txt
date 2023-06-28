@@ -1,4 +1,7 @@
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/Reachability ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds /usr/local/include )
+# Honor visibility properties for all target types
+cmake_policy(SET CMP0063 NEW)
+
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/Reachability ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
@@ -100,6 +103,13 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds/ AND BUILD_CDS)
   )
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals/ AND BUILD_SIGNALS)
+  list(APPEND SRCS
+    modules/signals/Signals.cpp
+    modules/signals/SignalsEncoder.cpp
+  )
+endif()
+
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(APPLE)
     list(APPEND SRCS
@@ -146,26 +156,48 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     )
   endif()
   if(APPLE AND BUILD_OBJC_WRAPPER)
-	message("Include Wrappers")
-	list(APPEND SRCS
-	  ../wrappers/obj-c/ODWLogger.mm
-	  ../wrappers/obj-c/ODWLogManager.mm
-	  ../wrappers/obj-c/ODWEventProperties.mm
-	  ../wrappers/obj-c/ODWLogConfiguration.mm
-	  ../wrappers/obj-c/ODWSemanticContext.mm
-	  )
-	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
-  		list(APPEND SRCS
-		  ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
-  		)
-	endif()
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
-          list(APPEND SRCS
-          ../wrappers/obj-c/ODWCommonDataContext.mm
-          ../wrappers/obj-c/ODWPrivacyGuard.mm
-          )
+    message("Include ObjC Wrappers")
+    list(APPEND SRCS
+      ../wrappers/obj-c/ODWLogger.mm
+      ../wrappers/obj-c/ODWLogManager.mm
+      ../wrappers/obj-c/ODWEventProperties.mm
+      ../wrappers/obj-c/ODWLogConfiguration.mm
+      ../wrappers/obj-c/ODWSemanticContext.mm
+      )
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
+        list(APPEND SRCS
+        ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
+        )
     endif()
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+            list(APPEND SRCS
+            ../wrappers/obj-c/ODWCommonDataContext.mm
+            ../wrappers/obj-c/ODWPrivacyGuard.mm
+            ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
+            )
+      endif()
   endif()
+
+  if(APPLE AND BUILD_SWIFT_WRAPPER)
+    message("Building Swift Wrappers")
+    # Run swift build for the Swift Wrappers Package
+    string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
+    execute_process(
+      COMMAND swift build
+      -c ${LOWER_BUILD_TYPE}
+      --scratch-path ${CMAKE_BINARY_DIR}/OneDSSwift
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../wrappers/swift
+      RESULT_VARIABLE SWIFT_BUILD_RESULT
+    )
+
+    if(SWIFT_BUILD_RESULT EQUAL 0)
+        message("Swift Wrappers build succeeded!")
+    else()
+        message(FATAL_ERROR, "Swift build failed with error code: ${SWIFT_BUILD_RESULT}")
+    endif()
+
+  endif()
+
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
@@ -216,7 +248,7 @@ endif()
 
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message("-- Building shared SDK library")
-  
+
   # include(FindCURL)
   # find_package(CURL REQUIRED)
   # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
@@ -252,15 +284,17 @@ if(BUILD_SHARED_LIBS STREQUAL "ON")
 else()
   message("-- Building static SDK library")
   add_library(mat STATIC ${SRCS})
-  if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-    target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-  else()
-    add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    add_library(z STATIC IMPORTED GLOBAL)
-    #
-    # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-    #
-    target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+  if(LINK_STATIC_DEPENDS)
+    if(PAL_IMPLEMENTATION STREQUAL "WIN32")
+      target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    else()
+      add_library(sqlite3 STATIC IMPORTED GLOBAL)
+      add_library(z STATIC IMPORTED GLOBAL)
+      #
+      # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
+      #
+      target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
+    endif()
   endif()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef MAT_ILOGCONFIGURATION_HPP
@@ -22,32 +22,32 @@ namespace MAT_NS_BEGIN
     class IHttpClient;
 
     /// Default collector url to send events to
-    static constexpr const char* COLLECTOR_URL_PROD = "https://self.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_PROD = "https://mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the United States collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_UNITED_STATES = "https://noam.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_UNITED_STATES = "https://us-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the German collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_GERMANY = "https://emea.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_GERMANY = "https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the Australian collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_AUSTRALIA = "https://apac.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_AUSTRALIA = "https://au-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the Japanese collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_JAPAN = "https://apac.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_JAPAN = "https://jp-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the European collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_EUROPE = "https://emea.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_EUROPE = "https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The real-time transmit profile.
@@ -145,6 +145,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_INT_RAM_QUEUE_BUFFERS = "maxDBFlushQueues";
 
     /// <summary>
+    /// SQLite DB will be checkpointed when flushing.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_CHECKPOINT_DB_ON_FLUSH = "checkpointDBOnFlush";
+
+    /// <summary>
     /// The trace level mask.
     /// </summary>
     static constexpr const char* const CFG_INT_TRACE_LEVEL_MASK = "traceLevelMask";
@@ -175,14 +180,29 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_STR_UTC = "utc";
 
     /// <summary>
+    /// Sets the provider name when in UTC mode.
+    /// </summary>
+    static constexpr const char* const CFG_STR_UTC_PROVIDER_NAME = "providerName";
+
+    /// <summary>
     /// Set the provider group directly with a string (which will be converted to a GUID).
     /// </summary>
     static constexpr const char* const CFG_STR_PROVIDER_GROUP_ID = "providerGroupId";
 
     /// <summary>
+    /// Skip registering the iKey with UTC, so that a pre-existing provider can be used.
+    /// </summary>
+    static constexpr const char* const CFG_STR_SKIP_IKEY_REGISTRATION = "skipIKeyRegistration";
+
+    /// <summary>
     /// The maximum teardown time.
     /// </summary>
     static constexpr const char* const CFG_INT_MAX_TEARDOWN_TIME = "maxTeardownUploadTimeInSec";
+
+    /// <summary>
+    /// Disable zombie logger logic.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_DISABLE_ZOMBIE_LOGGERS = "disableZombieLoggers";
 
     /// <summary>
     /// The maximum number of pending HTTP requests.
@@ -315,6 +335,11 @@ namespace MAT_NS_BEGIN
     /// Compatibility configuration: dot mode
     /// </summary>
     static constexpr const char* const CFG_BOOL_COMPAT_DOTS = "dotType";
+
+    /// <summary>
+    /// Compatibility configuration: custom type prefix. Default value: "custom"
+    /// </summary>
+    static constexpr const char* const CFG_STR_COMPAT_PREFIX = "customTypePrefix";
 
     /// <summary>
     /// LogManagerFactory: is this log manager instance in host mode?

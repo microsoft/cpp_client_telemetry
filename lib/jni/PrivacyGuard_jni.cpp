@@ -1,28 +1,34 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
+
 #include "JniConvertors.hpp"
 #include "modules/privacyguard/PrivacyGuard.hpp"
-#include "WrapperLogManager.hpp"
+#include "PrivacyGuardHelper.hpp"
 
 using namespace MAT;
 
 CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
                                                   jstring domainName,
                                                   jstring machineName,
-                                                  jstring userName,
-                                                  jstring userAlias,
+                                                  jobjectArray userNames,
+                                                  jobjectArray userAliases,
                                                   jobjectArray ipAddresses,
                                                   jobjectArray languageIdentifiers,
                                                   jobjectArray machineIds,
                                                   jobjectArray outOfScopeIdentifiers)
 {
     CommonDataContext cdc;
-    cdc.DomainName = JStringToStdString(env, domainName);
-    cdc.MachineName = JStringToStdString(env, machineName);
-    cdc.UserName = JStringToStdString(env, userName);
-    cdc.UserAlias = JStringToStdString(env, userAlias);
+    if(domainName != nullptr) {
+        cdc.DomainName = JStringToStdString(env, domainName);
+    }
+    if(machineName != nullptr) {
+        cdc.MachineName = JStringToStdString(env, machineName);
+    }
+
+    cdc.UserNames = ConvertJObjectArrayToStdStringVector(env, userNames);
+    cdc.UserAliases = ConvertJObjectArrayToStdStringVector(env, userAliases);
     cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
     cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
     cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
@@ -30,31 +36,69 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
     return cdc;
 }
 
-extern "C"
-{
 std::shared_ptr<PrivacyGuard> spPrivacyGuard;
 
+std::shared_ptr<PrivacyGuard> PrivacyGuardHelper::GetPrivacyGuardPtr() noexcept
+{
+    return spPrivacyGuard;
+}
+
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuardWithoutCommonDataContext(
-        JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr) {
+        JNIEnv *env, jclass /* this */,
+        jlong iLoggerNativePtr,
+        jstring NotificationEventName,
+        jstring SemanticContextEventName,
+        jstring SummaryEventName,
+        jboolean UseEventFieldPrefix,
+        jboolean ScanForUrls,
+        jboolean DisableAdvancedScans,
+        jboolean StampEventIKeyForConcerns) {
     if (spPrivacyGuard != nullptr) {
         return false;
     }
 
-    InitializationConfiguration config;
-    config.LoggerInstance = reinterpret_cast<ILogger*>(iLoggerNativePtr);
+    InitializationConfiguration config(
+            reinterpret_cast<ILogger*>(iLoggerNativePtr),
+            CommonDataContext{});
+    if (NotificationEventName != nullptr) {
+        config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
+    }
+
+    if (SemanticContextEventName != nullptr) {
+        config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
+    }
+
+    if (SummaryEventName != nullptr) {
+        config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
+    }
+
+    config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
+    config.ScanForUrls = static_cast<bool>(ScanForUrls);
+    config.DisableAdvancedScans = static_cast<bool>(DisableAdvancedScans);
+    config.StampEventIKeyForConcerns = static_cast<bool>(StampEventIKeyForConcerns);
+
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
-    WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard(
-        JNIEnv *env, jclass /* this */, jlong iLoggerNativePtr,
+        JNIEnv *env, jclass /* this */,
+        jlong iLoggerNativePtr,
+        jstring NotificationEventName,
+        jstring SemanticContextEventName,
+        jstring SummaryEventName,
+        jboolean UseEventFieldPrefix,
+        jboolean ScanForUrls,
+        jboolean DisableAdvancedScans,
+        jboolean StampEventIKeyForConcerns,
         jstring domainName,
         jstring machineName,
-        jstring userName,
-        jstring userAlias,
+        jobjectArray userNames,
+        jobjectArray userAliases,
         jobjectArray ipAddresses,
         jobjectArray languageIdentifiers,
         jobjectArray machineIds,
@@ -63,40 +107,56 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         return false;
     }
 
-    InitializationConfiguration config;
-    config.CommonContext = GenerateCommonDataContextObject(env,
-                                                           domainName,
-                                                           machineName,
-                                                           userName,
-                                                           userAlias,
-                                                           ipAddresses,
-                                                           languageIdentifiers,
-                                                           machineIds,
-                                                           outOfScopeIdentifiers);
+    InitializationConfiguration config(
+            reinterpret_cast<ILogger *>(iLoggerNativePtr),
+            GenerateCommonDataContextObject(env,
+                                            domainName,
+                                            machineName,
+                                            userNames,
+                                            userAliases,
+                                            ipAddresses,
+                                            languageIdentifiers,
+                                            machineIds,
+                                            outOfScopeIdentifiers));
 
-    config.LoggerInstance = reinterpret_cast<ILogger *>(iLoggerNativePtr);
+    if (NotificationEventName != NULL) {
+        config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
+    }
+
+    if (SemanticContextEventName != NULL) {
+        config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
+    }
+
+    if (SummaryEventName != NULL) {
+        config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
+    }
+
+    config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
+    config.ScanForUrls = static_cast<bool>(ScanForUrls);
+    config.DisableAdvancedScans = static_cast<bool>(DisableAdvancedScans);
+    config.StampEventIKeyForConcerns = static_cast<bool>(StampEventIKeyForConcerns);
+
     spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
-    WrapperLogManager::GetInstance()->SetDataInspector(spPrivacyGuard);
     return true;
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
-        Java_com_microsoft_applications_events_PrivacyGuard_uninitializePrivacyGuard(JNIEnv *env, jclass /*this*/)
+Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(const JNIEnv *env, jclass /*this*/)
 {
     if(spPrivacyGuard == nullptr)
     {
         return false;
     }
 
-    WrapperLogManager::GetInstance()->ClearDataInspectors();
     spPrivacyGuard.reset();
 
     return true;
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jclass /*this*/,
-                                                               jboolean isEnabled) {
+Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(const JNIEnv *env, jclass /*this*/, jboolean isEnabled) {
     if (spPrivacyGuard == nullptr) {
         return false;
     }
@@ -104,18 +164,20 @@ Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(JNIEnv *env, jcla
     return true;
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(JNIEnv *env, jclass /*this*/) {
+Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(const JNIEnv *env, jclass /*this*/) {
     return spPrivacyGuard != nullptr && spPrivacyGuard->IsEnabled();
 }
 
+extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContext(
         JNIEnv *env, jclass /* this */,
         jstring domainName,
         jstring machineName,
-        jstring userName,
-        jstring userAlias,
+        jobjectArray userNames,
+        jobjectArray userAliases,
         jobjectArray ipAddresses,
         jobjectArray languageIdentifiers,
         jobjectArray machineIds,
@@ -127,8 +189,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
     spPrivacyGuard->AppendCommonDataContext(GenerateCommonDataContextObject(env,
                                                                             domainName,
                                                                             machineName,
-                                                                            userName,
-                                                                            userAlias,
+                                                                            userNames,
+                                                                            userAliases,
                                                                             ipAddresses,
                                                                             languageIdentifiers,
                                                                             machineIds,
@@ -137,6 +199,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
     return true;
 }
 
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIEnv *env,
         jclass /* this */,
@@ -153,5 +216,9 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIE
     spPrivacyGuard->AddIgnoredConcern(eventNameStr, fieldNameStr, static_cast<DataConcernType >(dataConcernInt));
 }
 
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_PrivacyGuard_isInitialized(const JNIEnv *env, jclass/* this */){
+    return spPrivacyGuard != nullptr;
 }
 

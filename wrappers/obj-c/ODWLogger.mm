@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "ILogger.hpp"
@@ -13,6 +13,8 @@
 #include "EventProperties.hpp"
 
 using namespace MAT;
+
+std::atomic<bool> canUseSDK = { true };
 
 @implementation ODWLogger
 {
@@ -93,6 +95,11 @@ using namespace MAT;
             NSString* str = (NSString*)value;
             event.SetProperty(strPropertyName, [str UTF8String], piiKind);
         }
+    }
+    NSString* type = [wrappedProperties eventType];
+    if([type length] != 0)
+    {
+        event.SetType([type UTF8String]);
     }
 }
 
@@ -384,6 +391,9 @@ using namespace MAT;
 
 void PerformActionWithCppExceptionsCatch(void (^block)())
 {
+    if (!canUseSDK) {
+        return;
+    }
     try
     {
         block();
@@ -398,9 +408,8 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
     }
 }
 
--(void)initializePrivacyGuardWithODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject
+-(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
 {    
-    [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWCommonDataContext:commonDataContextsObject];
+    [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWPrivacyGuardInitConfig:initConfigObject];
 }
-
 @end

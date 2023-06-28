@@ -1,10 +1,11 @@
-/* Copyright (c) Microsoft. All rights reserved. */
+// Copyright (c) Microsoft Corporation. All rights reserved.
+
 #include "mat/config.h"
 #ifdef _WIN32
 #define MATSDK_DECLSPEC __declspec(dllexport)
 #endif
 
-#ifndef ANDROID
+#if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
 #include "http/HttpClient_CAPI.hpp"
 #endif
 #include "LogManagerProvider.hpp"
@@ -130,7 +131,7 @@ evt_status_t mat_open_core(
     // Remember the original config string. Needed to avoid hash code collisions
     clients[code].ctx_data = config;
 
-#ifndef ANDROID
+#if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
     // Create custom HttpClient
     if (httpSendFn != nullptr && httpCancelFn != nullptr)
     {
@@ -237,7 +238,7 @@ evt_status_t mat_log(evt_context_t *ctx)
     VERIFY_CLIENT_HANDLE(client, ctx);
 
     ILogConfiguration & config = client->config;
-    evt_prop *evt = static_cast<evt_prop*>(ctx->data);
+    const evt_prop *evt = static_cast<evt_prop*>(ctx->data);
     EventProperties props;
     props.unpack(evt, ctx->size);
 

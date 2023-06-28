@@ -1,11 +1,11 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "objc_begin.h"
 #import "ODWEventProperties.h"
+#import "ODWPrivacyGuardInitConfig.h"
 #import "ODWSemanticContext.h"
-#import "ODWCommonDataContext.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -125,7 +125,7 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
 /*!
  @brief Initialize and get an instance of Privacy Guard.
  */
--(void)initializePrivacyGuardWithODWCommonDataContext:(ODWCommonDataContext *)commonDataContextsObject;
+-(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject;
 
 #pragma mark Set Context methods
 

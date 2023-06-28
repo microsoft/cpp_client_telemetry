@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "objc_begin.h"
@@ -227,6 +227,11 @@ extern NSString * _Nonnull const ODWCFG_MAP_COMPAT;
 extern NSString * _Nonnull const ODWCFG_BOOL_COMPAT_DOTS;
 
 /*!
+ Compatibility configuration: custom type prefix
+*/
+extern NSString * _Nonnull const ODWCFG_STR_COMPAT_PREFIX;
+
+/*!
  LogManagerFactory: is this log manager instance in host mode?
 */
 extern NSString * _Nonnull const ODWCFG_BOOL_HOST_MODE;
@@ -385,6 +390,17 @@ extern NSString * _Nonnull const ODWCFG_BOOL_SESSION_RESET_ENABLED;
 @brief Returns the cache file path.
 */
 +(nullable NSString *)cacheFilePath;
+
+/*!
+@brief Controls if DB will be checkpointed when flushing
+@param enableDbCheckpointOnFlush True if DB should be checkpointed when flushing.
+*/
++(void)setEnableDbCheckpointOnFlush:(bool)enableDbCheckpointOnFlush;
+
+/*!
+@brief Returns true if DB will be checkpointed when flushing.
+*/
++(bool)enableDbCheckpointOnFlush;
 
 /*!
 @brief Sets a config key to a string value for the copied config

@@ -12,14 +12,13 @@ if DEFINED GIT_PULL_TOKEN (
   git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
 
-call tools\vcvars.cmd
-
-set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
-set platform=
-set SOLUTION=Solutions\MSTelemetrySDK.sln
+set GTEST_PATH=third_party\googletest
+if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
+ git clone --depth 1 --branch release-1.12.1 https://github.com/google/googletest %GTEST_PATH%
+)
 
 set CUSTOM_PROPS=
-if ("%1"=="") goto skip
+if ("%~1"=="") goto skip
 set CUSTOM_PROPS="/p:ForceImportBeforeCppTargets=%1"
 echo Using custom properties file for the build:
 echo %CUSTOM_PROPS%
@@ -28,45 +27,43 @@ echo %CUSTOM_PROPS%
 if NOT DEFINED SKIP_MD_BUILD (
   REM DLL and static /MD build
   REM Release
-  msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=Win32 %CUSTOM_PROPS%
-  msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=x64 %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
-    msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=Win32 %CUSTOM_PROPS%
-    msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=x64 %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat Win32 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat x64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_MT_BUILD (
   REM Static /MT build
   REM Release
-  msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release.vs2015.MT-sqlite /p:Platform=Win32 %CUSTOM_PROPS%
-  msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release.vs2015.MT-sqlite /p:Platform=x64 %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
-    msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug.vs2015.MT-sqlite /p:Platform=Win32 %CUSTOM_PROPS%
-    msbuild %SOLUTION% /target:sqlite,zlib,win32-lib /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug.vs2015.MT-sqlite /p:Platform=x64 %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat Win32 Debug.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat x64 Debug.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_ARM_BUILD (
   REM ARM DLL build
-  call tools\vcvars-ext.cmd arm
   REM Release
-  msbuild %SOLUTION% /target:zlib,sqlite-uwp,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat ARM Release "zlib:Rebuild,sqlite-uwp:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild" %CUSTOM_PROPS%
   if NOT DEFINED SKIP_DEBUG_BUILD (
     REM Debug
-    msbuild %SOLUTION% /target:zlib,sqlite-uwp,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat ARM Debug "zlib:Rebuild,sqlite-uwp:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild" %CUSTOM_PROPS%
   )
 )
 
 if NOT DEFINED SKIP_ARM64_BUILD (
   REM ARM64 DLL build
-  call tools\vcvars-ext.cmd arm64
   REM Release
-  msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Release /p:Platform=ARM64 %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat ARM64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild" %CUSTOM_PROPS%
   if NOT DEFINED SKIP_DEBUG_BUILD (
     REM Debug
-    msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,win10-cs,win10-dll /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /p:Configuration=Debug /p:Platform=ARM64 %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat ARM64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild" %CUSTOM_PROPS%
   )
 )

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved .
+// Copyright (c) Microsoft Corporation. All rights reserved.
 
 #if defined __has_include
 #  if __has_include ("modules/azmon/AITelemetrySystem.hpp")

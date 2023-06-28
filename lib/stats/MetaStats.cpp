@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -8,11 +8,6 @@
 #include <utils/StringUtils.hpp>
 
 namespace MAT_NS_BEGIN {
-
-    /// <summary>
-    /// Lock metaStats counts when rejected events come in via a separate thread
-    /// </summary>
-    static std::mutex rejected_callback_mtx;
 
     /// <summary>
     /// Converts RollUpKind enum value to string name.

@@ -15,6 +15,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
+if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
+  list(APPEND SRCS
+     ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp
+  )
+endif()
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/ AND BUILD_LIVEEVENTINSPECTOR)
   add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
   list(APPEND SRCS
@@ -96,16 +102,12 @@ else()
     NAMES libgtest.a
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
   target_link_libraries(FuncTests 

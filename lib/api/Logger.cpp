@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -21,9 +21,11 @@ namespace MAT_NS_BEGIN
        public:
         const Logger& m_logger;
         bool m_active;
+        bool m_unpaused;
 
         ActiveLoggerCall(ActiveLoggerCall const& source) : m_logger(source.m_logger)
         {
+            m_unpaused = m_logger.m_logManager.StartActivity();
             std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
             m_active = m_logger.m_active;
             if (m_active)
@@ -37,6 +39,7 @@ namespace MAT_NS_BEGIN
         explicit ActiveLoggerCall(const Logger& parent) :
             m_logger(parent)
         {
+            m_unpaused = m_logger.m_logManager.StartActivity();
             std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
             m_active = m_logger.m_active;
             if (m_active)
@@ -49,6 +52,10 @@ namespace MAT_NS_BEGIN
         /// active count reaches zero (usually there are no listeners).
         ~ActiveLoggerCall()
         {
+            if (m_unpaused)
+            {
+                m_logger.m_logManager.EndActivity();
+            }
             if (m_active)
             {
                 std::lock_guard<std::mutex> lock(m_logger.m_shutdown_mutex);
@@ -66,7 +73,7 @@ namespace MAT_NS_BEGIN
 
         bool LoggerIsDead() const noexcept
         {
-            return !m_active;
+            return !m_active || !m_unpaused;
         }
     };
 
@@ -101,7 +108,12 @@ namespace MAT_NS_BEGIN
         std::string tenantId = tenantTokenToId(m_tenantToken);
         LOG_TRACE("%p: New instance (tenantId=%s)", this, tenantId.c_str());
         m_iKey = "o:" + tenantId;
-        m_allowDotsInType = m_config[CFG_MAP_COMPAT][CFG_BOOL_COMPAT_DOTS];
+        if (m_config.HasConfig(CFG_MAP_COMPAT))
+        {
+            MAT::VariantMap& cfg = m_config[CFG_MAP_COMPAT];
+            m_allowDotsInType = cfg[CFG_BOOL_COMPAT_DOTS];
+            m_customTypePrefix = static_cast<std::string&>(cfg[CFG_STR_COMPAT_PREFIX]);
+        }
         m_resetSessionOnEnd = m_config[CFG_BOOL_SESSION_RESET_ENABLED];
 
         // Special scope "-" - means opt-out from parent context variables auto-capture.
@@ -491,12 +503,15 @@ namespace MAT_NS_BEGIN
         }
 
         record.name = properties.GetName();
-        record.baseType = EVENTRECORD_TYPE_CUSTOM_EVENT;
+        record.baseType = m_customTypePrefix;
 
         std::string evtType = properties.GetType();
         if (!evtType.empty())
         {
-            record.baseType.append(".");
+            if (!record.baseType.empty())
+            {
+                record.baseType.append(".");
+            }
             if (!m_allowDotsInType)
             {
                 std::replace(evtType.begin(), evtType.end(), '.', '_');
@@ -828,7 +843,7 @@ namespace MAT_NS_BEGIN
             }
             sessionDuration = PAL::getUtcSystemTime() - m_sessionStartTime;
 
-            if (m_resetSessionOnEnd) 
+            if (m_resetSessionOnEnd)
             {
                 // reset the time of the session to 0 and get a new sessionId
                 m_sessionStartTime = 0;
@@ -891,7 +906,7 @@ namespace MAT_NS_BEGIN
 
         return m_logManager.GetLogSessionData();
     }
-    
+
     IAuthTokensController* Logger::GetAuthTokensController()
     {
         ActiveLoggerCall active(*this);

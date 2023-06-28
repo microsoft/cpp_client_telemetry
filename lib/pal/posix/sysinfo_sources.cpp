@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 /*
@@ -225,14 +225,25 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     // add("proc_loadavg", {"/proc/loadavg", "(.*)[\n]*"});
     // add("proc_uptime", {"/proc/uptime", "(.*)[\n]*"});
 
+    // osName may contain quotes on openSUSE
+    if (get("osName").find('"') == 0)
+    {
+        std::string contents = get("osName");
+        size_t pos_end_quote = contents.rfind('"');
+        if (pos_end_quote != std::string::npos && pos_end_quote > 0)
+        {
+            cache["osName"] = contents.substr(1, pos_end_quote - 1);
+        }
+    }
+
     time_t t = time(NULL);
 
 #if defined(__clang__)
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ‘tm::tm_min’ [-Werror=missing-field-initializers]
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ï¿½tm::tm_minï¿½ [-Werror=missing-field-initializers]
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ‘tm::tm_min’ [-Werror=missing-field-initializers]
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"  // error: missing initializer for member ï¿½tm::tm_minï¿½ [-Werror=missing-field-initializers]
 #endif
 
     struct tm lt { 0 };
@@ -268,6 +279,7 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     cache["osVer"] = GetDeviceOsVersion();
     cache["osRel"] = GetDeviceOsRelease();
     cache["osBuild"] = GetDeviceOsBuild();
+    cache["devClass"] = GetDeviceClass();
 
     // Populate user timezone as hh:mm offset from UTC timezone. Example for PST: "-08:00"
     CFTimeZoneRef tz = CFTimeZoneCopySystem();

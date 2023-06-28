@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -196,6 +196,7 @@ namespace MAT_NS_BEGIN
                         size_t len = strlen(deviceId);
                         if (len >= 2 && deviceId[1] == ':' && (
                             deviceId[0] == 'c' || // c: Custom identifier
+                            deviceId[0] == 'r' || // r: Randomized identifier
                             deviceId[0] == 'u' || // u: Mac OS X UUID
                             deviceId[0] == 'a' || // a: Android ID
                             deviceId[0] == 's' || // s: SQM ID

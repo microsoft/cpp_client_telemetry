@@ -5,20 +5,30 @@ plugins {
 
 apply plugin: 'com.android.library'
 
-apply from: "$rootProject.projectDir/tools.gradle"
+apply from: "$projectDir/../tools.gradle"
 
 android {
     defaultConfig {
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
         if(!ext.has("build_cpp_client") || ext.build_cpp_client) {
             externalNativeBuild {
                 cmake {
+                    String cxxFlag = project.findProperty("CXXFLAGS") ?: System.getenv("CXXFLAGS") ?: ""
+                    ArrayList<String> args = new ArrayList<String>()
+                    args.add("-DANDROID_STL=c++_shared")
+                    args.add("-DBUILD_SHARED_LIBS=1")
+                    args.add("-DUSE_ROOM=1")
+                    String linkerFlag = project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ""
+                    linkerFlag = "-DCMAKE_SHARED_LINKER_FLAGS=" + linkerFlag
+                    args.add(linkerFlag)
+                    if (!cxxFlag.isEmpty()) {
+                        args.add("-DCMAKE_CXX_FLAGS=\"" + cxxFlag + "\"")
+                    }
                     // Passes optional arguments to CMake.
-                    arguments "-DANDROID_STL=c++_shared", "-DBUILD_SHARED_LIBS=1", "-DUSE_ROOM=1", "-DCMAKE_SHARED_LINKER_FLAGS=${project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ''}"
+                    arguments args.toArray(new String[args.size()])
+                    println "cmake flag: " + arguments
                 }
             }
         }
@@ -55,19 +65,20 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'com.microsoft.applications.events'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    def room_version = '2.2.6'
+    def room_version = '2.4.3'
 
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-inline:3.2.4'
     testImplementation "androidx.room:room-testing:$room_version"
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }

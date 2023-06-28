@@ -24,7 +24,7 @@ void LockInMemory()
 {
 #ifndef _WINRT_DLL
     HMODULE mstelModule;
-    ::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, L"ClientTelemetry.dll", &mstelModule);
+    ::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, L"ClientTelemetry3m.dll", &mstelModule);
 #endif
 }
 

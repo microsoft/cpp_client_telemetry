@@ -5,10 +5,9 @@ param (
   [string]$enableWin10 = "true",
   [string]$enableMini = "true",
   [string]$enableTests = "true",
-  [string]$customProps = ""
+  [string]$customProps = "",
+  [string]$vsDevCmdBat = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
 )
-
-$vsDevCmdBat = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
 
 $solution = "Solutions\MSTelemetrySDK.sln"
 $cpuCount = $env:NUMBER_OF_PROCESSORS
@@ -60,7 +59,7 @@ foreach ($arch in $archs) {
     foreach ($config in $configs) {
       $actualConfig = $config
       if ($binType -eq "lib") {
-        $actualConfig += ".vs2015.MT-sqlite"
+        $actualConfig += ".vc14x.MT-sqlite"
       }
 
       echo "Building $actualArch|$actualConfig|$binType..."

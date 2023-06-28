@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "gtest/gtest.h"
@@ -122,17 +122,6 @@ int RunTests::run_all_tests(JNIEnv* env, jobject java_logger)
     listeners.Append(new AndroidLogger(env, java_logger));
     auto logger = Microsoft::Applications::Events::LogManager::Initialize("0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
     return RUN_ALL_TESTS();
-}
-
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_microsoft_applications_events_maesdktest_MainActivity_stringFromJNI(
-    JNIEnv* env,
-    jobject /* this */,
-    jstring path)
-{
-    auto result = RunTests::run_all_tests(env, path);
-    std::string hello = std::to_string(result);
-    return env->NewStringUTF(hello.c_str());
 }
 
 extern "C" JNIEXPORT jint JNICALL

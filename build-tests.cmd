@@ -8,6 +8,11 @@ if DEFINED GIT_PULL_TOKEN (
   git clone https://%GIT_PULL_TOKEN%:x-oauth-basic@github.com/microsoft/cpp_client_telemetry_modules.git lib\modules
 )
 
+set GTEST_PATH=third_party\googletest
+if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
+  git clone --depth 1 --branch release-1.12.1 https://github.com/google/googletest %GTEST_PATH%
+)
+
 set PLATFORM=
 
 REM Possible platforms: Win32|x64
@@ -22,17 +27,10 @@ echo Using custom properties file for the build:
 echo %CUSTOM_PROPS%
 :skip
 
-REM Add path to vs2017 MSBuild.exe
-set "PATH=%PATH%;C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\"
-
-REM Try to setup vs2017 Dev environment if possible
-echo Building using Visual Studio 2017 tools
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
-
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set SOLUTION=Solutions\MSTelemetrySDK.sln
 
-msbuild %SOLUTION% /target:sqlite,zlib,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=%CONFIGURATION% /p:Platform=%PLAT% %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:sqlite:Rebuild,zlib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=%CONFIGURATION% /p:Platform=%PLAT% %CUSTOM_PROPS%
 if errorLevel 1 goto end
 Solutions\out\%CONFIGURATION%\%PLAT%\UnitTests\UnitTests.exe
 if errorLevel 1 goto end

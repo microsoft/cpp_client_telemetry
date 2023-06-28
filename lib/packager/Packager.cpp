@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -47,6 +47,10 @@ namespace MAT_NS_BEGIN {
 
             LOG_TRACE("Adding event %s:%s, size %u bytes",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str(), static_cast<unsigned>(record.blob.size()));
+
+            #ifdef HAVE_MAT_EVT_TRACEID
+                        ctx->traceId = record.traceId;
+            #endif // HAVE_MAT_EVT_TRACEID
 
             std::string const& tenantToken = m_forcedTenantToken.empty() ? record.tenantToken : m_forcedTenantToken;
             auto it = ctx->packageIds.lower_bound(tenantToken);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 #ifndef CTMACROS_HPP
@@ -52,9 +52,15 @@
 #endif
 
 // TODO: [MG] - ideally we'd like to use __attribute__((unused)) with gcc/clang
+#ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(...)
+#endif
+
 #define OACR_USE_PTR(...)
+
+#ifndef _Out_writes_bytes_
 #define _Out_writes_bytes_(...)
+#endif
 
 #endif
 

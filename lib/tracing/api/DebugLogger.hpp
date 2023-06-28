@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef DEBUGLOGGER_HPP
@@ -74,12 +74,6 @@
 #include <Evntprov.h>
 #include <Rpc.h>
 #pragma comment (lib, "Rpcrt4.lib")
-#endif
-
-/* Windows.h overrides the definition of min and max macros, which breaks std::min and std::max */
-#ifdef min
-#undef min
-#undef max
 #endif
 
 #ifdef HAVE_SYSLOG

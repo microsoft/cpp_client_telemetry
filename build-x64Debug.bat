@@ -3,16 +3,5 @@ cd %~dp0
 call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
 
-echo "Building using Visual Studio 2017 tools"
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
-
-set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
-set platform=
-set SOLUTION=Solutions\MSTelemetrySDK.sln
-
-msbuild %SOLUTION% /target:sqlite,zlib,sqlite-uwp,win32-dll,win32-lib,net40,win10-cs,win10-dll,Tests\gmock,Tests\gtest,Tests\UnitTests,Tests\FuncTests /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=Debug /p:Platform=x64
-if errorLevel 1 goto end
-Solutions\out\Debug\x64\UnitTests\UnitTests.exe
-if errorLevel 1 goto end
-Solutions\out\Debug\x64\FuncTests\FuncTests.exe
-:end
+call tools\RunMsBuild.bat x64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild"
+call tools\RunTests.bat x64 Debug

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "objc_begin.h"
@@ -22,12 +22,12 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  @brief User Name such as the Login Name.
  */
-@property(readwrite, copy, nonatomic) NSString* UserName;
+@property(readwrite, copy, nonatomic) NSMutableArray* UserNames;
 
 /*!
  @brief User Alias, if different that UserName
  */
-@property(readwrite, copy, nonatomic) NSString* UserAlias;
+@property(readwrite, copy, nonatomic) NSMutableArray* UserAliases;
 
 /*!
  @brief IP Addresses for local network ports such as IPv4, IPv6, etc.

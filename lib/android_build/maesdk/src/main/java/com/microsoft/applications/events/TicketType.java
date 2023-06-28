@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -17,7 +17,9 @@ public enum TicketType {
 
     AAD_User(5),
 
-    AAD_JWT(6);
+    AAD_JWT(6),
+
+    AAD_Device(7);
 
     private final int m_value;
 

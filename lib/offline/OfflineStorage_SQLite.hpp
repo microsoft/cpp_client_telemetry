@@ -1,7 +1,7 @@
 #include "mat/config.h"
 #ifdef HAVE_MAT_STORAGE
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -31,7 +31,7 @@ namespace MAT_NS_BEGIN {
         virtual ~OfflineStorage_SQLite() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
         virtual void Shutdown() override;
-        virtual void Flush() override {};
+        virtual void Flush() override;
         virtual void Execute(std::string command);
         virtual bool StoreRecord(StorageRecord const& record) override;
         virtual size_t StoreRecords(std::vector<StorageRecord> & records) override;
@@ -79,6 +79,12 @@ namespace MAT_NS_BEGIN {
 
         std::mutex                  m_resizeLock{};
         std::atomic<bool>           m_resizing{false};
+
+        // SQLite initialization and shutdown isn't safe to call across multiple
+        // threads, and shutdown cannot be called while there are any instances
+        // of this class still using SQLite.
+        static std::mutex           m_initAndShutdownLock;
+        static int                  m_instanceCount;
 
         size_t                      m_stmtBeginTransaction {};
         size_t                      m_stmtCommitTransaction {};

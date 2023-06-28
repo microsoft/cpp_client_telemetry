@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #import <Foundation/Foundation.h>
@@ -233,6 +233,11 @@ NSString *const ODWCFG_MAP_COMPAT = @"compat";
 NSString *const ODWCFG_BOOL_COMPAT_DOTS = @"dotType";
 
 /*!
+ Compatibility configuration: custom type prefix
+*/
+NSString *const ODWCFG_STR_COMPAT_PREFIX = @"customTypePrefix";
+
+/*!
  LogManagerFactory: is this log manager instance in host mode?
 */
 NSString *const ODWCFG_BOOL_HOST_MODE = @"hostMode";
@@ -306,8 +311,8 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
 +(nullable ODWLogConfiguration *)getLogConfigurationCopy
 {
     auto& config = LogManager::GetLogConfiguration();
-    static ILogConfiguration configCopy(config);
-    return [[ODWLogConfiguration alloc] initWithILogConfiguration: &configCopy];
+    auto configCopy = new ILogConfiguration(config);
+    return [[ODWLogConfiguration alloc] initWithILogConfiguration: configCopy];
 }
 
 +(void)setEventCollectorUri:(nonnull NSString *)eventCollectorUri
@@ -424,6 +429,22 @@ NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
         return nil;
     }
     return [NSString stringWithCString:strCacheFilePath.c_str() encoding:NSUTF8StringEncoding];
+}
+
++(void)setEnableDbCheckpointOnFlush:(bool)enabled
+{
+    auto& config = LogManager::GetLogConfiguration();
+    config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH] = enabled;
+}
+
++(bool)enableDbCheckpointOnFlush
+{
+    auto& config = LogManager::GetLogConfiguration();
+    if (config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH)) {
+        return config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH];
+    } else {
+        return false;
+    }
 }
 
 -(void)set:(nonnull NSString *)key withValue:(nonnull NSString *)value

@@ -19,6 +19,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\bond\BondSerializer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\callbacks\DebugSource.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\compression\HttpDeflateCompression.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\decoder\PayloadDecoder.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\decorators\BaseDecorator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\filter\EventFilterCollection.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\http\HttpClient_CAPI.cpp" />
@@ -188,7 +189,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\ZlibUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\CompilerWarnings.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template" />

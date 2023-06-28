@@ -3,6 +3,7 @@ message("--- unittests")
 set(SRCS
   AIJsonSerializerTests.cpp
   AITelemetrySystemTests.cpp
+  AnnexKTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
   ClockSkewManagerTests.cpp
@@ -13,6 +14,7 @@ set(SRCS
   DeviceStateHandlerTests.cpp
   DiskLocalStorageTests.cpp
   EventFilterCollectionTests.cpp
+  EventPropertiesDecoratorTests.cpp
   EventPropertiesStorageTests.cpp
   EventPropertiesTests.cpp
   GuidTests.cpp
@@ -23,6 +25,7 @@ set(SRCS
   HttpRequestEncoderTests.cpp
   HttpResponseDecoderTests.cpp
   HttpServerTests.cpp
+  InformationProviderImplTests.cpp
   LoggerTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp
@@ -45,6 +48,8 @@ set(SRCS
   UtilsTests.cpp
   ZlibUtilsTests.cpp
 )
+
+set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
 if (APPLE)
   if (BUILD_IOS)
@@ -142,16 +147,12 @@ else()
     NAMES libgtest.a
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
   target_link_libraries(UnitTests 

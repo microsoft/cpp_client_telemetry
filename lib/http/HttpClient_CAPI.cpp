@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "HttpClient_CAPI.hpp"
@@ -186,7 +186,7 @@ namespace MAT_NS_BEGIN {
     void HttpClient_CAPI::CancelRequestAsync(const std::string& id)
     {
         LOG_TRACE("Cancelling CAPI HTTP request '%s'", id.c_str());
-        std::shared_ptr<HttpClient_Operation> operation;
+        std::shared_ptr<HttpClient_Operation> operation(nullptr);
         {
             // Only lock mutex while actually reading/writing pending operations collection to prevent potential recursive deadlock
             LOCKGUARD(s_operationsLock);
@@ -199,7 +199,7 @@ namespace MAT_NS_BEGIN {
         
         if (operation != nullptr)
         {
-            operation->Cancel();
+            operation->Cancel();// CodeQL [cpp/uninitializedptrfield] operation is explicitly constructed with nullptr so it will never hold garbage value
         }
     }
 

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 package com.microsoft.applications.events;
@@ -495,6 +495,21 @@ public class LogManager {
     return Status.getEnum(nativeResumeTransmission());
   }
 
+  private static native int nativeSetIntTicketToken(int type, final String tokenValue);
+
+  /**
+   * Sets the token ID with the value.
+   *
+   * @param type Type of token(like AAD etc)
+   * @param tokenValue Value of the token
+   * @return Status enum corresponding to the native API execution status_t.
+   */
+  public static Status setTicketToken(TicketType type, final String tokenValue) {
+    if (type == null) throw new IllegalArgumentException("type is null");
+
+    return Status.getEnum(nativeSetIntTicketToken(type.getValue(), tokenValue));
+  }
+
   private static native int nativeSetIntTransmitProfile(int profile);
 
   /**
@@ -909,6 +924,45 @@ public class LogManager {
    *
    * @return string denoting the DDV endpoint, empty string if not currently streaming
    */
-  public native static String getCurrentEndpoint();
-}
+  public static native String getCurrentEndpoint();
 
+  private static native boolean nativeRegisterPrivacyGuardOnDefaultLogManager();
+
+  /**
+   * Register the default instance of Privacy Guard with current LogManager instance.
+   * @return `true` if Privacy Guard is initialized and was registered successfully, `false` otherwise.
+   */
+  public static boolean registerPrivacyGuard() {
+    return PrivacyGuard.isInitialized() && nativeRegisterPrivacyGuardOnDefaultLogManager();
+  }
+
+  private static native boolean nativeUnregisterPrivacyGuardOnDefaultLogManager();
+
+  /**
+   * Unregister the default instance of Privacy Guard from current LogManager instance.
+   * @return `true` if Privacy Guard is initialized and was unregistered successfully, `false` otherwise.
+   */
+  public static boolean unregisterPrivacyGuard() {
+    // We need the PG ptr to get the data inspector name to remove it. If PG is already uninitialized,
+    // we should let LogManager remove it when it d'tors.
+    return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuardOnDefaultLogManager();
+  }
+
+  private static native boolean nativeRegisterSignalsOnDefaultLogManager();
+
+  public static boolean registerSignals() {
+    return Signals.isInitialized() && nativeRegisterSignalsOnDefaultLogManager();
+  }
+
+  private static native boolean nativeUnregisterSignalsOnDefaultLogManager();
+
+  public static boolean unregisterSignals() {
+    return Signals.isInitialized() && nativeUnregisterSignalsOnDefaultLogManager();
+  }
+
+  public static native void pauseActivity();
+  public static native void resumeActivity();
+  public static native void waitPause();
+  public static native boolean startActivity();
+  public static native void endActivity();
+}

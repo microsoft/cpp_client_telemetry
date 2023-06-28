@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 // System
@@ -26,7 +26,10 @@ namespace CommonSchema.Server
         public static void Main(string[] args)
         {
             CreateWebHostBuilder(args)
-            .UseKestrel()
+            .UseKestrel(options =>
+            {
+                options.AllowSynchronousIO = true;
+            })
             .UseContentRoot(Directory.GetCurrentDirectory())
             .UseWebRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
             .ConfigureAppConfiguration((hostingContext, config) =>

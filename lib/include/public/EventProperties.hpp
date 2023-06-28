@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef EVENTPROPERTIES_HPP
@@ -363,7 +363,7 @@ namespace MAT_NS_BEGIN
 #ifdef MAT_C_API
         /// Implementation of ABI-safe packing of EventProperties object
         evt_prop* pack();
-        bool unpack(evt_prop* packed, size_t size);
+        bool unpack(const evt_prop* packed, size_t size);
 #endif
 
        private:

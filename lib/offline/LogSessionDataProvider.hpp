@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef MAT_LOGSESSIONDATA_PROVIDER_HPP
@@ -51,7 +51,7 @@ namespace MAT_NS_BEGIN
         bool parse(const std::string&, uint64_t&,  std::string&) ;
 
     private:
-        IOfflineStorage* m_offlineStorage; //Pointer is not owned. Do not delete!
+        IOfflineStorage* m_offlineStorage {};  // Pointer is not owned. Do not delete!
         std::string const m_cacheFilePath;
         SessionStorageType m_storageType;
         std::unique_ptr<LogSessionData> m_logSessionData;

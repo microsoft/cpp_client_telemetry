@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 #ifndef TELEMETRY_EVENTS_H
@@ -45,7 +45,7 @@ typedef int                 bool;
 extern "C" {
 #endif
 
-    typedef enum
+    typedef enum evt_call_t
     {
         EVT_OP_LOAD = 0x00000001,
         EVT_OP_UNLOAD = 0x00000002,
@@ -62,7 +62,7 @@ extern "C" {
         EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
     } evt_call_t;
 
-    typedef enum
+    typedef enum evt_prop_t
     {
         /* Basic types */
         TYPE_STRING,
@@ -82,7 +82,7 @@ extern "C" {
         TYPE_NULL
     } evt_prop_t;
 
-    typedef struct
+    typedef struct evt_guid_t
     {
         /**
          * <summary>
@@ -117,7 +117,7 @@ extern "C" {
     typedef int32_t  evt_status_t;
     typedef struct   evt_event evt_event;
 
-    typedef struct
+    typedef struct evt_context_t
     {
         evt_call_t      call;       /* In       */
         evt_handle_t    handle;     /* In / Out */
@@ -132,7 +132,7 @@ extern "C" {
      * breaking backwards compatibility.
      * </summary>
      */
-    typedef enum
+    typedef enum evt_open_param_type_t
     {
         OPEN_PARAM_TYPE_HTTP_HANDLER_SEND = 0,
         OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL = 1,
@@ -146,7 +146,7 @@ extern "C" {
      * Represents a single input parameter to 'evt_open_with_params'
      * </summary>
      */
-    typedef struct
+    typedef struct evt_open_param_t
     {
         evt_open_param_type_t   type;
         void*                   data;
@@ -157,14 +157,14 @@ extern "C" {
      * Wraps logger configuration string and all input parameters to 'evt_open_with_params'
      * </summary>
      */
-    typedef struct
+    typedef struct evt_open_with_params_data_t
     {
         const char*             config;
         const evt_open_param_t* params;
         int32_t                 paramsCount;
     } evt_open_with_params_data_t;
 
-    typedef union
+    typedef union evt_prop_v
     {
         /* Basic types */
         uint64_t            as_uint64;
@@ -183,7 +183,7 @@ extern "C" {
         uint64_t**          as_arr_time;
     } evt_prop_v;
 
-    typedef struct
+    typedef struct evt_prop
     {
         const char*             name;
         evt_prop_t              type;
@@ -196,7 +196,7 @@ extern "C" {
      * Identifies HTTP request method type
      * </summary>
      */
-    typedef enum
+    typedef enum http_request_type_t
     {
         HTTP_REQUEST_TYPE_GET = 0,
         HTTP_REQUEST_TYPE_POST = 1,
@@ -207,7 +207,7 @@ extern "C" {
      * Identifies whether an HTTP operation has succeeded or failed, including general failure type
      * </summary>
      */
-    typedef enum
+    typedef enum http_result_t
     {
         HTTP_RESULT_OK = 0,
         HTTP_RESULT_CANCELLED = 1,
@@ -220,7 +220,7 @@ extern "C" {
      * Represents a single HTTP request or response header (key/value pair)
      * </summary>
      */
-    typedef struct
+    typedef struct http_header_t
     {
         const char*             name;
         const char*             value;
@@ -231,7 +231,7 @@ extern "C" {
      * Represents a single HTTP request. Used by optional app-provided HTTP handler callback functions.
      * </summary>
      */
-    typedef struct
+    typedef struct http_request_t
     {
         const char*             id;
         http_request_type_t     type;
@@ -247,7 +247,7 @@ extern "C" {
      * Represents a single HTTP response. Used by optional app-provided HTTP handler callback functions.
      * </summary>
      */
-    typedef struct
+    typedef struct http_response_t
     {
         int32_t                 statusCode;
         const uint8_t*          body;
@@ -266,7 +266,7 @@ extern "C" {
      * Represents a single asynchronous worker thread item. Used by optional app-provided worker thread callback functions.
      * </summary>
      */
-    typedef struct
+    typedef struct evt_task_t
     {
         const char*             id;
         int64_t                 delayMs;

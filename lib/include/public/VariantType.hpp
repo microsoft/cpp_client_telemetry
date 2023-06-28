@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 #ifndef MAT_VARIANTTYPE_HPP
@@ -396,7 +396,7 @@ public:
             case '\r': o << "\\r"; break;
             case '\t': o << "\\t"; break;
             default:
-                if ('\x00' <= *c && *c <= '\x1f') {
+                if ('\x00' <= static_cast<signed char>(*c) && *c <= '\x1f') {
                     o << "\\u"
                         << std::hex << std::setw(4) << std::setfill('0') << (int)*c;
                 }

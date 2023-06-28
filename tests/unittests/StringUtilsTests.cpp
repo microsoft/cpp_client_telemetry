@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2015-2020 Microsoft Corporation and Contributors.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -69,10 +69,10 @@ TEST(StringUtilsTests, SplitString)
 	ASSERT_EQ(parts.size() > 5 ? parts[5] : "null", "");
 }
 
-TEST(StringUtilsTests, AreAllCharactersWhitelisted)
+TEST(StringUtilsTests, AreAllCharactersAllowlisted)
 {
 	// testing method
-	// bool AreAllCharactersWhitelisted(const std::string& stringToTest, const std::string& whitelist);
+	// bool AreAllCharactersAllowlisted(const std::string& stringToTest, const std::string& allowlist);
 
 	string allAsciiChars;
 
@@ -81,29 +81,29 @@ TEST(StringUtilsTests, AreAllCharactersWhitelisted)
 		allAsciiChars += ((char)i);
 	}
 
-	// any string is whitelisted against the full list of characters
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted(allAsciiChars, allAsciiChars));
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("", allAsciiChars));
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("a", allAsciiChars));
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("aaaaaaaaaaa", allAsciiChars));
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted(string(10000, ' '), allAsciiChars));
+	// any string is allowed against the full list of characters
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted(allAsciiChars, allAsciiChars));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", allAsciiChars));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("a", allAsciiChars));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("aaaaaaaaaaa", allAsciiChars));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted(string(10000, ' '), allAsciiChars));
 
-	// any non-empty string is NOT whitelisted against an empty list of characters
-	EXPECT_FALSE(StringUtils::AreAllCharactersWhitelisted(allAsciiChars, ""));
-	EXPECT_FALSE(StringUtils::AreAllCharactersWhitelisted("a", ""));
-	EXPECT_FALSE(StringUtils::AreAllCharactersWhitelisted("aaaaaaaaaaa", ""));
-	EXPECT_FALSE(StringUtils::AreAllCharactersWhitelisted(string(10000, ' '), ""));
+	// any non-empty string is NOT allowed against an empty list of characters
+	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted(allAsciiChars, ""));
+	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted("a", ""));
+	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted("aaaaaaaaaaa", ""));
+	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted(string(10000, ' '), ""));
 
-	// empty string is whitelisted against any whitelist of characters
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("", allAsciiChars));
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("", ""));
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("", "a"));
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("", "aaaaaaaaaaa"));
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("", string(10000, ' ')));
+	// empty string is allowed against any list of characters
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", allAsciiChars));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", ""));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", "a"));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", "aaaaaaaaaaa"));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("", string(10000, ' ')));
 
 	// a few more positive and negative tests
-	EXPECT_TRUE(StringUtils::AreAllCharactersWhitelisted("abc123", "abcdef123456"));
-	EXPECT_FALSE(StringUtils::AreAllCharactersWhitelisted("abc123", "abcdef23456"));
+	EXPECT_TRUE(StringUtils::AreAllCharactersAllowlisted("abc123", "abcdef123456"));
+	EXPECT_FALSE(StringUtils::AreAllCharactersAllowlisted("abc123", "abcdef23456"));
 }
 
 TEST(StringUtilsTests, ToString)
@@ -155,7 +155,7 @@ TEST(StringUtilsTests, Utf8Utf16Conversion)
         "!@#$%^&*()-=_+[]\\{}|;':\",./<>?",
     };
 
-    for (std::string str : test_strings) {
+    for (const auto& str : test_strings) {
       EXPECT_EQ(str, to_utf8_string(to_utf16_string(str)));
     }
 }

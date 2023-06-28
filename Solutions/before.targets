@@ -3,7 +3,10 @@
     <CustomIncludePath>$(SolutionDir)\..\third_party\krabsetw\krabs;$(CustomIncludePath)</CustomIncludePath>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
-    <!-- Use Visual Studio 2017 v141 toolset as default -->
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '15.0'">v141</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '16.0'">v142</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '17.0'">v143</PlatformToolset>
+    <!-- Fallback to Visual Studio 2017 (v141) toolset by default -->
     <PlatformToolset Condition="'$(PlatformToolset)' == ''">v141</PlatformToolset>
     <PlatformToolset Condition="'$(PlatformToolset)' != ''">$(PlatformToolset)</PlatformToolset>
     <!-- Customers may override WindowsTargetPlatformVersion before auto-detection of latest Win 10 SDK -->
