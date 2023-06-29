@@ -11,13 +11,19 @@ let package = Package(
             name: "SamplePackage",
             targets: ["SamplePackage"]),
     ],
+    dependencies: [
+        .package(path: "../../../wrappers/swift"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "SamplePackage"),
-        .testTarget(
-            name: "SamplePackageTests",
-            dependencies: ["SamplePackage"]),
+            name: "SamplePackage",
+            dependencies: [
+                .product(name: "OneDSSwift", package: "swift"),
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xcc", "-I../../../wrappers/swift/Modules/"])
+            ]),
     ]
 )
