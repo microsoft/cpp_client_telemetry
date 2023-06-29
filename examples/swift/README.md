@@ -28,5 +28,5 @@ Details:
 - Package Dependencies:
     - OneDSSwift: Package containing swift wrappers
 
-- Modules:
+- Modules Included:
     - ObjCModule: Module exposing ObjC headers via module.modulemap file.
