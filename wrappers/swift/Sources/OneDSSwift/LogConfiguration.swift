@@ -7,7 +7,12 @@ import ObjCModule
 
 /// Class wrapping `ODWLogConfiguration` ObjC class object, representing configuration related to events.
 public final class LogConfiguration {
-    private var odwLogConfiguration: ODWLogConfiguration
+    private var _odwLogConfiguration: ODWLogConfiguration
+    var odwLogConfiguration:ODWLogConfiguration {
+        get {
+            _odwLogConfiguration
+        }
+    }
 
     /**
     Constructs `self` with provided config as `ODWLogConfiguration` object.
@@ -15,14 +20,14 @@ public final class LogConfiguration {
     - Parameters:
         - config: `ODWLogConfiguration` object which would be wrapped to.
     */
-    public init(config: ODWLogConfiguration) {
-        self.odwLogConfiguration = config
+    init(config: ODWLogConfiguration) {
+        self._odwLogConfiguration = config
     }
 
     /// Return a copy of the default configuration
     public static func getLogConfigurationCopy() -> LogConfiguration? {
-        if let odwLogConfiguration = ODWLogConfiguration.getCopy() {
-            return LogConfiguration(config: odwLogConfiguration)
+        if let _odwLogConfiguration = ODWLogConfiguration.getCopy() {
+            return LogConfiguration(config: _odwLogConfiguration)
         } else {
             return nil
         }
@@ -191,12 +196,12 @@ public final class LogConfiguration {
         - value: A value as a `String`.
     */
     public func set(_ key: String, havingValue value: String) {
-        self.odwLogConfiguration.set(key, withValue: value)
+        _odwLogConfiguration.set(key, withValue: value)
     }
 
     /// Returns the value as `String` for the given `String` key.
     public func value(forKey key: String) -> String? {
-        return self.odwLogConfiguration.value(forKey: key)
+        return _odwLogConfiguration.value(forKey: key)
     }
 
     /**
@@ -206,11 +211,11 @@ public final class LogConfiguration {
         - host: A host value as `String`.
     */
     public func setHost(_ host: String) {
-        self.odwLogConfiguration.setHost(host)
+        _odwLogConfiguration.setHost(host)
     }
 
     /// Returns the host value as `String`.
     public func host() -> String? {
-        return self.odwLogConfiguration.host()
+        return _odwLogConfiguration.host()
     }
 }
