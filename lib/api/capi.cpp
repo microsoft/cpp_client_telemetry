@@ -252,7 +252,7 @@ evt_status_t mat_sendprops(evt_context_t* ctx, evt_call_t op)
     VERIFY_CLIENT_HANDLE(client, ctx);
 
     ILogConfiguration & config = client->config;
-    evt_prop *evt = static_cast<evt_prop*>(ctx->data);
+    const evt_prop *evt = static_cast<evt_prop*>(ctx->data);
     EventProperties props;
     props.unpack(evt, ctx->size);
 

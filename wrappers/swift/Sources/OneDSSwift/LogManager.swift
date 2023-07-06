@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Wrapper over ODWLogManager which manages the telemetry logging system.
 public final class LogManager {
 
@@ -55,8 +57,8 @@ public final class LogManager {
     - Returns:
         - A `Logger` instance that points to the logger for the specified tenant token and source.
     */
-    public static func loggerWithTenant(tenantToken: String, withSource source: String, withConfig config: ODWLogConfiguration) -> Logger?{
-        if let odwLogger = ODWLogManager.logger(withTenant: tenantToken, source: source, withConfig: config) {
+    public static func loggerWithTenant(tenantToken: String, withSource source: String, withConfig config: LogConfiguration) -> Logger?{
+        if let odwLogger = ODWLogManager.logger(withTenant: tenantToken, source: source, withConfig: config.odwLogConfiguration) {
             return Logger(logger: odwLogger)
         } else {
             return nil
@@ -90,12 +92,12 @@ public final class LogManager {
     }
 
     /// Flushes pending telemetry events from memory to disk (to reduce possible data loss) and returns the flush operation's status.
-    public static func flush() -> ODWStatus {
+    public static func flush() -> FlushStatus {
         return ODWLogManager.flush()
     }
 
     /// Flushes pending telemetry events from memory to disk, tears-down the telemetry logging system, and returns the flush operation's status.
-    public static func flushAndTeardown() -> ODWStatus {
+    public static func flushAndTeardown() -> FlushStatus {
         return ODWLogManager.flushAndTeardown()
     }
 
@@ -107,9 +109,9 @@ public final class LogManager {
                     that determines how efficiently telemetry events are transmitted.
 
     - Parameters:
-        - profile: The transmit profile to set, as one of the `ODWTransmissionProfile` values.
+        - profile: The transmit profile to set, as one of the `TransmissionProfile` values.
     */
-    public static func setTransmissionProfile(profile: ODWTransmissionProfile) {
+    public static func setTransmissionProfile(profile: TransmissionProfile) {
         ODWLogManager.setTransmissionProfile(profile)
     }
 
@@ -146,9 +148,9 @@ public final class LogManager {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withValue: A `String` that contains the value of the property.
-        - withPiiKind: The kind of Personal Identifiable Information (PII), as one of the `ODWPiiKind` enum values.
+        - withPiiKind: The kind of Personal Identifiable Information (PII), as one of the `PIIKind` enum values.
     */
-    public static func setContextWithName(name: String, withValue value:String, withPiiKind piiKind: ODWPiiKind) {
+    public static func setContextWithName(name: String, withValue value:String, withPiiKind piiKind: PIIKind) {
         ODWLogManager.setContextWithName(name, stringValue:value, piiKind: piiKind)
     }
 

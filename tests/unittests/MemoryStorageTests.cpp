@@ -258,6 +258,9 @@ TEST(MemoryStorageTests, GetAndReserveSome)
 #if defined(__clang__)
 #pragma clang diagnostic push                              // This appears to be a detection bug with constexpr variables in Clang9
 #pragma clang diagnostic ignored "-Wunused-lambda-capture" // error : lambda capture 'howMany' is not required to be captured for this use[-Werror, -Wunused - lambda - capture]
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 5258)  // warning C5258: explicit capture of 'howMany' is not required for this use
 #endif
     storage.GetAndReserveRecords(
         [&someRecords, howMany] (StorageRecord && record)->bool
@@ -272,6 +275,8 @@ TEST(MemoryStorageTests, GetAndReserveSome)
     );
 #if defined(__clang__)
 #pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
 #endif
 
     EXPECT_EQ(howMany, someRecords.size());
