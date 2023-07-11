@@ -92,6 +92,8 @@ namespace CLI
             );
 
             Console.WriteLine("Flush...");
+            LogManager.Flush();
+            Console.WriteLine("FlushAndTeardown...");
             LogManager.FlushAndTeardown();
 
             Console.WriteLine("[ DONE ]");

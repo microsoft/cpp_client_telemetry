@@ -49,6 +49,9 @@ namespace MAT_NS_BEGIN
     {
        public:
         /// <summary>
+        /// WARNING: If you are using offline storage you need to call Flush before FlushAndTearDown.
+        /// https://github.com/microsoft/cpp_client_telemetry/blob/main/docs/use-after-free.md#flushandteardown
+        ///
         /// Flushes any pending telemetry events in memory to disk, and tears-down the telemetry logging system.
         /// </summary>
         virtual void FlushAndTeardown() = 0;

@@ -301,6 +301,7 @@ int main()
     config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_UTCCommonSchema;
     logger = LogManager::Initialize(API_KEY);
     logPiiMark();   // UTC upload
+    LogManager::Flush();
     LogManager::FlushAndTeardown();
 #endif
 
@@ -387,6 +388,8 @@ int main()
     // normal	- 4 sec
     // low		- 8 sec
 
+    printf("LogManager::Flush\n");
+    LogManager::Flush();
     printf("LogManager::FlushAndTeardown\n");
     LogManager::FlushAndTeardown();
 

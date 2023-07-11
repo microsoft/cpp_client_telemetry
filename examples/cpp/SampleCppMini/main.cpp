@@ -88,6 +88,7 @@ void test_cpp_api(const char * token, int ticketType, const char *ticket)
     logger->LogEvent(detailed_event);
 
     // Shutdown
+    LogManager::Flush();
     LogManager::FlushAndTeardown();
 
     printf("[ DONE ]\n");

@@ -85,6 +85,7 @@ int main(int argc, char** argv){
         [logger2 logEventWithEventProperties: event3];
 
         [logger2 logEventWithName:@"SemanticContext_EmptyEvent"];
+        [ODWLogManager flush];
         [ODWLogManager flushAndTeardown];
         [ODWPrivacyGuard resetPrivacyGuardInstance];
     }
