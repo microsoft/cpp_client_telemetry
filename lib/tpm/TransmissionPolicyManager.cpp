@@ -26,7 +26,7 @@ namespace MAT_NS_BEGIN {
             }
         }
 
-        bool isPaused()
+        bool isPaused() const noexcept
         {
             return !m_unpaused;
         }

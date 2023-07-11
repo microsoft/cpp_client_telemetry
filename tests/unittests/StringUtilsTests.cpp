@@ -155,7 +155,7 @@ TEST(StringUtilsTests, Utf8Utf16Conversion)
         "!@#$%^&*()-=_+[]\\{}|;':\",./<>?",
     };
 
-    for (std::string str : test_strings) {
+    for (const auto& str : test_strings) {
       EXPECT_EQ(str, to_utf8_string(to_utf16_string(str)));
     }
 }

@@ -47,7 +47,7 @@ namespace MAT_NS_BEGIN {
 #else
         record.extSdk[0].libVer = PAL::getSdkVersion();
 #endif
-        auto sessionData = m_owner.GetLogSessionData();
+        const auto* sessionData = m_owner.GetLogSessionData();
         if (sessionData)
         {
             record.extSdk[0].installId = sessionData->getSessionSDKUid();
