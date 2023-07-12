@@ -3,13 +3,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Wrapper over `ODWSemanticContext` class that manages the inclusion of semantic context values on logged events.
 public class SemanticContext {
     private var odwSemanticContext: ODWSemanticContext
 
     /// Contructs the object with ODWSemanticContext object to be wrapped around.
-    public init(semanticContext: ODWSemanticContext) {
-        self.odwSemanticContext = semanticContext
+    init(odwSemanticContext: ODWSemanticContext) {
+        self.odwSemanticContext = odwSemanticContext
     }
 
     /**

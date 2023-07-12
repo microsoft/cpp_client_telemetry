@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Wrapper to `ODWPrivacyGuard` representing Privacy Guard Hook.
 public final class PrivacyGuard {
     // MARK: Behavior methods
@@ -28,8 +30,8 @@ public final class PrivacyGuard {
     - Parameters:
         - freshCommonDataContext: Fresh Common Data Contexts instance.
     */
-    public static func appendCommonDataContext(freshCommonDataContext: ODWCommonDataContext) {
-        ODWPrivacyGuard.append(freshCommonDataContext)
+    public static func appendCommonDataContext(freshCommonDataContext: CommonDataContext) {
+        ODWPrivacyGuard.append(freshCommonDataContext.odwCommonDataContext)
     }
 
     /**
@@ -42,7 +44,7 @@ public final class PrivacyGuard {
         - fieldName: Field that the ignored concern should apply to.
         - ignoredConcern: The concern that is expected and should be ignored.
     */
-    public static func addIgnoredConcern(eventName: String, fieldName: String, ignoredConcern: ODWDataConcernType) {
+    public static func addIgnoredConcern(eventName: String, fieldName: String, ignoredConcern: DataConcernType) {
         ODWPrivacyGuard.addIgnoredConcern(eventName, with: fieldName, with: ignoredConcern)
     }
 

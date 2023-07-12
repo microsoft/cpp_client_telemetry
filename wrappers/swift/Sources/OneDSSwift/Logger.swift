@@ -3,13 +3,24 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+import ObjCModule
+
 /// Wrapper class around ObjC Logger class `ODWLogger` used to events.
 public final class Logger {
     private var odwLogger: ODWLogger
+    private(set) var _semanticContext: SemanticContext
+
+    /// Semantic context for the logger.
+    public var semanticContext:SemanticContext {
+        get {
+            _semanticContext
+        }
+    }
 
     /// Constructs `Logger` with `ODWLogger` object which would be wrapped around.
-    public init(logger: ODWLogger) {
-        self.odwLogger = logger
+    init(logger: ODWLogger) {
+        odwLogger = logger
+        _semanticContext = SemanticContext(odwSemanticContext: odwLogger.semanticContext)
     }
 
     // MARK: Basic LogEvent methods
@@ -102,11 +113,11 @@ public final class Logger {
     Logs a diagnostic trace event to help you troubleshoot problems.
 
     - Parameters:
-        - traceLevel: Level of trace as one of `ODWTraceLevel` enum values.
+        - traceLevel: Level of trace as one of `TraceLevel` enum values.
         - traceMessage: `String` that contains description of the trace.
         - eventProperties: Properties of the failure event, encapsulated within an `EventProperties`.
     */
-    public func logTraceWithTraceLevel(_ traceLevel: ODWTraceLevel, traceMessage message: String, eventProperties properties: EventProperties) {
+    public func logTraceWithTraceLevel(_ traceLevel: TraceLevel, traceMessage message: String, eventProperties properties: EventProperties) {
         odwLogger.logTrace(with: traceLevel, message: message, eventProperties: properties.getODWEventPropertiesObject())
     }
 
@@ -117,10 +128,10 @@ public final class Logger {
             Similarly, logging *session end* while a session doesn't exist produces a no-op.
 
     - Parameters:
-        - state: The session's state as one of the `ODWSessionState` enum values.
+        - state: The session's state as one of the `SessionState` enum values.
         - eventProperties: Properties of the failure event, encapsulated within an `EventProperties`.
     */
-    public func logSessionWithState(_ state: ODWSessionState, eventProperties properties: EventProperties) {
+    public func logSessionWithState(_ state: SessionState, eventProperties properties: EventProperties) {
         odwLogger.logSession(with: state, eventProperties: properties.getODWEventPropertiesObject())
     }
 
@@ -140,9 +151,9 @@ public final class Logger {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withStringValue: A `String` that contains the property of the value.
-        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
+        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `PIIKind` enum values.
     */
-    public func setContextWithName(_ name: String, withStringValue value: String, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
+    public func setContextWithName(_ name: String, withStringValue value: String, withPiiKind piiKind: PIIKind = PIIKind.none) {
         odwLogger.setContextWithName(name, stringValue: value, piiKind: piiKind)
     }
 
@@ -153,9 +164,9 @@ public final class Logger {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withBoolValue: A `Bool` that contains the property of the value.
-        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
+        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `PIIKind` enum values.
     */
-    public func setContextWithName(_ name: String, withBoolValue value: Bool, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
+    public func setContextWithName(_ name: String, withBoolValue value: Bool, withPiiKind piiKind: PIIKind = PIIKind.none) {
         odwLogger.setContextWithName(name, boolValue: value, piiKind: piiKind)
     }
 
@@ -166,9 +177,9 @@ public final class Logger {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withDateValue: A `Date` that contains the property of the value.
-        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
+        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `PIIKind` enum values.
     */
-    public func setContextWithName(_ name: String, withDateValue value: Date, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
+    public func setContextWithName(_ name: String, withDateValue value: Date, withPiiKind piiKind: PIIKind = PIIKind.none) {
         odwLogger.setContextWithName(name, dateValue: value, piiKind: piiKind)
     }
 
@@ -179,9 +190,9 @@ public final class Logger {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withDoubleValue: A `Double` that contains the property of the value.
-        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
+        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `PIIKind` enum values.
     */
-    public func setContextWithName(_ name: String, withDoubleValue value: Double, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
+    public func setContextWithName(_ name: String, withDoubleValue value: Double, withPiiKind piiKind: PIIKind = PIIKind.none) {
         odwLogger.setContextWithName(name, doubleValue: value, piiKind: piiKind)
     }
 
@@ -192,9 +203,9 @@ public final class Logger {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withInt64Value: A `Int64` that contains the property of the value.
-        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
+        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `PIIKind` enum values.
     */
-    public func setContextWithName(_ name: String, withInt64Value value: Int64, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
+    public func setContextWithName(_ name: String, withInt64Value value: Int64, withPiiKind piiKind: PIIKind = PIIKind.none) {
         odwLogger.setContextWithName(name, int64Value: value, piiKind: piiKind)
     }
 
@@ -205,9 +216,9 @@ public final class Logger {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withInt32Value: A `Int32` that contains the property of the value.
-        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
+        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `PIIKind` enum values.
     */
-    public func setContextWithName(_ name: String, withInt32Value value: Int32, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
+    public func setContextWithName(_ name: String, withInt32Value value: Int32, withPiiKind piiKind: PIIKind = PIIKind.none) {
         odwLogger.setContextWithName(name, int32Value: value, piiKind: piiKind)
     }
 
@@ -218,9 +229,9 @@ public final class Logger {
     - Parameters:
         - name: A `String` that contains the name of the property.
         - withUUIDValue: A `UUID` that contains the property of the value.
-        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `ODWPiiKind` enum values.
+        - withPiiKind: The kind of "Personal Identifiable Information (PII)", as one of the `PIIKind` enum values.
     */
-    public func setContextWithName(_ name: String, withUUIDValue value: UUID, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.none) {
+    public func setContextWithName(_ name: String, withUUIDValue value: UUID, withPiiKind piiKind: PIIKind = PIIKind.none) {
         odwLogger.setContextWithName(name, uuidValue: value, piiKind: piiKind)
     }
 }

@@ -73,12 +73,12 @@ TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
 {
    TestLogSessionDataProvider logSessionDataProvider1(PathToNonEmptyTestSesFile);
    logSessionDataProvider1.CreateLogSessionData();
-   auto logSessionData1 = logSessionDataProvider1.GetLogSessionData();
+   const auto* logSessionData1 = logSessionDataProvider1.GetLogSessionData();
 
    // Create another provider instance and validate session data is not re-generated
    TestLogSessionDataProvider logSessionDataProvider2(PathToNonEmptyTestSesFile);
    logSessionDataProvider2.CreateLogSessionData();
-   auto logSessionData2 = logSessionDataProvider2.GetLogSessionData();
+   const auto* logSessionData2 = logSessionDataProvider2.GetLogSessionData();
 
    ASSERT_EQ(logSessionData1->getSessionFirstTime(), logSessionData2->getSessionFirstTime());
    ASSERT_EQ(logSessionData1->getSessionSDKUid(), logSessionData2->getSessionSDKUid());
