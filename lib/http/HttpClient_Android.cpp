@@ -12,6 +12,7 @@
 namespace MAT_NS_BEGIN
 {
     constexpr static auto Tag = "HttpClient_Android";
+    std::once_flag flagClient;
 
     HttpClient_Android::HttpRequest::~HttpRequest() noexcept
     {
@@ -439,13 +440,17 @@ namespace MAT_NS_BEGIN
         return std::string(buffer);
     }
 
+    void HttpClient_Android::createInstance()
+    {
+        s_client = std::make_shared<HttpClient_Android>();
+    }
+
     void HttpClient_Android::CreateClientInstance(JNIEnv* env,
                                                   jobject java_client)
     {
-        auto client = std::make_shared<HttpClient_Android>();
-        s_client = client;
+        std::call_once(flagClient, createInstance);
 
-        client->SetClient(env, java_client);
+        s_client->SetClient(env, java_client);
     }
 
     void HttpClient_Android::SetJavaVM(JavaVM* vm)

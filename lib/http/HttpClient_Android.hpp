@@ -208,6 +208,11 @@ namespace MAT_NS_BEGIN
         static std::string s_cache_file_path;
 
         bool CheckException(JNIEnv* env, HttpRequest* request);
+
+        private:
+        static void createInstance();
+        HttpClient_Android(const HttpClient_Android&) = delete;
+        HttpClient_Android& operator=(const HttpClient_Android&) = delete;
     };
 
 }
