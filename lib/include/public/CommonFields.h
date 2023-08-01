@@ -88,23 +88,6 @@
 #define PDT_ProductAndServiceUsage                          0x0000000002000000u
 #define PDT_SoftwareSetupAndInventory                       0x0000000080000000u
 
-// Privacy Data Category
-#define TPDC_ClientDiagnosticData 1
-#define TPDC_ServiceDiagnosticData 110
-#define TPDC_ServiceFunctionalData 120
-#define TPDC_EssentialServiceDiagnosticData 210
-#define TPDC_EssentialServiceFunctionalData 220
-
-// Privacy product
-#define TPP_Windows 1
-#define TPP_Office 2
-#define TPP_Edge 3
-#define TPP_Xbox 4
-#define TPP_Bing 5
-#define TPP_Surface 6
-
-
-
 
 /* Default set of diagnostic level constants. Customers may define their own set. */
 #define DIAG_LEVEL_NOTSET                               255
