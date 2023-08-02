@@ -76,7 +76,7 @@ TEST(EventPropertiesDecoratorTests, Decorate_SetToEventPropertiesTimestamp)
     EventLatency latency = EventLatency::EventLatency_Normal;
 
     EXPECT_TRUE(decorator.decorate(record, latency, props));
-    EXPECT_THAT(record.time, Eq(1234567ULL*10000 + 0x89F7FF5F7B58000ULL));
+    EXPECT_THAT(static_cast<unsigned long long>(record.time), Eq(1234567ULL*10000 + 0x89F7FF5F7B58000ULL));
 }
 
 TEST(EventPropertiesDecoratorTests, Decorate_PopSample)
