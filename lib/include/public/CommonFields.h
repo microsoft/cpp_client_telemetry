@@ -51,6 +51,8 @@
 #define COMMONFIELDS_EVENT_INITID                            "EventInfo.InitId"
 #define COMMONFIELDS_EVENT_SEQ                               "EventInfo.Sequence"
 #define COMMONFIELDS_EVENT_PRIVTAGS                          "EventInfo.PrivTags"
+#define COMMONFIELDS_EVENT_PRIVDATACATEGORY                  "EventInfo.PrivDataCategory"
+#define COMMONFIELDS_EVENT_PRIVPRODUCT                       "EventInfo.PrivProduct"
 #define COMMONFIELDS_EVENT_LEVEL                             "EventInfo.Level"
 #define COMMONFIELDS_EVENT_PRIORITY                          "EventInfo.Priority"
 #define COMMONFIELDS_EVENT_LATENCY                           "EventInfo.Latency"
