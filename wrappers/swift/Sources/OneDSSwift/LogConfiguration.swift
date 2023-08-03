@@ -10,7 +10,7 @@ public final class LogConfiguration {
     private var _odwLogConfiguration: ODWLogConfiguration
     var odwLogConfiguration:ODWLogConfiguration {
         get {
-            odwLogConfiguration
+            _odwLogConfiguration
         }
     }
 
