@@ -104,6 +104,12 @@ namespace MAT_NS_BEGIN
             return std::string(url);
         }
 
+        virtual bool IsCollectorUrlSet() override
+        {
+            const char* url = config[CFG_STR_COLLECTOR_URL];
+            return (url != nullptr) && (url[0] != '\0');
+        }
+
         virtual void DecorateEvent(std::map<std::string, std::string>& extension, std::string const& experimentationProject, std::string const& eventName) override
         {
             UNREFERENCED_PARAMETER(extension);

@@ -107,6 +107,11 @@ namespace MAT_NS_BEGIN {
             return;
         }
         LOCKGUARD(m_scheduledUploadMutex);
+        if (!m_config.IsCollectorUrlSet())
+        {
+            LOG_TRACE("Collector URL is not set, no upload.");
+            return;
+        }
         if (delay.count() < 0 || m_timerdelay.count() < 0)
         {
             LOG_TRACE("Negative delay(%d) or m_timerdelay(%d), no upload", delay.count(), m_timerdelay.count());
