@@ -39,7 +39,7 @@ EventSender example has been modified to illustrate the concept:
 empty value `""`. This configuration instructs the SDK to run in offline mode. All data gets
 logged to offline storage and not uploaded. This setting has the same effect as running in
 paused state. Key difference is that irrespective of upload timer cadence - even for immediate
-priority events, 1DS SDK never attempts to trigger the upload. This spetial configuration option
+priority events, 1DS SDK never attempts to trigger the upload. This special configuration option
 is safer than simply issuing `PauseTransmission` on app start.
 
 Then application must perform asynchronous EUDB URL detection in its own asynchronous task /
