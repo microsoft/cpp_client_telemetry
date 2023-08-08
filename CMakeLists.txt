@@ -37,7 +37,6 @@ if(APPLE)
 
     if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
       set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-      
       if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
         # iOS arm64 simulator is supported starting BigSur
         # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
@@ -189,6 +188,11 @@ if(GCC5_CXX11_ABI_WORKAROUND)
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 endif()
 
+option(USE_ONEDS_BOUNDCHECK_METHODS "Use bound check methods for C99 functions" OFF)
+if (USE_ONEDS_BOUNDCHECK_METHODS)
+  add_definitions(-DHAVE_ONEDS_BOUNDCHECK_METHODS)
+endif()
+
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
  add_definitions(-DZLIB_WINAPI)
 endif()
@@ -249,6 +253,7 @@ option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
 option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
+option(BUILD_SWIFT_WRAPPER "Build Swift Wrappers"   YES)
 option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)

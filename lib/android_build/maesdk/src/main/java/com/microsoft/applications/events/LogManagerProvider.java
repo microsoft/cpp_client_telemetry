@@ -86,6 +86,13 @@ public class LogManagerProvider {
       return Status.getEnum(nativeResumeTransmission(nativeLogManager));
     }
 
+    protected native int nativeSetIntTicketToken(long nativeLogManager, int type, final String tokenValue);
+
+    @Override
+    public Status setTicketToken(TicketType type, final String tokenValue) {
+      return Status.getEnum(nativeSetIntTicketToken(nativeLogManager, type.getValue(), tokenValue));
+    }
+    
     protected native int nativeSetTransmitProfileTP(long nativeLogManager, int profile);
 
     @Override

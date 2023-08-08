@@ -134,6 +134,12 @@ namespace MAT_NS_BEGIN {
         }
     }
 
+    void OfflineStorage_SQLite::Flush() 
+    {
+        if (m_db)
+            m_db->flush();
+    }
+    
     void OfflineStorage_SQLite::Execute(std::string command)
     {
         if (m_db)

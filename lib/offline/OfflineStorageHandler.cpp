@@ -199,6 +199,12 @@ namespace MAT_NS_BEGIN {
             }
         }
 
+        // Checkpoint DB
+        if (m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH]) 
+        {
+            m_offlineStorageDisk->Flush();
+        }
+
         m_isStorageFullNotificationSend = false;
 
         // Flush is done, notify the waiters

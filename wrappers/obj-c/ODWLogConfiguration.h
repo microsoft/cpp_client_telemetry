@@ -392,6 +392,17 @@ extern NSString * _Nonnull const ODWCFG_BOOL_SESSION_RESET_ENABLED;
 +(nullable NSString *)cacheFilePath;
 
 /*!
+@brief Controls if DB will be checkpointed when flushing
+@param enableDbCheckpointOnFlush True if DB should be checkpointed when flushing.
+*/
++(void)setEnableDbCheckpointOnFlush:(bool)enableDbCheckpointOnFlush;
+
+/*!
+@brief Returns true if DB will be checkpointed when flushing.
+*/
++(bool)enableDbCheckpointOnFlush;
+
+/*!
 @brief Sets a config key to a string value for the copied config
 @param key A key.
 @param value A value.

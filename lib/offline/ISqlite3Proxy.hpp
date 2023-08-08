@@ -55,6 +55,7 @@ class ISqlite3Proxy {
     virtual const void*          sqlite3_value_blob(sqlite3_value* value) = 0;
     virtual int                  sqlite3_value_bytes(sqlite3_value* value) = 0;
     virtual sqlite3_vfs*         sqlite3_vfs_find(char const* zVfsName) = 0;
+    virtual void                 sqlite3_wal_checkpoint(sqlite3* db) = 0;
 };
 
 extern ISqlite3Proxy* g_sqlite3Proxy;
