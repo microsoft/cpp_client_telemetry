@@ -79,6 +79,8 @@ const char* defaultConfig = static_cast<const char *> JSON_CONFIG
 // is performed asynchronously and could take a few seconds. EUDB URL for Enterprise applications may be cached
 // in app-specific configuration storage. 1DS SDK does not provide a feature to cache the data collection URL used for
 // a previous session.
+//
+// Note that this function to determine the URL is called once, early at boot.
 std::string GetEudbCollectorUrl()
 {
     const auto randSeed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -95,7 +97,7 @@ void UpdateUploadUrl()
     // Obtain a reference to current configuration.
     auto& config = LogManager::GetLogConfiguration();
 
-    // Update configuration in-place.
+    // Update configuration in-place. This is done once after the regional data collection URL is determined.
     config[CFG_STR_COLLECTOR_URL] = GetEudbCollectorUrl();
 
     // Resume transmission once EUDB collector URL detection is obtained. In case if EUDB collector determination fails, only required

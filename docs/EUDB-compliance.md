@@ -42,7 +42,7 @@ paused state. Key difference is that irrespective of upload timer cadence - even
 priority events, 1DS SDK never attempts to trigger the upload. This special configuration option
 is safer than simply issuing `PauseTransmission` on app start.
 
-Then application must perform asynchronous EUDB URL detection in its own asynchronous task /
+Then application must perform asynchronous EUDB URL detection once in its own asynchronous task /
 thread. URL detection process is asynchronous and may take significant amount of time from hundred
 milliseconds to seconds. In order to avoid affecting application launch startup performance,
 application may perform other startup and logging actions concurrently. All events get logged
@@ -56,6 +56,9 @@ OneSettings, etc.), or read cached value from local app configuration storage, t
 to 1DS SDK:
 
 `ILogConfiguration[CFG_STR_COLLECTOR_URL] = eudb_url`
+
+This assignment of URL is done once during application start. Application does not need to change the
+data collection URL after that.
 
 Note that 1DS SDK itself does not provide a feature to store the cached URL value. It is up to the
 product owners to decide what caching mechanism they would like to use: registry, ECS cache, Unity
