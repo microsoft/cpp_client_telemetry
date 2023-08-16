@@ -75,6 +75,7 @@ namespace MAT_NS_BEGIN {
 
     void Packager::handleFinalizePackage(EventsUploadContextPtr const& ctx)
     {
+        LOG_TRACE("handleFinalizePackage : %d", (int)ctx->packageIds.empty());
         if (ctx->packageIds.empty()) {
             emptyPackage(ctx);
             return;

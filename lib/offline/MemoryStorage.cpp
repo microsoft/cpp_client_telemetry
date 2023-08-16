@@ -162,6 +162,7 @@ namespace MAT_NS_BEGIN {
 
                 bool wantMore = consumer(std::move(forConsumer)); // move to consumer
                 if (!wantMore) {
+                    LOG_TRACE("MemoryStorage::GetAndReserveRecords wantMore: false");
                     return true;
                 }
 

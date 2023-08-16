@@ -161,7 +161,7 @@ namespace MAT_NS_BEGIN {
         {
             if (!cancelUploadTask())
             {
-                LOG_TRACE("Upload either hasn't been scheduled or already done.");
+                LOG_TRACE("Upload either hasn't been scheduled or already done. force %d delay count %d", force, delay.count());
             }
         }
 
