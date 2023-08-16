@@ -133,9 +133,9 @@ namespace MAT_NS_BEGIN {
     {
         UNREFERENCED_PARAMETER(leaseTimeMs);
 
-        LOG_TRACE("Retrieving max. %u%s events of latency at least %d (%s)",
+        LOG_TRACE("Retrieving max. %u%s events of latency at least %d (%s). Storage size Normal %d, Max  %d",
             maxCount, (maxCount > 0) ? "" : " (unlimited)",
-            minLatency, latencyToStr(static_cast<EventLatency>(minLatency)));
+            minLatency, latencyToStr(static_cast<EventLatency>(minLatency)), m_records[static_cast<int>(EventLatency_Normal)].size(), , m_records[static_cast<int>(EventLatency_Max)].size());
 
         if (maxCount == 0)
             maxCount = UINT_MAX;

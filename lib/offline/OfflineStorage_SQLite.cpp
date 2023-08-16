@@ -273,6 +273,21 @@ namespace MAT_NS_BEGIN {
                 }
             }
 
+            // Add a query to retrieve the total count of records
+            int normalTotalCount = 0;
+            int maxTotalCount = 0;
+            int totalCount = 0;
+            SqliteStatement totalCountStmt(*m_db, m_stmtGetRecordCountBylatency);
+            totalCountStmt.select(EventLatency_Normal);
+            totalCountStmt.getOneValue(normalTotalCount);
+            totalCountStmt.select(EventLatency_Max);
+            totalCountStmt.getOneValue(maxTotalCount);
+            totalCountStmt.reset();
+            SqliteStatement totalCountStmt(*m_db, m_stmtGetRecordCount);
+            totalCountStmt.select();
+            totalCountStmt.getOneValue(totalCount);
+            LOG_TRACE("OfflineStorage_SQLite::GetAndReserveRecords Normal Count: %d, Max Count: %d and Total Count %d",  normalTotalCount, maxTotalCount, totalCount);
+
             SqliteStatement selectStmt(*m_db, m_stmtSelectEvents);
             if (!selectStmt.select(static_cast<int>(minLatency), maxCount > 0 ? maxCount : -1)) {
                 LOG_ERROR("Failed to retrieve events to send: Database error occurred, recreating database");

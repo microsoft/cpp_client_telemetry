@@ -102,8 +102,10 @@ namespace MAT_NS_BEGIN {
     // If delayInMs is negative, do not schedule.
     void TransmissionPolicyManager::scheduleUpload(const std::chrono::milliseconds& delay, EventLatency latency, bool force)
     {
+        LOG_TRACE("scheduleUpload");
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
+            LOG_TRACE("Guard is paused");
             return;
         }
         LOCKGUARD(m_scheduledUploadMutex);
@@ -175,6 +177,7 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
+        LOG_TRACE("uploadAsync");
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
             return;
@@ -228,6 +231,7 @@ namespace MAT_NS_BEGIN {
 
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
+            LOG_TRACE("finishUpload: Guard is paused");
             return;
         }
         // Rescheduling upload
@@ -236,6 +240,10 @@ namespace MAT_NS_BEGIN {
             LOG_TRACE("Scheduling upload in %d ms", nextUpload.count());
             EventLatency proposed = calculateNewPriority();
             scheduleUpload(nextUpload, proposed); // reschedule uploadAsync again
+        }
+        else
+        {
+            LOG_TRACE("finishUpload %d ms", nextUpload.count());
         }
     }
 
@@ -322,6 +330,7 @@ namespace MAT_NS_BEGIN {
     void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const& event)
     {
         if (m_isPaused) {
+            LOG_TRACE("handleEventArrived: paused");
             return;
         }
         bool forceTimerRestart = false;

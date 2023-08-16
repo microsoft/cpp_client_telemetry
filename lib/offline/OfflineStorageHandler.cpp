@@ -304,20 +304,25 @@ namespace MAT_NS_BEGIN {
         bool returnValue = false;
 
         m_lastReadCount = 0;
+        int fromMemory = 0;
         m_readFromMemory = false;
 
         if (m_offlineStorageMemory)
         {
             returnValue |= m_offlineStorageMemory->GetAndReserveRecords(consumer, leaseTimeMs, minLatency, maxCount);
             m_lastReadCount += m_offlineStorageMemory->LastReadRecordCount();
+            fromMemory = m_lastReadCount;
             if (m_lastReadCount <= maxCount)
                 maxCount -= m_lastReadCount;
             m_readFromMemory = true;
             // Prefer to send all of in-memory first before going to disk. This also helps in case if in-ram queue
             // is larger than request size (2MB), we'd exit the function because the consumer no longer wants more
             // records.
-            if (m_lastReadCount)
+            if (m_lastReadCount){
+                LOG_TRACE(" OfflineStorageHandler::GetAndReserveRecords acquired %d from memory 0 from disk ",
+                  fromMemory);
                 return returnValue;
+            }
         }
 
         if (m_offlineStorageDisk)
@@ -328,6 +333,8 @@ namespace MAT_NS_BEGIN {
             {
                 m_lastReadCount += lastOfflineReadCount;
                 m_readFromMemory = false;
+                LOG_TRACE(" OfflineStorageHandler::GetAndReserveRecords acquired %d from memory %d from disk ",
+                  fromMemory, m_lastReadCount - fromMemory);
             }
         }
 

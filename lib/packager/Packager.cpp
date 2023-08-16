@@ -26,6 +26,8 @@ namespace MAT_NS_BEGIN {
             if (ctx->maxUploadSize == 0) {
                 ctx->maxUploadSize = m_config.GetMaximumUploadSizeBytes();
             }
+            LOG_TRACE("Maximum upload size %u bytes",
+                        ctx->maxUploadSize);
             if (ctx->splicer->getSizeEstimate() + record.blob.size() > ctx->maxUploadSize) {
                 wantMore = false;
                 if (!ctx->recordIdsAndTenantIds.empty()) {
