@@ -105,7 +105,7 @@ namespace MAT_NS_BEGIN {
         LOG_TRACE("scheduleUpload");
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
-            LOG_TRACE("Guard is paused");
+            LOG_TRACE("scheduleUpload Guard is paused");
             return;
         }
         LOCKGUARD(m_scheduledUploadMutex);
@@ -180,6 +180,7 @@ namespace MAT_NS_BEGIN {
         LOG_TRACE("uploadAsync");
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
+            LOG_TRACE("uploadAsync Guard is paused");
             return;
         }
         m_runningLatency = latency;
@@ -329,6 +330,7 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::handleEventArrived(IncomingEventContextPtr const& event)
     {
+        
         if (m_isPaused) {
             LOG_TRACE("handleEventArrived: paused");
             return;
@@ -342,21 +344,28 @@ namespace MAT_NS_BEGIN {
             ctx->requestedMinLatency = event->record.latency;
             addUpload(ctx);
             initiateUpload(ctx);
+            LOG_TRACE("handleEventArrived: initiateUpload");
             return;
         }
 
         // Schedule async upload if not scheduled yet
         if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
         {
+            LOG_TRACE("handleEventArrived: Event scheduled");
             if (updateTimersIfNecessary())
             {
+                LOG_TRACE("handleEventArrived: updateTimersIfNecessary");
                 m_timerdelay = std::chrono::milliseconds { m_timers[1] };
                 forceTimerRestart = true;
             }
+            
             EventLatency proposed = calculateNewPriority();
             if (m_timerdelay.count() >= 0)
             {
                 scheduleUpload(m_timerdelay, proposed, forceTimerRestart);
+            }
+            else{
+                LOG_TRACE("handleEventArrived: m_timerdelay");
             }
         }
     }
