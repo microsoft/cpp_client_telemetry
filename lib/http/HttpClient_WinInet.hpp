@@ -9,6 +9,7 @@
 
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
+#include <cstddef>
 
 #include "ILogManager.hpp"
 
