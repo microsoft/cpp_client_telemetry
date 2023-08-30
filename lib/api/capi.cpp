@@ -242,10 +242,24 @@ evt_status_t mat_log(evt_context_t *ctx)
     EventProperties props;
     props.unpack(evt, ctx->size);
 
+    // Determine ingestion token to use for this record.
+    std::string token;
+
+    // Use LogManager configuration primary token if available.
+    if (config.HasConfig(CFG_STR_PRIMARY_TOKEN))
+    {
+        token = static_cast<const char*>(config[CFG_STR_PRIMARY_TOKEN]);
+    }
+
+    // Allow to override iKey per event via property.
+    // C API client maintains one handle for different tenants.
     auto m = props.GetProperties();
-    EventProperty &prop = m[COMMONFIELDS_IKEY];
-    std::string token = prop.as_string;
-    props.erase(COMMONFIELDS_IKEY);
+    if (m.count(COMMONFIELDS_IKEY))
+    {
+        EventProperty& prop = m[COMMONFIELDS_IKEY];
+        token = prop.as_string;
+        props.erase(COMMONFIELDS_IKEY);
+    }
 
     // Privacy feature for OTEL C API client:
     //

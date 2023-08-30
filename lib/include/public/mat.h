@@ -9,7 +9,7 @@
  * For version handshake check there is no mandatory requirement to update the $PATCH level.
  * Ref. https://semver.org/ for Semantic Versioning documentation.
  */
-#define TELEMETRY_EVENTS_VERSION	"3.1.0"
+#define TELEMETRY_EVENTS_VERSION "3.7.0"
 
 #include "ctmacros.hpp"
 
@@ -59,7 +59,8 @@ extern "C" {
         EVT_OP_FLUSH = 0x0000000A,
         EVT_OP_VERSION = 0x0000000B,
         EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
-        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
+        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1,
+        EVT_OP_MAXINT = 0xFFFFFFFF
     } evt_call_t;
 
     typedef enum evt_prop_t
@@ -79,11 +80,13 @@ extern "C" {
         TYPE_BOOL_ARRAY,
         TYPE_GUID_ARRAY,
         /* NULL-type */
-        TYPE_NULL
+        TYPE_NULL,
+        TYPE_MAXINT = 0xFFFFFFFF
     } evt_prop_t;
 
-    typedef struct evt_guid_t
+    typedef struct MATSDK_PACKED_STRUCT evt_guid_t
     {
+MATSDK_PACK_PUSH
         /**
          * <summary>
          * Specifies the first eight hexadecimal digits of the GUID.
@@ -111,19 +114,22 @@ extern "C" {
          * </summary>
          */
         uint8_t  Data4[8];
+MATSDK_PACK_POP
     } evt_guid_t;
 
     typedef int64_t  evt_handle_t;
     typedef int32_t  evt_status_t;
     typedef struct   evt_event evt_event;
 
-    typedef struct evt_context_t
+    typedef struct MATSDK_PACKED_STRUCT evt_context_t
     {
+MATSDK_PACK_PUSH
         evt_call_t      call;       /* In       */
         evt_handle_t    handle;     /* In / Out */
         void*           data;       /* In / Out */
         evt_status_t    result;     /* Out      */
         uint32_t        size;       /* In / Out */
+MATSDK_PACK_POP
     } evt_context_t;
 
     /**
@@ -183,12 +189,14 @@ extern "C" {
         uint64_t**          as_arr_time;
     } evt_prop_v;
 
-    typedef struct evt_prop
+    typedef struct MATSDK_PACKED_STRUCT evt_prop
     {
+MATSDK_PACK_PUSH
         const char*             name;
         evt_prop_t              type;
         evt_prop_v              value;
         uint32_t                piiKind;
+MATSDK_PACK_POP
     } evt_prop;
     
     /**

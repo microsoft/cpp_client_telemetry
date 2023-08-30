@@ -127,4 +127,24 @@
 #define EVTSDK_LIBABI_CDECL MATSDK_LIBABI_CDECL
 #define EVTSDK_SPEC         MATSDK_SPEC
 
+/* Implement struct packing for stable FFI C API */
+#ifdef __clang__
+# define MATSDK_PACKED_STRUCT __attribute__((packed))
+# define MATSDK_PACK_PUSH
+# define MATSDK_PACK_POP
+#elif __GNUC__
+# define MATSDK_PACKED_STRUCT __attribute__((packed))
+# define MATSDK_PACK_PUSH
+# define MATSDK_PACK_POP
+#elif _MSC_VER
+# define MATSDK_PACKED_STRUCT
+# define MATSDK_PACK_PUSH     __pragma(pack(push, 1))
+# define MATSDK_PACK_POP      __pragma(pack(pop))
+#else
+/* No packing behavior on unknown compilers */
+# define MATSDK_PACKED_STRUCT
+# define MATSDK_PACK_PUSH
+# define MATSDK_PACK_POP
+#endif
+
 #endif
