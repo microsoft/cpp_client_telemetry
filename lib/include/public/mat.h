@@ -59,7 +59,8 @@ extern "C" {
         EVT_OP_FLUSH = 0x0000000A,
         EVT_OP_VERSION = 0x0000000B,
         EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
-        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
+        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1,
+        EVT_OP_FLUSHANDTEARDOWN = EVT_OP_MAX + 1
     } evt_call_t;
 
     typedef enum evt_prop_t
@@ -577,6 +578,22 @@ extern "C" {
         return evt_api_call(&ctx);
     }
     
+    /** <summary>
+     * Provide a hint to telemetry system to attempt force-upload of events
+     * based on provided tear down interval before shutdown. This API does not
+     * guarantee the upload.
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <returns>Status code.</returns>
+     */
+    static inline evt_status_t evt_flushAndTeardown(evt_handle_t handle)
+    {
+        evt_context_t ctx;
+        ctx.call = EVT_OP_FLUSHANDTEARDOWN;
+        ctx.handle = handle;
+        return evt_api_call(&ctx);
+    }
+
     /** <summary>
      * Save pending telemetry events to offline storage on disk.
      * </summary>
