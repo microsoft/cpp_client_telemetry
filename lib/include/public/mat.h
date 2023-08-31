@@ -60,7 +60,7 @@ extern "C" {
         EVT_OP_VERSION = 0x0000000B,
         EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
         EVT_OP_FLUSHANDTEARDOWN = 0x0000000D,
-        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1,
+        EVT_OP_MAX = EVT_OP_FLUSHANDTEARDOWN + 1,
     } evt_call_t;
 
     typedef enum evt_prop_t
