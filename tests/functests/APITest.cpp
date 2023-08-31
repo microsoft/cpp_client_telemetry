@@ -725,6 +725,7 @@ TEST(APITest, C_API_Test)
 
     // Must remove event listener befor closing the handle!
     client->logmanager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
+    evt_flushAndTeardown(handle);
     evt_close(handle);
     ASSERT_EQ(capi_get_client(handle), nullptr);
 

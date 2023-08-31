@@ -329,6 +329,14 @@ evt_status_t mat_upload(evt_context_t *ctx)
     return result;
 }
 
+evt_status_t mat_flushAndTeardown(evt_context_t *ctx)
+{
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    client->logmanager->FlushAndTeardown();
+    ctx->result = STATUS_SUCCESS;
+    return STATUS_SUCCESS;
+}
+
 evt_status_t mat_flush(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
@@ -409,6 +417,10 @@ extern "C" {
                 LOG_TRACE("library version: %s", ctx->data);
 
                 result = STATUS_SUCCESS;
+                break;
+
+            case EVT_OP_FLUSHANDTEARDOWN:
+                result = mat_flushAndTeardown(ctx);
                 break;
 
                 // Add more OPs here
