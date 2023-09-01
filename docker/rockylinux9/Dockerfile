@@ -1,4 +1,4 @@
-FROM mipsdkcontainer.azurecr.io/library/rockylinux:9
+FROM mipsdkcontainer.azurecr.io/rockylinux9
 
 # Install Dependencies
 RUN \
