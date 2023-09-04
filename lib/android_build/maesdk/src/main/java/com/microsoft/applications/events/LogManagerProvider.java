@@ -319,6 +319,7 @@ public class LogManagerProvider {
     protected native boolean nativeStartActivity(long nativeLogManager);
     protected native void nativeEndActivity(long nativeLogManager);
 
+    protected native void nativeSetTicketToken(long nativeLogManager, int ticketType, String ticketToken);
     @Override
     public void pauseActivity() {
       nativePauseActivity(nativeLogManager);
@@ -342,6 +343,11 @@ public class LogManagerProvider {
     @Override
     public void endActivity() {
       nativeEndActivity(nativeLogManager);
+    }
+
+    @Override
+    public void setTicketToken(TicketType ticketType, String ticketToken) {
+      nativeSetTicketToken(nativeLogManager, ticketType.getValue(), ticketToken);
     }
   }
 }

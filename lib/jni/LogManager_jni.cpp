@@ -1753,3 +1753,18 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         logManager->EndActivity();
     }
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetTicketToken(
+                JNIEnv *env, jobject thiz, jlong native_log_manager,
+                jint ticketType,
+                jstring jstrTicketValue
+                ) {
+    auto logManager = getLogManager(native_log_manager);
+    if (logManager) {
+        auto ticketValue = JStringToStdString(env, jstrTicketValue);
+        logManager->GetAuthTokensController()->SetTicketToken(static_cast<TicketType>(ticketType), ticketValue.c_str());
+    }
+
+}

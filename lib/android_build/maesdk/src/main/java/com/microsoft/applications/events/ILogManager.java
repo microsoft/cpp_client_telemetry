@@ -80,4 +80,6 @@ public interface ILogManager extends AutoCloseable {
   public void waitPause();
   public boolean startActivity();
   public void endActivity();
+
+  public void setTicketToken(TicketType ticketType, String ticketToken);
 }
