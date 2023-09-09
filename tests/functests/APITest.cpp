@@ -717,10 +717,12 @@ TEST(APITest, C_API_Test)
     EXPECT_EQ(totalEvents, 5u);
 
     evt_flush(handle);
+    evt_uploadMax(handle);
     evt_upload(handle);
 
     // Must remove event listener befor closing the handle!
     client->logmanager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
+
     evt_flushAndTeardown(handle);
     evt_close(handle);
     ASSERT_EQ(capi_get_client(handle), nullptr);

@@ -22,7 +22,7 @@ namespace MAT_NS_BEGIN {
     {
 
     public:
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TelemetrySystemBase"/> class.
         /// </summary>
@@ -42,7 +42,7 @@ namespace MAT_NS_BEGIN {
             onResume = []() { return true; };
             onCleanup  = []() { return true; };
         }
-        
+
         /// <summary>
         /// Starts this instance.
         /// </summary>
@@ -54,7 +54,7 @@ namespace MAT_NS_BEGIN {
                 m_isPaused = false;
             }
         }
-        
+
         /// <summary>
         /// Stops this instance.
         /// </summary>
@@ -64,17 +64,25 @@ namespace MAT_NS_BEGIN {
             {
                 onStop();
             }
-        
+
         }
-        
+
         /// <summary>
         /// Uploads pending events.
         /// </summary>
         virtual bool upload() override
         {
             return false;
-        }
-        
+        };
+
+        /// <summary>
+        /// Uploads max pending events.
+        /// </summary>
+        virtual bool uploadMax() override
+        {
+            return false;
+        };
+
         /// <summary>
         /// Pauses event upload.
         /// </summary>
@@ -88,7 +96,7 @@ namespace MAT_NS_BEGIN {
                 }
             }
         }
-        
+
         /// <summary>
         /// Resumes event upload.
         /// </summary>
@@ -110,7 +118,7 @@ namespace MAT_NS_BEGIN {
         {
             if (m_isStarted)
             {
-                onCleanup();       
+                onCleanup();
             }
         }
 

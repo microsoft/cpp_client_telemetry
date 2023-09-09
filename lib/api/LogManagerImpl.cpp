@@ -468,6 +468,16 @@ namespace MAT_NS_BEGIN
         return STATUS_SUCCESS;
     }
 
+    status_t LogManagerImpl::UploadMaxNow()
+    {
+        LOCKGUARD(m_lock);
+        if (GetSystem())
+        {
+            GetSystem()->uploadMax();
+        }
+        return STATUS_SUCCESS;
+    }
+
     status_t LogManagerImpl::PauseTransmission()
     {
         LOG_INFO("Pausing transmission, cancelling any outstanding uploads...");
