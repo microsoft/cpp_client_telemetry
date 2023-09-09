@@ -60,7 +60,8 @@ extern "C" {
         EVT_OP_VERSION = 0x0000000B,
         EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
         EVT_OP_FLUSHANDTEARDOWN = 0x0000000D,
-        EVT_OP_MAX = EVT_OP_FLUSHANDTEARDOWN + 1,
+        EVT_OP_UPLOADMAX = 0x0000000E,
+        EVT_OP_MAX = EVT_OP_UPLOADMAX + 1,
     } evt_call_t;
 
     typedef enum evt_prop_t
@@ -580,6 +581,22 @@ extern "C" {
     }
 
     /** <summary>
+     * Provide a hint to telemetry system to attempt force-upload of max priority events
+     * without waiting for the next batch timer interval. This API does not
+     * guarantee the upload.
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <returns>Status code.</returns>
+     */
+    static inline evt_status_t evt_uploadMax(evt_handle_t handle)
+    {
+        evt_context_t ctx;
+        ctx.call = EVT_OP_UPLOAD;
+        ctx.handle = handle;
+        return evt_api_call(&ctx);
+    }
+    
+    /** <summary>
      * Flush any pending telemetry events in memory to disk, 
      * attempt upload of events if tear down interval is configured, 
      * and eventually tear down the telemetry logging system.
@@ -594,7 +611,7 @@ extern "C" {
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
-    
+
     /** <summary>
      * Save pending telemetry events to offline storage on disk.
      * </summary>
