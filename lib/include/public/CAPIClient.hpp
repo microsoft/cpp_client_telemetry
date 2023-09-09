@@ -79,6 +79,11 @@ namespace MAT_NS_BEGIN
             return evt_flushAndTeardown(handle);
         }
 
+        evt_status_t uploadMax()
+        {
+            return evt_uploadMax(handle);
+        }
+
         evt_status_t flush()
         {
             return evt_flush(handle);
