@@ -74,6 +74,14 @@ namespace MAT_NS_BEGIN {
         {
             return false;
         };
+
+        /// <summary>
+        /// Uploads max pending events.
+        /// </summary>
+        virtual bool uploadMax() override
+        {
+            return false;
+        };
         
         /// <summary>
         /// Pauses event upload.
