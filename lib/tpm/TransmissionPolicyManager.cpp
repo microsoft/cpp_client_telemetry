@@ -338,7 +338,7 @@ namespace MAT_NS_BEGIN {
         auto max_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - maxPriorityLastExecutionTime).count();
 
         /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
-        // Initiate upload right away
+        // Initiate upload right away, but add a 2-second check to ensure some delay between consecutive initiate upload calls.
         if (event->record.latency > EventLatency_RealTime) {
             if(max_priority_elapsed_seconds < 2){
                 return;
@@ -354,7 +354,8 @@ namespace MAT_NS_BEGIN {
         // Other priorities like: Normal, Realtime, etc.
         auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
 
-        // Check for max 40 seconds before resetting m_isUploadScheduled due to issue 388
+        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
+        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
         if (m_isUploadScheduled.load() && other_priority_elapsed_seconds > 40){
             m_isUploadScheduled.store(false);
             LOG_TRACE("Trigger upload on event arrival");
@@ -485,6 +486,8 @@ namespace MAT_NS_BEGIN {
         // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
         //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
         //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
+        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
+        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
         if (result || other_priority_elapsed_seconds > 40)
         {
             m_isUploadScheduled.exchange(false);
