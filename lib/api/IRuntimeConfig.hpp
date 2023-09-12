@@ -35,6 +35,12 @@ namespace MAT_NS_BEGIN
         virtual std::string GetCollectorUrl() = 0;
 
         /// <summary>
+        /// Check used by uploader sequence to verify if URL is defined.
+        /// </summary>
+        /// <returns>true if URL is set, false otherwise.</returns>
+        virtual bool IsCollectorUrlSet() = 0;
+
+        /// <summary>
         /// Adds extension fields (created by the configuration provider) to an
         /// event.
         /// </summary>

@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 
 #include "mat/config.h"
+#ifdef _WIN32
+#define MATSDK_DECLSPEC __declspec(dllexport)
+#endif
 
 #if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
 #include "http/HttpClient_CAPI.hpp"
@@ -436,6 +439,14 @@ evt_status_t mat_upload(evt_context_t *ctx)
     return result;
 }
 
+evt_status_t mat_flushAndTeardown(evt_context_t *ctx)
+{
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    client->logmanager->FlushAndTeardown();
+    ctx->result = STATUS_SUCCESS;
+    return STATUS_SUCCESS;
+}
+
 evt_status_t mat_flush(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
@@ -518,6 +529,10 @@ extern "C" {
                 result = STATUS_SUCCESS;
                 break;
 
+            case EVT_OP_FLUSHANDTEARDOWN:
+                result = mat_flushAndTeardown(ctx);
+                break;
+
             // New API in v3.7.1. This does not break ABI compat from v3.7.0.
             // If v3.7.0 client calls into v3.7.1 implementation, then the
             // call is a noop - handled by safely returning ENOTSUP.
@@ -535,6 +550,7 @@ extern "C" {
                 break;
 
                 // Add more OPs here
+
 
             default:
                 result = ENOTSUP;

@@ -28,6 +28,27 @@ namespace CommonSchema
                 // TODO: add services configuration
             }
 
+            public void AppendToFile(string text)
+            {
+                lock (this)
+                {
+                    string path = "output.json";
+                    // This text is added only once to the file.
+                    if (!File.Exists(path))
+                    {
+                        File.Create(path);
+                    }
+
+                    // This text is always added, making the file longer over time
+                    // if it is not deleted.
+                    using (StreamWriter sw = File.AppendText(path))
+                    {
+                        sw.WriteLine(text);
+                        sw.Close();
+                    }
+                }
+            }
+
             // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
             public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
             {
@@ -54,7 +75,7 @@ namespace CommonSchema
                     try
                     {
                         string path = context.Request.Path.Value;
-                        if (path.StartsWith("/OneCollector/"))
+                        if (path.StartsWith("/OneCollector/") || path.StartsWith("/"))
                         {
                             int length = Int32.Parse(context.Request.Headers["Content-Length"]);
                             BinaryReader reader = new BinaryReader(context.Request.Body);
@@ -72,6 +93,8 @@ namespace CommonSchema
                             // Supply the logger
                             decoder.Logger = decoderLogger;
                             string result = decoder.ToJson(false, true, 2);
+
+                            AppendToFile(result);
 
                             // Echo the body converted to JSON array
                             context.Response.StatusCode = 200;

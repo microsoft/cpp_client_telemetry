@@ -74,8 +74,7 @@ extern "C" {
          * languages such as Unity C# and .NET Standard.
          */
         EVT_OP_SET_LOGGER_CONTEXT = 0x0000000D,
-        EVT_OP_SET_LOGMANAGER_CONTEXT = 0x0000000E,
-        EVT_OP_MAX = EVT_OP_SET_LOGMANAGER_CONTEXT + 1,
+        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
         EVT_OP_MAXINT = 0xFFFFFFFF
     } evt_call_t;
 
@@ -691,6 +690,22 @@ MATSDK_PACK_POP
     {
         evt_context_t ctx;
         ctx.call = EVT_OP_UPLOAD;
+        ctx.handle = handle;
+        return evt_api_call(&ctx);
+    }
+
+    /** <summary>
+     * Flush any pending telemetry events in memory to disk, 
+     * attempt upload of events if tear down interval is configured, 
+     * and eventually tear down the telemetry logging system.
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <returns>Status code.</returns>
+     */
+    static inline evt_status_t evt_flushAndTeardown(evt_handle_t handle)
+    {
+        evt_context_t ctx;
+        ctx.call = EVT_OP_FLUSHANDTEARDOWN;
         ctx.handle = handle;
         return evt_api_call(&ctx);
     }
