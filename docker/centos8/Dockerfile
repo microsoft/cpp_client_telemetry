@@ -2,10 +2,6 @@ FROM mipsdkcontainer.azurecr.io/library/rockylinux:8
 
 USER 0
 
-
-RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-* &&\
-    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-*
-
 # Package installation
 RUN yum update -y
 
