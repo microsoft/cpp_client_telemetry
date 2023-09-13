@@ -26,6 +26,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CsProtocol;
 using System.Linq;
+using Fiddler;
 
 namespace CommonSchema
 {

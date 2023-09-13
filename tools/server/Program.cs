@@ -29,7 +29,6 @@ namespace CommonSchema.Server
             .UseKestrel(options =>
             {
                 options.AllowSynchronousIO = true;
-                options.ListenAnyIP(8000);
             })
             .UseContentRoot(Directory.GetCurrentDirectory())
             .UseWebRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
