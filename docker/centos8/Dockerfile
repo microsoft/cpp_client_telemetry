@@ -1,4 +1,4 @@
-FROM mipsdkcontainer.azurecr.io/centos8
+FROM mipsdkcontainer.azurecr.io/library/rockylinux:8
 
 USER 0
 
