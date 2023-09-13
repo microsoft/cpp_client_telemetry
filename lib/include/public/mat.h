@@ -65,6 +65,7 @@ extern "C" {
         EVT_OP_FLUSH = 0x0000000A,
         EVT_OP_VERSION = 0x0000000B,
         EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
+        EVT_OP_FLUSHANDTEARDOWN = 0x0000000D,
         /**
          * Context operations allow to set ILogger or ILogManager semantic context values.
          * In addition to custom Part C context values, Common Schema attributes, e.g. `ext.device.id`
@@ -73,8 +74,9 @@ extern "C" {
          * event fields to C API for extensions, SDK-in-SDK, and higher-level programming
          * languages such as Unity C# and .NET Standard.
          */
-        EVT_OP_SET_LOGGER_CONTEXT = 0x0000000D,
-        EVT_OP_MAX = EVT_OP_OPEN_WITH_PARAMS + 1
+        EVT_OP_SET_LOGGER_CONTEXT = 0x0000000E,
+        EVT_OP_SET_LOGMANAGER_CONTEXT = 0x0000000F,
+        EVT_OP_MAX = EVT_OP_SET_LOGMANAGER_CONTEXT + 1,
         EVT_OP_MAXINT = 0xFFFFFFFF
     } evt_call_t;
 

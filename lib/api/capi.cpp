@@ -551,7 +551,6 @@ extern "C" {
 
                 // Add more OPs here
 
-
             default:
                 result = ENOTSUP;
                 break;
