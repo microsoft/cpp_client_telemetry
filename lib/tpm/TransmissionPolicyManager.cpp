@@ -336,7 +336,6 @@ namespace MAT_NS_BEGIN {
         }
         bool forceTimerRestart = false;
 
-        /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
         // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
             auto ctx = m_system.createEventsUploadContext();
