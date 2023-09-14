@@ -1,0 +1,1 @@
+clang -E mat.h -D HAVE_DYNAMIC_C_LIB > mat.out.h

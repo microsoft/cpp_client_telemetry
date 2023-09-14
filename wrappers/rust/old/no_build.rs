@@ -33,38 +33,7 @@ fn main() {
     // println!("cargo:rustc-link-lib=mat");
 
     // Tell cargo to invalidate the built crate whenever the header changes.
-    println!("cargo:rerun-if-changed={}", headers_path_str);
-
-    // // Run `clang` to compile the `mat.c` file into a `mat.o` object file.
-    // // Unwrap if it is not possible to spawn the process.
-    // if !std::process::Command::new("clang")
-    //     .arg("-c")
-    //     .arg("-o")
-    //     .arg(&obj_path)
-    //     .arg(libdir_path.join("hello.c"))
-    //     .output()
-    //     .expect("could not spawn `clang`")
-    //     .status
-    //     .success()
-    // {
-    //     // Panic if the command was not successful.
-    //     panic!("could not compile object file");
-    // }
-
-    // // Run `ar` to generate the `libhello.a` file from the `hello.o` file.
-    // // Unwrap if it is not possible to spawn the process.
-    // if !std::process::Command::new("ar")
-    //     .arg("rcs")
-    //     .arg(lib_path)
-    //     .arg(obj_path)
-    //     .output()
-    //     .expect("could not spawn `ar`")
-    //     .status
-    //     .success()
-    // {
-    //     // Panic if the command was not successful.
-    //     panic!("could not emit library file");
-    // }
+    // println!("cargo:rerun-if-changed={}", headers_path_str);
 
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
@@ -74,6 +43,12 @@ fn main() {
         // bindings for.
         .header(c_header_path_str)
         .clang_arg(format!("-I{}", headers_path_str))
+        // https://github.com/Rust-SDL2/rust-sdl2/issues/1288
+        .blocklist_type("IMAGE_TLS_DIRECTORY")
+        .blocklist_type("PIMAGE_TLS_DIRECTORY")
+        .blocklist_type("IMAGE_TLS_DIRECTORY64")
+        .blocklist_type("PIMAGE_TLS_DIRECTORY64")
+        .blocklist_type("_IMAGE_TLS_DIRECTORY64")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(CargoCallbacks))
@@ -83,7 +58,9 @@ fn main() {
         .expect("Unable to generate bindings");
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs");
+    // Write the bindings to the $CARGO_MANIFEST_DIR/bindings.rs file.
+    // https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-build-scripts
+    let out_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("src/bindings.rs");
     bindings
         .write_to_file(out_path)
         .expect("Couldn't write bindings!");
