@@ -8,67 +8,18 @@
 
 // This is the main function.
 
-use std::{
-    ffi::{CStr, CString},
-    mem, thread,
-    time::Duration,
-};
-use telemetry::LogManager;
-
-fn string_prop(name: &str, value: &str, is_pii: bool) -> telemetry::evt_prop {
-    let mut pii_kind = 0;
-
-    if is_pii {
-        pii_kind = 1;
-    }
-
-    telemetry::evt_prop {
-        name: to_c_str2(name),
-        type_: telemetry::evt_prop_t_TYPE_STRING,
-        value: telemetry::evt_prop_v {
-            as_string: to_c_str2(value),
-        },
-        piiKind: pii_kind,
-    }
-}
-
-fn to_c_str(value: &str) -> *const i8 {
-    let c_str = CString::new(value.clone().as_bytes()).unwrap();
-    let c_str_bytes = c_str.as_bytes_with_nul().to_owned();
-    let ptr = c_str_bytes.as_ptr() as *const i8;
-
-    return ptr;
-}
-
-fn to_c_str2(value: &str) -> *const i8 {
-    let c_str = Box::new(CString::new(value.clone()).unwrap());
-    let ptr = c_str.as_ptr() as *const i8;
-    mem::forget(c_str);
-    return ptr;
-}
-
-fn int_prop(name: &str, value: i64) -> telemetry::evt_prop {
-    telemetry::evt_prop {
-        name: to_c_str2(name),
-        type_: telemetry::evt_prop_t_TYPE_INT64,
-        value: telemetry::evt_prop_v {
-            as_int64: value.clone(),
-        },
-        piiKind: 0,
-    }
-}
+use log::{error, Level};
+use std::{thread, time::Duration};
 
 pub const API_KEY: &str =
     "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999";
 
 fn main() {
-    let mut log_manager = LogManager::LogManager::new();
+    let mut log_manager = oneds_telemetry::LogManager::new();
 
-    if log_manager.start() == false {
-        println!("Failed to Start Log Manager.");
-    }
-
-    log_manager.stop();
+    // Setup Log Appender for the log crate.
+    log::set_logger(&oneds_telemetry::appender::LOGGER).unwrap();
+    log::set_max_level(Level::Debug.to_level_filter());
 
     let config = r#"{
             "eventCollectorUri": "http://localhost:64099/OneCollector/track",
@@ -81,39 +32,16 @@ fn main() {
             "hostMode":false,
             "traceLevelMask": 4294967295,
             "minimumTraceLevel":0,
-            "sdkmode":3
+            "sdkmode":0,
+            "compat": {"customTypePrefix": "compat_event"}
         }"#;
 
-    let mut event: Vec<telemetry::evt_prop> = Vec::new();
-    event.push(string_prop("name", "Event.Name.RustFFI", false));
-    event.push(string_prop("ver", "4.0", false));
-    event.push(string_prop("time", "1979-08-12", false));
-    event.push(int_prop("popSample", 100));
-    event.push(string_prop("iKey", API_KEY, false));
-    event.push(int_prop("flags", 0xffffffff));
-    event.push(string_prop("cV", "12345", false));
-
-    println!("Testing C -> RUST FFI ...");
-    let handle = telemetry::evt_open(config);
-    println!("EVT_HANDLE: {}", handle);
+    oneds_telemetry::init(config);
 
     loop {
-        let mut event_data: [telemetry::evt_prop; 7] = [
-            string_prop("name", "Event.Name.RustFFI", false),
-            string_prop("ver", "4.0", false),
-            string_prop("time", "1979-08-12", false),
-            int_prop("popSample", 100),
-            string_prop("iKey", API_KEY, false),
-            int_prop("flags", 0xffffffff),
-            string_prop("cV", "12345", false),
-        ];
-
-        println!("EVT_LOG: {}", telemetry::evt_log(&handle, &mut event_data));
-        println!("EVT_FLUSH: {}", telemetry::evt_flush(&handle));
-        println!("EVT_UPLOAD: {}", telemetry::evt_upload(&handle));
+        error!(target: "app_events", "App Error: {}, Port: {}", "Connection Error", 22);
         thread::sleep(Duration::from_secs(3));
     }
 
-    // println!("EVT_UPLOAD: {}", telemetry::evt_upload(&handle));
-    println!("EVT_CLOSE: {}", telemetry::evt_close(&handle));
+    // telemetry::shutdown();
 }

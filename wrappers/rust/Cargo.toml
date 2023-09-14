@@ -1,7 +1,4 @@
 [workspace]
 resolver = "2"
 
-members = [
-    "telemetry",
-    "telemetry-sample"
-]
+members = ["oneds-telemetry", "telemetry-sample"]

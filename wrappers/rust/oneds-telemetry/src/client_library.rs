@@ -4,7 +4,6 @@ use std::{
     mem::transmute_copy,
     os::raw::c_char,
     ptr::NonNull,
-    env,
 };
 
 type HModule = NonNull<c_void>;

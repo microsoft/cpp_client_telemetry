@@ -6,6 +6,8 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-telemetry = { path = "../telemetry" }
+oneds-telemetry = { path = "../oneds-telemetry" }
+log = { version = "0.4.20" }
+ctrlc = "3.4.0"
 
 [dev-dependencies]
