@@ -12,7 +12,7 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 # End of i386 build
 
 # We ask for 14, but we may get C++11 on older gcc-4.x and gcc-5.x
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 
 if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
@@ -181,7 +181,7 @@ message(STATUS "-- PAL implementation: ${PAL_IMPLEMENTATION}")
 string(TOUPPER ${PAL_IMPLEMENTATION} PAL_IMPLEMENTATION_UPPER)
 add_definitions(-DMATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1)
 
-option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" ON)
+option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
 if(GCC5_CXX11_ABI_WORKAROUND)
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 endif()
