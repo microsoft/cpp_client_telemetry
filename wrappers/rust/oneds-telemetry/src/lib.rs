@@ -56,7 +56,7 @@ pub fn flush() {
 }
 
 impl LogManager {
-    pub fn new() -> Self {
+    fn new() -> Self {
         let ct_lib = client_library::Library::new("ClientTelemetry.dll").unwrap();
         let call_api: evt_api_call_t = unsafe { ct_lib.get_proc("evt_api_call_default").unwrap() };
 

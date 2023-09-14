@@ -15,8 +15,6 @@ pub const API_KEY: &str =
     "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999";
 
 fn main() {
-    let mut log_manager = oneds_telemetry::LogManager::new();
-
     // Setup Log Appender for the log crate.
     log::set_logger(&oneds_telemetry::appender::LOGGER).unwrap();
     log::set_max_level(Level::Debug.to_level_filter());
