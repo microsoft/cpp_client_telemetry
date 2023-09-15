@@ -42,7 +42,7 @@ impl log::Log for TelemetryCollectorLogBridge {
 
     fn flush(&self) {
         if unsafe { COLLECTOR_ENABLED } {
-            log_manager_provider().flush(true);
+            log_manager_provider().flush();
         }
     }
 }
