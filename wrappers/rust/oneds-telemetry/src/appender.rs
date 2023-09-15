@@ -15,12 +15,14 @@ impl log::Log for TelemetryCollectorLogBridge {
 
     fn log(&self, record: &Record) {
         if unsafe { CONSOLE_ENABLED } && self.enabled(record.metadata()) {
-            let now = chrono::Utc::now();
+            let utc_now = chrono::Utc::now();
+            let nanos = utc_now.timestamp_subsec_nanos();
 
             println!(
-                "[{} {}] {} <{}> - {}: {}",
-                now.date_naive().to_string(),
-                now.time().format("%H:%M:%S"),
+                "[{} {}.{}] {} <{}> - {}: {}",
+                utc_now.date_naive().to_string(),
+                utc_now.time().format("%H:%M:%S"),
+                nanos,
                 record.target(),
                 record.module_path().unwrap(),
                 record.level(),
@@ -31,8 +33,8 @@ impl log::Log for TelemetryCollectorLogBridge {
         if unsafe { COLLECTOR_ENABLED }
             // Default
             && record.target() != "oneds_telemetry"
-            // Manually Set
-            && record.target() != "oneds_telemetry_internal"
+            // Items from deeper in the `oneds_telemetry` crate
+            && !record.target().starts_with("oneds_telemetry::")
         {
             log_manager_provider().trace(format!("{}", record.args()).as_str());
         }
@@ -40,7 +42,7 @@ impl log::Log for TelemetryCollectorLogBridge {
 
     fn flush(&self) {
         if unsafe { COLLECTOR_ENABLED } {
-            log_manager_provider().flush();
+            log_manager_provider().flush(true);
         }
     }
 }
