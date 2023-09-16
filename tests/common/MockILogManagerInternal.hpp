@@ -27,6 +27,7 @@ namespace testing {
         MOCK_METHOD0(FlushAndTeardown, void());
         MOCK_METHOD0(Flush, MAT::status_t());
         MOCK_METHOD0(UploadNow, MAT::status_t());
+        MOCK_METHOD0(UploadMaxNow, MAT::status_t());
         MOCK_METHOD0(PauseTransmission, MAT::status_t());
         MOCK_METHOD0(ResumeTransmission, MAT::status_t());
         MOCK_METHOD1(SetTransmitProfile, MAT::status_t(MAT::TransmitProfile profile));

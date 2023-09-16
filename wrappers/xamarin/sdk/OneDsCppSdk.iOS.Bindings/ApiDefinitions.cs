@@ -430,6 +430,11 @@ namespace Microsoft.Applications.Events
         [Export ("uploadNow")]
         void UploadNow ();
 
+        // +(void)uploadMaxNow;
+        [Static]
+        [Export ("uploadMaxNow")]
+        void UploadMaxNow ();
+
         // +(ODWStatus)flush;
         [Static]
         [Export("flush")]

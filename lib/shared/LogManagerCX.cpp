@@ -168,6 +168,11 @@ namespace MATW_NS_BEGIN {
         MAT::LogManager::UploadNow();
     }
 
+    void LogManager::UploadMaxNow()
+    {
+        MAT::LogManager::UploadMaxNow();
+    }
+
     void LogManager::ResumeTransmission()
     {
         //LOG_TRACE("LogManager::ResumeTransmission()");

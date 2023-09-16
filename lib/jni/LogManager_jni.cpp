@@ -74,6 +74,14 @@ extern "C"
     }
 
     JNIEXPORT jint JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeUploadMaxNow(
+        JNIEnv* /* env */,
+        jclass /* this */)
+    {
+        return static_cast<jint>(WrapperLogManager::UploadMaxNow());
+    }
+
+    JNIEXPORT jint JNICALL
     Java_com_microsoft_applications_events_LogManager_nativePauseTransmission(
         JNIEnv* /* env */,
         jclass /* this */)
@@ -1001,6 +1009,20 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return STATUS_EFAIL;
     }
     return logManager->UploadNow();
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUploadMaxNow(
+    JNIEnv* env,
+    jobject thiz,
+    jlong nativeLogManager)
+{
+    auto logManager = getLogManager(nativeLogManager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+    return logManager->UploadMaxNow();
 }
 
 extern "C" JNIEXPORT jint JNICALL

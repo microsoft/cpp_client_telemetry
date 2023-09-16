@@ -53,6 +53,7 @@ int main(int argc, char** argv){
             [myLogger logEventWithName: @"Simple_ObjC_Event"];
         }
         [ODWLogManager uploadNow];
+        [ODWLogManager uploadMaxNow];
 
         ODWEventProperties* event = [[ODWEventProperties alloc] initWithName: @"WEvtProps_ObjC_Event"
                                                            properties: @{
@@ -67,6 +68,7 @@ int main(int argc, char** argv){
             [logger2 logEventWithEventProperties: event];
         }
         [ODWLogManager uploadNow];
+        [ODWLogManager uploadMaxNow];
 
         ODWEventProperties* event2 = [[ODWEventProperties alloc] initWithName:@"SetProps_ObjC_Event"];
         [event2 setProperty: @"result" withValue: @"Failure"];

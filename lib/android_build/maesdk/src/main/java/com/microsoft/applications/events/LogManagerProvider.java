@@ -72,6 +72,13 @@ public class LogManagerProvider {
       return Status.getEnum(nativeUploadNow(nativeLogManager));
     }
 
+    protected native int nativeUploadMaxNow(long nativeLogManager);
+
+    @Override
+    public Status uploadMaxNow() {
+      return Status.getEnum(nativeUploadMaxNow(nativeLogManager));
+    }
+
     protected native int nativePauseTransmission(long nativeLogManager);
 
     @Override

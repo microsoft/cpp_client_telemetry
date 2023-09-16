@@ -63,6 +63,7 @@ extern "C" int OfficeTest()
         return 1;
     SendEvents(pLogger, 1, std::chrono::milliseconds(50));
     LogManager::UploadNow();
+    LogManager::UploadMaxNow();
     LogManager::FlushAndTeardown();
     printf("Test successfully completed!\n");
     return 0;

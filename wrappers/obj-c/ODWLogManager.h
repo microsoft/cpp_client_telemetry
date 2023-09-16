@@ -98,6 +98,11 @@ typedef NS_ENUM(NSInteger, ODWStatus)
 +(void)uploadNow;
 
 /*!
+ @brief Attempts to send any pending max priority telemetry events that are currently cached either in memory, or on disk. Use this method if your event can't wait for automatic timed upload
+ */
++(void)uploadMaxNow;
+
+/*!
  @brief Flushes pending telemetry events from memory to disk (to reduce possible data loss) and returns the flush operation's status
  */
 +(ODWStatus)flush;

@@ -186,6 +186,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
       contosoLogger.logEvent("contosoevent");
       assertThat(LogManager.flush(), is(Status.SUCCESS));
       LogManager.uploadNow();
+      LogManager.uploadMaxNow();
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {

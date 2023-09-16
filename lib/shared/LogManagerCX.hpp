@@ -45,6 +45,7 @@ namespace Microsoft {
                     static void Flush();
                     static void FlushAndTeardown();
                     static void UploadNow();
+                    static void UploadMaxNow();
 
                     static bool LoadTransmitProfiles(String^ json);
                     static void SetTransmitProfile(TransmitProfile profile);

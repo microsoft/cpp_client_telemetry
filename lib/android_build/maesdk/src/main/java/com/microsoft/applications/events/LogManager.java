@@ -472,6 +472,17 @@ public class LogManager {
     return Status.getEnum(nativeUploadNow());
   }
 
+  private static native int nativeUploadMaxNow();
+
+  /**
+   * Try to send any pending max priority telemetry events in memory or on disk.
+   *
+   * @return Status enum corresponding to the native API execution status_t.
+   */
+  public static Status uploadMaxNow() {
+    return Status.getEnum(nativeUploadMaxNow());
+  }
+
   private static native int nativePauseTransmission();
 
   /**

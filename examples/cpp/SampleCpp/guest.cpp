@@ -44,6 +44,7 @@ extern "C" void guestTest()
     std::string profiles_json = "{}";
     // This example illustrates how to use runtime method permission check
     assert(LogManagerA::UploadNow()          == STATUS_EPERM);
+    assert(LogManagerA::UploadMaxNow()          == STATUS_EPERM);
     assert(LogManagerA::Flush()              == STATUS_EPERM);
     assert(LogManagerA::PauseTransmission()  == STATUS_EPERM);
     assert(LogManagerA::ResumeTransmission() == STATUS_EPERM);

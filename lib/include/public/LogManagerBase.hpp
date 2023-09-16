@@ -320,6 +320,17 @@ namespace MAT_NS_BEGIN
         }
 
         /// <summary>
+        /// Try to send any pending telemetry events in memory or on disk.
+        /// </summary>
+        static status_t UploadMaxNow()
+        {
+            LM_LOCKGUARD(stateLock());
+            if (isHost())
+                LM_SAFE_CALL(GetLogController()->UploadMaxNow);
+            return STATUS_EPERM;  // Permission denied
+        }
+
+        /// <summary>
         /// Flush any pending telemetry events in memory to disk to reduce possible data loss as seen necessary.
         /// This function can be very expensive so should be used sparingly. OS will block the calling thread
         /// and might flush the global file buffers, i.e. all buffered filesystem data, to disk, which could be

@@ -15,6 +15,8 @@ namespace Microsoft.Applications.Events
 
         public static void UploadNow() { }
 
+        public static void UploadMaxNow() { }
+
         public static Status Flush() { throw new NotImplementedException(); }
 
         public static Status FlushAndTeardown() { throw new NotImplementedException(); }

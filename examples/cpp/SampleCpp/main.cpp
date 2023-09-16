@@ -348,6 +348,7 @@ int main()
 
     logDoNotStore();
     LogManager::UploadNow();
+    LogManager::UploadMaxNow();
 
     // Ingest events of various latencies
     printf("Starting stress-test...\n");

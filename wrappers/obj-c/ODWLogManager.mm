@@ -233,6 +233,13 @@ static BOOL _initialized = false;
     });
 }
 
++(void)uploadMaxNow
+{
+    PerformActionWithCppExceptionsCatch(^(void) {
+        LogManager::UploadMaxNow();
+    });
+}
+
 +(ODWStatus)flush
 {
     try

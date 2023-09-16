@@ -46,6 +46,7 @@ int main()
     printf("Sending host event after guest shutdown...\n");
     logger->LogEvent("TestApp.Event.Host.AfterGuestShutdown");
     LogManager::UploadNow();
+    LogManager::UploadMaxNow();
     LogManager::FlushAndTeardown();
 
     return 0;
