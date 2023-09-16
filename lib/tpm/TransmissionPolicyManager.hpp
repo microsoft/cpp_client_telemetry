@@ -98,7 +98,6 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
 
         mutable std::mutex               m_activeUploads_lock;
         std::set<EventsUploadContextPtr> m_activeUploads;
-        std::chrono::steady_clock::time_point otherPriorityLastExecutionTime;
         
         /// <summary>
         /// Thread-safe method to add the upload to active uploads.

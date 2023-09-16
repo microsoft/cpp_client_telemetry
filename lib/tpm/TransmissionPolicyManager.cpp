@@ -326,35 +326,13 @@ namespace MAT_NS_BEGIN {
         }
         bool forceTimerRestart = false;
 
-        // Check if it's time to execute the specific Max or other priority events code block
-        auto currentTime = std::chrono::steady_clock::now();
-        static auto maxPriorityLastExecutionTime = currentTime;
-
-        auto max_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - maxPriorityLastExecutionTime).count();
-
-        /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
-        // Initiate upload right away, but add a 2-second check to ensure some delay between consecutive initiate upload calls.
+        // Initiate upload right away
         if (event->record.latency > EventLatency_RealTime) {
-            if(max_priority_elapsed_seconds < 2){
-                return;
-            }
             auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
-            maxPriorityLastExecutionTime = currentTime;
             addUpload(ctx);
             initiateUpload(ctx);
             return;
-        }
-
-        // Other priorities like: Normal, Realtime, etc.
-        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
-
-        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
-        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
-        if (m_isUploadScheduled.load() && other_priority_elapsed_seconds > 40){
-            m_isUploadScheduled.store(false);
-            LOG_TRACE("Trigger upload on event arrival");
-            otherPriorityLastExecutionTime = currentTime;
         }
 
         // Schedule async upload if not scheduled yet
@@ -473,24 +451,12 @@ namespace MAT_NS_BEGIN {
     {
         bool result = m_scheduledUpload.Cancel(getCancelWaitTime().count());
 
-        // Check if it's time to execute the specific code block
-        auto currentTime = std::chrono::steady_clock::now();
-
-        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
-
         // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
         //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
         //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
-        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
-        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
-        if (result || other_priority_elapsed_seconds > 40)
+        if (result)
         {
             m_isUploadScheduled.exchange(false);
-            if (other_priority_elapsed_seconds > 40)
-            {
-                LOG_TRACE("Reset upload on event cancellation");
-            }
-            otherPriorityLastExecutionTime = currentTime;
         }
         return result;
     }
