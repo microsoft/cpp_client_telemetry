@@ -17,7 +17,6 @@ public:
 	void Pause();
 	void Resume();
 	void Upload();
-	void UploadMax();
 	void Done();
 };
 

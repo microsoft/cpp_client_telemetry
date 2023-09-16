@@ -78,11 +78,6 @@ namespace MAT_NS_BEGIN
         virtual status_t UploadNow() = 0;
 
         /// <summary>
-        /// Attempts to send any max priority pending telemetry events that are currently cached either in memory, or on disk.
-        /// </summary>
-        virtual status_t UploadMaxNow() = 0;
-
-        /// <summary>
         /// Sets the transmit profile for event transmission - to one of the built-in profiles.
         /// A transmit profile is a collection of hardware and system settings (like network connectivity, power state)
         /// based on which to determine how events are to be transmitted.

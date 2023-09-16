@@ -179,11 +179,6 @@ namespace MAT_NS_BEGIN
             return STATUS_ENOSYS;
         }
 
-        virtual status_t UploadMaxNow() override
-        {
-            return STATUS_ENOSYS;
-        }
-
         virtual status_t PauseTransmission() override
         {
             return STATUS_ENOSYS;

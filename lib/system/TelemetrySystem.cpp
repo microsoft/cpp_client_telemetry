@@ -211,18 +211,6 @@ namespace MAT_NS_BEGIN {
         return false;
     }
 
-    bool TelemetrySystem::uploadMax()
-    {
-        size_t recordCount = storage.GetRecordCount();
-        if (recordCount)
-        {
-            tpm.uploadAsyncMax(EventLatency::EventLatency_Max);
-            return true;
-        }
-
-        return false;
-    }
-
     void TelemetrySystem::handleIncomingEventPrepared(IncomingEventContextPtr const& event)
     {
         uint32_t maxBlobSize = m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_BLOB_BYTES];

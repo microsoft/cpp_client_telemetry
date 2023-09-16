@@ -721,7 +721,6 @@ TEST(APITest, C_API_Test)
     EXPECT_EQ(totalEvents, 5u);
 
     evt_flush(handle);
-    evt_uploadMax(handle);
     evt_upload(handle);
 
     // Must remove event listener befor closing the handle!

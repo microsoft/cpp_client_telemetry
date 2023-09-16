@@ -75,12 +75,6 @@ void EventLogger::Upload()
     LogManager::UploadNow();
 }
 
-void EventLogger::UploadMax()
-{
-    printf("LogManager::UploadMaxNow\n");
-    LogManager::UploadMaxNow();
-}
-
 void EventLogger::Done()
 {
     printf("LogManager::FlushAndTeardown\n");
