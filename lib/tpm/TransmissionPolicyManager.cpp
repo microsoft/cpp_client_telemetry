@@ -173,11 +173,6 @@ namespace MAT_NS_BEGIN {
         }
     }
 
-    void TransmissionPolicyManager::uploadAsyncMax(EventLatency latency)
-    {
-        TransmissionPolicyManager::uploadAsync(latency);
-    }
-
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
         PauseGuard guard(m_system.getLogManager());
