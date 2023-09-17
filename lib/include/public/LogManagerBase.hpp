@@ -278,6 +278,7 @@ namespace MAT_NS_BEGIN
             // Avoid destroying our ILogManager instance on teardown
             LM_SAFE_CALL(Flush);
             LM_SAFE_CALL(UploadNow);
+            LM_SAFE_CALL(UploadMaxNow);
             return STATUS_SUCCESS;
 #else
             // Less safe approach, but this is in alignment with original v1 behavior
