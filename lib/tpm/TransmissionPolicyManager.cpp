@@ -52,6 +52,7 @@ namespace MAT_NS_BEGIN {
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
         m_deviceStateHandler.Start();
+        otherPriorityLastExecutionTime = std::chrono::steady_clock::now();
     }
 
     TransmissionPolicyManager::~TransmissionPolicyManager()
@@ -334,7 +335,6 @@ namespace MAT_NS_BEGIN {
         // Check if it's time to execute the specific Max or other priority events code block
         auto currentTime = std::chrono::steady_clock::now();
         static auto maxPriorityLastExecutionTime = currentTime;
-        static auto otherPriorityLastExecutionTime = currentTime;
 
         auto max_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - maxPriorityLastExecutionTime).count();
 
@@ -357,7 +357,8 @@ namespace MAT_NS_BEGIN {
 
         // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
         // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
-        if (other_priority_elapsed_seconds > 4){
+        if (other_priority_elapsed_seconds > 40 && m_isUploadScheduled.load()){
+            m_isUploadScheduled.exchange(false);
             LOG_TRACE("Trigger upload on event arrival");
             otherPriorityLastExecutionTime = currentTime;
         }
@@ -479,12 +480,24 @@ namespace MAT_NS_BEGIN {
     {
         bool result = m_scheduledUpload.Cancel(getCancelWaitTime().count());
 
+        // Check if it's time to execute the specific code block
+        auto currentTime = std::chrono::steady_clock::now();
+
+        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
+
         // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
         //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
         //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
-        if (result)
+        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
+        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
+        if (result || other_priority_elapsed_seconds > 40)
         {
             m_isUploadScheduled.exchange(false);
+            if (other_priority_elapsed_seconds > 40)
+            {
+                LOG_TRACE("Reset upload on event cancellation");
+            }
+            otherPriorityLastExecutionTime = currentTime;
         }
         return result;
     }
