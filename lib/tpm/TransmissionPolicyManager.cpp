@@ -334,6 +334,7 @@ namespace MAT_NS_BEGIN {
         // Check if it's time to execute the specific Max or other priority events code block
         auto currentTime = std::chrono::steady_clock::now();
         static auto maxPriorityLastExecutionTime = currentTime;
+        static auto otherPriorityLastExecutionTime = currentTime;
 
         auto max_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - maxPriorityLastExecutionTime).count();
 
@@ -349,6 +350,16 @@ namespace MAT_NS_BEGIN {
             addUpload(ctx);
             initiateUpload(ctx);
             return;
+        }
+
+        // Other priorities like: Normal, Realtime, etc.
+        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
+
+        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
+        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
+        if (other_priority_elapsed_seconds > 40 && m_isUploadScheduled.exchange(false)){
+            LOG_TRACE("Trigger upload on event arrival");
+            otherPriorityLastExecutionTime = currentTime;
         }
 
         // Schedule async upload if not scheduled yet
