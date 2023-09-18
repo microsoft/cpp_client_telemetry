@@ -56,7 +56,7 @@ namespace MAT_NS_BEGIN {
             {
                 outcome = Accepted;
             }
-            else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429)
+            else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429 || response.GetStatusCode() == 407)
             {
                 outcome = RetryServer;
             }
