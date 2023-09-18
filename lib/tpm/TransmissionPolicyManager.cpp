@@ -331,10 +331,21 @@ namespace MAT_NS_BEGIN {
         }
         bool forceTimerRestart = false;
 
-        // Initiate upload right away
+        // Check if it's time to execute the specific Max or other priority events code block
+        auto currentTime = std::chrono::steady_clock::now();
+        static auto maxPriorityLastExecutionTime = currentTime;
+
+        auto max_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - maxPriorityLastExecutionTime).count();
+
+        /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
+        // Initiate upload right away, but add a 2-second check to ensure some delay between consecutive initiate upload calls.
         if (event->record.latency > EventLatency_RealTime) {
+            if(max_priority_elapsed_seconds < 2){
+                return;
+            }
             auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
+            maxPriorityLastExecutionTime = currentTime;
             addUpload(ctx);
             initiateUpload(ctx);
             return;
