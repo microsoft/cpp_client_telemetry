@@ -21,7 +21,7 @@ fn main() {
 
     let config = r#"{
             "eventCollectorUri": "http://localhost:64099/OneCollector/track",
-            "cacheFilePath":"offline_storage.db",
+            "cacheFilePath":"hackathon_storage.db",
             "config":{"host": "*"},
             "name":"Rust-API-Client-0",
             "version":"1.0.0",
@@ -38,6 +38,9 @@ fn main() {
 
     loop {
         error!(target: "app_events", "App Error: {}, Port: {}", "Connection Error", 22);
+
+        oneds_telemetry::flush();
+
         thread::sleep(Duration::from_secs(3));
     }
 
