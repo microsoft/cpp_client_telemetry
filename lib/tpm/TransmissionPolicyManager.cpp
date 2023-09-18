@@ -52,6 +52,7 @@ namespace MAT_NS_BEGIN {
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
         m_deviceStateHandler.Start();
+        otherPriorityLastExecutionTime = std::chrono::steady_clock::now();
     }
 
     TransmissionPolicyManager::~TransmissionPolicyManager()
@@ -338,6 +339,19 @@ namespace MAT_NS_BEGIN {
             addUpload(ctx);
             initiateUpload(ctx);
             return;
+        }
+
+        auto currentTime = std::chrono::steady_clock::now();
+
+        // Other priorities like: Normal, Realtime, etc.
+        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
+
+        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
+        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
+        if (m_isUploadScheduled.load() && other_priority_elapsed_seconds > 40){
+            m_isUploadScheduled.store(false);
+            LOG_TRACE("Trigger upload on event arrival");
+            otherPriorityLastExecutionTime = currentTime;
         }
 
         // Schedule async upload if not scheduled yet
