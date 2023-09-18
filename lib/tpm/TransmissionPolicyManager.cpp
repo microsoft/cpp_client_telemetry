@@ -357,7 +357,7 @@ namespace MAT_NS_BEGIN {
 
         // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
         // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
-        if (other_priority_elapsed_seconds > 3 && m_isUploadScheduled.exchange(false)){
+        if (other_priority_elapsed_seconds > 4 && m_isUploadScheduled.exchange(false)){
             LOG_TRACE("Trigger upload on event arrival");
             otherPriorityLastExecutionTime = currentTime;
         }
@@ -365,6 +365,7 @@ namespace MAT_NS_BEGIN {
         // Schedule async upload if not scheduled yet
         if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
         {
+            otherPriorityLastExecutionTime = currentTime;
             if (updateTimersIfNecessary())
             {
                 m_timerdelay = std::chrono::milliseconds { m_timers[1] };
