@@ -491,7 +491,6 @@ namespace MAT_NS_BEGIN {
         // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
         if (result || other_priority_elapsed_seconds > 40)
         {
-            m_isUploadScheduled.exchange(false);
             if (other_priority_elapsed_seconds > 40)
             {
                 LOG_TRACE("Reset upload on event cancellation");
