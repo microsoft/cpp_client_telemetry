@@ -351,6 +351,8 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
+// Currently MIP SDK does not have any solution for MAC OS hence blocking this code for Apple since it was blocking some MIP SDK' test (oneds_test.cpp) just for MAC OS due timeout.
+#ifndef __APPLE__
         // Other priorities like: Normal, Realtime, etc.
         auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
 
@@ -361,7 +363,7 @@ namespace MAT_NS_BEGIN {
             LOG_TRACE("Trigger upload on event arrival");
             otherPriorityLastExecutionTime = currentTime;
         }
-
+#endif
         // Schedule async upload if not scheduled yet
         if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
         {
