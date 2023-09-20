@@ -352,8 +352,10 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
-// Currently MIP SDK does not have any solution for MacOS which generates auditing hence temporarily blocking this temporary code fix for inconsistent OneDS upload thread 
-// stoppage issue in Apple env since it was blocking some MIP SDK's test (oneds_test.cpp) just for MAC OS due timeout. This block could be removed after validation.
+// This code block is temporarily disabled for MacOS because the MIP SDK lacks a solution for auditing on MacOS. 
+// This temporary code fix was introduced to address an issue with inconsistent OneDS upload thread stoppage in all environments especially for Windows. 
+// It was blocking some of the MIP SDK's tests (oneds_test.cpp) on MacOS due to timeouts. 
+// This block can be removed after validation.
 #ifndef __APPLE__
         // Other priorities like: Normal, Realtime, etc.
         auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
