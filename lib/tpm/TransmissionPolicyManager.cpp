@@ -358,6 +358,7 @@ namespace MAT_NS_BEGIN {
         // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
         // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
         if ((other_priority_elapsed_seconds > 40) && m_isUploadScheduled){
+            m_isUploadScheduled = false;
             LOG_TRACE("Trigger upload on event arrival");
             otherPriorityLastExecutionTime = currentTime;
         }
