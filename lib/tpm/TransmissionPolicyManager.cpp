@@ -52,6 +52,7 @@ namespace MAT_NS_BEGIN {
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
         m_deviceStateHandler.Start();
+        otherPriorityLastExecutionTime = std::chrono::steady_clock::now();
     }
 
     TransmissionPolicyManager::~TransmissionPolicyManager()
@@ -351,7 +352,8 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
-// Currently MIP SDK does not have any solution for MAC OS hence blocking this code for Apple since it was blocking some MIP SDK' test (oneds_test.cpp) just for MAC OS due timeout.
+// Currently MIP SDK does not have any solution for MacOS which generates auditing hence temporarily blocking this temporary code fix for inconsistent OneDS upload thread 
+// stoppage issue in Apple env since it was blocking some MIP SDK's test (oneds_test.cpp) just for MAC OS due timeout. This block could be removed after validation.
 #ifndef __APPLE__
         // Other priorities like: Normal, Realtime, etc.
         auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
