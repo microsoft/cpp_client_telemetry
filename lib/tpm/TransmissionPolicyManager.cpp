@@ -356,7 +356,7 @@ namespace MAT_NS_BEGIN {
 // This temporary code fix was introduced to address an issue with inconsistent OneDS upload thread stoppage in all environments especially for Windows. 
 // It was blocking some of the MIP SDK's tests (oneds_test.cpp) on MacOS due to timeouts. 
 // This block can be removed after validation.
-#if !defined(__APPLE__)
+#ifndef __APPLE__
         // Other priorities like: Normal, Realtime, etc.
         auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
 
@@ -484,6 +484,7 @@ namespace MAT_NS_BEGIN {
     bool TransmissionPolicyManager::cancelUploadTask()
     {
         bool result = m_scheduledUpload.Cancel(getCancelWaitTime().count());
+#ifndef __APPLE__
         // Check if it's time to execute the specific code block
         auto currentTime = std::chrono::steady_clock::now();
 
@@ -503,6 +504,12 @@ namespace MAT_NS_BEGIN {
             m_isUploadScheduled.exchange(false);
             otherPriorityLastExecutionTime = currentTime;
         }
+#else
+        if (result)
+        {
+            m_isUploadScheduled.exchange(false);
+        }
+#endif
         return result;
     }
 
