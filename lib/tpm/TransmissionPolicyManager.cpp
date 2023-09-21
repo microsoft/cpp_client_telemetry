@@ -484,7 +484,6 @@ namespace MAT_NS_BEGIN {
     bool TransmissionPolicyManager::cancelUploadTask()
     {
         bool result = m_scheduledUpload.Cancel(getCancelWaitTime().count());
-#if !defined(__APPLE__)
         // Check if it's time to execute the specific code block
         auto currentTime = std::chrono::steady_clock::now();
 
@@ -504,12 +503,6 @@ namespace MAT_NS_BEGIN {
             m_isUploadScheduled.exchange(false);
             otherPriorityLastExecutionTime = currentTime;
         }
-#else
-        if (result)
-        {
-            m_isUploadScheduled.exchange(false);
-        }
-#endif
         return result;
     }
 
