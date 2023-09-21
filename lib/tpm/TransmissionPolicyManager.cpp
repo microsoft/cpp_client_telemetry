@@ -501,7 +501,7 @@ namespace MAT_NS_BEGIN {
             {
                 LOG_TRACE("Reset upload on event cancellation");
             }
-            
+            m_isUploadScheduled.exchange(false);
             otherPriorityLastExecutionTime = currentTime;
         }
         return result;
