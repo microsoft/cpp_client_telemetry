@@ -116,7 +116,8 @@ namespace MAT_NS_BEGIN {
 
             auto timestamp = eventProperties.GetTimestamp();
             if (timestamp != 0)
-                record.time = timestamp;
+                // convert timestamp in millis to ticks and add ticks for UTC time 0.
+                record.time = timestamp * 10000 + 0x89F7FF5F7B58000ULL;
 
             record.popSample = eventProperties.GetPopSample();
 

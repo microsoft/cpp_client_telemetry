@@ -19,7 +19,7 @@ public final class EventProperties {
         - name: Name of the event as a `String`.
     */
     public init(name: String) {
-        self.odwEventProperties = ODWEventProperties(name: name)
+        odwEventProperties = ODWEventProperties(name: name)
     }
 
     /**
@@ -43,21 +43,6 @@ public final class EventProperties {
     */
     public init(name: String, withProperties properties: [String: Any], withPiiTags piiTags: [String: NSNumber]) {
         odwEventProperties = ODWEventProperties(name: name, properties: properties, piiTags: piiTags)
-    }
-
-    /// Returns ODWEventProperties object, around which the Swift class is wrapped.
-    public func getODWEventPropertiesObject() -> ODWEventProperties {
-        return odwEventProperties
-    }
-
-    /// Returns all the properties as dictionary
-    public func properties() -> [String: Any] {
-        return odwEventProperties.properties
-    }
-
-    /// Returns all the piiTags as dictionary
-    public func piiTags() -> [String: Any] {
-        return odwEventProperties.piiTags
     }
 
     /**
@@ -87,9 +72,9 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the property.
         - value: Value of the property.
-        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::ODWPiiKind enum values.
+        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::PIIKind enum values.
     */
-    public func setProperty(_ name: String, withValue value: Any, withPiiKind piiKind: ODWPiiKind) {
+    public func setProperty(_ name: String, withValue value: Any, withPiiKind piiKind: PIIKind) {
         odwEventProperties.setProperty(name, withValue: value, with: piiKind)
     }
 
@@ -110,9 +95,9 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the property.
         - value: A Double that contains the property value.
-        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::ODWPiiKind enum values.
+        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::PIIKind enum values.
     */
-    public func setProperty(_ name: String, withDoubleValue value: Double, withPiiKind piiKind: ODWPiiKind) {
+    public func setProperty(_ name: String, withDoubleValue value: Double, withPiiKind piiKind: PIIKind) {
         odwEventProperties.setProperty(name, withDoubleValue: value, with: piiKind)
     }
 
@@ -133,9 +118,9 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the property.
         - value: An integer that contains the property value.
-        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::ODWPiiKind enum values.
+        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::PIIKind enum values.
     */
-    public func setProperty(_ name: String, withInt64Value value: Int64, withPiiKind piiKind: ODWPiiKind) {
+    public func setProperty(_ name: String, withInt64Value value: Int64, withPiiKind piiKind: PIIKind) {
         odwEventProperties.setProperty(name, withInt64Value: value, with: piiKind)
     }
 
@@ -156,9 +141,9 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the property.
         - value: An integer that contains the property value.
-        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::ODWPiiKind enum values.
+        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::PIIKind enum values.
     */
-    public func setProperty(_ name: String, withUInt8Value value: UInt8, withPiiKind piiKind: ODWPiiKind) {
+    public func setProperty(_ name: String, withUInt8Value value: UInt8, withPiiKind piiKind: PIIKind) {
         odwEventProperties.setProperty(name, withUInt8Value: value, with: piiKind)
     }
 
@@ -179,9 +164,9 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the property.
         - value: An integer that contains the property value.
-        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::ODWPiiKind enum values.
+        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::PIIKind enum values.
     */
-    public func setProperty(_ name: String, withUInt64Value value: UInt64, withPiiKind piiKind: ODWPiiKind) {
+    public func setProperty(_ name: String, withUInt64Value value: UInt64, withPiiKind piiKind: PIIKind) {
         odwEventProperties.setProperty(name, withUInt64Value: value, with: piiKind)
     }
 
@@ -202,9 +187,9 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the property.
         - value: A `Bool` that contains the property value.
-        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::ODWPiiKind enum values.
+        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::PIIKind enum values.
     */
-    public func setProperty(_ name: String, withBoolValue value: Bool, withPiiKind piiKind: ODWPiiKind) {
+    public func setProperty(_ name: String, withBoolValue value: Bool, withPiiKind piiKind: PIIKind) {
         odwEventProperties.setProperty(name, withBoolValue: value, with: piiKind)
     }
 
@@ -225,9 +210,9 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the property.
         - value: A "UUID" that contains the property value.
-        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::ODWPiiKind enum values.
+        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::PIIKind enum values.
     */
-    public func setProperty(_ name: String, withUUIDValue value: UUID, withPiiKind piiKind: ODWPiiKind) {
+    public func setProperty(_ name: String, withUUIDValue value: UUID, withPiiKind piiKind: PIIKind) {
         odwEventProperties.setProperty(name, withUUIDValue: value, with: piiKind)
     }
 
@@ -248,9 +233,9 @@ public final class EventProperties {
     - Parameters:
         - name: Name of the property.
         - value: A `Date` that contains the property value.
-        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::ODWPiiKind enum values.
+        - piiKind: The kind of Personal Identifieable Information (PII), one from the ::PIIKind enum values.
     */
-    public func setProperty(_ name: String, withDateValue value: Date, withPiiKind piiKind: ODWPiiKind) {
+    public func setProperty(_ name: String, withDateValue value: Date, withPiiKind piiKind: PIIKind) {
         odwEventProperties.setProperty(name, withDateValue: value, with: piiKind)
     }
 
@@ -261,8 +246,13 @@ public final class EventProperties {
         - privTags: Privacy data type of the event.
         - privLevel: Privacy diagnostic level of the event.
     */
-    public func setPrivacyMetadata(_ privTags: ODWPrivacyDataType, withdWDiagLevel privLevel: ODWDiagLevel) {
+    public func setPrivacyMetadata(_ privTags: PrivacyDataType, withdWDiagLevel privLevel: DiagnosticLevel) {
         odwEventProperties.setProperty("EventInfo.PrivTags", withUInt64Value: UInt64(privTags.rawValue))
         odwEventProperties.setProperty("EventInfo.Level", withUInt8Value: UInt8(privLevel.rawValue))
+    }
+
+    /// Returns ODWEventProperties object, around which the Swift class is wrapped.
+    func getODWEventPropertiesObject() -> ODWEventProperties {
+        return odwEventProperties
     }
 }
