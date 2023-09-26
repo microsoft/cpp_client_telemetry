@@ -150,7 +150,10 @@ namespace MAT_NS_BEGIN {
     {
         cancelAllRequestsAsync();
         while (!m_httpCallbacks.empty())
+        {
             std::this_thread::yield();
+            PAL::sleep(100);
+        }
     }
 
     // start async cancellation
