@@ -106,6 +106,11 @@ namespace MAT_NS_BEGIN {
         if (guard.isPaused()) {
             return;
         }
+        if (!m_config.IsCollectorUrlSet())
+        {
+            LOG_TRACE("Collector URL is not set, no upload.");
+            return;
+        }
         LOCKGUARD(m_scheduledUploadMutex);
         if (delay.count() < 0 || m_timerdelay.count() < 0)
         {
