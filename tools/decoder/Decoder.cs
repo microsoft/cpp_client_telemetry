@@ -26,7 +26,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CsProtocol;
 using System.Linq;
-using Fiddler;
 
 namespace CommonSchema
 {
@@ -328,7 +327,9 @@ namespace CommonSchema
                 }
                 catch (EndOfStreamException)
                 {
+#if NETCOREAPP
                     Logger.LogDebug("End of Binary Stream");
+#endif
                 }
                 catch (Exception ex)
                 {
