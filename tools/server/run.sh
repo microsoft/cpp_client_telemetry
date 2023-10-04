@@ -27,7 +27,7 @@ do
       if test $# -gt 0; then
         framework=$1
       else
-        echo "framework is not specified. Server will be run with .netcoreapp3.1"
+        echo "--framework option value is not specified. Server will be run with $framework"
       fi
       shift
       ;;
