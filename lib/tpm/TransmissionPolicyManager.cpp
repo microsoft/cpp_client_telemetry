@@ -52,7 +52,6 @@ namespace MAT_NS_BEGIN {
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
         m_deviceStateHandler.Start();
-        otherPriorityLastExecutionTime = std::chrono::steady_clock::now();
     }
 
     TransmissionPolicyManager::~TransmissionPolicyManager()
