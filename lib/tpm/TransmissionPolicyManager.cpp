@@ -335,6 +335,7 @@ namespace MAT_NS_BEGIN {
         // Check if it's time to execute the specific Max or other priority events code block
         auto currentTime = std::chrono::steady_clock::now();
         static auto maxPriorityLastExecutionTime = currentTime;
+        static auto otherPriorityLastExecutionTime = currentTime;
 
         auto max_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - maxPriorityLastExecutionTime).count();
 
@@ -487,8 +488,9 @@ namespace MAT_NS_BEGIN {
 #ifndef __APPLE__
         // Check if it's time to execute the specific code block
         auto currentTime = std::chrono::steady_clock::now();
+        static auto otherPriorityLastExecutionTimeClock = currentTime;
 
-        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
+        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTimeClock).count();
 
         // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
         //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
@@ -502,7 +504,7 @@ namespace MAT_NS_BEGIN {
                 LOG_TRACE("Reset upload on event cancellation");
             }
             m_isUploadScheduled.exchange(false);
-            otherPriorityLastExecutionTime = currentTime;
+            otherPriorityLastExecutionTimeClock = currentTime;
         }
 #else
         if (result)
