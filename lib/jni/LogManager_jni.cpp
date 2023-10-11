@@ -1761,6 +1761,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     auto logManager = getLogManager(native_log_manager);
     if (logManager) {
         auto ticketValue = JStringToStdString(env, jstrTicketValue);
-        logManager->GetAuthTokensController()->SetTicketToken(static_cast<TicketType>(ticketType), ticketValue.c_str());
+        return logManager->GetAuthTokensController()->SetTicketToken(static_cast<TicketType>(ticketType), ticketValue.c_str());
     }
+    return STATUS_EFAIL;
 }
