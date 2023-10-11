@@ -24,6 +24,7 @@ namespace MAT_NS_BEGIN {
 
     status_t  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)
     {
+        LOCKGUARD(m_lock);
         if (nullptr != tokenValue)
         {
             if (type == TicketType::TicketType_MSA_Device ||
