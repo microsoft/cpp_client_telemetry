@@ -65,16 +65,19 @@ namespace MAT_NS_BEGIN {
 
     std::vector<std::string>&  AuthTokensController::GetTickets()
     {
+        LOCKGUARD(m_lock);
         return m_tickets;
     }
 
     std::map<TicketType, std::string>&  AuthTokensController::GetDeviceTokens()
     {
+        LOCKGUARD(m_lock);
         return m_deviceTokens;
     }
 
     std::map<TicketType, std::string>&  AuthTokensController::GetUserTokens()
     {
+        LOCKGUARD(m_lock);
         return m_userTokens;
     }
 
