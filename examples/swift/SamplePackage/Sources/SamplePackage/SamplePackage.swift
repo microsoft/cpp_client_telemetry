@@ -5,6 +5,8 @@
 
 import OneDSSwift
 
+public var packageName = "sample swift package"
+
 private var logger:Logger?
 private var token:String = ""
 
