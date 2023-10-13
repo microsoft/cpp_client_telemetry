@@ -10,14 +10,15 @@ Details:
     - Include module.modulemap folder in Swift compiler search path.
     - Add OneDSSwift package in build phases dependency.
 
+<a name="to-be-linked"></a>
 - Libraries/Frameworks to link to Target
     - OneDSSwift # Package
     - SystemConfiguration
     - Network
-    # /usr/local/lib
-    - libmat.a
-    - libz.tbd
-    - libsqlite3.a
+    - `/usr/local/lib`
+        - libmat.a
+        - libz.tbd
+        - libsqlite3.a
 
 
 # SamplePackage
@@ -25,8 +26,11 @@ Details:
 Contains a simple swift package importing swift wrappers package and calling 1DS API via swift wrappers.
 
 Details:
-- Package Dependencies:
+- Package Dependencies
     - OneDSSwift: Package containing swift wrappers
 
-- Modules Included:
+- Modules Included
     - ObjCModule: Module exposing ObjC headers via module.modulemap file.
+
+- Libraries and Frameworks to link to Target
+    - [Same as mentioned in the SampleXcodeApp section](#to-be-linked)

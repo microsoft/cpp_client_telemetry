@@ -23,6 +23,24 @@ let package = Package(
                 .product(name: "OneDSSwift", package: "swift"),
             ],
             swiftSettings: [
+                .unsafeFlags(["-Xcc", "-I../../../wrappers/swift/Modules/"]),
+            ],
+            linkerSettings: [
+                .unsafeFlags(["-L/usr/local/lib"]),
+                // Libs to be linked.
+                .linkedLibrary("mat"),
+                .linkedLibrary("sqlite3"),
+                .linkedLibrary("z"),
+                // Frameworks to be linked.
+                .linkedFramework("Network"),
+                .linkedFramework("SystemConfiguration"),
+            ]),
+        .testTarget(
+            name: "SampleTests",
+            dependencies: [
+                "SamplePackage",
+            ],
+            swiftSettings: [
                 .unsafeFlags(["-Xcc", "-I../../../wrappers/swift/Modules/"])
             ]),
     ]
