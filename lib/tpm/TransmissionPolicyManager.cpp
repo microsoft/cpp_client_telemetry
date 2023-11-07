@@ -336,18 +336,47 @@ namespace MAT_NS_BEGIN {
         }
         bool forceTimerRestart = false;
 
-        // Initiate upload right away
+        // Check if it's time to execute the specific Max or other priority events code block
+        auto currentTime = std::chrono::steady_clock::now();
+        static auto maxPriorityLastExecutionTime = currentTime;
+        static auto otherPriorityLastExecutionTime = currentTime;
+
+        auto max_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - maxPriorityLastExecutionTime).count();
+
+        /* This logic needs to be revised: one event in a dedicated HTTP post is wasteful! */
+        // Initiate upload right away, but add a 2-second check to ensure some delay between consecutive initiate upload calls.
         if (event->record.latency > EventLatency_RealTime) {
+            if(max_priority_elapsed_seconds < 2){
+                return;
+            }
             auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
+            maxPriorityLastExecutionTime = currentTime;
             addUpload(ctx);
             initiateUpload(ctx);
             return;
         }
 
+// This code block is temporarily disabled for MacOS because the MIP SDK lacks a solution for auditing on MacOS. 
+// This temporary code fix was introduced to address an issue with inconsistent OneDS upload thread stoppage in all environments especially for Windows. 
+// It was blocking some of the MIP SDK's tests (oneds_test.cpp) on MacOS due to timeouts. 
+// This block can be removed after validation.
+#ifndef __APPLE__
+        // Other priorities like: Normal, Realtime, etc.
+        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTime).count();
+
+        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
+        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
+        if ((other_priority_elapsed_seconds > 40) && m_isUploadScheduled){
+            m_isUploadScheduled = false;
+            LOG_TRACE("Trigger upload on event arrival");
+            otherPriorityLastExecutionTime = currentTime;
+        }
+#endif
         // Schedule async upload if not scheduled yet
         if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
         {
+            otherPriorityLastExecutionTime = currentTime;
             if (updateTimersIfNecessary())
             {
                 m_timerdelay = std::chrono::milliseconds { m_timers[1] };
@@ -460,14 +489,33 @@ namespace MAT_NS_BEGIN {
     bool TransmissionPolicyManager::cancelUploadTask()
     {
         bool result = m_scheduledUpload.Cancel(getCancelWaitTime().count());
+#ifndef __APPLE__
+        // Check if it's time to execute the specific code block
+        auto currentTime = std::chrono::steady_clock::now();
+        static auto otherPriorityLastExecutionTimeClock = currentTime;
+
+        auto other_priority_elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(currentTime - otherPriorityLastExecutionTimeClock).count();
 
         // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
         //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
         //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
+        // Introducing a 40-second delay before forcefully scheduling the upload job, to ensure it happens at an optimal time.
+        // This delay is implemented to address Issue 388, where the last cancellation might have been halted due to the issue described below.
+        if (result || other_priority_elapsed_seconds > 40)
+        {
+            if (other_priority_elapsed_seconds > 40)
+            {
+                LOG_TRACE("Reset upload on event cancellation");
+            }
+            m_isUploadScheduled.exchange(false);
+            otherPriorityLastExecutionTimeClock = currentTime;
+        }
+#else
         if (result)
         {
             m_isUploadScheduled.exchange(false);
         }
+#endif
         return result;
     }
 
