@@ -1,6 +1,6 @@
 Source obtained from
 --------------------
-https://www.sqlite.org/tmp/sqlite-win10-all-3340100.zip
+https://www.sqlite.org/tmp/sqlite-amalgamation-3440000.zip
 
 OSS approval
 ------------
