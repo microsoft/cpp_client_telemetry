@@ -49,8 +49,8 @@ brew install cmake
 brew install wget
 
 ## Install sqlite 3.22
-export SQLITE_PKG=sqlite-autoconf-3390000
-wget https://www.sqlite.org/2022/$SQLITE_PKG.tar.gz -O /tmp/sqlite-snapshot.tar.gz
+export SQLITE_PKG=sqlite-autoconf-3440000
+wget https://www.sqlite.org/2023/$SQLITE_PKG.tar.gz -O /tmp/sqlite-snapshot.tar.gz
 tar -xvf /tmp/sqlite-snapshot.tar.gz
 cd $SQLITE_PKG
 ./configure && make && make install
