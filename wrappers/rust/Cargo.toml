@@ -1,4 +1,4 @@
 [workspace]
 resolver = "2"
 
-members = ["oneds-telemetry", "telemetry-sample"]
+members = ["cpp-client-telemetry-sys", "oneds-telemetry", "telemetry-sample"]

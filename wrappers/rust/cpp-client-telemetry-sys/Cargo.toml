@@ -1,0 +1,12 @@
+[package]
+name = "cpp-client-telemetry-sys"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[build-dependencies]
+bindgen = { version = "0.65.1", features = ["experimental"] }
+subprocess = "0.2.9"
