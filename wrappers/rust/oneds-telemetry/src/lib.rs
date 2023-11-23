@@ -100,12 +100,12 @@ impl LogManager {
         }
 
         let handle = self.log_handle.as_ref().unwrap();
-        evt_flush(handle);
-        debug!("LogManager.flush(EVT_OP_FLUSH)");
+        let status = evt_flush(handle);
+        debug!("LogManager.flush(EVT_OP_FLUSH) returned: {}", status);
 
         if upload {
-            evt_upload(handle);
-            debug!("LogManager.flush(EVT_OP_UPLOAD)");
+            let status = evt_upload(handle);
+            debug!("LogManager.flush(EVT_OP_UPLOAD) returned: {}", status);
         }
     }
 
@@ -146,8 +146,7 @@ impl LogManager {
 
         let handle = self.log_handle.clone().unwrap();
 
-        // TODO
-        // evt_log_vec(&handle, &mut event_props);
+        evt_log(&handle, &mut event_props);
     }
 
     pub fn track_evt(&self, mut event_props: &mut [evt_prop]) {

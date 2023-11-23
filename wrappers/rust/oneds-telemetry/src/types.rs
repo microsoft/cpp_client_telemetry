@@ -8,7 +8,7 @@ use chrono::{DateTime, Utc};
 use log::{debug, error};
 use once_cell::sync::Lazy;
 
-use cpp_client_telemetry_sys::{evt_prop, evt_prop_v, evt_prop_t_TYPE_STRING, evt_prop_t_TYPE_TIME};
+use cpp_client_telemetry_sys::{evt_prop, evt_prop_v, evt_prop_t_TYPE_STRING, evt_prop_t_TYPE_TIME, evt_prop_t_TYPE_INT64};
 
 #[derive(Clone, Debug)]
 pub struct StringProperty {
@@ -107,9 +107,26 @@ impl TelemetryItem {
         for key in self.data.keys() {
             let value = self.data.get(key).expect("Unable to get value");
             match value {
-                TelemetryProperty::String(value) => {}
-                TelemetryProperty::Int(value) => {}
-                _ => error!("Unknown TelemetryProperty Type: [{}]", key),
+                TelemetryProperty::String(value) => {
+                    properties.push(evt_prop {
+                        name: StringProperty::new(key).as_ptr(),
+                        type_: evt_prop_t_TYPE_STRING,
+                        value: evt_prop_v {
+                            as_string: value.as_ptr()
+                        },
+                        piiKind: 0
+                    })
+                }
+                TelemetryProperty::Int(value) => {
+                    properties.push(evt_prop {
+                        name: StringProperty::new(key).as_ptr(),
+                        type_: evt_prop_t_TYPE_INT64,
+                        value: evt_prop_v {
+                            as_int64: value.clone()
+                        },
+                        piiKind: 0
+                    })
+                }
             }
         }
 
