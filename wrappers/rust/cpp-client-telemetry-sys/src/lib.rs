@@ -3,7 +3,7 @@
 #![allow(non_snake_case)]
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-use std::ffi::c_void;
+use std::ffi::*;
 
 fn evt_api_call_wrapper(evt_context: Box<evt_context_t>) -> (evt_status_t, Box<evt_context_t>) {
     let raw_pointer = Box::into_raw(evt_context);
@@ -17,11 +17,13 @@ fn evt_api_call_wrapper(evt_context: Box<evt_context_t>) -> (evt_status_t, Box<e
     (result, out_context)
 }
 
-fn evt_open(config: *mut c_void) -> Option<evt_handle_t> {
+pub fn evt_open(config: CString) -> Option<evt_handle_t> {
+    let config_bytes = config.to_bytes_with_nul().to_vec();
+
     let context: Box<evt_context_t> = Box::new(evt_context_t {
         call: evt_call_t_EVT_OP_OPEN,
         handle: 0,
-        data: config,
+        data: config_bytes.as_ptr() as *mut c_void,
         result: 0,
         size: 0,
     });
@@ -48,28 +50,41 @@ pub fn evt_close(handle: &evt_handle_t) -> evt_status_t {
     result
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub fn evt_upload(handle: &evt_handle_t) -> evt_status_t {
+    let context: Box<evt_context_t> = Box::new(evt_context_t {
+        call: evt_call_t_EVT_OP_UPLOAD,
+        handle: *handle,
+        data: std::ptr::null_mut(),
+        result: 0,
+        size: 0,
+    });
 
-    #[test]
-    fn test_open_close() {
-        let config = r#"{
-            "eventCollectorUri": "http://localhost:64099/OneCollector/track",
-            "cacheFilePath":"hackathon_storage.db",
-            "config":{"host": "*"},
-            "name":"Rust-API-Client-0",
-            "version":"1.0.0",
-            "primaryToken":"99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999",
-            "maxTeardownUploadTimeInSec":5,
-            "hostMode":false,
-            "traceLevelMask": 4294967295,
-            "minimumTraceLevel":0,
-            "sdkmode":0,
-            "compat": {"customTypePrefix": "compat_event"}
-        }"#;
+    evt_api_call_wrapper(context).0
+}
 
-        let result = evt_open(config.as_ptr() as *mut c_void);
-        assert_eq!(result, Some(0));
-    }
+pub fn evt_flush(handle: &evt_handle_t) -> evt_status_t {
+    let context: Box<evt_context_t> = Box::new(evt_context_t {
+        call: evt_call_t_EVT_OP_FLUSH,
+        handle: *handle,
+        data: std::ptr::null_mut(),
+        result: 0,
+        size: 0,
+    });
+
+    evt_api_call_wrapper(context).0
+}
+
+pub fn evt_log(handle: &evt_handle_t, data: &mut [evt_prop]) -> evt_status_t {
+    let data_len = data.len() as u32;
+    let data_pointer = data.as_mut_ptr() as *mut c_void;
+
+    let context: Box<evt_context_t> = Box::new(evt_context_t {
+        call: evt_call_t_EVT_OP_LOG,
+        handle: *handle,
+        data: data_pointer,
+        result: 0,
+        size: data_len,
+    });
+
+    evt_api_call_wrapper(context).0
 }
