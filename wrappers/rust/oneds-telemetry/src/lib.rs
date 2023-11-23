@@ -4,21 +4,24 @@
 
 use log::debug;
 use once_cell::sync::Lazy;
-use std::{ffi::c_void, sync::RwLock};
+use std::{sync::RwLock, ffi::CString};
 use types::{StringProperty, TelemetryItem, TelemetryProperty};
+use cpp_client_telemetry_sys::{
+    evt_open,
+    evt_close,
+    evt_log,
+    evt_flush,
+    evt_upload,
+    evt_prop
+};
 
 pub mod appender;
-mod client_library;
-mod helpers;
-mod internals;
 pub mod types;
-
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[derive(Clone)]
 pub struct LogManager {
     is_started: bool,
-    configuration: StringProperty,
+    configuration: CString,
     log_handle: Option<i64>,
 }
 
@@ -63,7 +66,7 @@ impl LogManager {
     fn new() -> Self {
         LogManager {
             is_started: false,
-            configuration: StringProperty::new("{}"),
+            configuration: CString::new("{}").unwrap(),
             log_handle: Option::None,
         }
     }
@@ -76,8 +79,7 @@ impl LogManager {
             return true;
         }
 
-        let config_ptr = self.configuration.as_ptr() as *mut c_void;
-        let handle = internals::evt_open(config_ptr);
+        let handle = evt_open(&self.configuration);
 
         if handle.is_none() {
             debug!("LogManager.start: failed");
@@ -98,11 +100,11 @@ impl LogManager {
         }
 
         let handle = self.log_handle.as_ref().unwrap();
-        internals::evt_flush(handle);
+        evt_flush(handle);
         debug!("LogManager.flush(EVT_OP_FLUSH)");
 
         if upload {
-            internals::evt_upload(handle);
+            evt_upload(handle);
             debug!("LogManager.flush(EVT_OP_UPLOAD)");
         }
     }
@@ -115,11 +117,11 @@ impl LogManager {
         self.flush(false);
 
         let handle = self.log_handle.as_ref().unwrap();
-        internals::evt_close(handle);
+        evt_close(handle);
     }
 
     pub fn configure(&mut self, config: &str) {
-        self.configuration = StringProperty::new(config);
+        self.configuration = CString::new(config).unwrap();
         debug!("LogManager.configure:\n{}", config);
     }
 
@@ -143,7 +145,9 @@ impl LogManager {
         );
 
         let handle = self.log_handle.clone().unwrap();
-        internals::evt_log_vec(&handle, &mut event_props);
+
+        // TODO
+        // evt_log_vec(&handle, &mut event_props);
     }
 
     pub fn track_evt(&self, mut event_props: &mut [evt_prop]) {
@@ -153,6 +157,6 @@ impl LogManager {
         );
 
         let handle = self.log_handle.clone().unwrap();
-        internals::evt_log(&handle, &mut event_props);
+        evt_log(&handle, &mut event_props);
     }
 }

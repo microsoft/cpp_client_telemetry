@@ -19,7 +19,7 @@ fn test_open_close() {
         "compat": {"customTypePrefix": "compat_event"}
     }"#;
 
-    let handle = evt_open(CString::new(config).unwrap()).expect("Failed to get SDK handle");
+    let handle = evt_open(&CString::new(config).unwrap()).expect("Failed to get SDK handle");
 
     assert_eq!(evt_close(&handle), 0);
 }

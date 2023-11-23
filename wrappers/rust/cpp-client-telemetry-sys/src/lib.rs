@@ -17,7 +17,7 @@ fn evt_api_call_wrapper(evt_context: Box<evt_context_t>) -> (evt_status_t, Box<e
     (result, out_context)
 }
 
-pub fn evt_open(config: CString) -> Option<evt_handle_t> {
+pub fn evt_open(config: &CString) -> Option<evt_handle_t> {
     let config_bytes = config.to_bytes_with_nul().to_vec();
 
     let context: Box<evt_context_t> = Box::new(evt_context_t {

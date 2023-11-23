@@ -8,7 +8,7 @@ use chrono::{DateTime, Utc};
 use log::{debug, error};
 use once_cell::sync::Lazy;
 
-use crate::{evt_prop, evt_prop_t_TYPE_STRING, evt_prop_t_TYPE_TIME, evt_prop_v};
+use cpp_client_telemetry_sys::{evt_prop, evt_prop_v, evt_prop_t_TYPE_STRING, evt_prop_t_TYPE_TIME};
 
 #[derive(Clone, Debug)]
 pub struct StringProperty {

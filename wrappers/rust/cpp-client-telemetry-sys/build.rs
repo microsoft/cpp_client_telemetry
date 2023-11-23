@@ -54,10 +54,6 @@ fn write_bindings() {
         // bindings for.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .rust_target(bindgen::RustTarget::Stable_1_68)
-        // .raw_line("#![allow(non_upper_case_globals)]")
-        // .raw_line("#![allow(non_camel_case_types)]")
-        // .raw_line("#![allow(non_snake_case)]")
-        //.clang_arg(format!("-I{}", PathBuf::from(PROJECT_ROOT).join("lib/include").display()))
         .header(PathBuf::from(out_dir).join("mat.out.h").to_string_lossy())
         .allowlist_type("evt_.*")
         .allowlist_function("evt_.*")
