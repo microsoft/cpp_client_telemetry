@@ -54,13 +54,21 @@ fn write_bindings(header_path: &PathBuf) {
 }
 
 fn main() {
+    let mat_h_location = PathBuf::from(PROJECT_ROOT).join("lib/include/public/mat.h");
+    println!("cargo:rerun-if-changed={}", mat_h_location.to_string_lossy());
+
+    let out_dir = env::var("OUT_DIR").unwrap();
+    std::fs::copy("../lib/ClientTelemetry.lib", PathBuf::from(&out_dir).join("ClientTelemetry.lib"))
+        .expect("Failed to copy native ClientTelemetry lib");
+
     // Tell cargo to look for shared libraries in the specified directory
-    println!("cargo:rustc-link-search=../lib");
+    println!("cargo:rustc-link-search=native={}", out_dir);
+    println!("cargo:rustc-link-lib=ClientTelemetry");
 
     // TODO use clang crate instead of invoking CLI directly
     let header_out = Exec::cmd("clang")
         .arg("-E")
-        .arg(PathBuf::from(PROJECT_ROOT).join("lib/include/public/mat.h"))
+        .arg(mat_h_location)
         .arg("-D")
         .arg("HAVE_DYNAMIC_C_LIB")
         .capture()
