@@ -3,7 +3,49 @@
 #![allow(non_snake_case)]
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-fn test_fn() {
+use std::ffi::c_void;
+
+fn evt_api_call_wrapper(evt_context: Box<evt_context_t>) -> (evt_status_t, Box<evt_context_t>) {
+    let raw_pointer = Box::into_raw(evt_context);
+
+    let mut result: evt_status_t = -1;
+    unsafe {
+        result = evt_api_call_default(raw_pointer);
+    }
+
+    let out_context = unsafe { Box::from_raw(raw_pointer) };
+    (result, out_context)
+}
+
+fn evt_open(config: *mut c_void) -> Option<evt_handle_t> {
+    let context: Box<evt_context_t> = Box::new(evt_context_t {
+        call: evt_call_t_EVT_OP_OPEN,
+        handle: 0,
+        data: config,
+        result: 0,
+        size: 0,
+    });
+
+    let (result, context) = evt_api_call_wrapper(context);
+
+    if result == -1 {
+        return Option::None;
+    }
+
+    return Some(context.handle.clone());
+}
+
+pub fn evt_close(handle: &evt_handle_t) -> evt_status_t {
+    let context: Box<evt_context_t> = Box::new(evt_context_t {
+        call: evt_call_t_EVT_OP_CLOSE,
+        handle: *handle,
+        data: std::ptr::null_mut(),
+        result: 0,
+        size: 0,
+    });
+
+    let (result, _) = evt_api_call_wrapper(context);
+    result
 }
 
 #[cfg(test)]
