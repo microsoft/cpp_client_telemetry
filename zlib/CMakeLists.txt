@@ -3,7 +3,7 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
 
-set(VERSION "1.2.8")
+set(VERSION "1.2.12")
 
 option(ASM686 "Enable building i686 assembly implementation")
 option(AMD64 "Enable building amd64 assembly implementation")
@@ -247,12 +247,3 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
-
-
-add_compile_definitions(WIN32)
-add_compile_definitions(_CRT_NONSTDC_NO_DEPRECATE)
-add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
-add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS)
-add_compile_definitions(ZLIB_WINAPI)
-# For x64 online
-add_compile_definitions(WIN64)
