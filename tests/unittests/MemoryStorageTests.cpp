@@ -60,21 +60,6 @@ class TestObserver : public IOfflineStorageObserver
     }
 };
 
-/// <summary>
-/// No-op NULL object pattern log manager
-/// </summary>
-NullLogManager              testLogManager;
-
-/// <summary>
-/// Default test configuration
-/// </summary>
-RuntimeConfig_Default       testConfig(testLogManager.GetLogConfiguration());
-
-/// <summary>
-/// Storage observer
-/// </summary>
-TestObserver                testObserver;
-
 // Run the list of all supported latencies
 std::set<EventLatency> latencies =
 {
@@ -108,15 +93,40 @@ size_t addEvents(MemoryStorage& storage)
     return total_db_size;
 }
 
+class MemoryStorageTests : public ::testing::Test
+{
+public:
+    /// <summary>
+    /// No-op NULL object pattern log manager
+    /// </summary>
+    NullLogManager              testLogManager;
+
+    /// <summary>
+    /// Default test configuration
+    /// </summary>
+    std::unique_ptr<RuntimeConfig_Default>       testConfig;
+
+    /// <summary>
+    /// Storage observer
+    /// </summary>
+    TestObserver                testObserver;
+    
+    virtual void SetUp() override
+    {
+        testConfig = std::make_unique<RuntimeConfig_Default>(testLogManager.GetLogConfiguration());
+    }
+
+};
+
 /// <summary>
 /// Initialize, generate some records, save and retrieve these records back.
 /// </summary>
 /// <param name="">The .</param>
 /// <param name="">The .</param>
 /// <returns></returns>
-TEST(MemoryStorageTests, StoreAndGetRecords)
+TEST_F(MemoryStorageTests, StoreAndGetRecords)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
 
     // Observer callbacks are not currently implemented for this storage type
     storage.Initialize(testObserver);
@@ -164,9 +174,9 @@ TEST(MemoryStorageTests, StoreAndGetRecords)
     EXPECT_THAT(storage.GetSize(), 0);
 }
 
-TEST(MemoryStorageTests, GetRecordsDeletesRecords)
+TEST_F(MemoryStorageTests, GetRecordsDeletesRecords)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
 
     std::vector<StorageRecordId> ids;
 
@@ -184,9 +194,9 @@ TEST(MemoryStorageTests, GetRecordsDeletesRecords)
     EXPECT_THAT(records.size(), num_iterations * 4); // 4 latencies
 }
 
-TEST(MemoryStorageTests, DeleteAllRecords)
+TEST_F(MemoryStorageTests, DeleteAllRecords)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
 
     std::vector<StorageRecordId> ids;
 
@@ -204,9 +214,9 @@ TEST(MemoryStorageTests, DeleteAllRecords)
 }
 
 
-TEST(MemoryStorageTests, ReleaseRecords)
+TEST_F(MemoryStorageTests, ReleaseRecords)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
 
     std::vector<StorageRecordId> ids;
     HttpHeaders headers;
@@ -246,9 +256,9 @@ TEST(MemoryStorageTests, ReleaseRecords)
     EXPECT_THAT(storage.GetReservedCount(), 0);
 }
 
-TEST(MemoryStorageTests, GetAndReserveSome)
+TEST_F(MemoryStorageTests, GetAndReserveSome)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
     storage.Initialize(testObserver);
     addEvents(storage);
     auto totalCount = storage.GetRecordCount();
@@ -285,33 +295,33 @@ TEST(MemoryStorageTests, GetAndReserveSome)
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorageTests, StoreSetting)
+TEST_F(MemoryStorageTests, StoreSetting)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
     bool result = storage.StoreSetting("not_implemented", "not_implemented");
     EXPECT_THAT(result, false);
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorageTests, GetSetting)
+TEST_F(MemoryStorageTests, GetSetting)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
     auto result = storage.GetSetting("not_implemented");
     EXPECT_THAT(result.empty(), true);
 }
 
 // This method is not implemented for RAM storage
-TEST(MemoryStorageTests, ResizeDb)
+TEST_F(MemoryStorageTests, ResizeDb)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
     EXPECT_THAT(storage.ResizeDb(), true);
 }
 
 constexpr size_t MAX_STRESS_THREADS = 20;
 
-TEST(MemoryStorageTests, MultiThreadPerfTest)
+TEST_F(MemoryStorageTests, MultiThreadPerfTest)
 {
-    MemoryStorage storage(testLogManager, testConfig);
+    MemoryStorage storage(testLogManager, *testConfig);
 
     std::vector<std::thread> workers;
     std::atomic<size_t> threadCount(0);
