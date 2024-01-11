@@ -82,5 +82,8 @@ TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
 
    ASSERT_EQ(logSessionData1->getSessionFirstTime(), logSessionData2->getSessionFirstTime());
    ASSERT_EQ(logSessionData1->getSessionSDKUid(), logSessionData2->getSessionSDKUid());
+
+   logSessionDataProvider1.DeleteLogSessionData();
+   logSessionDataProvider2.DeleteLogSessionData();
 }
 
