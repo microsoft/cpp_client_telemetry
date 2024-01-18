@@ -47,6 +47,7 @@ ensure_ownership \
 
 brew install cmake
 brew install wget
+brew install swift
 
 ## Install sqlite 3.22
 export SQLITE_PKG=sqlite-autoconf-3220000

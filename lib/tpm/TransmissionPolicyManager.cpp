@@ -26,7 +26,7 @@ namespace MAT_NS_BEGIN {
             }
         }
 
-        bool isPaused()
+        bool isPaused() const noexcept
         {
             return !m_unpaused;
         }
@@ -104,6 +104,11 @@ namespace MAT_NS_BEGIN {
     {
         PauseGuard guard(m_system.getLogManager());
         if (guard.isPaused()) {
+            return;
+        }
+        if (!m_config.IsCollectorUrlSet())
+        {
+            LOG_TRACE("Collector URL is not set, no upload.");
             return;
         }
         LOCKGUARD(m_scheduledUploadMutex);
