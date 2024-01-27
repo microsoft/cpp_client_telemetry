@@ -836,7 +836,7 @@ namespace MAT_NS_BEGIN
             return;
         }
 
-        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector)
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector) noexcept
         {
             return strcmp(dataInspector->GetName(), currentInspector->GetName()) == 0;
         });
@@ -859,7 +859,7 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::RemoveDataInspector(const std::string& name)
     {
         LOCKGUARD(m_dataInspectorGuard);
-        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector) noexcept {
             return strcmp(inspector->GetName(), name.c_str()) == 0;
         });
 
@@ -872,7 +872,7 @@ namespace MAT_NS_BEGIN
     std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& name) noexcept
     {
         LOCKGUARD(m_dataInspectorGuard);
-        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector) noexcept{
             return strcmp(inspector->GetName(), name.c_str()) == 0;
         });
 
@@ -941,7 +941,7 @@ namespace MAT_NS_BEGIN
         if (m_pause_state != PauseState::Pausing) {
             return;
         }
-        m_pause_cv.wait(lock, [this]() -> bool {
+        m_pause_cv.wait(lock, [this]() noexcept -> bool {
             return m_pause_state != PauseState::Pausing;
         });
     }

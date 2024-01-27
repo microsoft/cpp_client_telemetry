@@ -49,7 +49,7 @@ namespace MAT_NS_BEGIN
         }
     }
 
-    LogSessionData* LogSessionDataProvider::GetLogSessionData() 
+    LogSessionData* LogSessionDataProvider::GetLogSessionData() noexcept
     {
         return m_logSessionData.get();
     }
@@ -153,7 +153,7 @@ namespace MAT_NS_BEGIN
         return true;
     }
 
-    uint64_t LogSessionDataProvider::convertStrToLong(const std::string& s)
+    uint64_t LogSessionDataProvider::convertStrToLong(const std::string& s) noexcept
     {
         uint64_t res = 0ull;
         char *endptr = nullptr;

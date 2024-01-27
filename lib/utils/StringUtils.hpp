@@ -17,7 +17,7 @@ namespace MAT_NS_BEGIN
     namespace StringUtils
     {
         void SplitString(const std::string& s, const char separator, std::vector<std::string>& parts);
-        bool AreAllCharactersAllowlisted(const std::string& stringToTest, const std::string& allowlist);
+        bool AreAllCharactersAllowlisted(const std::string& stringToTest, const std::string& allowlist) noexcept;
     }
 
     std::string toString(char const* value);
@@ -44,9 +44,9 @@ namespace MAT_NS_BEGIN
 
     std::string sanitizeIdentifier(const std::string& str);
 
-    const char* priorityToStr(EventPriority priority);
+    const char* priorityToStr(EventPriority priority) noexcept;
 
-    const char* latencyToStr(EventLatency latency);
+    const char* latencyToStr(EventLatency latency) noexcept;
 
     bool replace(std::string& str, const std::string& from, const std::string& to);
 

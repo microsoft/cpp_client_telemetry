@@ -45,7 +45,7 @@ namespace MAT_NS_BEGIN
 class BoundCheckFunctions
 {
 private:
-static bool oneds_buffer_region_overlap(const char *buffer1, size_t buffer1_len, const char *buffer2, size_t buffer2_len)
+static bool oneds_buffer_region_overlap(const char *buffer1, size_t buffer1_len, const char *buffer2, size_t buffer2_len) noexcept
 {
     if (buffer2 >= buffer1) 
     {
@@ -70,7 +70,7 @@ public:
 //  - returns zero if str is a null pointer
 //  -  returns strsz if the null character was not found in the first strsz bytes of str.
 
-static size_t oneds_strnlen_s(const char *str, size_t strsz)
+static size_t oneds_strnlen_s(const char *str, size_t strsz) noexcept
 {
    if ( str == NULL)
    {
@@ -89,7 +89,7 @@ static size_t oneds_strnlen_s(const char *str, size_t strsz)
 //   - count is greater than RSIZE_MAX
 //   - count is greater or equal destsz, but destsz is less or equal strnlen_s(src, count), in other words, truncation would occur
 //   - overlap would occur between the source and the destination strings
-static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char *restrict src, rsize_t count)
+static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char *restrict src, rsize_t count) noexcept
 {
 #if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
     return strncpy_s(dest, destsz, src, count);
@@ -148,7 +148,7 @@ static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char 
 // (if both dest and destsz are valid))
 
 static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
-                  const void *restrict src, rsize_t count )
+                  const void *restrict src, rsize_t count ) noexcept
 {
 #if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
        return memcpy_s(dest, destsz, src, count);     

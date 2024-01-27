@@ -36,11 +36,11 @@ namespace MAT_NS_BEGIN {
             m_isPaused(false),
             stats(*this, taskDispatcher)
         {
-            onStart  = []() { return true; };
-            onStop   = []() { return true; };
-            onPause  = []() { return true; };
-            onResume = []() { return true; };
-            onCleanup  = []() { return true; };
+            onStart  = []() noexcept { return true; };
+            onStop   = []() noexcept { return true; };
+            onPause  = []() noexcept { return true; };
+            onResume = []() noexcept { return true; };
+            onCleanup  = []() noexcept { return true; };
         };
         
         /// <summary>
