@@ -55,8 +55,8 @@ namespace MAT_NS_BEGIN
         std::string const m_cacheFilePath;
         SessionStorageType m_storageType;
         std::unique_ptr<LogSessionData> m_logSessionData;
-        uint64_t convertStrToLong(const std::string&);
-        void writeFileContents(const std::string&, uint64_t, const std::string&);
+        static uint64_t convertStrToLong(const std::string&);
+        static void writeFileContents(const std::string&, uint64_t, const std::string&);
         void remove_eol(std::string& );
     };
 }
