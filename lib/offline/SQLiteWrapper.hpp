@@ -440,7 +440,9 @@ namespace MAT_NS_BEGIN {
         }
 
         bool lock() {
+#ifndef NDEBUG
             unsigned count = 0;
+#endif
             unsigned waitTime = 0;
             while (!trylock()) {
                 if (waitTime >= MAX_DB_LOCKWAIT_DELAY) {
@@ -452,8 +454,10 @@ namespace MAT_NS_BEGIN {
                     return false;
                 }
                 waitTime += MAX_DB_LOCKWAIT_DELAY;  // 500ms, 1000ms
+#ifndef NDEBUG
                 count++;
                 LOG_DEBUG("Lock: waiting to acquire the lock: count=%u, waitTime=%u", count, waitTime);
+#endif
                 PAL::sleep(MAX_DB_LOCKWAIT_DELAY);
             }
             LOG_DEBUG("Lock: acquired [time=%u]", waitTime);
