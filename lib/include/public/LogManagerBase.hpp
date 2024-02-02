@@ -586,6 +586,16 @@ namespace MAT_NS_BEGIN
             LM_SAFE_CALL_PTR(GetAuthTokensController);
 
         /// <summary>
+        ///Sets the ticket token with a value
+        /// </summary>
+        static status_t SetTicketToken(TicketType type, const std::string& tokenValue)
+        {
+            if (isHost())
+                LM_SAFE_CALL(GetAuthTokensController()->SetTicketToken, type, tokenValue.c_str());
+            return STATUS_EPERM;  // Permission denied
+        }
+
+        /// <summary>
         /// Obtain event filter collection.
         /// Notes:
         /// - If the build has exceptions enabled, then the code triggers exception in case of invalid API use.
@@ -692,6 +702,37 @@ namespace MAT_NS_BEGIN
             static NullLogManager nullLogManager;
             return nullLogManager.GetDataViewerCollection();
 #endif
+        }
+
+        static void PauseActivity()
+        {
+            LM_SAFE_CALL_VOID(PauseActivity);
+        }
+
+        static void ResumeActivity()
+        {
+            LM_SAFE_CALL_VOID(ResumeActivity)
+        }
+
+        static void WaitPause()
+        {
+            auto managerInstance = GetInstance();
+            if (managerInstance)
+            {
+                // do not hold the stateLock() here!
+                managerInstance->WaitPause();
+            }
+        }
+
+        static bool StartActivity()
+        {
+            LM_SAFE_CALL_RETURN(StartActivity);
+            return false;
+        }
+
+        static void EndActivity()
+        {
+            LM_SAFE_CALL_VOID(EndActivity);
         }
 
         /// <summary>

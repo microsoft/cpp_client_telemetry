@@ -26,7 +26,10 @@ namespace CommonSchema.Server
         public static void Main(string[] args)
         {
             CreateWebHostBuilder(args)
-            .UseKestrel()
+            .UseKestrel(options =>
+            {
+                options.AllowSynchronousIO = true;
+            })
             .UseContentRoot(Directory.GetCurrentDirectory())
             .UseWebRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
             .ConfigureAppConfiguration((hostingContext, config) =>
@@ -36,6 +39,10 @@ namespace CommonSchema.Server
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
+                var fileName = configurationBuilder.Build().GetSection("FileNameToStoreTelemetryData")?.Value;
+                // clean the file before every launch of the server
+                if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName)) File.Delete(fileName);
+
             })
             .ConfigureLogging(configureLogging: (hostingContext, logging) =>
             {

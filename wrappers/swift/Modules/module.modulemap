@@ -1,0 +1,6 @@
+/// Module exporting headers declared in ObjC. Imported by Swift package to have access to the ObjC types.
+
+module ObjCModule {
+    header "../Headers/ObjCModule-Bridging-Header.h"
+    export *
+}

@@ -23,6 +23,8 @@ public interface ILogManager extends AutoCloseable {
 
   public Status resumeTransmission();
 
+  public Status setTicketToken(TicketType type, final String tokenValue);
+
   public Status setTransmitProfile(TransmitProfile profile);
 
   public Status setTransmitProfile(String profile);
@@ -68,4 +70,14 @@ public interface ILogManager extends AutoCloseable {
   public boolean registerPrivacyGuard();
 
   public boolean unregisterPrivacyGuard();
+
+  public boolean registerSignals();
+
+  public boolean unregisterSignals();
+
+  public void pauseActivity();
+  public void resumeActivity();
+  public void waitPause();
+  public boolean startActivity();
+  public void endActivity();
 }

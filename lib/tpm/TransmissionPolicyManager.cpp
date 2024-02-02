@@ -11,6 +11,30 @@
 
 namespace MAT_NS_BEGIN {
 
+    class PauseGuard {
+    public:
+        PauseGuard() = delete;
+        PauseGuard(ILogManager & logManager)
+        : m_logManager(logManager)
+        , m_unpaused(m_logManager.StartActivity())
+        {}
+
+        ~PauseGuard()
+        {
+            if (m_unpaused) {
+                m_logManager.EndActivity();
+            }
+        }
+
+        bool isPaused() const noexcept
+        {
+            return !m_unpaused;
+        }
+    private:
+        ILogManager& m_logManager;
+        bool m_unpaused;
+    };
+
     template<typename T>
     constexpr T Abs64(const T& a, const T& b) noexcept
     {
@@ -78,8 +102,17 @@ namespace MAT_NS_BEGIN {
     // If delayInMs is negative, do not schedule.
     void TransmissionPolicyManager::scheduleUpload(const std::chrono::milliseconds& delay, EventLatency latency, bool force)
     {
+        PauseGuard guard(m_system.getLogManager());
+        if (guard.isPaused()) {
+            return;
+        }
+        if (!m_config.IsCollectorUrlSet())
+        {
+            LOG_TRACE("Collector URL is not set, no upload.");
+            return;
+        }
         LOCKGUARD(m_scheduledUploadMutex);
-        if (delay.count() < 0 || m_timerdelay.count() < 0) 
+        if (delay.count() < 0 || m_timerdelay.count() < 0)
         {
             LOG_TRACE("Negative delay(%d) or m_timerdelay(%d), no upload", delay.count(), m_timerdelay.count());
             return;
@@ -147,6 +180,10 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::uploadAsync(EventLatency latency)
     {
+        PauseGuard guard(m_system.getLogManager());
+        if (guard.isPaused()) {
+            return;
+        }
         m_runningLatency = latency;
         m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
 
@@ -194,6 +231,10 @@ namespace MAT_NS_BEGIN {
             LOG_WARN("HTTP NOT removing non-existing ctx from active uploads ctx=%p", ctx.get());
         }
 
+        PauseGuard guard(m_system.getLogManager());
+        if (guard.isPaused()) {
+            return;
+        }
         // Rescheduling upload
         if (nextUpload.count() >= 0)
         {
@@ -257,7 +298,7 @@ namespace MAT_NS_BEGIN {
     }
 
     /**
-     * Wait for pending uploads to finish. This handler is invoked from 
+     * Wait for pending uploads to finish. This handler is invoked from
      * TelemetrySystem::onCleanup after HCM has attempted to cancel all pending
      * requests via hcm.cancelAllRequests. This won't abort the uploads in the end
      * and is possible to resume the transmission
@@ -402,6 +443,7 @@ namespace MAT_NS_BEGIN {
 
     void TransmissionPolicyManager::pauseAllUploads()
     {
+        PauseGuard guard(m_system.getLogManager());
         m_isPaused = true;
         cancelUploadTask();
     }
@@ -443,4 +485,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

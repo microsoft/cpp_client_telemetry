@@ -6,19 +6,21 @@ These are the Open Source components used by Microsoft 1DS / C++ Client Telemetr
 
 ZLIB DATA COMPRESSION LIBRARY.
 
-SDK maintains its own snapshot of the mainline ZLib with some Intel architecture performance optimizations [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/zlib).
+SDK maintains its own snapshot of the mainline ZLib with some Intel architecture performance optimizations [here](../zlib). 
+It is the responsibility of product teams to ensure that a snapshot of zlib they use meets their product security and licensing requirements.
 
 ## [SQLite](https://www.sqlite.org/index.html)
 
 SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.
 
-SDK maintains its own snapshot of the mainline SQLite, which is used for Windows builds [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/sqlite). Other platforms use platform-provided SQLite.
+SDK maintains its own snapshot of the mainline SQLite, which is used for Windows builds [here](../sqlite). Other platforms use platform-provided SQLite.
+It is the responsibility of product teams to ensure that a snapshot of zlib they use meets their product security and licensing requirements.
 
 ## [nlohmann/json](https://github.com/nlohmann/json)
 
 JSON for Modern C++.
 
-SDK maintains its own snapshot of the mainline `nlohmann/json` header-only library [here](https://github.com/microsoft/cpp_client_telemetry/blob/master/lib/include/mat/json.hpp).
+SDK maintains its own snapshot of the mainline `nlohmann/json` header-only library [here](../lib/include/mat/json.hpp).
 
 ## [libcurl](https://curl.haxx.se/libcurl/)
 
@@ -37,14 +39,16 @@ Google's C++ benchmarking framework. Used only for tests and not included in pro
 ## [Tony Million Reachability Framework](https://github.com/tonymillion/Reachability)
 
 Reachability is a drop-in replacement for Apple's Reachability class. It is ARC-compatible, and it uses the new GCD methods to notify of network interface changes.
-SDK maintains its own snapshot of the mainline `tonymillion/Reachability` [here](https://github.com/microsoft/cpp_client_telemetry/tree/master/third_party/Reachability). This code is not used nor included in the build of non-Apple OS.
+SDK maintains its own snapshot of the mainline `tonymillion/Reachability` [here](../third_party/Reachability). This code is not used nor included in the build of non-Apple OS.
+Please note if customer product is adding dependency to this component, they should ensure it meets their product security and licensing requirements. 
 
 ## SHA-1 by Steve Reid
 
 Classic implementation of SHA-1 (Public Domain).
-SDK maintains its own snapshot of it [here](https://github.com/microsoft/cpp_client_telemetry/blob/master/third_party/sha1/sha1.c).
+SDK maintains its own snapshot of it [here](../third_party/sha1/sha1.c).
 Note that this component is not included or compiled into any of the shipable bits of SDK. It is included for internal developer debug builds only.
 For example, SHA-1 may be used to calculate destination ETW Provider GUID based on ETW Provider name on Windows OS in developer trace tooling / instrumentation.
+Please note if customer product is adding dependency to this component, they should ensure it meets their product security and licensing requirements.
 
 ## Other components and systems
 

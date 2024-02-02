@@ -5,7 +5,7 @@
 #define MATSDK_DECLSPEC __declspec(dllexport)
 #endif
 
-#ifndef ANDROID
+#if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
 #include "http/HttpClient_CAPI.hpp"
 #endif
 #include "LogManagerProvider.hpp"
@@ -131,7 +131,7 @@ evt_status_t mat_open_core(
     // Remember the original config string. Needed to avoid hash code collisions
     clients[code].ctx_data = config;
 
-#ifndef ANDROID
+#if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
     // Create custom HttpClient
     if (httpSendFn != nullptr && httpCancelFn != nullptr)
     {
@@ -238,7 +238,7 @@ evt_status_t mat_log(evt_context_t *ctx)
     VERIFY_CLIENT_HANDLE(client, ctx);
 
     ILogConfiguration & config = client->config;
-    evt_prop *evt = static_cast<evt_prop*>(ctx->data);
+    const evt_prop *evt = static_cast<evt_prop*>(ctx->data);
     EventProperties props;
     props.unpack(evt, ctx->size);
 
@@ -329,6 +329,14 @@ evt_status_t mat_upload(evt_context_t *ctx)
     return result;
 }
 
+evt_status_t mat_flushAndTeardown(evt_context_t *ctx)
+{
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    client->logmanager->FlushAndTeardown();
+    ctx->result = STATUS_SUCCESS;
+    return STATUS_SUCCESS;
+}
+
 evt_status_t mat_flush(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
@@ -411,6 +419,9 @@ extern "C" {
                 result = STATUS_SUCCESS;
                 break;
 
+            case EVT_OP_FLUSHANDTEARDOWN:
+                result = mat_flushAndTeardown(ctx);
+                break;
                 // Add more OPs here
 
             default:

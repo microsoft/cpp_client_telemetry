@@ -45,6 +45,11 @@ namespace MAT_NS_BEGIN {
         ctx->httpRequest->SetUrl(m_config.GetCollectorUrl());
 
         ctx->httpRequest->GetHeaders().set("Expect", "100-continue");
+        
+#ifdef HAVE_MAT_EVT_TRACEID 
+        ctx->httpRequest->GetHeaders().set("Trace-Id", ctx->traceId);
+#endif //HAVE_MAT_EVT_TRACEID 
+
         ctx->httpRequest->GetHeaders().set("SDK-Version", PAL::getSdkVersion());
         ctx->httpRequest->GetHeaders().set("Client-Id", "NO_AUTH");
         ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");
@@ -72,6 +77,11 @@ namespace MAT_NS_BEGIN {
             if (map.end() != map.find(TicketType::TicketType_AAD_JWT))
             {
                 ctx->httpRequest->GetHeaders().set("Aad-Jwt-Token", map[TicketType::TicketType_AAD_JWT]);
+            }
+
+            if (map.end() != map.find(TicketType::TicketType_AAD_Device))
+            {
+                ctx->httpRequest->GetHeaders().set("AadDeviceToken", map[TicketType::TicketType_AAD_Device]);
             }
         }
 

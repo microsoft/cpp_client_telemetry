@@ -4,8 +4,6 @@
 //
 package com.microsoft.applications.events;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -22,10 +20,12 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
+
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
 import java.io.BufferedInputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -85,16 +85,15 @@ class ConnectivityCallback extends android.net.ConnectivityManager.NetworkCallba
   private boolean m_metered;
 }
 
-class Request implements Runnable {
+class Request implements HttpClientRequest {
 
   Request(
-      HttpClient parent,
-      String url,
-      String method,
-      byte[] body,
-      String request_id,
-      int[] header_length,
-      byte[] header_buffer)
+          @NonNull HttpClient parent,
+          String url,
+          String method,
+          byte[] body,
+          String request_id,
+          @NonNull Headers headers)
       throws java.io.IOException {
     m_parent = parent;
     m_connection = (HttpURLConnection) parent.newUrl(url).openConnection();
@@ -105,13 +104,9 @@ class Request implements Runnable {
       m_connection.setDoOutput(true);
     }
     m_request_id = request_id;
-    int offset = 0;
-    for (int i = 0; i + 1 < header_length.length; i += 2) {
-      String k = new String(header_buffer, offset, header_length[i], UTF_8);
-      offset += header_length[i];
-      String v = new String(header_buffer, offset, header_length[i + 1], UTF_8);
-      offset += header_length[i + 1];
-      m_connection.setRequestProperty(k, v);
+    while (headers.hasNext()) {
+      HeaderEntry header = headers.next();
+      m_connection.setRequestProperty(header.key, header.value);
     }
   }
 
@@ -184,10 +179,23 @@ class Request implements Runnable {
 
 public class HttpClient {
   private static final int MAX_HTTP_THREADS = 2; // Collector wants no more than 2 at a time
+  private static final String ANDROID_DEVICE_CLASS_PC = "Android.PC";
+  private static final String ANDROID_DEVICE_CLASS_PHONE = "Android.Phone";
+
+  public interface Configuration {
+      boolean isInitializeDeviceInfo();
+
+      class Default implements Configuration {
+        @Override
+        public boolean isInitializeDeviceInfo() {
+          return true;
+        }
+      }
+  }
 
   /** Shim FutureTask: we would like to @Keep the cancel method for JNI */
   static class FutureShim extends FutureTask<Boolean> {
-    FutureShim(Request inner) {
+    FutureShim(HttpClientRequest inner) {
       super(inner, true);
     }
 
@@ -199,10 +207,21 @@ public class HttpClient {
   }
 
   public HttpClient(Context context) {
+    this(context, new HttpClientRequest.Factory.AndroidUrlConnection(), new Configuration.Default());
+  }
+
+  public HttpClient(Context context, HttpClientRequest.Factory requestFactory) {
+    this(context, requestFactory, new Configuration.Default());
+  }
+
+  public HttpClient(Context context, @NonNull HttpClientRequest.Factory requestFactory, @NonNull Configuration configuration) {
     m_context = context;
+    m_requestFactory = requestFactory;
     String path = System.getProperty("java.io.tmpdir");
     setCacheFilePath(path);
-    setDeviceInfo(calculateID(context), Build.MANUFACTURER, Build.MODEL);
+    if (configuration.isInitializeDeviceInfo()) {
+      setDeviceInfo(calculateID(context), Build.MANUFACTURER, Build.MODEL);
+    }
     calculateAndSetSystemInfo(context);
     m_executor = createExecutor();
     createClientInstance();
@@ -270,9 +289,11 @@ public class HttpClient {
     if (pInfo != null && pInfo.versionName != null) {
       app_version = pInfo.versionName;
     }
-    String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
+    final String app_language = getLanguageTag(context.getResources().getConfiguration().locale);
 
-    String time_zone = getTimeZone();
+    final String time_zone = getTimeZone();
+
+    final String device_class = getDeviceClass(context);
 
     String os_major_version = Build.VERSION.RELEASE;
     if (os_major_version == null) {
@@ -285,7 +306,8 @@ public class HttpClient {
         app_language,
         os_major_version,
         os_full_version,
-        time_zone);
+        time_zone,
+        device_class);
   }
 
   private String calculateID(android.content.Context context) {
@@ -303,6 +325,14 @@ public class HttpClient {
       return "";
     } else {
       return "a:" + id;
+    }
+  }
+
+  private String getDeviceClass(android.content.Context context) {
+    if (context.getResources().getConfiguration().isLayoutSizeAtLeast(android.content.res.Configuration.SCREENLAYOUT_SIZE_LARGE)) {
+      return ANDROID_DEVICE_CLASS_PC;
+    } else {
+      return ANDROID_DEVICE_CLASS_PHONE;
     }
   }
 
@@ -348,7 +378,8 @@ public class HttpClient {
       String app_language,
       String os_major_version,
       String os_full_version,
-      String time_zone);
+      String time_zone,
+      String deviceClass);
 
   public native void dispatchCallback(String id, int response, Object[] headers, byte[] body);
 
@@ -361,7 +392,8 @@ public class HttpClient {
       int[] header_index,
       byte[] header_buffer) {
     try {
-      Request r = new Request(this, url, method, body, request_id, header_index, header_buffer);
+      HttpClientRequest.Headers headers = new HttpClientRequest.Headers(header_index, header_buffer);
+      HttpClientRequest r = m_requestFactory.create(this, url, method, body, request_id, headers);
       return new FutureShim(r);
     } catch (Exception e) {
       return null;
@@ -378,4 +410,5 @@ public class HttpClient {
   private android.net.ConnectivityManager m_connectivityManager;
   private PowerInfoReceiver m_power_receiver;
   private final Context m_context;
+  private final HttpClientRequest.Factory m_requestFactory;
 }

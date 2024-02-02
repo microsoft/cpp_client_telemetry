@@ -58,6 +58,7 @@
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientUtilsTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyGuardTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\unittests\SignalsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\InformationProviderImplTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesDecoratorTests.cpp" />
   </ItemGroup>

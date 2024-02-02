@@ -725,6 +725,7 @@ TEST(APITest, C_API_Test)
 
     // Must remove event listener befor closing the handle!
     client->logmanager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
+    evt_flushAndTeardown(handle);
     evt_close(handle);
     ASSERT_EQ(capi_get_client(handle), nullptr);
 
@@ -999,7 +1000,7 @@ TEST(APITest, SetType_Test)
         // Verify that record.baseType have been properly decorated.
         debugListener.OnLogX = [&](::CsProtocol::Record& record) {
             totalEvents++;
-            std::string& prefix = config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX];
+            const std::string& prefix = config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX];
             if (prefix == EVENTRECORD_TYPE_CUSTOM_EVENT)
             {
                 EXPECT_STREQ(record.baseType.c_str(), "custom.myeventtype");
@@ -1144,8 +1145,8 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
         {
             {"https://v10.events.data.microsoft.com/OneCollector/1.0/", false, 1},   // MS-Rooted, no MS-Root check:     post succeeds
             {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 1},    // MS-Rooted, MS-Root check:        post succeeds
-            {"https://self.events.data.microsoft.com/OneCollector/1.0/", false, 1},  // Non-MS rooted, no MS-Root check: post succeeds
-            {"https://self.events.data.microsoft.com/OneCollector/1.0/", true, 0}    // Non-MS rooted, MS-Root check:    post fails
+            {"https://mobile.events.data.microsoft.com/OneCollector/1.0/", false, 1},  // Non-MS rooted, no MS-Root check: post succeeds
+            {"https://mobile.events.data.microsoft.com/OneCollector/1.0/", true, 0}    // Non-MS rooted, MS-Root check:    post fails
         };
 
     // 4 test runs
@@ -1193,7 +1194,7 @@ TEST(APITest, LogManager_BadNetwork_Test)
         "https://0.0.0.0/",
         "https://127.0.0.1/",
 #endif
-        "https://1ds.pipe.int.trafficmanager.net/OneCollector/1.0/",
+        "https://mobile.events-sandbox.data.microsoft.com/OneCollector/1.0/",
         "https://invalid.host.name.microsoft.com/"
         })
     {

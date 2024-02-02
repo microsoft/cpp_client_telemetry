@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iterator>
 #include <fstream>
+#include <chrono>
 
 #include "LogManager.hpp"
 
@@ -35,7 +36,7 @@ const char* defaultConfig = static_cast<const char *> JSON_CONFIG
             "dotType": true
         },
         "enableLifecycleSession" : false,
-        "eventCollectorUri" : "https://self.events.data.microsoft.com/OneCollector/1.0/",
+        "eventCollectorUri" : "https://mobile.events.data.microsoft.com/OneCollector/1.0/",
         "forcedTenantToken" : null,
         "hostMode" : true,
         "http" : {
@@ -71,6 +72,40 @@ const char* defaultConfig = static_cast<const char *> JSON_CONFIG
     }
 );
 
+// Mock function that performs random selection of destination URL. 1DS SDK does not define how the app needs to perform
+// the region determination. Products should use MSGraph API, OCPS, or other remote config provisioning sources, such as
+// ECS: https://learn.microsoft.com/en-us/deployedge/edge-configuration-and-experiments - in order to identify what 1DS
+// collector to use for specific Enterprise or Consumer end-user telemetry uploads. Note that the EUDB URL determination
+// is performed asynchronously and could take a few seconds. EUDB URL for Enterprise applications may be cached
+// in app-specific configuration storage. 1DS SDK does not provide a feature to cache the data collection URL used for
+// a previous session.
+//
+// Note that this function to determine the URL is called once, early at boot.
+std::string GetEudbCollectorUrl()
+{
+    const auto randSeed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    srand(static_cast<unsigned>(randSeed));
+    return (rand() % 2) ? "https://us-mobile.events.data.microsoft.com/OneCollector/1.0/" : "https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/";
+}
+
+void UpdateUploadUrl()
+{
+    printf("Performing collector URL detection...\n");
+    // Transmissions must be paused prior to adjusting the URL.
+    LogManager::PauseTransmission();
+
+    // Obtain a reference to current configuration.
+    auto& config = LogManager::GetLogConfiguration();
+
+    // Update configuration in-place. This is done once after the regional data collection URL is determined.
+    config[CFG_STR_COLLECTOR_URL] = GetEudbCollectorUrl();
+
+    // Resume transmission once EUDB collector URL detection is obtained. In case if EUDB collector determination fails, only required
+    // system diagnostics data containing no EUPI MAY be uploaded to global data collection endpoint. It is up to product teams to
+    // decide what strategy works best for their product.
+    LogManager::ResumeTransmission();
+}
+
 int main(int argc, char *argv[])
 {
     // 2nd (optional) parameter - path to custom SDK configuration
@@ -87,24 +122,43 @@ int main(int argc, char *argv[])
 
     // LogManager configuration
     auto& config = LogManager::GetLogConfiguration();
-    config = MAT::FromJSON(jsonConfig);
+    auto customLogConfig = MAT::FromJSON(jsonConfig);
+    config = customLogConfig; // Assignment operation COLLATES the default + custom config
 
     // LogManager initialization
     ILogger *logger = LogManager::Initialize();
-    bool utcActive = (bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE]);
+    const bool utcActive = (bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_ACTIVE]);
 
     printf("Running in %s mode...\n", (utcActive) ? "UTC" : "direct upload");
     if (utcActive)
     {
-        printf("UTC provider group Id: %s\n", (const char *)(config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID]));
-        printf("UTC large payloads:    %s\n", ((bool)(config[CFG_STR_UTC][CFG_BOOL_UTC_LARGE_PAYLOADS])) ? "supported" : "not supported");
+        printf("UTC provider group Id: %s\n", static_cast<const char*>(config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID]));
+        printf("UTC large payloads:    %s\n", static_cast<bool>(config[CFG_STR_UTC][CFG_BOOL_UTC_LARGE_PAYLOADS]) ? "supported" : "not supported");
     }
     else
     {
-        printf("Collector URL:         %s\n", (const char *)(config[CFG_STR_COLLECTOR_URL]));
+        // LogManager::ILogConfiguration[CFG_STR_COLLECTOR_URL] defaults to global URL.
+        //
+        // If app-provided JSON config is empty on start, means the app intended to asynchronously
+        // obtain the data collection URL for EUDB compliance. App subsequently sets an empty URL -
+        // by assigning an empty value to the log manager instance CFG_STR_COLLECTOR_URL. At this
+        // point the Uploads are not performed until EUDB-compliant endpoint URL is obtained.
+        //
+        // Note that since ILogConfiguration configuration tree does not provide a thread-safety
+        // guarantee between the main thread and SDK uploader thread(s), adjusting the upload
+        // parameters, e.g. URL or timers, requires the app to pause transmission, adjust params,
+        // then resume transmission.
+        //
+        if (!customLogConfig.HasConfig(CFG_STR_COLLECTOR_URL))
+        {
+            // If configuration provided as a parameter does not contain the URL
+            UpdateUploadUrl();
+        }
+        const std::string url = config[CFG_STR_COLLECTOR_URL];
+        printf("Collector URL:         %s\n", url.c_str());
     }
 
-    printf("Token (iKey):          %s\n", (const char *)(config[CFG_STR_PRIMARY_TOKEN]));
+    printf("Token (iKey):          %s\n", static_cast<const char*>(config[CFG_STR_PRIMARY_TOKEN]));
 
 #if 0
     // Code example that shows how to convert ILogConfiguration to JSON

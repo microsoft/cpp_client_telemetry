@@ -73,22 +73,22 @@ namespace PAL_NS_BEGIN {
             // be deleted.  The current design is that IPropertyChangedCallback is
             // not refcount'ed.  Should we refcount it?
 
-            if (m_registeredCount > 0)
+            std::vector<IPropertyChangedCallback*> local_callbacks;
             {
-                std::vector<IPropertyChangedCallback*> local_callbacks;
+                std::lock_guard<std::mutex> lock(m_lock);
+                if (m_registeredCount > 0)
                 {
-                    std::lock_guard<std::mutex> lock(m_lock);
                     local_callbacks.insert(local_callbacks.end(), m_callbacks.begin(), m_callbacks.end());
-                }
+                }    
+            }
 
-                size_t count = local_callbacks.size();
-                for (size_t index = 0; index < count; ++index)
+            size_t count = local_callbacks.size();
+            for (size_t index = 0; index < count; ++index)
+            {
+                IPropertyChangedCallback* cur_callback = local_callbacks[index];
+                if (cur_callback != NULL)
                 {
-                    IPropertyChangedCallback* cur_callback = local_callbacks[index];
-                    if (cur_callback != NULL)
-                    {
-                        cur_callback->OnChanged(propertyName, propertyValue);
-                    }
+                    cur_callback->OnChanged(propertyName, propertyValue);
                 }
             }
         }

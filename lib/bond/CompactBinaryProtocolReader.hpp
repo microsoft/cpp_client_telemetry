@@ -10,7 +10,9 @@
 
 #include <string.h>
 
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
 #include "utils/annex_k.hpp"
+#endif
 
 namespace bond_lite {
 
@@ -66,7 +68,11 @@ class CompactBinaryProtocolReader {
         if ((data == nullptr) || (size == 0)) {
             return false;
         }
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
+        bool result = MAT::BoundCheckFunctions::oneds_memcpy_s(static_cast<uint8_t*>(data), size, &(m_input[m_ofs]), size);
+#else
         bool result = (memcpy_s(static_cast<uint8_t*>(data), size, &(m_input[m_ofs]), size) == 0);
+#endif
         m_ofs += size;
         return result;
     }

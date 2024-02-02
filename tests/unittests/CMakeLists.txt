@@ -3,6 +3,7 @@ message("--- unittests")
 set(SRCS
   AIJsonSerializerTests.cpp
   AITelemetrySystemTests.cpp
+  AnnexKTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
   ClockSkewManagerTests.cpp
@@ -48,7 +49,6 @@ set(SRCS
   ZlibUtilsTests.cpp
 )
 
-# Turn off warnings for INSTANTIATE_TEST_CASE_P usage as we are using old version of gtest.
 set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
 if (APPLE)
@@ -147,16 +147,12 @@ else()
     NAMES libgtest.a
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/gtest/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
   find_file(LIBGMOCK
     NAMES libgmock.a
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/googlemock/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../googletest/build/lib/
   )
 
   target_link_libraries(UnitTests 

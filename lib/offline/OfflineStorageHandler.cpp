@@ -152,6 +152,9 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorageHandler::Flush()
     {
+        if (!m_logManager.StartActivity()) {
+            return;
+        }
         // Flush could be executed from context of worker thread, as well as from TPM and
         // after HTTP callback. Make sure it is atomic / thread-safe.
         LOCKGUARD(m_flushLock);
@@ -196,11 +199,18 @@ namespace MAT_NS_BEGIN {
             }
         }
 
+        // Checkpoint DB
+        if (m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH]) 
+        {
+            m_offlineStorageDisk->Flush();
+        }
+
         m_isStorageFullNotificationSend = false;
 
         // Flush is done, notify the waiters
         m_flushComplete.post();
         m_flushPending = false;
+        m_logManager.EndActivity();
     }
 
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
@@ -367,7 +377,7 @@ namespace MAT_NS_BEGIN {
      * Delete all records locally".
      */
 
-    void OfflineStorageHandler::DeleteAllRecords() 
+    void OfflineStorageHandler::DeleteAllRecords()
     {
         for (const auto storagePtr : { m_offlineStorageMemory.get() , m_offlineStorageDisk.get() })
         {
@@ -534,4 +544,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

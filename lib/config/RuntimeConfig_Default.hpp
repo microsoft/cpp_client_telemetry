@@ -38,10 +38,11 @@ namespace MAT_NS_BEGIN
         {"utc",
          {
 #ifdef HAVE_MAT_UTC
-             {"providerGroupId", "780dddc8-18a1-5781-895a-a690464fa89c"},
+             {CFG_STR_PROVIDER_GROUP_ID, "780dddc8-18a1-5781-895a-a690464fa89c"},
              {CFG_BOOL_UTC_ENABLED, true},
              {CFG_BOOL_UTC_ACTIVE, false},
-             {CFG_BOOL_UTC_LARGE_PAYLOADS, false}
+             {CFG_BOOL_UTC_LARGE_PAYLOADS, false},
+             {CFG_STR_SKIP_IKEY_REGISTRATION, false},
 #else
              {CFG_BOOL_UTC_ENABLED, false}
 #endif
@@ -101,6 +102,12 @@ namespace MAT_NS_BEGIN
                 return std::string(COLLECTOR_URL_PROD);
             }
             return std::string(url);
+        }
+
+        virtual bool IsCollectorUrlSet() override
+        {
+            const char* url = config[CFG_STR_COLLECTOR_URL];
+            return (url != nullptr) && (url[0] != '\0');
         }
 
         virtual void DecorateEvent(std::map<std::string, std::string>& extension, std::string const& experimentationProject, std::string const& eventName) override
@@ -194,6 +201,16 @@ namespace MAT_NS_BEGIN
         virtual const char* GetProviderGroupId() override
         {
             return config[CFG_STR_UTC][CFG_STR_PROVIDER_GROUP_ID];
+        }
+
+        virtual const char* GetProviderName() override
+        {
+            return config[CFG_STR_UTC][CFG_STR_UTC_PROVIDER_NAME];
+        }
+
+        virtual bool SkipIKeyRegistration() const override
+        {
+            return config[CFG_STR_UTC][CFG_STR_SKIP_IKEY_REGISTRATION];
         }
 
         virtual Variant& operator[](const char* key) override

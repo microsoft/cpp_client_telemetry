@@ -5,6 +5,7 @@
 
 #include "sysinfo_utils_apple.hpp"
 #import <Foundation/Foundation.h>
+#import <sys/utsname.h>
 #import <UIKit/UIKit.h>
 
 std::string GetDeviceModel()
@@ -14,7 +15,18 @@ std::string GetDeviceModel()
         NSString* modelId = NSProcessInfo.processInfo.environment[@"SIMULATOR_MODEL_IDENTIFIER"];
         return std::string([modelId UTF8String]);
 #else
-        std::string deviceModel { [[[UIDevice currentDevice] model] UTF8String] };
+        std::string deviceModel { };
+        struct utsname systemInfo;
+        if (uname(&systemInfo) < 0)
+        {
+		    // Fallback to UIDevice in case of error
+		    deviceModel = [[[UIDevice currentDevice] model] UTF8String];
+        }
+        else
+        {
+		    deviceModel = systemInfo.machine;
+        }
+
         return deviceModel;
 #endif
     }
@@ -56,3 +68,19 @@ std::string GetDeviceOsRelease()
     return std::string { [[[UIDevice currentDevice] systemVersion] UTF8String] };
 }
 
+std::string GetDeviceClass() {
+#if TARGET_IPHONE_SIMULATOR
+    return "iOS.Emulator";
+#else
+    switch (UIDevice.currentDevice.userInterfaceIdiom) {
+        case UIUserInterfaceIdiomPhone:
+            return "iOS.Phone";
+        case UIUserInterfaceIdiomPad:
+            return "iOS.Tablet";
+        case UIUserInterfaceIdiomTV:
+            return "iOS.AppleTV";
+        default:
+            return {};
+    }
+#endif
+}

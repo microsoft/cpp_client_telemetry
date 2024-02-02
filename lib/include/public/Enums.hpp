@@ -59,6 +59,7 @@ namespace MAT_NS_BEGIN
         TicketType_AAD = 4,
         TicketType_AAD_User = 5,
         TicketType_AAD_JWT = 6,
+        TicketType_AAD_Device = 7,
     };
 
     /// <summary>

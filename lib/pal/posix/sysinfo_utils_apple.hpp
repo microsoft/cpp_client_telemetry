@@ -21,5 +21,6 @@ std::string GetDeviceModel();
 
 std::string GetDeviceId();
 
+std::string GetDeviceClass();
 #endif /* LIB_PAL_POSIX_SYSINFO_UTILS_IOS_HPP_ */
 

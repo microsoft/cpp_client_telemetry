@@ -25,18 +25,25 @@ if(APPLE)
 
   # iOS build options
   option(BUILD_IOS           "Build for iOS"               NO)
+  option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" YES)
+  if (DEFINED FORCE_RESET_DEPLOYMENT_TARGET)
+    set(FORCE_RESET_OSX_DEPLOYMENT_TARGET ${FORCE_RESET_DEPLOYMENT_TARGET})
+  endif()
 
   if(BUILD_IOS)
     set(TARGET_ARCH "APPLE")
     set(IOS True)
     set(APPLE True)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-    if((${IOS_PLAT} STREQUAL "iphonesimulator") AND (${IOS_ARCH} STREQUAL "arm64"))
-      # iOS arm64 simulator is supported starting BigSur
-      # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
-    else()
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+
+    if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
+      set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+      if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
+        # iOS arm64 simulator is supported starting BigSur
+        # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
+      else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+      endif()
     endif()
 
     if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator"))
@@ -49,12 +56,12 @@ if(APPLE)
       set(IOS_PLATFORM "iphonesimulator")
       set(CMAKE_SYSTEM_PROCESSOR x86_64)
     elseif(${IOS_ARCH} STREQUAL "arm64")
-      set(IOS_PLATFORM "iphoneos")
+      set(IOS_PLATFORM ${IOS_PLAT})
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
       set(CMAKE_SYSTEM_PROCESSOR arm64)
     elseif(${IOS_ARCH} STREQUAL "arm64e")
-      set(IOS_PLATFORM "iphoneos")
+      set(IOS_PLATFORM ${IOS_PLAT})
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
       set(CMAKE_SYSTEM_PROCESSOR arm64e)
@@ -108,6 +115,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants -ffast-math")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(REL_FLAGS "${WARN_FLAGS}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  # AppleClang does not support -ffunction-sections and -fdata-sections with the -fembed-bitcode and -fembed-bitcode-marker
+  set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants -ffast-math")
 else()
   # Using clang - strip unsupported GCC options
   set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants -ffast-math")
@@ -178,6 +188,11 @@ if(GCC5_CXX11_ABI_WORKAROUND)
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 endif()
 
+option(USE_ONEDS_BOUNDCHECK_METHODS "Use bound check methods for C99 functions" OFF)
+if (USE_ONEDS_BOUNDCHECK_METHODS)
+  add_definitions(-DHAVE_ONEDS_BOUNDCHECK_METHODS)
+endif()
+
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
  add_definitions(-DZLIB_WINAPI)
 endif()
@@ -215,7 +230,7 @@ message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 # Only use custom curl if compiling with CPP11 PAL
 if (PAL_IMPLEMENTATION STREQUAL "CPP11")
-  
+
   if(NOT BUILD_IOS)
     include(FindCURL)
     find_package(CURL REQUIRED)
@@ -238,10 +253,13 @@ option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
 option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
+option(BUILD_SWIFT_WRAPPER "Build Swift Wrappers"   YES)
 option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
 option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
+option(BUILD_SIGNALS      "Build Signals"           YES)
+option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
@@ -255,12 +273,6 @@ if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
     add_library(gtest STATIC IMPORTED GLOBAL)
     message("Adding gmock")
     add_library(gmock STATIC IMPORTED GLOBAL)
-    
-#    message("Building libraries! - Path: ${CMAKE_CURRENT_SOURCE_DIR} ")
-#    message("Building gtest")
-#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/)
-#    message("Building gmock")
-#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googlemock/)
 endif()
 
 if(BUILD_APPLE_HTTP)

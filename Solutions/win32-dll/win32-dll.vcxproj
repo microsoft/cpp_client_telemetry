@@ -91,7 +91,18 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="Shared" />
+  <ImportGroup Label="Shared">
+    <Import Project="..\Clienttelemetry\Clienttelemetry.vcxitems" Label="Shared" />
+    <Import Project="..\..\lib\pal\desktop\desktop.vcxitems" Label="Shared" />
+    <Import Project="..\..\lib\modules\exp\exp.vcxitems" Condition="exists('..\..\lib\modules\exp\exp.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\filter\filter.vcxitems" Condition="exists('..\..\lib\modules\filter\filter.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\dataviewer\dataviewer.vcxitems" Condition="exists('..\..\lib\modules\dataviewer\dataviewer.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\azmon\azmon.vcxitems" Condition="exists('..\..\lib\modules\azmon\azmon.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\privacyguard\privacyguard.vcxitems" Condition="exists('..\..\lib\modules\privacyguard\privacyguard.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems" Condition="exists('..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\cds\cds.vcxitems" Condition="exists('..\..\lib\modules\cds\cds.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\signals\signals.vcxitems" Condition="exists('..\..\lib\modules\signals\signals.vcxitems')" Label="Shared" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -317,9 +328,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
       <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\win32-lib\win32-lib.vcxproj">
-      <Project>{1dc6b38a-b390-34ce-907f-4958807a3d42}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Condition="'$(NoSqlite)'!='TRUE'">

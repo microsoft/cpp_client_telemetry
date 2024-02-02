@@ -63,4 +63,16 @@ public class PrivacyGuardInitConfig {
      * Default value is `true`.
      */
     public boolean ScanForUrls = true;
+
+    /**
+     * (OPTIONAL) Should disable advanced scans such as location, URLs, Out-of-scope identifiers, etc.
+     * Default value is `false`.
+     */
+    public boolean DisableAdvancedScans = false;
+
+    /**
+     * (OPTIONAL) Should stamp the iKey for the scanned event as an additional property on Concerns.
+     * Default value is `false`.
+     */
+    public boolean StampEventIKeyForConcerns = false;
 }

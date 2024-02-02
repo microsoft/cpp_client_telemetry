@@ -4,6 +4,7 @@
 //
 #include "api/LogManagerImpl.hpp"
 #include "common/Common.hpp"
+#include <future>
 
 using namespace testing;
 using namespace MAT;
@@ -81,6 +82,67 @@ TEST(LogManagerImplTests, DeadLoggersAreDead)
     logger->LogEvent("DeadLoggerEvent");
 }
 
+TEST(LogManagerImplTests, NotPausedInitially)
+{
+    ILogConfiguration configuration;
+    TestLogManagerImpl logManager{configuration};
+    ASSERT_TRUE(logManager.StartActivity());
+    logManager.EndActivity();
+}
+
+TEST(LogManagerImplTests, ImmediateNotify)
+{
+    ILogConfiguration configuration;
+    TestLogManagerImpl logManager{configuration};
+    auto waiter = std::async([&logManager]() -> void {
+        logManager.WaitPause();
+    });
+    auto result = waiter.wait_for(std::chrono::milliseconds(50));
+    ASSERT_EQ(std::future_status::ready, result);
+}
+
+TEST(LogManagerImplTests, DeferredNotify)
+{
+    ILogConfiguration configuration;
+    TestLogManagerImpl logManager{configuration};
+    ASSERT_TRUE(logManager.StartActivity());
+    logManager.PauseActivity();
+    auto waiter = std::async([&logManager]() -> void {
+                      logManager.WaitPause();
+                  });
+    auto pausing_result = waiter.wait_for(std::chrono::milliseconds(50));
+    ASSERT_EQ(std::future_status::timeout, pausing_result);
+    logManager.EndActivity();
+    auto subsequent = std::async([&logManager]() -> void {
+        logManager.WaitPause();
+    });
+    auto paused_result = subsequent.wait_for(std::chrono::milliseconds(50));
+    ASSERT_EQ(std::future_status::ready, paused_result);
+}
+
+TEST(LogManagerImplTests, DoesPause)
+{
+    ILogConfiguration configuration;
+    TestLogManagerImpl logManager{configuration};
+    logManager.PauseActivity();
+    ASSERT_FALSE(logManager.StartActivity());
+}
+
+TEST(LogManagerImplTests, WaitOnResume)
+{
+    ILogConfiguration configuration;
+    TestLogManagerImpl logManager{configuration};
+    ASSERT_TRUE(logManager.StartActivity());
+    logManager.PauseActivity();
+    logManager.ResumeActivity();
+    auto waiter = std::async([&logManager]() -> void {
+        logManager.WaitPause();
+    });
+    auto activeResult = waiter.wait_for(std::chrono::milliseconds(50));
+    ASSERT_EQ(std::future_status::ready, activeResult);
+    logManager.EndActivity();
+}
+
 class LogManagerModuleTests : public ::testing::Test
 {
    public:
@@ -152,4 +214,3 @@ TEST(LogManagerImplTests, Constructor_DataViewerCollectionIsNotNullptr_DataViewe
     TestLogManagerImpl logManager{configuration, true};
     ASSERT_NO_THROW(logManager.GetDataViewerCollection());
 }
-

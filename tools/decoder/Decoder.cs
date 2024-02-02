@@ -325,6 +325,12 @@ namespace CommonSchema
                         outputBuffer.SetLength(0);
                     } while (true);
                 }
+                catch (EndOfStreamException)
+                {
+#if NETCOREAPP
+                    Logger.LogDebug("End of Binary Stream");
+#endif
+                }
                 catch (Exception ex)
                 {
                     // end of input
