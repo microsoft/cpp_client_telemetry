@@ -31,7 +31,7 @@ class OfflineStorage_SQLiteNoAutoCommit : public OfflineStorage_SQLite
     }
 
     // Returns the number of active SQLiteDBs
-    int GetDbInstanceCount() {
+    static int GetDbInstanceCount() {
       std::lock_guard<std::mutex> lock(m_initAndShutdownLock);
       return m_instanceCount;
     }
@@ -92,7 +92,7 @@ struct OfflineStorageTests_SQLite : public Test
         }
     }
 
-    bool fileExists(std::string const& filename)
+    static bool fileExists(std::string const& filename)
     {
         return std::ifstream(filename).good();
     }
