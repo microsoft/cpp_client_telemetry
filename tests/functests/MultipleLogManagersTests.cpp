@@ -39,7 +39,7 @@ using namespace MAT;
 class RequestHandler : public HttpServer::Callback 
 {
    public:
-    RequestHandler(int id) noexcept : m_count(0), m_id(id){}
+    RequestHandler(int id) noexcept : m_id(id){}
 
     int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& /*response*/) override
     {
@@ -54,7 +54,7 @@ class RequestHandler : public HttpServer::Callback
     }
 
    private:
-    size_t m_count;
+    size_t m_count {};
     int m_id ;
 };
 
