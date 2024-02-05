@@ -153,7 +153,7 @@ namespace MAT_NS_BEGIN
                     /// Register and listen to network state notifications
                     /// </summary>
                     /// <returns></returns>
-                    bool RegisterAndListen();
+                    bool RegisterAndListen() noexcept;
 
                     /// <summary>
                     /// Reset network state listener to uninitialized state
