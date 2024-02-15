@@ -18,6 +18,11 @@ function dayNumber() {
   return dayOfYear;
 }
 
+function yearNumber() {
+   var thisYear = new Date().getFullYear();
+   return (thisYear - 2016);
+}
+
 var fso = WScript.CreateObject("Scripting.Filesystemobject");
 
 function readAll(filename) {
@@ -25,6 +30,12 @@ function readAll(filename) {
   var result = file.ReadAll();
   file.close();
   return result;
+}
+
+function updateYearAndDay(versionString){
+  var updatedVersion = versionString.replace("year", yearNumber());
+  updatedVersion = updatedVersion.replace("day", dayNumber() );
+  return updatedVersion;
 }
 
 function generateVersionHpp() {
@@ -35,8 +46,7 @@ function generateVersionHpp() {
   var ver1      = readAll("..\\Solutions\\version.txt");
   // Remove end-of-line
   ver1 = ver1.replace("\n", "");
-  // Replace 999 by today's dayNumber for nightly builds
-  ver1 = ver1.replace("999", dayNumber() );
+  ver1 = updateYearAndDay(ver1);
   // console.log("version.txt => " + ver1 + "\n");
   var ver2 = ver1.split(".").join(",");
   var arr  = ver1.split(".");
@@ -68,8 +78,9 @@ function generateVersionHpp() {
 }
 
 function generateVersionTxt() {
-  // Read base version and replace '999' with nightly build number
-  var version = readAll("..\\Solutions\\version.txt").replace("999", dayNumber());
+  var version = readAll("..\\Solutions\\version.txt")
+
+  version = updateYearAndDay(version);
 
   // Create 'out' folder if it doesn't already exist. Otherwise, OpenTextFile below will fail
   if (!fso.FolderExists("..\\Solutions\\out")) {

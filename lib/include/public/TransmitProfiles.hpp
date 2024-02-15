@@ -84,17 +84,17 @@ namespace MAT_NS_BEGIN
         /// TransmitProfileRule constructor taking a collection of timers.
         /// </summary>
         /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
-        TransmitProfileRule(std::vector<int>&& timers)
-           : timers(std::move(timers)) { }
+        TransmitProfileRule(std::vector<int>&& timers_)
+           : timers(std::move(timers_)) { }
 
         /// <summary>
         /// TransmitProfileRule constructor taking a NetworkCost and a collection of timers.
         /// </summary>
         /// <param name="networkCost">The network cost, as one of the MAT::NetworkCost enumeration values.</param>
         /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
-        TransmitProfileRule(NetworkCost networkCost, std::vector<int>&& timers)
+        TransmitProfileRule(NetworkCost networkCost, std::vector<int>&& timers_)
            : netCost(networkCost)
-           , timers(std::move(timers)) { }
+           , timers(std::move(timers_)) { }
 
         /// <summary>
         /// TransmitProfileRule constructor taking a NetworkCost, PowerSource, and a collection of timers.
@@ -102,10 +102,10 @@ namespace MAT_NS_BEGIN
         /// <param name="networkCost">The network cost, as one of the MAT::NetworkCost enumeration values.</param>
         /// <param name="powerSource">The power state, as one of the MAT::PowerSource enumeration values.</param>
         /// <param name="timers">A vector of integers that contain per-priority transmission timers.</param>
-        TransmitProfileRule(NetworkCost networkCost, PowerSource powerSource, std::vector<int>&& timers)
+        TransmitProfileRule(NetworkCost networkCost, PowerSource powerSource, std::vector<int>&& timers_)
            : netCost(networkCost)
            , powerState(powerSource)
-           , timers(std::move(timers)) { }
+           , timers(std::move(timers_)) { }
 
     } TransmitProfileRule;
 
