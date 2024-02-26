@@ -25,7 +25,7 @@
 // ReSharper disable RedundantUsingDirective
 #endregion
 
-namespace CsProtocol
+namespace CommonSchema
 {
     using System.Collections.Generic;
 
@@ -55,7 +55,7 @@ namespace CsProtocol
         public string client { get; set; }
 
         public Ingest()
-            : this("CsProtocol.Ingest", "Ingest")
+            : this("CommonSchema.Ingest", "Ingest")
         {}
 
         protected Ingest(string fullName, string name)
@@ -83,7 +83,7 @@ namespace CsProtocol
         public string locale { get; set; }
 
         public User()
-            : this("CsProtocol.User", "User")
+            : this("CommonSchema.User", "User")
         {}
 
         protected User(string fullName, string name)
@@ -109,7 +109,7 @@ namespace CsProtocol
         public string timezone { get; set; }
 
         public Loc()
-            : this("CsProtocol.Loc", "Loc")
+            : this("CommonSchema.Loc", "Loc")
         {}
 
         protected Loc(string fullName, string name)
@@ -151,11 +151,8 @@ namespace CsProtocol
         [global::Bond.Id(9)]
         public string model { get; set; }
 
-        [global::Bond.Id(10)]
-        public string authIdEnt { get; set; }
-
         public Device()
-            : this("CsProtocol.Device", "Device")
+            : this("CommonSchema.Device", "Device")
         {}
 
         protected Device(string fullName, string name)
@@ -169,7 +166,6 @@ namespace CsProtocol
             orgAuthId = "";
             make = "";
             model = "";
-            authIdEnt = "";
         }
     }
 
@@ -193,7 +189,7 @@ namespace CsProtocol
         public string ver { get; set; }
 
         public Os()
-            : this("CsProtocol.Os", "Os")
+            : this("CommonSchema.Os", "Os")
         {}
 
         protected Os(string fullName, string name)
@@ -233,11 +229,8 @@ namespace CsProtocol
         [global::Bond.Id(8)]
         public string name { get; set; }
 
-        [global::Bond.Id(9)]
-        public string sesId { get; set; }
-
         public App()
-            : this("CsProtocol.App", "App")
+            : this("CommonSchema.App", "App")
         {}
 
         protected App(string fullName, string name)
@@ -249,7 +242,6 @@ namespace CsProtocol
             ver = "";
             locale = "";
             this.name = "";
-            sesId = "";
         }
     }
 
@@ -299,17 +291,8 @@ namespace CsProtocol
         [global::Bond.Id(15)]
         public long eventFlags { get; set; }
 
-        [global::Bond.Id(16)]
-        public long wsId { get; set; }
-
-        [global::Bond.Id(17)]
-        public long wcmp { get; set; }
-
-        [global::Bond.Id(18)]
-        public long wPId { get; set; }
-
         public Utc()
-            : this("CsProtocol.Utc", "Utc")
+            : this("CommonSchema.Utc", "Utc")
         {}
 
         protected Utc(string fullName, string name)
@@ -332,11 +315,8 @@ namespace CsProtocol
         [global::Bond.Id(1)]
         public string enrolledTenantId { get; set; }
 
-        [global::Bond.Id(2)]
-        public ulong msp { get; set; }
-
         public M365a()
-            : this("CsProtocol.M365a", "M365a")
+            : this("CommonSchema.M365a", "M365a")
         {}
 
         protected M365a(string fullName, string name)
@@ -398,7 +378,7 @@ namespace CsProtocol
         public string ip { get; set; }
 
         public Xbl()
-            : this("CsProtocol.Xbl", "Xbl")
+            : this("CommonSchema.Xbl", "Xbl")
         {}
 
         protected Xbl(string fullName, string name)
@@ -446,9 +426,6 @@ namespace CsProtocol
 
         [global::Bond.Id(40)]
         public string screenSize { get; set; }
-
-        [global::Bond.Id(45)]
-        public string msfpc { get; set; }
 
         [global::Bond.Id(50)]
         public string mc1Id { get; set; }
@@ -498,20 +475,11 @@ namespace CsProtocol
         [global::Bond.Id(200)]
         public string domain { get; set; }
 
-        [global::Bond.Id(210), global::Bond.Required]
-        public bool userConsent { get; set; }
-
-        [global::Bond.Id(220)]
-        public string browserLang { get; set; }
-
-        [global::Bond.Id(230)]
-        public string serviceName { get; set; }
-
         [global::Bond.Id(999)]
         public string dnt { get; set; }
 
         public Javascript()
-            : this("CsProtocol.Javascript", "Javascript")
+            : this("CommonSchema.Javascript", "Javascript")
         {}
 
         protected Javascript(string fullName, string name)
@@ -524,7 +492,6 @@ namespace CsProtocol
             make = "";
             model = "";
             screenSize = "";
-            msfpc = "";
             mc1Id = "";
             ms0 = "";
             anid = "";
@@ -539,8 +506,6 @@ namespace CsProtocol
             omniId = "";
             gsfxSession = "";
             domain = "";
-            browserLang = "";
-            serviceName = "";
             dnt = "";
         }
     }
@@ -561,11 +526,8 @@ namespace CsProtocol
         [global::Bond.Id(4)]
         public string devModel { get; set; }
 
-        [global::Bond.Id(5)]
-        public ulong msp { get; set; }
-
         public Protocol()
-            : this("CsProtocol.Protocol", "Protocol")
+            : this("CommonSchema.Protocol", "Protocol")
         {}
 
         protected Protocol(string fullName, string name)
@@ -586,20 +548,13 @@ namespace CsProtocol
         [global::Bond.Id(2)]
         public long uploadTime { get; set; }
 
-        [global::Bond.Id(3)]
-        public string originalName { get; set; }
-
-        [global::Bond.Id(4)]
-        public ulong flags { get; set; }
-
         public Receipts()
-            : this("CsProtocol.Receipts", "Receipts")
+            : this("CommonSchema.Receipts", "Receipts")
         {}
 
         protected Receipts(string fullName, string name)
         {
-            originalName = "";
-            flags = 0;
+            
         }
     }
 
@@ -617,7 +572,7 @@ namespace CsProtocol
         public string type { get; set; }
 
         public Net()
-            : this("CsProtocol.Net", "Net")
+            : this("CommonSchema.Net", "Net")
         {}
 
         protected Net(string fullName, string name)
@@ -633,7 +588,7 @@ namespace CsProtocol
     public partial class Sdk
     {
         [global::Bond.Id(1)]
-        public string ver { get; set; }
+        public string libVer { get; set; }
 
         [global::Bond.Id(2)]
         public string epoch { get; set; }
@@ -644,19 +599,15 @@ namespace CsProtocol
         [global::Bond.Id(4)]
         public string installId { get; set; }
 
-        [global::Bond.Id(5)]
-        public string libVer { get; set; }
-
         public Sdk()
-            : this("CsProtocol.Sdk", "Sdk")
+            : this("CommonSchema.Sdk", "Sdk")
         {}
 
         protected Sdk(string fullName, string name)
         {
-            ver = "";
+            libVer = "";
             epoch = "";
             installId = "";
-            libVer = "";
         }
     }
 
@@ -686,7 +637,7 @@ namespace CsProtocol
         public string role { get; set; }
 
         public Cloud()
-            : this("CsProtocol.Cloud", "Cloud")
+            : this("CommonSchema.Cloud", "Cloud")
         {}
 
         protected Cloud(string fullName, string name)
@@ -698,170 +649,6 @@ namespace CsProtocol
             this.name = "";
             roleInstance = "";
             role = "";
-        }
-    }
-
-    [global::Bond.Schema]
-    [System.CodeDom.Compiler.GeneratedCode("gbc", "0.12.1.0")]
-    public partial class Service
-    {
-        [global::Bond.Id(1)]
-        public string name { get; set; }
-
-        [global::Bond.Id(2)]
-        public string role { get; set; }
-
-        [global::Bond.Id(3)]
-        public string roleVersion { get; set; }
-
-        public Service()
-            : this("CsProtocol.Service", "Service")
-        {}
-
-        protected Service(string fullName, string name)
-        {
-            this.name = "";
-            role = "";
-            roleVersion = "";
-        }
-    }
-
-    [global::Bond.Schema]
-    [System.CodeDom.Compiler.GeneratedCode("gbc", "0.12.1.0")]
-    public partial class Cs
-    {
-        [global::Bond.Id(1)]
-        public string sig { get; set; }
-
-        public Cs()
-            : this("CsProtocol.Cs", "Cs")
-        {}
-
-        protected Cs(string fullName, string name)
-        {
-            sig = "";
-        }
-    }
-
-    [global::Bond.Schema]
-    [System.CodeDom.Compiler.GeneratedCode("gbc", "0.12.1.0")]
-    public partial class Mscv
-    {
-        [global::Bond.Id(1)]
-        public string cV { get; set; }
-
-        public Mscv()
-            : this("CsProtocol.Mscv", "Mscv")
-        {}
-
-        protected Mscv(string fullName, string name)
-        {
-            cV = "";
-        }
-    }
-
-    [global::Bond.Schema]
-    [System.CodeDom.Compiler.GeneratedCode("gbc", "0.12.1.0")]
-    public partial class IntWeb
-    {
-        [global::Bond.Id(1)]
-        public string mc1Id { get; set; }
-
-        [global::Bond.Id(2)]
-        public string msfpc { get; set; }
-
-        [global::Bond.Id(3)]
-        public string anid { get; set; }
-
-        [global::Bond.Id(4)]
-        public string serviceName { get; set; }
-
-        [global::Bond.Id(5)]
-        public Dictionary<string, string> mscom { get; set; }
-
-        public IntWeb()
-            : this("CsProtocol.IntWeb", "IntWeb")
-        {}
-
-        protected IntWeb(string fullName, string name)
-        {
-            mc1Id = "";
-            msfpc = "";
-            anid = "";
-            serviceName = "";
-            mscom = new Dictionary<string, string>();
-        }
-    }
-
-    [global::Bond.Schema]
-    [System.CodeDom.Compiler.GeneratedCode("gbc", "0.12.1.0")]
-    public partial class IntService
-    {
-        [global::Bond.Id(1)]
-        public string fullEnvName { get; set; }
-
-        [global::Bond.Id(2)]
-        public string location { get; set; }
-
-        [global::Bond.Id(3)]
-        public string environment { get; set; }
-
-        [global::Bond.Id(4)]
-        public string deploymentUnit { get; set; }
-
-        [global::Bond.Id(5)]
-        public string name { get; set; }
-
-        public IntService()
-            : this("CsProtocol.IntService", "IntService")
-        {}
-
-        protected IntService(string fullName, string name)
-        {
-            fullEnvName = "";
-            location = "";
-            environment = "";
-            deploymentUnit = "";
-            this.name = "";
-        }
-    }
-
-    [global::Bond.Schema]
-    [System.CodeDom.Compiler.GeneratedCode("gbc", "0.12.1.0")]
-    public partial class Web
-    {
-        [global::Bond.Id(10)]
-        public string browser { get; set; }
-
-        [global::Bond.Id(20)]
-        public string browserVer { get; set; }
-
-        [global::Bond.Id(30)]
-        public string screenRes { get; set; }
-
-        [global::Bond.Id(40)]
-        public string domain { get; set; }
-
-        [global::Bond.Id(50), global::Bond.Required]
-        public bool userConsent { get; set; }
-
-        [global::Bond.Id(60)]
-        public string browserLang { get; set; }
-
-        [global::Bond.Id(70)]
-        public bool isManual { get; set; }
-
-        public Web()
-            : this("CsProtocol.Web", "Web")
-        {}
-
-        protected Web(string fullName, string name)
-        {
-            browser = "";
-            browserVer = "";
-            screenRes = "";
-            domain = "";
-            browserLang = "";
         }
     }
 
@@ -917,7 +704,7 @@ namespace CsProtocol
         public PIIKind Kind { get; set; }
 
         public PII()
-            : this("CsProtocol.PII", "PII")
+            : this("CommonSchema.PII", "PII")
         {}
 
         protected PII(string fullName, string name)
@@ -941,7 +728,7 @@ namespace CsProtocol
         public CustomerContentKind Kind { get; set; }
 
         public CustomerContent()
-            : this("CsProtocol.CustomerContent", "CustomerContent")
+            : this("CommonSchema.CustomerContent", "CustomerContent")
         {}
 
         protected CustomerContent(string fullName, string name)
@@ -961,7 +748,7 @@ namespace CsProtocol
         public List<CustomerContent> customerContent { get; set; }
 
         public Attributes()
-            : this("CsProtocol.Attributes", "Attributes")
+            : this("CommonSchema.Attributes", "Attributes")
         {}
 
         protected Attributes(string fullName, string name)
@@ -1006,7 +793,7 @@ namespace CsProtocol
         public List<List<List<byte>>> guidArray { get; set; }
 
         public Value()
-            : this("CsProtocol.Value", "Value")
+            : this("CommonSchema.Value", "Value")
         {}
 
         protected Value(string fullName, string name)
@@ -1030,7 +817,7 @@ namespace CsProtocol
         public Dictionary<string, Value> properties { get; set; }
 
         public Data()
-            : this("CsProtocol.Data", "Data")
+            : this("CommonSchema.Data", "Data")
         {}
 
         protected Data(string fullName, string name)
@@ -1041,7 +828,7 @@ namespace CsProtocol
 
     [global::Bond.Schema]
     [System.CodeDom.Compiler.GeneratedCode("gbc", "0.12.1.0")]
-    public partial class Record
+    public partial class CsEvent
     {
         [global::Bond.Id(1), global::Bond.Required]
         public string ver { get; set; }
@@ -1106,29 +893,11 @@ namespace CsProtocol
         [global::Bond.Id(34)]
         public List<Cloud> extCloud { get; set; }
 
-        [global::Bond.Id(35)]
-        public List<Service> extService { get; set; }
-
-        [global::Bond.Id(36)]
-        public List<Cs> extCs { get; set; }
-
         [global::Bond.Id(37)]
         public List<M365a> extM365a { get; set; }
 
         [global::Bond.Id(41)]
         public List<Data> ext { get; set; }
-
-        [global::Bond.Id(42)]
-        public List<Mscv> extMscv { get; set; }
-
-        [global::Bond.Id(43)]
-        public List<IntWeb> extIntWeb { get; set; }
-
-        [global::Bond.Id(44)]
-        public List<IntService> extIntService { get; set; }
-
-        [global::Bond.Id(45)]
-        public List<Web> extWeb { get; set; }
 
         [global::Bond.Id(51)]
         public Dictionary<string, string> tags { get; set; }
@@ -1142,11 +911,11 @@ namespace CsProtocol
         [global::Bond.Id(70)]
         public List<Data> data { get; set; }
 
-        public Record()
-            : this("CsProtocol.Record", "Record")
+        public CsEvent()
+            : this("CommonSchema.CsEvent", "CsEvent")
         {}
 
-        protected Record(string fullName, string name)
+        protected CsEvent(string fullName, string name)
         {
             ver = "";
             this.name = "";
@@ -1167,18 +936,12 @@ namespace CsProtocol
             extSdk = new List<Sdk>();
             extLoc = new List<Loc>();
             extCloud = new List<Cloud>();
-            extService = new List<Service>();
-            extCs = new List<Cs>();
             extM365a = new List<M365a>();
             ext = new List<Data>();
-            extMscv = new List<Mscv>();
-            extIntWeb = new List<IntWeb>();
-            extIntService = new List<IntService>();
-            extWeb = new List<Web>();
             tags = new Dictionary<string, string>();
             baseType = "";
             baseData = new List<Data>();
             data = new List<Data>();
         }
     }
-} // CsProtocol
+} // CommonSchema
