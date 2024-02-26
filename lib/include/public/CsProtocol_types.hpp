@@ -823,20 +823,22 @@ using namespace _bond_enumerators::ValueKind;
 namespace _bond_enumerators {
 namespace PIIKind {
 enum PIIKind {
-    NotSet            = 0,
-    DistinguishedName = 1,
-    GenericData       = 2,
-    IPV4Address       = 3,
-    IPv6Address       = 4,
-    MailSubject       = 5,
-    PhoneNumber       = 6,
-    QueryString       = 7,
-    SipAddress        = 8,
-    SmtpAddress       = 9,
-    Identity          = 10,
-    Uri               = 11,
-    Fqdn              = 12,
-    IPV4AddressLegacy = 13
+    NotSet                  = 0,
+    DistinguishedName       = 1,
+    GenericData             = 2,
+    IPV4Address             = 3,
+    IPv6Address             = 4,
+    MailSubject             = 5,
+    PhoneNumber             = 6,
+    QueryString             = 7,
+    SipAddress              = 8,
+    SmtpAddress             = 9,
+    Identity                = 10,
+    Uri                     = 11,
+    Fqdn                    = 12,
+    IPV4AddressLegacy       = 13,
+    IPv6ScrubLastHextets    = 14,
+    DropValue               = 15
 };
 }
 }

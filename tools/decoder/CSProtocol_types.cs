@@ -908,6 +908,8 @@ namespace CsProtocol
         Uri = unchecked((int)11),
         Fqdn = unchecked((int)12),
         IPV4AddressLegacy = unchecked((int)13),
+        IPv6ScrubLastHextets = unchecked((int)14),
+        DropValue = unchecked((int)15)
     }
 
     [global::Bond.Schema]

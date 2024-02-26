@@ -405,6 +405,38 @@ TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_IPv6Address
     EventPropertiesDecorator decorator(logManager);
     Record record;
     EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_IPv6ScrubLastHextets);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::IPv6ScrubLastHextets));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_DropValue)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_DropValue);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    auto dataField = record.data[0].properties.find("Int64Prop");
+    EXPECT_THAT(dataField, Ne(record.data[0].properties.end()));
+    EXPECT_THAT(dataField->second.attributes[0].pii[0].Kind, Eq(PIIKind::PiiKind_DropValue));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_EventProperties_PiiKind_IPv6Address)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
     props.SetProperty("Int64Prop", 12345, PiiKind::PiiKind_IPv6Address);
     EventLatency latency = EventLatency::EventLatency_Normal;
 

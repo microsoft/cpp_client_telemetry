@@ -31,7 +31,9 @@ namespace Microsoft.Applications.Events
         Identity = 10,
         Uri = 11,
         Fqdn = 12,
-        IPV4AddressLegacy = 13
+        IPV4AddressLegacy = 13,
+        IPv6ScrubLastHextets = 14,
+        DropValue = 15
     }
 
     [Flags]

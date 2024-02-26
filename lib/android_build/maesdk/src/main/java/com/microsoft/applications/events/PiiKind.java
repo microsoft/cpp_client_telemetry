@@ -78,6 +78,12 @@ public enum PiiKind {
      */
     IPv4AddressLegacy(13),
 
+    /** An IPv6 Internet Address */
+    IPv6ScrubLastHextets(14),
+
+    /**Drop Value */
+    DropValue(15),
+    
     CustomerContentKind_GenericData(32);
 
     private final int m_value;

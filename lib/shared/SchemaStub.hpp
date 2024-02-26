@@ -257,7 +257,11 @@ namespace Microsoft {
                     /// <summary>A fully-qualified domain name.</summary>
                     Fqdn = 12,
                     /// <summary>A legacy IPV4 Internet address.</summary>
-                    IPv4AddressLegacy = 13
+                    IPv4AddressLegacy = 13,
+                    /// <summary>A legacy IPV6 Internet address.</summary>
+                    IPv6ScrubLastHextets = 14,
+                    /// <summary>Drop the value.</summary>
+                    DropValue = 15,
                 };
             }
         }

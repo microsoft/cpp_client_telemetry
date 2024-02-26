@@ -39,7 +39,9 @@ typedef NS_ENUM(NSInteger, ODWPiiKind)
     ODWPiiKindIdentity = 10,         /**< Identify. */
     ODWPiiKindUri = 11,              /**< URI. */
     ODWPiiKindFqdn = 12,             /**< Fully qualified domain name. */
-    ODWPiiKindIPV4AddressLegacy = 13 /**< Legacy IPv4 Internet address. */
+    ODWPiiKindIPV4AddressLegacy = 13, /**< Legacy IPv4 Internet address. */
+    ODWPiiKindIPv6ScrubLastHextets = 14, /**< Legacy IPv6 Internet address. */
+    ODWPiiKindDropValue = 15 /**< Drop Value. */
 };
 
 /*!
