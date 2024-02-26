@@ -261,7 +261,7 @@ namespace Microsoft {
                     /// <summary>A legacy IPV6 Internet address.</summary>
                     IPv6ScrubLastHextets = 14,
                     /// <summary>Drop the value.</summary>
-                    DropValue = 15,
+                    DropValue = 15
                 };
             }
         }
