@@ -46,7 +46,7 @@ if [[ $1 == CUSTOM_BUILD_FLAGS* ]] || [[ $2 == CUSTOM_BUILD_FLAGS* ]] || [[ $3 =
 fi
 
 LINK_TYPE=
-CMAKE_OPTS="${CMAKE_OPTS:--DBUILD_SHARED_LIBS=OFF}"
+CMAKE_OPTS="${CMAKE_OPTS:-DBUILD_SHARED_LIBS=OFF}"
 while getopts "h?vl:D:" opt; do
     case "$opt" in
     h|\?)
