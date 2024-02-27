@@ -127,4 +127,48 @@
 #define EVTSDK_LIBABI_CDECL MATSDK_LIBABI_CDECL
 #define EVTSDK_SPEC         MATSDK_SPEC
 
+/* Implement struct packing for stable FFI C API to allow for C# apps
+ * written in Mono and .NET Standard 2.x to call into 1DS C API.
+ */
+#ifdef HAVE_MAT_ABI_V3_1_0
+/* Legacy v3.1 struct ABI. Not compatible with cross-plat C# projection */
+#define MATSDK_PACKED_STRUCT
+#define MATSDK_PACK_PUSH
+#define MATSDK_PACK_POP
+#define MATSDK_ALIGN64(x)   x
+/* Modern v3.7 struct ABI. Compatible with cross-plat C# callers on both
+ * 32-bit and 64-bit Intel and ARM architectures - on Windows, Android
+ * and Mac. This should ideally be the default going forward, as it
+ * ensures predictable, compiler optimization level-agnostic C API FFI.
+ */
+#elif __clang__
+# define MATSDK_PACKED_STRUCT __attribute__((packed))
+# define MATSDK_PACK_PUSH
+# define MATSDK_PACK_POP
+#define MATSDK_ALIGN64(x) union { x; uint64_t padding; }
+#elif __GNUC__
+# define MATSDK_PACKED_STRUCT __attribute__((packed))
+# define MATSDK_PACK_PUSH
+# define MATSDK_PACK_POP
+#define MATSDK_ALIGN64(x) union { x; uint64_t padding; }
+#elif _MSC_VER
+# define MATSDK_PACKED_STRUCT
+# define MATSDK_PACK_PUSH     __pragma(pack(push, 1))
+# define MATSDK_PACK_POP      __pragma(pack(pop))
+#define MATSDK_ALIGN64(x) union { x; uint64_t padding; }
+#else
+/* Fallback to HAVE_MAT_ABI_V3_1_0 : compatible with prebuilt shared libraries
+ * that used the old C API only within the same arch/compiler domain. Unfortunately
+ * the old layout is not usable if you'd like to invoke C API from Mono (e.g. Unity)
+ * or cross-platform .NET Standard apps.
+ */
+#ifndef HAVE_MAT_ABI_V3_1_0
+#define HAVE_MAT_ABI_V3_1_0
+#endif
+# define MATSDK_PACKED_STRUCT
+# define MATSDK_PACK_PUSH
+# define MATSDK_PACK_POP
+#define MATSDK_ALIGN64(x) x
+#endif
+
 #endif

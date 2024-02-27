@@ -8,8 +8,104 @@
 #include "pal/PAL.hpp"
 #include "utils/StringUtils.hpp"
 
+#include <unordered_map>
+
 namespace MAT_NS_BEGIN
 {
+    // clang-format off
+    /**
+     * This map allows to remap from canonical Common Schema JSON notation to "CommonFields"
+     * (ex. AppInfo.*) notation historically used by Aria v1/v2 and 1DS v3 SDKs. Field name
+     * reshaping is performed as follows:
+     *
+     *  CS3.0/4.0 JSON notation -> Common Alias -> :CsProtocol::Record object -> CS on wire
+     *
+     *  Common Alias (no reshaping)             -> :CsProtocol::Record object -> CS on wire
+     *
+     * Lookup for the data transform is a hashtable-based. Performed only in case if
+     * customer-supplied Common Context property starts with "ext.": check 4 bytes match,
+     * then perform the hash map lookup:
+     * - If there is a match, promote to corresponding COMMONFIELDS_* name.
+     * - If there's no match, keep as is with its original context field name.
+     * This logic allows to respect both - "canonical" names and "legacy" entity names.
+     *
+     * Why do we have to support both naming conventions? It's an organizational choice whether
+     * to rely on 'legacy' AppInfo.*, EventInfo.*, naming (Aria-Kusto) or migrate to more modern,
+     * standard Common Schema notation (standalone Kusto). Organizational choice depends on
+     * final data storage and consumption model. From a developer perspective - the solution is
+     * to allow a developer to use the naming convention as they would use to query a dataset
+     * in Kusto or ADLS Gen2. Having 1-1 mapping between instrumentation properties and storage
+     * allows to resolve ambiguities and avoid confusion.
+     *
+     * For any extension that is not supported by the map below, a developer could implement
+     * their own custom IDecorator - to stamp a common field property at decorator-level.
+     */
+    static const std::unordered_map<std::string, std::string> kCommonSchemaToCommonFieldsMap=
+        {
+            // ext.app extension:
+            // https://1dsdocs.azurewebsites.net/schema/PartA/app.html
+            {"ext.app.id",              COMMONFIELDS_APP_ID},
+            {"ext.app.ver",             COMMONFIELDS_APP_VERSION},
+            {"ext.app.name",            COMMONFIELDS_APP_NAME},
+            {"ext.app.locale",          COMMONFIELDS_APP_LANGUAGE},
+            // {"ext.app.asId",         NOT_SUPPORTED},
+            // {"ext.app.sesId",        NOT_SUPPORTED},
+            // {"ext.app.userId",       NOT_SUPPORTED}, // use "ext.user.*id" instead
+            {"ext.app.expId",           COMMONFIELDS_APP_EXPERIMENTIDS},
+            {"ext.app.env",             COMMONFIELDS_APP_ENV},
+            // ext.device extension:
+            // https://1dsdocs.azurewebsites.net/schema/PartA/device.html
+            // {"ext.device.id",        NOT_SUPPORTED}, // Device g: ID can only be populated via MSAL ticket claim.
+            {"ext.device.deviceClass",  COMMONFIELDS_DEVICE_CLASS},
+            {"ext.device.make",         COMMONFIELDS_DEVICE_MAKE},
+            {"ext.device.model",        COMMONFIELDS_DEVICE_MODEL},
+            {"ext.device.localId",      COMMONFIELDS_DEVICE_ID},
+            // {"ext.device.auth*",     NOT_SUPPORTED}, // Use IDecorator
+            // {"ext.device.org*",      NOT_SUPPORTED}, // Use IDecorator
+            // ext.net extension:
+            // https://1dsdocs.azurewebsites.net/schema/PartA/net.html
+            {"ext.net.provider",        COMMONFIELDS_NETWORK_PROVIDER},
+            {"ext.net.cost",            COMMONFIELDS_NETWORK_COST},
+            {"ext.net.type",            COMMONFIELDS_NETWORK_TYPE},
+            // ext.os extension:
+            // https://1dsdocs.azurewebsites.net/schema/PartA/os.html
+            {"ext.os.name",             COMMONFIELDS_OS_NAME},
+
+            // Special case for CS3.0 vs CS4.0:
+            // - ext.os.ver             - exists in both - CS3.0 and CS4.0
+            // - ext.os.build           - exists only in CS4.0
+#if defined(HAVE_CS4) || defined(HAVE_CS4_FULL)
+            {"ext.os.ver",              COMMONFIELDS_OS_VERSION},
+            {"ext.os.build",            COMMONFIELDS_OS_BUILD},
+#else
+            // For some historical reason, the code treated
+            // COMMONFIELDS_OS_BUILD as an alias for ext.os.ver.
+            // Keep it that way, so we don't break the contract
+            // for existing apps. COMMONFIELDS_OS_BUILD lands
+            // on extOs[0].ver anyways. Thus, we keep consistency
+            // for devs that use Common Schema notation.
+            {"ext.os.ver",              COMMONFIELDS_OS_BUILD},
+#endif
+            //{"ext.os.locale",         NOT_SUPPORTED}, // Use IDecorator
+            //{"ext.os.bootId",         NOT_SUPPORTED}, // Use IDecorator
+            //{"ext.os.expId",          NOT_SUPPORTED}, // Use IDecorator
+            // ext.user extension:
+            // https://1dsdocs.azurewebsites.net/schema/PartA/user.html
+            // {"ext.user.id",          NOT_SUPPORTED}, // User g: ID can only be populated via MSAL ticket claim.
+            {"ext.user.localId",        COMMONFIELDS_USER_ID},
+            // {"ext.user.authId",      NOT_SUPPORTED}, // Use IDecorator
+            {"ext.user.locale",         COMMONFIELDS_USER_LANGUAGE},
+            // ext.loc extension:
+            // https://1dsdocs.azurewebsites.net/schema/PartA/loc.html
+            // {"ext.loc.id",           NOT_SUPPORTED}, // Use IDecorator
+            // {"ext.loc.country",      NOT_SUPPORTED}, // Use IDecorator
+            {"ext.loc.tz",              COMMONFIELDS_USER_TIMEZONE},
+            {"ext.loc.timezone",        COMMONFIELDS_USER_TIMEZONE}, // alias of 'tz'
+            // ext.m365 extension:
+            // https://1dsdocs.azurewebsites.net/schema/PartA/m365a.html
+            {"ext.m365a.enrolledTenantId", COMMONFIELDS_COMMERCIAL_ID }
+        };
+    // clang-format on
 
     ContextFieldsProvider::ContextFieldsProvider()
         : ContextFieldsProvider(nullptr)
@@ -256,12 +352,33 @@ namespace MAT_NS_BEGIN
                     record.extOs[0].name = iter->second.as_string;
                 }
 
+#if defined(HAVE_CS4) || defined(HAVE_CS4_FULL)
+                // Straightforward implementation for CS4.0+. No quirks.
+                // - OS_VERSION maps to ext.os.ver field.
+                iter = m_commonContextFields.find(COMMONFIELDS_OS_VERSION);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extOs[0].ver = iter->second.as_string;
+                }
+                // - OS_BUILD maps to ext.os.build field.
+                iter = m_commonContextFields.find(COMMONFIELDS_OS_BUILD);
+                if (iter != m_commonContextFields.end())
+                {
+                    record.extOs[0].build = iter->second.as_string;
+                }
+#else
+                // This is a historical quirk due to difference between CS3.0 and CS4.0
+                // `ext.os.ver` exists in both schemas; but `ext.os.build` only in CS4.0
+                // However, it appears like the preference in this code has been to use
+                // the newer Aria-style alias. Fixing this could break existing apps.
+                // Thus, we keep the legacy behavior untouched.
                 iter = m_commonContextFields.find(COMMONFIELDS_OS_BUILD);
                 if (iter != m_commonContextFields.end())
                 {
                     //EventProperty prop = (*m_commonContextFieldsP)[COMMONFIELDS_OS_VERSION];
                     record.extOs[0].ver = iter->second.as_string;
                 }
+#endif
 
                 iter = m_commonContextFields.find(COMMONFIELDS_USER_ID);
                 if (iter != m_commonContextFields.end())
@@ -433,6 +550,19 @@ namespace MAT_NS_BEGIN
     void ContextFieldsProvider::SetCommonField(const std::string& name, const EventProperty& value)
     {
         LOCKGUARD(m_lock);
+        // Any common field that starts with "ext." prefix and exists in kCommonSchemaToCommonFieldsMap
+        // is considered to be a Part A extension property. Code below allows to remap from JSON CS
+        // notation to CommonFields, e.g. (AppInfo.*, DeviceInfo.*, etc.) notation.
+        if (name.rfind("ext.", 0)==0)
+        {
+            const auto it = kCommonSchemaToCommonFieldsMap.find(name);
+            if (it != kCommonSchemaToCommonFieldsMap.end())
+            {
+                // Rename the key from Common Schema dotted notation to COMMONFIELDS_* alias
+                m_commonContextFields[it->second] = value;
+                return;
+            }
+        }
         m_commonContextFields[name] = value;
     }
 
@@ -449,6 +579,20 @@ namespace MAT_NS_BEGIN
         {
             m_ticketsMap[type] = ticketValue;
         }
+    }
+
+    void ContextFieldsProvider::ClearParentContext()
+    {
+        // This method allows to disassociate from parent LogManager context due to isolation
+        // reasons. For example, when Guest attaches to Host LogManager, it could be configured
+        // to avoid capturing common context properties. Logger context on creation by default
+        // acquires the properties populated by its LogManager. Guest Logger context should be
+        // wiped clean if Guest scope has been set to none ("-").
+        m_parent = nullptr;
+        m_commonContextFields.clear();
+        m_customContextFields.clear();
+        m_commonContextEventToConfigIds.clear();
+        PAL::registerSemanticContext(this);
     }
 
     void ContextFieldsProvider::SetParentContext(ContextFieldsProvider* parent)

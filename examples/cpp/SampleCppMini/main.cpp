@@ -31,7 +31,7 @@ void test_cpp_api(const char * token, int ticketType, const char *ticket)
 
     if (ticket != nullptr)
     {
-        const char *ticketNames[7] =
+        const char *ticketNames[8] =
         {
             "TicketType_MSA_Device",
             "TicketType_MSA_User",
@@ -40,7 +40,7 @@ void test_cpp_api(const char * token, int ticketType, const char *ticket)
             "TicketType_AAD",
             "TicketType_AAD_User",
             "TicketType_AAD_JWT",
-            "TicketType_AAD_Device",
+            "TicketType_AAD_Device"
         };
         printf("\nSet ticket %s=%s\n", ticketNames[ticketType], ticket);
         auto tc = LogManager::GetAuthTokensController();

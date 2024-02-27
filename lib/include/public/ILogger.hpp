@@ -46,21 +46,22 @@ Event tags that can be assigned to influence how the telemetry client handles ev
 Some tags require formal approval before they can be used.
 Refer to https://osgwiki.com/wiki/Common_Schema_Event_Overrides for details on the requirements and how to start the approval process.
 */
-
+                                                                // CsFlags value
 #define MICROSOFT_EVENTTAG_COSTDEFERRED_LATENCY 0x00040000
 
 #define MICROSOFT_EVENTTAG_CORE_DATA            0x00080000
 #define MICROSOFT_EVENTTAG_INJECT_XTOKEN        0x00100000
 
-#define MICROSOFT_EVENTTAG_REALTIME_LATENCY     0x00200000
-#define MICROSOFT_EVENTTAG_NORMAL_LATENCY       0x00400000
+#define MICROSOFT_EVENTTAG_REALTIME_LATENCY     0x00200000      // EventLatencyRealTime     = 0x0200L
+#define MICROSOFT_EVENTTAG_NORMAL_LATENCY       0x00400000      // EventLatencyNormal       = 0x0100L
 
-#define MICROSOFT_EVENTTAG_CRITICAL_PERSISTENCE 0x00800000
-#define MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE   0x01000000
+#define MICROSOFT_EVENTTAG_CRITICAL_PERSISTENCE 0x00800000      // EventPersistenceCritical = 0x02L
+#define MICROSOFT_EVENTTAG_NORMAL_PERSISTENCE   0x01000000      // EventPersistenceNormal   = 0x01L
 
-#define MICROSOFT_EVENTTAG_DROP_PII             0x02000000
-#define MICROSOFT_EVENTTAG_HASH_PII             0x04000000
-#define MICROSOFT_EVENTTAG_MARK_PII             0x08000000
+#define MICROSOFT_EVENTTAG_DROP_PII             0x02000000      // DropIdentifiers          = 0x200000L
+#define MICROSOFT_EVENTTAG_HASH_PII             0x04000000      // HashIdentifiers          = 0x100000L
+#define MICROSOFT_EVENTTAG_MARK_PII             0x08000000      // IsPII                    = 0x080000L
+#define MICROSOFT_EVENTTAG_SCRUB_IP             0x10000000      // ScrubIpIdentifiers       = 0x400000L
 
 /// <summary>
 /// The PageActionData structure represents the data of a page action event.

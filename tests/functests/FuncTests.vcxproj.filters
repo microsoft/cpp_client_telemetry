@@ -11,6 +11,7 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="APITest.cpp" />
+    <ClCompile Include="HostGuestTests.cpp" />
     <ClCompile Include="BondDecoderTests.cpp" />
     <ClCompile Include="EventDecoderListener.cpp" />
     <ClCompile Include="LogSessionDataFuncTests.cpp" />
@@ -22,7 +23,7 @@
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\functests\DefaultDataViewerFuncTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\functests\PrivacyGuardFuncTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\liveeventinspector\tests\functests\LiveEventInspectorFuncTests.cpp" />
-    <ClCompile Include="..\..\lib\modules\signals\tests\functests\SignalsFuncTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\functests\SignalsFuncTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">

@@ -230,7 +230,8 @@ namespace MAT_NS_BEGIN
             // Since common props would typically be populated by the root-level
             // LogManager instance and we are detaching from that one, we need
             // to populate this context with common props directly.
-            PAL::registerSemanticContext(&m_context);
+            m_context.ClearParentContext();
+            return;
         }
         m_context.SetParentContext(static_cast<ContextFieldsProvider*>(context));
     }

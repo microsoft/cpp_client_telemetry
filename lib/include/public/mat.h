@@ -9,7 +9,13 @@
  * For version handshake check there is no mandatory requirement to update the $PATCH level.
  * Ref. https://semver.org/ for Semantic Versioning documentation.
  */
-#define TELEMETRY_EVENTS_VERSION	"3.1.0"
+#ifdef HAVE_MAT_ABI_V3_1_0
+/* Allow to fallback to same C ABI interface as in old releases */
+#define TELEMETRY_EVENTS_VERSION "3.1.0"
+#else
+/* More modern "cross-arch" ABI interface with fixed padding.   */
+#define TELEMETRY_EVENTS_VERSION "3.7.0"
+#endif
 
 #include "ctmacros.hpp"
 
@@ -60,7 +66,18 @@ extern "C" {
         EVT_OP_VERSION = 0x0000000B,
         EVT_OP_OPEN_WITH_PARAMS = 0x0000000C,
         EVT_OP_FLUSHANDTEARDOWN = 0x0000000D,
-        EVT_OP_MAX = EVT_OP_FLUSHANDTEARDOWN + 1,
+        /**
+         * Context operations allow to set ILogger or ILogManager semantic context values.
+         * In addition to custom Part C context values, Common Schema attributes, e.g. `ext.device.id`
+         * or `ext.app.name` - Part A values are respected and applied using corresponding
+         * ISemanticContext API call. This approach allows to express most Common Schema
+         * event fields to C API for extensions, SDK-in-SDK, and higher-level programming
+         * languages such as Unity C# and .NET Standard.
+         */
+        EVT_OP_SET_LOGGER_CONTEXT = 0x0000000E,
+        EVT_OP_SET_LOGMANAGER_CONTEXT = 0x0000000F,
+        EVT_OP_MAX = EVT_OP_SET_LOGMANAGER_CONTEXT + 1,
+        EVT_OP_MAXINT = 0xFFFFFFFF
     } evt_call_t;
 
     typedef enum evt_prop_t
@@ -80,11 +97,13 @@ extern "C" {
         TYPE_BOOL_ARRAY,
         TYPE_GUID_ARRAY,
         /* NULL-type */
-        TYPE_NULL
+        TYPE_NULL,
+        TYPE_MAXINT = 0xFFFFFFFF
     } evt_prop_t;
 
-    typedef struct evt_guid_t
+    typedef struct MATSDK_PACKED_STRUCT evt_guid_t
     {
+MATSDK_PACK_PUSH
         /**
          * <summary>
          * Specifies the first eight hexadecimal digits of the GUID.
@@ -112,19 +131,22 @@ extern "C" {
          * </summary>
          */
         uint8_t  Data4[8];
+MATSDK_PACK_POP
     } evt_guid_t;
 
     typedef int64_t  evt_handle_t;
     typedef int32_t  evt_status_t;
     typedef struct   evt_event evt_event;
 
-    typedef struct evt_context_t
+    typedef struct MATSDK_PACKED_STRUCT evt_context_t
     {
+MATSDK_PACK_PUSH
         evt_call_t      call;       /* In       */
         evt_handle_t    handle;     /* In / Out */
-        void*           data;       /* In / Out */
+        MATSDK_ALIGN64(void* data);
         evt_status_t    result;     /* Out      */
         uint32_t        size;       /* In / Out */
+MATSDK_PACK_POP
     } evt_context_t;
 
     /**
@@ -184,12 +206,14 @@ extern "C" {
         uint64_t**          as_arr_time;
     } evt_prop_v;
 
-    typedef struct evt_prop
+    typedef struct MATSDK_PACKED_STRUCT evt_prop
     {
-        const char*             name;
+MATSDK_PACK_PUSH
+        MATSDK_ALIGN64(const char* name);
         evt_prop_t              type;
         evt_prop_v              value;
         uint32_t                piiKind;
+MATSDK_PACK_POP
     } evt_prop;
     
     /**
@@ -484,6 +508,53 @@ extern "C" {
     
     /** 
      * <summary>
+     * Sends a collection of telemetry event properties (security-enhanced _s function).
+     * This is internal API used by other functions:
+     * - evt_log_s                    - calls ILogger->LogEvent(props)
+     * - evt_set_logger_context_s     - sets ILogger semantic context values
+     * - evt_set_logmanager_context_s - sets ILogManager semantic context values
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="op">Code of event properties operation.</param>
+     * <param name="size">Number of event properties in array.</param>
+     * <param name="evt">Event properties array.</param>
+     * <returns></returns>
+     */
+    static inline evt_status_t evt_sendprops_s(evt_handle_t handle, evt_call_t op, uint32_t size, evt_prop* evt)
+    {
+        evt_context_t ctx;
+        ctx.call = op;
+        ctx.handle = handle;
+        ctx.data = (void *)evt;
+        ctx.size = size;
+        return evt_api_call(&ctx);
+    }
+
+    /**
+     * <summary>
+     * Sends a collection of telemetry event properties.
+     * This is internal function used by other functions:
+     * - evt_log                      - calls ILogger->LogEvent(props)
+     * - evt_set_logger_context       - sets ILogger semantic context values
+     * - evt_set_logmanager_context   - sets ILogManager semantic context values
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="op">Code of event properties operation.</param>
+     * <param name="evt">Event properties array.</param>
+     * <returns></returns>
+     */
+    static inline evt_status_t evt_sendprops(evt_handle_t handle, evt_call_t op, evt_prop* evt)
+    {
+        evt_context_t ctx;
+        ctx.call = op;
+        ctx.handle = handle;
+        ctx.data = (void *)evt;
+        ctx.size = 0;
+        return evt_api_call(&ctx);
+    }
+
+    /**
+     * <summary>
      * Logs a telemetry event (security-enhanced _s function)
      * </summary>
      * <param name="handle">SDK handle.</param>
@@ -493,12 +564,7 @@ extern "C" {
      */
     static inline evt_status_t evt_log_s(evt_handle_t handle, uint32_t size, evt_prop* evt)
     {
-        evt_context_t ctx;
-        ctx.call = EVT_OP_LOG;
-        ctx.handle = handle;
-        ctx.data = (void *)evt;
-        ctx.size = size;
-        return evt_api_call(&ctx);
+        return evt_sendprops_s(handle, EVT_OP_LOG, size, evt);
     }
 
     /**
@@ -507,18 +573,70 @@ extern "C" {
      * Last item in evt_prop array must be { .name = NULL, .type = TYPE_NULL }
      * </summary>
      * <param name="handle">SDK handle.</param>
-     * <param name="size">Number of event properties in array.</param>
      * <param name="evt">Event properties array.</param>
      * <returns></returns>
      */
     static inline evt_status_t evt_log(evt_handle_t handle, evt_prop* evt)
     {
-        evt_context_t ctx;
-        ctx.call = EVT_OP_LOG;
-        ctx.handle = handle;
-        ctx.data = (void *)evt;
-        ctx.size = 0;
-        return evt_api_call(&ctx);
+        return evt_sendprops(handle, EVT_OP_LOG, evt);
+    }
+
+    /**
+     * <summary>
+     * Sets ILogger semantic context using a collection of properties (security-enhanced _s function)
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="size">Number of event properties in array.</param>
+     * <param name="evt">Event properties array.</param>
+     * <returns></returns>
+     */
+    static inline evt_status_t evt_set_logger_context_s(evt_handle_t handle, uint32_t size, evt_prop* evt)
+    {
+        return evt_sendprops_s(handle, EVT_OP_SET_LOGGER_CONTEXT, size, evt);
+    }
+
+    /**
+     * <summary>
+     * Sets ILogger semantic context using a collection of properties.
+     * Last item in evt_prop array must be { .name = NULL, .type = TYPE_NULL }
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="size">Number of event properties in array.</param>
+     * <param name="evt">Event properties array.</param>
+     * <returns></returns>
+     */
+    static inline evt_status_t evt_set_logger_context(evt_handle_t handle, evt_prop* evt)
+    {
+        return evt_sendprops(handle, EVT_OP_SET_LOGGER_CONTEXT, evt);
+    }
+
+    /**
+     * <summary>
+     * Sets ILogManager semantic context using a collection of properties (security-enhanced _s function)
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="size">Number of event properties in array.</param>
+     * <param name="evt">Event properties array.</param>
+     * <returns></returns>
+     */
+    static inline evt_status_t evt_set_logmanager_context_s(evt_handle_t handle, uint32_t size, evt_prop* evt)
+    {
+        return evt_sendprops_s(handle, EVT_OP_SET_LOGMANAGER_CONTEXT, size, evt);
+    }
+
+    /**
+     * <summary>
+     * Sets ILogManager semantic context using a collection of properties.
+     * Last item in evt_prop array must be { .name = NULL, .type = TYPE_NULL }
+     * </summary>
+     * <param name="handle">SDK handle.</param>
+     * <param name="size">Number of event properties in array.</param>
+     * <param name="evt">Event properties array.</param>
+     * <returns></returns>
+     */
+    static inline evt_status_t evt_set_logmanager_context(evt_handle_t handle, evt_prop* evt)
+    {
+        return evt_sendprops(handle, EVT_OP_SET_LOGMANAGER_CONTEXT, evt);
     }
 
     /* This macro automagically calculates the array size and passes it down to evt_log_s.

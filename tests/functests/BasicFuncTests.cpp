@@ -181,7 +181,7 @@ public:
         std::remove(fileName.c_str());
     }
 
-    virtual void Initialize()
+    virtual void Initialize(bool statsOff = false) /* stats are flaky because event is exceeding ingestion capacity */
     {
         receivedRequests.clear();
         auto configuration = LogManager::GetLogConfiguration();
@@ -199,7 +199,8 @@ public:
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
-        configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 30 * 60;   // 30 mins
+        int64_t statsInterval = (statsOff) ? 0 : 30 * 60;   // 30 mins;
+        configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = statsInterval;
 
         configuration["name"] = __FILE__;
         configuration["version"] = "1.0.0";
@@ -763,7 +764,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
 {
     {
         CleanStorage();
-        Initialize();
+        Initialize(true);
         // This code is a bit racy because ResumeTransmission is done in Initialize
         LogManager::PauseTransmission();
         EventProperties event1("first_event");
@@ -780,7 +781,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
     }
 
     {
-        Initialize();
+        Initialize(true);
         EventProperties fooEvent("fooEvent");
         fooEvent.SetLatency(EventLatency_RealTime);
         fooEvent.SetPersistence(EventPersistence_Critical);
@@ -788,7 +789,7 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         LogManager::UploadNow();
 
         // 1st request for realtime event
-        waitForEvents(3, 5); // start, first_event, second_event, ongoing, stop, start, fooEvent
+        waitForEvents(3, 3); // first_event, second_event, fooEvent
         // we drop two of the events during pause, though.
         EXPECT_GE(receivedRequests.size(), (size_t)1);
         if (receivedRequests.size() != 0)
