@@ -130,9 +130,9 @@ namespace MAT_NS_BEGIN
         /// <summary>A legacy IPV4 Internet address.</summary>
         PiiKind_IPv4AddressLegacy = 13,
         /// <summary>A legacy IPV6 Internet address.</summary>
-        IPv6ScrubLastHextets = 14,
+        PiiKind_IPv6ScrubLastHextets = 14,
         /// <summary>Drop the value.</summary>
-        DropValue = 15,
+        PiiKind_DropValue = 15,
 
         CustomerContentKind_GenericData = 32
     };
