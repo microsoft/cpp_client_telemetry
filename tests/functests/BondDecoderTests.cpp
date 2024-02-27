@@ -78,30 +78,35 @@ void SendEvents(ILogger* pLogger, uint8_t eventCount, std::chrono::milliseconds 
 
 TEST(BondDecoderTests, BasicTest)
 {
-    EventDecoderListener eventDecoderListener;
+    // Set config settings
+    ILogConfiguration config;
+    Configure(config);
+    auto logManager = LogManagerProvider::CreateLogManager(config);
+    EventDecoderListener eventDecoderListener { *logManager };
+
     // Register listeners for HTTP OK and ERROR
     const auto dbgEvents = { EVT_HTTP_OK, EVT_HTTP_ERROR };
     for (const auto& dbgEvt : dbgEvents)
     {
-        LogManager::AddEventListener(dbgEvt, eventDecoderListener);
+        logManager->AddEventListener(dbgEvt, eventDecoderListener);
     }
 
     // Set config settings
     Configure(LogManager::GetLogConfiguration());
 
     // Obtains default primary logger
-    auto pLogger = LogManager::Initialize(TOKEN);
+    auto pLogger = logManager->GetLogger(TOKEN);
 
     // Send 10 events with 50ms delay
     SendEvents(pLogger, 10, std::chrono::milliseconds(50));
 
     // Trigger upload on shutdown
-    LogManager::FlushAndTeardown();
+    logManager->FlushAndTeardown();
 
     // Unregister listeners
     for (const auto& dbgEvt : dbgEvents)
     {
-        LogManager::RemoveEventListener(dbgEvt, eventDecoderListener);
+        logManager->RemoveEventListener(dbgEvt, eventDecoderListener);
     }
 }
 
