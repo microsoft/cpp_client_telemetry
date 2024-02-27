@@ -5,6 +5,41 @@ set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation direc
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
 
+function(install_windows_deps)
+  # Bootstrap vcpkg from CMake and auto-install deps in case if we are missing
+  # deps on Windows. Respect the target architecture variable.
+  set(VCPKG_TARGET_ARCHITECTURE
+      ${ARCH}
+      PARENT_SCOPE)
+  message("Installing build tools and dependencies...")
+  set(ENV{ARCH} ${ARCH})
+  execute_process(
+    COMMAND ${CMAKE_SOURCE_DIR}/tools/setup-buildtools.cmd)
+  set(CMAKE_TOOLCHAIN_FILE
+      ${CMAKE_SOURCE_DIR}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake
+      PARENT_SCOPE)
+endfunction()
+
+# Autodetect vcpkg toolchain
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  set(CMAKE_TOOLCHAIN_FILE
+      "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      CACHE STRING "")
+endif()
+
+if(VCPKG_CHAINLOAD_TOOLCHAIN_FILE)
+  include("${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
+endif()
+
+option(INSTALL_WIN32_DEPEDENCIES "Whether to install Windows dependencies using vcpkg" OFF)
+if (DEFINED CMAKE_TOOLCHAIN_FILE AND WIN32)
+  find_package(GTest)
+  if (INSTALL_WIN32_DEPEDENCIES AND NOT (GTEST_FOUND OR GTest_FOUND))
+    install_windows_deps()
+  endif()
+  find_package(GTest REQUIRED)
+endif()
+
 # Begin Uncomment for i386 build
 #set(CMAKE_SYSTEM_PROCESSOR i386)
 #set(CMAKE_C_FLAGS -m32)
@@ -268,13 +303,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
 endif()
 
-if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
-    message("Adding gtest")
-    add_library(gtest STATIC IMPORTED GLOBAL)
-    message("Adding gmock")
-    add_library(gmock STATIC IMPORTED GLOBAL)
-endif()
-
 if(BUILD_APPLE_HTTP)
   add_definitions(-DAPPLE_HTTP=1)
 endif()
@@ -309,7 +337,7 @@ endif()
 # Packaging
 ################################################################################################
 
-if (BUILD_PACKAGE)
+if (BUILD_PACKAGE AND (NOT WIN32))
   if (${CMAKE_PACKAGE_TYPE} STREQUAL "deb")
     # FIXME: hardcode it for 64-bit Linux for now
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
