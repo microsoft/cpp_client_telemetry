@@ -170,10 +170,6 @@ namespace PAL_NS_BEGIN {
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4996)
-#endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
 #if defined(ANDROID) && !defined(ANDROID_SUPPRESS_LOGCAT)
@@ -287,9 +283,6 @@ namespace PAL_NS_BEGIN {
             (void)(fmt);
 #endif /* of #ifdef HAVE_MAT_LOGGING */
         }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     } // namespace detail
 
@@ -304,17 +297,11 @@ namespace PAL_NS_BEGIN {
         return m_taskDispatcher;
     }
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:6031)
-#endif
     std::string PlatformAbstractionLayer::generateUuidString() const
     {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
-        auto hr = CoCreateGuid(&uuid);
-        /* CoCreateGuid` will possiblity never fail, so ignoring the result */
-        UNREFERENCED_PARAMETER(hr);
+        (void) CoCreateGuid(&uuid);
         return MAT::to_string(uuid);
 #elif defined(__APPLE__)
         auto uuid {CFUUIDCreate(kCFAllocatorDefault)};
@@ -367,9 +354,6 @@ namespace PAL_NS_BEGIN {
         return buf;
 #endif
     }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     int64_t PlatformAbstractionLayer::getUtcSystemTimeMs() const
     {

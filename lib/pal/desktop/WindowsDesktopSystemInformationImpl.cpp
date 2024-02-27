@@ -6,8 +6,6 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #endif
 
-#pragma warning( disable : 4996 )
-
 // Windows 7.1 SDK module:
 #pragma comment (lib, "Version.Lib")
 

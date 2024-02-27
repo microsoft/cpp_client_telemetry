@@ -9,6 +9,7 @@
 #include "ILogManager.hpp"
 #include "SQLiteWrapper.hpp"
 #include "utils/StringUtils.hpp"
+#include "mat/CompilerWarnings.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>
@@ -765,16 +766,8 @@ namespace MAT_NS_BEGIN {
             if (!stmt.select() || !stmt.getRow(m_pageSize)) { return false; }
         }
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable:4296) // expression always false.
-#elif defined( __clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtype-limits" // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"  // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
-#endif
+MAT_PUSH_WARNINGS
+MAT_DISABLE_WARNING_EXPRESSION_IS_ALWAYS_FALSE // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
 
 #define PREPARE_SQL(var_, stmt_) \
     if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
@@ -863,13 +856,7 @@ namespace MAT_NS_BEGIN {
 
 #undef PREPARE_SQL
 
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#elif defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+MAT_POP_WARNINGS
 
         ResizeDb();
         return true;

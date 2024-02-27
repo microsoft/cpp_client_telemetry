@@ -2,23 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
-
-#pragma once
+#ifndef MOCKIECSCLIENT_HPP
+#define MOCKIECSCLIENT_HPP
 #include <ecsClientInterface.hpp>
+#include "mat/CompilerWarnings.hpp"
 
 namespace testing {
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"  // GMock MOCK_METHOD* macros don't use override.
-#endif
-
-#ifdef _MSC_VER
-// Avoid noise caused by ECS using const modifier on value-type arguments like int, bool and double.
-// The modifiers are lost inside Google Mock, the resulting signature differs and compiler complains.
-#pragma warning(push)
-#pragma warning(disable:4373) // C4373: previous versions of the compiler did not override when parameters only differed by const/volatile qualifiers
-#endif
+MAT_PUSH_WARNINGS
+MAT_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE // GMock MOCK_METHOD* macros don't use override.
 
 class MockIEcsConfig : public ecsclient::IEcsConfig,
                        public virtual auf::Object
@@ -27,6 +19,10 @@ class MockIEcsConfig : public ecsclient::IEcsConfig,
     MockIEcsConfig();
     virtual ~MockIEcsConfig();
 
+// Avoid noise caused by ECS using const modifier on value-type arguments like int, bool and double.
+// The modifiers are lost inside Google Mock, the resulting signature differs and compiler complains.
+MAT_PUSH_WARNINGS
+MAT_DISABLE_WARNING_CONST_PARAMETER_NOT_OVERRIDDEN // C4373: previous versions of the compiler did not override when parameters only differed by const/volatile qualifiers
     MOCK_CONST_METHOD3(GetSetting, std::string(std::string const & t, std::string const &, std::string const &));
     MOCK_CONST_METHOD3(GetSettingAsString, std::string(std::string const &, std::string const &, std::string const &));
     MOCK_CONST_METHOD3(GetSettingAsInt, int(std::string const &, std::string const &, int const defaultValue));
@@ -38,12 +34,8 @@ class MockIEcsConfig : public ecsclient::IEcsConfig,
     MOCK_CONST_METHOD2(GetKeys, std::vector<std::string>(std::string const &, std::string const &));
     MOCK_CONST_METHOD0(GetAgents, std::vector<std::string>());
     MOCK_CONST_METHOD0(GetETag, std::string());
+MAT_POP_WARNINGS
 };
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 
 class MockIEcsClient : public ecsclient::IEcsClient {
   public:
@@ -67,9 +59,8 @@ class MockIEcsClient : public ecsclient::IEcsClient {
     MOCK_METHOD0(ResumeSendingRequests, void());
 };
 
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
+MAT_POP_WARNINGS
 
 } // namespace testing
 
+#endif // #ifndef MOCKIECSCLIENT_HPP

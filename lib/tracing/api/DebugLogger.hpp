@@ -4,6 +4,7 @@
 //
 #ifndef DEBUGLOGGER_HPP
 #define DEBUGLOGGER_HPP
+#include "mat/CompilerWarnings.hpp"
 /// <summary>
 /// C++11 implementation of a cross-platform debug logging facility.
 /// </summary>
@@ -602,8 +603,8 @@ public:
                 auto now = std::chrono::system_clock::now();
                 int64_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
                 auto in_time_t = std::chrono::system_clock::to_time_t(now);
-#pragma warning(push)
-#pragma warning(disable: 4996)
+MAT_PUSH_WARNINGS
+MAT_DISABLE_WARNING_DEPRECATED_METHOD_CALL
                 // FIXME: this has been the case for all v1 builds and v2 Linux, but we should improve this because
                 // the static structure returned by localtime function may change its contents if another thread
                 // invokes localtime. Generally that is not an issue, as time won't change that fast, but it may
@@ -611,7 +612,7 @@ public:
                 //
                 // warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead
                 ss << std::put_time(localtime(&in_time_t), "%Y-%m-%d %X");
-#pragma warning(pop)
+MAT_POP_WARNINGS
                 ss << "." << std::setfill('0') << std::setw(3) << (unsigned)(millis % 1000);
                 ss << "|";
             }
