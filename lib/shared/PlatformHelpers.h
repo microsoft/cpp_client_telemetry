@@ -180,10 +180,17 @@ namespace Microsoft {
                     {
                         return std::string();
                     }
-                    using convert_type = std::codecvt_utf8<wchar_t>;
-                    std::wstring_convert<convert_type, wchar_t> converter;
-                    std::string result = converter.to_bytes(wstr);
-                    return result;
+
+                    // just get the length of the result string
+                    const wchar_t* inWStr = wstr.c_str();
+                    int wstrSize = static_cast<int>(wstr.size());
+                    int size = WideCharToMultiByte(CP_UTF8, 0, inWStr, wstrSize, nullptr, 0, nullptr, nullptr);
+                    
+                    // allocate and do the actual copy to the result string.
+                    std::string str(size, 0);
+                    WideCharToMultiByte(CP_UTF8, 0, inWStr, wstrSize, &str[0], size, nullptr, nullptr);
+
+                    return str;
                 }
 
                 // Convert an UTF8 string to a wide Unicode String
