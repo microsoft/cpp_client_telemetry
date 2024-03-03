@@ -15,6 +15,7 @@ public class PrivacyGuard {
             boolean UseEventFieldPrefix,
             boolean ScanForUrls,
             boolean DisableAdvancedScans,
+            boolean StampEventIKeyForConcerns,
             String domainName,
             String machineName,
             Object[] userNames,
@@ -31,7 +32,8 @@ public class PrivacyGuard {
             String SummaryEventName,
             boolean UseEventFieldPrefix,
             boolean ScanForUrls,
-            boolean DisableAdvancedScans
+            boolean DisableAdvancedScans,
+            boolean StampEventIKeyForConcerns
             );
 
     /**
@@ -61,6 +63,7 @@ public class PrivacyGuard {
                     initConfig.UseEventFieldPrefix,
                     initConfig.ScanForUrls,
                     initConfig.DisableAdvancedScans,
+                    initConfig.StampEventIKeyForConcerns,
                     initConfig.DataContext.domainName,
                     initConfig.DataContext.machineName,
                     initConfig.DataContext.userNames.toArray(),
@@ -78,7 +81,8 @@ public class PrivacyGuard {
                     initConfig.SummaryEventName,
                     initConfig.UseEventFieldPrefix,
                     initConfig.ScanForUrls,
-                    initConfig.DisableAdvancedScans
+                    initConfig.DisableAdvancedScans,
+                    initConfig.StampEventIKeyForConcerns
             );
         }
     }

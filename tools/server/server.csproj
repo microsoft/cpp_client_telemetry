@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
+	<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+	<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
 
@@ -16,9 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bond.Compiler" Version="9.0.4" />
-    <PackageReference Include="Bond.Core.CSharp" Version="9.0.3" />
-    <PackageReference Include="Bond.Runtime.CSharp" Version="9.0.3" />
+    <PackageReference Include="Bond.Compiler" Version="10.0.0" />
+    <PackageReference Include="Bond.Core.CSharp" Version="10.0.0" />
+    <PackageReference Include="Bond.Runtime.CSharp" Version="10.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 

@@ -22,32 +22,32 @@ namespace MAT_NS_BEGIN
     class IHttpClient;
 
     /// Default collector url to send events to
-    static constexpr const char* COLLECTOR_URL_PROD = "https://self.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_PROD = "https://mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the United States collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_UNITED_STATES = "https://noam.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_UNITED_STATES = "https://us-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the German collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_GERMANY = "https://emea.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_GERMANY = "https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the Australian collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_AUSTRALIA = "https://apac.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_AUSTRALIA = "https://au-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the Japanese collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_JAPAN = "https://apac.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_JAPAN = "https://jp-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The URI of the European collector.
     /// </summary>
-    static constexpr const char* COLLECTOR_URL_EUROPE = "https://emea.events.data.microsoft.com/OneCollector/1.0/";
+    static constexpr const char* COLLECTOR_URL_EUROPE = "https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/";
 
     /// <summary>
     /// The real-time transmit profile.
@@ -143,6 +143,11 @@ namespace MAT_NS_BEGIN
     /// The size of the RAM queue buffers, in bytes.
     /// </summary>
     static constexpr const char* const CFG_INT_RAM_QUEUE_BUFFERS = "maxDBFlushQueues";
+
+    /// <summary>
+    /// SQLite DB will be checkpointed when flushing.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_CHECKPOINT_DB_ON_FLUSH = "checkpointDBOnFlush";
 
     /// <summary>
     /// The trace level mask.

@@ -29,9 +29,9 @@ namespace MAT_NS_BEGIN
 
     public:
 
-        CAPIClient(evt_handle_t lib = 0) :
+        CAPIClient(evt_handle_t lib_ = 0) :
             handle(0),
-            lib(lib)
+            lib(lib_)
         {
             if (lib != 0)
                 evt_load(lib);
@@ -72,6 +72,11 @@ namespace MAT_NS_BEGIN
         evt_status_t upload()
         {
             return evt_upload(handle);
+        }
+
+        evt_status_t flushAndTeardown()
+        {
+            return evt_flushAndTeardown(handle);
         }
 
         evt_status_t flush()

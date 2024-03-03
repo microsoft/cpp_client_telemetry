@@ -86,6 +86,13 @@ public class LogManagerProvider {
       return Status.getEnum(nativeResumeTransmission(nativeLogManager));
     }
 
+    protected native int nativeSetIntTicketToken(long nativeLogManager, int type, final String tokenValue);
+
+    @Override
+    public Status setTicketToken(TicketType type, final String tokenValue) {
+      return Status.getEnum(nativeSetIntTicketToken(nativeLogManager, type.getValue(), tokenValue));
+    }
+    
     protected native int nativeSetTransmitProfileTP(long nativeLogManager, int profile);
 
     @Override
@@ -293,7 +300,19 @@ public class LogManagerProvider {
     public boolean unregisterPrivacyGuard() {
       return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuard(nativeLogManager);
     }
-    
+
+    private native boolean nativeRegisterSignals(long nativeLogManager);
+    @Override
+    public boolean registerSignals() {
+      return Signals.isInitialized() && nativeRegisterSignals(nativeLogManager);
+    }
+
+    private native boolean nativeUnregisterSignals(long nativeLogManager);
+    @Override
+    public boolean unregisterSignals() {
+      return Signals.isInitialized() && nativeUnregisterSignals(nativeLogManager);
+    }
+
     protected native void nativePauseActivity(long nativeLogManager);
     protected native void nativeResumeActivity(long nativeLogManager);
     protected native void nativeWaitPause(long nativeLogManager);

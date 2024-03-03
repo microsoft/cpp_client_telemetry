@@ -44,6 +44,11 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property(readwrite, nonatomic) BOOL disableAdvancedScans;
 
+/*!
+ @brief (OPTIONAL) Should stamp the iKey for the scanned event as an additional property on Concerns.
+ */
+@property(readwrite, nonatomic) BOOL stampEventIKeyForConcerns;
+
 @end
 NS_ASSUME_NONNULL_END
 
