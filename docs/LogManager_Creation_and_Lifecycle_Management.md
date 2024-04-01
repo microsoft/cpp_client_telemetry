@@ -16,8 +16,7 @@ In applications where loggers are used across multiple threads, it's possible th
 
 #### Ensuring Thread Safety During Shutdown:
 
-Below are few of the recommendations to manage the logger lifecycle during shutdown, actual solution can depend on factors like underlying platform, the overall application design, and the specific language bindings used in conjunction with this C++ SDK. Also refer section [How to Not Crash on Shutdown in case of static `LogManager` instance
-](#-How-to-Not-Crash-on-Shutdown-in-case-of-static-LogManager-instance) for shutdown sequence to follow in main thread.
+Below are few of the recommendations to manage the logger lifecycle during shutdown, actual solution can depend on factors like underlying platform, the overall application design, and the specific language bindings used in conjunction with this C++ SDK. Also refer this [section](./use-after-free.md#how-to-not-crash-on-shutdown-in-case-of-static-logmanager-instance) for the shutdown sequence to follow in main thread.
 
 - **Join or Cleanup Threads**: Before calling `FlushAndTeardown`, ensure that all threads that might be logging events are either joined (i.e., their execution is complete) or properly cleaned up. This means ensuring that no further logging calls can be made from these threads.
 
@@ -57,6 +56,8 @@ ILogConfiguration config = {/* Configuration parameters */};
 status_t status;
 ILogManager* logManager = LogManagerProvider::CreateLogManager(id, wantController, config, status);
 ```
+
+Refer [LoggingManagerProvider](./LogManagerProvider.md)
 
 ### Managing ILogManager Instances
 
