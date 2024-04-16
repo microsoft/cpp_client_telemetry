@@ -166,10 +166,6 @@ namespace PAL_NS_BEGIN {
 #define     gettid()       std::this_thread::get_id()
 #endif
 
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
