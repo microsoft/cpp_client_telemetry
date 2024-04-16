@@ -73,7 +73,7 @@ When creating a ILogManager instance, the provided configuration is used through
 
 # Choosing the Right Approach
 
-1. For simplistic, non-threaded applications where logging requirements are uniform and straightforward, employing the `LOGMANAGER_INSTANCE` pattern `MAY` be an optimal choice.
-2. `LogManagerProvider` provides explicit control and disposal of ILogManager instances, along with it's configuration. This explicit control means that developers can deterministically manage the lifecycle of logging instances, ensuring that resources are appropriately allocated and released at the correct times in the application's lifecycle.
+1. `LogManagerProvider` provides explicit control and disposal of ILogManager instances, along with it's configuration. This explicit control means that developers can deterministically manage the lifecycle of logging instances, ensuring that resources are appropriately allocated and released at the correct times in the application's lifecycle.
+2. Even though employing the `LOGMANAGER_INSTANCE` pattern for simplistic, non-threaded applications `MAY` be an optimal choice, it's use is in general `NOT` recommended, and could be deprecated/removed in future.
 
 For applications beyond simple, single-threaded environments—encompassing most production-level, enterprise, or complex applications—the use of `LogManagerProvider` for creating and managing ILogManager instances is *strongly* recommended.
