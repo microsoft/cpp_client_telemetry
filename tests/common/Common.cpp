@@ -2,10 +2,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include "Common.hpp"
 #include "zlib.h"
 #include "utils/Utils.hpp"
@@ -219,7 +215,6 @@ namespace testing {
 
     	// Prepare current time in UTC (seconds precision)
     	std::time_t t = std::time(nullptr);
-    	std::gmtime(&t);
 
     	/* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
     	EventProperties props(name,
