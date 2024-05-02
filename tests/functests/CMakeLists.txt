@@ -34,7 +34,7 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
         )
-    copy_files(${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json ${CMAKE_BINARY_DIR}/test.json)
+    file(COPY_FILE ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json ${CMAKE_BINARY_DIR}/test.json)
 endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
