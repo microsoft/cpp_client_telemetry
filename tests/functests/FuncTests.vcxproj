@@ -461,4 +461,7 @@
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="CopyJson" AfterTargets="Build" Condition="exists('$(ProjectDir)..\..\lib\modules\exp\tests\functests\test.json')">
+    <Copy SourceFiles="$(ProjectDir)..\..\lib\modules\exp\tests\functests\test.json" DestinationFolder="$(OutDir)" />
+  </Target>
 </Project>
