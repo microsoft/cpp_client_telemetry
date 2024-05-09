@@ -41,20 +41,20 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bond, Version=9.0.3.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Bond.Core.CSharp.9.0.3\lib\net46\Bond.dll</HintPath>
+    <Reference Include="Bond, Version=10.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Bond.Core.CSharp.10.0.0\lib\net46\Bond.dll</HintPath>
     </Reference>
-    <Reference Include="Bond.Attributes, Version=9.0.3.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Bond.Core.CSharp.9.0.3\lib\net46\Bond.Attributes.dll</HintPath>
+    <Reference Include="Bond.Attributes, Version=10.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Bond.Core.CSharp.10.0.0\lib\net46\Bond.Attributes.dll</HintPath>
     </Reference>
-    <Reference Include="Bond.IO, Version=9.0.3.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Bond.Core.CSharp.9.0.3\lib\net46\Bond.IO.dll</HintPath>
+    <Reference Include="Bond.IO, Version=10.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Bond.Core.CSharp.10.0.0\lib\net46\Bond.IO.dll</HintPath>
     </Reference>
-    <Reference Include="Bond.JSON, Version=9.0.3.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Bond.Runtime.CSharp.9.0.3\lib\net45\Bond.JSON.dll</HintPath>
+    <Reference Include="Bond.JSON, Version=10.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Bond.Runtime.CSharp.10.0.0\lib\net45\Bond.JSON.dll</HintPath>
     </Reference>
-    <Reference Include="Bond.Reflection, Version=9.0.3.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Bond.Core.CSharp.9.0.3\lib\net46\Bond.Reflection.dll</HintPath>
+    <Reference Include="Bond.Reflection, Version=10.0.0.100, Culture=neutral, PublicKeyToken=87e9ead25a117286, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Bond.Core.CSharp.10.0.0\lib\net46\Bond.Reflection.dll</HintPath>
     </Reference>
     <Reference Include="Fiddler">
       <HintPath>$(LOCALAPPDATA)\Programs\Fiddler\Fiddler.exe</HintPath>
