@@ -28,7 +28,14 @@ jobs:
       matrix:
         # Override automatic language detection by changing the below list
         # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
-        language: ['cpp', 'javascript', 'python']
+        - language: 'cpp'
+          build-mode: 'autobuild'
+        - language: 'java'
+          build-mode: 'none'
+        - language: 'javascript'
+          build-mode: 'none'
+        - language: 'python'
+          build-mode: 'none'
         # Learn more...
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
