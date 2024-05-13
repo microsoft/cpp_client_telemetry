@@ -58,6 +58,8 @@ jobs:
         PlatformToolset: v142
         VSTOOLS_VERSION: vs2019
       shell: cmd
+      # Run manual build for compiled languages only
+      if: matrix.language == 'cpp' || matrix.language == 'csharp'
       run: build-all.bat
 
     # ℹ️ Command-line programs to run using the OS shell.
@@ -70,6 +72,73 @@ jobs:
     #- run: |
     #   make bootstrap
     #   make release
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+  analyze-java:
+    name: Analyze Java
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['java']
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      continue-on-error: true
+
+    - name: Update submodules
+      run: |
+        git submodule sync
+        git config --global submodule.lib/modules.update none
+        git -c protocol.version=2 submodule update --init --force --depth=1
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+    - name: Remove default github maven configuration
+      run: rm $Env:USERPROFILE\.m2\settings.xml
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+    - name: Install NDK
+      run: |
+        java -version
+        gci env:* | sort-object name
+        new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
+        echo yes | .\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;21.4.7075529" --sdk_root=$Env:ANDROID_SDK_ROOT
+      working-directory: ${{ env.ANDROID_SDK_ROOT }}\cmdline-tools\7.0\bin
+    - name: Chocolatey
+      run: |
+        choco: install --no-progress -y ninja
+    - name: List CMake
+      run: |
+        pwd
+        echo "=================="
+        gci -r -i "CMake*" -Name
+        echo "=================="
+        gci -r -i "gtest-all*" -Name
+        echo "=================="
+        gci third_party/ -Name
+        echo "=================="
+        gci third_party/googletest -Name
+    - name: Gradle Build
+      run: |
+        .\gradlew.bat maesdk:assemble app:assemble
+      working-directory: lib\android_build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
