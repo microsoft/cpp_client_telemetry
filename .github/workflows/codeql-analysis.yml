@@ -94,6 +94,12 @@ jobs:
       uses: actions/checkout@v2
       continue-on-error: true
 
+    - name: Update submodules
+      run: |
+        git submodule sync
+        git config --global submodule.lib/modules.update none
+        git -c protocol.version=2 submodule update --init --force --depth=1
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
