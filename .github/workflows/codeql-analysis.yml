@@ -17,7 +17,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: windows-latest
+    runs-on: windows-2019
     permissions:
       contents: read
       actions: read
@@ -49,8 +49,16 @@ jobs:
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+    # - name: Autobuild
+    #   uses: github/codeql-action/autobuild@v2
+    - name: Build
+      env:
+        SKIP_ARM_BUILD: 1
+        SKIP_ARM64_BUILD: 1
+        PlatformToolset: v142
+        VSTOOLS_VERSION: vs2019
+      shell: cmd
+      run: build-all.bat
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
