@@ -49,17 +49,19 @@ jobs:
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
-    # - name: Autobuild
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+      if: matrix.language == 'cpp'
+     - name: Autobuild
     #   uses: github/codeql-action/autobuild@v2
-    - name: Build
+    - name: Build C#
       env:
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
         PlatformToolset: v142
         VSTOOLS_VERSION: vs2019
       shell: cmd
-      # Run manual build for compiled languages only
-      if: matrix.language == 'cpp' || matrix.language == 'csharp'
+      if: matrix.language == 'csharp'
       run: build-all.bat
 
     # ℹ️ Command-line programs to run using the OS shell.
@@ -86,8 +88,6 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        language: ['java']
     
     steps:
     - name: Checkout
@@ -103,7 +103,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
-        languages: ${{ matrix.language }}
+        languages: ['java']
 
     - name: Setup Java
       uses: actions/setup-java@v3
