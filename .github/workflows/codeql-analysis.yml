@@ -99,9 +99,9 @@ jobs:
         git -c protocol.version=2 submodule update --init --force --depth=1
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
-        languages: ['java']
+        languages: java
 
     - name: Setup Java
       uses: actions/setup-java@v3
@@ -139,4 +139,4 @@ jobs:
       working-directory: lib\android_build
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
