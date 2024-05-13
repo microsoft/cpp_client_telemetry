@@ -327,7 +327,9 @@ namespace CommonSchema
                 }
                 catch (EndOfStreamException)
                 {
+#if NETCOREAPP
                     Logger.LogDebug("End of Binary Stream");
+#endif
                 }
                 catch (Exception ex)
                 {
