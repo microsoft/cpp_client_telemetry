@@ -28,7 +28,7 @@ jobs:
       matrix:
         # Override automatic language detection by changing the below list
         # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
-        language: ['cpp', 'csharp', 'javascript', 'python']
+        language: ['cpp', 'javascript', 'python']
         # Learn more...
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
@@ -49,17 +49,16 @@ jobs:
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
-      if: matrix.language == 'cpp'
-    - name: Build Csharp
+    # - name: Autobuild
+    #   uses: github/codeql-action/autobuild@v3
+    - name: Build
       env:
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
         PlatformToolset: v142
         VSTOOLS_VERSION: vs2019
       shell: cmd
-      if: matrix.language == 'csharp'
+      if: matrix.language == 'cpp'
       run: build-all.bat
 
     # ℹ️ Command-line programs to run using the OS shell.
