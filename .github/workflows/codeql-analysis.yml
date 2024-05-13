@@ -50,11 +50,9 @@ jobs:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
       if: matrix.language == 'cpp'
-     - name: Autobuild
-    #   uses: github/codeql-action/autobuild@v2
-    - name: Build C#
+    - name: Build Csharp
       env:
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
