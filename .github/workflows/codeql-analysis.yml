@@ -17,7 +17,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
+    runs-on: windows-2019
     permissions:
       contents: read
       actions: read
@@ -28,7 +28,7 @@ jobs:
       matrix:
         # Override automatic language detection by changing the below list
         # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
-        language: ['cpp']
+        language: ['cpp', 'javascript', 'python']
         # Learn more...
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
@@ -39,7 +39,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -49,8 +49,17 @@ jobs:
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+    # - name: Autobuild
+    #   uses: github/codeql-action/autobuild@v3
+    - name: Build
+      env:
+        SKIP_ARM_BUILD: 1
+        SKIP_ARM64_BUILD: 1
+        PlatformToolset: v142
+        VSTOOLS_VERSION: vs2019
+      shell: cmd
+      if: matrix.language == 'cpp'
+      run: build-all.bat
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -65,3 +74,68 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
+
+  analyze-java:
+    name: Analyze Java
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      continue-on-error: true
+
+    - name: Update submodules
+      run: |
+        git submodule sync
+        git config --global submodule.lib/modules.update none
+        git -c protocol.version=2 submodule update --init --force --depth=1
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: java
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+    - name: Remove default github maven configuration
+      run: rm $Env:USERPROFILE\.m2\settings.xml
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+    - name: Install NDK
+      run: |
+        java -version
+        gci env:* | sort-object name
+        new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
+        echo yes | .\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;21.4.7075529" --sdk_root=$Env:ANDROID_SDK_ROOT
+      working-directory: ${{ env.ANDROID_SDK_ROOT }}\cmdline-tools\7.0\bin
+    - name: Chocolatey
+      run: |
+        choco install --no-progress -y ninja
+    - name: List CMake
+      run: |
+        pwd
+        echo "=================="
+        gci -r -i "CMake*" -Name
+        echo "=================="
+        gci -r -i "gtest-all*" -Name
+        echo "=================="
+        gci third_party/ -Name
+        echo "=================="
+        gci third_party/googletest -Name
+    - name: Gradle Build
+      run: |
+        .\gradlew.bat maesdk:assemble app:assemble
+      working-directory: lib\android_build
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
