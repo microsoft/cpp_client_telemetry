@@ -1,5 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #define API_KEY   "99999999999999999999999999999999-99999999-9999-9999-9999-999999999999-9999"
 
 #include <cstdio>
@@ -31,7 +29,7 @@ void test_cpp_api(const char * token, int ticketType, const char *ticket)
 
     if (ticket != nullptr)
     {
-        const char *ticketNames[7] =
+        const char *ticketNames[8] =
         {
             "TicketType_MSA_Device",
             "TicketType_MSA_User",
