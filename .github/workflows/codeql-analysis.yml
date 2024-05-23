@@ -58,7 +58,7 @@ jobs:
         PlatformToolset: v142
         VSTOOLS_VERSION: vs2019
       shell: cmd
-      if: matrix.language == 'cpp'
+      if: matrix.language == 'cpp' || matrix.language == 'csharp'
       run: build-all.bat
 
     # ℹ️ Command-line programs to run using the OS shell.
