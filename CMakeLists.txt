@@ -113,7 +113,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 set(WARN_FLAGS "/W4 /WX")
 else()
 # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
-set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-but-set-variable")
+set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unknown-warning-option -Wno-unused-but-set-variable")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
