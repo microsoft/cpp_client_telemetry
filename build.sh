@@ -80,8 +80,8 @@ elif [ "$PARAM1" == "x86_64" ] || [ "$PARAM2" == "x86_64" ] || [ "$PARAM3" == "x
   echo "MAC_ARCH = x86_64"
   shift
 else
-  MAC_ARCH="x86_64"
-  echo "Assuming default MAC_ARCH = x86_64"
+  MAC_ARCH=$(/usr/bin/uname -m)
+  echo "Using current machine MAC_ARCH = $MAC_ARCH"
 fi
 
 CUSTOM_CMAKE_CXX_FLAG=""
