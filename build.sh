@@ -103,11 +103,18 @@ if [ ! -f $FILE ]; then
   case "$OS_NAME" in
     *Darwin*) CMD="tools/setup-buildtools-apple.sh $MAC_ARCH" ;;
     *Linux*)  CMD="tools/setup-buildtools.sh" ;;
-    *)        echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." && exit 1 ;;
+    *)        echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." && CMD="" ;;
   esac
   
-  [[ -z "$NOROOT" ]] && sudo $CMD || $CMD
-  echo > $FILE
+ if [ -n "$CMD" ]; then
+    if [[ -z "$NOROOT" ]]; then
+      sudo $CMD
+    else
+      echo "No root: skipping build tools installation."
+      $CMD
+    fi
+    echo > $FILE
+  fi
 fi
 
 if [ -f /usr/bin/gcc ]; then
