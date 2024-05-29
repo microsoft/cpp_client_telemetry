@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <cstddef>
 #include <LogManager.hpp>
 
 #include "PayloadDecoder.hpp"
@@ -612,6 +613,53 @@ TEST(APITest, LogManager_Reinitialize_Test)
 
 #define EVENT_NAME_PURE_C   "Event.Name.Pure.C"
 #define JSON_CONFIG(...)    #__VA_ARGS__
+
+#ifndef HAVE_MAT_ABI_V3_1_0
+/* NOTE: if your library needs to be built with legacy C API, make sure that
+ * the same build settings get applied to your Functional Tests build.
+ */
+template <typename ToCheck, std::size_t ExpectedSize, std::size_t RealSize = sizeof(ToCheck)>
+void check_size() {
+    static_assert(ExpectedSize == RealSize, "Size is off!");
+}
+
+/* This test performs size-checks of cross-architecture C API structs. Same C# projection
+ * compiled as IL assembly could be used on Mono, .NET Standard across currently supported
+ * architectures: Windows, Linux, Android and Mac, 32-bit/64-bit, Intel and ARM.
+ */
+TEST(APITest, C_API_Test_CheckSize)
+{
+    check_size<evt_call_t, 4>();
+    check_size<evt_prop_t, 4>();
+    check_size<evt_guid_t, 16>();
+    check_size<evt_handle_t, 8>();
+    check_size<evt_status_t, 4>();
+
+    // C# should take care of context.data void* being 32-bit on x86 and 64-bit on x64.
+    // Presently we support all modern 64-bit OS with C# projection (Windows-x64,
+    // Linux-64, Mac Intel-x64 and ARM-x64, as well as Meta Quest 2+ ARM64).
+    evt_context_t context;
+    check_size< evt_context_t,
+        sizeof(context.call) +
+        sizeof(uint64_t) +      // sizeof(void*) + 32-bit padding AFTER on 32-bit OS
+        sizeof(context.handle) +
+        sizeof(context.result) +
+        sizeof(context.size)>();
+
+    // C# should take care of prop.name char* being 32-bit on x86 and 64-bit on x64.
+    // Presently we support all modern 64-bit OS with C# projection (Windows-x64,
+    // Linux-64, Mac Intel-x64 and ARM-x64, as well as Meta Quest 2+ ARM64).
+    evt_prop prop;
+    check_size<evt_prop,
+        sizeof(uint64_t) +      // sizeof(void*) + 32-bit padding AFTER on 32-bit OS
+        sizeof(prop.type) +
+        sizeof(prop.value) +
+        sizeof(prop.piiKind)>();
+
+    check_size<evt_prop_v, 8>();
+}
+
+#endif
 TEST(APITest, C_API_Test)
 {
     TestDebugEventListener debugListener;
@@ -647,7 +695,7 @@ TEST(APITest, C_API_Test)
     (
         // Part A/B fields
         _STR(COMMONFIELDS_EVENT_NAME, EVENT_NAME_PURE_C),                  // Event name
-        _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(now * 1000L)),  // Epoch time in millis, ms since Jan 01 1970. (UTC)
+        _INT(COMMONFIELDS_EVENT_TIME, static_cast<int64_t>(ticks.ticks)),  // Epoch time in .NET ticks
         _DBL("popSample", 100.0),                                          // Effective sample rate
         _STR(COMMONFIELDS_IKEY, TEST_TOKEN),                               // iKey to send this event to
         _INT(COMMONFIELDS_EVENT_POLICYFLAGS, 0xffffffff),                  // UTC policy bitflags (optional)
@@ -721,7 +769,7 @@ TEST(APITest, C_API_Test)
 
     // Must remove event listener befor closing the handle!
     client->logmanager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
-    evt_flushAndTeardown(handle);
+    // evt_flushAndTeardown(handle); // <-- This is redundant since evt_close ref-counts and performs FlushAndTeardown
     evt_close(handle);
     ASSERT_EQ(capi_get_client(handle), nullptr);
 

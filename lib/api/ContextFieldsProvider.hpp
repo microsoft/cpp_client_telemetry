@@ -32,6 +32,8 @@ namespace MAT_NS_BEGIN
         virtual void SetCustomField(const std::string&  name, const EventProperty&  value) override;
 
         virtual void SetParentContext(ContextFieldsProvider* parent);
+        virtual void ClearParentContext();
+
         virtual void SetTicket(TicketType type, std::string const& ticketValue) override;
 
         virtual void SetEventExperimentIds(std::string const & eventName, std::string const & experimentIds) override;

@@ -623,7 +623,6 @@ namespace MAT_NS_BEGIN
         LOG_INFO("SetContext");
         EventProperty prop(value, piiKind);
         m_context.SetCustomField(name, prop);
-        m_context.SetCustomField(name, prop);
         {
             LOCKGUARD(m_dataInspectorGuard);
             for(const auto& dataInspector : m_dataInspectors)
