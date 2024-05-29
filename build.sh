@@ -99,22 +99,16 @@ echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 # Install build tools and recent sqlite3
 FILE=.buildtools
 OS_NAME=`uname -a`
+
 if [ ! -f $FILE ]; then
   case "$OS_NAME" in
     *Darwin*) CMD="tools/setup-buildtools-apple.sh $MAC_ARCH" ;;
     *Linux*)  CMD="tools/setup-buildtools.sh" ;;
-    *)        echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." && CMD="" ;;
+    *)        CMD=""; echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." ;;
   esac
-  
- if [ -n "$CMD" ]; then
-    if [[ -z "$NOROOT" ]]; then
-      sudo $CMD
-    else
-      echo "No root: skipping build tools installation."
-      $CMD
-    fi
-    echo > $FILE
-  fi
+
+  [[ -n "$CMD" ]] && { [[ -z "$NOROOT" ]] && sudo $CMD || echo "No root: skipping build tools installation."; }
+  echo > $FILE
 fi
 
 if [ -f /usr/bin/gcc ]; then
