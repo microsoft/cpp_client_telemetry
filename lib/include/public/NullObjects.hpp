@@ -305,7 +305,7 @@ namespace MAT_NS_BEGIN
             return STATUS_ENOSYS;
         }
 
-        virtual ILogger * GetLogger(std::string const & /*tenantToken*/, std::string const & /*source*/ = std::string(), std::string const & /*experimentationProject*/ = std::string()) override
+        virtual ILogger* GetLogger(std::string const & /*tenantToken*/, std::string const & /*source*/ = std::string(), std::string const & /*experimentationProject*/ = std::string()) override
         {
             static NullLogger nullLogger;
             return &nullLogger;
