@@ -1,4 +1,5 @@
-# How to Not Crash on Shutdown
+
+# How to Not Crash on Shutdown in case of static `LogManager` instance
 
 In any concurrent application, there is a race on shutdown between the destruction of SDK components and threads that may be calling SDK methods. This can occur both with static destructors (e.g., the static `LogManager` instance) and destructors for heap-allocated log manager instances. The most common symptom is a read-dereference crash in a `LogEvent` call stack caused by a read-after-free of the internal state of a log manager (less frequently one may see a read-after-free in the background threads of the a log manager; `LogEvent` is typically called more frequently than these background tasks, so it predominates).
 

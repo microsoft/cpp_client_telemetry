@@ -45,6 +45,50 @@ public final class EventProperties {
         odwEventProperties = ODWEventProperties(name: name, properties: properties, piiTags: piiTags)
     }
 
+    /// Event name.
+    public var name:String {
+        get {
+            odwEventProperties.name
+        }
+        set {
+            odwEventProperties.name = newValue
+        }
+    }
+
+    /// Event priority.
+    public var priority:EventPriority {
+        get {
+            odwEventProperties.priority
+        }
+        set {
+            odwEventProperties.priority = newValue
+        }
+    }
+
+    /// Event properties. Key is property name, value is property value.
+    public var properties:[String: Any] {
+        get {
+            odwEventProperties.properties
+        }
+    }
+
+    /// Event PII (personal identifiable information ) tags. Key is property name, value is ODWPiiKind value.
+    public var piiTags: [String: NSNumber] {
+        get {
+            odwEventProperties.piiTags
+        }
+    }
+
+    /// Base Type of an event. This field is populated in Records.Type
+    public var eventType:String {
+        get {
+            odwEventProperties.eventType
+        }
+        set {
+            odwEventProperties.eventType = newValue
+        }
+    }
+
     /**
     Sets the base type of the event, populated in Records.Type.
 

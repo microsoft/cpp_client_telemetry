@@ -42,7 +42,7 @@ std::atomic<bool> canUseSDK = { true };
     std::string eventName = std::string([name UTF8String]);
     EventProperties event(eventName);
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->LogEvent(event);
+        self->_wrappedLogger->LogEvent(event);
     });
 	if([ODWLogConfiguration enableConsoleLogging])
 	{
@@ -108,7 +108,7 @@ std::atomic<bool> canUseSDK = { true };
     EventProperties event;
     [self unwrapEventProperties: properties onEvent: event];
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->LogEvent(event);
+        self->_wrappedLogger->LogEvent(event);
     });
     if([ODWLogConfiguration enableConsoleLogging])
     {
@@ -127,7 +127,7 @@ std::atomic<bool> canUseSDK = { true };
     std::string strDetail    = std::string([detail UTF8String]);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->LogFailure(strSignature, strDetail, event);
+        self->_wrappedLogger->LogFailure(strSignature, strDetail, event);
     });
     if([ODWLogConfiguration enableConsoleLogging])
     {
@@ -150,7 +150,7 @@ std::atomic<bool> canUseSDK = { true };
     std::string strId        = std::string([identifier UTF8String]);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->LogFailure(strSignature, strDetail, strCategory, strId, event);
+        self->_wrappedLogger->LogFailure(strSignature, strDetail, strCategory, strId, event);
     });
     if([ODWLogConfiguration enableConsoleLogging])
     {
@@ -169,7 +169,7 @@ std::atomic<bool> canUseSDK = { true };
     std::string strPageName  = std::string([pageName UTF8String]);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->LogPageView(strId, strPageName, event);
+        self->_wrappedLogger->LogPageView(strId, strPageName, event);
     });
     if([ODWLogConfiguration enableConsoleLogging])
     {
@@ -194,7 +194,7 @@ std::atomic<bool> canUseSDK = { true };
     std::string strReferrerUri = std::string([referrerUri UTF8String]);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->LogPageView(strId, strPageName, strCategory, strUri, strReferrerUri, event);
+        self->_wrappedLogger->LogPageView(strId, strPageName, strCategory, strUri, strReferrerUri, event);
     });
     if([ODWLogConfiguration enableConsoleLogging])
     {
@@ -212,7 +212,7 @@ std::atomic<bool> canUseSDK = { true };
     std::string strMessage = std::string([message UTF8String]);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
+        self->_wrappedLogger->LogTrace((TraceLevel)traceLevel, strMessage, event);
     });
     if([ODWLogConfiguration enableConsoleLogging])
     {
@@ -226,7 +226,7 @@ std::atomic<bool> canUseSDK = { true };
     EventProperties event;
     [self unwrapEventProperties: properties onEvent: event];
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->LogSession((SessionState)state, event);
+        self->_wrappedLogger->LogSession((SessionState)state, event);
     });
     if([ODWLogConfiguration enableConsoleLogging])
     {
@@ -249,7 +249,7 @@ std::atomic<bool> canUseSDK = { true };
     PiiKind contextPiiKind = PiiKind(piiKind);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, strValue, contextPiiKind);
+        self->_wrappedLogger->SetContext(strName, strValue, contextPiiKind);
     });
 }
 
@@ -268,7 +268,7 @@ std::atomic<bool> canUseSDK = { true };
     PiiKind contextPiiKind = PiiKind(piiKind);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, boolValue, contextPiiKind);
+        self->_wrappedLogger->SetContext(strName, boolValue, contextPiiKind);
     });
 }
 
@@ -287,7 +287,7 @@ std::atomic<bool> canUseSDK = { true };
     PiiKind contextPiiKind = PiiKind(piiKind);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, ticks, contextPiiKind);
+        self->_wrappedLogger->SetContext(strName, ticks, contextPiiKind);
     });
 }
 
@@ -305,7 +305,7 @@ std::atomic<bool> canUseSDK = { true };
     PiiKind contextPiiKind = PiiKind(piiKind);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, contextPiiKind);
+        self->_wrappedLogger->SetContext(strName, value, contextPiiKind);
     });
 }
 
@@ -323,7 +323,7 @@ std::atomic<bool> canUseSDK = { true };
     PiiKind contextPiiKind = PiiKind(piiKind);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, contextPiiKind);
+        self->_wrappedLogger->SetContext(strName, value, contextPiiKind);
     });
 }
 
@@ -341,7 +341,7 @@ std::atomic<bool> canUseSDK = { true };
     PiiKind contextPiiKind = PiiKind(piiKind);
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, value, contextPiiKind);
+        self->_wrappedLogger->SetContext(strName, value, contextPiiKind);
     });
 }
 
@@ -360,7 +360,7 @@ std::atomic<bool> canUseSDK = { true };
     GUID_t contextValue = [ODWLogger castNSUUIDToUUID:value];
 
     PerformActionWithCppExceptionsCatch(^(void) {
-        _wrappedLogger->SetContext(strName, contextValue, contextPiiKind);
+        self->_wrappedLogger->SetContext(strName, contextValue, contextPiiKind);
     });
 }
 
