@@ -1,6 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
-
-#include <stdlib.h>
+﻿#include <stdlib.h>
 #include <stdio.h>
 
 #include "LogManager.hpp"
@@ -44,7 +42,7 @@ void DebugPrintf(const char *fmt, ...)
     va_start(args, fmt);
     int nBuf;
     char szBuffer[512];
-    nBuf = _vsnprintf(szBuffer, 511, fmt, args);
+    nBuf = _vsnprintf_s(szBuffer, 511, fmt, args);
     // ::OutputDebugStringA(szBuffer);
     PrintLine(szBuffer);
     va_end(args);
@@ -231,7 +229,6 @@ EventProperties CreateSampleEvent(const char *name, EventPriority prio) {
 
     // Prepare current time in UTC (seconds precision)
     std::time_t t = std::time(nullptr);
-    std::gmtime(&t);
 
     /* С++11 constructor for Visual Studio 2015: this is the most JSON-lookalike syntax that makes use of C++11 initializer lists. */
     EventProperties props(name,
