@@ -458,6 +458,7 @@
     <ClCompile Include="$(ProjectDir)\AITelemetrySystemTests.cpp" />
     <ClCompile Include="$(ProjectDir)\InformationProviderImplTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesDecoratorTests.cpp" />
+    <ClCompile Include="..\..\lib\modules\privacyguard\tests\unittests\SystematicSamplerTests.cpp" />
     <ClInclude Include="$(ProjectDir)..\common\Common.hpp" />
     <ClInclude Include="$(ProjectDir)..\common\HttpServer.hpp" />
     <ClCompile Include="$(ProjectDir)..\common\Reactor.cpp" />

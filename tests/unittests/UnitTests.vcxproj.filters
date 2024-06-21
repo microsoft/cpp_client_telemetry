@@ -61,6 +61,7 @@
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\unittests\SignalsTests.cpp" />
     <ClCompile Include="$(ProjectDir)\InformationProviderImplTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesDecoratorTests.cpp" />
+    <ClCompile Include="..\..\lib\modules\privacyguard\tests\unittests\SystematicSamplerTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ProjectDir)..\common\MockIHttpClient.hpp">
