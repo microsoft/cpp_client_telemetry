@@ -18,8 +18,31 @@ data pipeline.
 
 ## Getting Started
 
+### New customer?
+
+ - The 1DS C/C++ SDK is designed for Microsoft products to send data to public-facing end-points which route to Microsoft's internal data pipeline.
+   It is not meant to be used outside of Microsoft products and is open-sourced to demonstrate best practices and to be transparent about what is being collected.
+
+ - Users with [Microsoft Organization GH account](https://opensource.microsoft.com/), please refer to the link [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md) for internal community discussion channels.
+
+### Need support?
+
+ - Microsoft products using SDK may use [GitHub issues](https://github.com/microsoft/cpp_client_telemetry/issues/new/choose)
+as the communication channel for both feature requests and issues.
+
+### Want to Contribute?
+
+ - This project does not accept *Public* contributions at this time.
+
+ - [Microsoft-authorized
+contributors](https://github.com/orgs/microsoft/teams/everyone) - please refer
+to contributing instructions
+[here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
+ 
+## Release policy:
+
 The SDK is released as a [source package](https://github.com/microsoft/cpp_client_telemetry/releases)
-every month, following the [milestones](https://github.com/microsoft/cpp_client_telemetry/milestones).
+on need basis.
 There is no plan to release prebuilt binaries.
 
 ## Build
@@ -93,11 +116,6 @@ These tests use Google Test / Google Mock framework and get built alongside
 the SDK. Launch `functests` and `unittests` binary executables to capture
 the test results.
 
-## Getting Support
-
-Microsoft products using SDK may use [GitHub issues](https://github.com/microsoft/cpp_client_telemetry/issues/new/choose)
-as the communication channel for both feature requests and issues.
-
 **Note**:
 
 * Please refer to the supported [platforms](#build), anything not in the list
@@ -106,15 +124,6 @@ as the communication channel for both feature requests and issues.
   provided as-is, and not supported.
 * Build issues are in general out of the support scope due to the unlimited
   number of build flags combinations.
-
-## Contributing
-
-This project does not accept *Public* contributions at this time.
-
-**[Microsoft-authorized
-contributors](https://github.com/orgs/microsoft/teams/everyone) - please refer
-to contributing instructions
-[here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
 
 ## Versioning
 
