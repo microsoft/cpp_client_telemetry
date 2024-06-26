@@ -20,7 +20,7 @@ data pipeline.
 
 ### New customer?
 
- - If you do not have a Microsoft alias,  this SDK is not intended for your use. However, you might find the source code useful for understanding how Microsoft collects telemetry.
+ - If you do not have a Microsoft alias, this SDK is not intended for your use. However, you might find the source code useful for understanding how Microsoft collects telemetry.
 
  - Users with [Microsoft Organization GH account](https://opensource.microsoft.com/), please refer to the link [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md) for internal community discussion channels.
 
