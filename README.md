@@ -20,7 +20,8 @@ data pipeline.
 
 ### New customer?
 
- - If you do not have a Microsoft alias, this SDK is not intended for your use. However, you might find the source code useful for understanding how Microsoft collects telemetry.
+ - The 1DS C/C++ SDK is designed for Microsoft products to send data to public-facing end-points which route to Microsoft's internal data pipeline.
+   It is not meant to be used outside of Microsoft products and is open-sourced to demonstrate best practices and to be transparent about what is being collected.
 
  - Users with [Microsoft Organization GH account](https://opensource.microsoft.com/), please refer to the link [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md) for internal community discussion channels.
 
