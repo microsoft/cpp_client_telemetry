@@ -98,7 +98,7 @@ if [[ $PARAM1 == CUSTOM_BUILD_FLAGS* ]] || [[ $PARAM2 == CUSTOM_BUILD_FLAGS* ]] 
 fi
 
 LINK_TYPE=
-CMAKE_OPTS="${CMAKE_OPTS:--DBUILD_SHARED_LIBS=OFF}"
+CMAKE_OPTS="${CMAKE_OPTS:-DBUILD_SHARED_LIBS=OFF}"
 while getopts "h?vl:D:" opt; do
     case "$opt" in
     h|\?) usage
