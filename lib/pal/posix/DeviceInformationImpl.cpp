@@ -25,6 +25,16 @@ namespace PAL_NS_BEGIN {
         return PowerSource_Charging;
     }
 
+    void ScrubManufacturer(std::string& manufacturer) {
+        if (manufacturer.empty()) {
+            return;
+        }
+
+        if (manufacturer.find('@') != std::string::npos) {
+            manufacturer.clear();
+        }
+    }
+
     ///// IDeviceInformation API
     DeviceInformationImpl::DeviceInformationImpl(IRuntimeConfig& configuration) :
                                 m_info_helper()
@@ -44,6 +54,7 @@ namespace PAL_NS_BEGIN {
         m_device_id = (devId.empty()) ? DEFAULT_DEVICE_ID : devId;
 
         m_manufacturer = sysInfo.get("devMake");
+        ScrubManufacturer(m_manufacturer);
 
         m_model = sysInfo.get("devModel");
 
