@@ -54,6 +54,9 @@ namespace PAL_NS_BEGIN {
         m_device_id = (devId.empty()) ? DEFAULT_DEVICE_ID : devId;
 
         m_manufacturer = sysInfo.get("devMake");
+
+        // Scrubing this device make if it contains @ character inbetween like expeer@datateknik
+        // This is being done as part of this office client request https://msazure.visualstudio.com/One/_workitems/edit/27120391
         ScrubManufacturer(m_manufacturer);
 
         m_model = sysInfo.get("devModel");
