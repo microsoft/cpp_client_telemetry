@@ -7,7 +7,7 @@ git_dependencies = 'DEPS'
 vars = {
   'edge_git': 'https://microsoft.visualstudio.com/edge/_git',
   'edge_git_suffix': '',
-  'oneds_modules_revision': '1498bb9ef3992c0558e240c3d1179f16dfea7ae3',
+  'oneds_modules_revision': 'fe090b0c324e88d602e67edafd5919cb65190e81',
 }
 
 deps = {
