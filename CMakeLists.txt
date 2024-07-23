@@ -199,13 +199,16 @@ if (USE_ONEDS_BOUNDCHECK_METHODS)
   add_definitions(-DHAVE_ONEDS_BOUNDCHECK_METHODS)
 endif()
 
+option(USE_ONEDS_SECURE_MEM_FUNCTIONS "Use secure memory functions for sqlite" OFF)
+if(USE_ONEDS_SECURE_MEM_FUNCTIONS)
+    add_definitions(-DUSE_ONEDS_SECURE_MEM_FUNCTIONS)
+endif()
+
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
  add_definitions(-DZLIB_WINAPI)
 endif()
 
 add_definitions(-DNOMINMAX)
-
-add_definitions(-DUSE_ONEDS_SECURE_MEM_FUNCTIONS)
 
 ################################################################################################
 # Build prefix and version
