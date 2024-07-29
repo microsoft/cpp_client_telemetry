@@ -78,6 +78,7 @@ namespace MAT_NS_BEGIN
         std::map<TicketType, std::string> m_userTokens;
         std::vector<std::string> m_tickets;
         bool m_IsStrictModeEnabled;
+        std::mutex m_lock;
     };
 
 
