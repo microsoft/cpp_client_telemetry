@@ -586,6 +586,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="msvc.h" />
+    <ClInclude Include="memset_s.h" />
     <ClInclude Include="sqlite3.h" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
