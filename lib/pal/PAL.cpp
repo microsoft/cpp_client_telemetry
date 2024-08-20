@@ -169,10 +169,6 @@ namespace PAL_NS_BEGIN {
 #define     gettid()       std::this_thread::get_id()
 #endif
 
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
@@ -217,7 +213,7 @@ namespace PAL_NS_BEGIN {
 
             int len = ::sprintf_s(buffer, "%04u-%02u-%02u %02u:%02u:%02u.%03u T#%u <%c> [%s] ",
                 st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-                ::GetCurrentThreadId(), levels[level], component);
+                static_cast<unsigned int>(::GetCurrentThreadId()), levels[level], component);
 
             va_list args;
             va_start(args, fmt);

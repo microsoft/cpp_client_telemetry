@@ -330,7 +330,7 @@ namespace MAT_NS_BEGIN
             return true;
         }
 
-        bool NetworkDetector::RegisterAndListen()
+        bool NetworkDetector::RegisterAndListen() noexcept
         {
             // ???
             HRESULT hr = pNlm->QueryInterface(IID_IUnknown, (void**)&pSink);

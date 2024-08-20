@@ -3,9 +3,6 @@ apply plugin: 'com.android.application'
 apply from: "$rootProject.projectDir/tools.gradle"
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
-    ndkVersion "21.3.6528147"
     defaultConfig {
         applicationId "com.microsoft.applications.events.maesdktest"
         versionCode 1
@@ -37,14 +34,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'com.microsoft.applications.events.maesdktest'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':maesdk')
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    testImplementation 'junit:junit:4.13.1'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }

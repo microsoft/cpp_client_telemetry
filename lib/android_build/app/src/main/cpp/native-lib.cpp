@@ -124,17 +124,6 @@ int RunTests::run_all_tests(JNIEnv* env, jobject java_logger)
     return RUN_ALL_TESTS();
 }
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_microsoft_applications_events_maesdktest_MainActivity_stringFromJNI(
-    JNIEnv* env,
-    jobject /* this */,
-    jstring path)
-{
-    auto result = RunTests::run_all_tests(env, path);
-    std::string hello = std::to_string(result);
-    return env->NewStringUTF(hello.c_str());
-}
-
 extern "C" JNIEXPORT jint JNICALL
 
 Java_com_microsoft_applications_events_maesdktest_TestStub_runNativeTests(

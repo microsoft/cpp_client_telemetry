@@ -586,6 +586,16 @@ namespace MAT_NS_BEGIN
             LM_SAFE_CALL_PTR(GetAuthTokensController);
 
         /// <summary>
+        ///Sets the ticket token with a value
+        /// </summary>
+        static status_t SetTicketToken(TicketType type, const std::string& tokenValue)
+        {
+            if (isHost())
+                LM_SAFE_CALL(GetAuthTokensController()->SetTicketToken, type, tokenValue.c_str());
+            return STATUS_EPERM;  // Permission denied
+        }
+
+        /// <summary>
         /// Obtain event filter collection.
         /// Notes:
         /// - If the build has exceptions enabled, then the code triggers exception in case of invalid API use.
@@ -706,10 +716,11 @@ namespace MAT_NS_BEGIN
 
         static void WaitPause()
         {
-            auto instance = GetInstance();
-            if (instance) {
+            auto managerInstance = GetInstance();
+            if (managerInstance)
+            {
                 // do not hold the stateLock() here!
-                instance->WaitPause();
+                managerInstance->WaitPause();
             }
         }
 

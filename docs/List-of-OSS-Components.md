@@ -16,6 +16,8 @@ SQLite is a C-language library that implements a small, fast, self-contained, hi
 SDK maintains its own snapshot of the mainline SQLite, which is used for Windows builds [here](../sqlite). Other platforms use platform-provided SQLite.
 It is the responsibility of product teams to ensure that a snapshot of zlib they use meets their product security and licensing requirements.
 
+The SDK provides an option to use a secure version of the traditional `memset` function, which includes safety checks to prevent buffer overflows.
+
 ## [nlohmann/json](https://github.com/nlohmann/json)
 
 JSON for Modern C++.

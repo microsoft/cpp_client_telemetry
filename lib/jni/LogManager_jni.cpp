@@ -95,6 +95,18 @@ extern "C"
     }
 
     JNIEXPORT jint JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeSetIntTicketToken(
+        JNIEnv* env,
+        jclass /* this */,
+        jint jType,
+        jstring jstrTokenValue)
+    {
+        auto ticketValue = JStringToStdString(env, jstrTokenValue);
+        return static_cast<jint>(WrapperLogManager::SetTicketToken(
+            static_cast<TicketType>(jType), ticketValue));
+    }
+
+    JNIEXPORT jint JNICALL
     Java_com_microsoft_applications_events_LogManager_nativeSetIntTransmitProfile(
         JNIEnv* /* env */,
         jclass /* this */,

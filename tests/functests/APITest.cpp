@@ -2,10 +2,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include "mat/config.h"
 
 #ifdef _MSC_VER
@@ -725,6 +721,7 @@ TEST(APITest, C_API_Test)
 
     // Must remove event listener befor closing the handle!
     client->logmanager->RemoveEventListener(EVT_LOG_EVENT, debugListener);
+    evt_flushAndTeardown(handle);
     evt_close(handle);
     ASSERT_EQ(capi_get_client(handle), nullptr);
 
@@ -999,7 +996,7 @@ TEST(APITest, SetType_Test)
         // Verify that record.baseType have been properly decorated.
         debugListener.OnLogX = [&](::CsProtocol::Record& record) {
             totalEvents++;
-            std::string& prefix = config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX];
+            const std::string& prefix = config[CFG_MAP_COMPAT][CFG_STR_COMPAT_PREFIX];
             if (prefix == EVENTRECORD_TYPE_CUSTOM_EVENT)
             {
                 EXPECT_STREQ(record.baseType.c_str(), "custom.myeventtype");

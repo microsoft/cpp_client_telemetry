@@ -51,12 +51,12 @@ namespace MAT_NS_BEGIN
         bool parse(const std::string&, uint64_t&,  std::string&) ;
 
     private:
-        IOfflineStorage* m_offlineStorage; //Pointer is not owned. Do not delete!
+        IOfflineStorage* m_offlineStorage {};  // Pointer is not owned. Do not delete!
         std::string const m_cacheFilePath;
         SessionStorageType m_storageType;
         std::unique_ptr<LogSessionData> m_logSessionData;
-        uint64_t convertStrToLong(const std::string&);
-        void writeFileContents(const std::string&, uint64_t, const std::string&);
+        static uint64_t convertStrToLong(const std::string&);
+        static void writeFileContents(const std::string&, uint64_t, const std::string&);
         void remove_eol(std::string& );
     };
 }

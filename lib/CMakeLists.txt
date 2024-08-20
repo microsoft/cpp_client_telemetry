@@ -156,32 +156,53 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     )
   endif()
   if(APPLE AND BUILD_OBJC_WRAPPER)
-	message("Include Wrappers")
-	list(APPEND SRCS
-	  ../wrappers/obj-c/ODWLogger.mm
-	  ../wrappers/obj-c/ODWLogManager.mm
-	  ../wrappers/obj-c/ODWEventProperties.mm
-	  ../wrappers/obj-c/ODWLogConfiguration.mm
-	  ../wrappers/obj-c/ODWSemanticContext.mm
-	  )
-	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
-  		list(APPEND SRCS
-		  ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
-  		)
-	endif()
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
-          list(APPEND SRCS
-          ../wrappers/obj-c/ODWCommonDataContext.mm
-          ../wrappers/obj-c/ODWPrivacyGuard.mm
-          ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
-          )
+    message("Include ObjC Wrappers")
+    list(APPEND SRCS
+      ../wrappers/obj-c/ODWLogger.mm
+      ../wrappers/obj-c/ODWLogManager.mm
+      ../wrappers/obj-c/ODWEventProperties.mm
+      ../wrappers/obj-c/ODWLogConfiguration.mm
+      ../wrappers/obj-c/ODWSemanticContext.mm
+      )
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
+        list(APPEND SRCS
+        ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
+        )
     endif()
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+            list(APPEND SRCS
+            ../wrappers/obj-c/ODWCommonDataContext.mm
+            ../wrappers/obj-c/ODWPrivacyGuard.mm
+            ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
+            )
+      endif()
   endif()
+
+  if(APPLE AND BUILD_SWIFT_WRAPPER)
+    message("Building Swift Wrappers")
+    # Run swift build for the Swift Wrappers Package
+    string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
+    execute_process(
+      COMMAND swift build
+      -c ${LOWER_BUILD_TYPE}
+      --scratch-path ${CMAKE_BINARY_DIR}/OneDSSwift
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../wrappers/swift
+      RESULT_VARIABLE SWIFT_BUILD_RESULT
+    )
+
+    if(SWIFT_BUILD_RESULT EQUAL 0)
+        message("Swift Wrappers build succeeded!")
+    else()
+        message(FATAL_ERROR, "Swift build failed with error code: ${SWIFT_BUILD_RESULT}")
+    endif()
+
+  endif()
+
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
-add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -D_CRT_SECURE_NO_WARNINGS -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
+add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
