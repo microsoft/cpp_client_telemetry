@@ -8,9 +8,9 @@ apply plugin: 'com.android.library'
 apply from: "$projectDir/../tools.gradle"
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
-    ndkVersion "21.3.6528147"
+    compileSdkVersion 34
+    buildToolsVersion "35.0.0"
+    ndkVersion "26.1.10909125"
 
     defaultConfig {
 
@@ -67,8 +67,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     namespace 'com.microsoft.applications.events'
 }
@@ -76,7 +76,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    def room_version = '2.4.3'
+    def room_version = '2.6.1'
 
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
