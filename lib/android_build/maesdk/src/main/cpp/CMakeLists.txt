@@ -3,7 +3,7 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.19.0)
 set(CMAKE_CXX_STANDARD 11)
 
 # Enable Azure Monitor / Application Insights end-point support
