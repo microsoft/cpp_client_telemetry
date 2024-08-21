@@ -5,7 +5,7 @@
 
 cmake_minimum_required(VERSION 3.19.0)
 set(CMAKE_CXX_STANDARD 11)
-
+project(maesdk)
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
@@ -179,3 +179,5 @@ target_link_libraries(maesdk PUBLIC
         ${zlib}
         ${CURL_LIBRARIES}
         )
+
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE "-Wl,-z,max-page-size=16384")
