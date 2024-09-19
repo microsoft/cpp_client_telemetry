@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include <algorithm>
+#include <stdexcept>
 #include "EventFilterCollection.hpp"
 #include "ctmacros.hpp"
 
