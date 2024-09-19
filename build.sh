@@ -137,7 +137,7 @@ if [ "$LINK_TYPE" == "shared" ]; then
 fi
 
 # Set target MacOS minver
-default_mac_os_target=$([ "$MAC_ARCH" == "arm64" ] && echo "11.10" || echo "10.10")
+default_mac_os_target="11.10"
 [ -z $MACOSX_DEPLOYMENT_TARGET ] && export MACOSX_DEPLOYMENT_TARGET=${default_mac_os_target}
 echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 
