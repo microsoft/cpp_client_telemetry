@@ -202,7 +202,13 @@ public:
          * Note that this API takes a pointer to a 'long' while we use
          * curl_socket_t for sockets otherwise.
          */
+
+#if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
+        res = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
+#else
         res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockextr);
+#endif
+
         if(CURLE_OK != res)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2

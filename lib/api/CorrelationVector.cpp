@@ -5,6 +5,7 @@
 #include "CorrelationVector.hpp"
 #include "utils/StringUtils.hpp" // for SplitString and AreAllCharactersAllowlisted
 
+#include <stdexcept>
 #include <vector>
 #include <random>
 #include <limits>
