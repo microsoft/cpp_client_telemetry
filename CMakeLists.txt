@@ -1,6 +1,23 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(MSTelemetry)
 
+# Set installation prefix for macOS and Linux
+if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+endif()
+
+# Check write access to prefix, fallback to user's home directory if needed (Unix only)
+if(UNIX)
+  file(WRITE "${CMAKE_INSTALL_PREFIX}/.cmake_write_test" "")
+  if("${CMAKE_STATUS}" STREQUAL "0")
+    message(STATUS "Write access to ${CMAKE_INSTALL_PREFIX} confirmed.")
+    file(REMOVE "${CMAKE_INSTALL_PREFIX}/.cmake_write_test")
+  else()
+    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/mst_telemetry" CACHE PATH "Fallback installation directory prefix" FORCE)
+    message(STATUS "No write access to ${CMAKE_INSTALL_PREFIX}, installing to $HOME/mst_telemetry instead.")
+  endif()
+endif()
+
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
