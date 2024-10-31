@@ -64,9 +64,9 @@ apt-get install -y libsqlite3-dev
 apt-get install -y wget
 fi
 
-## Install sqlite 3.22
-export SQLITE_PKG=sqlite-autoconf-3220000
-wget https://www.sqlite.org/2018/$SQLITE_PKG.tar.gz -O /tmp/sqlite-snapshot.tar.gz
+## Install sqlite 3.44
+export SQLITE_PKG=sqlite-autoconf-3440000
+wget https://www.sqlite.org/2023/$SQLITE_PKG.tar.gz -O /tmp/sqlite-snapshot.tar.gz
 tar -xvf /tmp/sqlite-snapshot.tar.gz
 cd $SQLITE_PKG
 ./configure && make && make install
