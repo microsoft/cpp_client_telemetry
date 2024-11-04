@@ -96,7 +96,19 @@ if [[ -z "$MAC_ARCH" ]]; then
   echo "Using current machine MAC_ARCH = $MAC_ARCH"
 fi
 
-# Evaluate switches
+CUSTOM_CMAKE_CXX_FLAG=""
+if [[ $PARAM1 == CUSTOM_BUILD_FLAGS* ]] || [[ $PARAM2 == CUSTOM_BUILD_FLAGS* ]] || [[ $PARAM3 == CUSTOM_BUILD_FLAGS* ]]; then
+  if [[ $PARAM1 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${PARAM1:19:999}\""
+  elif [[ $PARAM2 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${PARAM2:19:999}\""
+  elif [[ $PARAM3 == CUSTOM_BUILD_FLAGS* ]]; then
+  CUSTOM_CMAKE_CXX_FLAG="\"${PARAM3:19:999}\""
+  fi
+  shift
+  echo "custom build flags = $CUSTOM_CMAKE_CXX_FLAG"
+fi
+
 LINK_TYPE=
 CMAKE_OPTS="${CMAKE_OPTS:--DBUILD_SHARED_LIBS=OFF}"
 while getopts "h?vl:D:" opt; do
@@ -208,7 +220,7 @@ make package
 
 # Install newly generated package
 if [ -f /usr/bin/dpkg ]; then
-  # Ubuntu / Debian / Raspbian 
+  # Ubuntu / Debian / Raspbian
   [[ -z "$NOROOT" ]] && sudo dpkg -i *.deb || echo "No root: skipping package deployment."
 elif [ -f /usr/bin/rpmbuild ]; then
   # Redhat / Centos
