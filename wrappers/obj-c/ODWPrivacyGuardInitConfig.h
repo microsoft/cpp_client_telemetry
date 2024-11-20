@@ -25,6 +25,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readwrite, copy, nonatomic) NSString* semanticContextNotificationEventName;
 
 /*!
+ @brief (OPTIONAL) Privacy Concern Event metadata provider to use with privacyguard.
+ */
+@property(readwrite, copy, nonatomic) ODWPrivacyConcernMetadataProvider* metadataProvider;
+
+/*!
  @brief (OPTIONAL) Custom event name to use when logging summary events. Default value is `PrivacyGuardSummary`.
  */
 @property(readwrite, copy, nonatomic) NSString* summaryEventName;

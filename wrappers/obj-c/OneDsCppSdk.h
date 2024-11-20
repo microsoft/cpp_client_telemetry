@@ -11,6 +11,7 @@
 #import "ODWLogConfiguration.h"
 #import "ODWLogger.h"
 #import "ODWLogManager.h"
+#import "ODWPrivacyConcernEvent.h"
 #import "ODWPrivacyGuard.h"
 #import "ODWSemanticContext.h"
 
