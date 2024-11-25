@@ -370,7 +370,8 @@ extern "C" {
     {
 #ifdef _WIN32
         /* This code accepts a handle of a library loaded in customer's code */
-        evt_app_call_t impl = (evt_app_call_t)GetProcAddress((HMODULE)handle, "evt_api_call_default");
+        /* The intermediate (void*) cast prevents incompatible function type cast diagnostics */
+        evt_app_call_t impl = (evt_app_call_t)(void*)GetProcAddress((HMODULE)handle, "evt_api_call_default");
         if (impl != NULL)
         {
             evt_api_call = impl;
