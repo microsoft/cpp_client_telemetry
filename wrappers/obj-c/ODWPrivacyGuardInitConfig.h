@@ -4,6 +4,7 @@
 //
 #include "objc_begin.h"
 #import "ODWCommonDataContext.h"
+#import "ODWPrivacyConcernMetatadataProvider.h"
 
 NS_ASSUME_NONNULL_BEGIN
 /*!

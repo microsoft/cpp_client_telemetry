@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
  like the event name, server name, database name, and various other privacy-related
  attributes.
  */
-@interface PrivacyConcernEvent : NSObject
+@interface ODWPrivacyConcernEvent : NSObject
 
 /*! 
  @brief The name of the privacy concern event.
