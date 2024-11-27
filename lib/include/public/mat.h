@@ -140,6 +140,7 @@ extern "C" {
         OPEN_PARAM_TYPE_TASK_DISPATCHER_QUEUE = 2,
         OPEN_PARAM_TYPE_TASK_DISPATCHER_CANCEL = 3,
         OPEN_PARAM_TYPE_TASK_DISPATCHER_JOIN = 4,
+        OPEN_PARAM_TYPE_DATA_VIEWER = 5,
     } evt_open_param_type_t;
 
     /**
@@ -279,6 +280,9 @@ extern "C" {
     typedef void(EVTSDK_LIBABI_CDECL* task_dispatcher_queue_fn_t)(evt_task_t*, task_callback_fn_t);
     typedef bool (EVTSDK_LIBABI_CDECL *task_dispatcher_cancel_fn_t)(const char* /*taskId*/);
     typedef void (EVTSDK_LIBABI_CDECL *task_dispatcher_join_fn_t)();
+
+    /* Dataviewer callback function signatures */
+    typedef void (EVTSDK_LIBABI_CDECL *dataviewer_callback_fn_t)(const uint8_t* /*data*/, size_t /*size*/);
 
 #if (_MSC_VER == 1500) || (_MSC_VER == 1600) || (defined(__cplusplus) && !defined(__GNUG__))
     /* Code to support C89 compiler, including VS2010 */

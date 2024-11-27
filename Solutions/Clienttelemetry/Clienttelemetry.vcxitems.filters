@@ -53,6 +53,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\ZlibUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewer_CAPI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AllowedLevelsCollection.hpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\ZlibUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewer_CAPI.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template" />
