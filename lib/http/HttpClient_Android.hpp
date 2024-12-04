@@ -7,6 +7,7 @@
 #include <IHttpClient.hpp>
 #include <atomic>
 #include <jni.h>
+#include <memory>
 #include <mutex>
 #include <string>
 
