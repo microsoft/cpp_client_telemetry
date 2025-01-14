@@ -892,7 +892,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     ManagerAndConfig const* mc;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= jniManagers.size())
+        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= static_cast<jlong>(jniManagers.size()))
         {
             return nullptr;
         }
@@ -914,7 +914,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 {
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        if (nativeLogManager < 0 || nativeLogManager >= jniManagers.size())
+        if (nativeLogManager < 0 || nativeLogManager >= static_cast<jlong>(jniManagers.size()))
         {
             return;
         }
@@ -971,7 +971,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     ManagerAndConfig* mc;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= jniManagers.size())
+        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= static_cast<jlong>(jniManagers.size()))
         {
             return 0;
         }
@@ -997,7 +997,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 static ILogManager* getLogManager(jlong nativeLogManager)
 {
     std::lock_guard<std::mutex> lock(jniManagersMutex);
-    if (nativeLogManager < 0 || nativeLogManager >= jniManagers.size())
+    if (nativeLogManager < 0 || nativeLogManager >= static_cast<jlong>(jniManagers.size()))
     {
         return nullptr;
     }
@@ -1587,7 +1587,8 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jlong eventType,
     jlong identity) {
     std::lock_guard<std::mutex> l(listeners_mutex);
-    if (identity < 0 || identity >= listeners.size() || !listeners[identity]) {
+    if (identity < 0 || identity >= static_cast<jlong>(jniManagers.size()) || !listeners[identity])
+    {
         return;
     }
     auto logManager = getLogManager(native_log_manager);
