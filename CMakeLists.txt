@@ -6,12 +6,13 @@ if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
 endif()
 
-# Check write access to prefix, fallback to user's home directory if needed (Unix only)
 if(UNIX)
-  file(WRITE "${CMAKE_INSTALL_PREFIX}/.cmake_write_test" "")
-  if("${CMAKE_STATUS}" STREQUAL "0")
+  # Test write access to CMAKE_INSTALL_PREFIX
+  set(TEST_FILE "${CMAKE_INSTALL_PREFIX}/.cmake_write_test")
+  file(WRITE "${TEST_FILE}" "") # Attempt to write the test file
+  if(EXISTS "${TEST_FILE}")
     message(STATUS "Write access to ${CMAKE_INSTALL_PREFIX} confirmed.")
-    file(REMOVE "${CMAKE_INSTALL_PREFIX}/.cmake_write_test")
+    file(REMOVE "${TEST_FILE}") # Cleanup the test file
   else()
     set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/mst_telemetry" CACHE PATH "Fallback installation directory prefix" FORCE)
     message(STATUS "No write access to ${CMAKE_INSTALL_PREFIX}, installing to $HOME/mst_telemetry instead.")
