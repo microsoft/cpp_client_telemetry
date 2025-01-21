@@ -6,18 +6,24 @@ if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
 endif()
 
+
 if(UNIX)
-  # Test write access to CMAKE_INSTALL_PREFIX
   set(TEST_FILE "${CMAKE_INSTALL_PREFIX}/.cmake_write_test")
-  file(WRITE "${TEST_FILE}" "") # Attempt to write the test file
+  
+  # Attempt to write a test file
+  file(WRITE "${TEST_FILE}" "" OUTPUT_VARIABLE WRITE_RESULT ERROR_VARIABLE WRITE_ERROR)
+  
   if(EXISTS "${TEST_FILE}")
     message(STATUS "Write access to ${CMAKE_INSTALL_PREFIX} confirmed.")
-    file(REMOVE "${TEST_FILE}") # Cleanup the test file
+    file(REMOVE "${TEST_FILE}") # Clean up the test file
   else()
+    # Fallback to a writable directory (e.g., user's home)
     set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/mst_telemetry" CACHE PATH "Fallback installation directory prefix" FORCE)
-    message(STATUS "No write access to ${CMAKE_INSTALL_PREFIX}, installing to $HOME/mst_telemetry instead.")
+    message(STATUS "No write access to ${CMAKE_INSTALL_PREFIX}, using $ENV{HOME}/mst_telemetry instead.")
   endif()
 endif()
+
+
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
