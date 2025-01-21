@@ -70,7 +70,11 @@ endif()
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
-     ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyGuardTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/InitializationConfigurationTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyConcernEventTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyConcernMetadataProviderTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyGuardTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/SystematicSamplerTests.cpp
   )
 endif()
 
