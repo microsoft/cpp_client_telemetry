@@ -128,7 +128,7 @@ class SocketAddr
 #ifdef _WIN32
         INT addrlen = sizeof(m_data);
         WCHAR buf[200];
-        for(int i = 0; i < sizeof(buf) && addr[i]; i++)
+        for(size_t i = 0; i < sizeof(buf) && addr[i]; i++)
         {
             buf[i] = addr[i];
         }
