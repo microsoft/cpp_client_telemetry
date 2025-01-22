@@ -12,6 +12,7 @@
 #include "mat.h"
 #include "pal/TaskDispatcher_CAPI.hpp"
 #include "utils/Utils.hpp"
+#include "DataViewer_CAPI.hpp"
 
 #include "pal/PAL.hpp"
 
@@ -66,14 +67,21 @@ void remove_client(evt_handle_t handle)
         return ENOENT;                                          \
     };
 
+typedef struct _evt_open_with_params_set_t
+{
+    http_send_fn_t httpSendFn;
+    http_cancel_fn_t httpCancelFn;
+    task_dispatcher_queue_fn_t taskDispatcherQueueFn;
+    task_dispatcher_cancel_fn_t taskDispatcherCancelFn;
+    task_dispatcher_join_fn_t taskDispatcherJoinFn;
+    dataviewer_callback_fn_t dataViewerCallbackFn;
+} evt_open_with_params_set_t;
+
+
 evt_status_t mat_open_core(
     evt_context_t *ctx,
     const char* config,
-    http_send_fn_t httpSendFn,
-    http_cancel_fn_t httpCancelFn,
-    task_dispatcher_queue_fn_t taskDispatcherQueueFn,
-    task_dispatcher_cancel_fn_t taskDispatcherCancelFn,
-    task_dispatcher_join_fn_t taskDispatcherJoinFn)
+    evt_open_with_params_set_t openParamsSet)
 {
     if ((config == nullptr) || (config[0] == 0))
     {
@@ -133,11 +141,11 @@ evt_status_t mat_open_core(
 
 #if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
     // Create custom HttpClient
-    if (httpSendFn != nullptr && httpCancelFn != nullptr)
+    if (openParamsSet.httpSendFn != nullptr && openParamsSet.httpCancelFn != nullptr)
     {
         try
         {
-            auto http = std::make_shared<HttpClient_CAPI>(httpSendFn, httpCancelFn);
+            auto http = std::make_shared<HttpClient_CAPI>(openParamsSet.httpSendFn, openParamsSet.httpCancelFn);
             clients[code].http = http;
             clients[code].config.AddModule(CFG_MODULE_HTTP_CLIENT, http);
         }
@@ -148,11 +156,11 @@ evt_status_t mat_open_core(
     }
 #endif
     // Create custom worker thread
-    if (taskDispatcherQueueFn != nullptr && taskDispatcherCancelFn != nullptr && taskDispatcherJoinFn != nullptr)
+    if (openParamsSet.taskDispatcherQueueFn != nullptr && openParamsSet.taskDispatcherCancelFn != nullptr && openParamsSet.taskDispatcherJoinFn != nullptr)
     {
         try
         {
-            auto taskDispatcher = std::make_shared<PAL::TaskDispatcher_CAPI>(taskDispatcherQueueFn, taskDispatcherCancelFn, taskDispatcherJoinFn);
+            auto taskDispatcher = std::make_shared<PAL::TaskDispatcher_CAPI>(openParamsSet.taskDispatcherQueueFn, openParamsSet.taskDispatcherCancelFn, openParamsSet.taskDispatcherJoinFn);
             clients[code].taskDispatcher = taskDispatcher;
             clients[code].config.AddModule(CFG_MODULE_TASK_DISPATCHER, taskDispatcher);
         }
@@ -160,6 +168,12 @@ evt_status_t mat_open_core(
         {
             return EFAULT;
         }
+    }
+
+    // Add data viewer module.
+    if (openParamsSet.dataViewerCallbackFn != nullptr)
+    {
+        clients[code].config.AddModule(CFG_MODULE_DATA_VIEWER, std::make_shared<DataViewer_CAPI>(openParamsSet.dataViewerCallbackFn));
     }
 
     status_t status = static_cast<status_t>(EFAULT);
@@ -183,7 +197,8 @@ evt_status_t mat_open(evt_context_t *ctx)
     };
 
     char* config = static_cast<char *>(ctx->data);
-    return mat_open_core(ctx, config, nullptr, nullptr, nullptr, nullptr, nullptr);
+    evt_open_with_params_set_t openParamsSet = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+    return mat_open_core(ctx, config, openParamsSet);
 }
 
 evt_status_t mat_open_with_params(evt_context_t *ctx)
@@ -199,35 +214,40 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
         // Invalid param data
         return EFAULT;
     }
-
-    http_send_fn_t httpSendFn = nullptr;
-    http_cancel_fn_t httpCancelFn = nullptr;
-    task_dispatcher_queue_fn_t taskDispatcherQueueFn = nullptr;
-    task_dispatcher_cancel_fn_t taskDispatcherCancelFn = nullptr;
-    task_dispatcher_join_fn_t taskDispatcherJoinFn = nullptr;
+    
+    evt_open_with_params_set_t openParamsSet;
+    openParamsSet.httpSendFn = nullptr;
+    openParamsSet.httpCancelFn = nullptr;
+    openParamsSet.taskDispatcherQueueFn = nullptr;
+    openParamsSet.taskDispatcherCancelFn = nullptr;
+    openParamsSet.taskDispatcherJoinFn = nullptr;
+    openParamsSet.dataViewerCallbackFn = nullptr;
 
     for (int32_t i = 0; i < data->paramsCount; ++i) {
         const evt_open_param_t& param = data->params[i];
         switch (param.type) {
             case OPEN_PARAM_TYPE_HTTP_HANDLER_SEND:
-                httpSendFn = reinterpret_cast<http_send_fn_t>(param.data);
+                openParamsSet.httpSendFn = reinterpret_cast<http_send_fn_t>(param.data);
                 break;
             case OPEN_PARAM_TYPE_HTTP_HANDLER_CANCEL:
-                httpCancelFn = reinterpret_cast<http_cancel_fn_t>(param.data);
+                openParamsSet.httpCancelFn = reinterpret_cast<http_cancel_fn_t>(param.data);
                 break;
             case OPEN_PARAM_TYPE_TASK_DISPATCHER_QUEUE:
-                taskDispatcherQueueFn = reinterpret_cast<task_dispatcher_queue_fn_t>(param.data);
+                openParamsSet.taskDispatcherQueueFn = reinterpret_cast<task_dispatcher_queue_fn_t>(param.data);
                 break;
             case OPEN_PARAM_TYPE_TASK_DISPATCHER_CANCEL:
-                taskDispatcherCancelFn = reinterpret_cast<task_dispatcher_cancel_fn_t>(param.data);
+                openParamsSet.taskDispatcherCancelFn = reinterpret_cast<task_dispatcher_cancel_fn_t>(param.data);
                 break;
             case OPEN_PARAM_TYPE_TASK_DISPATCHER_JOIN:
-                taskDispatcherJoinFn = reinterpret_cast<task_dispatcher_join_fn_t>(param.data);
+                openParamsSet.taskDispatcherJoinFn = reinterpret_cast<task_dispatcher_join_fn_t>(param.data);
+                break;
+            case OPEN_PARAM_TYPE_DATA_VIEWER:
+                openParamsSet.dataViewerCallbackFn = reinterpret_cast<dataviewer_callback_fn_t>(param.data);
                 break;
         }
     }
 
-    return mat_open_core(ctx, data->config, httpSendFn, httpCancelFn, taskDispatcherQueueFn, taskDispatcherCancelFn, taskDispatcherJoinFn);
+    return mat_open_core(ctx, data->config, openParamsSet);
 }
 
 /**

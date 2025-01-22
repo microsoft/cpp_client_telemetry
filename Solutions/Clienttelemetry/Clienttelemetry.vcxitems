@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -20,6 +20,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\capi.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\CorrelationVector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewer_CAPI.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\ILogConfiguration.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogConfiguration.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AllowedLevelsCollection.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\AuthTokensController.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\ContextFieldsProvider.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\DataViewer_CAPI.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\IRuntimeConfig.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\Logger.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\api\LogManagerFactory.hpp" />
