@@ -28,6 +28,9 @@ jobs:
         simulator: ["'iPhone 8'", "'iPad Air (3rd generation)'"]
     runs-on: ${{ matrix.os }}
     steps:
+    - name: Grant write permissions to /usr/local
+      run: |
+        sudo chown -R $USER:staff /usr/local
     - uses: actions/checkout@v2
       with:
         submodules: 'true'
