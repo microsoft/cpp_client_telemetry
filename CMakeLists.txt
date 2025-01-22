@@ -7,20 +7,41 @@ if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
 endif()
 
 
-if(UNIX)
-  set(TEST_FILE "${CMAKE_INSTALL_PREFIX}/.cmake_write_test")
-  
-  # Attempt to write a test file
-  file(WRITE "${TEST_FILE}" "" OUTPUT_VARIABLE WRITE_RESULT ERROR_VARIABLE WRITE_ERROR)
-  
-  if(EXISTS "${TEST_FILE}")
-    message(STATUS "Write access to ${CMAKE_INSTALL_PREFIX} confirmed.")
-    file(REMOVE "${TEST_FILE}") # Clean up the test file
-  else()
-    # Fallback to a writable directory (e.g., user's home)
-    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/mst_telemetry" CACHE PATH "Fallback installation directory prefix" FORCE)
-    message(STATUS "No write access to ${CMAKE_INSTALL_PREFIX}, using $ENV{HOME}/mst_telemetry instead.")
-  endif()
+# Set installation prefix for Unix systems (macOS and Linux)
+if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
+    # First try /usr/local
+    set(TEST_FILE "/usr/local/.ci_write_test")
+    
+    # Try to create a test file
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E touch "${TEST_FILE}"
+        RESULT_VARIABLE WRITE_RESULT
+    )
+    
+    # Check if write was successful
+    if(WRITE_RESULT EQUAL 0)
+        # We have write access to /usr/local
+        set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+        message(STATUS "Using /usr/local as installation prefix (write access confirmed)")
+        # Clean up test file
+        execute_process(COMMAND ${CMAKE_COMMAND} -E remove "${TEST_FILE}")
+    else()
+        # No write access, fall back to HOME directory
+        set(FALLBACK_DIR "$ENV{HOME}/mst_telemetry")
+        
+        # Create the mst_telemetry directory
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${FALLBACK_DIR}"
+            RESULT_VARIABLE CREATE_DIR_RESULT
+        )
+        
+        if(NOT CREATE_DIR_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to create directory: ${FALLBACK_DIR}")
+        endif()
+        
+        set(CMAKE_INSTALL_PREFIX "${FALLBACK_DIR}" CACHE PATH "Installation directory prefix" FORCE)
+        message(STATUS "No write access to /usr/local, created and using ${FALLBACK_DIR} instead")
+    endif()
 endif()
 
 
