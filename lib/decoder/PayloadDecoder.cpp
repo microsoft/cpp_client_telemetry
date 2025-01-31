@@ -130,6 +130,12 @@ namespace clienttelemetry {
                 return true;
             }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4866) 
+// In C++17 left-to-right evaluation order for operands of operator[] is not guaranteed when the argument's copy constructor is run.
+// Evalutation order isn't not relied upon here, disabling warning.
+#endif // _MSC_VER
             void to_json(json& j, const Data& d)
             {
                 for (const auto &kv : d.properties)
@@ -230,6 +236,9 @@ namespace clienttelemetry {
                     }
                 }
             }
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif  // _MSC_VER
 
             void to_json(json& j, const Record& r)
             {
