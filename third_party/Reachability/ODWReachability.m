@@ -33,6 +33,7 @@
 #import <arpa/inet.h>
 #import <ifaddrs.h>
 #import <netdb.h>
+#import <Foundation/Foundation.h>
 
 
 NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityChangedNotification";
@@ -53,7 +54,7 @@ NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityC
 static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
 {
     return [NSString stringWithFormat:@"%c%c %c%c%c%c%c%c%c",
-#if	TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
             (flags & kSCNetworkReachabilityFlagsIsWWAN)               ? 'W' : '-',
 #else
             'X',
@@ -86,16 +87,46 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 @implementation ODWReachability
 
+static int kTimeoutDurationInSeconds = 10;
+
 #pragma mark - Class Constructor Methods
 
 +(ODWReachability*)reachabilityWithHostName:(NSString*)hostname
 {
+    if (hostname == nil || [hostname length] == 0)
+    {
+        NSLog(@"Invalid hostname");
+        return nil;
+    }
     return [ODWReachability reachabilityWithHostname:hostname];
 }
 
-+(ODWReachability*)reachabilityWithHostname:(NSString*)hostname
++(instancetype)reachabilityWithHostname:(NSString*)hostname
 {
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        // Use URLSession for macOS 10.14 or higher
+        NSString *formattedHostname = hostname;
+        if (![formattedHostname hasPrefix:@"https://"] && ![formattedHostname hasPrefix:@"http://"]) {
+            formattedHostname = [NSString stringWithFormat:@"https://%@", hostname];
+        }
+        NSURL *url = [NSURL URLWithString:formattedHostname];
+
+        NSURLSession *session = [NSURLSession sharedSession];
+        __block ODWReachability *reachabilityInstance = [[self alloc] init];
+        reachabilityInstance.url = url;
+        NSURLSessionDataTask *dataTask = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+            reachabilityInstance = [self handleReachabilityResponse:response error:error url:reachabilityInstance.url];
+        }];
+        [dataTask resume];
+        return reachabilityInstance;
+    }
+
+    // Use SCNetworkReachability for macOS 10.14 or lower
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [hostname UTF8String]);
+#pragma clang diagnostic pop
     if (ref)
     {
         id reachability = [[self alloc] initWithReachabilityRef:ref];
@@ -108,7 +139,31 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 +(ODWReachability *)reachabilityWithAddress:(void *)hostAddress
 {
+    if (hostAddress == NULL) {
+        NSLog(@"Invalid address");
+        return nil;
+    }
+
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        // Use URLSession for macOS 10.14 or higher
+        NSString *addressString = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)hostAddress)->sin_addr)];
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://%@", addressString]];
+        NSURLSession *session = [NSURLSession sharedSession];
+        __block ODWReachability *reachabilityInstance = [[self alloc] init];
+        reachabilityInstance.url = url;
+        NSURLSessionDataTask *dataTask = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+            reachabilityInstance = [self handleReachabilityResponse:response error:error url:reachabilityInstance.url];
+        }];
+        [dataTask resume];
+        return reachabilityInstance; // Return the instance after resuming the data task
+    }
+    
+    // Use SCNetworkReachability for macOS 10.14 or lower
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (const struct sockaddr*)hostAddress);
+#pragma clang diagnostic pop
     if (ref)
     {
         id reachability = [[self alloc] initWithReachabilityRef:ref];
@@ -118,6 +173,33 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
     return nil;
 }
+
++(ODWReachability *)handleReachabilityResponse:(NSURLResponse *)response error:(NSError *)error url:(NSURL *)url
+{
+    __block ODWReachability *reachabilityInstance = nil;
+
+    if (error == nil) {
+        // Handle successful reachability
+        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+        if (httpResponse.statusCode == 200)
+        {
+            NSLog(@"Reachability success: %@", url);
+            reachabilityInstance = [[self alloc] init];
+            reachabilityInstance.url = url;
+        }
+        else
+        {
+            NSLog(@"Reachability failed with status code: %ld", (long)httpResponse.statusCode);
+        }
+        return reachabilityInstance;
+    }
+    
+    // Handle reachability failure
+    NSLog(@"Reachability error: %@", error.localizedDescription);
+    
+    return nil;
+}
+
 
 +(ODWReachability *)reachabilityForInternetConnection
 {
@@ -161,6 +243,18 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
     return self;
 }
 
++(void)setTimeoutDurationInSeconds:(int)timeoutDuration
+{
+    if (timeoutDuration > 0)
+    {
+        kTimeoutDurationInSeconds = timeoutDuration;
+    }
+    else
+    {
+        NSLog(@"Timeout duration must be positive.");
+    }
+}
+
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-missing-super-calls" // Not fixing third_party components.
@@ -176,8 +270,8 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
         self.reachabilityRef = nil;
     }
 
-	self.reachableBlock          = nil;
-	self.unreachableBlock        = nil;
+    self.reachableBlock          = nil;
+    self.unreachableBlock        = nil;
     self.reachabilitySerialQueue = nil;
 }
 
@@ -194,34 +288,56 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 -(BOOL)startNotifier
 {
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        // Use URLSession for macOS 10.14 or higher
+        NSURLSession *session = [NSURLSession sharedSession];
+        NSURLSessionDataTask *task = [session dataTaskWithURL:[self url] completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+            if (error) {
+                NSLog(@"URLSession failed: %@", error.localizedDescription);
+                self.reachabilityObject = nil;
+            } else {
+                self.reachabilityObject = self;
+                [[NSNotificationCenter defaultCenter] postNotificationName:kNetworkReachabilityChangedNotification object:self];
+            }
+        }];
+        if (task) {
+            [task resume];
+            return YES;
+        } else {
+            NSLog(@"Failed to create URLSessionDataTask");
+            return NO;
+        }
+    }
+    
+    // Use SCNetworkReachability for macOS 10.14 or lower
     // allow start notifier to be called multiple times
-    if(self.reachabilityObject && (self.reachabilityObject == self))
+    if (self.reachabilityObject && (self.reachabilityObject == self))
     {
         return YES;
     }
 
-
-    SCNetworkReachabilityContext    context = { 0, NULL, NULL, NULL, NULL };
+    SCNetworkReachabilityContext context = { 0, NULL, NULL, NULL, NULL };
     context.info = (__bridge void *)self;
-
-    if(SCNetworkReachabilitySetCallback(self.reachabilityRef, TMReachabilityCallback, &context))
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    if (SCNetworkReachabilitySetCallback(self.reachabilityRef, TMReachabilityCallback, &context))
     {
-        // Set it as our reachability queue, which will retain the queue
-        if(SCNetworkReachabilitySetDispatchQueue(self.reachabilityRef, self.reachabilitySerialQueue))
+        if (SCNetworkReachabilitySetDispatchQueue(self.reachabilityRef, self.reachabilitySerialQueue))
+#pragma clang diagnostic pop
         {
-            // this should do a retain on ourself, so as long as we're in notifier mode we shouldn't disappear out from under ourselves
-            // woah
             self.reachabilityObject = self;
             return YES;
-        }
-        else
-        {
+        } else {
 #ifdef DEBUG
             NSLog(@"SCNetworkReachabilitySetDispatchQueue() failed: %s", SCErrorString(SCError()));
 #endif
-
-            // UH OH - FAILURE - stop any callbacks!
-            SCNetworkReachabilitySetCallback(self.reachabilityRef, NULL, NULL);
+                
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+                // UH OH - FAILURE - stop any callbacks!
+                SCNetworkReachabilitySetCallback(self.reachabilityRef, NULL, NULL);
+#pragma clang diagnostic pop
         }
     }
     else
@@ -238,14 +354,24 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 -(void)stopNotifier
 {
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        // Use URLSession for macOS 10.14 or higher, no specific action is needed for URLSession
+        self.reachabilityObject = nil;
+    }
+
+    // Use SCNetworkReachability for macOS 10.14 or lower
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     // First stop, any callbacks!
     SCNetworkReachabilitySetCallback(self.reachabilityRef, NULL, NULL);
 
     // Unregister target from the GCD serial dispatch queue.
     SCNetworkReachabilitySetDispatchQueue(self.reachabilityRef, NULL);
-
+#pragma clang diagnostic pop
     self.reachabilityObject = nil;
 }
+
 
 #pragma mark - reachability tests
 
@@ -269,7 +395,7 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
     if( (flags & testcase) == testcase )
         connectionUP = NO;
 
-#if	TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
     if(flags & kSCNetworkReachabilityFlagsIsWWAN)
     {
         // We're on 3G.
@@ -286,17 +412,27 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 -(BOOL)isReachable
 {
-    SCNetworkReachabilityFlags flags;
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        return [self checkNetworkReachability:true];
+    }
 
+    // for macOS 10.14 or lower
+    SCNetworkReachabilityFlags flags;
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     if(!SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
         return NO;
+#pragma clang diagnostic pop
 
     return [self isReachableWithFlags:flags];
 }
 
+
 -(BOOL)isReachableViaWWAN
 {
-#if	TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 
     SCNetworkReachabilityFlags flags = 0;
 
@@ -319,14 +455,23 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 -(BOOL)isReachableViaWiFi
 {
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        return [self checkNetworkReachability:true];
+    }
+    
+    // for macOS 10.14 or lower
     SCNetworkReachabilityFlags flags = 0;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     if(SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic pop
     {
         // Check we're reachable
         if((flags & kSCNetworkReachabilityFlagsReachable))
         {
-#if	TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
             // Check we're NOT on WWAN
             if((flags & kSCNetworkReachabilityFlagsIsWWAN))
             {
@@ -350,43 +495,73 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 -(BOOL)connectionRequired
 {
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        return [self checkNetworkReachability:false];
+    }
+    
+    // for macOS 10.14 or lower
     SCNetworkReachabilityFlags flags;
 
-	if(SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    if(SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic pop
     {
-		return (flags & kSCNetworkReachabilityFlagsConnectionRequired);
-	}
+        return (flags & kSCNetworkReachabilityFlagsConnectionRequired);
+    }
 
     return NO;
 }
 
+
 // Dynamic, on demand connection?
 -(BOOL)isConnectionOnDemand
 {
-	SCNetworkReachabilityFlags flags;
-
-	if (SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
-		return ((flags & kSCNetworkReachabilityFlagsConnectionRequired) &&
-				(flags & (kSCNetworkReachabilityFlagsConnectionOnTraffic | kSCNetworkReachabilityFlagsConnectionOnDemand)));
-	}
+        return [self checkNetworkReachability:true];
+    }
 
-	return NO;
+    // for macOS 10.14 or lower
+    SCNetworkReachabilityFlags flags;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    if (SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic pop
+    {
+        return ((flags & kSCNetworkReachabilityFlagsConnectionRequired) &&
+                (flags & (kSCNetworkReachabilityFlagsConnectionOnTraffic | kSCNetworkReachabilityFlagsConnectionOnDemand)));
+    }
+
+    return NO;
 }
+
 
 // Is user intervention required?
 -(BOOL)isInterventionRequired
 {
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        return [self checkNetworkReachability:false];
+    }
+    
+    // for macOS 10.14 or lower
     SCNetworkReachabilityFlags flags;
 
-	if (SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    if (SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic pop
     {
-		return ((flags & kSCNetworkReachabilityFlagsConnectionRequired) &&
-				(flags & kSCNetworkReachabilityFlagsInterventionRequired));
-	}
+        return ((flags & kSCNetworkReachabilityFlagsConnectionRequired) &&
+                (flags & kSCNetworkReachabilityFlagsInterventionRequired));
+    }
 
-	return NO;
+    return NO;
 }
+
 
 
 #pragma mark - reachability status stuff
@@ -398,7 +573,7 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
         if([self isReachableViaWiFi])
             return ReachableViaWiFi;
 
-#if	TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
         return ReachableViaWWAN;
 #endif
     }
@@ -408,9 +583,32 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 -(SCNetworkReachabilityFlags)reachabilityFlags
 {
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        __block SCNetworkReachabilityFlags flags = 0;
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+                
+        NSURLSession *session = [NSURLSession sharedSession];
+        NSURLSessionDataTask *task = [session dataTaskWithURL:[self url] completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (error == nil && data != nil) {
+            flags = kSCNetworkReachabilityFlagsReachable;
+        }
+            dispatch_semaphore_signal(semaphore);
+        }];
+                
+        [task resume];
+        dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
+                
+        return flags;
+    }
+
+    // for macOS 10.14 or lower
     SCNetworkReachabilityFlags flags = 0;
 
-    if(SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    if (SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic pop
     {
         return flags;
     }
@@ -420,24 +618,48 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
 
 -(NSString*)currentReachabilityString
 {
-	ODWNetworkStatus temp = [self currentReachabilityStatus];
+    ODWNetworkStatus temp = [self currentReachabilityStatus];
 
-	if(temp == ReachableViaWWAN)
-	{
+    if(temp == ReachableViaWWAN)
+    {
         // Updated for the fact that we have CDMA phones now!
-		return NSLocalizedString(@"Cellular", @"");
-	}
-	if (temp == ReachableViaWiFi)
-	{
-		return NSLocalizedString(@"WiFi", @"");
-	}
+        return NSLocalizedString(@"Cellular", @"");
+    }
+    if (temp == ReachableViaWiFi)
+    {
+        return NSLocalizedString(@"WiFi", @"");
+    }
 
-	return NSLocalizedString(@"No Connection", @"");
+    return NSLocalizedString(@"No Connection", @"");
 }
 
 -(NSString*)currentReachabilityFlags
 {
     return reachabilityFlags([self reachabilityFlags]);
+}
+
+- (SCNetworkReachabilityFlags)checkNetworkReachability:(BOOL)checkData
+{
+    __block BOOL connection = NO;
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+    
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *task = [session dataTaskWithURL:[self url] completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (error == nil && !checkData)
+        {
+            connection = YES;
+        }
+        else if (error == nil && checkData && data != nil)
+        {
+            connection = YES;
+        }
+        dispatch_semaphore_signal(semaphore);
+    }];
+    
+    [task resume];
+    dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
+    
+    return connection;
 }
 
 #pragma mark - Callback function calls this method
