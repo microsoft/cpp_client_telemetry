@@ -302,7 +302,7 @@ include_directories(lib/pal)
 #endif()
 
 # Include repo root to allow includes of sqlite, zlib, and nlhomann
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR})
 
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)
