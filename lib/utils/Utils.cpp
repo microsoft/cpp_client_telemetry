@@ -125,10 +125,15 @@ namespace MAT_NS_BEGIN {
     std::string GetTempDirectory()
     {
 #ifdef _WIN32
+        auto lpGetTempPathW = reinterpret_cast<decltype(&::GetTempPathW)>(GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetTempPath2W"));
+        if (lpGetTempPathW == NULL)
+        {
+            lpGetTempPathW = ::GetTempPathW;
+        }
         /* UTF-8 temp directory for Win32 Desktop apps */
         std::string path = "";
         wchar_t lpTempPathBuffer[MAX_PATH + 1] = { 0 };
-        if (::GetTempPathW(MAX_PATH, lpTempPathBuffer))
+        if (lpGetTempPathW(MAX_PATH, lpTempPathBuffer))
         {
             path = to_utf8_string(lpTempPathBuffer);
         }
