@@ -82,9 +82,9 @@ if(APPLE)
 
     if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
       set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-      if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
-        # iOS arm64 simulator is supported starting BigSur
-        # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
+      if (${IOS_PLAT} STREQUAL "iphonesimulator")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
       else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
@@ -345,6 +345,9 @@ include_directories(lib/pal)
 #  enable_testing()
 #  add_subdirectory(bondlite/tests)
 #endif()
+
+# Include repo root to allow includes of sqlite, zlib, and nlohmann
+include_directories(${CMAKE_SOURCE_DIR})
 
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)
