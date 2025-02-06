@@ -44,7 +44,7 @@ MAT_NS_END
 #endif
 
 /* PayloadDecoder functionality requires json.hpp library */
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 /* Bond definition of CsProtocol::Record is auto-generated and could be different for each SDK version */
 #include "bond/All.hpp"
