@@ -40,16 +40,11 @@ if(BUILD_IOS)
   set(IOS_PLATFORM "iphonesimulator")
   set(CMAKE_SYSTEM_PROCESSOR x86_64)
   execute_process(COMMAND xcodebuild -version -sdk \${IOS_PLATFORM} Path
-    OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
+    OUTPUT_VARIABLE CMAKE_OSX_SYSROOT_OUT
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
+  set(CMAKE_OSX_SYSROOT \${CMAKE_OSX_SYSROOT_OUT} CACHE STRING "Force set of the sysroot for iOS" FORCE)
   message("-- CMAKE_OSX_SYSROOT       \${CMAKE_OSX_SYSROOT}")
-get_property(is_cached CACHE CMAKE_OSX_SYSROOT SET)
-  if(is_cached)
-      message(STATUS "CMAKE_OSX_SYSROOT is a cached variable.")
-  else()
-      message(STATUS "CMAKE_OSX_SYSROOT is NOT cached.")
-  endif()
 elseif(\${ARCH} STREQUAL "arm64")
   set(CMAKE_C_FLAGS "\${CMAKE_C_FLAGS} -arch arm64")
   set(CMAKE_CXX_FLAGS "\${CMAKE_CXX_FLAGS} -arch arm64")
