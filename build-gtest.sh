@@ -16,7 +16,7 @@ fi
 
 cd `dirname $0`
 pwd
-ls third_party
+ls third_party/googletest
 GTEST_PATH=third_party/googletest
 if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
   echo Clone googletest from google/googletest:master ...
