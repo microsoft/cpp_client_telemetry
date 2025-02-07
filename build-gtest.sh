@@ -29,7 +29,8 @@ fi
 echo "Add ios and arm64 build steps for googletest"
 cat > $GTEST_PATH/CMakeLists_temp.txt << EOF
 # If building for iOS, set all the iOS options
-if(IOS_BUILD) 
+if(BUILD_IOS)
+  message("-- Building for iOS simulator")
   set(TARGET_ARCH "APPLE") 
   set(IOS True)
   set(APPLE True)
