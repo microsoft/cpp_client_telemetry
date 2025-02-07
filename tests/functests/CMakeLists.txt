@@ -59,10 +59,10 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # Link against prebuilt libraries on Windows
   message("--- WIN32: Linking against prebuilt libraries")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
+  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
-  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
+  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
   target_link_libraries(FuncTests
   	mat
@@ -80,7 +80,8 @@ else()
   elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
   else()
-    set (SQLITE3_LIB "sqlite3")
+    find_package(SQLite3 REQUIRED)
+    set (SQLITE3_LIB SQLite::SQLite3)
   endif()
 
   # Find zlib
@@ -120,7 +121,7 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
   )
 
-  target_link_libraries(FuncTests 
+  target_link_libraries(FuncTests
     ${LIBGTEST}
     ${LIBGMOCK}
     mat
