@@ -74,8 +74,7 @@ cmake -Dgtest_build_samples=OFF \
       ..
 make
 
-echo 'lipo /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/third_party/googletest/build/lib/libgtest.a'
-lipo /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/third_party/googletest/build/lib/libgtest.a
+lipo -info /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/third_party/googletest/build/lib/libgtest.a
 popd
 # CTEST_OUTPUT_ON_FAILURE=1 make test
 # make install
