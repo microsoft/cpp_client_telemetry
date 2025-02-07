@@ -7,7 +7,10 @@ SKU=${1:-release}
 SIMULATOR=${2:-iPhone 8}
 
 set -e
+
+echo "Building build-ios.sh"
 ./build-ios.sh ${SKU}
+echo "End of build-ios.sh"
 
 lipo -info /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/out/lib/libmat.a
 
