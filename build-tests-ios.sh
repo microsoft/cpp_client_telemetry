@@ -9,6 +9,8 @@ SIMULATOR=${2:-iPhone 8}
 set -e
 ./build-ios.sh ${SKU}
 
+lipo -info /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/out/lib/libmat.a
+
 cd tests/unittests
 xcodebuild test -scheme iOSUnitTests -destination "platform=iOS Simulator,name=$SIMULATOR"
 
