@@ -69,6 +69,7 @@ cmake -Dgtest_build_samples=OFF \
       -DCMAKE_CXX_FLAGS="-fPIC $CXX_FLAGS" \
       -DBUILD_IOS=$IOS_BUILD \
       -DARCH=$ARCH \
+      -DCMAKE_SYSTEM_NAME=iOS \
       ..
 make
 
