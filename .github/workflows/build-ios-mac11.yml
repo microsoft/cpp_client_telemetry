@@ -29,7 +29,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: 'true'
+        submodules: true
+        depth: 1
       continue-on-error: true
     - name: build
       run: export IOS_DEPLOYMENT_TARGET=11.0 && ./build-tests-ios.sh ${{ matrix.config }} ${{ matrix.simulator }}
