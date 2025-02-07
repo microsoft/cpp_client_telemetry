@@ -30,7 +30,7 @@ echo "Add ios and arm64 build steps for googletest"
 cat > $GTEST_PATH/CMakeLists_temp.txt << EOF
 # If building for iOS, set all the iOS options
 if(BUILD_IOS)
-  message("-- Building for iOS simulator")
+  message("-- Building for iOS simulator..")
   set(TARGET_ARCH "APPLE") 
   set(IOS True)
   set(APPLE True)
@@ -44,6 +44,8 @@ if(BUILD_IOS)
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
   message("-- CMAKE_OSX_SYSROOT       \${CMAKE_OSX_SYSROOT}")
+  message("-- CMAKE_OSX_ARCHITECTURES      \${CMAKE_OSX_ARCHITECTURES}")
+  set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Architectures for iOS device")
 elseif(\${ARCH} STREQUAL "arm64")
   set(CMAKE_C_FLAGS "\${CMAKE_C_FLAGS} -arch arm64")
   set(CMAKE_CXX_FLAGS "\${CMAKE_CXX_FLAGS} -arch arm64")
