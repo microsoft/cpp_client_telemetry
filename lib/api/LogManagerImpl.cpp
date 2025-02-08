@@ -749,6 +749,7 @@ namespace MAT_NS_BEGIN
 
     IAuthTokensController* LogManagerImpl::GetAuthTokensController()
     {
+        LOCKGUARD(m_lock);
         return &m_authTokensController;
     }
 

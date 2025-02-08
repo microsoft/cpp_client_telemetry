@@ -24,6 +24,7 @@ namespace MAT_NS_BEGIN {
 
     status_t  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)
     {
+        LOCKGUARD(m_lock);
         if (nullptr != tokenValue)
         {
             if (type == TicketType::TicketType_MSA_Device ||
@@ -64,16 +65,19 @@ namespace MAT_NS_BEGIN {
 
     std::vector<std::string>&  AuthTokensController::GetTickets()
     {
+        LOCKGUARD(m_lock);
         return m_tickets;
     }
 
     std::map<TicketType, std::string>&  AuthTokensController::GetDeviceTokens()
     {
+        LOCKGUARD(m_lock);
         return m_deviceTokens;
     }
 
     std::map<TicketType, std::string>&  AuthTokensController::GetUserTokens()
     {
+        LOCKGUARD(m_lock);
         return m_userTokens;
     }
 
