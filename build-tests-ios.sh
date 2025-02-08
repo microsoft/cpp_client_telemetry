@@ -15,6 +15,9 @@ echo "End of build-ios.sh"
 # dyld_info /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/out/lib/libmat.a
 
 cd tests/unittests
+
+xcodebuild	-showdestinations
+echo 'End of xcodebuild -showdestinations'
 xcodebuild test -scheme iOSUnitTests -destination "platform=iOS Simulator,OS=18.2,name=$SIMULATOR" -verbose
 
 cd ../functests
