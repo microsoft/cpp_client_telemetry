@@ -72,7 +72,7 @@ cmake -Dgtest_build_samples=OFF \
       ..
 make VERBOSE=1
 
-lipo -info /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/third_party/googletest/build/lib/libgtest.a
+dyld-info /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/third_party/googletest/build/lib/libgtest.a
 popd
 # CTEST_OUTPUT_ON_FAILURE=1 make test
 # make install
