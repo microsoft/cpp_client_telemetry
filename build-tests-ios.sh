@@ -12,7 +12,7 @@ echo "Building build-ios.sh"
 ./build-ios.sh ${SKU}
 echo "End of build-ios.sh"
 
-dyldinfo /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/out/lib/libmat.a
+# dyld_info /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/out/lib/libmat.a
 
 cd tests/unittests
 xcodebuild test -scheme iOSUnitTests -destination "platform=iOS Simulator,name=$SIMULATOR" -verbose
