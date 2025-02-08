@@ -317,6 +317,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					../,
+					../..,
 					../../lib/,
 					../../lib/include/,
 					../../lib/include/mat/,
@@ -380,6 +381,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					../,
+					../..,
 					../../lib/,
 					../../lib/include/,
 					../../lib/include/mat/,
