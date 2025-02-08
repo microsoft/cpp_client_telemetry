@@ -49,6 +49,8 @@ endif()
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
+message("-- functests: CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+
 include_directories( ${CMAKE_SOURCE_DIR} )
 
 if(BUILD_IOS)
