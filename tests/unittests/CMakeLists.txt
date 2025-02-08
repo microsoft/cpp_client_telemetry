@@ -159,6 +159,9 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
   )
 
+  message("GTEST: ${LIBGTEST}")
+  message("GMOCK: ${LIBGMOCK}")
+
   target_link_libraries(UnitTests 
     ${LIBGTEST}
     ${LIBGMOCK}
