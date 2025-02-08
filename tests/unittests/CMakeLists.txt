@@ -147,6 +147,8 @@ else()
 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/ )
 
+  set(CMAKE_FIND_DEBUG_MODE 1)
+
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
