@@ -18,6 +18,8 @@ cd tests/unittests
 
 xcodebuild	-scheme iOSUnitTests -showdestinations
 echo 'End of xcodebuild -showdestinations'
+xcodebuild -showsdks -json
+echo 'End of xcodebuild -showsdks -json'
 xcodebuild test -scheme iOSUnitTests -destination "platform=iOS Simulator,OS=18.2,name=$SIMULATOR" -verbose
 
 cd ../functests
