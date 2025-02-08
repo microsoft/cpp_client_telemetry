@@ -23,9 +23,9 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-13, macos-15]
+        os: [macos-15]
         config: [release, debug]
-        simulator: ["'iPhone 15'", "'iPad Pro (11-inch) (4th generation)'"]
+        simulator: ["'iPhone 16'", "'iPad Air 11-inch (M2)'"]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Grant write permissions to /usr/local
