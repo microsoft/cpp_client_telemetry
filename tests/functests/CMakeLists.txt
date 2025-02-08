@@ -63,7 +63,7 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
   # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
-  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
+  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib ${CMAKE_SOURCE_DIR})
   target_link_libraries(FuncTests
   	mat
 	wininet.lib
