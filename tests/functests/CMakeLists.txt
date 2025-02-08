@@ -49,6 +49,8 @@ endif()
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
+include_directories( ${CMAKE_SOURCE_DIR} )
+
 if(BUILD_IOS)
   add_library(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
 else()
@@ -63,7 +65,7 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
   # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
-  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib ${CMAKE_SOURCE_DIR})
+  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib)
   target_link_libraries(FuncTests
   	mat
 	wininet.lib
