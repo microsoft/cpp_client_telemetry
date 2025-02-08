@@ -35,9 +35,6 @@ jobs:
       with:
         submodules: 'true'
       continue-on-error: true
-    - name: Install cctools
-      run: |
-        brew install cctools
     - name: build
       run: |
         if [[ "${{ matrix.os }}" == "macos-13" ]]; then
