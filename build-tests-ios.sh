@@ -22,7 +22,7 @@ xcodebuild -showsdks -json
 echo 'End of xcodebuild -showsdks -json'
 xcrun simctl list devices available
 echo 'End of xcrun simctl list devices available'
-xcodebuild test -scheme iOSUnitTests -destination "platform=iOS Simulator,OS=18.2,name=$SIMULATOR" -verbose
+xcodebuild test -scheme iOSUnitTests -destination "platform=iOS Simulator,name=$SIMULATOR" -verbose
 
 cd ../functests
-xcodebuild test -scheme iOSFuncTests -destination "platform=iOS Simulator,OS=18.2,name=$SIMULATOR" -verbose
+xcodebuild test -scheme iOSFuncTests -destination "platform=iOS Simulator,name=$SIMULATOR" -verbose
