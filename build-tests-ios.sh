@@ -16,7 +16,7 @@ echo "End of build-ios.sh"
 
 cd tests/unittests
 
-xcodebuild	-showdestinations
+xcodebuild	-scheme iOSUnitTests -showdestinations
 echo 'End of xcodebuild -showdestinations'
 xcodebuild test -scheme iOSUnitTests -destination "platform=iOS Simulator,OS=18.2,name=$SIMULATOR" -verbose
 
