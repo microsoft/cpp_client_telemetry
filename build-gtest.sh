@@ -15,8 +15,6 @@ else
 fi
 
 cd `dirname $0`
-pwd
-ls third_party/googletest
 GTEST_PATH=third_party/googletest
 if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
   echo Clone googletest from google/googletest:master ...
@@ -74,9 +72,8 @@ cmake -Dgtest_build_samples=OFF \
       -DBUILD_IOS=$IOS_BUILD \
       -DARCH=$ARCH \
       ..
-make VERBOSE=1
+make
 
-# dyld-info /Users/runner/work/cpp_client_telemetry/cpp_client_telemetry/third_party/googletest/build/lib/libgtest.a
 popd
 # CTEST_OUTPUT_ON_FAILURE=1 make test
 # make install

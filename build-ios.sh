@@ -25,7 +25,6 @@ elif [ "$1" == "debug" ]; then
 fi
 
 # Set Architecture: arm64, arm64e or x86_64
-/usr/bin/uname -a
 IOS_ARCH=$(/usr/bin/uname -m)
 if [ "$1" == "arm64" ]; then
   IOS_ARCH="arm64"
