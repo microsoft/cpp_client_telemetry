@@ -1,7 +1,4 @@
 #!/bin/sh
-// Add current user
-current_user=`id`
-echo "CURRENT USER:" $current_user
 cd ${0%/*}
 SKU=${1:-release}
 SIMULATOR=${2:-iPhone 8}
