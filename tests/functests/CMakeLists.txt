@@ -108,6 +108,8 @@ else()
   message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
   message("Binary Dir: ${CMAKE_BINARY_DIR}")
 
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
+
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
