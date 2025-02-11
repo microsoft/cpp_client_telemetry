@@ -60,6 +60,7 @@ typedef void (^NetworkUnreachable)(ODWReachability * reachability);
 
 @property (nonatomic, assign) BOOL reachableOnWWAN;
 
+@property (nonatomic, strong) NSURL *url;
 
 +(ODWReachability*)reachabilityWithHostname:(NSString*)hostname;
 // This is identical to the function above, but is here to maintain
@@ -68,6 +69,7 @@ typedef void (^NetworkUnreachable)(ODWReachability * reachability);
 +(ODWReachability*)reachabilityForInternetConnection;
 +(ODWReachability*)reachabilityWithAddress:(void *)hostAddress;
 +(ODWReachability*)reachabilityForLocalWiFi;
++(void)setTimeoutDurationInSeconds:(int)timeoutDuration;
 
 -(ODWReachability *)initWithReachabilityRef:(SCNetworkReachabilityRef)ref;
 
