@@ -129,7 +129,7 @@ void EventDecoderListener::OnDebugEvent(DebugEvent &evt)
         if (evt.param1 >= 75) {
             // UploadNow must NEVER EVER be called from Aria callback thread, so either use this structure below
             // or notify the main app that it has to do the profile timers housekeeping / force the upload...
-            std::thread([]() { LogManager::UploadNow(); }).detach();
+            std::thread([&]() { parent.UploadNow(); }).detach();
         }
         break;
 
