@@ -553,7 +553,7 @@ index 1ec761448de9..aa0c9c67a6dc 100644
 +#include "x86.h"
  
  const char deflate_copyright[] =
-    " deflate 1.2.11 Copyright 1995-2017 Jean-loup Gailly and Mark Adler ";
+    " deflate 1.2.12 Copyright 1995-2017 Jean-loup Gailly and Mark Adler ";
 @@ -86,7 +87,7 @@ local block_state deflate_huff   OF((deflate_state *s, int flush));
  local void lm_init        OF((deflate_state *s));
  local void putShortMSB    OF((deflate_state *s, uInt b));
