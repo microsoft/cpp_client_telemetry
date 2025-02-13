@@ -61,7 +61,7 @@ namespace MAT_NS_BEGIN
 
         Task() :
             tid(GetNewTid())
-        {};
+        {}
 
         /// <summary>
         /// The time (in milliseconds since epoch) when this work item should be executed

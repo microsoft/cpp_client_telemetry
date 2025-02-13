@@ -24,7 +24,7 @@ namespace MAT_NS_BEGIN {
     class ITelemetrySystem : public DebugEventDispatcher
     {
     public:
-        virtual ~ITelemetrySystem() {};
+        virtual ~ITelemetrySystem() {}
 
         // Transmission control
         virtual void start() = 0;

@@ -182,7 +182,7 @@ namespace MAT_NS_BEGIN
         {
             const std::string val(value);
             return SetContext(name, val, piiKind);
-        };
+        }
 
         virtual inline status_t SetContext(const std::string& name, int8_t value, PiiKind piiKind = PiiKind_None) override
         {
