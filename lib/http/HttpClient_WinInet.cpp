@@ -538,7 +538,7 @@ void HttpClient_WinInet::CancelAllRequests()
         PAL::sleep(100);
         std::this_thread::yield();
     }
-};
+}
 
 /// <summary>
 /// Enforces MS-root server certificate check.

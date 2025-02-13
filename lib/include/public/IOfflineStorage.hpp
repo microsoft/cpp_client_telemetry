@@ -335,7 +335,7 @@ namespace MAT_NS_BEGIN {
 
         virtual bool ResizeDb() = 0;
 
-        virtual void ReleaseAllRecords() {};
+        virtual void ReleaseAllRecords() {}
 
     };
 

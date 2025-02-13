@@ -41,7 +41,7 @@ namespace MAT_NS_BEGIN {
             onPause  = []() { return true; };
             onResume = []() { return true; };
             onCleanup  = []() { return true; };
-        };
+        }
         
         /// <summary>
         /// Starts this instance.
@@ -53,7 +53,7 @@ namespace MAT_NS_BEGIN {
                 onStart();
                 m_isPaused = false;
             }
-        };
+        }
         
         /// <summary>
         /// Stops this instance.
@@ -65,7 +65,7 @@ namespace MAT_NS_BEGIN {
                 onStop();
             }
         
-        };
+        }
         
         /// <summary>
         /// Uploads pending events.
@@ -73,7 +73,7 @@ namespace MAT_NS_BEGIN {
         virtual bool upload() override
         {
             return false;
-        };
+        }
         
         /// <summary>
         /// Pauses event upload.
@@ -87,7 +87,7 @@ namespace MAT_NS_BEGIN {
                     onPause();
                 }
             }
-        };
+        }
         
         /// <summary>
         /// Resumes event upload.
@@ -101,7 +101,7 @@ namespace MAT_NS_BEGIN {
                     onResume();
                 }
             }
-        };
+        }
 
         /// <summary>
         /// Cleanups pending events upload
@@ -112,27 +112,27 @@ namespace MAT_NS_BEGIN {
             {
                 onCleanup();       
             }
-        };
+        }
 
         // TODO: [MG] - consider for removal
         virtual void handleFlushTaskDispatcher() override
         {
 
-        };
+        }
 
         virtual void signalDone() override
         {
             m_done.post();
-        };
+        }
 
         virtual void handleIncomingEventPrepared(IncomingEventContextPtr const&) override
         {
-        };
+        }
 
         virtual void preparedIncomingEventAsync(IncomingEventContextPtr const& event) override
         {
             preparedIncomingEvent(event);
-        };
+        }
 
         void sendEvent(IncomingEventContextPtr const& event) override
         {

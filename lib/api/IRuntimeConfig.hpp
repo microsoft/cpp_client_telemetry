@@ -192,7 +192,7 @@ namespace MAT_NS_BEGIN
         /// <returns>Provider Group Id</returns>
         virtual const char* GetProviderGroupId() = 0;
 
-        virtual ~IRuntimeConfig() {};
+        virtual ~IRuntimeConfig() {}
     };
 
     /// @endcond

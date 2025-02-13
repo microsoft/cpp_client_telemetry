@@ -61,7 +61,7 @@ namespace MAT_NS_BEGIN {
             // as well pass the data back by updating the data structure.
             DebugEvent evt(EVT_HTTP_STATE, size_t(state), 0, data, size);
             m_hcm.m_logManager.DispatchEvent(evt);
-        };
+        }
 
 
         virtual ~HttpCallback()
