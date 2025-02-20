@@ -102,7 +102,7 @@ namespace MAT_NS_BEGIN
         return true;
     }
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Microsoft Telemetry Client - LogManager class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Microsoft Telemetry Client - LogManager class")
 
 #if 1
     // TODO: integrate Tracing API from v1
@@ -348,7 +348,7 @@ namespace MAT_NS_BEGIN
             client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
         }
 #endif
-    };
+    }
 
     LogManagerImpl::~LogManagerImpl() noexcept
     {
@@ -507,7 +507,7 @@ namespace MAT_NS_BEGIN
     const std::string& LogManagerImpl::GetTransmitProfileName()
     {
         return TransmitProfiles::getProfile();
-    };
+    }
 
     ISemanticContext& LogManagerImpl::GetSemanticContext()
     {
@@ -665,7 +665,7 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::AddEventListener(DebugEventType type, DebugEventListener& listener)
     {
         m_debugEventSource.AddEventListener(type, listener);
-    };
+    }
 
     /// <summary>
     /// Removes the event listener.
@@ -675,7 +675,7 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::RemoveEventListener(DebugEventType type, DebugEventListener& listener)
     {
         m_debugEventSource.RemoveEventListener(type, listener);
-    };
+    }
 
     /// <summary>
     /// Dispatches the event.
@@ -685,7 +685,7 @@ namespace MAT_NS_BEGIN
     bool LogManagerImpl::DispatchEvent(DebugEvent evt)
     {
         return m_debugEventSource.DispatchEvent(std::move(evt));
-    };
+    }
 
     /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
     bool LogManagerImpl::AttachEventSource(DebugEventSource& other)

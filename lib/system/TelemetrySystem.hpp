@@ -34,7 +34,7 @@ namespace MAT_NS_BEGIN {
     class NullCompression
     {
     public:
-          NullCompression(IRuntimeConfig & ) {};
+          NullCompression(IRuntimeConfig & ) {}
     };
 
     class TelemetrySystem : public TelemetrySystemBase

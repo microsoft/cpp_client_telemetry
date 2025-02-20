@@ -24,7 +24,7 @@ namespace PAL_NS_BEGIN {
     {
     public:
 
-        virtual ~IDeviceInformation() {};
+        virtual ~IDeviceInformation() {}
 
         /// <summary>
         /// Gets the unique ID of the current device

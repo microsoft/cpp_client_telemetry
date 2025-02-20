@@ -15,17 +15,17 @@ namespace MAT_NS_BEGIN
     {
     public:
 
-        virtual void SetNetworkCost(NetworkCost /*networkCost*/) override {};
+        virtual void SetNetworkCost(NetworkCost /*networkCost*/) override {}
 
-        virtual void SetNetworkType(NetworkType /*networkType*/) override {};
+        virtual void SetNetworkType(NetworkType /*networkType*/) override {}
 
-        virtual void SetUserId(const std::string & /*userId*/, PiiKind /*piiKind*/ = PiiKind_Identity) override { };
+        virtual void SetUserId(const std::string & /*userId*/, PiiKind /*piiKind*/ = PiiKind_Identity) override { }
 
-        virtual void SetTicket(TicketType, const std::string &) override {};
+        virtual void SetTicket(TicketType, const std::string &) override {}
 
-        virtual void SetCommonField(const std::string &, const EventProperty &) override {};
+        virtual void SetCommonField(const std::string &, const EventProperty &) override {}
 
-        virtual void SetCustomField(const std::string &, const EventProperty &) override {};
+        virtual void SetCustomField(const std::string &, const EventProperty &) override {}
     };
 
     class NullEventFilterCollection : public IEventFilterCollection
@@ -34,8 +34,8 @@ namespace MAT_NS_BEGIN
         virtual void UnregisterEventFilter(const char*) override { }
         virtual void UnregisterAllFilters() noexcept override { }
         virtual bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return true; }
-        virtual size_t Size() const noexcept override { return 0; };
-        virtual bool Empty() const noexcept override { return false; };
+        virtual size_t Size() const noexcept override { return 0; }
+        virtual bool Empty() const noexcept override { return false; }
     };
 
     class NullLogger : public ILogger
@@ -50,75 +50,75 @@ namespace MAT_NS_BEGIN
             return &nullContext;
         }
 
-        virtual void SetContext(const std::string & /*name*/, const char /*value*/[], PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, const char /*value*/[], PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, const std::string & /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, const std::string & /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, double /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, double /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, int8_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, int8_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, int16_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, int16_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, int32_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, int32_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, int64_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, int64_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, uint8_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, uint8_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, uint16_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, uint16_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, uint32_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, uint32_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, uint64_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, uint64_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, bool /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, bool /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, time_ticks_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, time_ticks_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, GUID_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {};
+        virtual void SetContext(const std::string & /*name*/, GUID_t /*value*/, PiiKind /*piiKind*/ = PiiKind_None) override {}
 
-        virtual void SetContext(const std::string & /*name*/, const EventProperty & /*prop*/) override {};
+        virtual void SetContext(const std::string & /*name*/, const EventProperty & /*prop*/) override {}
 
-        virtual void LogAppLifecycle(AppLifecycleState /*state*/, EventProperties const & /*properties*/) override {};
+        virtual void LogAppLifecycle(AppLifecycleState /*state*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogSession(SessionState /*state*/, const EventProperties & /*properties*/) override {};
+        virtual void LogSession(SessionState /*state*/, const EventProperties & /*properties*/) override {}
 
-        virtual void LogEvent(std::string const & /*name*/) override {};
+        virtual void LogEvent(std::string const & /*name*/) override {}
 
-        virtual void LogEvent(EventProperties const & /*properties*/) override {};
+        virtual void LogEvent(EventProperties const & /*properties*/) override {}
 
-        virtual void LogFailure(std::string const & /*signature*/, std::string const & /*detail*/, EventProperties const & /*properties*/) override {};
+        virtual void LogFailure(std::string const & /*signature*/, std::string const & /*detail*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogFailure(std::string const & /*signature*/, std::string const & /*detail*/, std::string const & /*category*/, std::string const & /*id*/, EventProperties const & /*properties*/) override {};
+        virtual void LogFailure(std::string const & /*signature*/, std::string const & /*detail*/, std::string const & /*category*/, std::string const & /*id*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogPageView(std::string const & /*id*/, std::string const & /*pageName*/, EventProperties const & /*properties*/) override {};
+        virtual void LogPageView(std::string const & /*id*/, std::string const & /*pageName*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogPageView(std::string const & /*id*/, std::string const & /*pageName*/, std::string const & /*category*/, std::string const & /*uri*/, std::string const & /*referrerUri*/, EventProperties const & /*properties*/) override {};
+        virtual void LogPageView(std::string const & /*id*/, std::string const & /*pageName*/, std::string const & /*category*/, std::string const & /*uri*/, std::string const & /*referrerUri*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogPageAction(std::string const & /*pageViewId*/, ActionType /*actionType*/, EventProperties const & /*properties*/) override {};
+        virtual void LogPageAction(std::string const & /*pageViewId*/, ActionType /*actionType*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogPageAction(PageActionData const & /*pageActionData*/, EventProperties const & /*properties*/) override {};
+        virtual void LogPageAction(PageActionData const & /*pageActionData*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogSampledMetric(std::string const & /*name*/, double /*value*/, std::string const & /*units*/, EventProperties const & /*properties*/) override {};
+        virtual void LogSampledMetric(std::string const & /*name*/, double /*value*/, std::string const & /*units*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogSampledMetric(std::string const & /*name*/, double /*value*/, std::string const & /*units*/, std::string const & /*instanceName*/, std::string const & /*objectClass*/, std::string const & /*objectId*/, EventProperties const & /*properties*/) override {};
+        virtual void LogSampledMetric(std::string const & /*name*/, double /*value*/, std::string const & /*units*/, std::string const & /*instanceName*/, std::string const & /*objectClass*/, std::string const & /*objectId*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogAggregatedMetric(std::string const & /*name*/, long /*duration*/, long /*count*/, EventProperties const & /*properties*/) override {};
+        virtual void LogAggregatedMetric(std::string const & /*name*/, long /*duration*/, long /*count*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogAggregatedMetric(AggregatedMetricData const & /*metricData*/, EventProperties const & /*properties*/) override {};
+        virtual void LogAggregatedMetric(AggregatedMetricData const & /*metricData*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogTrace(TraceLevel /*level*/, std::string const & /*message*/, EventProperties const & /*properties*/) override {};
+        virtual void LogTrace(TraceLevel /*level*/, std::string const & /*message*/, EventProperties const & /*properties*/) override {}
 
-        virtual void LogUserState(UserState /*state*/, long /*timeToLiveInMillis*/, EventProperties const & /*properties*/) override {};
+        virtual void LogUserState(UserState /*state*/, long /*timeToLiveInMillis*/, EventProperties const & /*properties*/) override {}
 
         virtual IEventFilterCollection& GetEventFilters() noexcept override { return m_filters; }
 
         virtual IEventFilterCollection const& GetEventFilters() const noexcept override { return m_filters; }
 
-        virtual void SetParentContext(ISemanticContext * /*context*/) override {};
+        virtual void SetParentContext(ISemanticContext * /*context*/) override {}
 
-        virtual void SetLevel(uint8_t /*level*/) override {};
+        virtual void SetLevel(uint8_t /*level*/) override {}
 
     private:
         NullEventFilterCollection m_filters;
@@ -127,13 +127,13 @@ namespace MAT_NS_BEGIN
     class NullDataViewerCollection : public IDataViewerCollection
     {
     public:
-        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>&) const noexcept override {};
+        virtual void DispatchDataViewerEvent(const std::vector<uint8_t>&) const noexcept override {}
 
-        virtual void RegisterViewer(const std::shared_ptr<IDataViewer>&) override {};
+        virtual void RegisterViewer(const std::shared_ptr<IDataViewer>&) override {}
 
-        virtual void UnregisterViewer(const char*) override {};
+        virtual void UnregisterViewer(const char*) override {}
 
-        virtual void UnregisterAllViewers() override {};
+        virtual void UnregisterAllViewers() override {}
 
         virtual bool IsViewerEnabled(const char*) const override
         {
@@ -150,14 +150,14 @@ namespace MAT_NS_BEGIN
             return false;
         }
 
-        virtual ~NullDataViewerCollection() {};
+        virtual ~NullDataViewerCollection() {}
     };
 
     class NullLogManager : public ILogManager
     {
     public:
 
-        NullLogManager() { };
+        NullLogManager() { }
 
         // Inherited via ILogManager
         virtual bool DispatchEvent(DebugEvent /*evt*/) override
@@ -165,9 +165,9 @@ namespace MAT_NS_BEGIN
             return false;
         }
 
-        virtual void Configure() override {};
+        virtual void Configure() override {}
 
-        virtual void FlushAndTeardown() override {};
+        virtual void FlushAndTeardown() override {}
 
         virtual status_t Flush() override
         {
@@ -311,9 +311,9 @@ namespace MAT_NS_BEGIN
             return &nullLogger;
         }
 
-        virtual void AddEventListener(DebugEventType /*type*/, DebugEventListener & /*listener*/) override {};
+        virtual void AddEventListener(DebugEventType /*type*/, DebugEventListener & /*listener*/) override {}
 
-        virtual void RemoveEventListener(DebugEventType /*type*/, DebugEventListener & /*listener*/) override {};
+        virtual void RemoveEventListener(DebugEventType /*type*/, DebugEventListener & /*listener*/) override {}
 
         virtual bool AttachEventSource(DebugEventSource & /*other*/) override
         {
@@ -331,7 +331,7 @@ namespace MAT_NS_BEGIN
             return nullptr;
         }
 
-        virtual void ResetLogSessionData() override {};
+        virtual void ResetLogSessionData() override {}
 
         virtual ILogController* GetLogController() override
         {
@@ -353,9 +353,9 @@ namespace MAT_NS_BEGIN
             return m_filters;
         }
 
-        virtual void SetLevelFilter(uint8_t /*defaultLevel*/, uint8_t /*levelMin*/, uint8_t /*levelMax*/) override {};
+        virtual void SetLevelFilter(uint8_t /*defaultLevel*/, uint8_t /*levelMin*/, uint8_t /*levelMax*/) override {}
 
-        virtual void SetLevelFilter(uint8_t /*defaultLevel*/, const std::set<uint8_t>& /*allowedLevels*/) override {};
+        virtual void SetLevelFilter(uint8_t /*defaultLevel*/, const std::set<uint8_t>& /*allowedLevels*/) override {}
 
         virtual const IDataViewerCollection& GetDataViewerCollection() const noexcept override
         {

@@ -627,7 +627,7 @@ namespace MAT_NS_BEGIN {
         m_telemetryStats.offlineStorageStats.lastFailureReason = reason;
     }
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(RecordStats, "EventsSDK.RecordStats", "RecordStats");
+    MATSDK_LOG_INST_COMPONENT_CLASS(RecordStats, "EventsSDK.RecordStats", "RecordStats")
 
 } MAT_NS_END
 

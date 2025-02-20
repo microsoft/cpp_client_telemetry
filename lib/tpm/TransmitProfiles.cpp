@@ -92,7 +92,7 @@ static void initTransmitProfileFields()
     transmitProfilePowerState()["unknown"] = (PowerSource_Unknown);
     transmitProfilePowerState()["battery"] = (PowerSource_Battery);
     transmitProfilePowerState()["charging"] = (PowerSource_Charging);
-};
+}
 #endif
 
 #define LOCK_PROFILES       std::lock_guard<std::recursive_mutex> lock(profiles_mtx())
@@ -142,7 +142,7 @@ namespace MAT_NS_BEGIN {
     std::string& TransmitProfiles::getProfile() {
         LOCK_PROFILES;
         return currProfileName();
-    };
+    }
 
     /// <summary>
     /// Get current device network and power state
@@ -152,7 +152,7 @@ namespace MAT_NS_BEGIN {
         LOCK_PROFILES;
         netCost = currNetCost;
         powState = currPowState;
-    };
+    }
 
     /// <summary>
     /// Print transmit profiles to debug log
