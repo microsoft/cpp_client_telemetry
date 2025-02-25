@@ -50,7 +50,7 @@ namespace MAT_NS_BEGIN
             cfg["sdkVersion"] = targetVersion; // TODO: SDK internally should convert this to semver
             cfg[CFG_MAP_FACTORY_CONFIG][CFG_STR_FACTORY_HOST] = (wantController) ? id : "*";
             return Get(cfg, status);
-        };
+        }
 
 #if 0   /* This method must be deprecated. Customers to use this method instead:
 

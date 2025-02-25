@@ -104,7 +104,7 @@ namespace MAT_NS_BEGIN
             config(customConfig)
         {
             Variant::merge_map(*customConfig, *defaultRuntimeConfig());
-        };
+        }
 
         virtual ~RuntimeConfig_Default()
         {
@@ -125,14 +125,14 @@ namespace MAT_NS_BEGIN
             UNREFERENCED_PARAMETER(extension);
             UNREFERENCED_PARAMETER(experimentationProject);
             UNREFERENCED_PARAMETER(eventName);
-        };
+        }
 
         virtual EventLatency GetEventLatency(std::string const& tenantId = std::string(), std::string const& eventName = std::string()) override
         {
             UNREFERENCED_PARAMETER(tenantId);
             UNREFERENCED_PARAMETER(eventName);
             return EventLatency_Normal;
-        };
+        }
 
         virtual std::string GetMetaStatsTenantToken() override
         {
@@ -144,7 +144,7 @@ namespace MAT_NS_BEGIN
                     return std::string(token);
             }
             return std::string(defaultToken);
-        };
+        }
 
         virtual unsigned GetMetaStatsSendIntervalSec() override
         {
@@ -154,7 +154,7 @@ namespace MAT_NS_BEGIN
         virtual unsigned GetOfflineStorageMaximumSizeBytes() override
         {
             return config[CFG_INT_CACHE_FILE_SIZE];
-        };
+        }
 
         virtual unsigned GetOfflineStorageResizeThresholdPct() override
         {

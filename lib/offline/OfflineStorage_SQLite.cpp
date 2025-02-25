@@ -43,7 +43,7 @@ namespace MAT_NS_BEGIN {
             {
                 locked = m_db->trylock();
             }
-        };
+        }
 
         ~DbTransaction()
         {
@@ -54,7 +54,7 @@ namespace MAT_NS_BEGIN {
         }
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class")
 
     static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_EVENTS   "events"

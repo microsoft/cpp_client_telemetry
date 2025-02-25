@@ -494,7 +494,7 @@ namespace MAT_NS_BEGIN
             std::ignore = state;
             std::ignore = data;
             std::ignore = size;
-        };
+        }
     };
 
     /// <summary>
@@ -542,7 +542,7 @@ namespace MAT_NS_BEGIN
         /// <param name="id">A string that contains the ID of the request to cancel.</param>
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
-        virtual void CancelAllRequests() {};
+        virtual void CancelAllRequests() {}
     };
 
     /// @endcond
