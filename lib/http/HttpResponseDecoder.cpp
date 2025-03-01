@@ -11,7 +11,7 @@
 #include <cassert>
 
 #ifdef HAVE_MAT_JSONHPP
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 #endif
 
 namespace MAT_NS_BEGIN {

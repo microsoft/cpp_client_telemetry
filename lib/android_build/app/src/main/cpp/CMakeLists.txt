@@ -19,6 +19,7 @@ include_directories(AFTER
         ${SDK_ROOT}/lib/include/mat
         ${SDK_ROOT}/sqlite
         ${SDK_ROOT}lib/pal
+        ${SDK_ROOT}
         "${gmock_dir}/include"
         "${gmock_dir}"
         "${gtest_dir}/include"

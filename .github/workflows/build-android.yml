@@ -25,8 +25,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       with:
-        depth: 1
-        submodules: 'false'
+        submodules: false
     - name: Update submodules
       run: |
         git submodule sync
