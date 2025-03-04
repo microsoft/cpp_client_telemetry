@@ -153,7 +153,7 @@ class LogInitTest : public Test
         {
             // Create the valid path directory
     #if defined(_WIN32) || defined(_WIN64)
-            CreateDirectoryA(validPath, NULL);
+            CreateDirectoryA(validPath.c_str(), NULL);
     #else
             mkdir(validPath.c_str(), 0777);
     #endif
@@ -169,7 +169,7 @@ class LogInitTest : public Test
 
             // Remove the valid path directory
     #if defined(_WIN32) || defined(_WIN64)
-            RemoveDirectoryA(validPath);
+            RemoveDirectoryA(validPath.c_str());
     #else
             rmdir(validPath.c_str());
     #endif
