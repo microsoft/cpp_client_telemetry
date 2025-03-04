@@ -147,63 +147,37 @@ TEST_F(PalTests, SdkVersion)
 class LogInitTest : public Test
 {
     protected:
-    const std::string validPath = "valid/path/";
+        const std::string validPath = "valid/path/";
 
-    void SetUp() override
-    {
-        // Create the valid path directory and any intermediate directories
-#if defined(_WIN32) || defined(_WIN64)
-        if (CreateDirectoryA("valid", NULL) || GetLastError() == ERROR_ALREADY_EXISTS)
+        void SetUp() override
         {
-            if (CreateDirectoryA(validPath.c_str(), NULL) || GetLastError() == ERROR_ALREADY_EXISTS)
-            {
-                std::cerr << "Directory created: " << validPath << std::endl;
-            }
-            else
-            {
-                std::cerr << "Error creating directory: " << validPath << std::endl;
-            }
-        }
-        else
-        {
-            std::cerr << "Error creating directory: valid" << std::endl;
-        }
-#else
-        if (mkdir("valid", 0777) == 0 || errno == EEXIST)
-        {
-            if (mkdir(validPath.c_str(), 0777) == 0 || errno == EEXIST)
-            {
-                std::cerr << "Directory created: " << validPath << std::endl;
-            }
-            else
-            {
-                std::cerr << "Error creating directory: " << validPath << std::endl;
-            }
-        }
-        else
-        {
-            std::cerr << "Error creating directory: valid" << std::endl;
-        }
-#endif
-    }
-
-    void TearDown() override
-    {
-        PAL::detail::log_done();
-        if (!PAL::detail::getDebugLogPath().empty())
-        {
-            std::remove(PAL::detail::getDebugLogPath().c_str());
+            // Create the valid path directory and any intermediate directories
+    #if defined(_WIN32) || defined(_WIN64)
+            CreateDirectoryA("valid", NULL);
+            CreateDirectoryA(validPath.c_str(), NULL);
+    #else
+            mkdir("valid", 0777);
+            mkdir(validPath.c_str(), 0777);
+    #endif
         }
 
-        // Remove the valid path directory
-#if defined(_WIN32) || defined(_WIN64)
-        RemoveDirectoryA(validPath.c_str());
-        RemoveDirectoryA("valid");
-#else
-        rmdir(validPath.c_str());
-        rmdir("valid");
-#endif
-    }
+        void TearDown() override
+        {
+            PAL::detail::log_done();
+            if (!PAL::detail::getDebugLogPath().empty())
+            {
+                std::remove(PAL::detail::getDebugLogPath().c_str());
+            }
+
+            // Remove the valid path directory
+    #if defined(_WIN32) || defined(_WIN64)
+            RemoveDirectoryA(validPath.c_str());
+            RemoveDirectoryA("valid");
+    #else
+            rmdir(validPath.c_str());
+            rmdir("valid");
+    #endif
+        }
 };
 
 TEST_F(LogInitTest, LogInitDisabled)
@@ -243,8 +217,13 @@ TEST_F(LogInitTest, LogInitPathWithoutTrailingSlash)
 
 TEST_F(LogInitTest, LogInitPathWithoutTrailingBackslash)
 {
+#if defined(_WIN32) || defined(_WIN64)
     std::string pathWithoutBackslash = "valid\\path";
+#else
+    std::string pathWithoutBackslash = "valid//path";
+#endif
     EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutBackslash));
     EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
 }
+
 #endif
