@@ -126,7 +126,7 @@ namespace PAL_NS_BEGIN {
 
             if (!pathExists || containsParentDirectory)
             {
-                std::cerr << "Invalid trace folder path." << std::endl;
+                throw std::runtime_error("Invalid trace folder path.");
                 return false;
             }
 
