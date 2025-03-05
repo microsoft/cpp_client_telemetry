@@ -193,12 +193,12 @@ TEST_F(LogInitTest, LogInitValidPath)
 
 TEST_F(LogInitTest, LogInitParentDirectoryInvalidPath)
 {
-    EXPECT_THROW(PAL::detail::log_init(true, "invalid/../path/"), std::runtime_error);
+    EXPECT_FALSE(PAL::detail::log_init(true, "invalid/../path/"));
 }
 
 TEST_F(LogInitTest, LogInitPathDoesNotExist)
 {
-    EXPECT_THROW(PAL::detail::log_init(true, "nonexistent/path/"), std::runtime_error);
+    EXPECT_FALSE(PAL::detail::log_init(true, "nonexistent/path/"));
 }
 
 TEST_F(LogInitTest, LogInitAlreadyInitialized)
