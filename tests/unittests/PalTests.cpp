@@ -7,6 +7,21 @@
 #include "pal/PseudoRandomGenerator.hpp"
 #include "Version.hpp"
 
+#ifdef HAVE_MAT_LOGGING
+#include "pal/PAL.hpp"
+#include <gtest/gtest.h>
+#include <fstream>
+#include <memory>
+#include <string>
+#include <cstdio>
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+using namespace PAL::detail;
+#endif
+
 using namespace testing;
 
 class PalTests : public Test {};
@@ -127,3 +142,88 @@ TEST_F(PalTests, SdkVersion)
 
     EXPECT_THAT(PAL::getSdkVersion(), Eq(v));
 }
+
+#ifdef HAVE_MAT_LOGGING
+class LogInitTest : public Test
+{
+    protected:
+        const std::string validPath = "valid/path/";
+
+        void SetUp() override
+        {
+            // Create the valid path directory and any intermediate directories
+    #if defined(_WIN32) || defined(_WIN64)
+            CreateDirectoryA("valid", NULL);
+            CreateDirectoryA(validPath.c_str(), NULL);
+    #else
+            mkdir("valid", 0777);
+            mkdir(validPath.c_str(), 0777);
+    #endif
+        }
+
+        void TearDown() override
+        {
+            PAL::detail::log_done();
+            if (!PAL::detail::getDebugLogPath().empty())
+            {
+                std::remove(PAL::detail::getDebugLogPath().c_str());
+            }
+
+            // Remove the valid path directory
+    #if defined(_WIN32) || defined(_WIN64)
+            RemoveDirectoryA(validPath.c_str());
+            RemoveDirectoryA("valid");
+    #else
+            rmdir(validPath.c_str());
+            rmdir("valid");
+    #endif
+        }
+};
+
+TEST_F(LogInitTest, LogInitDisabled)
+{
+    EXPECT_FALSE(log_init(false, validPath));
+}
+
+TEST_F(LogInitTest, LogInitValidPath)
+{
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+TEST_F(LogInitTest, LogInitParentDirectoryInvalidPath)
+{
+    EXPECT_FALSE(PAL::detail::log_init(true, "invalid/../path/"));
+}
+
+TEST_F(LogInitTest, LogInitPathDoesNotExist)
+{
+    EXPECT_FALSE(PAL::detail::log_init(true, "nonexistent/path/"));
+}
+
+TEST_F(LogInitTest, LogInitAlreadyInitialized)
+{
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath)); // Should return true as it's already initialized
+}
+
+TEST_F(LogInitTest, LogInitPathWithoutTrailingSlash)
+{
+    std::string pathWithoutSlash = "valid/path";
+    EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutSlash));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+TEST_F(LogInitTest, LogInitPathWithoutTrailingBackslash)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    std::string pathWithoutBackslash = "valid\\path";
+#else
+    std::string pathWithoutBackslash = "valid//path";
+#endif
+    EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutBackslash));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+#endif
