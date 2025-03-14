@@ -1,0 +1,54 @@
+name: C/C++ CI for iOS
+
+on:
+  push:
+    branches:
+    - master
+    - main
+    - dev
+    - dev/*
+    - release/*
+    - buildme/*
+
+  pull_request:
+    branches:
+    - master
+    - main
+    - dev
+
+  schedule:
+  - cron: 0 2 * * 1-5
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-13, macos-15]
+        config: [release, debug]
+        simulator: ["'iPhone 15'", "'iPad Pro (11-inch) (4th generation)'", "'iPhone 16'", "'iPad Air 11-inch (M2)'"]
+        exclude:
+          - os: macos-13
+            simulator: "'iPhone 16'"
+          - os: macos-13
+            simulator: "'iPad Air 11-inch (M2)'"
+          - os: macos-15
+            simulator: "'iPhone 15'"
+          - os: macos-15
+            simulator: "'iPad Pro (11-inch) (4th generation)'"
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Grant write permissions to /usr/local
+      run: |
+        sudo chown -R $USER:staff /usr/local
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+      continue-on-error: true
+    - name: build
+      run: |
+        if [[ "${{ matrix.os }}" == "macos-13" ]]; then
+          export IOS_DEPLOYMENT_TARGET=13.0;
+        elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
+          export IOS_DEPLOYMENT_TARGET=15.0;
+        fi
+        ./build-tests-ios.sh ${{ matrix.config }} ${{ matrix.simulator }}

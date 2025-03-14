@@ -142,6 +142,7 @@ target_include_directories(${TARGETNAME} PUBLIC
         ${SDK_ROOT}/lib/include/mat
         ${SDK_ROOT}/sqlite
         ${SDK_ROOT}lib/pal
+        ${SDK_ROOT}
         ${CURL_INCLUDE_DIRS})
 
 

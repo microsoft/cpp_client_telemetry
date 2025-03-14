@@ -47,6 +47,7 @@
 #include <Objbase.h>
 #pragma comment(lib, "Ole32.Lib")   /* CoCreateGuid */
 #include <oacr.h>
+#include <windows.h>
 #endif
 
 #ifdef ANDROID
@@ -113,8 +114,27 @@ namespace PAL_NS_BEGIN {
                 return result;
             }
 
+            // Check if the path exists
+#if defined(_WIN32) || defined(_WIN64)
+            DWORD fileAttr = GetFileAttributesA(traceFolderPath.c_str());
+            bool pathExists = (fileAttr != INVALID_FILE_ATTRIBUTES && (fileAttr & FILE_ATTRIBUTE_DIRECTORY));
+#else
+            bool pathExists = (access(traceFolderPath.c_str(), F_OK) != -1);
+#endif
+            // Check if the path contains ".."
+            bool containsParentDirectory = (traceFolderPath.find("..") != std::string::npos);
+
+            if (!pathExists || containsParentDirectory)
+            {
+                return false;
+            }
+
             debugLogMutex.lock();
             debugLogPath = traceFolderPath;
+            if (debugLogPath.back() != '/' && debugLogPath.back() != '\\')
+            {
+                debugLogPath += "/";
+            }
             debugLogPath += "mat-debug-";
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
@@ -129,6 +149,16 @@ namespace PAL_NS_BEGIN {
             }
             debugLogMutex.unlock();
             return result;
+        }
+
+        const std::unique_ptr<std::fstream>& getDebugLogStream() noexcept
+        {
+            return debugLogStream;
+        }
+
+        const std::string& getDebugLogPath() noexcept
+        {
+            return debugLogPath;
         }
 
         void log_done()

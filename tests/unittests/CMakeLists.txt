@@ -147,6 +147,8 @@ else()
 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/ )
 
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
+
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
@@ -158,6 +160,9 @@ else()
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
   )
+
+  message("GTEST: ${LIBGTEST}")
+  message("GMOCK: ${LIBGMOCK}")
 
   target_link_libraries(UnitTests 
     ${LIBGTEST}

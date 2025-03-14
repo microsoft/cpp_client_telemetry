@@ -7,7 +7,7 @@
 #include "pal/PAL.hpp"
 
 #ifdef HAVE_MAT_JSONHPP
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 #endif
 
 #include "utils/Utils.hpp"
