@@ -16,6 +16,9 @@
 #  if __has_include("modules/signals/Signals.hpp")
 #    define HAVE_MAT_SIGNALS
 #  endif
+#  if __has_include("modules/sanitizer/Sanitizer.hpp")
+#    define HAVE_MAT_SANITIZER
+#  endif
 #endif
 #endif
 #if defined(HAVE_PRIVATE_MODULES)
