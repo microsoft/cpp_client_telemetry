@@ -27,4 +27,3 @@ namespace PAL_NS_BEGIN { } PAL_NS_END
 
 #endif // RESOURCE_COMPILER_INVOKED
 #endif
-
