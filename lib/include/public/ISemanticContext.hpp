@@ -109,11 +109,38 @@ namespace MAT_NS_BEGIN
         /// <param name="deviceClass">Device class.</param>
         DECLARE_COMMONFIELD(DeviceClass, COMMONFIELDS_DEVICE_CLASS);
 
-          /// <summary>
+        /// <summary>
         /// Set the device orgId context information of telemetry event.
         /// </summary>
         /// <param name="deviceClass">Device orgId</param>
         DECLARE_COMMONFIELD(DeviceOrgId, COMMONFIELDS_DEVICE_ORGID);
+
+        /// <summary>
+        /// Set the W3C TraceContext TraceId information of telemetry event.
+        /// </summary>
+        /// <param name="traceId">TraceContext TraceId</param>
+        DECLARE_COMMONFIELD(TraceId, COMMONFIELDS_DT_TRACEID);
+
+        /// <summary>
+        /// Set the W3C TraceContext SpanId information of telemetry event.
+        /// </summary>
+        /// <param name="spanId">TraceContext SpanId</param>
+        DECLARE_COMMONFIELD(SpanId, COMMONFIELDS_DT_SPANID);
+
+        /// <summary>
+        /// Set the W3C TraceContext TraceFlags information of telemetry event.
+        /// </summary>
+        /// <param name="TraceFlags">TraceContext TraceFlags</param>
+        virtual void SetTraceFlags(uint8_t traceFlags)
+        {
+            SetCommonField(COMMONFIELDS_DT_TRACEFLAGS, traceFlags);
+        }
+
+        /// <summary>
+        /// Set the remote context (parent) SpanId information of telemetry event.
+        /// </summary>
+        /// <param name="ParentId">ParentId</param>
+        DECLARE_COMMONFIELD(ParentId, COMMONFIELDS_DT_PARENTID);
 
         /// <summary>
         /// Set the network cost context information of telemetry event.
