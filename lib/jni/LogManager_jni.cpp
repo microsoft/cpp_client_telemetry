@@ -30,7 +30,7 @@
 using namespace MAT;
 
 template <>
-ILogManager* LogManagerBase<WrapperConfig>::instance{};
+std::unique_ptr<ILogManager> LogManagerBase<WrapperConfig>::instance{};
 
 extern "C"
 {
@@ -869,7 +869,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_nativeCreateLogManager
     status_t status = status_t::STATUS_SUCCESS;
     mcPointer->manager = MAT::LogManagerProvider::CreateLogManager(
         mcPointer->config,
-        status);
+        status).release();
     if (status == status_t::STATUS_SUCCESS && !!mcPointer->manager)
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
