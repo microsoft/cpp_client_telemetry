@@ -239,6 +239,16 @@ namespace PAL_NS_BEGIN
         return GetPAL().RegisterIkeyWithWindowsTelemetry(ikeyin, storageSize, uploadQuotaSize);
     }
 
+#ifdef HAVE_MAT_LOGGING
+    namespace detail
+    {
+        bool log_init(bool isTraceEnabled, const std::string& traceFolderPath);
+        const std::unique_ptr<std::fstream>& getDebugLogStream() noexcept;
+        const std::string& getDebugLogPath() noexcept;
+        void log_done();
+    }
+#endif
+
 } PAL_NS_END
 
 #endif
