@@ -4,7 +4,7 @@
 //
 #include "JsonFormatter.hpp"
 #include "CorrelationVector.hpp"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
@@ -40,6 +40,12 @@ namespace MAT_NS_BEGIN
         }
     }
 
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4866 )
+// In C++17 left-to-right evaluation order for operands of operator[] is not guaranteed when the argument's copy constructor is run.
+// Evalutation order isn't not relied upon here, disabling warning.
+#endif // _MSC_VER
     void addData(json& object, std::vector<::CsProtocol::Data>& data)
     {
         std::vector<::CsProtocol::Data>::const_iterator it;
@@ -126,6 +132,9 @@ namespace MAT_NS_BEGIN
             }
         }
     }
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif  // _MSC_VER
 
     std::string JsonFormatter::getJsonFormattedEvent(IncomingEventContextPtr const& event)
     {

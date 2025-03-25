@@ -1,6 +1,51 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(MSTelemetry)
 
+# Set installation prefix for macOS and Linux
+if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+endif()
+
+
+# Set installation prefix for Unix systems (macOS and Linux)
+if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
+    # First try /usr/local
+    set(TEST_FILE "/usr/local/.ci_write_test")
+    
+    # Try to create a test file
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E touch "${TEST_FILE}"
+        RESULT_VARIABLE WRITE_RESULT
+    )
+    
+    # Check if write was successful
+    if(WRITE_RESULT EQUAL 0)
+        # We have write access to /usr/local
+        set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+        message(STATUS "Using /usr/local as installation prefix (write access confirmed)")
+        # Clean up test file
+        execute_process(COMMAND ${CMAKE_COMMAND} -E remove "${TEST_FILE}")
+    else()
+        # No write access, fall back to HOME directory
+        set(FALLBACK_DIR "$ENV{HOME}/mst_telemetry")
+        
+        # Create the mst_telemetry directory
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${FALLBACK_DIR}"
+            RESULT_VARIABLE CREATE_DIR_RESULT
+        )
+        
+        if(NOT CREATE_DIR_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to create directory: ${FALLBACK_DIR}")
+        endif()
+        
+        set(CMAKE_INSTALL_PREFIX "${FALLBACK_DIR}" CACHE PATH "Installation directory prefix" FORCE)
+        message(STATUS "No write access to /usr/local, created and using ${FALLBACK_DIR} instead")
+    endif()
+endif()
+
+
+
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
@@ -37,9 +82,9 @@ if(APPLE)
 
     if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
       set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-      if((${IOS_PLAT} STREQUAL "iphonesimulator") AND ((${IOS_ARCH} STREQUAL "arm64") OR (${IOS_ARCH} STREQUAL "arm64e")))
-        # iOS arm64 simulator is supported starting BigSur
-        # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
+      if (${IOS_PLAT} STREQUAL "iphonesimulator")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
       else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
@@ -300,6 +345,9 @@ include_directories(lib/pal)
 #  enable_testing()
 #  add_subdirectory(bondlite/tests)
 #endif()
+
+# Include repo root to allow includes of sqlite, zlib, and nlohmann
+include_directories(${CMAKE_SOURCE_DIR})
 
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)

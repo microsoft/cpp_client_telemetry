@@ -12,7 +12,7 @@
 #ifdef HAVE_MAT_AI
 
 #include "common/Common.hpp"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #define TEST_TOKEN "12345678-1234-1234-1234-123456789abc"
 
