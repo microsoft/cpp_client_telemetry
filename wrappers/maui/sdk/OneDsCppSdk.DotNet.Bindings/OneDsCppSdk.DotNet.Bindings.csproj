@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net8.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Microsoft.Applications.Events</RootNamespace>
+        <AssemblyName>Microsoft.Applications.Events</AssemblyName>
+    </PropertyGroup>
+
+</Project>

@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-android33.0</TargetFramework>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Microsoft.Applications.Events</RootNamespace>
+    <AssemblyName>Microsoft.Applications.Events</AssemblyName>
+    <AndroidClassParser>class-parse</AndroidClassParser>
+    <!-- <AndroidCodegenTarget>XAJavaInterop1</AndroidCodegenTarget> -->
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedNativeLibrary Include="lib\arm64-v8a\libc++_shared.so" />
+    <EmbeddedNativeLibrary Include="lib\arm64-v8a\libmaesdk.so" />
+    <EmbeddedNativeLibrary Include="lib\armeabi-v7a\libc++_shared.so" />
+    <EmbeddedNativeLibrary Include="lib\armeabi-v7a\libmaesdk.so" />
+    <EmbeddedNativeLibrary Include="lib\x86_64\libc++_shared.so" />
+    <EmbeddedNativeLibrary Include="lib\x86_64\libmaesdk.so" />
+    <EmbeddedNativeLibrary Include="lib\x86\libc++_shared.so" />
+    <EmbeddedNativeLibrary Include="lib\x86\libmaesdk.so" />
+    <LibraryProjectZip Include="Jars\maesdk-*.aar" />
+    <EmbeddedNativeLibrary Remove="lib\x86\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Xamarin.AndroidX.Room.Runtime">
+      <Version>2.2.5.5</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="lib\x86\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="lib\x86\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <TransformFile Remove="lib\x86\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidLibrary Remove="lib\x86\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidNativeLibrary Remove="lib\x86\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <JavaSourceJar Remove="lib\x86\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidJavaSource Remove="lib\x86\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="lib\x86\**" />
+  </ItemGroup>
+</Project>

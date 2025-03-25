@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package>
+    <metadata>
+        <id>Microsoft.Applications.Events</id>
+        <version>3.4.324.29-azuremobile</version>
+        <authors>Microsoft - One Observability</authors>
+        <description>1DS C++ SDK .NET Bindings</description>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <copyright>Copyright 2024</copyright>
+        <dependencies>
+            <group targetFramework="net8.0">
+            </group>
+            <group targetFramework="net8.0-ios18.0">
+            </group>
+            <group targetFramework="net8.0-android33.0">
+                <dependency id="Xamarin.AndroidX.Room.Runtime" version="2.2.5.2" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+
+        <!-- Android -->
+        <file src="sdk/OneDsCppSdk.Android.Bindings/bin/Release/net8.0-android33.0/**/*" target="lib/net8.0-android33.0" />
+
+        <!-- iOS -->
+        <file src="sdk/OneDsCppSdk.iOS.Bindings/bin/Release/net8.0-ios18.0/ios-arm64/**/*" target="lib/net8.0-ios18.0" />
+
+        <!-- .NET -->
+        <file src="sdk/OneDsCppSdk.DotNet.Bindings/bin/Release/net8.0/Microsoft.Applications.Events.dll" target="lib/net8.0/Microsoft.Applications.Events.dll" />
+        <file src="sdk/OneDsCppSdk.DotNet.Bindings/bin/Release/net8.0/Microsoft.Applications.Events.pdb" target="lib/net8.0/Microsoft.Applications.Events.pdb" />
+
+    </files>
+</package>

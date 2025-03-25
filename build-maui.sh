@@ -2,8 +2,8 @@
 
 if [ "$1" == "help" ] || [ "$1" == "?" ]; then
     echo
-    echo "build-xamarin.sh usage:"
-    echo "./build-xamarin.sh [debug|release] [cleanall|cleanxamarin] [xamarinonly|skipios|skipandroid] [package]"
+    echo "build-maui.sh usage:"
+    echo "./build-maui.sh [debug|release] [cleanall|cleanxamarin] [xamarinonly|skipios|skipandroid] [package]"
     echo
     echo "- debug|release: build configuration to use. Default to release of not specified"
     echo "- cleanall: deletes output and temporary directories for all platforms"
@@ -62,17 +62,17 @@ echo "$GREEN ====== Build configuration = $BUILD_CONFIGURATION $NOCOLOR"
 if [ "$CLEAN_XAMARIN" == true ] || [ "$CLEAN_ALL" == true ]; then
     echo "$GREEN ====== Cleaning Xamarin $NOCOLOR"
 
-    rm -rf ./wrappers/xamarin/sdk/OneDsCppSdk.iOS.Bindings/obj
-    rm -rf ./wrappers/xamarin/sdk/OneDsCppSdk.iOS.Bindings/bin
-    rm "./wrappers/xamarin/sdk/OneDsCppSdk.iOS.Bindings/Native References/libmat.a"
+    rm -rf ./wrappers/maui/sdk/OneDsCppSdk.iOS.Bindings/obj
+    rm -rf ./wrappers/maui/sdk/OneDsCppSdk.iOS.Bindings/bin
+    rm "./wrappers/maui/sdk/OneDsCppSdk.iOS.Bindings/Native References/libmat.a"
 
-    rm -rf ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/obj
-    rm -rf ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/bin
-    rm -rf ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib
-    rm ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/Jars/*.aar
+    rm -rf ./wrappers/maui/sdk/OneDsCppSdk.Android.Bindings/obj
+    rm -rf ./wrappers/maui/sdk/OneDsCppSdk.Android.Bindings/bin
+    rm -rf ./wrappers/maui/sdk/OneDsCppSdk.Android.Bindings/lib
+    rm ./wrappers/maui/sdk/OneDsCppSdk.Android.Bindings/Jars/*.aar
 
-    rm -rf ./wrappers/xamarin/sdk/OneDsCppSdk.Standard/obj
-    rm -rf ./wrappers/xamarin/sdk/OneDsCppSdk.Standard/bin
+    rm -rf ./wrappers/maui/sdk/OneDsCppSdk.DotNet/obj
+    rm -rf ./wrappers/maui/sdk/OneDsCppSdk.DotNet/bin
 fi
 
 # Fail on error
@@ -130,12 +130,12 @@ echo "$GREEN ====== Copying build artifacts $NOCOLOR"
 rsync -a ./out/lib/libmat.a "./wrappers/maui/sdk/OneDsCppSdk.iOS.Bindings/Native References/"
 
 # Copy artifacts for Android
-# mkdir -p ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib
-# rsync -a ./lib/android_build/maesdk/build/intermediates/cmake/$BUILD_CONFIGURATION/obj/arm64-v8a/*.so ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib/arm64-v8a/
-# rsync -a ./lib/android_build/maesdk/build/intermediates/cmake/$BUILD_CONFIGURATION/obj/armeabi-v7a/*.so ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib/armeabi-v7a/
-# rsync -a ./lib/android_build/maesdk/build/intermediates/cmake/$BUILD_CONFIGURATION/obj/x86/*.so ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib/x86/
-# rsync -a ./lib/android_build/maesdk/build/intermediates/cmake/$BUILD_CONFIGURATION/obj/x86_64/*.so ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib/x86_64/
-# rsync -a ./lib/android_build/maesdk/build/outputs/aar/maesdk-$BUILD_CONFIGURATION.aar ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/Jars/
+mkdir -p ./wrappers/maui/sdk/OneDsCppSdk.Android.Bindings/lib
+rsync -a ./lib/android_build/maesdk/build/intermediates/cmake/$BUILD_CONFIGURATION/obj/arm64-v8a/*.so ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib/arm64-v8a/
+rsync -a ./lib/android_build/maesdk/build/intermediates/cmake/$BUILD_CONFIGURATION/obj/armeabi-v7a/*.so ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib/armeabi-v7a/
+rsync -a ./lib/android_build/maesdk/build/intermediates/cmake/$BUILD_CONFIGURATION/obj/x86/*.so ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib/x86/
+rsync -a ./lib/android_build/maesdk/build/intermediates/cmake/$BUILD_CONFIGURATION/obj/x86_64/*.so ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/lib/x86_64/
+rsync -a ./lib/android_build/maesdk/build/outputs/aar/maesdk-$BUILD_CONFIGURATION.aar ./wrappers/xamarin/sdk/OneDsCppSdk.Android.Bindings/Jars/
 
 # Build Xamarin Bindings Solution
 pushd ./wrappers/maui

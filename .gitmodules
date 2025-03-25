@@ -10,3 +10,6 @@
 [submodule "third_party/googletest"]
 	path = third_party/googletest
 	url = https://github.com/google/googletest
+[submodule "modules"]
+	path = modules
+	url = https://github.com/microsoft/cpp_client_telemetry_modules

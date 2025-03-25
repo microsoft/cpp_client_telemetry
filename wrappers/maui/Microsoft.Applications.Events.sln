@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneDsCppSdk.iOS.Bindings", "sdk\OneDsCppSdk.iOS.Bindings\OneDsCppSdk.iOS.Bindings.csproj", "{7CB68DA9-90E1-4345-B82A-70D69C004A94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneDsCppSdk.DotNet.Bindings", "sdk\OneDsCppSdk.DotNet.Bindings\OneDsCppSdk.DotNet.Bindings.csproj", "{99CF0D4C-3258-4EBC-A19C-7CF914FB128A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneDsCppSdk.Android.Bindings", "sdk\OneDsCppSdk.Android.Bindings\OneDsCppSdk.Android.Bindings.csproj", "{B822A99F-BA9B-4737-9A4F-9802FCDD8158}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7CB68DA9-90E1-4345-B82A-70D69C004A94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CB68DA9-90E1-4345-B82A-70D69C004A94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CB68DA9-90E1-4345-B82A-70D69C004A94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CB68DA9-90E1-4345-B82A-70D69C004A94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99CF0D4C-3258-4EBC-A19C-7CF914FB128A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99CF0D4C-3258-4EBC-A19C-7CF914FB128A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99CF0D4C-3258-4EBC-A19C-7CF914FB128A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99CF0D4C-3258-4EBC-A19C-7CF914FB128A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B822A99F-BA9B-4737-9A4F-9802FCDD8158}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B822A99F-BA9B-4737-9A4F-9802FCDD8158}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B822A99F-BA9B-4737-9A4F-9802FCDD8158}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B822A99F-BA9B-4737-9A4F-9802FCDD8158}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

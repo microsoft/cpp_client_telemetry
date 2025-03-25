@@ -1,0 +1,23 @@
+﻿<metadata>
+    <!-- Normalize the namespace for .NET -->
+    <attr path="/api/package[@name='com.microsoft.applications.events']" name="managedName">Microsoft.Applications.Events</attr>
+
+    <!-- Make the Logger class public to be accessible from Mono -->
+    <attr path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']" name="visibility">public</attr>
+
+    <!-- Remove methods not supported by the Obj-C wrappers -->
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='logAggregatedMetric']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='logAggregatedMetric']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='logAppLifecycle']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='logAppLifecycle']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='logPageAction']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='logPageAction']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='logSampledMetric']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='logSampledMetric']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='logUserState']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='logUserState']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='setLevel']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='setLevel']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/interface[@name='ILogger']/method[@name='setParentContext']" />
+    <remove-node path="/api/package[@name='com.microsoft.applications.events']/class[@name='Logger']/method[@name='setParentContext']" />
+</metadata>
