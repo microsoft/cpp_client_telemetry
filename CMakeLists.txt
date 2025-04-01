@@ -315,6 +315,7 @@ option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
 option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
 option(BUILD_SIGNALS      "Build Signals"           YES)
+option(BUILD_SANITIZER    "Build Sanitizer"         YES)
 option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 
 # Enable Azure Monitor / Application Insights end-point support
