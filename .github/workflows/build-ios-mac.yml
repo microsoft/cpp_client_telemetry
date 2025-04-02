@@ -36,6 +36,8 @@ jobs:
           - os: macos-15
             simulator: "'iPad Pro (11-inch) (4th generation)'"
     runs-on: ${{ matrix.os }}
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
     steps:
     - name: Grant write permissions to /usr/local
       run: |
