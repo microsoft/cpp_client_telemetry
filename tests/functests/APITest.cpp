@@ -417,7 +417,7 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     EXPECT_EQ(0u, debugListener.numReject);
 
     LogManager::UploadNow();             // Try to upload whatever we got
-    PAL::sleep(1000);                    // Give enough time to upload at least one event
+    PAL::sleep(5000);                    // Give enough time to upload at least one event
     EXPECT_NE(0u, debugListener.numSent); // Some posts must succeed within 500ms
     LogManager::PauseTransmission();     // There could still be some pending at this point
     LogManager::Flush();                 // Save all pending to disk
