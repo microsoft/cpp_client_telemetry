@@ -191,7 +191,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
         list(APPEND SRCS
         ../wrappers/obj-c/ODWSanitizerInitConfig.mm 
         ../wrappers/obj-c/ODWSanitizer.mm
-      )
+        )
       endif()
   endif()
 
