@@ -10,14 +10,14 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /*!
- The <b>ODWPrivacyGuard</b> class represents Privacy Guard Hook.
+ The <b>ODWSanitizer</b> class represents the sanitizer.
 */
 @interface ODWSanitizer (Private)
 
 #pragma mark Initialization methods
 
 /*!
- @brief Initializes Privacy Guard
+ @brief Initializes the sanitizer
  @param logger Logger used for reporting concerns
  @param initConfigObject the configuration
  */
