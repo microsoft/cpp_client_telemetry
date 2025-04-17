@@ -187,6 +187,12 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
             ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
             )
       endif()
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_SANITIZER)
+        list(APPEND SRCS
+        ../wrappers/obj-c/ODWSanitizerInitConfig.mm 
+        ../wrappers/obj-c/ODWSanitizer.mm
+      )
+      endif()
   endif()
 
   if(APPLE AND BUILD_SWIFT_WRAPPER)
