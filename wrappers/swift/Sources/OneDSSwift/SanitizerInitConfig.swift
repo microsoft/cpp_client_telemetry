@@ -13,7 +13,7 @@ public final class SanitizerInitConfig {
         odwSanitizerInitConfig = ODWSanitizerInitConfig()
     }
 
-    /// (OPTIONAL) Custom event name to use when logging privacy concerns. Default value is `PrivacyConcern`.
+    /// (OPTIONAL) Custom event name to use when logging concerns from the sanitizer. Default value is `SanitizerConcerns`.
     public var notificationEventName: String {
         get {
             odwSanitizerInitConfig.notificationEventName
