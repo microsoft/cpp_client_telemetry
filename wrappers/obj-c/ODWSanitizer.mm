@@ -20,6 +20,11 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
 
 +(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject;
 {
+    if (_sanitizerPtr != nullptr)
+    {
+        return;
+    }
+
     SanitizerConfiguration config(logger);
 
     if ([initConfigObject notificationEventName] != nil)
