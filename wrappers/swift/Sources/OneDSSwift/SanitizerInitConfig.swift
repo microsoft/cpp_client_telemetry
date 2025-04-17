@@ -5,7 +5,7 @@
 
 import ObjCModule
 
-public final class PrivacyGuardInitConfig {
+public final class SanitizerInitConfig {
     let odwSanitizerInitConfig: ODWSanitizerInitConfig
 
     /// Default constructor.
@@ -27,7 +27,7 @@ public final class PrivacyGuardInitConfig {
     Returns the Obj-C object of the wrapper.
 
     - Return:
-        `ODWPrivacyGuardInitConfig` object which class is wrapped around.
+        `ODWSanitizerInitConfig` object which class is wrapped around.
     */
     func getODWSanitizerInitConfig() -> ODWSanitizerInitConfig {
         return odwSanitizerInitConfig
