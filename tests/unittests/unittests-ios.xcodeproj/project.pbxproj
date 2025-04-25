@@ -117,7 +117,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		16CC106F2D4D58DA00C03295 /* ODWReachabilityTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = ODWReachabilityTests.mm; path = "obj-c/ODWReachabilityTests.mm"; sourceTree = "<group>"; };
+		16CC106F2D4D58DA00C03295 /* ODWReachabilityTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ODWReachabilityTests.mm; path = "obj-c/ODWReachabilityTests.mm"; sourceTree = "<group>"; };
 		430102E4235E660F00836D50 /* iOSWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iOSWrapper.mm; path = ../../common/iOSWrapper.mm; sourceTree = "<group>"; };
 		431EFE1E233EBDF2002FCC18 /* libunittests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libunittests.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpClientTests.cpp; sourceTree = "<group>"; };
@@ -402,7 +402,6 @@
 				431EFE60233EBE54002FCC18 /* ControlPlaneProviderTests.cpp in Sources */,
 				431EFE5D233EBE54002FCC18 /* ClockSkewManagerTests.cpp in Sources */,
 				431EFE58233EBE54002FCC18 /* PalTests.cpp in Sources */,
-				16CC10702D4D58DA00C03295 /* ODWReachabilityTests.mm in Sources */,
 				431EFED423425535002FCC18 /* DataViewerCollectionTests.cpp in Sources */,
 				431EFE70233EBE54002FCC18 /* OfflineStorageTests.cpp in Sources */,
 				431EFE6B233EBE54002FCC18 /* OacrTests.cpp in Sources */,
