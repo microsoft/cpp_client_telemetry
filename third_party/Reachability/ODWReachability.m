@@ -245,13 +245,13 @@ static int kTimeoutDurationInSeconds = 10;
 
 +(void)setTimeoutDurationInSeconds:(int)timeoutDuration
 {
-    if (timeoutDuration > 0)
+    if (timeoutDuration >= kTimeoutDurationInSeconds)
     {
         kTimeoutDurationInSeconds = timeoutDuration;
     }
     else
     {
-        NSLog(@"Timeout duration must be positive.");
+        NSLog(@"Timeout duration must be at least 10.");
     }
 }
 
