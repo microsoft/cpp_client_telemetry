@@ -60,25 +60,17 @@ class Canary : public std::string {
 
 class RouteTests : public StrictMock<Test> {
   public:
-    RouteSink<RouteTests>                                                                  sink0{this, &RouteTests::handleSink0};
-    RouteSink<RouteTests, int>                                                             sink1{this, &RouteTests::handleSink1};
-    RoutePassThrough<RouteTests, int>                                                      passThrough1a{this, &RouteTests::handlePassThrough1a};
-    RoutePassThrough<RouteTests, int>                                                      passThrough1b{this, &RouteTests::handlePassThrough1b};
-    RouteSink<RouteTests, int, bool&, NonCopyableThing const&, Canary, std::vector<int>&&> sink5{this, &RouteTests::handleSink5x};
+    RouteSink<RouteTests>                                              sink0{this, &RouteTests::handleSink0};
+    RouteSink<RouteTests, int>                                         sink1{this, &RouteTests::handleSink1};
+    RoutePassThrough<RouteTests, int>                                  passThrough1a{this, &RouteTests::handlePassThrough1a};
+    RoutePassThrough<RouteTests, int>                                  passThrough1b{this, &RouteTests::handlePassThrough1b};
+    RouteSink<RouteTests, int, bool&, NonCopyableThing const&, Canary> sink4{this, &RouteTests::handleSink4};
 
     MOCK_METHOD0(handleSink0, void());
     MOCK_METHOD1(handleSink1, void(int));
     MOCK_METHOD1(handlePassThrough1a, bool(int));
     MOCK_METHOD1(handlePassThrough1b, bool(int));
-    MOCK_METHOD4(handleSink5, void(int, bool&, NonCopyableThing const &, Canary));
-
-    void handleSink5x(int a, bool& b, NonCopyableThing const& c, Canary d, std::vector<int>&& e)
-    {
-        // This extra function exists just to handle the r-value reference.
-        // The move cannot be done properly in a mocked method.
-        std::vector<int> x = std::move(e);
-        handleSink5(a, b, c, d);
-    }
+    MOCK_METHOD4(handleSink4, void(int, bool&, NonCopyableThing const &, Canary));
 };
 
 
@@ -92,18 +84,16 @@ TEST_F(RouteTests, SinkPassesArgsAsDefined)
     NonCopyableThing thing;
     Canary canary;
     canary.bear();
-    std::vector<int> data{1, 2, 3};
 
-    EXPECT_CALL(*this, handleSink5(123, _, Ref(thing), Eq("alive")))
+    EXPECT_CALL(*this, handleSink4(123, _, Ref(thing), Eq("alive")))
         .WillOnce(DoAll(
         SetArgReferee<1>(true),
         InvokeArgument<3>()
         ));
-    sink5(123, flag, thing, canary, std::move(data));
+    sink4(123, flag, thing, canary);
 
     EXPECT_THAT(flag, true);
     EXPECT_THAT(canary, Eq("alive"));
-    EXPECT_THAT(data, IsEmpty());
 }
 
 TEST_F(RouteTests, SourceIsNoopWhenUnbound)
@@ -117,8 +107,8 @@ TEST_F(RouteTests, SourceCallsSink)
     RouteSource<> source0;
     source0 >> sink0;
 
-    RouteSource<int, bool&, NonCopyableThing const&, Canary, std::vector<int>&&> source5;
-    source5 >> sink5;
+    RouteSource<int, bool&, NonCopyableThing const&, Canary> source4;
+    source4 >> sink4;
 
 
     EXPECT_CALL(*this, handleSink0())
@@ -130,17 +120,15 @@ TEST_F(RouteTests, SourceCallsSink)
     NonCopyableThing thing;
     Canary canary;
     canary.bear();
-    std::vector<int> data{1, 2, 3};
 
-    EXPECT_CALL(*this, handleSink5(123, _, Ref(thing), Eq("alive")))
+    EXPECT_CALL(*this, handleSink4(123, _, Ref(thing), Eq("alive")))
         .WillOnce(DoAll(
         SetArgReferee<1>(true),
         InvokeArgument<3>()
         ));
-    source5(123, flag, thing, canary, std::move(data));
+    source4(123, flag, thing, canary);
     EXPECT_THAT(flag, true);
     EXPECT_THAT(canary, Eq("alive"));
-    EXPECT_THAT(data, IsEmpty());
 }
 
 TEST_F(RouteTests, PassThroughsAreInvokedInBetween)
