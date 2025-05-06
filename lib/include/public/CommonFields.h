@@ -24,6 +24,15 @@
 #define COMMONFIELDS_DEVICE_CLASS                            "DeviceInfo.Class"
 #define COMMONFIELDS_DEVICE_ORGID                            "DeviceInfo.OrgId"
 
+/* Ref. https://www.w3.org/TR/trace-context/#traceparent-header-field-values
+ - ParentId  - parent of the current span received via remote context propagation.
+ - SpanId    - current SpanId sent in 'traceparent' to remote service.
+ */
+#define COMMONFIELDS_DT_TRACEID                              "env_dt_traceId"
+#define COMMONFIELDS_DT_SPANID                               "env_dt_spanId"
+#define COMMONFIELDS_DT_TRACEFLAGS                           "env_dt_traceFlags"
+#define COMMONFIELDS_DT_PARENTID                             "parentId"
+
 #define COMMONFIELDS_NETWORK_PROVIDER                        "DeviceInfo.NetworkProvider"
 #define COMMONFIELDS_NETWORK_TYPE                            "DeviceInfo.NetworkType"
 #define COMMONFIELDS_NETWORK_COST                            "DeviceInfo.NetworkCost"
