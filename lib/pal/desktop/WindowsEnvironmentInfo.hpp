@@ -34,7 +34,7 @@ namespace MAT_NS_BEGIN {
             default:
                 return OsArchitectureType_Unknown;
             }
-        };
+        }
 
         static std::string GetTimeZone()
         {
@@ -49,7 +49,7 @@ namespace MAT_NS_BEGIN {
                 // Need to handle the case when API return TIME_ZONE_ID_UNKNOWN. Otherwise we may be reporting invalid timeZone.Bias
                 return TimeZoneBiasToISO8601(timeZone.Bias + timeZone.StandardBias);
             }
-        };
+        }
     protected:
         // Convert a bias in minutes to the ISO 8601 time zone representations.
         // ISO 8601 examples: +01:30, -08

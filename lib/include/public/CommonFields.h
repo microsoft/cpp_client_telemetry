@@ -120,6 +120,6 @@
     virtual void SETTER_METHOD (name) (const std::string & x)         \
     {                                                       \
         SetCommonField(placeholder, x);                     \
-    };
+    }
 
 #endif

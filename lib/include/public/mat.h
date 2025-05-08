@@ -294,7 +294,7 @@ extern "C" {
     {
         pv.as_double = val;
         return pv;
-    };
+    }
 #define _DBL(key, val)           { key, TYPE_DOUBLE,    _DBL2({ NULL }, val) }
 #define PII_DBL(key, val, kind)  { key, TYPE_DOUBLE,    _DBL2({ NULL }, val), kind }
 

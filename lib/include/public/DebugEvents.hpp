@@ -154,12 +154,12 @@ namespace MAT_NS_BEGIN
         size_t size;
 
         /// <summary>DebugEvent The default DebugEvent constructor.</summary>
-        DebugEvent() : seq(0), ts(0), type(EVT_UNKNOWN), param1(0), param2(0), data(NULL), size(0) {};
+        DebugEvent() : seq(0), ts(0), type(EVT_UNKNOWN), param1(0), param2(0), data(NULL), size(0) {}
 
-        DebugEvent(DebugEventType type_) : seq(0), ts(0), type(type_), param1(0), param2(0), data(NULL), size(0) {};
+        DebugEvent(DebugEventType type_) : seq(0), ts(0), type(type_), param1(0), param2(0), data(NULL), size(0) {}
 
         DebugEvent(DebugEventType type_, size_t param1_, size_t param2_ = 0, void* data_ = nullptr, size_t size_ = 0) :
-            seq(0), ts(0), type(type_), param1(param1_), param2(param2_), data(data_), size(size_) {};
+            seq(0), ts(0), type(type_), param1(param1_), param2(param2_), data(data_), size(size_) {}
     };
 
     /// <summary>
