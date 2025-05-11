@@ -170,7 +170,7 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Concrete instance for servicing all singleton calls
         /// </summary>
-        static ILogManager* instance;
+        static std::unique_ptr<ILogManager> instance;
 
         /// <summary>
         /// Debug event source associated with this singleton
@@ -742,7 +742,7 @@ namespace MAT_NS_BEGIN
         static ILogManager* GetInstance() noexcept
         {
             LM_LOCKGUARD(stateLock());
-            return instance;
+            return instance.get();
         }
     };
 
@@ -754,16 +754,16 @@ namespace MAT_NS_BEGIN
 // https://developercommunity.visualstudio.com/content/problem/134886/initialization-of-template-static-variable-wrong.html
 //
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass) \
-    ILogManager* LogManagerClass::instance = nullptr;
+    std::unique_ptr<ILogManager> LogManagerClass::instance = nullptr;
 #elif defined(__APPLE__) && defined(MAT_USE_WEAK_LOGMANAGER)
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass) \
     template <>                                                   \
-    __attribute__((weak)) ILogManager* LogManagerBase<LogConfigurationClass>::instance{};
+    __attribute__((weak)) std::unique_ptr<ILogManager> LogManagerBase<LogConfigurationClass>::instance{};
 #else
 // ISO C++ -compliant declaration
 #define DEFINE_LOGMANAGER(LogManagerClass, LogConfigurationClass) \
     template <>                                                   \
-    ILogManager* LogManagerBase<LogConfigurationClass>::instance{};
+    std::unique_ptr<ILogManager> LogManagerBase<LogConfigurationClass>::instance{};
 #endif
 
 }

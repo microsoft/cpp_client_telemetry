@@ -655,7 +655,7 @@ namespace MAT_NS_BEGIN
         return m_logConfiguration;
     }
 
-    ILogger* LogManagerImpl::GetLogger(const std::string& tenantToken, const std::string& source, const std::string& scope)
+   ILogger* LogManagerImpl::GetLogger(const std::string& tenantToken, const std::string& source, const std::string& scope)
     {
         {
             LOCKGUARD(m_lock);
