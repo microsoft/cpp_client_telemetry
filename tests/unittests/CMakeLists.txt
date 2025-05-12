@@ -3,6 +3,7 @@ message("--- unittests")
 set(SRCS
   AIJsonSerializerTests.cpp
   AITelemetrySystemTests.cpp
+  AnnexKTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
   ClockSkewManagerTests.cpp
@@ -69,7 +70,11 @@ endif()
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
-     ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyGuardTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/InitializationConfigurationTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyConcernEventTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyConcernMetadataProviderTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyGuardTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/SystematicSamplerTests.cpp
   )
 endif()
 
@@ -142,6 +147,8 @@ else()
 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/ )
 
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
+
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
@@ -153,6 +160,9 @@ else()
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
   )
+
+  message("GTEST: ${LIBGTEST}")
+  message("GMOCK: ${LIBGMOCK}")
 
   target_link_libraries(UnitTests 
     ${LIBGTEST}

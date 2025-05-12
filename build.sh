@@ -1,5 +1,32 @@
 #!/bin/bash
 
+usage()
+{
+  echo "Usage: build.sh [clean] [arm64|x86_64|universal] [CUSTOM_BUILD_FLAGS=x] [noroot] [release|debug] [-h|-?] [-l (static|shared)] [-D CMAKE_OPTION] [-v]"
+  echo "                                                                                         "
+  echo "options:                                                                                 "
+  echo "                                                                                         "
+  echo "Positional options:                                                                          "
+  echo "[clean]                  - perform clean build                                           "
+  echo "[arm64|x86_64|universal] - Apple platform build type. Not applicable to other OS.        "
+  echo "[CUSTOM_BUILD_FLAGS]     - custom CXX compiler flags                                     "
+  echo "[noroot]                 - custom CXX compiler flags                                     "
+  echo "[release|debug]          - Specify build type (defaults to Debug)                        "
+  echo "                                                                                         "
+  echo "Additional parameters:                                                                   "
+  echo " -h | -?                 - this help.                                                    "
+  echo " -l [static|shared]      - build static (default) or shared library.                     "
+  echo " -D [CMAKE_OPTION]       - additional options to pass to cmake. Could be multiple.       "
+  echo " -v                      - increase build verbosity (reserved for future use)            "
+  echo "                                                                                         "
+  echo "Environment variables:                                                                   "
+  echo "CMAKE_OPTS               - any additional cmake options.                                 "
+  echo "GIT_PULL_TOKEN           - authorization token for Microsoft-proprietary modules.        "
+  echo "MACOSX_DEPLOYMENT_TARGET - optional parameter for setting macosx deployment target       "
+  echo "Plus any other environment variables respected by CMake build system.                    "
+  exit 0
+}
+
 export PATH=/usr/local/bin:$PATH
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -8,106 +35,124 @@ cd $DIR
 
 export NOROOT=$NOROOT
 
-if [ "$1" == "clean" ]; then
-  rm -f CMakeCache.txt *.cmake
-  rm -rf out
-  rm -rf .buildtools
-  # make clean
-fi
+# Evaluate arguments that are not switches
+while [[ $# -gt 0 ]]; do
+  ARG="$1"
+  case "$ARG" in
+    clean|noroot|release|debug|arm64|x86_64|universal|CUSTOM_BUILD_FLAGS*)
+      case "$ARG" in
+        clean)
+          CLEAN=true
+          echo "CLEAN = true"
+          ;;
+        noroot)
+          export NOROOT=true
+          echo "NOROOT = true"
+          ;;
+        release|debug)
+          if [[ -n "$BUILD_TYPE" ]]; then
+              echo "Error: BUILD_TYPE is already set to '$BUILD_TYPE'. Cannot overwrite with $ARG." 1>&2
+              exit 1
+          elif [[ "$ARG" == "release" ]]; then
+              BUILD_TYPE="Release"
+          elif [[ "$ARG" == "debug" ]]; then
+              BUILD_TYPE="Debug"
+          fi
+          echo "BUILD_TYPE = $BUILD_TYPE"
+          ;;
+        arm64|x86_64|universal)
+          if [[ -n "$MAC_ARCH" ]]; then
+              echo "Error: MAC_ARCH is already set to '$MAC_ARCH'. Cannot overwrite with $ARG." 1>&2
+              exit 1
+          else
+              MAC_ARCH="$ARG"
+          fi
+          echo "MAC_ARCH = $MAC_ARCH"
+          ;;
+        CUSTOM_BUILD_FLAGS*)
+          CUSTOM_CMAKE_CXX_FLAG="\"${ARG:19:999}\""
+          echo "custom compiler flags = $CUSTOM_CMAKE_CXX_FLAG"
+          ;;
+        *)
+          echo "Error: case not added: $ARG" 1>&2
+          exit 1
+          ;;
+      esac
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
-if [ "$1" == "noroot" ] || [ "$2" == "noroot" ] || [ "$3" == "noroot" ]; then
-  export NOROOT=true
-fi
-
-if [ "$1" == "release" ] || [ "$2" == "release" ] || [ "$3" == "release" ]; then
-  BUILD_TYPE="Release"
-else
+if [[ -z "$BUILD_TYPE" ]]; then
   BUILD_TYPE="Debug"
+  echo "Assuming default BUILD_TYPE = Debug"
 fi
 
-if [ "$1" == "arm64" ] || [ "$2" == "arm64" ] || [ "$3" == "arm64" ]; then
-  MAC_ARCH="arm64"
-elif [ "$1" == "universal" ] || [ "$2" == "universal" ] || [ "$3" == "universal" ]; then
-  MAC_ARCH="universal"
-else
-  MAC_ARCH="x86_64"
+if [[ -z "$MAC_ARCH" ]]; then
+  MAC_ARCH=$(/usr/bin/uname -m)
+  echo "Using current machine MAC_ARCH = $MAC_ARCH"
 fi
 
-CUSTOM_CMAKE_CXX_FLAG=""
-if [[ $1 == CUSTOM_BUILD_FLAGS* ]] || [[ $2 == CUSTOM_BUILD_FLAGS* ]] || [[ $3 == CUSTOM_BUILD_FLAGS* ]]; then
-  if [[ $1 == CUSTOM_BUILD_FLAGS* ]]; then
-  CUSTOM_CMAKE_CXX_FLAG="\"${1:19:999}\""
-  elif [[ $2 == CUSTOM_BUILD_FLAGS* ]]; then
-  CUSTOM_CMAKE_CXX_FLAG="\"${2:19:999}\""
-  elif [[ $3 == CUSTOM_BUILD_FLAGS* ]]; then
-  CUSTOM_CMAKE_CXX_FLAG="\"${3:19:999}\""
-  fi
-  echo "custom build flags="$CUSTOM_CMAKE_CXX_FLAG
-fi
-
+# Evaluate switches
 LINK_TYPE=
-CMAKE_OPTS="${CMAKE_OPTS:-DBUILD_SHARED_LIBS=OFF}"
+CMAKE_OPTS="${CMAKE_OPTS:--DBUILD_SHARED_LIBS=OFF}"
 while getopts "h?vl:D:" opt; do
     case "$opt" in
-    h|\?)
-        echo "Usage: build.sh [clean] [arm64|universal] [CUSTOM_CMAKE_CXX_FLAGS=x] [noroot] [release] [-h|-?] [-l (static|shared)] [-D CMAKE_OPTION] [-v]"
-        echo "                                                                                         "
-        echo "options:                                                                                 "
-        echo "                                                                                         "
-        echo "Positional options (1st three arguments):                                                "
-        echo "[clean]                  - perform clean build                                           "
-        echo "[arm64|universal]        - Apple platform build type. Not applicable to other OS.        "
-        echo "[CUSTOM_CMAKE_CXX_FLAGS] - custom CXX compiler flags                                     "
-        echo "[noroot]                 - custom CXX compiler flags                                     "
-        echo "[release]                - build for Release                                             "
-        echo "                                                                                         "
-        echo "Additional parameters:                                                                   "
-        echo " -h | -?                 - this help.                                                    "
-        echo " -l [static|shared]      - build static (default) or shared library.                     "
-        echo " -D [CMAKE_OPTION]       - additional options to pass to cmake. Could be multiple.       "
-        echo " -v                      - increase build verbosity (reserved for future use)            "
-        echo "                                                                                         "
-        echo "Environment variables:                                                                   "
-        echo "CMAKE_OPTS               - any additional cmake options.                                 "
-        echo "GIT_PULL_TOKEN           - authorization token for Microsoft-proprietary modules.        "
-        echo "Plus any other environment variables respected by CMake build system.                    "
-        exit 0
+    h|\?) usage
         ;;
     :)  echo "Invalid option: $OPTARG requires an argument" 1>&2
         exit 0
         ;;
     v)  verbose=1
         ;;
-    D)  CMAKE_OPTS="$CMAKE_OPTS -D$OPTARG"
+    D)  CMAKE_OPTS="${CMAKE_OPTS} -D${OPTARG}"
         ;;
     l)  LINK_TYPE=$OPTARG
         ;;
     esac
 done
+
+# Detect args accidentally passed after the last switch argument
 shift $((OPTIND -1))
+if [[ $# -gt 0 ]]; then
+    echo "Error: There are arguments remaining after parsing all positional arguments and switches: $@" 1>&2
+    exit 1
+fi
+
+if [[ "$CLEAN" == "true" ]]; then
+  echo "Cleaning previous build artifacts"
+  rm -f CMakeCache.txt *.cmake
+  rm -rf out
+  rm -rf .buildtools
+  # make clean
+fi
+
+echo "CMAKE_OPTS from caller: $CMAKE_OPTS"
 
 if [ "$LINK_TYPE" == "shared" ]; then
-  CMAKE_OPTS="$CMAKE_OPTS -DBUILD_SHARED_LIBS=ON"
+  CMAKE_OPTS="${CMAKE_OPTS} -DBUILD_SHARED_LIBS=ON"
 fi
 
 # Set target MacOS minver
-if [ "$MAC_ARCH" == "arm64" ]; then
-  export MACOSX_DEPLOYMENT_TARGET=11.10
-else
-  export MACOSX_DEPLOYMENT_TARGET=10.10
-fi
-
+default_mac_os_target=$([ "$MAC_ARCH" == "arm64" ] && echo "11.10" || echo "10.10")
+[ -z $MACOSX_DEPLOYMENT_TARGET ] && export MACOSX_DEPLOYMENT_TARGET=${default_mac_os_target}
+echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 
 # Install build tools and recent sqlite3
 FILE=.buildtools
 OS_NAME=`uname -a`
+
 if [ ! -f $FILE ]; then
   case "$OS_NAME" in
-    *Darwin*) tools/setup-buildtools-apple.sh $MAC_ARCH ;;
-    *Linux*)  [[ -z "$NOROOT" ]] && sudo tools/setup-buildtools.sh || echo "No root: skipping build tools installation." ;;
-    *)        echo "WARNING: unsupported OS $OS_NAME , skipping build tools installation.."
+    *Darwin*) CMD="tools/setup-buildtools-apple.sh $MAC_ARCH" ;;
+    *Linux*)  CMD="tools/setup-buildtools.sh" ;;
+    *)        CMD=""; echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." ;;
   esac
-  # Assume that the build tools have been successfully installed
+
+  [[ -n "$CMD" ]] && { [[ -z "$NOROOT" ]] && sudo $CMD || echo "No root: skipping build tools installation."; }
   echo > $FILE
 fi
 
@@ -144,6 +189,7 @@ set -e
 cmake_cmd="cmake -DMAC_ARCH=$MAC_ARCH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="${CUSTOM_CMAKE_CXX_FLAG}" $CMAKE_OPTS .."
 echo $cmake_cmd
 eval $cmake_cmd
+
 # TODO: strip symbols to minimize (release-only)
 
 # Build all

@@ -13,6 +13,11 @@
 #include "PrivacyGuardHelper.hpp"
 #define HAS_PG true
 #endif
+#if __has_include("modules/signals/Signals.hpp")
+#include "SignalsHelper.hpp"
+#include "modules/signals/Signals.hpp"
+#define HAS_SS true
+#endif
 #endif
 
 #include <utils/Utils.hpp>
@@ -87,6 +92,18 @@ extern "C"
         jclass /* this */)
     {
         return static_cast<jint>(WrapperLogManager::ResumeTransmission());
+    }
+
+    JNIEXPORT jint JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeSetIntTicketToken(
+        JNIEnv* env,
+        jclass /* this */,
+        jint jType,
+        jstring jstrTokenValue)
+    {
+        auto ticketValue = JStringToStdString(env, jstrTokenValue);
+        return static_cast<jint>(WrapperLogManager::SetTicketToken(
+            static_cast<TicketType>(jType), ticketValue));
     }
 
     JNIEXPORT jint JNICALL
@@ -302,6 +319,33 @@ extern "C"
                 WrapperLogManager::GetInstance()->RemoveDataInspector(pg->GetName());
                 return true;
             }
+#endif
+        return false;
+    }
+
+    JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeRegisterSignalsOnDefaultLogManager(JNIEnv *env, jclass clazz) {
+#if HAS_SS
+        auto logManager = WrapperLogManager::GetInstance();
+        auto ss = SignalsHelper::GetSignalsInspector();
+        if (ss != nullptr) {
+            logManager->SetDataInspector(ss);
+            return true;
+        }
+#endif
+        return false;
+    }
+
+    JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeUnregisterSignalsOnDefaultLogManager(
+            JNIEnv *env, jclass clazz) {
+#if HAS_SS
+        auto logManager = WrapperLogManager::GetInstance();
+        auto ss = SignalsHelper::GetSignalsInspector();
+        if (ss != nullptr) {
+            logManager->RemoveDataInspector(ss->GetName());
+            return true;
+        }
 #endif
         return false;
     }
@@ -848,7 +892,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     ManagerAndConfig const* mc;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= jniManagers.size())
+        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= static_cast<jlong>(jniManagers.size()))
         {
             return nullptr;
         }
@@ -870,7 +914,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 {
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        if (nativeLogManager < 0 || nativeLogManager >= jniManagers.size())
+        if (nativeLogManager < 0 || nativeLogManager >= static_cast<jlong>(jniManagers.size()))
         {
             return;
         }
@@ -927,7 +971,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     ManagerAndConfig* mc;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
-        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= jniManagers.size())
+        if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= static_cast<jlong>(jniManagers.size()))
         {
             return 0;
         }
@@ -953,7 +997,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 static ILogManager* getLogManager(jlong nativeLogManager)
 {
     std::lock_guard<std::mutex> lock(jniManagersMutex);
-    if (nativeLogManager < 0 || nativeLogManager >= jniManagers.size())
+    if (nativeLogManager < 0 || nativeLogManager >= static_cast<jlong>(jniManagers.size()))
     {
         return nullptr;
     }
@@ -1543,7 +1587,8 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jlong eventType,
     jlong identity) {
     std::lock_guard<std::mutex> l(listeners_mutex);
-    if (identity < 0 || identity >= listeners.size() || !listeners[identity]) {
+    if (identity < 0 || identity >= static_cast<jlong>(jniManagers.size()) || !listeners[identity])
+    {
         return;
     }
     auto logManager = getLogManager(native_log_manager);
@@ -1572,6 +1617,23 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
     if(pg != nullptr) {
         logManager->SetDataInspector(pg);
+        return true;
+    }
+#endif
+    return false;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRegisterSignals(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager) {
+#if HAS_SS
+    auto logManager = getLogManager(native_log_manager);
+    auto ss = SignalsHelper::GetSignalsInspector();
+    if(ss != nullptr) {
+        logManager->SetDataInspector(ss);
         return true;
     }
 #endif
@@ -1649,6 +1711,23 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
     if(pg != nullptr) {
         logManager->RemoveDataInspector(pg->GetName());
+        return true;
+    }
+#endif
+    return false;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterSignals(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager) {
+#if HAS_SS
+    auto logManager = getLogManager(native_log_manager);
+    auto ss = SignalsHelper::GetSignalsInspector();
+    if(ss != nullptr) {
+        logManager->RemoveDataInspector(ss->GetName());
         return true;
     }
 #endif

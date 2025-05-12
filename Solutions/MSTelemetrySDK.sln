@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31205.134
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sqlite", "..\sqlite\sqlite.vcxproj", "{2EBC7B3C-2AF1-442C-9285-CAB39BBB8C00}"
 EndProject
@@ -129,6 +129,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cds", "..\lib\modules\cds\c
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liveeventinspector", "..\lib\modules\liveeventinspector\liveeventinspector.vcxitems", "{F8BB42F6-9C93-423B-B0C6-23EF79DD959A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signals", "..\lib\modules\signals\signals.vcxitems", "{D5E1C2E4-DF23-4D2E-85F8-DF737C6A9B9D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sanitizer", "..\lib\modules\sanitizer\sanitizer.vcxitems", "{67F82868-5F53-4337-95F1-811557AE53E4}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\lib\modules\cds\cds.vcxitems*{0299c8ba-03b9-451e-8a52-8df1291173a5}*SharedItemsImports = 9
@@ -141,6 +145,8 @@ Global
 		..\lib\modules\filter\filter.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
+		..\lib\modules\sanitizer\sanitizer.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
+		..\lib\modules\signals\signals.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d42}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{1dc6b38a-b390-34ce-907f-4958807a3d43}*SharedItemsImports = 4
@@ -153,6 +159,8 @@ Global
 		..\lib\modules\filter\filter.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
+		..\lib\modules\sanitizer\sanitizer.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
+		..\lib\modules\signals\signals.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c32}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{216a8e97-21f7-4bef-9e52-7f772c177c33}*SharedItemsImports = 4
@@ -164,6 +172,7 @@ Global
 		..\lib\modules\filter\filter.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
+		..\lib\modules\sanitizer\sanitizer.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{434c594f-cde0-3690-ac0a-9ed854b74092}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{45d41acc-2c3c-43d2-bc10-02aa73ffc7c7}*SharedItemsImports = 9
@@ -174,6 +183,8 @@ Global
 		..\lib\modules\filter\filter.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
+		..\lib\modules\sanitizer\sanitizer.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
+		..\lib\modules\signals\signals.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		..\lib\pal\universal\universal.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		..\lib\shared\Shared.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{49077dbf-e363-4d2d-8334-636569a771b6}*SharedItemsImports = 4
@@ -184,6 +195,8 @@ Global
 		..\lib\modules\filter\filter.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
+		..\lib\modules\sanitizer\sanitizer.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
+		..\lib\modules\signals\signals.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		..\lib\pal\universal\universal.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{57a81ed9-5603-471f-afee-9656da74178d}*SharedItemsImports = 4
 		..\lib\decoder\decoder.vcxitems*{65b6880e-fc36-443d-a7a5-0e6cda6523ac}*SharedItemsImports = 9
@@ -195,11 +208,15 @@ Global
 		..\lib\modules\filter\filter.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
+		..\lib\modules\sanitizer\sanitizer.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
+		..\lib\modules\signals\signals.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
 		..\lib\pal\universal\universal.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{7a75748d-5d6b-48a5-83cb-f5f439133d59}*SharedItemsImports = 4
+		..\lib\modules\signals\signals.vcxitems*{d5e1c2e4-df23-4d2e-85f8-df737c6a9b9d}*SharedItemsImports = 9
 		..\lib\modules\filter\filter.vcxitems*{d74e42ec-c6ee-4944-b92a-eb711be002a9}*SharedItemsImports = 9
 		..\lib\shared\Shared.vcxitems*{dc91621e-a203-42df-8e03-3a23dd0602b1}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{e1f6ca48-3bbf-4378-8d1e-6bbf4869db5b}*SharedItemsImports = 9
+		..\lib\modules\sanitizer\sanitizer.vcxitems*{e1f6ca48-3bbf-4378-8d1e-6bbf4869db5b}*SharedItemsImports = 9
 		..\lib\shared\Shared.vcxitems*{ef859326-2a11-481c-ae8c-03d754f1c412}*SharedItemsImports = 9
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{f8bb42f6-9c93-423b-b0c6-23ef79dd959a}*SharedItemsImports = 9
 		..\lib\decoder\decoder.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
@@ -209,6 +226,7 @@ Global
 		..\lib\modules\filter\filter.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\modules\liveeventinspector\liveeventinspector.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\modules\privacyguard\privacyguard.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
+		..\lib\modules\sanitizer\sanitizer.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		..\lib\pal\desktop\desktop.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 		Clienttelemetry\Clienttelemetry.vcxitems*{fe79fb3a-b3ef-38df-b7a4-11277db72b39}*SharedItemsImports = 4
 	EndGlobalSection
@@ -1277,6 +1295,7 @@ Global
 		{6DC5AB1D-3D64-4C52-8D8E-D9A8B0C16F14} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{0299C8BA-03B9-451E-8A52-8DF1291173A5} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 		{F8BB42F6-9C93-423B-B0C6-23EF79DD959A} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
+		{D5E1C2E4-DF23-4D2E-85F8-DF737C6A9B9D} = {23F546DE-29F8-4F18-A378-42BCFE1781C0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EE8585B-C10F-4DAC-BDAF-3726EDF8FCD7}

@@ -30,6 +30,10 @@
 #include "IHttpClient.hpp"
 #include "pal/PAL.hpp"
 
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
+#include "utils/annex_k.hpp"
+#endif
+
 #define HTTP_CONN_TIMEOUT       5L
 #define HTTP_STATUS_REGEXP		"HTTP\\/\\d\\.\\d (\\d+)\\ .*"
 #define HTTP_HEADER_REGEXP      "(.*)\\: (.*)\\n*"
@@ -128,6 +132,8 @@ public:
         // TODO: expose SSL cert verification opts via ILogConfiguration
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);      // 1L
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);      // 2L
+        // HTTP/2 please, fallback to HTTP/1.1 if not supported
+        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
         // Specify our custom headers
         for(auto &kv : this->requestHeaders)
@@ -202,7 +208,13 @@ public:
          * Note that this API takes a pointer to a 'long' while we use
          * curl_socket_t for sockets otherwise.
          */
+
+#if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
+        res = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
+#else
         res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockextr);
+#endif
+
         if(CURLE_OK != res)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
@@ -490,8 +502,11 @@ protected:
           TRACE("not enough memory (realloc returned NULL)\n");
           return 0;
         }
-
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
+        BoundCheckFunctions::oneds_memcpy_s(&(mem->memory[mem->size]), realsize, contents, realsize);
+#else
         memcpy(&(mem->memory[mem->size]), contents, realsize);
+#endif
         mem->size += realsize;
         mem->memory[mem->size] = 0;
 

@@ -1,0 +1,38 @@
+name: C/C++ CI on Ubuntu 18:04
+
+on:
+  push:
+    branches:
+    - master
+    - main
+    - dev
+    - dev/*
+    - release/*
+    - buildme/*
+
+  pull_request:
+    branches:
+    - master
+    - main
+    - dev
+
+  schedule:
+  - cron: 0 2 * * 1-5
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+    strategy:
+      matrix:
+        config: [release, debug]
+        os: [ubuntu-20.04]
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+      continue-on-error: true
+    - name: Test ${{ matrix.os }} ${{ matrix.config }}
+      run: ./build-tests.sh ${{ matrix.config }}

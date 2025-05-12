@@ -72,6 +72,32 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_SIGNALS
+#if defined __has_include
+#if __has_include("modules/signals/Signals.hpp")
+#include "modules/signals/Signals.hpp"
+#else
+/* Compiling without Signals support because Signals private header is unavailable */
+#undef HAVE_MAT_SIGNALS
+#endif
+#else
+#include "modules/signals/Signals.hpp"
+#endif
+#endif
+
+#ifdef HAVE_MAT_SANITIZER
+#if defined __has_include
+#if __has_include("modules/sanitizer/Sanitizer.hpp")
+#include "modules/sanitizer/Sanitizer.hpp"
+#else
+/* Compiling without Sanitizer support because Santizer private header is unavailable */
+#undef HAVE_MAT_SANITIZER
+#endif
+#else
+#include "modules/sanitizer/Sanitizer.hpp"
+#endif
+#endif
+
 namespace MAT_NS_BEGIN
 {
     void DeadLoggers::AddMap(LoggerMap&& source)

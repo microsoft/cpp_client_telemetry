@@ -8,6 +8,7 @@
 
 #if (HAVE_EXCEPTIONS)
 #include <exception>
+#include <stdexcept>
 #endif
 
 namespace MAT_NS_BEGIN

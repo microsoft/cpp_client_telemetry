@@ -8,6 +8,7 @@
 #include "ctmacros.hpp"
 #include "IModule.hpp"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 

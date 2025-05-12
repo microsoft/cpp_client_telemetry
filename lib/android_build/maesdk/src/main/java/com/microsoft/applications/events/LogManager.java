@@ -495,6 +495,21 @@ public class LogManager {
     return Status.getEnum(nativeResumeTransmission());
   }
 
+  private static native int nativeSetIntTicketToken(int type, final String tokenValue);
+
+  /**
+   * Sets the token ID with the value.
+   *
+   * @param type Type of token(like AAD etc)
+   * @param tokenValue Value of the token
+   * @return Status enum corresponding to the native API execution status_t.
+   */
+  public static Status setTicketToken(TicketType type, final String tokenValue) {
+    if (type == null) throw new IllegalArgumentException("type is null");
+
+    return Status.getEnum(nativeSetIntTicketToken(type.getValue(), tokenValue));
+  }
+
   private static native int nativeSetIntTransmitProfile(int profile);
 
   /**
@@ -931,6 +946,18 @@ public class LogManager {
     // We need the PG ptr to get the data inspector name to remove it. If PG is already uninitialized,
     // we should let LogManager remove it when it d'tors.
     return PrivacyGuard.isInitialized() && nativeUnregisterPrivacyGuardOnDefaultLogManager();
+  }
+
+  private static native boolean nativeRegisterSignalsOnDefaultLogManager();
+
+  public static boolean registerSignals() {
+    return Signals.isInitialized() && nativeRegisterSignalsOnDefaultLogManager();
+  }
+
+  private static native boolean nativeUnregisterSignalsOnDefaultLogManager();
+
+  public static boolean unregisterSignals() {
+    return Signals.isInitialized() && nativeUnregisterSignalsOnDefaultLogManager();
   }
 
   public static native void pauseActivity();

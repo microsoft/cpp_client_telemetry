@@ -1,6 +1,51 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(MSTelemetry)
 
+# Set installation prefix for macOS and Linux
+if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+endif()
+
+
+# Set installation prefix for Unix systems (macOS and Linux)
+if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
+    # First try /usr/local
+    set(TEST_FILE "/usr/local/.ci_write_test")
+    
+    # Try to create a test file
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E touch "${TEST_FILE}"
+        RESULT_VARIABLE WRITE_RESULT
+    )
+    
+    # Check if write was successful
+    if(WRITE_RESULT EQUAL 0)
+        # We have write access to /usr/local
+        set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+        message(STATUS "Using /usr/local as installation prefix (write access confirmed)")
+        # Clean up test file
+        execute_process(COMMAND ${CMAKE_COMMAND} -E remove "${TEST_FILE}")
+    else()
+        # No write access, fall back to HOME directory
+        set(FALLBACK_DIR "$ENV{HOME}/mst_telemetry")
+        
+        # Create the mst_telemetry directory
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${FALLBACK_DIR}"
+            RESULT_VARIABLE CREATE_DIR_RESULT
+        )
+        
+        if(NOT CREATE_DIR_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to create directory: ${FALLBACK_DIR}")
+        endif()
+        
+        set(CMAKE_INSTALL_PREFIX "${FALLBACK_DIR}" CACHE PATH "Installation directory prefix" FORCE)
+        message(STATUS "No write access to /usr/local, created and using ${FALLBACK_DIR} instead")
+    endif()
+endif()
+
+
+
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
@@ -26,6 +71,9 @@ if(APPLE)
   # iOS build options
   option(BUILD_IOS           "Build for iOS"               NO)
   option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" YES)
+  if (DEFINED FORCE_RESET_DEPLOYMENT_TARGET)
+    set(FORCE_RESET_OSX_DEPLOYMENT_TARGET ${FORCE_RESET_DEPLOYMENT_TARGET})
+  endif()
 
   if(BUILD_IOS)
     set(TARGET_ARCH "APPLE")
@@ -34,32 +82,30 @@ if(APPLE)
 
     if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
       set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+      if (${IOS_PLAT} STREQUAL "iphonesimulator")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
+      else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+      endif()
     endif()
 
-    if((${IOS_PLAT} STREQUAL "iphonesimulator") AND (${IOS_ARCH} STREQUAL "arm64"))
-      # iOS arm64 simulator is supported starting BigSur
-      # Unfortunately, CMAKE produces a device binary (not simulator) when providing -miphoneos-version-min flag when building iOS arm64 simulator
-    else()
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-    endif()
-
-    if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator"))
+    if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator") OR (${IOS_PLAT} STREQUAL "xros") OR (${IOS_PLAT} STREQUAL "xrsimulator"))
       set(IOS_PLATFORM "${IOS_PLAT}")
     else()
       message(FATAL_ERROR "Unrecognized iOS platform '${IOS_PLAT}'")
     endif()
 
     if(${IOS_ARCH} STREQUAL "x86_64")
-      set(IOS_PLATFORM "iphonesimulator")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
       set(CMAKE_SYSTEM_PROCESSOR x86_64)
     elseif(${IOS_ARCH} STREQUAL "arm64")
-      set(IOS_PLATFORM "iphoneos")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
       set(CMAKE_SYSTEM_PROCESSOR arm64)
     elseif(${IOS_ARCH} STREQUAL "arm64e")
-      set(IOS_PLATFORM "iphoneos")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
       set(CMAKE_SYSTEM_PROCESSOR arm64e)
@@ -76,11 +122,18 @@ if(APPLE)
     message("-- PLATFORM:               ${IOS_PLATFORM}")
   else()
     if(${MAC_ARCH} STREQUAL "x86_64")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
       set(CMAKE_SYSTEM_PROCESSOR x86_64)
+      set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+      set(CMAKE_OSX_ARCHITECTURES ${MAC_ARCH})
+      set(APPLE True)
     elseif(${MAC_ARCH} STREQUAL "arm64")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
       set(CMAKE_SYSTEM_PROCESSOR arm64)
+      set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+      set(CMAKE_OSX_ARCHITECTURES ${MAC_ARCH})
       set(APPLE True)
     else()
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
@@ -105,7 +158,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 set(WARN_FLAGS "/W4 /WX")
 else()
 # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
-set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter")
+set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unknown-warning-option -Wno-unused-but-set-variable")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -186,8 +239,18 @@ if(GCC5_CXX11_ABI_WORKAROUND)
   add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 endif()
 
+option(USE_ONEDS_BOUNDCHECK_METHODS "Use bound check methods for C99 functions" OFF)
+if (USE_ONEDS_BOUNDCHECK_METHODS)
+  add_definitions(-DHAVE_ONEDS_BOUNDCHECK_METHODS)
+endif()
+
+option(USE_ONEDS_SECURE_MEM_FUNCTIONS "Use secure memory functions for sqlite" OFF)
+if(USE_ONEDS_SECURE_MEM_FUNCTIONS)
+  add_definitions(-DUSE_ONEDS_SECURE_MEM_FUNCTIONS)
+endif()
+
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
- add_definitions(-DZLIB_WINAPI)
+  add_definitions(-DZLIB_WINAPI)
 endif()
 
 add_definitions(-DNOMINMAX)
@@ -246,10 +309,13 @@ option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
 option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
+option(BUILD_SWIFT_WRAPPER "Build Swift Wrappers"   YES)
 option(BUILD_PACKAGE      "Build package"           YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
 option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
+option(BUILD_SIGNALS      "Build Signals"           YES)
+option(BUILD_SANITIZER    "Build Sanitizer"         YES)
 option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 
 # Enable Azure Monitor / Application Insights end-point support
@@ -281,6 +347,9 @@ include_directories(lib/pal)
 #  add_subdirectory(bondlite/tests)
 #endif()
 
+# Include repo root to allow includes of sqlite, zlib, and nlohmann
+include_directories(${CMAKE_SOURCE_DIR})
+
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)
 endif()
@@ -301,17 +370,17 @@ endif()
 ################################################################################################
 
 if (BUILD_PACKAGE)
-  if (${CMAKE_PACKAGE_TYPE} STREQUAL "deb")
+  if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "deb")
     # FIXME: hardcode it for 64-bit Linux for now
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
     include(tools/MakeDeb.cmake)
   endif()
-  if (${CMAKE_PACKAGE_TYPE} STREQUAL "rpm")
+  if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "rpm")
     # TODO: [MG] - fix path
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
     include(tools/MakeRpm.cmake)
   endif()
-  if (${CMAKE_PACKAGE_TYPE} STREQUAL "tgz")
+  if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "tgz")
     # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
     # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
     include(tools/MakeTgz.cmake)

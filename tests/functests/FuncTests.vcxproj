@@ -450,12 +450,21 @@
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\functests\DefaultDataViewerFuncTests.cpp" />
   </ItemGroup>
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\sanitizer')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\functests\SanitizerFuncTests.cpp" />
+  </ItemGroup>
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\functests\PrivacyGuardFuncTests.cpp" />
   </ItemGroup>
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\liveeventinspector')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\liveeventinspector\tests\functests\LiveEventInspectorFuncTests.cpp" />
   </ItemGroup>
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\signals')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\functests\SignalsFuncTests.cpp" />
+  </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="CopyJson" AfterTargets="Build" Condition="exists('$(ProjectDir)..\..\lib\modules\exp\tests\functests\test.json')">
+    <Copy SourceFiles="$(ProjectDir)..\..\lib\modules\exp\tests\functests\test.json" DestinationFolder="$(OutDir)" />
+  </Target>
 </Project>

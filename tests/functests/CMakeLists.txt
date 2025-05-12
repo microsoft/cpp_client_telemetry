@@ -34,6 +34,16 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
         )
+    if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json)
+      if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
+        # Use file(COPY_FILE ...) for CMake 3.21 and later
+        file(COPY_FILE ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json ${CMAKE_BINARY_DIR}/test.json)
+      else()
+        # Use file(COPY ...) as an alternative for older versions
+        file(COPY ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json
+          DESTINATION ${CMAKE_BINARY_DIR})
+      endif()
+    endif()
 endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
@@ -97,6 +107,8 @@ else()
   message("--- Linking libraries! ")
   message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
   message("Binary Dir: ${CMAKE_BINARY_DIR}")
+
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
 
   find_file(LIBGTEST
     NAMES libgtest.a

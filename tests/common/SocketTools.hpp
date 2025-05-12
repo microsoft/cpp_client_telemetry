@@ -14,6 +14,9 @@
 #include <cstring>
 #include <cstddef>
 #include <algorithm>
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
+#include "utils/annex_k.hpp"
+#endif
 
 #if defined(HAVE_CONSOLE_LOG) && !defined(LOG_DEBUG)
 /* Log to console if there's no standard log facility defined */
@@ -125,7 +128,7 @@ class SocketAddr
 #ifdef _WIN32
         INT addrlen = sizeof(m_data);
         WCHAR buf[200];
-        for(int i = 0; i < sizeof(buf) && addr[i]; i++)
+        for(size_t i = 0; i < sizeof(buf) && addr[i]; i++)
         {
             buf[i] = addr[i];
         }
@@ -139,7 +142,11 @@ class SocketAddr
         {
             inet4.sin_port = htons(atoi(colon + 1));
             char buf[16];
+#ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
+            MAT::BoundCheckFunctions::oneds_memcpy_s(buf, sizeof(buf), addr, std::min<ptrdiff_t>(15, colon - addr));
+#else
             memcpy(buf, addr, std::min<ptrdiff_t>(15, colon - addr));
+#endif
             buf[15] = '\0';
             ::inet_pton(AF_INET, buf, &inet4.sin_addr);
         } else
