@@ -15,6 +15,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
+  list(APPEND SRCS
+    SanitizerFuncTests.cpp
+  )
+endif()
+
 if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
   list(APPEND SRCS
      ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp
