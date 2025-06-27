@@ -8,6 +8,7 @@
 #if !defined (ANDROID) || defined(ENABLE_CAPI_HTTP_CLIENT)
 #include "http/HttpClient_CAPI.hpp"
 #endif
+#include "LogManagerFactory.hpp"
 #include "LogManagerProvider.hpp"
 #include "mat.h"
 #include "pal/TaskDispatcher_CAPI.hpp"
@@ -163,7 +164,7 @@ evt_status_t mat_open_core(
     }
 
     status_t status = static_cast<status_t>(EFAULT);
-    clients[code].logmanager = LogManagerProvider::CreateLogManager(clients[code].config, status);
+    clients[code].logmanager = LogManagerFactory::Get(clients[code].config, status);
 
     // Verify that the instance pointer is valid
     if (clients[code].logmanager == nullptr)
@@ -271,7 +272,7 @@ evt_status_t mat_log(evt_context_t *ctx)
     const auto & it = m.find(COMMONFIELDS_EVENT_SOURCE);
     std::string source = ((it != m.cend()) && (it->second.type == EventProperty::TYPE_STRING)) ? it->second.as_string : "";
 
-    ILogger *logger = client->logmanager->GetLogger(token, source, scope);
+    ILogger* logger = client->logmanager->GetLogger(token, source, scope);
     if (logger == nullptr)
     {
         ctx->result = EFAULT; /* invalid address */

@@ -73,9 +73,9 @@ static BOOL _initialized = false;
         return nil;
     }
 
-    ILogManager* manager = LogManagerProvider::CreateLogManager(
+    auto manager = LogManagerProvider::CreateLogManager(
         *wrappedConfig,
-        status);
+        status).release();
 
     if (status == status_t::STATUS_SUCCESS && manager != nil)
     {

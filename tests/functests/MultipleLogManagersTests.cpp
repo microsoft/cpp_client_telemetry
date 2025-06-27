@@ -176,9 +176,9 @@ TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
     lm1->SetContext("test1", "abc");
     lm2->GetSemanticContext().SetAppId("123");
     
-    ILogger* l1 = lm1->GetLogger("lm1_token1", "aaa-source");
-    ILogger* l2 = lm2->GetLogger("lm2_token1", "bbb-source");
-    ILogger* l3 = lm3->GetLogger("lm3_token1", "ccc-source");
+    auto l1 = lm1->GetLogger("lm1_token1", "aaa-source");
+    auto l2 = lm2->GetLogger("lm2_token1", "bbb-source");
+    auto l3 = lm3->GetLogger("lm3_token1", "ccc-source");
 
     EventProperties l1_prop("l1a1");
     l1_prop.SetProperty("X", "Y");
@@ -213,7 +213,7 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     config1[CFG_STR_CACHE_FILE_PATH] = testing::GetUniqueDBFileName();
     std::unique_ptr<ILogManager> lm(LogManagerFactory::Create(config1));
     CAPTURE_PERF_STATS("LogManager created");
-    ILogger* logger = lm->GetLogger("aaa");
+    auto logger = lm->GetLogger("aaa");
     CAPTURE_PERF_STATS("Logger created");
     size_t numIterations = max_iterations;
     while (numIterations--)
@@ -263,7 +263,7 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
     lm1->SetDataInspector(privacyGuard);
     lm2->SetDataInspector(privacyGuard);
 
-    ILogger* l2a = lm2->GetLogger("aaa", "aaa-source");
+    auto l2a = lm2->GetLogger("aaa", "aaa-source");
     EventProperties l2a1p("l2a1");
     l2a1p.SetProperty("Field1", "http://www.microsoft.com");                             //DataConcernType::Url
     l2a1p.SetProperty("Field2", "HTTPS://www.microsoft.com");                            //DataConcernType::Url
@@ -274,7 +274,7 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
 
     privacyConcernLogCount = 0;
 
-    ILogger* l1a = lm1->GetLogger("aaa");
+    auto l1a = lm1->GetLogger("aaa");
     EventProperties l1a1p("l1a1");
     l1a1p.SetProperty("Field1", "Some%2eone%40Microsoft%2ecom");     //ConcernType::InternalEmailAddress  //As happens in escaped URLs
     l1a1p.SetProperty("Field2", "Someone@Microsoft.com");            //ConcernType::InternalEmailAddress
