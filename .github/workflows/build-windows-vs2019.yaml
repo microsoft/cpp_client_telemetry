@@ -16,7 +16,7 @@ on:
 jobs:
   build:
 
-    runs-on: windows-2019
+    runs-on: windows-2022
     name: Build
 
     steps:
