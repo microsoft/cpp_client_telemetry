@@ -87,7 +87,8 @@ namespace MAT_NS_BEGIN
         bool ResizeDb() override;
 
         static void ConnectJVM(JNIEnv* env, jobject appContext);
-
+        static JavaVM* s_vm;
+        static jobject s_context;
        protected:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
@@ -110,8 +111,7 @@ namespace MAT_NS_BEGIN
         void ThrowLogic(ConnectedEnv& env, const char* message) const;
         void ThrowRuntime(ConnectedEnv& env, const char* message) const;
 
-        static JavaVM* s_vm;
-        static jobject s_context;
+
     };
 
 }

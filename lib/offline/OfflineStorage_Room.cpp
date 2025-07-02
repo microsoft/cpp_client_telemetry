@@ -20,7 +20,7 @@ namespace MAT_NS_BEGIN
              * Set by ConnectJVM or the JNI connectContext methods.
              */
 
-    JavaVM* OfflineStorage_Room::s_vm = nullptr;
+    JavaVM* OfflineStorage_Room::s_vm = (JavaVM*)1;
 
     /**
              * Application context
@@ -29,7 +29,6 @@ namespace MAT_NS_BEGIN
              */
 
     jobject OfflineStorage_Room::s_context = nullptr;
-
     /**
              * We start by pushing a local JNI frame of this size
              */
@@ -195,6 +194,7 @@ namespace MAT_NS_BEGIN
             throw std::runtime_error("Unable to acquire JavaVM pointer");
             return;
         }
+        LOG_INFO("s_vm: %p", s_vm);
         s_context = env->NewGlobalRef(appContext);
     }
 
@@ -1290,6 +1290,11 @@ namespace MAT_NS_BEGIN
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_Room, "EventsSDK.RoomStorage", "Offline Storage: Android Room database")
 }
 MAT_NS_END
+//
+//JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+//    ::Microsoft::Applications::Events::OfflineStorage_Room::s_vm = vm;
+//    return JNI_VERSION_1_6;
+//}
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_OfflineRoom_connectContext(

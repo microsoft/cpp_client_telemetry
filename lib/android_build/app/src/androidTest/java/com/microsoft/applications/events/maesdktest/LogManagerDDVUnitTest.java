@@ -54,10 +54,10 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     fail(String.format("%s:%d: %s", filename, line, summary));
   }
 
-  class MockRequest implements Runnable {
+  static class MockRequest implements Runnable {
 
-    MockHttpClient m_parent;
-    String m_request_id;
+    final MockHttpClient m_parent;
+    final String m_request_id;
 
     public MockRequest(MockHttpClient parent, String id) {
       m_parent = parent;
@@ -71,9 +71,9 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     }
   }
 
-  public class MockHttpClient extends HttpClient {
+  public static class MockHttpClient extends HttpClient {
 
-    public SortedMap<String, Integer> urlMap;
+    public final SortedMap<String, Integer> urlMap;
 
     public MockHttpClient(Context context) {
       super(context);
@@ -95,7 +95,18 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
         }
       }
       Runnable r = new MockRequest(this, request_id);
-      return new FutureTask<Boolean>(r, true);
+      return new FutureTask<>(r, true);
+    }
+  }
+
+  static class FilterDebugEventListener extends DebugEventListener {
+    long filteredCount = 0;
+
+    @Override
+    public void onDebugEvent(DebugEvent evt) {
+      synchronized (this) {
+        filteredCount += 1;
+      }
     }
   }
 
@@ -339,22 +350,9 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     ILogManager manager = LogManagerProvider.createLogManager(custom);
     ILogger logger = manager.getLogger(contosoToken, "contoso", "");
 
-    class FilterListener extends DebugEventListener {
-
-      long filteredCount = 0;
-      @Override
-      public void onDebugEvent(DebugEvent evt) {
-        synchronized(this) {
-          filteredCount += 1;
-        }
-      }
-    }
-    FilterListener listener = new FilterListener();
+    FilterDebugEventListener listener = new FilterDebugEventListener();
     manager.addEventListener(DebugEventType.EVT_FILTERED, listener);
     logger.logEvent("ContosoEvent");
-    synchronized(listener) {
-
-    }
     manager.resumeTransmission(); // just in case
     manager.flush();
     manager.uploadNow();
@@ -497,19 +495,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     ILogManager manager = LogManagerProvider.createLogManager(custom);
     ILogger logger = manager.getLogger(token, "contoso", "");
 
-    class ListenForFilter extends DebugEventListener {
-
-      long filteredCount = 0;
-
-      @Override
-      public void onDebugEvent(DebugEvent evt) {
-        synchronized (this) {
-          filteredCount += 1;
-        }
-      }
-    }
-
-    ListenForFilter listener = new ListenForFilter();
+    FilterDebugEventListener listener = new FilterDebugEventListener();
     manager.addEventListener(DebugEventType.EVT_FILTERED, listener);
     logger.logEvent("noprops");
     manager.uploadNow();

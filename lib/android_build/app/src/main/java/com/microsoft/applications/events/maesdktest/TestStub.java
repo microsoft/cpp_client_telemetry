@@ -11,10 +11,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 public class TestStub {
-  class CallTests implements Callable<Integer> {
-    MaeUnitLogger logger;
+  static class CallTests implements Callable<Integer> {
+    private final MaeUnitLogger logger;
+    private final TestStub testStub;
 
-    CallTests(MaeUnitLogger logger) {
+    CallTests(TestStub testStub, MaeUnitLogger logger) {
+      this.testStub = testStub;
       this.logger = logger;
     }
 
@@ -26,14 +28,14 @@ public class TestStub {
      */
     @Override
     public Integer call() throws Exception {
-      return Integer.valueOf(runNativeTests(logger));
+      return testStub.runNativeTests(logger);
     }
   }
 
   public Integer executorRun(MaeUnitLogger logger) throws ExecutionException, InterruptedException {
     ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-    FutureTask<Integer> tests = new FutureTask<Integer>(new CallTests(logger));
+    FutureTask<Integer> tests = new FutureTask<Integer>(new CallTests(this, logger));
     executorService.execute(tests);
     return tests.get();
   }
