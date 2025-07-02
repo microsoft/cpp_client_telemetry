@@ -17,7 +17,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: windows-2019
+    runs-on: windows-2022
     permissions:
       contents: read
       actions: read
@@ -55,8 +55,8 @@ jobs:
       env:
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
-        PlatformToolset: v142
-        VSTOOLS_VERSION: vs2019
+        PlatformToolset: v143
+        VSTOOLS_VERSION: vs2022
       shell: cmd
       if: matrix.language == 'cpp' || matrix.language == 'csharp'
       run: build-all.bat

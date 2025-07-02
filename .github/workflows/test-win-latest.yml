@@ -27,7 +27,7 @@ jobs:
       matrix:
         arch: [Win32, x64]
         build: [Release, Debug]
-        os: [windows-2019]
+        os: [windows-2022]
     
     steps:
 
