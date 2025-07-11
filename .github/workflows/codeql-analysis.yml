@@ -59,6 +59,7 @@ jobs:
         SKIP_ARM64_BUILD: 1
         PlatformToolset: v143
         VSTOOLS_VERSION: vs2022
+        WindowsSDKVersion: 10.0.22621.0
       shell: cmd
       if: matrix.language == 'cpp'
       run: build-all.bat
