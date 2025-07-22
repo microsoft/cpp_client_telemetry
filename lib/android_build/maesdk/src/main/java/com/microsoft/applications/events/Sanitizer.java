@@ -21,7 +21,7 @@ public class Sanitizer  {
         }
 
         // Ensure the logger instance is provided
-        if(config.LoggerInstance == null) {
+        if(config.loggerInstance == null) {
             throw new IllegalArgumentException(("loggerInstance cannot be null in config."));
         }
 
@@ -30,7 +30,7 @@ public class Sanitizer  {
             throw new IllegalArgumentException(("notificationEventName cannot be null in config."));
         }
 
-        return nativeInitialize(config.LoggerInstance.getNativeILoggerPtr(), config.notificationEventName);
+        return nativeInitialize(config.loggerInstance.getNativeILoggerPtr(), config.notificationEventName);
     }
 
     /**
