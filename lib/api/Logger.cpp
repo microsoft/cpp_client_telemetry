@@ -175,37 +175,37 @@ namespace MAT_NS_BEGIN
     void Logger::SetContext(const std::string& k, const char v[], PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, const std::string& v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, double v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, int64_t v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, time_ticks_t v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, GUID_t v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, bool v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     // The goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
     // SDK may provide a future option for a guest logger to opt-in into its own semantic context. The method will then
