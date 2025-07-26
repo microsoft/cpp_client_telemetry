@@ -74,7 +74,7 @@ Other resources to learn how to setup the build system:
   | Ubuntu 18.04 LTS              | GCC 7.5.x                        |  
   | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
-  | Windows Server 2019           | Visual Studio 2019 (vc142)       |
+  | Windows Server 2022           | Visual Studio 2022 (vc143)       |
 
 ## Target Platforms
   
@@ -96,7 +96,8 @@ Other resources to learn how to setup the build system:
   | Windows 10.x                   | :white_check_mark: |                    |
   | Windows Server 2012            | :white_check_mark: |                    |
   | Windows Server 2016            | :white_check_mark: |                    |
-  | Windows Server 2019            | :white_check_mark: | :white_check_mark: |
+  | Windows Server 2019            | :white_check_mark: |                    |
+  | Windows Server 2022            | :white_check_mark: | :white_check_mark: |
   
 * **Supported** - these platforms are known to work well with the SDK in
     production.
