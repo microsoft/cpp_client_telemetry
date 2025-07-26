@@ -74,7 +74,6 @@ Other resources to learn how to setup the build system:
   | Ubuntu 18.04 LTS              | GCC 7.5.x                        |  
   | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
-  | Windows Server 2019           | Visual Studio 2019 (vc142)       |
   | Windows Server 2022           | Visual Studio 2022 (vc143)       |
 
 ## Target Platforms
