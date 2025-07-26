@@ -71,7 +71,8 @@ Other resources to learn how to setup the build system:
   | Raspbian GNU/Linux 8 (jessie) | GCC 4.9.2 (armv7l)               |
   | Ubuntu 14.04.x LTS            | GCC 5.x.x                        |
   | Ubuntu 16.04 LTS              | GCC 5.x.x, GCC 5.x.x (armv7l)    |
-  | Ubuntu 18.04 LTS              | GCC 7.5.x                        |  
+  | Ubuntu 18.04 LTS              | GCC 7.5.x                        |
+  | Ubuntu 22.04 LTS              | GCC 11.x.x                       |
   | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
   | Windows Server 2019           | Visual Studio 2019 (vc142)       |
@@ -90,6 +91,7 @@ Other resources to learn how to setup the build system:
   | Ubuntu 16.04.x LTS             | :white_check_mark: |                    |
   | Ubuntu 18.04.x LTS             | :white_check_mark: |                    |
   | Ubuntu 20.04.x LTS             | :white_check_mark: | :white_check_mark: |
+  | Ubuntu 22.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
   | Windows 7.1                    | :white_check_mark: |                    |
   | Windows 8.1                    | :white_check_mark: |                    |
