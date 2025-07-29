@@ -66,7 +66,7 @@ Other resources to learn how to setup the build system:
   | Operating System              | Compiler                         |
   | ----------------------------- | -------------------------------- |
   | macOS 10.15+                  | Clang Xcode 12.0+                |
-  | Ubuntu 20.04 LTS              | GCC 9.x.x                        |  
+  | Ubuntu 20.04 LTS              | GCC 9.x.x                        |
   | Ubuntu 22.04 LTS              | GCC 11.x.x                       |
   | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
@@ -83,7 +83,7 @@ Other resources to learn how to setup the build system:
   | macOS 10.15+                   | :white_check_mark: |                    |
   | macOS (latest)                 | :white_check_mark: | :white_check_mark: |
   | Ubuntu 20.04.x LTS             | :white_check_mark: | :white_check_mark: |
-  | Ubuntu 22.04.x LTS             | :white_check_mark: |                    |
+  | Ubuntu 22.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
   | Windows 10.x                   | :white_check_mark: |                    |
   | Windows 11                     | :white_check_mark: |                    |
