@@ -69,8 +69,6 @@ Other resources to learn how to setup the build system:
   | Mac OS X 10.12.6              | Clang Xcode 9.0, 9.1             |
   | Mac OS X 10.13.3              | Clang Xcode 9.2, 9.3, 10.0, 10.1 |
   | Raspbian GNU/Linux 8 (jessie) | GCC 4.9.2 (armv7l)               |
-  | Ubuntu 14.04.x LTS            | GCC 5.x.x                        |
-  | Ubuntu 16.04 LTS              | GCC 5.x.x, GCC 5.x.x (armv7l)    |
   | Ubuntu 22.04 LTS              | GCC 11.x.x                       |
   | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
@@ -86,8 +84,6 @@ Other resources to learn how to setup the build system:
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
   | Mac OS X 10.11+                | :white_check_mark: |                    |
   | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |
-  | Ubuntu 14.04.x LTS             | :white_check_mark: |                    |
-  | Ubuntu 16.04.x LTS             | :white_check_mark: |                    |
   | Ubuntu 20.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu 22.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
