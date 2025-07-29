@@ -112,6 +112,10 @@ endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
   list(APPEND SRCS
+    modules/sanitizer/detectors/EmailAddressDetector.cpp
+    modules/sanitizer/detectors/JwtDetector.cpp
+    modules/sanitizer/detectors/SPOPassword.cpp
+    modules/sanitizer/detectors/UrlDetector.cpp
     modules/sanitizer/Sanitizer.cpp
     modules/sanitizer/SanitizerProvider.cpp
     modules/sanitizer/SanitizerStringUtils.cpp
