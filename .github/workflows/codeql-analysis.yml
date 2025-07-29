@@ -17,7 +17,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: windows-2019
+    runs-on: windows-2022
     permissions:
       contents: read
       actions: read
@@ -28,7 +28,7 @@ jobs:
       matrix:
         # Override automatic language detection by changing the below list
         # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
-        language: ['cpp', 'csharp', 'javascript', 'python']
+        language: ['cpp', 'javascript', 'python']
         # Learn more...
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
@@ -47,18 +47,17 @@ jobs:
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+    # Autobuild attempts to build any compiled languages  (C/C++, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
-    # - name: Autobuild
-    #   uses: github/codeql-action/autobuild@v3
-    - name: Build
+    - name: Build C++
       env:
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
-        PlatformToolset: v142
-        VSTOOLS_VERSION: vs2019
+        PlatformToolset: v143
+        VSTOOLS_VERSION: vs2022
+        WindowsSDKVersion: 10.0.22621.0
       shell: cmd
-      if: matrix.language == 'cpp' || matrix.language == 'csharp'
+      if: matrix.language == 'cpp'
       run: build-all.bat
 
     # ℹ️ Command-line programs to run using the OS shell.
@@ -116,7 +115,7 @@ jobs:
         java -version
         gci env:* | sort-object name
         new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
-        echo yes | .\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;21.4.7075529" --sdk_root=$Env:ANDROID_SDK_ROOT
+        echo yes | .\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;29.0.13599879" --sdk_root=$Env:ANDROID_SDK_ROOT
       working-directory: ${{ env.ANDROID_SDK_ROOT }}\cmdline-tools\7.0\bin
     - name: Chocolatey
       run: |

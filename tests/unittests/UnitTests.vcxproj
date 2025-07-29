@@ -494,6 +494,17 @@
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\signals')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\unittests\SignalsTests.cpp" />
   </ItemGroup>
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\sanitizer')">
+    <ClInclude Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerBaseTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerEmailTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerJwtTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerSitePathTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerUrlTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerProviderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerStringUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerTrieTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SPOPasswordTests.cpp" />
+  </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

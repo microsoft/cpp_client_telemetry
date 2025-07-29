@@ -1,6 +1,51 @@
 cmake_minimum_required(VERSION 3.1.0)
 project(MSTelemetry)
 
+# Set installation prefix for macOS and Linux
+if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+endif()
+
+
+# Set installation prefix for Unix systems (macOS and Linux)
+if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
+    # First try /usr/local
+    set(TEST_FILE "/usr/local/.ci_write_test")
+    
+    # Try to create a test file
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E touch "${TEST_FILE}"
+        RESULT_VARIABLE WRITE_RESULT
+    )
+    
+    # Check if write was successful
+    if(WRITE_RESULT EQUAL 0)
+        # We have write access to /usr/local
+        set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+        message(STATUS "Using /usr/local as installation prefix (write access confirmed)")
+        # Clean up test file
+        execute_process(COMMAND ${CMAKE_COMMAND} -E remove "${TEST_FILE}")
+    else()
+        # No write access, fall back to HOME directory
+        set(FALLBACK_DIR "$ENV{HOME}/mst_telemetry")
+        
+        # Create the mst_telemetry directory
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${FALLBACK_DIR}"
+            RESULT_VARIABLE CREATE_DIR_RESULT
+        )
+        
+        if(NOT CREATE_DIR_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to create directory: ${FALLBACK_DIR}")
+        endif()
+        
+        set(CMAKE_INSTALL_PREFIX "${FALLBACK_DIR}" CACHE PATH "Installation directory prefix" FORCE)
+        message(STATUS "No write access to /usr/local, created and using ${FALLBACK_DIR} instead")
+    endif()
+endif()
+
+
+
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
@@ -270,6 +315,7 @@ option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
 option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
 option(BUILD_SIGNALS      "Build Signals"           YES)
+option(BUILD_SANITIZER    "Build Sanitizer"         YES)
 option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 
 # Enable Azure Monitor / Application Insights end-point support
@@ -300,6 +346,9 @@ include_directories(lib/pal)
 #  enable_testing()
 #  add_subdirectory(bondlite/tests)
 #endif()
+
+# Include repo root to allow includes of sqlite, zlib, and nlohmann
+include_directories(${CMAKE_SOURCE_DIR})
 
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)

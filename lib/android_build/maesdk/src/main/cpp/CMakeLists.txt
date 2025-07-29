@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 11)
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_SIGNALS      "Build Signals"           YES)
+option(BUILD_SANITIZER    "Build Sanitizer"         YES)
 
 if(ENABLE_CAPI_HTTP_CLIENT)
   add_definitions(-DENABLE_CAPI_HTTP_CLIENT)
@@ -113,6 +114,22 @@ if (EXISTS ${SDK_ROOT}/lib/modules/signals/ AND BUILD_SIGNALS)
         )
 endif()
 
+if (EXISTS ${SDK_ROOT}/lib/modules/sanitizer/ AND BUILD_SANITIZER)
+        list(APPEND SRCS
+                ${SDK_ROOT}/lib/jni/Sanitizer_jni.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/detectors/EmailAddressDetector.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/detectors/JwtDetector.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/detectors/SPOPassword.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/detectors/UrlDetector.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/Sanitizer.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerProvider.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerStringUtils.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerTargets.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerTrie.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerTrieNode.cpp
+        )
+endif()
+
 if (USE_ROOM)
         add_definitions("-DUSE_ROOM")
         list(APPEND SRCS ${SDK_ROOT}/lib/offline/OfflineStorage_Room.cpp)
@@ -142,6 +159,7 @@ target_include_directories(${TARGETNAME} PUBLIC
         ${SDK_ROOT}/lib/include/mat
         ${SDK_ROOT}/sqlite
         ${SDK_ROOT}lib/pal
+        ${SDK_ROOT}
         ${CURL_INCLUDE_DIRS})
 
 

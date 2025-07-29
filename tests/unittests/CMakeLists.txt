@@ -78,6 +78,18 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
+  list(APPEND SRCS
+  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerJwtTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerProviderTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerSitePathTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerStringUtilsTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerUrlTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerTrieTests.cpp
+  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SPOPasswordTests.cpp
+  )
+endif()
+
 if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
   list(APPEND SRCS
      ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/unittests/DefaultDataViewerTests.cpp
@@ -147,6 +159,8 @@ else()
 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/ )
 
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
+
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
@@ -158,6 +172,9 @@ else()
     PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
   )
+
+  message("GTEST: ${LIBGTEST}")
+  message("GMOCK: ${LIBGMOCK}")
 
   target_link_libraries(UnitTests 
     ${LIBGTEST}

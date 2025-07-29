@@ -1,4 +1,4 @@
-name: C/C++ CI on Windows (vs2019)
+name: C/C++ CI on Windows (vs2022)
 
 on:
   push:
@@ -16,7 +16,7 @@ on:
 jobs:
   build:
 
-    runs-on: windows-2019
+    runs-on: windows-2022
     name: Build
 
     steps:
@@ -29,7 +29,7 @@ jobs:
       env:
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
-        PlatformToolset: v142
-        VSTOOLS_VERSION: vs2019
+        PlatformToolset: v143
+        VSTOOLS_VERSION: vs2022
       shell: cmd
       run: build-all.bat

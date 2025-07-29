@@ -15,6 +15,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
+  list(APPEND SRCS
+    SanitizerFuncTests.cpp
+  )
+endif()
+
 if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
   list(APPEND SRCS
      ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp
@@ -107,6 +113,8 @@ else()
   message("--- Linking libraries! ")
   message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
   message("Binary Dir: ${CMAKE_BINARY_DIR}")
+
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
 
   find_file(LIBGTEST
     NAMES libgtest.a
