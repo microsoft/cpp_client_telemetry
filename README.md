@@ -65,10 +65,8 @@ Other resources to learn how to setup the build system:
   
   | Operating System              | Compiler                         |
   | ----------------------------- | -------------------------------- |
-  | Mac OS X 10.11.6              | Clang Xcode 8.3                  |
-  | Mac OS X 10.12.6              | Clang Xcode 9.0, 9.1             |
-  | Mac OS X 10.13.3              | Clang Xcode 9.2, 9.3, 10.0, 10.1 |
-  | Raspbian GNU/Linux 8 (jessie) | GCC 4.9.2 (armv7l)               |
+  | macOS 10.15+                  | Clang Xcode 12.0+                |
+  | Ubuntu 20.04 LTS              | GCC 9.x.x                        |
   | Ubuntu 22.04 LTS              | GCC 11.x.x                       |
   | Windows 10                    | Android Studio/Gradle            |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
@@ -79,18 +77,16 @@ Other resources to learn how to setup the build system:
   | Target Platform                | Supported          | Covered by CI      |
   | ------------------------------ | ------------------ | ------------------ |
   | Android                        | :white_check_mark: | :white_check_mark: |
-  | iOS 10+ (simulator)            | :white_check_mark: | :white_check_mark: |
-  | iOS 10+ (arm64, arm64e)        | :white_check_mark: |                    |
+  | iOS 12+ (simulator)            | :white_check_mark: | :white_check_mark: |
+  | iOS 12+ (arm64, arm64e)        | :white_check_mark: |                    |
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
-  | Mac OS X 10.11+                | :white_check_mark: |                    |
-  | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |
+  | macOS 10.15+                   | :white_check_mark: |                    |
+  | macOS (latest)                 | :white_check_mark: | :white_check_mark: |
   | Ubuntu 20.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu 22.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
-  | Windows 7.1                    | :white_check_mark: |                    |
-  | Windows 8.1                    | :white_check_mark: |                    |
   | Windows 10.x                   | :white_check_mark: |                    |
-  | Windows Server 2012            | :white_check_mark: |                    |
+  | Windows 11                     | :white_check_mark: |                    |
   | Windows Server 2016            | :white_check_mark: |                    |
   | Windows Server 2019            | :white_check_mark: |                    |
   | Windows Server 2022            | :white_check_mark: | :white_check_mark: |
