@@ -129,7 +129,7 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
 -(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject;
 
 /*!
- @brief Initialize and get an instance of Sanitizer.
+ @brief Initialize the Sanitizer component.
  */
 -(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject;
 
