@@ -130,6 +130,7 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
 
 /*!
  @brief Initialize the Sanitizer component.
+ @param initConfigObject An instance of ODWSanitizerInitConfig that contains the configuration settings for the Sanitizer component.
  */
 -(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject;
 
