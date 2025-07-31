@@ -53,7 +53,7 @@ namespace MAT_NS_BEGIN {
             //
             randomLocalId = "r:";
             randomLocalId+= PAL::generateUuidString();
-        };
+        }
 
         void dropPiiPartA(::CsProtocol::Record& record)
         {

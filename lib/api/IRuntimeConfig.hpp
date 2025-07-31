@@ -209,7 +209,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         virtual bool SkipIKeyRegistration() const = 0;
 
-        virtual ~IRuntimeConfig() {};
+        virtual ~IRuntimeConfig() {}
     };
 
     /// @endcond

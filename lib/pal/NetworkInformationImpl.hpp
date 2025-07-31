@@ -28,7 +28,7 @@ namespace PAL_NS_BEGIN {
         virtual void UnRegisterInformationChangedCallback(int callbackToken) { --m_registeredCount; m_info_helper.UnRegisterInformationChangedCallback(callbackToken); }
 
         // INetworkInformation API
-        virtual std::string const& GetNetworkProvider() { return m_provider; };
+        virtual std::string const& GetNetworkProvider() { return m_provider; }
         virtual NetworkType GetNetworkType() { return m_type; }
         virtual NetworkCost GetNetworkCost() { return m_cost; }
 

@@ -35,7 +35,7 @@
 #include <codecvt>
 
 namespace MAT_NS_BEGIN {
-    MATSDK_LOG_INST_COMPONENT_NS("MATSDK", "MS App Telemetry client");
+    MATSDK_LOG_INST_COMPONENT_NS("MATSDK", "MS App Telemetry client")
 } MAT_NS_END
 
 namespace MAT_NS_BEGIN {
