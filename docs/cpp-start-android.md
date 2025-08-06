@@ -22,7 +22,7 @@ Default environment variables used by `build-android.cmd` script:
 
 ```console
 
-set "ANDROID_NDK_VERSION=29.0.13599879"
+set "ANDROID_NDK_VERSION=27.0.12077973"
 set "ANDROID_CMAKE_VERSION=3.10.2.4988404"
 set "ANDROID_SDK_ROOT=C:\Android\android-sdk"
 set "ANDROID_HOME=%ANDROID_SDK_ROOT%"

@@ -5,6 +5,7 @@
 #include "objc_begin.h"
 #import "ODWEventProperties.h"
 #import "ODWPrivacyGuardInitConfig.h"
+#import "ODWSanitizerInitConfig.h"
 #import "ODWSemanticContext.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -126,6 +127,12 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
  @brief Initialize and get an instance of Privacy Guard.
  */
 -(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject;
+
+/*!
+ @brief Initialize the Sanitizer component.
+ @param initConfigObject An instance of ODWSanitizerInitConfig that contains the configuration settings for the Sanitizer component.
+ */
+-(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject;
 
 #pragma mark Set Context methods
 
