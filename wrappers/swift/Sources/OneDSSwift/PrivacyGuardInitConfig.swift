@@ -8,7 +8,7 @@ import ObjCModule
 public final class PrivacyGuardInitConfig {
     let odwPrivacyGuardInitConfig: ODWPrivacyGuardInitConfig
     private var commonDataContext: CommonDataContext
-
+    private var privacyConcernMetadataProvider: PrivacyConcernMetadataProvider
     /// Data Context to use with the Privacy Guard.
     public var dataContext: CommonDataContext {
         get {
@@ -17,6 +17,17 @@ public final class PrivacyGuardInitConfig {
         set {
             commonDataContext = newValue
             odwPrivacyGuardInitConfig.dataContext = commonDataContext.odwCommonDataContext
+        }
+    }
+
+    /// Metadata provider to use with Privacy Guard.
+    public var metadataProvider: PrivacyConcernMetadataProvider {
+        get {
+            return metadataProvider
+        }
+        set {
+            metadataProvider = newValue
+            odwPrivacyGuardInitConfig.metadataProvider = privacyConcernMetadataProvider.odwPrivacyConcernMetadataProvider
         }
     }
 
@@ -84,6 +95,8 @@ public final class PrivacyGuardInitConfig {
     public init() {
         odwPrivacyGuardInitConfig = ODWPrivacyGuardInitConfig()
         odwPrivacyGuardInitConfig.dataContext = ODWCommonDataContext()
+        odwPrivacyGuardInitConfig.metadataProvider = ODWPrivacyConcernMetadataProvider()
+        metadataProvider = PrivacyConcernMetadataProvider(odwPrivacyConcernMetadataProvider: odwPrivacyGuardInitConfig.metadataProvider)
         commonDataContext = CommonDataContext(odwCommonDataContext: odwPrivacyGuardInitConfig.dataContext)
     }
 

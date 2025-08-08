@@ -98,6 +98,10 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     {
         config.SemanticContextNotificationEventName = [[initConfigObject semanticContextNotificationEventName] UTF8String];
     }
+    if ([initConfigObject metadataProvider] != nill)
+    {
+        config.metadataProvider = [[]]
+    }
     if ([initConfigObject summaryEventName] != nil)
     {
         config.SummaryEventName = [[initConfigObject summaryEventName] UTF8String];
