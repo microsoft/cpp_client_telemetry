@@ -30,12 +30,12 @@ namespace MAT_NS_BEGIN {
     /// <summary>
     /// Default constructor for an empty object
     /// </summary>
-    time_ticks_t::time_ticks_t() : ticks(0) {};
+    time_ticks_t::time_ticks_t() : ticks(0) {}
 
     /// <summary>
     /// Convert number of .NET ticks to time_ticks_t structure
     /// </summary>
-    time_ticks_t::time_ticks_t(uint64_t raw) : ticks(raw) {};
+    time_ticks_t::time_ticks_t(uint64_t raw) : ticks(raw) {}
 
     /// <summary>
     /// time_t time must contain timestamp in UTC time
@@ -82,7 +82,7 @@ namespace MAT_NS_BEGIN {
         {
             Data4[i] = 0;
         }
-    };
+    }
 
     /// <summary>
     /// GUID_t constructor that accepts string
@@ -735,7 +735,7 @@ namespace MAT_NS_BEGIN {
         as_guid = {};
         as_string = new char[1];
         as_string[0] = 0;
-    };
+    }
 
     /// <summary>
     /// EventProperty constructor for string value
@@ -759,7 +759,7 @@ namespace MAT_NS_BEGIN {
             memcpy((void*)as_string, (void*)value, len);
             as_string[len] = 0;
         }
-    };
+    }
 
     /// <summary>
     /// EventProperty constructor for string value
@@ -776,54 +776,54 @@ namespace MAT_NS_BEGIN {
         memcpy((void*)as_string, (void*)value.c_str(), len);
         as_string[len] = 0;
 
-    };
+    }
 
     /// <summary>
     /// EventProperty constructor for int64 value
     /// </summary>
     /// <param name="value">int64_t value</param>
     /// <param name="piiKind">Pii kind</param>
-    EventProperty::EventProperty(int64_t       value, PiiKind piiKind, DataCategory category) : type(TYPE_INT64), piiKind(piiKind), dataCategory(category), as_int64(value) {};
+    EventProperty::EventProperty(int64_t       value, PiiKind piiKind, DataCategory category) : type(TYPE_INT64), piiKind(piiKind), dataCategory(category), as_int64(value) {}
 
     /// <summary>
     /// EventProperty constructor for double value
     /// </summary>
     /// <param name="value">double value</param>
     /// <param name="piiKind">Pii kind</param>
-    EventProperty::EventProperty(double        value, PiiKind piiKind, DataCategory category) : type(TYPE_DOUBLE), piiKind(piiKind), dataCategory(category), as_double(value) {};
+    EventProperty::EventProperty(double        value, PiiKind piiKind, DataCategory category) : type(TYPE_DOUBLE), piiKind(piiKind), dataCategory(category), as_double(value) {}
 
     /// <summary>
     /// EventProperty constructor for time in .NET ticks
     /// </summary>
     /// <param name="value">time_ticks_t value - time in .NET ticks</param>
     /// <param name="piiKind">Pii kind</param>
-    EventProperty::EventProperty(time_ticks_t  value, PiiKind piiKind, DataCategory category) : type(TYPE_TIME), piiKind(piiKind), dataCategory(category), as_time_ticks(value) {};
+    EventProperty::EventProperty(time_ticks_t  value, PiiKind piiKind, DataCategory category) : type(TYPE_TIME), piiKind(piiKind), dataCategory(category), as_time_ticks(value) {}
 
     /// <summary>
     /// EventProperty constructor for boolean value
     /// </summary>
     /// <param name="value">boolean value</param>
     /// <param name="piiKind">Pii kind</param>
-    EventProperty::EventProperty(bool          value, PiiKind piiKind, DataCategory category) : type(TYPE_BOOLEAN), piiKind(piiKind), dataCategory(category), as_bool(value) {};
+    EventProperty::EventProperty(bool          value, PiiKind piiKind, DataCategory category) : type(TYPE_BOOLEAN), piiKind(piiKind), dataCategory(category), as_bool(value) {}
 
     /// <summary>
     /// EventProperty constructor for GUID
     /// </summary>
     /// <param name="value">GUID_t value</param>
     /// <param name="piiKind">Pii kind</param>
-    EventProperty::EventProperty(GUID_t        value, PiiKind piiKind, DataCategory category) : type(TYPE_GUID), piiKind(piiKind), dataCategory(category), as_guid(value) {};
+    EventProperty::EventProperty(GUID_t        value, PiiKind piiKind, DataCategory category) : type(TYPE_GUID), piiKind(piiKind), dataCategory(category), as_guid(value) {}
 
     // All other integer types get converted to int64_t
 #ifndef LONG_IS_INT64_T
-    EventProperty::EventProperty(long     value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+    EventProperty::EventProperty(long     value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {}
 #endif
-    EventProperty::EventProperty(int8_t   value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
-    EventProperty::EventProperty(int16_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
-    EventProperty::EventProperty(int32_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
-    EventProperty::EventProperty(uint8_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
-    EventProperty::EventProperty(uint16_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
-    EventProperty::EventProperty(uint32_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
-    EventProperty::EventProperty(uint64_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {};
+    EventProperty::EventProperty(int8_t   value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {}
+    EventProperty::EventProperty(int16_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {}
+    EventProperty::EventProperty(int32_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {}
+    EventProperty::EventProperty(uint8_t  value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {}
+    EventProperty::EventProperty(uint16_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {}
+    EventProperty::EventProperty(uint32_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {}
+    EventProperty::EventProperty(uint64_t value, PiiKind piiKind, DataCategory category) : EventProperty((int64_t)value, piiKind, category) {}
 
     /// <summary>Returns true whether the type is string AND the value is empty (i.e. whether its length is 0).</summary>
     bool EventProperty::empty()

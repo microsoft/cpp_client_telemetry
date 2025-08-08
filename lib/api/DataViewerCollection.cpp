@@ -8,7 +8,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(DataViewerCollection, "EventsSDK.DataViewerCollection", "Microsoft Telemetry Client - DataViewerCollection class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(DataViewerCollection, "EventsSDK.DataViewerCollection", "Microsoft Telemetry Client - DataViewerCollection class")
 
     void DataViewerCollection::DispatchDataViewerEvent(const std::vector<uint8_t>& packetData) const noexcept
     {
@@ -21,7 +21,7 @@ namespace MAT_NS_BEGIN {
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
             viewer->ReceiveData(packetData);
         }
-    };
+    }
 
     void DataViewerCollection::RegisterViewer(const std::shared_ptr<IDataViewer>& dataViewer)
     {
