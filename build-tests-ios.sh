@@ -1,7 +1,7 @@
 #!/bin/sh
 cd ${0%/*}
 SKU=${1:-release}
-SIMULATOR=${2:-iPhone 8}
+SIMULATOR=${2:-iPhone 15}
 
 set -e
 
