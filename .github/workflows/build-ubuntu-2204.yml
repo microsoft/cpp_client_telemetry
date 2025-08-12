@@ -1,4 +1,4 @@
-name: C/C++ CI on Ubuntu 18:04
+name: C/C++ CI on Ubuntu 22.04
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix:
         config: [release, debug]
-        os: [ubuntu-20.04]
+        os: [ubuntu-22.04]
     
     steps:
     - name: Checkout

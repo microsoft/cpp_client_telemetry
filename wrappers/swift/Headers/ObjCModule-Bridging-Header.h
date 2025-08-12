@@ -14,4 +14,6 @@
 #import "../../obj-c/ODWLogManager.h"
 #import "../../obj-c/ODWPrivacyGuard.h"
 #import "../../obj-c/ODWPrivacyGuardInitConfig.h"
+#import "../../obj-c/ODWSanitizer.h"
+#import "../../obj-c/ODWSanitizerInitConfig.h"
 #import "../../obj-c/ODWSemanticContext.h"

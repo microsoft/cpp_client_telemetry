@@ -20,6 +20,7 @@ android {
                     args.add("-DANDROID_STL=c++_shared")
                     args.add("-DBUILD_SHARED_LIBS=1")
                     args.add("-DUSE_ROOM=1")
+                    args.add("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
                     String linkerFlag = project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ""
                     linkerFlag = "-DCMAKE_SHARED_LINKER_FLAGS=" + linkerFlag
                     args.add(linkerFlag)

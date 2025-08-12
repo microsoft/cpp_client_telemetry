@@ -518,7 +518,7 @@ namespace MAT_NS_BEGIN {
         MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class")
 
     //---
 
@@ -803,13 +803,13 @@ namespace MAT_NS_BEGIN {
         bool          m_error;
 
     public:
-        sqlite3_stmt * handle() { return m_stmt; };
+        sqlite3_stmt * handle() { return m_stmt; }
 
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class")
 
 
 } MAT_NS_END

@@ -13,9 +13,9 @@
 
 // Constructor and getter for Variant type
 #define VARIANT_PROP(basetype, field, typeenum)                 \
-    Variant(basetype v) : field(v), type(typeenum) {} ;         \
-    operator basetype() { return (basetype)field; };            \
-    Variant& operator=(basetype v) { field = v; type = typeenum; return *this; };
+    Variant(basetype v) : field(v), type(typeenum) {}          \
+    operator basetype() { return (basetype)field; }            \
+    Variant& operator=(basetype v) { field = v; type = typeenum; return *this; }
 
 // Avoid conflict with Mac platforms where <ConditionalMacros.h> #defines TYPE_BOOL.
 //
@@ -52,7 +52,7 @@ class Variant
 public:
 
     // Thread-safe variants
-    VARIANT_LOCK(lock_object);
+    VARIANT_LOCK(lock_object)
 
     enum Type
     {
@@ -75,7 +75,7 @@ public:
         return nullVariant;
     }
 
-    Variant() : iV(0), type(TYPE_NULL) {};
+    Variant() : iV(0), type(TYPE_NULL) {}
 
     Variant(const Variant& other) noexcept
     {
@@ -88,22 +88,22 @@ public:
     }
 
     // All integer types
-    VARIANT_PROP(int8_t, iV, TYPE_INT);
-    VARIANT_PROP(int16_t, iV, TYPE_INT);
-    VARIANT_PROP(int32_t, iV, TYPE_INT);
-    VARIANT_PROP(int64_t, iV, TYPE_INT);
-    VARIANT_PROP(uint8_t, iV, TYPE_INT);
-    VARIANT_PROP(uint16_t, iV, TYPE_INT);
-    VARIANT_PROP(uint32_t, iV, TYPE_INT);
-    VARIANT_PROP(uint64_t, iV, TYPE_INT);
+    VARIANT_PROP(int8_t, iV, TYPE_INT)
+    VARIANT_PROP(int16_t, iV, TYPE_INT)
+    VARIANT_PROP(int32_t, iV, TYPE_INT)
+    VARIANT_PROP(int64_t, iV, TYPE_INT)
+    VARIANT_PROP(uint8_t, iV, TYPE_INT)
+    VARIANT_PROP(uint16_t, iV, TYPE_INT)
+    VARIANT_PROP(uint32_t, iV, TYPE_INT)
+    VARIANT_PROP(uint64_t, iV, TYPE_INT)
 
     // All floating point types
-    VARIANT_PROP(float, dV, TYPE_DOUBLE);
-    VARIANT_PROP(double, dV, TYPE_DOUBLE);
+    VARIANT_PROP(float, dV, TYPE_DOUBLE)
+    VARIANT_PROP(double, dV, TYPE_DOUBLE)
 
-    VARIANT_PROP(void*, pV, TYPE_PTR);
+    VARIANT_PROP(void*, pV, TYPE_PTR)
 
-    Variant(const char* v) : sV(v), type(TYPE_STRING) {};
+    Variant(const char* v) : sV(v), type(TYPE_STRING) {}
 
     operator const char*()
     {
@@ -114,7 +114,7 @@ public:
         if (type == TYPE_NULL)
             return "";
         return nullptr;
-    };
+    }
 
     Variant& operator=(std::string value)
     {
@@ -242,7 +242,7 @@ public:
     }
 
     // Boolean
-    VARIANT_PROP(bool, bV, TYPE_BOOL);
+    VARIANT_PROP(bool, bV, TYPE_BOOL)
 
     // Object (or map)
     Variant(VariantMap& m) :
@@ -252,7 +252,7 @@ public:
         {
             mV[kv.first] = kv.second;
         }
-    };
+    }
 
     Variant(VariantMap && m) :
         type(TYPE_OBJ)
@@ -273,11 +273,11 @@ public:
     // Array (or vector)
     Variant(VariantArray& a) :
         aV(a),
-        type(TYPE_ARR) {};
+        type(TYPE_ARR) {}
 
     Variant(VariantArray && a) :
         aV(std::move(a)),
-        type(TYPE_ARR) {};
+        type(TYPE_ARR) {}
 
     // Destroy all elements
     virtual ~Variant() {
@@ -320,13 +320,13 @@ public:
     {
         VARIANT_LOCKGUARD(lock_object);
         return mV;
-    };
+    }
 
     operator VariantMap&() const
     {
         VARIANT_LOCKGUARD(lock_object);
         return mV;
-    };
+    }
 
 
     /**
@@ -336,7 +336,7 @@ public:
     {
         VARIANT_LOCKGUARD(lock_object);
         return aV;
-    };
+    }
 
     /**
      *
@@ -361,7 +361,7 @@ public:
 
         // Otherwise it's an invalid op - return const NULL
         return ConstNull();
-    };
+    }
 
     /**
      *
@@ -376,7 +376,7 @@ public:
         // Accessing index of something that is not an array returns a null const variant.
         // We may consider adding an assert here for debug builds.
         return ConstNull();      // return const NULL Variant
-    };
+    }
 
     /**
      *
