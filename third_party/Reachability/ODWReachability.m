@@ -358,6 +358,7 @@ static int kTimeoutDurationInSeconds = 10;
     {
         // Use URLSession for macOS 10.14 or higher, no specific action is needed for URLSession
         self.reachabilityObject = nil;
+        return;
     }
 
     // Use SCNetworkReachability for macOS 10.14 or lower
