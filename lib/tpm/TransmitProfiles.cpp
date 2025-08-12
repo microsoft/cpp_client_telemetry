@@ -90,7 +90,7 @@ namespace MAT_NS_BEGIN {
         LOCK_PROFILES;
         netCost = currNetCost;
         powState = currPowState;
-    };
+    }
 
     /// <summary>
     /// Print transmit profiles to debug log

@@ -20,7 +20,7 @@
 namespace CsProtocol
 {
     struct Record;
-};
+}
 
 namespace MAT_NS_BEGIN {
 
@@ -47,7 +47,7 @@ namespace MAT_NS_BEGIN {
         /// </returns>
         bool DecodeRequest(const std::vector<uint8_t>& in, std::string& out, bool compressed = true);
 
-    };
+    }
 
 } MAT_NS_END
 
