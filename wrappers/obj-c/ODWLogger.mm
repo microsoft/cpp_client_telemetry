@@ -9,6 +9,7 @@
 #import "ODWSemanticContext.h"
 #import "ODWSemanticContext_private.h"
 #import "ODWPrivacyGuard_private.h"
+#import "ODWSanitizer_private.h"
 
 #include "EventProperties.hpp"
 
@@ -411,5 +412,10 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
 -(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
 {    
     [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWPrivacyGuardInitConfig:initConfigObject];
+}
+
+-(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject
+{
+    [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject];
 }
 @end
