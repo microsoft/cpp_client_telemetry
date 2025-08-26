@@ -73,7 +73,7 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_Sanitizer_setEnabled(JNIEnv *env, jclass clazz,
                                                           jboolean enabled) {
-    if (spDataInspector == nullptr) {
+    if (spSanitizer == nullptr) {
         return false;
     }
 
