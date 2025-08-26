@@ -8,7 +8,7 @@
 
 namespace MAT_NS_BEGIN
 {
-    struct Sanitizer {
+    struct SanitizerHelper {
         /**
          * Get the current instance of Sanitizer.
          * @return SanitizerPtr if it is initialized, nullptr otherwise.
