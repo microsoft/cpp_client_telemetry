@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "ctmacros.hpp"
 #include "JniConvertors.hpp"
 #include "modules/sanitizer/Sanitizer.hpp"
 #include "SanitizerHelper.hpp"
@@ -38,10 +37,10 @@ Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
     SanitizerConfiguration sanitizerConfig(reinterpret_cast<ILogger*>(iLoggerNativePtr));
 
     if (notificationEventName != nullptr) {
-        config.NotificationEventName = JStringToStdString(env, notificationEventName).c_str();
+        sanitizerConfig.NotificationEventName = JStringToStdString(env, notificationEventName).c_str();
     }
 
-    spSanitizer = std::make_shared<Sanitizer>(config);
+    spSanitizer = std::make_shared<Sanitizer>(sanitizerConfig);
     return true;
 }
 
@@ -74,10 +73,10 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_Sanitizer_setEnabled(JNIEnv *env, jclass clazz,
                                                           jboolean enabled) {
-    if (spDataInspector == nullptr) {
+    if (spSanitizer == nullptr) {
         return false;
     }
 
-    spDataInspector->SetEnabled(static_cast<bool>(enabled));
+    spSanitizer->SetEnabled(static_cast<bool>(enabled));
     return true;
 }
