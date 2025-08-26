@@ -37,7 +37,7 @@ Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
     SanitizerConfiguration sanitizerConfig(reinterpret_cast<ILogger*>(iLoggerNativePtr));
 
     if (notificationEventName != nullptr) {
-        sanitizerConfig.NotificationEventName = JStringToStdString(env, notificationEventName).c_str();
+        sanitizerConfig.NotificationEventName = JStringToStdString(env, notificationEventName);
     }
 
     spSanitizer = std::make_shared<Sanitizer>(sanitizerConfig);
