@@ -18,7 +18,7 @@ using namespace MAT;
 
 std::shared_ptr<Sanitizer> _sanitizerPtr;
 
-+(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject;
++(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject
 {
     if (_sanitizerPtr != nullptr)
     {
