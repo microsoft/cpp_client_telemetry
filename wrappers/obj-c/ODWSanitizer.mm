@@ -31,6 +31,7 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
     {
         config.NotificationEventName = [[initConfigObject notificationEventName] UTF8String];
     }
+    config.SetAllWarningsToSanitization = [initConfigObject setAllWarningsToSanitization];
 
     _sanitizerPtr = std::make_shared<Sanitizer>(config);
     LogManager::GetInstance()->SetDataInspector(_sanitizerPtr);
