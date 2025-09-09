@@ -28,7 +28,8 @@ JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
         JNIEnv *env, jclass /* this */,
         jlong iLoggerNativePtr,
-        jstring notificationEventName) {
+        jstring notificationEventName,
+        jboolean disableWarnings) {
 
     if (spSanitizer != nullptr) {
         return false;
@@ -39,6 +40,8 @@ Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
     if (notificationEventName != nullptr) {
         sanitizerConfig.NotificationEventName = JStringToStdString(env, notificationEventName).c_str();
     }
+
+    sanitizerConfig.SetAllWarningsToSanitizations = static_cast<bool>(disableWarnings);
 
     spSanitizer = std::make_shared<Sanitizer>(sanitizerConfig);
     return true;
