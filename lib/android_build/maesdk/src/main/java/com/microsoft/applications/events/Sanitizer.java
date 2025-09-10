@@ -9,7 +9,7 @@ public class Sanitizer  {
     /**
      * Initializes the sanitizer with the provided configuration.
      *
-     * @param config The configuration object containing logger and event name.
+     * @param config The configuration settings used to initialize a sanitizer.
      * @return true if initialization succeeds, false otherwise.
      * @throws IllegalArgumentException if config or any required field is null or invalid.
      */
@@ -21,16 +21,19 @@ public class Sanitizer  {
         }
 
         // Ensure the logger instance is provided
-        if(config.loggerInstance == null) {
+        if(config.getLogger() == null) {
             throw new IllegalArgumentException(("loggerInstance cannot be null in config."));
         }
 
          // Ensure the notification event name is not null or empty
-        if (config.notificationEventName == null || config.notificationEventName.isEmpty()) {
+        if (config.getNotificationEventName() == null || config.getNotificationEventName().isEmpty()) {
             throw new IllegalArgumentException(("notificationEventName cannot be null in config."));
         }
 
-        return nativeInitialize(config.loggerInstance.getNativeILoggerPtr(), config.notificationEventName);
+        return nativeInitialize(
+            config.getLogger().getNativeILoggerPtr(), 
+            config.getNotificationEventName(),
+            config.isWarningsOff());
     }
 
     /**
