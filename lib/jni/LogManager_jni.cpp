@@ -344,7 +344,7 @@ extern "C"
     JNIEXPORT jboolean JNICALL
     Java_com_microsoft_applications_events_LogManager_nativeUnregisterSignalsOnDefaultLogManager(
             JNIEnv *env, jclass clazz) {
-#if HAS_SAN
+#if HAS_SS
         auto logManager = WrapperLogManager::GetInstance();
         auto ss = SignalsHelper::GetSignalsInspector();
         if (ss != nullptr) {
