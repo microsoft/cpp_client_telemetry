@@ -33,7 +33,7 @@ public class Sanitizer  {
         return nativeInitialize(
             config.getLogger().getNativeILoggerPtr(), 
             config.getNotificationEventName(),
-            config.isWarningsOff());
+            config.isEnforceSanitization());
     }
 
     /**

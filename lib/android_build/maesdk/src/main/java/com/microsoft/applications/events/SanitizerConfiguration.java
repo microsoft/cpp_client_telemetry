@@ -15,25 +15,25 @@ public class SanitizerConfiguration {
      * This field is required.
      */
     private final ILogger loggerInstance;
-   
+
     /**
-     * The custom event name used when logging sanitizer concerns.
-     * Optional. Defaults to "SanitizerConcerns" if not specified.
-     */
+     * The custom event name used when logging sanitizer concerns.
+     * Optional. Defaults to "SanitizerConcerns" if not specified.
+     */
     private String notificationEventName = "SanitizerConcerns";
 
     /**
-     * Flag to control whether sanitizer warnings are suppressed.
+     * Flag to control whether sanitizer enforcement is enabled.
      * Optional. Defaults to true.
      */
-    private boolean warningsOff = true;
+    private boolean enforceSanitization = true;
 
     /**
-     * Constructs a new SanitizerConfiguration with the specified logger.
-     *
-     * @param logger The ILogger implementation used to log privacy concern events.
-     * @throws IllegalArgumentException if the logger is null.
-     */
+     * Constructs a new SanitizerConfiguration with the specified logger.
+     *
+     * @param logger The ILogger implementation used to log privacy concern events.
+     * @throws IllegalArgumentException if the logger is null.
+     */
     public SanitizerConfiguration(ILogger logger) {
 
         if(logger == null) {
@@ -62,14 +62,13 @@ public class SanitizerConfiguration {
     }
 
     
-    // Returns whether warnings are currently turned off.
-    // True means enforcing sanitization; false means warnings are enabled.
-    public boolean isWarningsOff() {
-        return warningsOff;
+    // Returns whether sanitization enforcement is currently enabled.
+    public boolean isEnforceSanitization() {
+        return enforceSanitization;
     }
 
-    // Sets the flag to enable or disable warnings.
-    public void setWarningsOff(boolean warningsOff) {
-        this.warningsOff = warningsOff;
+   // Sets the flag to enable or disable sanitization enforcement.
+    public void setEnforceSanitization(boolean enforceSanitization) {
+        this.enforceSanitization = enforceSanitization;
     }
 }
