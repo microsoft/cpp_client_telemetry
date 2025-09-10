@@ -18,6 +18,11 @@
 #include "modules/signals/Signals.hpp"
 #define HAS_SS true
 #endif
+#if __has_include("modules/sanitizer/sanitizer.hpp")
+#include "SanitizerHelper.hpp"
+#include "modules/sanitizer/sanitizer.hpp"
+#define HAS_SAN true
+#endif
 #endif
 
 #include <utils/Utils.hpp>
@@ -339,9 +344,36 @@ extern "C"
     JNIEXPORT jboolean JNICALL
     Java_com_microsoft_applications_events_LogManager_nativeUnregisterSignalsOnDefaultLogManager(
             JNIEnv *env, jclass clazz) {
-#if HAS_SS
+#if HAS_SAN
         auto logManager = WrapperLogManager::GetInstance();
         auto ss = SignalsHelper::GetSignalsInspector();
+        if (ss != nullptr) {
+            logManager->RemoveDataInspector(ss->GetName());
+            return true;
+        }
+#endif
+        return false;
+    }
+
+        JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeRegisterSanitizerOnDefaultLogManager(JNIEnv *env, jclass clazz) {
+#if HAS_SAN
+        auto logManager = WrapperLogManager::GetInstance();
+        auto ss = SanitizerHelper::GetSanitizerInspector();
+        if (ss != nullptr) {
+            logManager->SetDataInspector(ss);
+            return true;
+        }
+#endif
+        return false;
+    }
+
+    JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_LogManager_nativeUnregisterSanitizerOnDefaultLogManager(
+            JNIEnv *env, jclass clazz) {
+#if HAS_SAN
+        auto logManager = WrapperLogManager::GetInstance();
+        auto ss = SanitizerHelper::GetSanitizerInspector();
         if (ss != nullptr) {
             logManager->RemoveDataInspector(ss->GetName());
             return true;
@@ -1641,6 +1673,24 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 }
 
 extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRegisterSanitizer(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager) {
+#if HAS_SAN
+    auto logManager = getLogManager(native_log_manager);
+    auto sa = SanitizerHelper::GetSanitizer();
+    if(sa != nullptr) {
+        logManager->SetDataInspector(sa);
+        return true;
+    }
+#endif
+    return false;
+}
+
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_microsoft_applications_events_LogManager_pauseActivity(JNIEnv *env, jclass clazz) {
     WrapperLogManager::PauseActivity();
@@ -1728,6 +1778,23 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     auto ss = SignalsHelper::GetSignalsInspector();
     if(ss != nullptr) {
         logManager->RemoveDataInspector(ss->GetName());
+        return true;
+    }
+#endif
+    return false;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterSanitizer(
+        JNIEnv *env,
+        jobject thiz,
+        jlong native_log_manager) {
+#if HAS_SAN
+    auto logManager = getLogManager(native_log_manager);
+    auto sa = SanitizerHelper::GetSanitizer();
+    if(sa != nullptr) {
+        logManager->RemoveDataInspector(sa->GetName());
         return true;
     }
 #endif
