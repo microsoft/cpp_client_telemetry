@@ -23,6 +23,16 @@ public final class SanitizerInitConfig {
         }
     }
 
+    /// (OPTIONAL) If enabled this will force sanitization for Urls, emails and site paths.
+    public var setWarningsToSanitization: Bool {
+        get {
+            odwSanitizerInitConfig.setWarningsToSanitization
+        }
+        set {
+            odwSanitizerInitConfig.setWarningsToSanitization = newValue
+        }
+    }
+    
     /**
     Returns the Obj-C object of the wrapper.
 

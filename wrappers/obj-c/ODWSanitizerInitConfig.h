@@ -15,6 +15,14 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property(readwrite, copy, nonatomic) NSString* notificationEventName;
 
+/*!
+ @brief (OPTIONAL) If enabled this will force sanitization for Urls, emails and site paths. The Default value is `YES`.
+ */
+@property(readwrite, nonatomic) BOOL setWarningsToSanitization;
+
+// Initializer
+- (instancetype)init;
+
 @end
 NS_ASSUME_NONNULL_END
 
