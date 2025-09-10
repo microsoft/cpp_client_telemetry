@@ -11,7 +11,7 @@ package com.microsoft.applications.events;
 public class SanitizerConfiguration {
 
     /**
-     * The logger instance used to record sanitizer concern events.
+     * The logger instance used to record privacy concern events.
      * This field is required.
      */
     private final ILogger loggerInstance;
@@ -23,7 +23,7 @@ public class SanitizerConfiguration {
     private String notificationEventName = "SanitizerConcerns";
 
     /**
-     * Flag to control whether warnings should be turned off.
+     * Flag to control whether sanitizer warnings are suppressed.
      * Optional. Defaults to true.
      */
     private boolean warningsOff = true;
@@ -43,25 +43,32 @@ public class SanitizerConfiguration {
         this.loggerInstance = logger;
     }
 
-    // Getters and Setters
+    // Returns the logger instance used to record privacy concern events.
     public ILogger getLogger() {
         return this.loggerInstance;
     }
 
+    // Returns the current event name used for logging sanitizer concerns. Defaults to "SanitizerConcerns" if not specified.
     public String getNotificationEventName() {
         return this.notificationEventName;
     }
 
+    // Sets a custom event name for logging sanitizer concerns.
+    // Ignores null or empty strings to preserve the default value.
     public void setEventName(String eventName) {
         if (eventName != null && !eventName.trim().isEmpty()) {
             this.notificationEventName = eventName;
         }
     }
 
+    
+    // Returns whether warnings are currently turned off.
+    // True means enforcing sanitization; false means warnings are enabled.
     public boolean isWarningsOff() {
         return warningsOff;
     }
 
+    // Sets the flag to enable or disable warnings.
     public void setWarningsOff(boolean warningsOff) {
         this.warningsOff = warningsOff;
     }
