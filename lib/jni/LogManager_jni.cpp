@@ -356,7 +356,8 @@ extern "C"
     }
 
     JNIEXPORT jboolean JNICALL
-    Java_com_microsoft_applications_events_LogManager_nativeRegisterSanitizerOnDefaultLogManager(JNIEnv *env, jclass clazz) {
+    Java_com_microsoft_applications_events_LogManager_nativeRegisterSanitizerOnDefaultLogManager(
+        JNIEnv *env, jclass clazz) {
 #if HAS_SAN
         auto logManager = WrapperLogManager::GetInstance();
         auto ss = SanitizerHelper::GetSanitizerPtr();
