@@ -1793,7 +1793,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SAN
     auto logManager = getLogManager(native_log_manager);
     auto sa = SanitizerHelper::GetSanitizerPtr();
-    if(sa != nullptr) {
+    if (sa != nullptr) {
         logManager->RemoveDataInspector(sa->GetName());
         return true;
     }
