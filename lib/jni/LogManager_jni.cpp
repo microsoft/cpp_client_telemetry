@@ -18,9 +18,9 @@
 #include "modules/signals/Signals.hpp"
 #define HAS_SS true
 #endif
-#if __has_include("modules/sanitizer/sanitizer.hpp")
+#if __has_include("modules/sanitizer/Sanitizer.hpp")
 #include "SanitizerHelper.hpp"
-#include "modules/sanitizer/sanitizer.hpp"
+#include "modules/sanitizer/Sanitizer.hpp"
 #define HAS_SAN true
 #endif
 #endif
