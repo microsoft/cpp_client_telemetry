@@ -48,7 +48,7 @@ public class Sanitizer  {
      *
      * @param loggerNativePtr         Native pointer to ILogger.
      * @param notificationEventName   Optional event name for sanitizer notifications.
-     * @param enforceSanitization     Flag to control whether sanitization are enforced.
+     * @param enforceSanitization     Flag to control whether sanitization is enforced.
      * @return true if initialization was successful, false otherwise.
      */
     public static native boolean nativeInitialize(long loggerNativePtr, String notificationEventName, boolean enforceSanitization);
