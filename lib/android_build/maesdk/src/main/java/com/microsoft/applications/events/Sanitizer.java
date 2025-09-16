@@ -7,6 +7,16 @@ package com.microsoft.applications.events;
 public class Sanitizer  {
     
     /**
+     * Initializes the sanitizer with the given logger pointer and optional notification event name.
+     *
+     * @param loggerNativePtr         Native pointer to ILogger.
+     * @param notificationEventName   Optional event name for sanitizer notifications.
+     * @param enforceSanitization     Flag to control whether sanitization is enforced.
+     * @return true if initialization was successful, false otherwise.
+     */
+    private static native boolean nativeInitialize(long loggerNativePtr, String notificationEventName, boolean enforceSanitization);
+
+    /**
      * Initializes the sanitizer with the provided configuration.
      *
      * @param config The configuration settings used to initialize a sanitizer.
@@ -43,16 +53,7 @@ public class Sanitizer  {
      */
     public static native boolean isInitialized();
 
-    /**
-     * Initializes the sanitizer with the given logger pointer and optional notification event name.
-     *
-     * @param loggerNativePtr         Native pointer to ILogger.
-     * @param notificationEventName  Optional event name for sanitizer notifications.
-     * @param warningsOff            Flag to control whether warnings are suppressed.
-     * @return true if initialization was successful, false otherwise.
-     */
-    public static native boolean nativeInitialize(long loggerNativePtr, String notificationEventName, boolean warningsOff);
-
+    
     /**
      * Uninitializes the sanitizer.
      *
