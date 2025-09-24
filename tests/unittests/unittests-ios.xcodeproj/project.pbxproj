@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		16CC10702D4D58DA00C03295 /* ODWReachabilityTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 16CC106F2D4D58DA00C03295 /* ODWReachabilityTests.mm */; };
 		430102E5235E660F00836D50 /* iOSWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 430102E4235E660F00836D50 /* iOSWrapper.mm */; };
 		431EFE50233EBE54002FCC18 /* HttpClientTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */; };
 		431EFE51233EBE54002FCC18 /* LoggerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2B233EBE53002FCC18 /* LoggerTests.cpp */; };
@@ -117,7 +116,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		16CC106F2D4D58DA00C03295 /* ODWReachabilityTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ODWReachabilityTests.mm; path = "obj-c/ODWReachabilityTests.mm"; sourceTree = "<group>"; };
 		430102E4235E660F00836D50 /* iOSWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iOSWrapper.mm; path = ../../common/iOSWrapper.mm; sourceTree = "<group>"; };
 		431EFE1E233EBDF2002FCC18 /* libunittests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libunittests.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpClientTests.cpp; sourceTree = "<group>"; };
@@ -203,7 +201,6 @@
 		431EFE15233EBDF2002FCC18 = {
 			isa = PBXGroup;
 			children = (
-				16CC106F2D4D58DA00C03295 /* ODWReachabilityTests.mm */,
 				43BD496F26B8B0C300EC3C0C /* EventPropertiesDecoratorTests.cpp */,
 				437C72F024D2286F0046F545 /* ODWLogConfigurationTests.mm */,
 				437C72EE24D21ACE0046F545 /* ODWSemanticContextTests.mm */,
@@ -436,7 +433,6 @@
 				431EFEA7233EC590002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
 				431EFEB3233EC590002FCC18 /* OfflineStorageTests.cpp in Sources */,
 				431EFEB8233EC590002FCC18 /* TaskDispatcherCAPITests.cpp in Sources */,
-				16CC10712D4D58DA00C03295 /* ODWReachabilityTests.mm in Sources */,
 				437C72ED24D0C5D70046F545 /* ODWEventPropertiesTests.mm in Sources */,
 				431EFEB6233EC590002FCC18 /* RouteTests.cpp in Sources */,
 				431EFEA8233EC590002FCC18 /* HttpRequestEncoderTests.cpp in Sources */,
