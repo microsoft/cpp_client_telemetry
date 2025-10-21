@@ -39,7 +39,7 @@ std::string GetDeviceId()
 {
     uuid_t uuidBytes;
     const struct timespec spec = {1, 0};
-    int hostUUIDResult = gethostuuid(uuidBytes, &spec);
+    int hostUUIDResult = 0; //gethostuuid(uuidBytes, &spec);
     if (hostUUIDResult == 0)
     {
         char deviceGuid[37] = {0};
