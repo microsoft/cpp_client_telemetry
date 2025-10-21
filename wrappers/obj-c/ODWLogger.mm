@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
@@ -417,5 +418,11 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
 -(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject
 {
     [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject];
+}
+
+// Added overload that includes overrides parameter.
+-(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject overrides:(int)overridesInt
+{
+    [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject overrides:overridesInt];
 }
 @end
