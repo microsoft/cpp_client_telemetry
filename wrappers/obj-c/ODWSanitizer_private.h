@@ -22,6 +22,15 @@ NS_ASSUME_NONNULL_BEGIN
  @param initConfigObject the configuration
  */
 +(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject;
+
+/*!
+ @brief Initializes the sanitizer with overrides
+ @param logger Logger used for reporting concerns
+ @param initConfigObject the configuration
+ @param overridesInt Overrides enum value passed as int
+ */
++(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject overrides:(int)overridesInt;
+
 @end
 
 NS_ASSUME_NONNULL_END

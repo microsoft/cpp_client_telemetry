@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
@@ -26,6 +27,25 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
     }
 
     SanitizerConfiguration config(logger);
+
+    if ([initConfigObject notificationEventName] != nil)
+    {
+        config.NotificationEventName = [[initConfigObject notificationEventName] UTF8String];
+    }
+    config.SetAllWarningsToSanitizations = initConfigObject.setWarningsToSanitization;
+
+    _sanitizerPtr = std::make_shared<Sanitizer>(config);
+    LogManager::GetInstance()->SetDataInspector(_sanitizerPtr);
+}
+
++(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject overrides:(int)overridesInt
+{
+    if (_sanitizerPtr != nullptr)
+    {
+        return;
+    }
+
+    SanitizerConfiguration config(logger, overridesInt);
 
     if ([initConfigObject notificationEventName] != nil)
     {
