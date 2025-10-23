@@ -38,7 +38,7 @@ std::string GetDeviceOsName()
 std::string GetDeviceId()
 {
     uuid_t uuidBytes;
-    const struct timespec spec = {1, 0};
+    //const struct timespec spec = {1, 0};
     int hostUUIDResult = 0; //gethostuuid(uuidBytes, &spec);
     if (hostUUIDResult == 0)
     {
