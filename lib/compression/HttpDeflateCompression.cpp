@@ -11,6 +11,21 @@
 #include <zlib.h>
 #endif
 
+#ifdef __APPLE__
+#ifdef TARGET_OS_MACCATALYST
+#ifndef HAVE_GETHOSTUUID
+#define HAVE_GETHOSTUUID
+// Stub definition to avoid build failure on Mac Catalyst
+inline int gethostuuid(unsigned char* id, const struct timespec* timeout)
+{
+    (void)id;
+    (void)timeout;
+    return -1;  // stub implementation
+}
+#endif
+#endif
+#endif
+
 namespace MAT_NS_BEGIN {
 
     HttpDeflateCompression::HttpDeflateCompression(IRuntimeConfig& runtimeConfig)
