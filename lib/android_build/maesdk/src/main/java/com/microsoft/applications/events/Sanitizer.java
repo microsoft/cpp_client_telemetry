@@ -4,26 +4,36 @@
 //
 package com.microsoft.applications.events;
 
-public class Sanitizer  {
-    
-    /**
+public class Sanitizer  {    /**
      * Initializes the sanitizer with the given logger pointer and optional notification event name.
      *
      * @param loggerNativePtr         Native pointer to ILogger.
      * @param notificationEventName   Optional event name for sanitizer notifications.
      * @param enforceSanitization     Flag to control whether sanitization is enforced.
+     * @param urlDomains             Array of URL domains to allow.
+     * @param emailDomains           Array of email domains to allow.
+     * @param analyzerOptions        Analyzer options flags (bitwise OR of values):
+     *                               0 = None (default - no special analyzer behaviors)
+     *                               1 = SitePathStrict (enables strict site path analysis)
+     *                               2 = SitePathLoose (enables loose site path analysis)
+     *                               Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
      * @return true if initialization was successful, false otherwise.
      */
-    private static native boolean nativeInitialize(long loggerNativePtr, String notificationEventName, boolean enforceSanitization, int sanitizerConfigurationOverrides);
-
-    /**
+    private static native boolean nativeInitialize(long loggerNativePtr, String notificationEventName, boolean enforceSanitization, String[] urlDomains, String[] emailDomains, int analyzerOptions);    /**
      * Initializes the sanitizer with the provided configuration.
      *
      * @param config The configuration settings used to initialize a sanitizer.
+     * @param urlDomains Array of URL domains to allow (can be null for empty list).
+     * @param emailDomains Array of email domains to allow (can be null for empty list).
+     * @param analyzerOptions Analyzer options flags (bitwise OR of values):
+     *                        0 = None (default - no special analyzer behaviors)
+     *                        1 = SitePathStrict (enables strict site path analysis)
+     *                        2 = SitePathLoose (enables loose site path analysis)
+     *                        Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
      * @return true if initialization succeeds, false otherwise.
      * @throws IllegalArgumentException if config or any required field is null or invalid.
      */
-    public static boolean initialize(SanitizerConfiguration config, int sanitizerConfigurationOverrides)  {
+    public static boolean initialize(SanitizerConfiguration config, String[] urlDomains, String[] emailDomains, int analyzerOptions)  {
         
         // Validate that the configuration object is not null
         if(config == null) {
@@ -44,7 +54,9 @@ public class Sanitizer  {
             config.getLogger().getNativeILoggerPtr(), 
             config.getNotificationEventName(),
             config.isEnforceSanitization(),
-            sanitizerConfigurationOverrides); // TODO, check with Frank if I did this right.
+            urlDomains,
+            emailDomains,
+            analyzerOptions);
     }
 
     /**

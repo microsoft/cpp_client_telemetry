@@ -30,14 +30,40 @@ Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
         jlong iLoggerNativePtr,
         jstring notificationEventName,
         jboolean warningsToSanitization,
-        jint sanitizerConfigurationOverrides) {
+        jobjectArray urlDomains,
+        jobjectArray emailDomains,
+        jint analyzerOptions) {
 
     if (spSanitizer != nullptr) {
         return false;
     }
 
-    // Correct cast for overrides (was reinterpret_cast<int>)
-    SanitizerConfiguration sanitizerConfig(reinterpret_cast<ILogger*>(iLoggerNativePtr), static_cast<int>(sanitizerConfigurationOverrides));
+    std::vector<std::string> urlDomainsVec;
+    std::vector<std::string> emailDomainsVec;
+    
+    if (urlDomains != nullptr) {
+        jsize urlDomainsLength = env->GetArrayLength(urlDomains);
+        for (jsize i = 0; i < urlDomainsLength; i++) {
+            jstring domain = static_cast<jstring>(env->GetObjectArrayElement(urlDomains, i));
+            if (domain != nullptr) {
+                urlDomainsVec.push_back(JStringToStdString(env, domain));
+                env->DeleteLocalRef(domain);
+            }
+        }
+    }
+    
+    if (emailDomains != nullptr) {
+        jsize emailDomainsLength = env->GetArrayLength(emailDomains);
+        for (jsize i = 0; i < emailDomainsLength; i++) {
+            jstring domain = static_cast<jstring>(env->GetObjectArrayElement(emailDomains, i));
+            if (domain != nullptr) {
+                emailDomainsVec.push_back(JStringToStdString(env, domain));
+                env->DeleteLocalRef(domain);
+            }
+        }
+    }
+    
+    SanitizerConfiguration sanitizerConfig(reinterpret_cast<ILogger*>(iLoggerNativePtr), urlDomainsVec, emailDomainsVec, static_cast<size_t>(analyzerOptions));
 
     if (notificationEventName != nullptr) {
         sanitizerConfig.NotificationEventName = JStringToStdString(env, notificationEventName);

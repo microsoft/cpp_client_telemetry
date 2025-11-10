@@ -420,9 +420,8 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
     [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject];
 }
 
-// Added overload that includes overrides parameter.
--(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject overrides:(int)overridesInt
+-(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject urlDomains:(NSArray<NSString *> *)urlDomains emailDomains:(NSArray<NSString *> *)emailDomains analyzerOptions:(int)analyzerOptions
 {
-    [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject overrides:overridesInt];
+    [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject urlDomains:urlDomains emailDomains:emailDomains analyzerOptions:analyzerOptions];
 }
 @end

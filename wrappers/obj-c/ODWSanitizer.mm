@@ -26,7 +26,9 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
         return;
     }
 
-    SanitizerConfiguration config(logger);
+    std::vector<std::string> urlDomains;
+    std::vector<std::string> emailDomains;
+    SanitizerConfiguration config(logger, urlDomains, emailDomains, 0);
 
     if ([initConfigObject notificationEventName] != nil)
     {
@@ -38,14 +40,33 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
     LogManager::GetInstance()->SetDataInspector(_sanitizerPtr);
 }
 
-+(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject overrides:(int)overridesInt
++(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject urlDomains:(NSArray<NSString *> *)urlDomains emailDomains:(NSArray<NSString *> *)emailDomains analyzerOptions:(int)analyzerOptions
 {
     if (_sanitizerPtr != nullptr)
     {
         return;
     }
 
-    SanitizerConfiguration config(logger, overridesInt);
+    std::vector<std::string> urlDomainsVec;
+    std::vector<std::string> emailDomainsVec;
+    
+    if (urlDomains != nil)
+    {
+        for (NSString *domain in urlDomains)
+        {
+            urlDomainsVec.push_back([domain UTF8String]);
+        }
+    }
+    
+    if (emailDomains != nil)
+    {
+        for (NSString *domain in emailDomains)
+        {
+            emailDomainsVec.push_back([domain UTF8String]);
+        }
+    }
+    
+    SanitizerConfiguration config(logger, urlDomainsVec, emailDomainsVec, static_cast<size_t>(analyzerOptions));
 
     if ([initConfigObject notificationEventName] != nil)
     {
