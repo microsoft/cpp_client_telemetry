@@ -4,7 +4,8 @@
 //
 package com.microsoft.applications.events;
 
-public class Sanitizer  {    /**
+public class Sanitizer  {    
+    /**
      * Initializes the sanitizer with the given logger pointer and optional notification event name.
      *
      * @param loggerNativePtr         Native pointer to ILogger.
