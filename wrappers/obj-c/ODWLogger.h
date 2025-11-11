@@ -136,7 +136,9 @@ typedef NS_ENUM(NSInteger, ODWSessionState)
 
 /*!
  @brief Initialize the Sanitizer component with domain allow lists.
- @param initConfigObject An instance of ODWSanitizerInitConfig that contains the configuration settings for the Sanitizer component.
+ @param initConfigObject An instance of ODWSanitizerInitConfig that contains the configuration settings for the Sanitizer component. 
+There is a property on initConfigObject named "SendConcernLimit" that controls the maximum number of concerns uploaded. If set to 0, no concerns are uploaded.
+If set to 65536 or higher all concerns are uploaded. For n between 0 and 65536, n concerns are uploaded. This number cannot be changed after process start.
  @param urlDomains Array of URL domains to allow (can be nil for empty list).
  @param emailDomains Array of email domains to allow (can be nil for empty list).
  @param analyzerOptions Analyzer options flags (bitwise OR of values):

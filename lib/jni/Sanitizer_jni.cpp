@@ -32,7 +32,9 @@ Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
         jboolean warningsToSanitization,
         jobjectArray urlDomains,
         jobjectArray emailDomains,
-        jint analyzerOptions) {
+        jint analyzerOptions,
+        jint sendConcernLimit // number of concerns to upload. Set to 0 to upload none, greather than 65536 uploads everything.
+    ) {
 
     if (spSanitizer != nullptr) {
         return false;
@@ -64,6 +66,8 @@ Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
     }
     
     SanitizerConfiguration sanitizerConfig(reinterpret_cast<ILogger*>(iLoggerNativePtr), urlDomainsVec, emailDomainsVec, static_cast<size_t>(analyzerOptions));
+
+    sanitizerConfig.SendConcernLimit = sendConcernLimit;
 
     if (notificationEventName != nullptr) {
         sanitizerConfig.NotificationEventName = JStringToStdString(env, notificationEventName);

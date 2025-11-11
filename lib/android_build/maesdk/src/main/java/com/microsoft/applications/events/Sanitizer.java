@@ -19,7 +19,14 @@ public class Sanitizer  {    /**
      *                               Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
      * @return true if initialization was successful, false otherwise.
      */
-    private static native boolean nativeInitialize(long loggerNativePtr, String notificationEventName, boolean enforceSanitization, String[] urlDomains, String[] emailDomains, int analyzerOptions);    /**
+    private static native boolean nativeInitialize(long loggerNativePtr, 
+        String notificationEventName,
+        boolean enforceSanitization, 
+        String[] urlDomains, 
+        String[] emailDomains, 
+        int analyzerOptions,
+        int sendConcernLimit);    
+    /**
      * Initializes the sanitizer with the provided configuration.
      *
      * @param config The configuration settings used to initialize a sanitizer.
@@ -30,10 +37,11 @@ public class Sanitizer  {    /**
      *                        1 = SitePathStrict (enables strict site path analysis)
      *                        2 = SitePathLoose (enables loose site path analysis)
      *                        Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
+     * @param sendConcernLimit Maximum number of concerns to send. 0 = no concerns sent, 65536+ = all concerns sent.
      * @return true if initialization succeeds, false otherwise.
      * @throws IllegalArgumentException if config or any required field is null or invalid.
      */
-    public static boolean initialize(SanitizerConfiguration config, String[] urlDomains, String[] emailDomains, int analyzerOptions)  {
+    public static boolean initialize(SanitizerConfiguration config, String[] urlDomains, String[] emailDomains, int analyzerOptions, int sendConcernLimit)  {
         
         // Validate that the configuration object is not null
         if(config == null) {
@@ -56,7 +64,8 @@ public class Sanitizer  {    /**
             config.isEnforceSanitization(),
             urlDomains,
             emailDomains,
-            analyzerOptions);
+            analyzerOptions,
+            sendConcernLimit);
     }
 
     /**

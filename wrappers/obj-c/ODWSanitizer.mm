@@ -24,8 +24,7 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
     if (_sanitizerPtr != nullptr)
     {
         return;
-    }
-
+    }    
     std::vector<std::string> urlDomains;
     std::vector<std::string> emailDomains;
     SanitizerConfiguration config(logger, urlDomains, emailDomains, 0);
@@ -35,6 +34,7 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
         config.NotificationEventName = [[initConfigObject notificationEventName] UTF8String];
     }
     config.SetAllWarningsToSanitizations = initConfigObject.setWarningsToSanitization;
+    config.SendConcernLimit = static_cast<size_t>(initConfigObject.sendConcernLimit);
 
     _sanitizerPtr = std::make_shared<Sanitizer>(config);
     LogManager::GetInstance()->SetDataInspector(_sanitizerPtr);
@@ -65,7 +65,6 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
             emailDomainsVec.push_back([domain UTF8String]);
         }
     }
-    
     SanitizerConfiguration config(logger, urlDomainsVec, emailDomainsVec, static_cast<size_t>(analyzerOptions));
 
     if ([initConfigObject notificationEventName] != nil)
@@ -73,6 +72,7 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
         config.NotificationEventName = [[initConfigObject notificationEventName] UTF8String];
     }
     config.SetAllWarningsToSanitizations = initConfigObject.setWarningsToSanitization;
+    config.SendConcernLimit = static_cast<size_t>(initConfigObject.sendConcernLimit);
 
     _sanitizerPtr = std::make_shared<Sanitizer>(config);
     LogManager::GetInstance()->SetDataInspector(_sanitizerPtr);
