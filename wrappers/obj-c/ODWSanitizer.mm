@@ -18,7 +18,7 @@ using namespace MAT;
 
 std::shared_ptr<Sanitizer> _sanitizerPtr;
 
-+(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject;
++(void)initializeSanitizer:(ILogger *)logger withODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject
 {
     if (_sanitizerPtr != nullptr)
     {
@@ -31,6 +31,7 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
     {
         config.NotificationEventName = [[initConfigObject notificationEventName] UTF8String];
     }
+    config.SetAllWarningsToSanitizations = initConfigObject.setWarningsToSanitization;
 
     _sanitizerPtr = std::make_shared<Sanitizer>(config);
     LogManager::GetInstance()->SetDataInspector(_sanitizerPtr);

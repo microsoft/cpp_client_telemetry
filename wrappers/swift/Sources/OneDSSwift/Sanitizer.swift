@@ -24,7 +24,7 @@ public final class Sanitizer {
     }
 
     /// Resets the Sanitizer instance.
-    public static func resetPrivacyGuardInstance() {
+    public static func resetSanitizerInstance() {
         ODWSanitizer.resetSanitizerInstance()
     }
 }
