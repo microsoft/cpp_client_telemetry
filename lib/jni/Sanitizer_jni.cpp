@@ -23,9 +23,24 @@ Java_com_microsoft_applications_events_Sanitizer_isInitialized(const JNIEnv *env
     return spSanitizer != nullptr;
 }
 
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
+    /**
+     * Initializes the sanitizer with the provided configuration.
+     *
+     * @param iLoggerNativePtr Native pointer to the ILogger instance.
+     * @param notificationEventName Name of the event to log sanitizer concerns.
+     * @param warningsToSanitization If true, all warnings are treated as sanitizations.
+     * @param urlDomains Array of URL domains to allow (can be null for empty list).
+     * @param emailDomains Array of email domains to allow (can be null for empty list).
+     * @param analyzerOptions Analyzer options flags (bitwise OR of values):
+     *                        0 = None (default - no special analyzer behaviors). SitePathLoose is the default behavior.
+     *                        1 = SitePathStrict (enables strict site path analysis)
+     *                        2 = SitePathLoose (enables loose site path analysis)
+     *                        Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
+     * @param sendConcernLimit Maximum number of concerns to send. 0 = no concerns sent, 65536+ = all concerns sent.
+     * **/
+    extern "C"
+    JNIEXPORT jboolean JNICALL
+    Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
         JNIEnv *env, jclass /* this */,
         jlong iLoggerNativePtr,
         jstring notificationEventName,
@@ -33,7 +48,7 @@ Java_com_microsoft_applications_events_Sanitizer_nativeInitialize(
         jobjectArray urlDomains,
         jobjectArray emailDomains,
         jint analyzerOptions,
-        jint sendConcernLimit // number of concerns to upload. Set to 0 to upload none, greather than 65536 uploads everything.
+        jint sendConcernLimit // number of concerns to upload. Set to 0 to upload none, greater than 65536 uploads everything.
     ) {
 
     if (spSanitizer != nullptr) {

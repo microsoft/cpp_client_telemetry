@@ -14,7 +14,7 @@ public class Sanitizer  {
      * @param urlDomains             Array of URL domains to allow.
      * @param emailDomains           Array of email domains to allow.
      * @param analyzerOptions        Analyzer options flags (bitwise OR of values):
-     *                               0 = None (default - no special analyzer behaviors)
+     *                               0 = None (default - no special analyzer behaviors). SitePathLoose is the default behavior.
      *                               1 = SitePathStrict (enables strict site path analysis)
      *                               2 = SitePathLoose (enables loose site path analysis)
      *                               Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
@@ -34,7 +34,7 @@ public class Sanitizer  {
      * @param urlDomains Array of URL domains to allow (can be null for empty list).
      * @param emailDomains Array of email domains to allow (can be null for empty list).
      * @param analyzerOptions Analyzer options flags (bitwise OR of values):
-     *                        0 = None (default - no special analyzer behaviors)
+     *                        0 = None (default - no special analyzer behaviors). SitePathLoose is the default behavior.
      *                        1 = SitePathStrict (enables strict site path analysis)
      *                        2 = SitePathLoose (enables loose site path analysis)
      *                        Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
