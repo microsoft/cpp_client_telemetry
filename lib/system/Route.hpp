@@ -102,12 +102,12 @@ namespace MAT_NS_BEGIN {
         void operator()(TRealArgs&& ... args) const
         {
             for (IRoutePassThrough<TArgs...>* target : m_passthroughs) {
-                if (!(*target)(std::forward<TRealArgs>(args) ...)) {
+                if (!(*target)(args ...)) {
                     return;
                 }
             }
             if (m_target) {
-                (*m_target)(std::forward<TRealArgs>(args) ...);
+                (*m_target)(args ...);
             }
         }
 
