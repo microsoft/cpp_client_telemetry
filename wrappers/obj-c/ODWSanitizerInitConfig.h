@@ -20,6 +20,12 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property(readwrite, nonatomic) BOOL setWarningsToSanitization;
 
+/*!
+ @brief (OPTIONAL) Total amount of SendConcerns that can be emitted. If set to 0 no concerns will be uploaded.
+        If set to 65536 or higher all concerns will be uploaded. Default value is `65536`.
+ */
+@property(readwrite, nonatomic) NSUInteger sendConcernLimit;
+
 // Initializer
 - (instancetype)init;
 
