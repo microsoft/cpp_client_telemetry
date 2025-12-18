@@ -81,10 +81,8 @@ include_directories(
 
 find_library(zlib-path z)
 
-add_library(maesdk SHARED IMPORTED)
-set_target_properties(maesdk PROPERTIES
-        IMPORTED_LOCATION "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so"
-        IMPORTED_LOCATION_Release "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so")
+#Add maesdk as a dependency
+add_subdirectory(../../../../maesdk/src/main/cpp maesdk)
 
 # include the other flavor of database: if maesdk builds with Room include sqlite
 # if maesdk builds with native sqlite, include Room

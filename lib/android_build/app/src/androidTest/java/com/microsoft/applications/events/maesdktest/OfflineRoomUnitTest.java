@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -41,7 +42,8 @@ public class OfflineRoomUnitTest {
             room.storeRecords(record);
             assertEquals(1, room.getRecordCount(StorageRecord.EventLatency_Unspecified));
             assertEquals(1, room.getRecordCount(StorageRecord.EventLatency_Normal));
-            assertThat(room.totalSize(), Matchers.greaterThan(new Long(0)));
+            assertThat(room.totalSize(), Matchers.greaterThan(0L));
+            assertNotEquals(room.loadPageSize(), -1L);
             assertEquals(1, room.deleteAllRecords());
         }
     }
