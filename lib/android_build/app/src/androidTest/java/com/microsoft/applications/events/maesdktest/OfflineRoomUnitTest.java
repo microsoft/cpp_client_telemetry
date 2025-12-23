@@ -43,7 +43,13 @@ public class OfflineRoomUnitTest {
             assertEquals(1, room.getRecordCount(StorageRecord.EventLatency_Unspecified));
             assertEquals(1, room.getRecordCount(StorageRecord.EventLatency_Normal));
             assertThat(room.totalSize(), Matchers.greaterThan(0L));
-            assertNotEquals(room.loadPageSize(), -1L);
+            
+            // Verify loadPageSize() returns a valid page size
+            long pageSize = room.loadPageSize();
+            assertThat(pageSize, Matchers.greaterThan(0L));
+            // Verify page size is a power of 2 (e.g., 4096)
+            assertThat(pageSize & (pageSize - 1), Matchers.is(0L));
+            
             assertEquals(1, room.deleteAllRecords());
         }
     }
