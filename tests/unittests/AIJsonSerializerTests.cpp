@@ -182,4 +182,50 @@ TEST(AIJsonSerializerTests, valuesSanitized)
     EXPECT_EQ(expectLarge, result["data"]["baseData"]["properties"][expectSmall150].get<std::string>());
 }
 
+TEST(AIJsonSerializerTests, invalidUtf8IgnoredDuringDump)
+{
+    std::unique_ptr<AIJsonSerializer> aiSerializer = std::make_unique<AIJsonSerializer>();
+
+    ::CsProtocol::App app;
+    app.ver = "appVer";
+    app.locale = "appLocale";
+
+    ::CsProtocol::Device device;
+    device.localId = "deviceId";
+    device.deviceClass = "deviceClass";
+
+    ::CsProtocol::Protocol proto;
+    proto.devMake = "protoDevMake";
+    proto.devModel = "protoDevModel";
+
+    ::CsProtocol::Os os;
+    os.name = "osName";
+    os.ver = "osVer";
+
+    ::CsProtocol::User user;
+    user.localId = "userId";
+
+    std::string invalidUtf8 = "abc";
+    invalidUtf8.push_back(static_cast<char>(0xFF));
+    invalidUtf8 += "def";
+
+    ::CsProtocol::Data data;
+    ::CsProtocol::Value prop;
+    prop.type = ::CsProtocol::ValueString;
+    prop.stringValue = invalidUtf8;
+    data.properties["prop_key_utf8"] = prop;
+
+    std::unique_ptr<::CsProtocol::Record> record = createTestRecord(
+        "eventUtf8", 1, app, device, proto, os, user, data
+    );
+    IncomingEventContext context(PAL::generateUuidString(), TEST_TOKEN, EventLatency_Unspecified, EventPersistence_Normal, record.get());
+
+    EXPECT_NO_THROW(aiSerializer->serialize(&context));
+    EXPECT_NO_THROW({
+        ::nlohmann::json result = nlohmann::json::parse(context.record.blob.begin(), context.record.blob.end());
+        EXPECT_EQ("eventUtf8", result["data"]["baseData"]["name"].get<std::string>());
+        EXPECT_EQ("abcdef", result["data"]["baseData"]["properties"]["prop_key_utf8"].get<std::string>());
+    });
+}
+
 #endif  // HAVE_MAT_AI
