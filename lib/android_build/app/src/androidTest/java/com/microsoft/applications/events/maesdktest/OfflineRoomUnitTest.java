@@ -17,11 +17,17 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class OfflineRoomUnitTest {
@@ -183,6 +189,86 @@ public class OfflineRoomUnitTest {
                 assertNotNull(timedOut[i].tenantToken);
                 assertEquals(1, timedOut[i].count);
             }
+        }
+    }
+
+    @Test
+    public void ConcurrentPageSizeInitialization() throws InterruptedException {
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        try (OfflineRoom room = new OfflineRoom(appContext, "OfflineRoomConcurrent")) {
+            room.deleteAllRecords();
+            
+            // Add a record to ensure the database is not empty
+            StorageRecord record = new StorageRecord(
+                    0, "Test",
+                    StorageRecord.EventLatency_Normal,
+                    StorageRecord.EventPersistence_Normal,
+                    32,
+                    1,
+                    0,
+                    new byte[]{1, 2, 3});
+            room.storeRecords(record);
+            
+            final int threadCount = 10;
+            final CountDownLatch startLatch = new CountDownLatch(1);
+            final CountDownLatch doneLatch = new CountDownLatch(threadCount);
+            final List<Long> pageSizes = new ArrayList<>();
+            final List<Long> totalSizes = new ArrayList<>();
+            final AtomicInteger errorCount = new AtomicInteger(0);
+            
+            // Create multiple threads that will call loadPageSize() and totalSize() concurrently
+            for (int i = 0; i < threadCount; i++) {
+                final int threadId = i;
+                new Thread(() -> {
+                    try {
+                        // Wait for all threads to be ready
+                        startLatch.await();
+                        
+                        // Call both methods to test concurrent initialization
+                        long pageSize = room.loadPageSize();
+                        long totalSize = room.totalSize();
+                        
+                        synchronized (pageSizes) {
+                            pageSizes.add(pageSize);
+                            totalSizes.add(totalSize);
+                        }
+                    } catch (Exception e) {
+                        errorCount.incrementAndGet();
+                        e.printStackTrace();
+                    } finally {
+                        doneLatch.countDown();
+                    }
+                }).start();
+            }
+            
+            // Start all threads simultaneously
+            startLatch.countDown();
+            
+            // Wait for all threads to complete
+            doneLatch.await();
+            
+            // Verify no errors occurred
+            assertEquals("No errors should occur during concurrent access", 0, errorCount.get());
+            
+            // Verify all threads got results
+            assertEquals("All threads should complete", threadCount, pageSizes.size());
+            assertEquals("All threads should complete", threadCount, totalSizes.size());
+            
+            // Verify all threads got the same page size (no race condition)
+            long firstPageSize = pageSizes.get(0);
+            assertThat("Page size should be valid", firstPageSize, greaterThan(0L));
+            assertThat("Page size should be a power of 2", firstPageSize & (firstPageSize - 1), is(0L));
+            
+            for (long pageSize : pageSizes) {
+                assertEquals("All threads should get the same page size", firstPageSize, pageSize);
+            }
+            
+            // Verify all threads got a valid total size
+            for (long totalSize : totalSizes) {
+                assertThat("Total size should be valid", totalSize, greaterThan(0L));
+            }
+            
+            room.deleteAllRecords();
         }
     }
 }
