@@ -91,6 +91,7 @@ public class OfflineRoom implements AutoCloseable {
     private StorageSettingDao m_settingDao;
     private volatile long m_pageSize = -1;
     private static final long PAGE_SIZE_DEFAULT = 4096;
+    private static final Object PAGE_SIZE_LOCK = new Object();
 
     public OfflineRoom(Context context, String name) {
         RoomDatabase.Builder<OfflineRoomDatabase> builder;
@@ -290,7 +291,7 @@ public class OfflineRoom implements AutoCloseable {
 
     private void initPageSize() {
         if (m_pageSize == -1) {
-            synchronized (this) {
+            synchronized (PAGE_SIZE_LOCK) {
                 if (m_pageSize == -1) {
                     try {
                         try (Cursor c = m_db.query("PRAGMA page_size", null)) {
