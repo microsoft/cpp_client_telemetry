@@ -20,6 +20,9 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.Matchers.*;
@@ -216,36 +219,45 @@ public class OfflineRoomUnitTest {
             final List<Long> totalSizes = new ArrayList<>();
             final AtomicInteger errorCount = new AtomicInteger(0);
             
-            // Create multiple threads that will call loadPageSize() and totalSize() concurrently
-            for (int i = 0; i < threadCount; i++) {
-                final int threadId = i;
-                new Thread(() -> {
-                    try {
-                        // Wait for all threads to be ready
-                        startLatch.await();
-                        
-                        // Call both methods to test concurrent initialization
-                        long pageSize = room.loadPageSize();
-                        long totalSize = room.totalSize();
-                        
-                        synchronized (pageSizes) {
-                            pageSizes.add(pageSize);
-                            totalSizes.add(totalSize);
+            // Use ExecutorService for proper thread management
+            ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+            try {
+                // Submit tasks that will call loadPageSize() and totalSize() concurrently
+                for (int i = 0; i < threadCount; i++) {
+                    executor.submit(() -> {
+                        try {
+                            // Wait for all threads to be ready
+                            startLatch.await();
+                            
+                            // Call both methods to test concurrent initialization
+                            long pageSize = room.loadPageSize();
+                            long totalSize = room.totalSize();
+                            
+                            synchronized (pageSizes) {
+                                pageSizes.add(pageSize);
+                                totalSizes.add(totalSize);
+                            }
+                        } catch (Exception e) {
+                            errorCount.incrementAndGet();
+                            e.printStackTrace();
+                        } finally {
+                            doneLatch.countDown();
                         }
-                    } catch (Exception e) {
-                        errorCount.incrementAndGet();
-                        e.printStackTrace();
-                    } finally {
-                        doneLatch.countDown();
-                    }
-                }).start();
+                    });
+                }
+                
+                // Start all threads simultaneously
+                startLatch.countDown();
+                
+                // Wait for all threads to complete
+                doneLatch.await();
+            } finally {
+                // Ensure executor is properly shut down
+                executor.shutdown();
+                if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
             }
-            
-            // Start all threads simultaneously
-            startLatch.countDown();
-            
-            // Wait for all threads to complete
-            doneLatch.await();
             
             // Verify no errors occurred
             assertEquals("No errors should occur during concurrent access", 0, errorCount.get());
