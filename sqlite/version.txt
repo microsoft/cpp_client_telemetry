@@ -1,6 +1,6 @@
 Source obtained from
 --------------------
-https://www.sqlite.org/tmp/sqlite-amalgamation-3440000.zip
+https://www.sqlite.org/2025/sqlite-amalgamation-3500400.zip
 
 OSS approval
 ------------
