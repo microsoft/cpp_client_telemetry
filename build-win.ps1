@@ -6,7 +6,7 @@ param (
   [string]$enableMini = "true",
   [string]$enableTests = "true",
   [string]$customProps = "",
-  [string]$vsDevCmdBat = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+  [string]$vsDevCmdBat = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
 )
 
 $solution = "Solutions\MSTelemetrySDK.sln"
@@ -63,7 +63,7 @@ foreach ($arch in $archs) {
       }
 
       echo "Building $actualArch|$actualConfig|$binType..."
-      
+
       $targets = $coreTargets
 
       # Bail out if dependencies aren't met:

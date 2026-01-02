@@ -189,7 +189,7 @@ set +e
 rm -f *.deb *.rpm
 
 # Build new package
-make package
+sudo make package
 
 # Install newly generated package
 if [ -f /usr/bin/dpkg ]; then

@@ -49,9 +49,9 @@ brew install cmake
 brew install wget
 brew install swift
 
-## Install sqlite 3.44
-export SQLITE_PKG=sqlite-autoconf-3440000
-wget https://www.sqlite.org/2023/$SQLITE_PKG.tar.gz -O /tmp/sqlite-snapshot.tar.gz
+## Install sqlite 3.50.4
+export SQLITE_PKG=sqlite-autoconf-3500400
+wget https://www.sqlite.org/2025/$SQLITE_PKG.tar.gz -O /tmp/sqlite-snapshot.tar.gz
 tar -xvf /tmp/sqlite-snapshot.tar.gz
 cd $SQLITE_PKG
 ./configure && make && make install
@@ -59,5 +59,3 @@ cd ..
 
 ## Build Google Test framework
 ./build-gtest.sh $1
-
-## Install dotnet for test server
