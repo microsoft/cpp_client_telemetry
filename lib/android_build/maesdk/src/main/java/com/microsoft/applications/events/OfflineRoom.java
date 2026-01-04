@@ -89,8 +89,9 @@ public class OfflineRoom implements AutoCloseable {
     private OfflineRoomDatabase m_db;
     private StorageRecordDao m_srDao;
     private StorageSettingDao m_settingDao;
-    private long m_pageSize = -1;
+    private volatile long m_pageSize = -1;
     private static final long PAGE_SIZE_DEFAULT = 4096;
+    private static final Object PAGE_SIZE_LOCK = new Object();
 
     public OfflineRoom(Context context, String name) {
         RoomDatabase.Builder<OfflineRoomDatabase> builder;
@@ -290,22 +291,26 @@ public class OfflineRoom implements AutoCloseable {
 
     private void initPageSize() {
         if (m_pageSize == -1) {
-            try {
-                try (Cursor c = m_db.query("PRAGMA page_size", null)) {
-                    if (c.getCount() == 1 && c.getColumnCount() == 1) {
-                        c.moveToFirst();
-                        m_pageSize = c.getLong(0);
-                    } else {
+            synchronized (PAGE_SIZE_LOCK) {
+                if (m_pageSize == -1) {
+                    try {
+                        try (Cursor c = m_db.query("PRAGMA page_size", null)) {
+                            if (c.getCount() == 1 && c.getColumnCount() == 1) {
+                                c.moveToFirst();
+                                m_pageSize = c.getLong(0);
+                            } else {
+                                m_pageSize = PAGE_SIZE_DEFAULT;
+                                Log.e("MAE",
+                                        String.format("Unexpected result from PRAGMA page_size: %d rows, %d columns",
+                                                c.getCount(),
+                                                c.getColumnCount()));
+                            }
+                        }
+                    } catch (Exception e) {
                         m_pageSize = PAGE_SIZE_DEFAULT;
-                        Log.e("MAE",
-                                String.format("Unexpected result from PRAGMA page_size: %d rows, %d columns",
-                                        c.getCount(),
-                                        c.getColumnCount()));
+                        Log.e("MAE", "Failed to query PRAGMA page_size, using default page size.", e);
                     }
                 }
-            } catch (Exception e) {
-                m_pageSize = PAGE_SIZE_DEFAULT;
-                Log.e("MAE", "Failed to query PRAGMA page_size, using default page size.", e);
             }
         }
     }
