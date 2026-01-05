@@ -103,37 +103,6 @@ namespace PAL_NS_BEGIN {
 
     void NetworkInformation::SetupNetDetect()
     {
-        auto weak_this = std::weak_ptr<NetworkInformation>(shared_from_this());
-
-        m_reach = [ODWReachability reachabilityForInternetConnection];
-        void (^block)(NSNotification*) = ^(NSNotification*)
-        {
-            auto strong_this = weak_this.lock();
-            if (!strong_this)
-            {
-                return;
-            }
-
-            // NetworkCost information is not available until iOS 12.
-            // Just make the best guess here.
-            switch (m_reach.currentReachabilityStatus)
-            {
-                case NotReachable:
-                    strong_this->UpdateType(NetworkType_Unknown);
-                    strong_this->UpdateCost(NetworkCost_Unknown);
-                    break;
-                case ReachableViaWiFi:
-                    strong_this->UpdateType(NetworkType_Wifi);
-                    strong_this->UpdateCost(NetworkCost_Unmetered);
-                    break;
-                case ReachableViaWWAN:
-                    strong_this->UpdateType(NetworkType_WWAN);
-                    strong_this->UpdateCost(NetworkCost_Metered);
-                    break;
-            }
-        };
-        block(nil); // Update the initial status.
-        
         if (@available(macOS 10.14, iOS 12.0, *))
         {
             m_monitor = nw_path_monitor_create();
@@ -188,6 +157,37 @@ namespace PAL_NS_BEGIN {
         }
         else if (m_isNetDetectEnabled)
         {
+            auto weak_this = std::weak_ptr<NetworkInformation>(shared_from_this());
+
+            m_reach = [ODWReachability reachabilityForInternetConnection];
+            void (^block)(NSNotification*) = ^(NSNotification*)
+            {
+                auto strong_this = weak_this.lock();
+                if (!strong_this)
+                {
+                    return;
+                }
+
+                // NetworkCost information is not available until iOS 12.
+                // Just make the best guess here.
+                switch (m_reach.currentReachabilityStatus)
+                {
+                    case NotReachable:
+                        strong_this->UpdateType(NetworkType_Unknown);
+                        strong_this->UpdateCost(NetworkCost_Unknown);
+                        break;
+                    case ReachableViaWiFi:
+                        strong_this->UpdateType(NetworkType_Wifi);
+                        strong_this->UpdateCost(NetworkCost_Unmetered);
+                        break;
+                    case ReachableViaWWAN:
+                        strong_this->UpdateType(NetworkType_WWAN);
+                        strong_this->UpdateCost(NetworkCost_Metered);
+                        break;
+                }
+            };
+            block(nil); // Update the initial status.
+
             m_notificationId =
                 [[NSNotificationCenter defaultCenter]
                 addObserverForName: kNetworkReachabilityChangedNotification
