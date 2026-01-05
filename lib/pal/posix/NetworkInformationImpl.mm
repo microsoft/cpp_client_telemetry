@@ -155,7 +155,7 @@ namespace PAL_NS_BEGIN {
                 nw_path_monitor_cancel(m_monitor);
             }
         }
-        else if (m_isNetDetectEnabled)
+        else
         {
             auto weak_this = std::weak_ptr<NetworkInformation>(shared_from_this());
 
@@ -188,13 +188,16 @@ namespace PAL_NS_BEGIN {
             };
             block(nil); // Update the initial status.
 
-            m_notificationId =
-                [[NSNotificationCenter defaultCenter]
-                addObserverForName: kNetworkReachabilityChangedNotification
-                object: nil
-                queue: nil
-                usingBlock: block];
-            [m_reach startNotifier];
+            if (m_isNetDetectEnabled)
+            {
+                m_notificationId =
+                    [[NSNotificationCenter defaultCenter]
+                    addObserverForName: kNetworkReachabilityChangedNotification
+                    object: nil
+                    queue: nil
+                    usingBlock: block];
+                [m_reach startNotifier];
+            }
         }
     }
 
