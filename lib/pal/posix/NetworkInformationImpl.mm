@@ -105,6 +105,8 @@ namespace PAL_NS_BEGIN {
     {
         if (@available(macOS 10.14, iOS 12.0, *))
         {
+            auto weak_this = std::weak_ptr<NetworkInformation>(shared_from_this());
+
             m_monitor = nw_path_monitor_create();
             nw_path_monitor_set_queue(m_monitor, dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0));
             nw_path_monitor_set_update_handler(m_monitor, ^(nw_path_t path)
