@@ -147,7 +147,7 @@ TEST_F(PalTests, SdkVersion)
 class LogInitTest : public Test
 {
     protected:
-        const std::string validPath = "valid/path/";
+        std::string validPath = "valid/path/";
 
         void SetUp() override
         {
@@ -155,6 +155,12 @@ class LogInitTest : public Test
     #if defined(_WIN32) || defined(_WIN64)
             CreateDirectoryA("valid", NULL);
             CreateDirectoryA(validPath.c_str(), NULL);
+    #elif defined(ANDROID)
+            std::string temp = MAT::GetTempDirectory();
+            std::string parent = temp + PATH_SEPARATOR_CHAR + "valid";
+            validPath = parent + PATH_SEPARATOR_CHAR + "path" + PATH_SEPARATOR_CHAR;
+            mkdir(parent.c_str(), 0777);
+            mkdir(validPath.c_str(), 0777);
     #else
             mkdir("valid", 0777);
             mkdir(validPath.c_str(), 0777);
@@ -173,6 +179,11 @@ class LogInitTest : public Test
     #if defined(_WIN32) || defined(_WIN64)
             RemoveDirectoryA(validPath.c_str());
             RemoveDirectoryA("valid");
+    #elif defined(ANDROID)
+            rmdir(validPath.c_str());
+            std::string temp = MAT::GetTempDirectory();
+            std::string parent = temp + PATH_SEPARATOR_CHAR + "valid";
+            rmdir(parent.c_str());
     #else
             rmdir(validPath.c_str());
             rmdir("valid");
@@ -210,7 +221,12 @@ TEST_F(LogInitTest, LogInitAlreadyInitialized)
 
 TEST_F(LogInitTest, LogInitPathWithoutTrailingSlash)
 {
+#if defined(ANDROID)
+    std::string pathWithoutSlash = validPath;
+    pathWithoutSlash.pop_back();
+#else
     std::string pathWithoutSlash = "valid/path";
+#endif
     EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutSlash));
     EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
 }
@@ -219,6 +235,8 @@ TEST_F(LogInitTest, LogInitPathWithoutTrailingBackslash)
 {
 #if defined(_WIN32) || defined(_WIN64)
     std::string pathWithoutBackslash = "valid\\path";
+#elif defined(ANDROID)
+    std::string pathWithoutBackslash = MAT::GetTempDirectory() + PATH_SEPARATOR_CHAR + "valid//path";
 #else
     std::string pathWithoutBackslash = "valid//path";
 #endif
