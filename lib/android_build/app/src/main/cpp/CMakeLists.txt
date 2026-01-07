@@ -4,7 +4,8 @@
 # Sets the minimum version of CMake required to build the native library.
 
 cmake_minimum_required(VERSION 3.4.1)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 string(REPLACE "/lib/android_build/app/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
