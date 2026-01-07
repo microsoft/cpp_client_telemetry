@@ -9,6 +9,7 @@
 #include "ILogger.hpp"
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 #include <map>
 
@@ -51,6 +52,10 @@ namespace Microsoft {
 
                     // [optional] enabled ECS telemetry
                     bool enableECSClientTelemetry = false;
+
+                    // [optional] Mandatory agents list. If not present in response, the payload
+                    // is determined as bad
+                    std::unordered_set<std::string> mandatoryAgents;
                 };
 
                 /// <summary>
