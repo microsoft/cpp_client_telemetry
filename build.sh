@@ -209,9 +209,6 @@ eval $cmake_cmd
 #make
 cmake --build .
 
-# No fail on error
-set +e
-
 # Remove old package
 rm -f *.deb *.rpm
 

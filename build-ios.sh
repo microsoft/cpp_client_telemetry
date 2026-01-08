@@ -98,7 +98,4 @@ eval $cmake_cmd
 
 make
 
-# No fail on error
-set +e
-
 sudo make package
