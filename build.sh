@@ -213,7 +213,11 @@ cmake --build .
 rm -f *.deb *.rpm
 
 # Build new package
-sudo make package
+case "$OS_NAME" in
+  *Darwin*) sudo make package ;;
+  *Linux*)  make package ;;
+  *)        ;;
+esac
 
 # Install newly generated package
 if [ -f /usr/bin/dpkg ]; then
