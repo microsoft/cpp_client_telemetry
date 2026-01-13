@@ -59,10 +59,10 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # Link against prebuilt libraries on Windows
   message("--- WIN32: Linking against prebuilt libraries")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
+  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
   message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
-  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
+  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
   target_link_libraries(FuncTests
   	mat
@@ -108,6 +108,8 @@ else()
   message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
   message("Binary Dir: ${CMAKE_BINARY_DIR}")
 
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
+
   find_file(LIBGTEST
     NAMES libgtest.a
     PATHS
@@ -120,7 +122,10 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
   )
 
-  target_link_libraries(FuncTests 
+  message("GTEST: ${LIBGTEST}")
+  message("GMOCK: ${LIBGMOCK}")
+
+  target_link_libraries(FuncTests
     ${LIBGTEST}
     ${LIBGMOCK}
     mat
