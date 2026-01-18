@@ -254,7 +254,6 @@ public class SDKUnitNativeTest extends MaeUnitLogger {
   @Test
   public void runNativeTests() {
     System.loadLibrary("native-lib");
-    System.loadLibrary("maesdk");
 
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
     HttpClient client = new HttpClient(appContext);

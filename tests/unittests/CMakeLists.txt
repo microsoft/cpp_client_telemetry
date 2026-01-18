@@ -51,6 +51,12 @@ set(SRCS
 
 set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
+# Enable Azure Monitor unit tests when the module is present.
+# The AIJsonSerializer test sources are guarded by HAVE_MAT_AI.
+if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/azmon/AIJsonSerializer.hpp)
+  add_definitions(-DHAVE_MAT_AI)
+endif()
+
 if (APPLE)
   if (BUILD_IOS)
     list(APPEND SRCS SysInfoUtilsTests_iOS.cpp)

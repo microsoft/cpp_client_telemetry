@@ -182,4 +182,110 @@ TEST(AIJsonSerializerTests, valuesSanitized)
     EXPECT_EQ(expectLarge, result["data"]["baseData"]["properties"][expectSmall150].get<std::string>());
 }
 
+TEST(AIJsonSerializerTests, replacesInvalidUtf8BytesInStrings)
+{
+    std::unique_ptr<AIJsonSerializer> aiSerializer = std::make_unique<AIJsonSerializer>();
+
+    ::CsProtocol::App app;
+    app.ver = "appVer";
+    app.locale = "appLocale";
+
+    ::CsProtocol::Device device;
+    device.localId = "deviceId";
+    device.deviceClass = "deviceClass";
+
+    ::CsProtocol::Protocol proto;
+    proto.devMake = "protoDevMake";
+    proto.devModel = "protoDevModel";
+
+    ::CsProtocol::Os os;
+    os.name = "osName";
+    os.ver = "osVer";
+
+    ::CsProtocol::User user;
+    user.localId = "userId";
+
+    // Inject an invalid UTF-8 byte (0xA9) into a string property.
+    // With json::error_handler_t::replace, serialization should not throw and
+    // the invalid byte should be replaced by the UTF-8 encoding of U+FFFD.
+    std::string invalidUtf8 = "ab";
+    invalidUtf8.push_back(static_cast<char>(0xA9));
+    invalidUtf8 += "cd";
+
+    ::CsProtocol::Data data;
+    ::CsProtocol::Value prop;
+    prop.stringValue = invalidUtf8;
+    data.properties["bad_utf8"] = prop;
+
+    std::unique_ptr<::CsProtocol::Record> record = createTestRecord(
+        "eventUtf8", 1, app, device, proto, os, user, data
+    );
+    IncomingEventContext context(PAL::generateUuidString(), TEST_TOKEN, EventLatency_Unspecified, EventPersistence_Normal, record.get());
+
+    EXPECT_NO_THROW(aiSerializer->serialize(&context));
+    ASSERT_FALSE(context.record.blob.empty());
+
+    ::nlohmann::json parsed;
+    EXPECT_NO_THROW(parsed = nlohmann::json::parse(context.record.blob.begin(), context.record.blob.end()));
+
+    const std::string actual = parsed["data"]["baseData"]["properties"]["bad_utf8"].get<std::string>();
+    const std::string expected = std::string("ab") + "\xEF\xBF\xBD" + "cd";
+
+    EXPECT_EQ(expected, actual);
+    EXPECT_EQ(std::string::npos, actual.find(static_cast<char>(0xA9)));
+}
+
+TEST(AIJsonSerializerTests, replacesInvalidUtf8BytesInTags)
+{
+    std::unique_ptr<AIJsonSerializer> aiSerializer = std::make_unique<AIJsonSerializer>();
+
+    // Inject an invalid UTF-8 byte (0xA9) into a tag value.
+    // With json::error_handler_t::replace, serialization should not throw and
+    // the invalid byte should be replaced by the UTF-8 encoding of U+FFFD.
+    std::string invalidUtf8 = "app";
+    invalidUtf8.push_back(static_cast<char>(0xA9));
+    invalidUtf8 += "Ver";
+
+    ::CsProtocol::App app;
+    app.ver = invalidUtf8;
+    app.locale = "appLocale";
+
+    ::CsProtocol::Device device;
+    device.localId = "deviceId";
+    device.deviceClass = "deviceClass";
+
+    ::CsProtocol::Protocol proto;
+    proto.devMake = "protoDevMake";
+    proto.devModel = "protoDevModel";
+
+    ::CsProtocol::Os os;
+    os.name = "osName";
+    os.ver = "osVer";
+
+    ::CsProtocol::User user;
+    user.localId = "userId";
+
+    ::CsProtocol::Data data;
+    ::CsProtocol::Value prop;
+    prop.stringValue = "ok";
+    data.properties["prop"] = prop;
+
+    std::unique_ptr<::CsProtocol::Record> record = createTestRecord(
+        "eventUtf8Tags", 1, app, device, proto, os, user, data
+    );
+    IncomingEventContext context(PAL::generateUuidString(), TEST_TOKEN, EventLatency_Unspecified, EventPersistence_Normal, record.get());
+
+    EXPECT_NO_THROW(aiSerializer->serialize(&context));
+    ASSERT_FALSE(context.record.blob.empty());
+
+    ::nlohmann::json parsed;
+    EXPECT_NO_THROW(parsed = nlohmann::json::parse(context.record.blob.begin(), context.record.blob.end()));
+
+    const std::string actual = parsed["tags"]["ai.application.ver"].get<std::string>();
+    const std::string expected = std::string("app") + "\xEF\xBF\xBD" + "Ver";
+
+    EXPECT_EQ(expected, actual);
+    EXPECT_EQ(std::string::npos, actual.find(static_cast<char>(0xA9)));
+}
+
 #endif  // HAVE_MAT_AI
