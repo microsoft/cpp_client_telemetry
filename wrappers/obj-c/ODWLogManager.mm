@@ -122,11 +122,8 @@ static BOOL _initialized = false;
     ILogger* logger = nullptr;
     try
     {
-        static ILogConfiguration logManagerConfig;
-
-        // Initializing logManager config with default configuration
-        auto& defaultConfig = LogManager::GetLogConfiguration();
-        logManagerConfig = defaultConfig;
+        // Get reference to the default configuration
+        ILogConfiguration& logManagerConfig = LogManager::GetLogConfiguration();
 
         // Update logManager config when custom configuration is provided.
         if (config != nil && config.count > 0)
