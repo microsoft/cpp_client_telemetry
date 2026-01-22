@@ -106,6 +106,8 @@ namespace MAT_NS_BEGIN {
 
     MATSDK_LIBABI ILogConfiguration FromJSON(const char* json);
 
+    MATSDK_LIBABI void MergeFromJSON(ILogConfiguration &config, const char* json);
+
 } MAT_NS_END
 
 #endif

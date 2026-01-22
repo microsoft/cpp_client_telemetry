@@ -135,7 +135,7 @@ static BOOL _initialized = false;
             if (jsonData)
             {
                 NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-                logManagerConfig = MAT::FromJSON([jsonString UTF8String]);
+                MAT::MergeFromJSON(logManagerConfig, [jsonString UTF8String]);
             }
             else
             {
