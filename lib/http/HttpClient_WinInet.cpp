@@ -13,6 +13,7 @@
 
 #include <Wincrypt.h>
 #include <WinInet.h>
+#include <wincred.h>
 
 #include <algorithm>
 #include <memory>
@@ -21,6 +22,8 @@
 #include <oacr.h>
 
 namespace MAT_NS_BEGIN {
+
+const std::string kProxyRegKeyPath = "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
 
 class WinInetRequestWrapper
 {
@@ -136,6 +139,105 @@ class WinInetRequestWrapper
         return true;
     }
 
+    DWORD GetDWORDRegKey(HKEY hKey, const std::string& subKey, const std::string& value) {
+        DWORD data;
+        DWORD dataSize = sizeof(data);
+        LONG res = RegGetValueA(hKey, subKey.c_str(), value.c_str(), RRF_RT_REG_DWORD, NULL, &data, 
+            &dataSize);
+        if (res != ERROR_SUCCESS) {
+            return 0;
+        }
+        return data;
+    }
+
+    std::string GetStringRegKey(HKEY hKey, const std::string& subKey, const std::string& value) {
+        DWORD stringSize;
+        LONG getSizeResult = RegGetValueA(hKey, subKey.c_str(), value.c_str(), RRF_RT_REG_SZ, NULL, 
+            NULL, &stringSize);
+        if (getSizeResult != ERROR_SUCCESS) {
+            return "";
+        }
+
+        std::string data;
+        data.resize(stringSize);
+        LONG getStringResult = RegGetValueA(hKey, subKey.c_str(), value.c_str(), RRF_RT_REG_SZ, NULL, 
+            &data[0], &stringSize);
+        if (getStringResult != ERROR_SUCCESS) {
+            return "";
+        }
+
+        // Remove the null terminator from Win32 API. The std::string will already cover this.
+        data.resize(stringSize - 1);
+
+        return data;
+    }
+
+    bool ProxyAuthRequired() {
+        return GetDWORDRegKey(HKEY_CURRENT_USER, kProxyRegKeyPath, "ProxyEnable");
+    }
+
+    void SetProxyCredentials() {
+        // get proxy server from registry
+        std::string proxyServer = GetStringRegKey(HKEY_CURRENT_USER, kProxyRegKeyPath, "ProxyServer");
+        if (proxyServer.empty()) {
+            return;
+        }
+
+        std::wstring formattedProxyServer;
+
+        // If there is only one colon, then it is most likely of form IP:PORT and we just need
+        // to remove the port. If there are two colons, then it is most likely of form SCHEME:IP:PORT
+        int colonCount = 0;
+        for (const char& c : proxyServer) {
+            if (c == ':') {
+                colonCount++;
+            }
+        }
+
+        if (colonCount == 1) {
+            const auto colonPos = proxyServer.find_first_of(':');
+            auto portRemoved = proxyServer.substr(0, colonPos);
+            formattedProxyServer = std::wstring(portRemoved.begin(), portRemoved.end());
+        } else if (colonCount == 2) {
+            const auto firstColonPos = proxyServer.find_first_of(':');
+            auto schemeRemoved = proxyServer.substr(firstColonPos + 3);
+
+            const auto lastColonPos = schemeRemoved.find_last_of(':');
+            auto portAndSchemeRemoved = schemeRemoved.substr(0, lastColonPos);
+
+            formattedProxyServer = std::wstring(portAndSchemeRemoved.begin(), 
+                                                portAndSchemeRemoved.end());
+        } else {
+            formattedProxyServer = std::wstring(proxyServer.begin(), 
+                                                proxyServer.end());
+        }
+
+        // get proxy credentials from credential manager
+        PCREDENTIALW cred;
+        if (!::CredReadW(formattedProxyServer.c_str(), CRED_TYPE_GENERIC, 0, &cred)) {
+            return;
+        }
+        wchar_t* proxyUser = cred->UserName;
+        wchar_t* proxyPass = (wchar_t*)cred->CredentialBlob;
+
+        // set proxy credentials
+        if (proxyUser) {
+            ::InternetSetOptionW(m_hWinInetRequest,
+                                 INTERNET_OPTION_PROXY_USERNAME,
+                                 static_cast<void*>(proxyUser),
+                                 static_cast<DWORD>(wcslen(proxyUser) + 1));
+        }
+
+        if (proxyPass) {
+            ::InternetSetOptionW(m_hWinInetRequest,
+                                 INTERNET_OPTION_PROXY_PASSWORD,
+                                 static_cast<void*>(proxyPass),
+                                 static_cast<DWORD>(wcslen(proxyPass) + 1));
+        }
+
+        ::CredFree(cred);
+    }
+
     // Asynchronously send HTTP request and invoke response callback.
     // Ownership semantics: send(...) method self-destroys *this* upon
     // receiving WinInet callback. There must be absolutely no methods
@@ -209,7 +311,7 @@ class WinInetRequestWrapper
         PCSTR szAcceptTypes[] = {"*/*", NULL};
         m_hWinInetRequest = ::HttpOpenRequestA(
             m_hWinInetSession, m_request->m_method.c_str(), path, NULL, NULL, szAcceptTypes,
-            INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_AUTH | INTERNET_FLAG_NO_CACHE_WRITE |
+            INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_CACHE_WRITE |
             INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_PRAGMA_NOCACHE |
             INTERNET_FLAG_RELOAD | (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
             reinterpret_cast<DWORD_PTR>(this));
@@ -250,6 +352,10 @@ class WinInetRequestWrapper
             DispatchEvent(OnConnectFailed);
             onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
             return;
+        }
+
+        if (ProxyAuthRequired()) {
+            SetProxyCredentials();
         }
 
         // Try to send headers and request body to server

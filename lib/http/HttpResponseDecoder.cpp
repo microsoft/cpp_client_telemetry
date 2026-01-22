@@ -5,8 +5,8 @@
 
 #include "HttpResponseDecoder.hpp"
 #include "ILogManager.hpp"
-#include <IHttpClient.hpp>
 #include "utils/Utils.hpp"
+#include <IHttpClient.hpp>
 #include <algorithm>
 #include <cassert>
 
@@ -14,10 +14,9 @@
 #include <nlohmann/json.hpp>
 #endif
 
-namespace MAT_NS_BEGIN {
-
-    HttpResponseDecoder::HttpResponseDecoder(ITelemetrySystem& system)
-        :
+namespace MAT_NS_BEGIN
+{
+    HttpResponseDecoder::HttpResponseDecoder(ITelemetrySystem& system) :
         m_system(system)
     {
     }
@@ -46,17 +45,18 @@ namespace MAT_NS_BEGIN {
 #endif
 
         IHttpResponse const& response = *(ctx->httpResponse);
-        IHttpRequest & request = *(ctx->httpRequest);
+        IHttpRequest& request = *(ctx->httpRequest);
 
         HttpRequestResult outcome = Abort;
         auto result = response.GetResult();
-        switch (result) {
+        switch (result)
+        {
         case HttpResult_OK:
             if (response.GetStatusCode() == 200)
             {
                 outcome = Accepted;
             }
-            else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429)
+            else if (response.GetStatusCode() >= 500 || response.GetStatusCode() == 408 || response.GetStatusCode() == 429 || response.GetStatusCode() == 407)
             {
                 outcome = RetryServer;
             }
@@ -83,15 +83,17 @@ namespace MAT_NS_BEGIN {
             processBody(response, outcome);
         }
 
-        switch (outcome) {
-        case Accepted: {
+        switch (outcome)
+        {
+        case Accepted:
+        {
             LOG_INFO("HTTP request %s finished after %d ms, events were successfully uploaded to the server",
-                response.GetId().c_str(), ctx->durationMs);
+                     response.GetId().c_str(), ctx->durationMs);
             {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_OK;
                 evt.param1 = response.GetStatusCode();
-                evt.data = static_cast<void *>(request.GetBody().data());
+                evt.data = static_cast<void*>(request.GetBody().data());
                 evt.size = request.GetBody().size();
                 DispatchEvent(evt);
             }
@@ -99,9 +101,10 @@ namespace MAT_NS_BEGIN {
             break;
         }
 
-        case Rejected: {
+        case Rejected:
+        {
             LOG_ERROR("HTTP request %s failed after %d ms, events were rejected by the server (%u) and will be all dropped",
-                response.GetId().c_str(), ctx->durationMs, response.GetStatusCode());
+                      response.GetId().c_str(), ctx->durationMs, response.GetStatusCode());
             std::string body(reinterpret_cast<char const*>(response.GetBody().data()), std::min<size_t>(response.GetBody().size(), 100));
             LOG_TRACE("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
             {
@@ -112,7 +115,7 @@ namespace MAT_NS_BEGIN {
                 // This is to be addressed with ETW trace API that can send
                 // a detailed error context to ETW provider.
                 evt.param1 = response.GetStatusCode();
-                evt.data = static_cast<void *>(request.GetBody().data());
+                evt.data = static_cast<void*>(request.GetBody().data());
                 evt.size = request.GetBody().size();
                 DispatchEvent(evt);
                 eventsRejected(ctx);
@@ -120,13 +123,14 @@ namespace MAT_NS_BEGIN {
             break;
         }
 
-        case Abort: {
+        case Abort:
+        {
             LOG_WARN("HTTP request %s failed after %d ms, upload was aborted and events will be sent at a different time",
-                response.GetId().c_str(), ctx->durationMs);
+                     response.GetId().c_str(), ctx->durationMs);
             {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
-                evt.param1 = 0; // response.GetStatusCode();
+                evt.param1 = 0;  // response.GetStatusCode();
                 DispatchEvent(evt);
             }
             ctx->httpResponse = nullptr;
@@ -135,9 +139,10 @@ namespace MAT_NS_BEGIN {
             break;
         }
 
-        case RetryServer: {
+        case RetryServer:
+        {
             LOG_WARN("HTTP request %s failed after %d ms, a temporary server error has occurred (%u) and events will be sent at a different time",
-                response.GetId().c_str(), ctx->durationMs, response.GetStatusCode());
+                     response.GetId().c_str(), ctx->durationMs, response.GetStatusCode());
             std::string body(reinterpret_cast<char const*>(response.GetBody().data()), std::min<size_t>(response.GetBody().size(), 100));
             LOG_TRACE("Server response: %s%s", body.c_str(), (response.GetBody().size() > body.size()) ? "..." : "");
             {
@@ -150,9 +155,10 @@ namespace MAT_NS_BEGIN {
             break;
         }
 
-        case RetryNetwork: {
+        case RetryNetwork:
+        {
             LOG_WARN("HTTP request %s failed after %d ms, a network error has occurred and events will be sent at a different time",
-                response.GetId().c_str(), ctx->durationMs);
+                     response.GetId().c_str(), ctx->durationMs);
             {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
@@ -165,7 +171,7 @@ namespace MAT_NS_BEGIN {
         }
     }
 
-    void HttpResponseDecoder::processBody(IHttpResponse const& response, HttpRequestResult & result)
+    void HttpResponseDecoder::processBody(IHttpResponse const& response, HttpRequestResult& result)
     {
 #ifdef HAVE_MAT_JSONHPP
         // TODO: [MG] - parse HTTP response without json.hpp library
@@ -227,7 +233,8 @@ namespace MAT_NS_BEGIN {
             if (result != Rejected)
             {
                 LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
-            } else
+            }
+            else
             {
                 LOG_TRACE("HTTP response: all rejected");
             }
@@ -242,5 +249,5 @@ namespace MAT_NS_BEGIN {
 #endif
     }
 
-} MAT_NS_END
-
+}
+MAT_NS_END
