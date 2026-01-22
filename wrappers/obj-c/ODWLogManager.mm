@@ -123,7 +123,7 @@ static BOOL _initialized = false;
     try
     {
         // Get reference to the default configuration
-        ILogConfiguration& logManagerConfig = LogManager::GetLogConfiguration();
+        auto& logManagerConfig = LogManager::GetLogConfiguration();
 
         // Update logManager config when custom configuration is provided.
         if (config != nil && config.count > 0)
