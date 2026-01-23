@@ -26,6 +26,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property(readwrite, nonatomic) NSUInteger sendConcernLimit;
 
+/*!
+ @brief (OPTIONAL) When YES, warning messages are inserted at the problem location.
+        When NO (default), warnings are prepended to the beginning of the string.
+        Default value is `NO`.
+ */
+@property(readwrite, nonatomic) BOOL insertWarningAtProblemLocation;
+
 // Initializer
 - (instancetype)init;
 
