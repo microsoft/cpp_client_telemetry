@@ -173,6 +173,14 @@ namespace MAT_NS_BEGIN {
         try
         {
             std::string body(response.GetBody().begin(), response.GetBody().end());
+
+            // Validate that the body is valid JSON before attempting to parse
+            if (body.empty() || !nlohmann::json::accept(body))
+            {
+                LOG_ERROR("HTTP response: body is not valid JSON, skipping processing");
+                return;
+            }
+
             responseBody = nlohmann::json::parse(body.c_str());
             int accepted = 0;
             auto acc = responseBody.find("acc");
