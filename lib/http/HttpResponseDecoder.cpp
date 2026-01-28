@@ -169,19 +169,26 @@ namespace MAT_NS_BEGIN {
     {
 #ifdef HAVE_MAT_JSONHPP
         // TODO: [MG] - parse HTTP response without json.hpp library
-        nlohmann::json responseBody;
-        try
+        std::string body(response.GetBody().begin(), response.GetBody().end());
+
+        // Handle empty body
+        if (body.empty())
         {
-            std::string body(response.GetBody().begin(), response.GetBody().end());
+            LOG_ERROR("HTTP response: body is empty, skipping processing");
+            return;
+        }
 
-            // Validate that the body is valid JSON before attempting to parse
-            if (body.empty() || !nlohmann::json::accept(body))
-            {
-                LOG_ERROR("HTTP response: body is not valid JSON, skipping processing");
-                return;
-            }
+        // Parse JSON with exceptions disabled
+        nlohmann::json responseBody = nlohmann::json::parse(body, nullptr, false);
 
-            responseBody = nlohmann::json::parse(body.c_str());
+        // Check if parsing failed (returns discarded value for invalid JSON)
+        if (responseBody.is_discarded())
+        {
+            LOG_ERROR("HTTP response: body is not valid JSON, skipping processing");
+            return;
+        }
+
+        {
             int accepted = 0;
             auto acc = responseBody.find("acc");
             if (responseBody.end() != acc)
@@ -239,10 +246,6 @@ namespace MAT_NS_BEGIN {
             {
                 LOG_TRACE("HTTP response: all rejected");
             }
-        }
-        catch (...)
-        {
-            LOG_ERROR("HTTP response: JSON parsing failed");
         }
 #else
         UNREFERENCED_PARAMETER(response);
