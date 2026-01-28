@@ -37,6 +37,7 @@ Java_com_microsoft_applications_events_Sanitizer_isInitialized(const JNIEnv *env
      *                        2 = SitePathLoose (enables loose site path analysis)
      *                        Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
      * @param sendConcernLimit Maximum number of concerns to send. 0 = no concerns sent, 65536+ = all concerns sent.
+     * @param insertWarningAtProblemLocation Insert warnings at problem location (true) or prepend (false).
      * **/
     extern "C"
     JNIEXPORT jboolean JNICALL
@@ -48,7 +49,8 @@ Java_com_microsoft_applications_events_Sanitizer_isInitialized(const JNIEnv *env
         jobjectArray urlDomains,
         jobjectArray emailDomains,
         jint analyzerOptions,
-        jint sendConcernLimit // number of concerns to upload. Set to 0 to upload none, greater than 65536 uploads everything.
+        jint sendConcernLimit, // number of concerns to upload. Set to 0 to upload none, greater than 65536 uploads everything.
+        jboolean insertWarningAtProblemLocation
     ) {
 
     if (spSanitizer != nullptr) {
@@ -89,6 +91,7 @@ Java_com_microsoft_applications_events_Sanitizer_isInitialized(const JNIEnv *env
     }
 
     sanitizerConfig.SetAllWarningsToSanitizations = static_cast<bool>(warningsToSanitization);
+    sanitizerConfig.InsertWarningAtProblemLocation = static_cast<bool>(insertWarningAtProblemLocation);
 
     spSanitizer = std::make_shared<Sanitizer>(sanitizerConfig);
     return true;
