@@ -29,6 +29,14 @@ public class SanitizerConfiguration {
     private boolean enforceSanitization = true;
 
     /**
+     * Flag to control where warning messages are inserted.
+     * When true, warnings are inserted at the problem location.
+     * When false (default), warnings are prepended to the beginning.
+     * Optional. Defaults to false.
+     */
+    private boolean insertWarningAtProblemLocation = false;
+
+    /**
      * Constructs a new SanitizerConfiguration with the specified logger.
      *
      * @param logger The ILogger implementation used to log privacy concern events.
@@ -70,5 +78,23 @@ public class SanitizerConfiguration {
    // Sets the flag to enable or disable sanitization enforcement.
     public void setEnforceSanitization(boolean enforceSanitization) {
         this.enforceSanitization = enforceSanitization;
+    }
+
+    /**
+     * Returns whether warnings are inserted at the problem location.
+     *
+     * @return true if warnings are inserted at problem location, false if prepended
+     */
+    public boolean isInsertWarningAtProblemLocation() {
+        return insertWarningAtProblemLocation;
+    }
+
+    /**
+     * Sets whether warnings should be inserted at the problem location.
+     *
+     * @param insertAtLocation true to insert at problem location, false to prepend
+     */
+    public void setInsertWarningAtProblemLocation(boolean insertAtLocation) {
+        this.insertWarningAtProblemLocation = insertAtLocation;
     }
 }

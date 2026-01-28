@@ -18,15 +18,18 @@ public class Sanitizer  {
      *                               1 = SitePathStrict (enables strict site path analysis)
      *                               2 = SitePathLoose (enables loose site path analysis)
      *                               Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
+     * @param sendConcernLimit       Maximum number of concerns to send.
+     * @param insertWarningAtProblemLocation Insert warnings at problem location (true) or prepend (false).
      * @return true if initialization was successful, false otherwise.
      */
-    private static native boolean nativeInitialize(long loggerNativePtr, 
+    private static native boolean nativeInitialize(long loggerNativePtr,
         String notificationEventName,
-        boolean enforceSanitization, 
-        String[] urlDomains, 
-        String[] emailDomains, 
+        boolean enforceSanitization,
+        String[] urlDomains,
+        String[] emailDomains,
         int analyzerOptions,
-        int sendConcernLimit);    
+        int sendConcernLimit,
+        boolean insertWarningAtProblemLocation);    
     /**
      * Initializes the sanitizer with the provided configuration.
      *
@@ -60,13 +63,14 @@ public class Sanitizer  {
         }
 
         return nativeInitialize(
-            config.getLogger().getNativeILoggerPtr(), 
+            config.getLogger().getNativeILoggerPtr(),
             config.getNotificationEventName(),
             config.isEnforceSanitization(),
             urlDomains,
             emailDomains,
             analyzerOptions,
-            sendConcernLimit);
+            sendConcernLimit,
+            config.isInsertWarningAtProblemLocation());
     }
 
     /**

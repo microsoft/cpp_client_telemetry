@@ -32,7 +32,19 @@ public final class SanitizerInitConfig {
             odwSanitizerInitConfig.setWarningsToSanitization = newValue
         }
     }
-    
+
+    /// (OPTIONAL) When true, warnings are inserted at the problem location.
+    /// When false (default), warnings are prepended to the beginning of the string.
+    /// Default value is `false`.
+    public var insertWarningAtProblemLocation: Bool {
+        get {
+            odwSanitizerInitConfig.insertWarningAtProblemLocation
+        }
+        set {
+            odwSanitizerInitConfig.insertWarningAtProblemLocation = newValue
+        }
+    }
+
     /**
     Returns the Obj-C object of the wrapper.
 
