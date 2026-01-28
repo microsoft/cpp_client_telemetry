@@ -169,17 +169,18 @@ namespace MAT_NS_BEGIN {
     {
 #ifdef HAVE_MAT_JSONHPP
         // TODO: [MG] - parse HTTP response without json.hpp library
-        std::string body(response.GetBody().begin(), response.GetBody().end());
+        auto bodyBegin = response.GetBody().begin();
+        auto bodyEnd = response.GetBody().end();
 
         // Handle empty body
-        if (body.empty())
+        if (bodyBegin == bodyEnd)
         {
             LOG_ERROR("HTTP response: body is empty, skipping processing");
             return;
         }
 
-        // Parse JSON with exceptions disabled
-        nlohmann::json responseBody = nlohmann::json::parse(body, nullptr, false);
+        // Parse JSON with exceptions disabled (pass iterators directly to avoid copy)
+        nlohmann::json responseBody = nlohmann::json::parse(bodyBegin, bodyEnd, nullptr, false);
 
         // Check if parsing failed (returns discarded value for invalid JSON)
         if (responseBody.is_discarded())
