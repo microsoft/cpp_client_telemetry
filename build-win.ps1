@@ -7,7 +7,7 @@ param (
   [string]$enableTests = "true",
   [string]$customProps = "",
   [string]$vsDevCmdBat = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat",
-  [string]$libMTSqlite= "true"
+  [string]$libMTSqlite = "true"
 )
 
 $solution = "Solutions\MSTelemetrySDK.sln"
