@@ -7,6 +7,7 @@
 
 #include "ctmacros.hpp"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <map>
