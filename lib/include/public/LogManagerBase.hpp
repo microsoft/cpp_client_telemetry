@@ -8,6 +8,8 @@
 #include "CommonFields.h"
 #include "ctmacros.hpp"
 
+#include <type_traits>
+
 #if (HAVE_EXCEPTIONS)
 #include <exception>
 #endif
