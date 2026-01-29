@@ -217,7 +217,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>MSVCRTD.lib;msvcprtd.lib;atls.lib;shlwapi.lib;iphlpapi.lib;vcruntimed.lib;ucrtd.lib;wininet.lib;crypt32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>MSVCRTD.lib;msvcprtd.lib;atls.lib;shlwapi.lib;iphlpapi.lib;vcruntimed.lib;ucrtd.lib;wininet.lib;crypt32.lib;version.lib;kernel32.lib;user32.lib;advapi32.lib;ole32.lib;uuid.lib</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(DisableWinRT)'!='true'">runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs Condition="'$(DisableWinRT)'!='true'">api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
@@ -301,7 +301,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>MSVCRT.lib;msvcprt.lib;atls.lib;shlwapi.lib;iphlpapi.lib;vcruntime.lib;ucrt.lib;wininet.lib;crypt32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>MSVCRT.lib;msvcprt.lib;atls.lib;shlwapi.lib;iphlpapi.lib;vcruntime.lib;ucrt.lib;wininet.lib;crypt32.lib;version.lib;kernel32.lib;user32.lib;advapi32.lib;ole32.lib;uuid.lib</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(DisableWinRT)'!='true'">runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs Condition="'$(DisableWinRT)'!='true'">api-ms-win-core-winrt-l1-1-0.dll;api-ms-win-core-winrt-string-l1-1-0.dll</DelayLoadDLLs>
