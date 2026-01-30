@@ -189,64 +189,62 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
+        int accepted = 0;
+        auto acc = responseBody.find("acc");
+        if (responseBody.end() != acc)
         {
-            int accepted = 0;
-            auto acc = responseBody.find("acc");
-            if (responseBody.end() != acc)
+            if (acc.value().is_number())
             {
-                if (acc.value().is_number())
-                {
-                    accepted = acc.value().get<int>();
-                }
+                accepted = acc.value().get<int>();
             }
+        }
 
-            int rejected = 0;
-            auto rej = responseBody.find("rej");
-            if (responseBody.end() != rej)
+        int rejected = 0;
+        auto rej = responseBody.find("rej");
+        if (responseBody.end() != rej)
+        {
+            if (rej.value().is_number())
             {
-                if (rej.value().is_number())
-                {
-                    rejected = rej.value().get<int>();
-                }
+                rejected = rej.value().get<int>();
             }
+        }
 
-            auto efi = responseBody.find("efi");
-            if (responseBody.end() != efi)
+        auto efi = responseBody.find("efi");
+        if (responseBody.end() != efi)
+        {
+            for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
             {
-                for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
+                std::string efiKey(it.key());
+                nlohmann::json val = it.value();
+                if (val.is_array())
                 {
-                    std::string efiKey(it.key());
-                    nlohmann::json val = it.value();
-                    if (val.is_array())
+                    //std::vector<int> failureVector = val.get<std::vector<int>>();
+                    // eventsRejected(ctx);     with only the ids in the vector above
+                }
+                if (val.is_string())
+                {
+                    if ("all" == val.get<std::string>())
                     {
-                        //std::vector<int> failureVector = val.get<std::vector<int>>();
-                        // eventsRejected(ctx);     with only the ids in the vector above
-                    }
-                    if (val.is_string())
-                    {
-                        if ("all" == val.get<std::string>())
-                        {
-                            result = Rejected;
-                        }
+                        result = Rejected;
                     }
                 }
             }
+        }
 
-            auto ticket = responseBody.find("TokenCrackingFailure");
-            if (responseBody.end() != ticket)
-            {
-                DebugEvent evt;
-                evt.type = DebugEventType::EVT_TICKET_EXPIRED;
-                DispatchEvent(evt);
-            }
+        auto ticket = responseBody.find("TokenCrackingFailure");
+        if (responseBody.end() != ticket)
+        {
+            DebugEvent evt;
+            evt.type = DebugEventType::EVT_TICKET_EXPIRED;
+            DispatchEvent(evt);
+        }
 
-            if (result != Rejected)
-            {
-                LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
-            } else
-            {
-                LOG_TRACE("HTTP response: all rejected");
-            }
+        if (result != Rejected)
+        {
+            LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
+        } else
+        {
+            LOG_TRACE("HTTP response: all rejected");
         }
 #else
         UNREFERENCED_PARAMETER(response);
