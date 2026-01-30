@@ -288,11 +288,13 @@ NSString *const ODWCFG_BOOL_TPM_CLOCK_SKEW_ENABLED = @"clockSkewEnabled";
 NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
 
 @implementation ODWLogConfiguration
+{
+    ILogConfiguration* _wrappedConfiguration;
+}
     static bool _enableTrace;
     static bool _enableConsoleLogging;
     static bool _enableSessionReset;
     static bool _surfaceCppExceptions;
-    ILogConfiguration* _wrappedConfiguration;
 
 -(instancetype)initWithILogConfiguration:(ILogConfiguration*)config
 {
