@@ -149,6 +149,10 @@ public:
         // Cannot assign to const Null (non-existing) element
         assert(&ConstNull() != this);
 
+        SV.clear();
+        mV.clear();
+        aV.clear();
+
         type = other.type;
         switch (other.type)
         {
@@ -201,6 +205,11 @@ public:
 
     Variant & move(Variant && other) {
         assert(this != &ConstNull());
+
+        SV.clear();
+        mV.clear();
+        aV.clear();
+
         type = other.type;
         switch (other.type) {
             case TYPE_NULL:
