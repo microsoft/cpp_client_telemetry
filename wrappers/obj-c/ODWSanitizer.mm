@@ -35,6 +35,7 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
     }
     config.SetAllWarningsToSanitizations = initConfigObject.setWarningsToSanitization;
     config.SendConcernLimit = static_cast<size_t>(initConfigObject.sendConcernLimit);
+    config.InsertWarningAtProblemLocation = initConfigObject.insertWarningAtProblemLocation;
 
     _sanitizerPtr = std::make_shared<Sanitizer>(config);
     LogManager::GetInstance()->SetDataInspector(_sanitizerPtr);
@@ -73,6 +74,7 @@ std::shared_ptr<Sanitizer> _sanitizerPtr;
     }
     config.SetAllWarningsToSanitizations = initConfigObject.setWarningsToSanitization;
     config.SendConcernLimit = static_cast<size_t>(initConfigObject.sendConcernLimit);
+    config.InsertWarningAtProblemLocation = initConfigObject.insertWarningAtProblemLocation;
 
     _sanitizerPtr = std::make_shared<Sanitizer>(config);
     LogManager::GetInstance()->SetDataInspector(_sanitizerPtr);
