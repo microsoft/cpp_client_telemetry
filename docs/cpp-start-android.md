@@ -33,6 +33,8 @@ set "ANDROID_NDK_HOME=%ANDROID_NDK%"
 
 You can specify your own versions of dependencies as needed.
 
+>Note: The SDK requires a minimum Android API level 23 (Android 6.0 Marshmallow).
+
 >Note: Only Java JDKs 8-13 will work. Java JDK 14+ will fail to build, due to an issue with the version of Gradle currently in use.
 
 ## 3. Integrate the SDK into your C++ project

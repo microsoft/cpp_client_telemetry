@@ -68,7 +68,7 @@ Other resources to learn how to setup the build system:
   | macOS 10.15+                  | Clang Xcode 12.0+                |
   | Ubuntu 20.04 LTS              | GCC 9.x.x                        |
   | Ubuntu 22.04 LTS              | GCC 11.x.x                       |
-  | Windows 10                    | Android Studio/Gradle            |
+  | Windows 10                    | Android Studio/Gradle 8.5, Java 17 |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
   | Windows Server 2022           | Visual Studio 2022 (vc143)       |
 
@@ -76,7 +76,7 @@ Other resources to learn how to setup the build system:
   
   | Target Platform                | Supported          | Covered by CI      |
   | ------------------------------ | ------------------ | ------------------ |
-  | Android                        | :white_check_mark: | :white_check_mark: |
+  | Android (API 23+)              | :white_check_mark: | :white_check_mark: |
   | iOS 12+ (simulator)            | :white_check_mark: | :white_check_mark: |
   | iOS 12+ (arm64, arm64e)        | :white_check_mark: |                    |
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
