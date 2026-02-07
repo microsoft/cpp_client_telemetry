@@ -51,15 +51,17 @@ class PowerInfoReceiver extends android.content.BroadcastReceiver {
   }
 
   public final void onReceive(android.content.Context context, android.content.Intent intent) {
-    final int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-    final boolean isCharging =
+    m_parent.executeTask(new FutureTask<>(() -> {
+        final int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        final boolean isCharging =
         status == BatteryManager.BATTERY_STATUS_CHARGING
             || status == BatteryManager.BATTERY_STATUS_FULL;
-    boolean isLow = false;
-    if (Build.VERSION.SDK_INT >= 28) {
-      isLow = intent.getBooleanExtra(BatteryManager.EXTRA_BATTERY_LOW, false);
-    }
-    m_parent.onPowerChange(isCharging, isLow);
+        boolean isLow = false;
+        if (Build.VERSION.SDK_INT >= 28) {
+          isLow = intent.getBooleanExtra(BatteryManager.EXTRA_BATTERY_LOW, false);
+        }
+        m_parent.onPowerChange(isCharging, isLow);
+      }, true));
   }
 }
 
