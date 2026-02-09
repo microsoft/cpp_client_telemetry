@@ -45,6 +45,18 @@ public final class SanitizerInitConfig {
         }
     }
 
+    /// (OPTIONAL) When true, IsSitePath and IsSitePathLoose checks are bypassed.
+    /// Site paths will not be flagged or sanitized.
+    /// Default value is `false` (site path checks are active).
+    public var bypassSitePathChecks: Bool {
+        get {
+            odwSanitizerInitConfig.bypassSitePathChecks
+        }
+        set {
+            odwSanitizerInitConfig.bypassSitePathChecks = newValue
+        }
+    }
+
     /**
     Returns the Obj-C object of the wrapper.
 
