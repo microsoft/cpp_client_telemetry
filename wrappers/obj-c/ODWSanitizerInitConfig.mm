@@ -17,6 +17,7 @@
         _setWarningsToSanitization = YES;               // Default to true
         _sendConcernLimit = 65536;                      // Default to 65536 (upload all concerns)
         _insertWarningAtProblemLocation = NO;           // Default to NO (prepend warnings)
+        _bypassSitePathChecks = NO;                     // Default to NO (site path checks active)
     }
     return self;
 }

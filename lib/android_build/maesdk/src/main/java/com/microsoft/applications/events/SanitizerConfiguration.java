@@ -37,6 +37,13 @@ public class SanitizerConfiguration {
     private boolean insertWarningAtProblemLocation = false;
 
     /**
+     * Flag to control whether site path checks are bypassed.
+     * When true, IsSitePath and IsSitePathLoose checks are skipped.
+     * Optional. Defaults to false (site path checks are active).
+     */
+    private boolean bypassSitePathChecks = false;
+
+    /**
      * Constructs a new SanitizerConfiguration with the specified logger.
      *
      * @param logger The ILogger implementation used to log privacy concern events.
@@ -96,5 +103,23 @@ public class SanitizerConfiguration {
      */
     public void setInsertWarningAtProblemLocation(boolean insertAtLocation) {
         this.insertWarningAtProblemLocation = insertAtLocation;
+    }
+
+    /**
+     * Returns whether site path checks are bypassed.
+     *
+     * @return true if site path checks are bypassed, false if active
+     */
+    public boolean isBypassSitePathChecks() {
+        return bypassSitePathChecks;
+    }
+
+    /**
+     * Sets whether site path checks should be bypassed.
+     *
+     * @param bypass true to bypass site path checks, false to keep them active
+     */
+    public void setBypassSitePathChecks(boolean bypass) {
+        this.bypassSitePathChecks = bypass;
     }
 }
