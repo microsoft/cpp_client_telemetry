@@ -16,7 +16,7 @@ fi
 
 cd `dirname $0`
 GTEST_PATH=third_party/googletest
-if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then 
+if [ ! "$(ls -A $GTEST_PATH/CMakeLists.txt)" ]; then
   echo Clone googletest from google/googletest:master ...
   rm -rf ${GTEST_PATH} #delete just if empty directory exists
   git clone --depth 1 --branch release-1.12.1 https://github.com/google/googletest $GTEST_PATH
@@ -32,10 +32,10 @@ if(BUILD_IOS)
   message("-- CMAKE_OSX_DEPLOYMENT_TARGET       \${CMAKE_OSX_DEPLOYMENT_TARGET}")
   message("-- CMAKE_SYSTEM_NAME                 \${CMAKE_SYSTEM_NAME}")
   message("-- CMAKE_OSX_ARCHITECTURES          \${CMAKE_OSX_ARCHITECTURES}")
-  set(TARGET_ARCH "APPLE") 
+  set(TARGET_ARCH "APPLE")
   set(IOS True)
   set(APPLE True)
-  set(CMAKE_SYSTEM_NAME iOS) 
+  set(CMAKE_SYSTEM_NAME iOS)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "12.2" CACHE STRING "Force set of the deployment target for iOS" FORCE)
   set(CMAKE_C_FLAGS "\${CMAKE_C_FLAGS} -miphoneos-version-min=10.0")
   set(CMAKE_CXX_FLAGS "\${CMAKE_CXX_FLAGS} -miphoneos-version-min=10.0 -std=c++11")

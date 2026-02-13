@@ -67,12 +67,12 @@ endif()
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
     list(APPEND SRCS
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp 
+        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientTests.cpp
         )
 endif()
-        
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
@@ -137,7 +137,8 @@ else()
   elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
   else()
-    set (SQLITE3_LIB "sqlite3")
+    find_package(SQLite3 REQUIRED)
+    set (SQLITE3_LIB SQLite::SQLite3)
   endif()
 
   # Find zlib
@@ -182,7 +183,7 @@ else()
   message("GTEST: ${LIBGTEST}")
   message("GMOCK: ${LIBGMOCK}")
 
-  target_link_libraries(UnitTests 
+  target_link_libraries(UnitTests
     ${LIBGTEST}
     ${LIBGMOCK}
     mat

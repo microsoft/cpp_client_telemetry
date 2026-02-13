@@ -298,7 +298,9 @@ if(BUILD_SHARED_LIBS STREQUAL "ON")
     # Prefer shared libraries for sqlite3 and zlib
     add_library(sqlite3 SHARED IMPORTED GLOBAL)
     add_library(z SHARED IMPORTED GLOBAL)
-    target_link_libraries(mat PUBLIC sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
+    find_package(SQLite3 REQUIRED)
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(mat PUBLIC SQLite::SQLite3 PUBLIC ZLIB::ZLIB ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
   endif()
 
   # target_link_libraries(mat PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
