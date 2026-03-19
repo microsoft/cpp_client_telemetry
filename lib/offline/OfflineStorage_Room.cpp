@@ -387,8 +387,10 @@ namespace MAT_NS_BEGIN
                 {
                     break;  // out of r > c loop; no more records
                 }
-                // we don't collect these here because GetObjectClass is
-                // less fragile than FindClass
+                // Field IDs are looked up once from the first record's class and reused.
+                // record_class is stored as a global reference so it remains valid across
+                // pushLocalFrame/popLocalFrame boundaries (local refs are freed on popLocalFrame,
+                // causing a JNI abort on ART if reused in subsequent iterations).
                 jclass record_class = nullptr;
                 jfieldID id_id;
                 jfieldID tenantToken_id;
@@ -412,7 +414,10 @@ namespace MAT_NS_BEGIN
                     ThrowLogic(env, "getAndReserve element");
                     if (!record_class)
                     {
-                        record_class = env->GetObjectClass(record);
+                        // Promote to a global ref so it survives popLocalFrame on
+                        // subsequent iterations. Deleted after the loop.
+                        jclass local_class = env->GetObjectClass(record);
+                        record_class = static_cast<jclass>(env->NewGlobalRef(local_class));
                         id_id = env->GetFieldID(record_class, "id", "J");
                         ThrowLogic(env, "gar id");
                         tenantToken_id = env->GetFieldID(record_class, "tenantToken",
@@ -488,6 +493,11 @@ namespace MAT_NS_BEGIN
                         break;
                     }
                     collected += 1;
+                }
+                if (record_class)
+                {
+                    env->DeleteGlobalRef(record_class);
+                    record_class = nullptr;
                 }
                 if (index < limit)
                 {
@@ -663,6 +673,7 @@ namespace MAT_NS_BEGIN
             if (tokens > 0)
             {
                 DroppedMap dropped;
+                // bt_class stored as a global ref to survive popLocalFrame across iterations.
                 jclass bt_class = nullptr;
                 jfieldID token_id;
                 jfieldID count_id;
@@ -673,7 +684,9 @@ namespace MAT_NS_BEGIN
                     ThrowRuntime(env, "Exception fetching element from results");
                     if (!bt_class)
                     {
-                        bt_class = env->GetObjectClass(byTenant);
+                        // Promote to a global ref so it survives popLocalFrame.
+                        jclass local_class = env->GetObjectClass(byTenant);
+                        bt_class = static_cast<jclass>(env->NewGlobalRef(local_class));
                         token_id = env->GetFieldID(bt_class, "tenantToken",
                                                    "Ljava/lang/String;");
                         ThrowLogic(env, "Error fetching tenantToken field id");
@@ -690,6 +703,10 @@ namespace MAT_NS_BEGIN
                     env->ReleaseStringUTFChars(token, utf);
                     dropped[key] = static_cast<size_t>(count);
                     env.popLocalFrame();
+                }
+                if (bt_class)
+                {
+                    env->DeleteGlobalRef(bt_class);
                 }
                 m_observer->OnStorageRecordsDropped(dropped);
             }
@@ -1160,6 +1177,7 @@ namespace MAT_NS_BEGIN
                                            "(ZIJ)[Lcom/microsoft/applications/events/StorageRecord;");
             ThrowLogic(env, "getRecords method");
 
+            // record_class stored as a global ref to survive popLocalFrame across iterations.
             jclass record_class = nullptr;
             jfieldID id_id = nullptr;
             jfieldID tenantToken_id;
@@ -1185,7 +1203,9 @@ namespace MAT_NS_BEGIN
                 ThrowLogic(env, "access result element");
                 if (!record_class)
                 {
-                    record_class = env->GetObjectClass(record);
+                    // Promote to a global ref so it survives popLocalFrame.
+                    jclass local_class = env->GetObjectClass(record);
+                    record_class = static_cast<jclass>(env->NewGlobalRef(local_class));
                     id_id = env->GetFieldID(record_class, "id", "J");
                     ThrowLogic(env, "id field");
                     tenantToken_id = env->GetFieldID(record_class, "tenantToken",
@@ -1234,6 +1254,10 @@ namespace MAT_NS_BEGIN
                 env->ReleaseStringUTFChars(tenant_j, tenant_utf);
                 env->ReleaseByteArrayElements(blob_j, elements, 0);
                 env.popLocalFrame();
+            }
+            if (record_class)
+            {
+                env->DeleteGlobalRef(record_class);
             }
             return records;
         }

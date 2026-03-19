@@ -527,6 +527,65 @@ TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
             );
 }
 
+// Regression test for JNI stale local reference bug in GetAndReserveRecords,
+// GetRecords, and ReleaseRecords. Each per-record iteration uses
+// pushLocalFrame/popLocalFrame; the jclass obtained on iteration 0 must be a
+// global reference to remain valid on iteration 1+. Without the fix, ART's JNI
+// checker fires JniAbort (SIGABRT) on the second call to GetObjectClass /
+// GetFieldID with the stale local ref.
+TEST_P(OfflineStorageTestsRoom, MultiRecordIterationFieldIdValidity)
+{
+    auto now = PAL::getUtcSystemTimeMs();
+    StorageRecordVector input;
+    // Store 3 records: enough to exercise iterations 0, 1, and 2 of the per-record
+    // loop, covering both the "first time" (class lookup) and "subsequent" paths.
+    for (size_t i = 0; i < 3; ++i) {
+        auto id = "reg-" + std::to_string(i);
+        input.emplace_back(
+                id,
+                id,
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob {static_cast<unsigned char>(i + 1), 2, 3});
+    }
+    offlineStorage->StoreRecords(input);
+    ASSERT_EQ(size_t { 3 }, offlineStorage->GetRecordCount(EventLatency_Normal));
+
+    // GetAndReserveRecords: all 3 records must be returned with correct field values.
+    StorageRecordVector found;
+    EXPECT_TRUE(offlineStorage->GetAndReserveRecords(
+            [&found](StorageRecord && record) -> bool {
+                found.push_back(std::move(record));
+                return true;
+            }, 5000));
+    ASSERT_EQ(size_t { 3 }, found.size());
+    for (size_t i = 0; i < found.size(); ++i) {
+        EXPECT_EQ(EventLatency_Normal, found[i].latency);
+        EXPECT_EQ(EventPersistence_Normal, found[i].persistence);
+        ASSERT_EQ(size_t { 3 }, found[i].blob.size());
+        EXPECT_EQ(static_cast<unsigned char>(i + 1), found[i].blob[0]);
+    }
+
+    // GetRecords: same 3 records readable via GetRecords (shutdown path).
+    auto shutdown_found = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
+    ASSERT_EQ(size_t { 3 }, shutdown_found.size());
+    for (auto const& r : shutdown_found) {
+        EXPECT_EQ(EventLatency_Normal, r.latency);
+        ASSERT_EQ(size_t { 3 }, r.blob.size());
+    }
+
+    // ReleaseRecords: release all 3 IDs (exercises the bt_class iteration path when
+    // the Room impl returns per-tenant dropped counts).
+    std::vector<StorageRecordId> ids;
+    ids.reserve(found.size());
+    for (auto const& r : found) {
+        ids.push_back(r.id);
+    }
+    bool fromMemory = false;
+    offlineStorage->ReleaseRecords(ids, false, HttpHeaders(), fromMemory);
+}
+
 TEST_P(OfflineStorageTestsRoom, DeleteByToken)
 {
     StorageRecordVector records;
