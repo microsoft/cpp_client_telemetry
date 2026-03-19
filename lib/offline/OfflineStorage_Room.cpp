@@ -391,15 +391,23 @@ namespace MAT_NS_BEGIN
                 // record_class is stored as a global reference so it remains valid across
                 // pushLocalFrame/popLocalFrame boundaries (local refs are freed on popLocalFrame,
                 // causing a JNI abort on ART if reused in subsequent iterations).
-                jclass record_class = nullptr;
-                jfieldID id_id;
-                jfieldID tenantToken_id;
-                jfieldID latency_id;
-                jfieldID persistence_id;
-                jfieldID timestamp_id;
-                jfieldID retryCount_id;
-                jfieldID reservedUntil_id;
-                jfieldID blob_id;
+                jclass record_class      = nullptr;
+                jfieldID id_id           = nullptr;
+                jfieldID tenantToken_id  = nullptr;
+                jfieldID latency_id      = nullptr;
+                jfieldID persistence_id  = nullptr;
+                jfieldID timestamp_id    = nullptr;
+                jfieldID retryCount_id   = nullptr;
+                jfieldID reservedUntil_id = nullptr;
+                jfieldID blob_id         = nullptr;
+                // RAII guard: deletes record_class global ref on all exit paths,
+                // including std::logic_error (ThrowLogic) and std::runtime_error
+                // (ThrowRuntime) which the catch block below would not otherwise clean up.
+                struct GlobalRefGuard {
+                    JNIEnv* jni;
+                    jclass& ref;
+                    ~GlobalRefGuard() noexcept { if (ref) { jni->DeleteGlobalRef(ref); ref = nullptr; } }
+                } record_class_guard{env.getInner(), record_class};
 
                 // Set limits for conversion from int to enum
                 int latency_lb = static_cast<int>(EventLatency_Off);
@@ -415,9 +423,13 @@ namespace MAT_NS_BEGIN
                     if (!record_class)
                     {
                         // Promote to a global ref so it survives popLocalFrame on
-                        // subsequent iterations. Deleted after the loop.
+                        // subsequent iterations. Freed by record_class_guard on exit.
                         jclass local_class = env->GetObjectClass(record);
                         record_class = static_cast<jclass>(env->NewGlobalRef(local_class));
+                        if (!record_class)
+                        {
+                            MATSDK_THROW(std::runtime_error("NewGlobalRef failed"));
+                        }
                         id_id = env->GetFieldID(record_class, "id", "J");
                         ThrowLogic(env, "gar id");
                         tenantToken_id = env->GetFieldID(record_class, "tenantToken",
@@ -493,11 +505,6 @@ namespace MAT_NS_BEGIN
                         break;
                     }
                     collected += 1;
-                }
-                if (record_class)
-                {
-                    env->DeleteGlobalRef(record_class);
-                    record_class = nullptr;
                 }
                 if (index < limit)
                 {
@@ -674,9 +681,15 @@ namespace MAT_NS_BEGIN
             {
                 DroppedMap dropped;
                 // bt_class stored as a global ref to survive popLocalFrame across iterations.
-                jclass bt_class = nullptr;
-                jfieldID token_id;
-                jfieldID count_id;
+                jclass bt_class    = nullptr;
+                jfieldID token_id  = nullptr;
+                jfieldID count_id  = nullptr;
+                // RAII guard: frees bt_class on all exit paths including exceptions.
+                struct GlobalRefGuard {
+                    JNIEnv* jni;
+                    jclass& ref;
+                    ~GlobalRefGuard() noexcept { if (ref) { jni->DeleteGlobalRef(ref); ref = nullptr; } }
+                } bt_class_guard{env.getInner(), bt_class};
                 for (size_t index = 0; index < tokens; ++index)
                 {
                     env.pushLocalFrame(8);
@@ -685,8 +698,13 @@ namespace MAT_NS_BEGIN
                     if (!bt_class)
                     {
                         // Promote to a global ref so it survives popLocalFrame.
+                        // Freed by bt_class_guard on exit.
                         jclass local_class = env->GetObjectClass(byTenant);
                         bt_class = static_cast<jclass>(env->NewGlobalRef(local_class));
+                        if (!bt_class)
+                        {
+                            MATSDK_THROW(std::runtime_error("NewGlobalRef failed"));
+                        }
                         token_id = env->GetFieldID(bt_class, "tenantToken",
                                                    "Ljava/lang/String;");
                         ThrowLogic(env, "Error fetching tenantToken field id");
@@ -703,10 +721,6 @@ namespace MAT_NS_BEGIN
                     env->ReleaseStringUTFChars(token, utf);
                     dropped[key] = static_cast<size_t>(count);
                     env.popLocalFrame();
-                }
-                if (bt_class)
-                {
-                    env->DeleteGlobalRef(bt_class);
                 }
                 m_observer->OnStorageRecordsDropped(dropped);
             }
@@ -1178,15 +1192,21 @@ namespace MAT_NS_BEGIN
             ThrowLogic(env, "getRecords method");
 
             // record_class stored as a global ref to survive popLocalFrame across iterations.
-            jclass record_class = nullptr;
-            jfieldID id_id = nullptr;
-            jfieldID tenantToken_id;
-            jfieldID latency_id;
-            jfieldID persistence_id;
-            jfieldID timestamp_id;
-            jfieldID retryCount_id;
-            jfieldID reservedUntil_id;
-            jfieldID blob_id;
+            jclass record_class       = nullptr;
+            jfieldID id_id            = nullptr;
+            jfieldID tenantToken_id   = nullptr;
+            jfieldID latency_id       = nullptr;
+            jfieldID persistence_id   = nullptr;
+            jfieldID timestamp_id     = nullptr;
+            jfieldID retryCount_id    = nullptr;
+            jfieldID reservedUntil_id = nullptr;
+            jfieldID blob_id          = nullptr;
+            // RAII guard: frees record_class on all exit paths including exceptions.
+            struct GlobalRefGuard {
+                JNIEnv* jni;
+                jclass& ref;
+                ~GlobalRefGuard() noexcept { if (ref) { jni->DeleteGlobalRef(ref); ref = nullptr; } }
+            } record_class_guard{env.getInner(), record_class};
 
             auto java_records = static_cast<jobjectArray>(env->CallObjectMethod(m_room,
                                                                                 method,
@@ -1204,8 +1224,13 @@ namespace MAT_NS_BEGIN
                 if (!record_class)
                 {
                     // Promote to a global ref so it survives popLocalFrame.
+                    // Freed by record_class_guard on exit.
                     jclass local_class = env->GetObjectClass(record);
                     record_class = static_cast<jclass>(env->NewGlobalRef(local_class));
+                    if (!record_class)
+                    {
+                        MATSDK_THROW(std::runtime_error("NewGlobalRef failed"));
+                    }
                     id_id = env->GetFieldID(record_class, "id", "J");
                     ThrowLogic(env, "id field");
                     tenantToken_id = env->GetFieldID(record_class, "tenantToken",
@@ -1254,10 +1279,6 @@ namespace MAT_NS_BEGIN
                 env->ReleaseStringUTFChars(tenant_j, tenant_utf);
                 env->ReleaseByteArrayElements(blob_j, elements, 0);
                 env.popLocalFrame();
-            }
-            if (record_class)
-            {
-                env->DeleteGlobalRef(record_class);
             }
             return records;
         }
