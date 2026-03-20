@@ -561,19 +561,25 @@ TEST_P(OfflineStorageTestsRoom, MultiRecordIterationFieldIdValidity)
                 return true;
             }, 5000));
     ASSERT_EQ(size_t { 3 }, found.size());
-    for (size_t i = 0; i < found.size(); ++i) {
-        EXPECT_EQ(EventLatency_Normal, found[i].latency);
-        EXPECT_EQ(EventPersistence_Normal, found[i].persistence);
-        ASSERT_EQ(size_t { 3 }, found[i].blob.size());
-        EXPECT_EQ(static_cast<unsigned char>(i + 1), found[i].blob[0]);
+    {
+        // Set-based check: return order is implementation-defined
+        // (SQLite/Room: insertion order; Memory: LIFO).
+        std::set<unsigned char> blob0_values;
+        for (auto const& r : found) {
+            EXPECT_EQ(EventLatency_Normal, r.latency);
+            EXPECT_EQ(EventPersistence_Normal, r.persistence);
+            ASSERT_EQ(size_t { 3 }, r.blob.size());
+            blob0_values.insert(r.blob[0]);
+        }
+        EXPECT_EQ((std::set<unsigned char>{1, 2, 3}), blob0_values);
     }
 
     // GetRecords: same 3 records readable via GetRecords (shutdown path).
-    // Uses a set-based check since return order is unspecified; verifies that
-    // the jclass/jfieldID cached on iteration 0 are still valid on iterations 1+.
-    auto shutdown_found = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
-    ASSERT_EQ(size_t { 3 }, shutdown_found.size());
-    {
+    // Memory's GetRecords delegates to GetAndReserveRecords, so it returns
+    // nothing when records are already reserved — skip that check for Memory.
+    if (implementation != StorageImplementation::Memory) {
+        auto shutdown_found = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
+        ASSERT_EQ(size_t { 3 }, shutdown_found.size());
         std::set<unsigned char> blob0_values;
         for (auto const& r : shutdown_found) {
             EXPECT_EQ(EventLatency_Normal, r.latency);
@@ -609,6 +615,7 @@ TEST_P(OfflineStorageTestsRoom, MultiRecordIterationFieldIdValidity)
                     found.push_back(std::move(record));
                     return true;
                 }, 5000);
+        EXPECT_EQ(size_t { 3 }, found.size()) << "retry=" << retry;
         std::vector<StorageRecordId> ids;
         ids.reserve(found.size());
         for (auto const& r : found) {

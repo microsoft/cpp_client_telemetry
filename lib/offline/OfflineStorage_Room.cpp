@@ -11,6 +11,19 @@
 namespace
 {
     static constexpr bool s_throwExceptions = true;
+
+    // RAII guard that deletes a JNI global class reference on all exit paths,
+    // including std::logic_error (ThrowLogic) and std::runtime_error (ThrowRuntime).
+    struct GlobalRefGuard {
+        JNIEnv* jni;
+        jclass* ref_ptr;
+        ~GlobalRefGuard() noexcept {
+            if (ref_ptr && *ref_ptr) {
+                jni->DeleteGlobalRef(*ref_ptr);
+                *ref_ptr = nullptr;
+            }
+        }
+    };
 }
 
 namespace MAT_NS_BEGIN
@@ -403,11 +416,7 @@ namespace MAT_NS_BEGIN
                 // RAII guard: deletes record_class global ref on all exit paths,
                 // including std::logic_error (ThrowLogic) and std::runtime_error
                 // (ThrowRuntime) which the catch block below would not otherwise clean up.
-                struct GlobalRefGuard {
-                    JNIEnv* jni;
-                    jclass& ref;
-                    ~GlobalRefGuard() noexcept { if (ref) { jni->DeleteGlobalRef(ref); ref = nullptr; } }
-                } record_class_guard{env.getInner(), record_class};
+                GlobalRefGuard record_class_guard{env.getInner(), &record_class};
 
                 // Set limits for conversion from int to enum
                 int latency_lb = static_cast<int>(EventLatency_Off);
@@ -685,11 +694,7 @@ namespace MAT_NS_BEGIN
                 jfieldID token_id  = nullptr;
                 jfieldID count_id  = nullptr;
                 // RAII guard: frees bt_class on all exit paths including exceptions.
-                struct GlobalRefGuard {
-                    JNIEnv* jni;
-                    jclass& ref;
-                    ~GlobalRefGuard() noexcept { if (ref) { jni->DeleteGlobalRef(ref); ref = nullptr; } }
-                } bt_class_guard{env.getInner(), bt_class};
+                GlobalRefGuard bt_class_guard{env.getInner(), &bt_class};
                 for (size_t index = 0; index < tokens; ++index)
                 {
                     env.pushLocalFrame(8);
@@ -1202,11 +1207,7 @@ namespace MAT_NS_BEGIN
             jfieldID reservedUntil_id = nullptr;
             jfieldID blob_id          = nullptr;
             // RAII guard: frees record_class on all exit paths including exceptions.
-            struct GlobalRefGuard {
-                JNIEnv* jni;
-                jclass& ref;
-                ~GlobalRefGuard() noexcept { if (ref) { jni->DeleteGlobalRef(ref); ref = nullptr; } }
-            } record_class_guard{env.getInner(), record_class};
+            GlobalRefGuard record_class_guard{env.getInner(), &record_class};
 
             auto java_records = static_cast<jobjectArray>(env->CallObjectMethod(m_room,
                                                                                 method,
