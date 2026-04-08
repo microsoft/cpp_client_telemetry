@@ -33,6 +33,9 @@ namespace MAT_NS_BEGIN
          {/* Parameter that allows to split stats events by tenant */
           {"split", false},
           {"interval", 1800},
+          /* Stats are disabled by default for the built-in shared token
+             to reduce OneCollector load (see #1420). Set to true to opt in. */
+          {"enabled", false},
           {"tokenProd", STATS_TOKEN_PROD},
           {"tokenInt", STATS_TOKEN_INT}}},
         {"utc",
