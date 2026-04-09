@@ -45,6 +45,7 @@ set(SRCS
         ${SDK_ROOT}/lib/bond/BondSerializer.cpp
         ${SDK_ROOT}/lib/callbacks/DebugSource.cpp
         ${SDK_ROOT}/lib/compression/HttpDeflateCompression.cpp
+        ${SDK_ROOT}/lib/decoder/PayloadDecoder.cpp
         ${SDK_ROOT}/lib/decorators/BaseDecorator.cpp
         ${SDK_ROOT}/lib/filter/EventFilterCollection.cpp
         ${SDK_ROOT}/lib/http/HttpClientFactory.cpp
