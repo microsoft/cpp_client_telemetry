@@ -10,6 +10,7 @@
 
 #include "common/Common.hpp"
 #include "http/HttpClient_Curl.hpp"
+#include "config/RuntimeConfig_Default.hpp"
 
 using namespace testing;
 using namespace MAT;
@@ -56,16 +57,14 @@ TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithCaInfo)
 
 TEST(HttpClientCurlConfigTests, LogConfiguration_SslVerify_DefaultIsTrue)
 {
-    ILogConfiguration config;
-    // The default config should have sslVerify = true
-    bool sslVerify = config[CFG_MAP_HTTP][CFG_BOOL_HTTP_SSL_VERIFY];
+    // defaultRuntimeConfig from RuntimeConfig_Default.hpp has the defaults
+    bool sslVerify = defaultRuntimeConfig[CFG_MAP_HTTP][CFG_BOOL_HTTP_SSL_VERIFY];
     EXPECT_TRUE(sslVerify);
 }
 
 TEST(HttpClientCurlConfigTests, LogConfiguration_SslCaInfo_DefaultIsEmpty)
 {
-    ILogConfiguration config;
-    const char* caInfo = config[CFG_MAP_HTTP][CFG_STR_HTTP_SSL_CAINFO];
+    const char* caInfo = defaultRuntimeConfig[CFG_MAP_HTTP][CFG_STR_HTTP_SSL_CAINFO];
     EXPECT_STREQ(caInfo, "");
 }
 
