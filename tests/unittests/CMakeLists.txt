@@ -19,6 +19,7 @@ set(SRCS
   EventPropertiesTests.cpp
   GuidTests.cpp
   HttpClientCAPITests.cpp
+  HttpClientCurlTests.cpp
   HttpClientManagerTests.cpp
   HttpClientTests.cpp
   HttpDeflateCompressionTests.cpp
