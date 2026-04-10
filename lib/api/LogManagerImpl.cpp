@@ -289,13 +289,7 @@ namespace MAT_NS_BEGIN
         if (m_httpClient == nullptr)
         {
             m_httpClient = HttpClientFactory::Create();
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-            HttpClient_WinInet* client = static_cast<HttpClient_WinInet*>(m_httpClient.get());
-            if (client != nullptr)
-            {
-                client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
-            }
-#endif
+            m_httpClient->ApplySettings(m_logConfiguration);
         }
         else
         {
@@ -366,14 +360,10 @@ namespace MAT_NS_BEGIN
     /// </summary>
     void LogManagerImpl::Configure()
     {
-        // TODO: [maxgolov] - add other config params.
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-        HttpClient_WinInet* client = static_cast<HttpClient_WinInet*>(m_httpClient.get());
-        if (client != nullptr)
+        if (m_httpClient != nullptr)
         {
-            client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
+            m_httpClient->ApplySettings(m_logConfiguration);
         }
-#endif
     }
 
     LogManagerImpl::~LogManagerImpl() noexcept
