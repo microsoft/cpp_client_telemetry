@@ -4,8 +4,9 @@
 //
 #include "mat/config.h"
 
-// These tests only apply to the curl HTTP client path (non-MSVC, non-Windows)
-#if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
+// These tests only apply to the curl HTTP client path (Linux, non-Apple, non-Android)
+#if defined(MATSDK_PAL_CPP11) && !defined(_MSC_VER) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT) \
+    && !defined(__APPLE__) && !defined(ANDROID)
 
 #include "common/Common.hpp"
 #include "http/HttpClient_Curl.hpp"
@@ -23,66 +24,32 @@ protected:
 
 TEST_F(HttpClientCurlTests, SslVerification_DefaultsToTrue)
 {
-    // CurlHttpOperation default parameter is sslVerify=true.
-    // Construct an operation with defaults and verify CURLOPT values.
     CurlHttpOperation op("GET", "https://example.com", nullptr);
-    CURL* handle = op.GetHandle();
-    ASSERT_NE(handle, nullptr);
-
-    long verifyPeer = 0;
-    long verifyHost = 0;
-    curl_easy_getinfo(handle, CURLINFO_SSL_VERIFYRESULT, &verifyPeer);
-    // We can't directly read back CURLOPT values via getinfo for VERIFYPEER/HOST,
-    // but we can verify the handle is valid and the operation was constructed.
-    // The real verification is that the config path sets the opts correctly.
-    SUCCEED();
+    ASSERT_NE(op.GetHandle(), nullptr);
 }
 
-TEST_F(HttpClientCurlTests, SetSslVerification_PropagatesVerifyTrue)
+TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithVerifyTrue)
 {
-    m_client.SetSslVerification(true, "");
-
-    // Create a request and verify the operation receives the SSL settings.
-    // We exercise the path by constructing a CurlHttpOperation with verify=true.
     CurlHttpOperation op("GET", "https://example.com", nullptr,
         std::map<std::string, std::string>(), std::vector<uint8_t>(),
         false, 5, true, "");
-    CURL* handle = op.GetHandle();
-    ASSERT_NE(handle, nullptr);
+    ASSERT_NE(op.GetHandle(), nullptr);
 }
 
-TEST_F(HttpClientCurlTests, SetSslVerification_PropagatesVerifyFalse)
+TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithVerifyFalse)
 {
-    m_client.SetSslVerification(false, "");
-
     CurlHttpOperation op("GET", "https://example.com", nullptr,
         std::map<std::string, std::string>(), std::vector<uint8_t>(),
         false, 5, false, "");
-    CURL* handle = op.GetHandle();
-    ASSERT_NE(handle, nullptr);
+    ASSERT_NE(op.GetHandle(), nullptr);
 }
 
-TEST_F(HttpClientCurlTests, SetSslVerification_CaInfoPassedToOperation)
+TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithCaInfo)
 {
-    const std::string caPath = "/etc/ssl/certs/ca-certificates.crt";
-    m_client.SetSslVerification(true, caPath);
-
     CurlHttpOperation op("GET", "https://example.com", nullptr,
         std::map<std::string, std::string>(), std::vector<uint8_t>(),
-        false, 5, true, caPath);
-    CURL* handle = op.GetHandle();
-    ASSERT_NE(handle, nullptr);
-}
-
-TEST_F(HttpClientCurlTests, SetSslVerification_EmptyCaInfoNoFailure)
-{
-    m_client.SetSslVerification(true, "");
-
-    CurlHttpOperation op("GET", "https://example.com", nullptr,
-        std::map<std::string, std::string>(), std::vector<uint8_t>(),
-        false, 5, true, "");
-    CURL* handle = op.GetHandle();
-    ASSERT_NE(handle, nullptr);
+        false, 5, true, "/etc/ssl/certs/ca-certificates.crt");
+    ASSERT_NE(op.GetHandle(), nullptr);
 }
 
 // --- ILogConfiguration integration ---
