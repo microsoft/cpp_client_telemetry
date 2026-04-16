@@ -311,6 +311,12 @@ else()
       target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
     else()
       add_library(sqlite3 STATIC IMPORTED GLOBAL)
+      find_library(SQLITE3_STATIC_LIB NAMES libsqlite3.a
+          PATHS /usr/local/lib /usr/local/opt/sqlite/lib /opt/homebrew/opt/sqlite/lib
+          NO_DEFAULT_PATH)
+      if(SQLITE3_STATIC_LIB)
+        set_target_properties(sqlite3 PROPERTIES IMPORTED_LOCATION ${SQLITE3_STATIC_LIB})
+      endif()
       add_library(z STATIC IMPORTED GLOBAL)
       #
       # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging

@@ -169,72 +169,82 @@ namespace MAT_NS_BEGIN {
     {
 #ifdef HAVE_MAT_JSONHPP
         // TODO: [MG] - parse HTTP response without json.hpp library
-        nlohmann::json responseBody;
-        try
+        auto bodyBegin = response.GetBody().begin();
+        auto bodyEnd = response.GetBody().end();
+
+        // Handle empty body
+        if (bodyBegin == bodyEnd)
         {
-            std::string body(response.GetBody().begin(), response.GetBody().end());
-            responseBody = nlohmann::json::parse(body.c_str());
-            int accepted = 0;
-            auto acc = responseBody.find("acc");
-            if (responseBody.end() != acc)
-            {
-                if (acc.value().is_number())
-                {
-                    accepted = acc.value().get<int>();
-                }
-            }
+            LOG_ERROR("HTTP response: body is empty, skipping processing");
+            return;
+        }
 
-            int rejected = 0;
-            auto rej = responseBody.find("rej");
-            if (responseBody.end() != rej)
-            {
-                if (rej.value().is_number())
-                {
-                    rejected = rej.value().get<int>();
-                }
-            }
+        // Parse JSON with exceptions disabled (pass iterators directly to avoid copy)
+        nlohmann::json responseBody = nlohmann::json::parse(bodyBegin, bodyEnd, nullptr, false);
 
-            auto efi = responseBody.find("efi");
-            if (responseBody.end() != efi)
-            {
-                for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
-                {
-                    std::string efiKey(it.key());
-                    nlohmann::json val = it.value();
-                    if (val.is_array())
-                    {
-                        //std::vector<int> failureVector = val.get<std::vector<int>>();
-                        // eventsRejected(ctx);     with only the ids in the vector above
-                    }
-                    if (val.is_string())
-                    {
-                        if ("all" == val.get<std::string>())
-                        {
-                            result = Rejected;
-                        }
-                    }
-                }
-            }
+        // Check if parsing failed (returns discarded value for invalid JSON)
+        if (responseBody.is_discarded())
+        {
+            LOG_ERROR("HTTP response: body is not valid JSON, skipping processing");
+            return;
+        }
 
-            auto ticket = responseBody.find("TokenCrackingFailure");
-            if (responseBody.end() != ticket)
+        int accepted = 0;
+        auto acc = responseBody.find("acc");
+        if (responseBody.end() != acc)
+        {
+            if (acc.value().is_number())
             {
-                DebugEvent evt;
-                evt.type = DebugEventType::EVT_TICKET_EXPIRED;
-                DispatchEvent(evt);
-            }
-
-            if (result != Rejected)
-            {
-                LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
-            } else
-            {
-                LOG_TRACE("HTTP response: all rejected");
+                accepted = acc.value().get<int>();
             }
         }
-        catch (...)
+
+        int rejected = 0;
+        auto rej = responseBody.find("rej");
+        if (responseBody.end() != rej)
         {
-            LOG_ERROR("HTTP response: JSON parsing failed");
+            if (rej.value().is_number())
+            {
+                rejected = rej.value().get<int>();
+            }
+        }
+
+        auto efi = responseBody.find("efi");
+        if (responseBody.end() != efi)
+        {
+            for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
+            {
+                std::string efiKey(it.key());
+                nlohmann::json val = it.value();
+                if (val.is_array())
+                {
+                    //std::vector<int> failureVector = val.get<std::vector<int>>();
+                    // eventsRejected(ctx);     with only the ids in the vector above
+                }
+                if (val.is_string())
+                {
+                    if ("all" == val.get<std::string>())
+                    {
+                        result = Rejected;
+                    }
+                }
+            }
+        }
+
+        auto ticket = responseBody.find("TokenCrackingFailure");
+        if (responseBody.end() != ticket)
+        {
+            DebugEvent evt;
+            evt.type = DebugEventType::EVT_TICKET_EXPIRED;
+            DispatchEvent(evt);
+        }
+
+        if (result != Rejected)
+        {
+            LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
+        } else
+        {
+            LOG_TRACE("HTTP response: all rejected");
         }
 #else
         UNREFERENCED_PARAMETER(response);

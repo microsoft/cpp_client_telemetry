@@ -33,6 +33,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property(readwrite, nonatomic) BOOL insertWarningAtProblemLocation;
 
+/*!
+ @brief (OPTIONAL) When YES, IsSitePath and IsSitePathLoose checks are bypassed.
+        Site paths will not be flagged or sanitized.
+        Default value is `NO` (site path checks are active).
+ */
+@property(readwrite, nonatomic) BOOL bypassSitePathChecks;
+
 // Initializer
 - (instancetype)init;
 

@@ -105,7 +105,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'adopt'
-        java-version: '11'
+        java-version: '17'
     - name: Remove default github maven configuration
       run: rm $Env:USERPROFILE\.m2\settings.xml
     - name: Setup Android SDK

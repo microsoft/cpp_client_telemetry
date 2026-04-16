@@ -35,7 +35,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'adopt'
-        java-version: '11'
+        java-version: '17'
     - name: Remove default github maven configuration
       # Workaround for: 'Unable to decrypt local Maven settings credentials'
       run: rm $Env:USERPROFILE\.m2\settings.xml

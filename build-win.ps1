@@ -6,7 +6,8 @@ param (
   [string]$enableMini = "true",
   [string]$enableTests = "true",
   [string]$customProps = "",
-  [string]$vsDevCmdBat = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat"
+  [string]$vsDevCmdBat = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Tools\VsDevCmd.bat",
+  [string]$libMTSqlite = "true"
 )
 
 $solution = "Solutions\MSTelemetrySDK.sln"
@@ -59,7 +60,11 @@ foreach ($arch in $archs) {
     foreach ($config in $configs) {
       $actualConfig = $config
       if ($binType -eq "lib") {
-        $actualConfig += ".vc14x.MT-sqlite"
+        if ($libMTSqlite -eq "true") {
+          $actualConfig += ".vc14x.MT-sqlite"
+        } else {
+          $actualConfig += ".static"
+        }
       }
 
       echo "Building $actualArch|$actualConfig|$binType..."

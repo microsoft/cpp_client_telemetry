@@ -19,6 +19,7 @@ set(SRCS
   EventPropertiesTests.cpp
   GuidTests.cpp
   HttpClientCAPITests.cpp
+  HttpClientCurlTests.cpp
   HttpClientManagerTests.cpp
   HttpClientTests.cpp
   HttpDeflateCompressionTests.cpp
@@ -50,6 +51,12 @@ set(SRCS
 )
 
 set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+
+# Enable Azure Monitor unit tests when the module is present.
+# The AIJsonSerializer test sources are guarded by HAVE_MAT_AI.
+if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/azmon/AIJsonSerializer.hpp)
+  add_definitions(-DHAVE_MAT_AI)
+endif()
 
 if (APPLE)
   if (BUILD_IOS)
@@ -130,6 +137,9 @@ else()
     set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
   elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
+  elseif(EXISTS "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
+    # Apple Silicon homebrew installs to /opt/homebrew instead of /usr/local
+    set (SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
   else()
     set (SQLITE3_LIB "sqlite3")
   endif()

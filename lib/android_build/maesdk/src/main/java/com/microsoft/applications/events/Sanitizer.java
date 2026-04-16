@@ -20,6 +20,7 @@ public class Sanitizer  {
      *                               Multiple flags can be combined with bitwise OR (e.g., 1 | 2 = 3)
      * @param sendConcernLimit       Maximum number of concerns to send.
      * @param insertWarningAtProblemLocation Insert warnings at problem location (true) or prepend (false).
+     * @param bypassSitePathChecks When true, IsSitePath and IsSitePathLoose checks are bypassed.
      * @return true if initialization was successful, false otherwise.
      */
     private static native boolean nativeInitialize(long loggerNativePtr,
@@ -29,7 +30,8 @@ public class Sanitizer  {
         String[] emailDomains,
         int analyzerOptions,
         int sendConcernLimit,
-        boolean insertWarningAtProblemLocation);    
+        boolean insertWarningAtProblemLocation,
+        boolean bypassSitePathChecks);
     /**
      * Initializes the sanitizer with the provided configuration.
      *
@@ -70,7 +72,8 @@ public class Sanitizer  {
             emailDomains,
             analyzerOptions,
             sendConcernLimit,
-            config.isInsertWarningAtProblemLocation());
+            config.isInsertWarningAtProblemLocation(),
+            config.isBypassSitePathChecks());
     }
 
     /**

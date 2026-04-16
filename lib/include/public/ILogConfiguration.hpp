@@ -362,6 +362,16 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_HTTP_COMPRESSION = "compress";
 
     /// <summary>
+    /// HTTP configuration: SSL certificate verification (peer + host)
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_HTTP_SSL_VERIFY = "sslVerify";
+
+    /// <summary>
+    /// HTTP configuration: SSL CA bundle file path (for libcurl/OpenSSL)
+    /// </summary>
+    static constexpr const char* const CFG_STR_HTTP_SSL_CAINFO = "sslCaInfo";
+
+    /// <summary>
     /// TPM configuration map
     /// </summary>
     static constexpr const char* const CFG_MAP_TPM = "tpm";

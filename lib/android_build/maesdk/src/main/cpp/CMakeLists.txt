@@ -4,7 +4,8 @@
 # Sets the minimum version of CMake required to build the native library.
 
 cmake_minimum_required(VERSION 3.10.2)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
@@ -44,6 +45,7 @@ set(SRCS
         ${SDK_ROOT}/lib/bond/BondSerializer.cpp
         ${SDK_ROOT}/lib/callbacks/DebugSource.cpp
         ${SDK_ROOT}/lib/compression/HttpDeflateCompression.cpp
+        ${SDK_ROOT}/lib/decoder/PayloadDecoder.cpp
         ${SDK_ROOT}/lib/decorators/BaseDecorator.cpp
         ${SDK_ROOT}/lib/filter/EventFilterCollection.cpp
         ${SDK_ROOT}/lib/http/HttpClientFactory.cpp
