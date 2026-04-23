@@ -23,6 +23,7 @@
 #include <future>
 #include <atomic>
 
+#include <poll.h>
 #include <curl/curl.h>
 
 #include <unistd.h>
@@ -462,28 +463,12 @@ protected:
      */
     static int WaitOnSocket(curl_socket_t sockfd, int for_recv, long timeout_ms)
     {
-        struct timeval tv;
-        fd_set infd, outfd, errfd;
-        int res;
-
-        tv.tv_sec = timeout_ms / 1000;
-        tv.tv_usec = (timeout_ms % 1000) * 1000;
-
-        FD_ZERO(&infd);
-        FD_ZERO(&outfd);
-        FD_ZERO(&errfd);
-
-        FD_SET(sockfd, &errfd); /* always check for error */
-
-        if(for_recv) {
-            FD_SET(sockfd, &infd);
-        } else {
-            FD_SET(sockfd, &outfd);
-        }
-
-        /* select() returns the number of signalled sockets or -1 */
-        res = select((int)sockfd + 1, &infd, &outfd, &errfd, &tv);
-        return res;
+        struct pollfd pfd;
+        pfd.fd = sockfd;
+        pfd.events = for_recv ? POLLIN : POLLOUT;
+        // Cap timeout to max int value to avoid overflow in poll()
+        auto timeout = std::min(timeout_ms, static_cast<long>(std::numeric_limits<int>::max()));   
+        return poll(&pfd, 1, static_cast<int>(timeout));
     }
 
     // Raw response buffer
