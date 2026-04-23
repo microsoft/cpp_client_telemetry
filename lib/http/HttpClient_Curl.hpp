@@ -464,17 +464,11 @@ protected:
     static int WaitOnSocket(curl_socket_t sockfd, int for_recv, long timeout_ms)
     {
         struct pollfd pfd;
-        
         pfd.fd = sockfd;
-        pfd.revents = 0;
-
-        if(for_recv) {
-            pfd.events = POLLIN | POLLERR;
-        } else {
-            pfd.events = POLLOUT | POLLERR;
-        }
-
-        return poll(&pfd, 1, timeout_ms);
+        pfd.events = for_recv ? POLLIN : POLLOUT;
+        // Cap timeout to max int value to avoid overflow in poll()
+        auto timeout = std::min(timeout_ms, static_cast<long>(std::numeric_limits<int>::max()));   
+        return poll(&pfd, 1, static_cast<int>(timeout));
     }
 
     // Raw response buffer
