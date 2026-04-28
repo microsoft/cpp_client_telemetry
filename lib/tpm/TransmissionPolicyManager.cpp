@@ -147,14 +147,14 @@ namespace MAT_NS_BEGIN {
                 m_runningLatency = latency;
             }
             auto now = PAL::getMonotonicTimeMs();
-            auto delta = Abs64(m_scheduledUploadTime, now);
+            auto delta = Abs64(m_scheduledUploadTime.load(), now);
             if (delta <= static_cast<uint64_t>(delay.count()))
             {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
                 // m_isUploadScheduled check does not have to be strictly atomic because
                 // the completion of upload will schedule more uploads as-needed, we only
                 // want to avoid the unnecessary wasteful rescheduling.
-                LOG_TRACE("WAIT  upload %d ms for lat=%d", delta, m_runningLatency);
+                LOG_TRACE("WAIT  upload %d ms for lat=%d", delta, m_runningLatency.load());
                 return;
             }
         }
@@ -173,7 +173,7 @@ namespace MAT_NS_BEGIN {
         {
             m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delay.count();
             m_runningLatency = latency;
-            LOG_TRACE("SCHED upload %d ms for lat=%d", delay.count(), m_runningLatency);
+            LOG_TRACE("SCHED upload %d ms for lat=%d", delay.count(), m_runningLatency.load());
             m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, static_cast<unsigned>(delay.count()), this, &TransmissionPolicyManager::uploadAsync, latency);
         }
     }
@@ -184,9 +184,11 @@ namespace MAT_NS_BEGIN {
         if (guard.isPaused()) {
             return;
         }
+        // These stores happen outside the lock but are safe: scheduleUpload
+        // only reads them when m_isUploadScheduled is true, and we don't
+        // clear that flag until inside the LOCKGUARD below.
         m_runningLatency = latency;
         m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
-
         {
             LOCKGUARD(m_scheduledUploadMutex);
             m_isUploadScheduled = false;  // Allow to schedule another uploadAsync

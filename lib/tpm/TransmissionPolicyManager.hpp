@@ -91,7 +91,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
 
         std::atomic<bool>                m_isPaused { true };
         std::atomic<bool>                m_isUploadScheduled { false };
-        uint64_t                         m_scheduledUploadTime { std::numeric_limits<uint64_t>::max() };
+        std::atomic<uint64_t>            m_scheduledUploadTime { std::numeric_limits<uint64_t>::max() };
         std::mutex                       m_scheduledUploadMutex;
         PAL::DeferredCallbackHandle      m_scheduledUpload;
         bool                             m_scheduledUploadAborted { false };
@@ -131,7 +131,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         size_t uploadCount() const noexcept;
 
         std::chrono::milliseconds        m_timerdelay { std::chrono::seconds { 2 } };
-        EventLatency                     m_runningLatency { EventLatency_RealTime };
+        std::atomic<EventLatency>        m_runningLatency { EventLatency_RealTime };
         TimerArray                       m_timers;
 
     public:
