@@ -154,7 +154,7 @@ public:
         }
         int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
-        os << "localhost:" << port;
+        os << "127.0.0.1:" << port;
         serverAddress = "http://" + os.str() + "/simple/";
         server.setServerName(os.str());
         server.addHandler("/simple/", *this);
@@ -179,6 +179,11 @@ public:
         fileName += PATH_SEPARATOR_CHAR;
         fileName += TEST_STORAGE_FILENAME;
         std::remove(fileName.c_str());
+        // SQLite WAL mode creates companion journal files that must also
+        // be removed to avoid "vnode unlinked while in use" on iOS.
+        std::remove((fileName + "-wal").c_str());
+        std::remove((fileName + "-shm").c_str());
+        std::remove((fileName + "-journal").c_str());
     }
 
     virtual void Initialize()
@@ -196,9 +201,13 @@ public:
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+        configuration[CFG_INT_CACHE_FILE_SIZE] = 4096 * 1024;  // 4MB default
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+        configuration[CFG_INT_STORAGE_FULL_PCT] = 75;   // default
+        configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 5000; // default 5s
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
+        configuration[CFG_MAP_TPM][CFG_STR_TPM_BACKOFF] = "E,500,5000,2,1"; // faster retry for localhost tests
         configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 30 * 60;   // 30 mins
         configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;            // opt in to stats (disabled by default since #1420)
 
@@ -207,6 +216,7 @@ public:
         configuration["config"] = { { "host", __FILE__ } }; // Host instance
 
         LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::SetTransmitProfile(TransmitProfile_RealTime);
         LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
         LogManager::ResumeTransmission();
 
@@ -258,15 +268,16 @@ public:
         size_t lastIdx = 0;
         while ( ((PAL::getUtcSystemTimeMs()-start)<(1000* timeOutSec)) && (receivedEvents!=expected_count) )
         {
-            /* Give time for our friendly HTTP server thread to process incoming request */
-            std::this_thread::yield();
+            /* Give time for HTTP server thread to process incoming request.
+             * sleep(10) instead of yield() reduces CPU contention on single-core
+             * iOS simulator runners and gives the network stack time to deliver. */
+            PAL::sleep(10);
             {
                 LOCKGUARD(mtx_requests);
                 if (receivedRequests.size())
                 {
                     size_t size = receivedRequests.size();
 
-                    //requests can come within 100 milisec sleep
                     for (size_t index = lastIdx; index < size; index++)
                     {
                         auto request = receivedRequests.at(index);
@@ -574,6 +585,7 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
     event2.SetProperty("property2", "another value");
     logger->LogEvent(event2);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
     waitForEvents(1, 3);
     EXPECT_GE(receivedRequests.size(), (size_t)1);
@@ -672,6 +684,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
 
     logger->LogEvent(event2);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
     // 2 x customer events + 1 x evt_stats on start
     waitForEvents(1, 3);
@@ -719,6 +732,7 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 
     logger2->LogEvent(event2);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
 
     // 2 x customer events + 1 x evt_stats on start
@@ -749,6 +763,7 @@ TEST_F(BasicFuncTests, configDecorations)
     EventProperties event4("4th_event");
     logger->LogEvent(event4);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
     waitForEvents(2, 5);
 
@@ -786,10 +801,11 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         fooEvent.SetLatency(EventLatency_RealTime);
         fooEvent.SetPersistence(EventPersistence_Critical);
         LogManager::GetLogger()->LogEvent(fooEvent);
+        LogManager::SetTransmitProfile(TransmitProfile_RealTime);
         LogManager::UploadNow();
 
         // 1st request for realtime event
-        waitForEvents(3, 5); // start, first_event, second_event, ongoing, stop, start, fooEvent
+        waitForEvents(10, 5); // start, first_event, second_event, ongoing, stop, start, fooEvent
         // we drop two of the events during pause, though.
         EXPECT_GE(receivedRequests.size(), (size_t)1);
         if (receivedRequests.size() != 0)
@@ -853,7 +869,7 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 
     {
         Initialize();
-        waitForEvents(2, 8);
+        waitForEvents(5, 8);
         if (receivedRequests.size())
         {
             auto payload = decodeRequest(receivedRequests[0], false);
@@ -898,8 +914,9 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     // Check
     Initialize();
     LogManager::ResumeTransmission(); // ?
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    PAL::sleep(2000);
+    waitForEvents(5, 4); // (start + stop) + (2 events + start)
 
     auto r2 = records();
     ASSERT_GE(r2.size(), (size_t)4); // (start + stop) + (2 events + start)
@@ -928,8 +945,9 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
     eventWithAllowedLevel.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(eventWithAllowedLevel);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    waitForEvents(1 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
+    waitForEvents(5 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
 
     ASSERT_EQ(records().size(), static_cast<size_t>(2)); // Start and EventWithAllowedLevel
 
@@ -971,8 +989,9 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
     LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    waitForEvents(2 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
+    waitForEvents(5 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
 
     auto sentRecords = records();
     ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4)); // Start and EventWithAllowedLevel
@@ -1175,7 +1194,8 @@ TEST_F(BasicFuncTests, killSwitchWorks)
             myLogger->LogEvent(event2);
         }
     }
-    // Try to upload and wait for 2 seconds to complete
+    // Try to upload and wait for completion
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
     PAL::sleep(2000);
 
