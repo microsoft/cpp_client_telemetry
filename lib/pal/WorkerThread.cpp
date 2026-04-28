@@ -6,6 +6,8 @@
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
 
+#include <system_error>
+
 #if defined(MATSDK_PAL_CPP11) || defined(MATSDK_PAL_WIN32)
 
 /* Maximum scheduler interval for SDK is 1 hour required for clamping in case of monotonic clock drift */
@@ -56,22 +58,40 @@ namespace PAL_NS_BEGIN {
             auto item = new WorkerThreadShutdownItem();
             Queue(item);
             std::thread::id this_id = std::this_thread::get_id();
+            bool joined = false;
             try {
-                if (m_hThread.joinable() && (m_hThread.get_id() != this_id))
+                if (m_hThread.joinable() && (m_hThread.get_id() != this_id)) {
                     m_hThread.join();
-                else
+                    joined = true;
+                } else {
                     m_hThread.detach();
+                }
             }
-            catch (...) {};
+            catch (const std::system_error& e) {
+                LOG_ERROR("Thread join/detach failed: [%d] %s", e.code().value(), e.what());
+            }
+            catch (const std::exception& e) {
+                LOG_ERROR("Thread join/detach failed: %s", e.what());
+            }
 
-            // TODO: [MG] - investigate if we ever drop work items on shutdown.
-            if (!m_queue.empty())
-            {
-                LOG_WARN("m_queue is not empty!");
+            // Log pending work in both paths so operators can see if
+            // shutdown is dropping tasks.
+            if (!m_queue.empty()) {
+                LOG_WARN("Shutdown with %zu queued task(s) pending", m_queue.size());
             }
-            if (!m_timerQueue.empty())
-            {
-                LOG_WARN("m_timerQueue is not empty!");
+            if (!m_timerQueue.empty()) {
+                LOG_WARN("Shutdown with %zu timer(s) pending", m_timerQueue.size());
+            }
+
+            // Clean up any tasks remaining in the queues after shutdown.
+            // Only safe after join() — the thread has fully exited.
+            // After detach(), the thread still needs the shutdown item
+            // and may still be accessing the queues.
+            if (joined) {
+                for (auto task : m_queue) { delete task; }
+                m_queue.clear();
+                for (auto task : m_timerQueue) { delete task; }
+                m_timerQueue.clear();
             }
         }
 
