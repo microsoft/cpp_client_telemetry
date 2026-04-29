@@ -124,6 +124,15 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
     modules/sanitizer/SanitizerTrie.cpp
     modules/sanitizer/SanitizerTrieNode.cpp
   )
+  # Suppress -Wreorder for Sanitizer.cpp only: the submodule declares
+  # m_sanitizerprovider before m_notificationEventName in Sanitizer.hpp
+  # but the constructor init list reverses that order.  The proper fix
+  # belongs in the lib/modules submodule; this scopes the suppression
+  # until that is done.
+  if(NOT MSVC)
+    set_source_files_properties(modules/sanitizer/Sanitizer.cpp
+      PROPERTIES COMPILE_FLAGS "-Wno-reorder")
+  endif()
 endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
