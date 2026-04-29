@@ -25,8 +25,10 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#import <AvailabilityMacros.h>
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
+#import <TargetConditionals.h>
 
 
 /**
@@ -39,6 +41,16 @@
 #endif
 
 extern NSString* const kNetworkReachabilityChangedNotification;
+
+// Older Apple deployment targets still need the legacy SCNetworkReachability
+// backend at runtime. Newer targets can compile directly to the modern path.
+#if TARGET_OS_IPHONE
+#define ODW_LEGACY_REACHABILITY_REQUIRED (__IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_12_0)
+#elif TARGET_OS_OSX
+#define ODW_LEGACY_REACHABILITY_REQUIRED (__MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_14)
+#else
+#define ODW_LEGACY_REACHABILITY_REQUIRED 0
+#endif
 
 typedef NS_ENUM(NSInteger, ODWNetworkStatus) {
     // Apple NetworkStatus Compatible Names.

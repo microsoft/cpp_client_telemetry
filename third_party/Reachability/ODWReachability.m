@@ -27,8 +27,6 @@
 
 #import "ODWReachability.h"
 
-#import <sys/socket.h>
-#import <netinet/in.h>
 #import <arpa/inet.h>
 
 
@@ -43,6 +41,8 @@ NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityC
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)flags;
 -(BOOL)isReachableWithFlags:(SCNetworkReachabilityFlags)flags;
++(ODWReachability *)handleReachabilityResponse:(NSURLResponse *)response error:(NSError *)error url:(NSURL *)url;
+-(SCNetworkReachabilityFlags)checkNetworkReachability:(BOOL)checkData;
 
 @end
 
@@ -65,6 +65,7 @@ static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
             (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
 }
 
+#if ODW_LEGACY_REACHABILITY_REQUIRED
 // Start listening for reachability notifications on the current run loop
 static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void* info)
 {
@@ -79,6 +80,7 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
         [reachability reachabilityChanged:flags];
     }
 }
+#endif
 
 
 @implementation ODWReachability
@@ -99,8 +101,10 @@ static int kTimeoutDurationInSeconds = 10;
 
 +(instancetype)reachabilityWithHostname:(NSString*)hostname
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         // Use URLSession for macOS 10.14 or higher
         NSString *formattedHostname = hostname;
         if (![formattedHostname hasPrefix:@"https://"] && ![formattedHostname hasPrefix:@"http://"]) {
@@ -116,6 +120,7 @@ static int kTimeoutDurationInSeconds = 10;
         }];
         [dataTask resume];
         return reachabilityInstance;
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
     // Use SCNetworkReachability for macOS 10.14 or lower
@@ -131,6 +136,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     return nil;
+#endif
 }
 
 +(ODWReachability *)reachabilityWithAddress:(void *)hostAddress
@@ -140,8 +146,10 @@ static int kTimeoutDurationInSeconds = 10;
         return nil;
     }
 
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         // Use URLSession for macOS 10.14 or higher
         NSString *addressString = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)hostAddress)->sin_addr)];
         NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://%@", addressString]];
@@ -153,6 +161,7 @@ static int kTimeoutDurationInSeconds = 10;
         }];
         [dataTask resume];
         return reachabilityInstance; // Return the instance after resuming the data task
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
     // Use SCNetworkReachability for macOS 10.14 or lower
@@ -168,6 +177,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     return nil;
+#endif
 }
 
 +(ODWReachability *)handleReachabilityResponse:(NSURLResponse *)response error:(NSError *)error url:(NSURL *)url
@@ -284,8 +294,10 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(BOOL)startNotifier
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         // Use URLSession for macOS 10.14 or higher
         NSURLSession *session = [NSURLSession sharedSession];
         NSURLSessionDataTask *task = [session dataTaskWithURL:[self url] completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
@@ -304,6 +316,7 @@ static int kTimeoutDurationInSeconds = 10;
             NSLog(@"Failed to create URLSessionDataTask");
             return NO;
         }
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
     // Use SCNetworkReachability for macOS 10.14 or lower
@@ -346,14 +359,19 @@ static int kTimeoutDurationInSeconds = 10;
     // if we get here we fail at the internet
     self.reachabilityObject = nil;
     return NO;
+#endif
 }
 
 -(void)stopNotifier
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         // Use URLSession for macOS 10.14 or higher, no specific action is needed for URLSession
         self.reachabilityObject = nil;
+#if ODW_LEGACY_REACHABILITY_REQUIRED
+        return;
     }
 
     // Use SCNetworkReachability for macOS 10.14 or lower
@@ -366,6 +384,7 @@ static int kTimeoutDurationInSeconds = 10;
     SCNetworkReachabilitySetDispatchQueue(self.reachabilityRef, NULL);
 #pragma clang diagnostic pop
     self.reachabilityObject = nil;
+#endif
 }
 
 
@@ -408,9 +427,12 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(BOOL)isReachable
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         return [self checkNetworkReachability:true];
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
     // for macOS 10.14 or lower
@@ -423,11 +445,13 @@ static int kTimeoutDurationInSeconds = 10;
 #pragma clang diagnostic pop
 
     return [self isReachableWithFlags:flags];
+#endif
 }
 
 
 -(BOOL)isReachableViaWWAN
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
 #if TARGET_OS_IPHONE
 
     SCNetworkReachabilityFlags flags = 0;
@@ -447,13 +471,19 @@ static int kTimeoutDurationInSeconds = 10;
 #endif
 
     return NO;
+#else
+    return NO;
+#endif
 }
 
 -(BOOL)isReachableViaWiFi
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         return [self checkNetworkReachability:true];
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
     // for macOS 10.14 or lower
@@ -479,6 +509,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     return NO;
+#endif
 }
 
 
@@ -491,9 +522,12 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(BOOL)connectionRequired
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         return [self checkNetworkReachability:false];
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
     // for macOS 10.14 or lower
@@ -508,15 +542,19 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     return NO;
+#endif
 }
 
 
 // Dynamic, on demand connection?
 -(BOOL)isConnectionOnDemand
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         return [self checkNetworkReachability:true];
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
     // for macOS 10.14 or lower
@@ -532,15 +570,19 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     return NO;
+#endif
 }
 
 
 // Is user intervention required?
 -(BOOL)isInterventionRequired
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         return [self checkNetworkReachability:false];
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
     // for macOS 10.14 or lower
@@ -556,6 +598,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     return NO;
+#endif
 }
 
 
@@ -579,11 +622,13 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(SCNetworkReachabilityFlags)reachabilityFlags
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
+#endif
         __block SCNetworkReachabilityFlags flags = 0;
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-                
+
         NSURLSession *session = [NSURLSession sharedSession];
         NSURLSessionDataTask *task = [session dataTaskWithURL:[self url] completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         if (error == nil && data != nil) {
@@ -591,11 +636,12 @@ static int kTimeoutDurationInSeconds = 10;
         }
             dispatch_semaphore_signal(semaphore);
         }];
-                
+
         [task resume];
         dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
-                
+
         return flags;
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
     // for macOS 10.14 or lower
@@ -610,6 +656,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     return 0;
+#endif
 }
 
 -(NSString*)currentReachabilityString

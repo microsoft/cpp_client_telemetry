@@ -11,8 +11,6 @@
 #import <XCTest/XCTest.h>
 #import "ODWReachability.h"
 
-#import <sys/socket.h>
-#import <netinet/in.h>
 #import <arpa/inet.h>
 
 @interface ODWReachabilityTests : XCTestCase
