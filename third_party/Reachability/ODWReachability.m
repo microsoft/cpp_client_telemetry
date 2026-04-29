@@ -31,6 +31,12 @@
 #import <netinet/in.h>
 #import <arpa/inet.h>
 
+// The SCNetworkReachability APIs used throughout this file were deprecated
+// in iOS 17.4.  A full migration to NWPathMonitor is tracked separately;
+// suppress the warnings for the entire file until then.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 
 NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityChangedNotification";
 
@@ -432,7 +438,10 @@ static int kTimeoutDurationInSeconds = 10;
 
     SCNetworkReachabilityFlags flags = 0;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     if(SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
+#pragma clang diagnostic pop
     {
         // Check we're REACHABLE
         if(flags & kSCNetworkReachabilityFlagsReachable)
