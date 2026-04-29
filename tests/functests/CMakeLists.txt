@@ -1,4 +1,4 @@
-message("--- functests")
+message(STATUS "Building functests")
 
 set(SRCS
   APITest.cpp
@@ -8,47 +8,40 @@ set(SRCS
   MultipleLogManagersTests.cpp
 )
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
     PrivacyGuardFuncTests.cpp
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
   list(APPEND SRCS
     SanitizerFuncTests.cpp
   )
 endif()
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/")
   list(APPEND SRCS
      ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/ AND BUILD_LIVEEVENTINSPECTOR)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/" AND BUILD_LIVEEVENTINSPECTOR)
   add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
   list(APPEND SRCS
     LiveEventInspectorFuncTests.cpp
   )
 endif()
 
-if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+if (EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests")
     list(APPEND SRCS
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
         )
-    if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json)
-      if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
-        # Use file(COPY_FILE ...) for CMake 3.21 and later
-        file(COPY_FILE ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json ${CMAKE_BINARY_DIR}/test.json)
-      else()
-        # Use file(COPY ...) as an alternative for older versions
-        file(COPY ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json
-          DESTINATION ${CMAKE_BINARY_DIR})
-      endif()
+    if (EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json")
+      configure_file(${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json ${CMAKE_BINARY_DIR}/test.json COPYONLY)
     endif()
 endif()
 
@@ -63,11 +56,11 @@ endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # Link against prebuilt libraries on Windows
-  message("--- WIN32: Linking against prebuilt libraries")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
+  message(STATUS "WIN32: Linking against prebuilt libraries")
+  message(STATUS "WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
+  message(STATUS "WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
+  message(STATUS "WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
+  message(STATUS "WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
   # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
   target_link_libraries(FuncTests
@@ -109,10 +102,9 @@ else()
     set (PLATFORM_LIBS "atomic")
   endif()
 
-  # Find libraries
-  message("--- Linking libraries! ")
-  message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
-  message("Binary Dir: ${CMAKE_BINARY_DIR}")
+  message(STATUS "Linking libraries")
+  message(STATUS "Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
+  message(STATUS "Binary Dir: ${CMAKE_BINARY_DIR}")
 
   set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
 

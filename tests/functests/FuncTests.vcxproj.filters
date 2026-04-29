@@ -53,9 +53,6 @@
     <ClInclude Include="..\common\MockIEcsClient.hpp">
       <Filter>mocks</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\MockILocalStorageReader.hpp">
-      <Filter>mocks</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\MockITenantDataSerializer.hpp">
       <Filter>mocks</Filter>
     </ClInclude>

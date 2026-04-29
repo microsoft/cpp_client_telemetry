@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(MSTelemetry)
+project(MSTelemetry LANGUAGES C CXX)
 
 # Set installation prefix for macOS and Linux
 if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -25,7 +25,7 @@ endif()
 
 # Enable ARC for obj-c on Apple
 if(APPLE)
-  message("-- BUILD_IOS:              ${BUILD_IOS}")
+  message(STATUS "BUILD_IOS:              ${BUILD_IOS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
 
   # iOS build options
@@ -77,9 +77,9 @@ if(APPLE)
       OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
       ERROR_QUIET
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-    message("-- CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
-    message("-- ARCHITECTURE:           ${CMAKE_SYSTEM_PROCESSOR}")
-    message("-- PLATFORM:               ${IOS_PLATFORM}")
+    message(STATUS "CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
+    message(STATUS "ARCHITECTURE:           ${CMAKE_SYSTEM_PROCESSOR}")
+    message(STATUS "PLATFORM:               ${IOS_PLATFORM}")
   else()
     if(${MAC_ARCH} STREQUAL "x86_64")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
@@ -99,18 +99,18 @@ if(APPLE)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
     endif()
-    message("-- MAC_ARCH:               ${MAC_ARCH}")
+    message(STATUS "MAC_ARCH:               ${MAC_ARCH}")
   endif()
 endif()
 
-message("-- CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
-message("-- CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
-message("-- CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
-message("-- CMAKE_SYSTEM:           ${CMAKE_SYSTEM}")
-message("-- CMAKE_SYSTEM_VERSION:   ${CMAKE_SYSTEM_VERSION}")
-message("-- CMAKE_BUILD_TYPE:       ${CMAKE_BUILD_TYPE}")
-message("-- TARGET_ARCH:            ${TARGET_ARCH}")
-message("-- CMAKE_CXX_COMPILER_ID:  ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
+message(STATUS "CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
+message(STATUS "CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "CMAKE_SYSTEM:           ${CMAKE_SYSTEM}")
+message(STATUS "CMAKE_SYSTEM_VERSION:   ${CMAKE_SYSTEM_VERSION}")
+message(STATUS "CMAKE_BUILD_TYPE:       ${CMAKE_BUILD_TYPE}")
+message(STATUS "TARGET_ARCH:            ${TARGET_ARCH}")
+message(STATUS "CMAKE_CXX_COMPILER_ID:  ${CMAKE_CXX_COMPILER_ID}")
 
 include(tools/ParseOsRelease.cmake)
 
@@ -147,12 +147,12 @@ set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  ${WARN_FLAGS} -fno-builtin-malloc -fno-built
 
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   #TODO: -fno-rtti
-  message("Building Release ...")
+  message(STATUS "Building Release ...")
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${REL_FLAGS}")
 else()
   set(USE_TCMALLOC 1)
-  message("Building Debug ...")
+  message(STATUS "Building Debug ...")
   include(tools/FindTcmalloc.cmake)
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${DBG_FLAGS}")
   set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${DBG_FLAGS}")
@@ -167,17 +167,10 @@ if(MSVC)
   endif()
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # using Clang
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # using GCC
-  # Prefer to generate position-independent code
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # GCC needs explicit position-independent code
   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  # using Intel C++
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  # using Visual Studio C++
 endif()
 
 include(tools/Utils.cmake)
@@ -193,7 +186,7 @@ endif()
 
 set(PAL_IMPLEMENTATION ${DEFAULT_PAL_IMPLEMENTATION})
 
-message(STATUS "-- PAL implementation: ${PAL_IMPLEMENTATION}")
+message(STATUS "PAL implementation: ${PAL_IMPLEMENTATION}")
 string(TOUPPER ${PAL_IMPLEMENTATION} PAL_IMPLEMENTATION_UPPER)
 add_definitions(-DMATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1)
 
@@ -225,7 +218,7 @@ add_definitions(-DNOMINMAX)
 set(SDK_VERSION_PREFIX "EVT")
 add_definitions("-DMATSDK_VERSION_PREFIX=\"${SDK_VERSION_PREFIX}\"")
 
-set(MATSDK_API_VERSION "3.4")
+set(MATSDK_API_VERSION "3.10")
 string(TIMESTAMP DAYNUMBER "%j")
 string(REGEX REPLACE "^00" "" DAYNUMBER ${DAYNUMBER})
 string(REGEX REPLACE "^0"  "" DAYNUMBER ${DAYNUMBER})
@@ -241,7 +234,7 @@ else()
   set(MATSDK_BUILD_VERSION ${MATSDK_API_VERSION}.${DAYNUMBER}.0)
 endif()
 
-message(STATUS "-- SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
+message(STATUS "SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 ################################################################################################
 # HTTP stack section
@@ -289,9 +282,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
-    message("Adding gtest")
+    message(STATUS "Adding gtest")
     add_library(gtest STATIC IMPORTED GLOBAL)
-    message("Adding gmock")
+    message(STATUS "Adding gmock")
     add_library(gmock STATIC IMPORTED GLOBAL)
 endif()
 
@@ -299,16 +292,9 @@ if(BUILD_APPLE_HTTP)
   add_definitions(-DAPPLE_HTTP=1)
 endif()
 
-# Bond Lite subdirectories
 include_directories(bondlite/include)
 
 include_directories(lib/pal)
-
-#if(BUILD_UNIT_TESTS)
-#  message("Adding bondlite tests")
-#  enable_testing()
-#  add_subdirectory(bondlite/tests)
-#endif()
 
 # Include repo root to allow includes of sqlite, zlib, and nlohmann
 include_directories(${CMAKE_SOURCE_DIR})
@@ -323,7 +309,7 @@ if(BUILD_LIBRARY)
 endif()
 
 if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
-  message("Building tests")
+  message(STATUS "Building tests")
   enable_testing()
   add_subdirectory(tests)
 endif()
@@ -334,18 +320,14 @@ endif()
 
 if (BUILD_PACKAGE)
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "deb")
-    # FIXME: hardcode it for 64-bit Linux for now
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
     include(tools/MakeDeb.cmake)
   endif()
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "rpm")
-    # TODO: [MG] - fix path
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
     include(tools/MakeRpm.cmake)
   endif()
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "tgz")
-    # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
-    # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
     include(tools/MakeTgz.cmake)
   endif()
 endif()

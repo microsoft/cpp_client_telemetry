@@ -24,8 +24,7 @@ file(GLOB ALL_TARGET_LIBS "${CMAKE_CURRENT_BINARY_DIR}/lib/libmat.*")
 install(FILES ${ALL_TARGET_LIBS} DESTINATION lib COMPONENT libraries)
 #install(FILES ${MAT_SDK_INC_DIR}/*.* DESTINATION include/mat COMPONENT libraries)
 
-# FIXME: add architecture name in file name
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-${CPACK_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
-message("-- Package name: ${CPACK_PACKAGE_FILE_NAME}.tgz")
+message(STATUS "Package name: ${CPACK_PACKAGE_FILE_NAME}.tgz")
 
 include(CPack)

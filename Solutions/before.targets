@@ -6,8 +6,9 @@
     <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '15.0'">v141</PlatformToolset>
     <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '16.0'">v142</PlatformToolset>
     <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '17.0'">v143</PlatformToolset>
-    <!-- Fallback to Visual Studio 2017 (v141) toolset by default -->
-    <PlatformToolset Condition="'$(PlatformToolset)' == ''">v141</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '18.0'">v145</PlatformToolset>
+    <!-- Fallback to the default toolset for the installed VS version -->
+    <PlatformToolset Condition="'$(PlatformToolset)' == ''">$(DefaultPlatformToolset)</PlatformToolset>
     <PlatformToolset Condition="'$(PlatformToolset)' != ''">$(PlatformToolset)</PlatformToolset>
     <!-- Customers may override WindowsTargetPlatformVersion before auto-detection of latest Win 10 SDK -->
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
