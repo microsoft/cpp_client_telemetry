@@ -1,0 +1,111 @@
+name: Vcpkg port tests
+
+on:
+  push:
+    branches:
+    - master
+    - main
+    - dev
+    - dev/*
+    - release/*
+    - buildme/*
+
+  pull_request:
+    branches:
+    - master
+    - main
+    - dev
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    name: Windows (x64-windows-static)
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bootstrap vcpkg
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git ${{ runner.temp }}\vcpkg
+        & "${{ runner.temp }}\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
+      shell: pwsh
+
+    - name: Run vcpkg port test
+      run: .\tests\vcpkg\test-vcpkg-windows.ps1 -VcpkgRoot "${{ runner.temp }}\vcpkg"
+      shell: pwsh
+
+  linux:
+    runs-on: ubuntu-latest
+    name: Linux (x64-linux)
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bootstrap vcpkg
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git "${{ runner.temp }}/vcpkg"
+        "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+
+    - name: Run vcpkg port test
+      env:
+        VCPKG_ROOT: ${{ runner.temp }}/vcpkg
+      run: |
+        chmod +x tests/vcpkg/test-vcpkg-linux.sh
+        ./tests/vcpkg/test-vcpkg-linux.sh
+
+  macos:
+    runs-on: macos-latest
+    name: macOS (native)
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bootstrap vcpkg
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git "${{ runner.temp }}/vcpkg"
+        "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+
+    - name: Run vcpkg port test
+      env:
+        VCPKG_ROOT: ${{ runner.temp }}/vcpkg
+      run: |
+        chmod +x tests/vcpkg/test-vcpkg-macos.sh
+        ./tests/vcpkg/test-vcpkg-macos.sh
+
+  ios:
+    runs-on: macos-latest
+    name: iOS (arm64-ios cross-compile)
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bootstrap vcpkg
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git "${{ runner.temp }}/vcpkg"
+        "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+
+    - name: Run vcpkg port test (device)
+      env:
+        VCPKG_ROOT: ${{ runner.temp }}/vcpkg
+      run: |
+        chmod +x tests/vcpkg/test-vcpkg-ios.sh
+        ./tests/vcpkg/test-vcpkg-ios.sh
+
+  android:
+    runs-on: ubuntu-latest
+    name: Android (arm64-v8a cross-compile)
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bootstrap vcpkg
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git "${{ runner.temp }}/vcpkg"
+        "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+
+    - name: Run vcpkg port test
+      env:
+        VCPKG_ROOT: ${{ runner.temp }}/vcpkg
+      run: |
+        chmod +x tests/vcpkg/test-vcpkg-android.sh
+        ./tests/vcpkg/test-vcpkg-android.sh arm64-v8a

@@ -9,8 +9,20 @@
 #import "ODWLogConfiguration.h"
 #import "ODWSemanticContext.h"
 #import "ODWSemanticContext_private.h"
+
+#if __has_include("PrivacyGuard.hpp")
+#define MATSDK_OBJC_PRIVACYGUARD_AVAILABLE 1
 #import "ODWPrivacyGuard_private.h"
+#else
+#define MATSDK_OBJC_PRIVACYGUARD_AVAILABLE 0
+#endif
+
+#if __has_include("Sanitizer.hpp")
+#define MATSDK_OBJC_SANITIZER_AVAILABLE 1
 #import "ODWSanitizer_private.h"
+#else
+#define MATSDK_OBJC_SANITIZER_AVAILABLE 0
+#endif
 
 #include "EventProperties.hpp"
 
@@ -411,17 +423,35 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
 }
 
 -(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
-{    
+{
+#if MATSDK_OBJC_PRIVACYGUARD_AVAILABLE
     [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWPrivacyGuardInitConfig:initConfigObject];
+#else
+    (void)initConfigObject;
+    [ODWLogger traceException:"Privacy Guard is not available in this build."];
+#endif
 }
 
 -(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject
 {
+#if MATSDK_OBJC_SANITIZER_AVAILABLE
     [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject];
+#else
+    (void)initConfigObject;
+    [ODWLogger traceException:"Sanitizer is not available in this build."];
+#endif
 }
 
 -(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject urlDomains:(NSArray<NSString *> *)urlDomains emailDomains:(NSArray<NSString *> *)emailDomains analyzerOptions:(int)analyzerOptions
 {
+#if MATSDK_OBJC_SANITIZER_AVAILABLE
     [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject urlDomains:urlDomains emailDomains:emailDomains analyzerOptions:analyzerOptions];
+#else
+    (void)initConfigObject;
+    (void)urlDomains;
+    (void)emailDomains;
+    (void)analyzerOptions;
+    [ODWLogger traceException:"Sanitizer is not available in this build."];
+#endif
 }
 @end

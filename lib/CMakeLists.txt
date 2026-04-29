@@ -1,7 +1,15 @@
 # Honor visibility properties for all target types
 cmake_policy(SET CMP0063 NEW)
 
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer /usr/local/include )
+# Legacy (non-target) include paths that apply globally within this directory and
+# are used by build.sh / MSBuild / standalone CMake workflows. They do NOT propagate
+# to downstream consumers via find_package() (see target_include_directories below).
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer )
+
+# Legacy builds may need system-installed deps from /usr/local/include
+if(NOT MATSDK_USE_VCPKG_DEPS)
+  include_directories(/usr/local/include)
+endif()
 
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
@@ -172,11 +180,18 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
         pal/posix/NetworkInformationImpl.mm
     )
   else()
-    list(APPEND SRCS
-      http/HttpClient_Curl.cpp
-      http/HttpClient_Curl.hpp
-      pal/posix/NetworkInformationImpl.cpp
-    )
+    list(APPEND SRCS pal/posix/NetworkInformationImpl.cpp)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+      list(APPEND SRCS
+        http/HttpClient_Android.cpp
+        http/HttpClient_Android.hpp
+      )
+    else()
+      list(APPEND SRCS
+        http/HttpClient_Curl.cpp
+        http/HttpClient_Curl.hpp
+      )
+    endif()
   endif()
   if(APPLE AND BUILD_OBJC_WRAPPER)
     message(STATUS "Include ObjC Wrappers")
@@ -230,8 +245,10 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
-add_definitions(-D_UNICODE -DUNICODE -DZLIB_WINAPI -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
+if(NOT MATSDK_USE_VCPKG_DEPS)
+  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
+endif()
+add_definitions(-D_UNICODE -DUNICODE -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
@@ -267,71 +284,183 @@ endif()
 
 create_source_files_groups_per_folder(${SRCS})
 
-# MinGW does not require pthread
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+# Linux and Android require pthreads
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
   find_package(Threads REQUIRED)
-  if(THREADS_HAVE_PTHREAD_ARG)
-   target_compile_options(mat PUBLIC "-pthread")
-  endif()
 endif()
 
+################################################################################################
+# Build the library
+################################################################################################
 if(BUILD_SHARED_LIBS STREQUAL "ON")
   message(STATUS "Building shared SDK library")
-
-  # include(FindCURL)
-  # find_package(CURL REQUIRED)
-  # set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
-
-  # find_package(sqlite3 REQUIRED)
-
   add_library(mat SHARED ${SRCS})
-
-  # Add flags for obtaining system UUID via IOKit
-  if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_SHARED_LINKER_FLAGS
-      "-framework CoreFoundation -framework IOKit -framework Foundation"
-    )
-  endif()
-
-  #
-  # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-  #
-  if (BUILD_STATIC_SQLITE STREQUAL "ON")
-    # Build dynamic library, but prefer statically linking sqlite3 and zlib
-    add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    add_library(z STATIC IMPORTED GLOBAL)
-    target_link_libraries(mat PRIVATE sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
-  else()
-    # Prefer shared libraries for sqlite3 and zlib
-    add_library(sqlite3 SHARED IMPORTED GLOBAL)
-    add_library(z SHARED IMPORTED GLOBAL)
-    target_link_libraries(mat PUBLIC sqlite3 PUBLIC z ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" "${CMAKE_REQUIRED_LIBRARIES}")
-  endif()
-
-  # target_link_libraries(mat PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-  install(TARGETS mat EXPORT mat LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 else()
   message(STATUS "Building static SDK library")
   add_library(mat STATIC ${SRCS})
-  if(LINK_STATIC_DEPENDS)
-    if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-      target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-    else()
-      add_library(sqlite3 STATIC IMPORTED GLOBAL)
-      find_library(SQLITE3_STATIC_LIB NAMES libsqlite3.a
-          PATHS /usr/local/lib /usr/local/opt/sqlite/lib /opt/homebrew/opt/sqlite/lib
-          NO_DEFAULT_PATH)
-      if(SQLITE3_STATIC_LIB)
-        set_target_properties(sqlite3 PROPERTIES IMPORTED_LOCATION ${SQLITE3_STATIC_LIB})
-      endif()
-      add_library(z STATIC IMPORTED GLOBAL)
-      #
-      # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
-      #
-      target_link_libraries(mat PRIVATE libsqlite3.a PUBLIC libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-    endif()
-  endif()
-  install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()
 
-message(STATUS "Library will be installed to ${INSTALL_LIB_DIR}")
+# Target-based include paths for vcpkg / install workflow.
+# PUBLIC propagates to consumers; PRIVATE is SDK-internal only.
+# BUILD_INTERFACE is used during the SDK build; INSTALL_INTERFACE is used
+# by consumers after cmake --install.
+target_include_directories(mat
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/public>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/mat>
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/pal
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
+)
+
+################################################################################################
+# Link dependencies
+################################################################################################
+if(MATSDK_USE_VCPKG_DEPS)
+  # vcpkg mode: all deps resolved via find_package() in root CMakeLists.txt
+  target_link_libraries(mat
+    PRIVATE
+      unofficial::sqlite3::sqlite3
+      ZLIB::ZLIB
+      nlohmann_json::nlohmann_json
+      ${LIBS}
+  )
+else()
+  # Legacy mode: use vendored or system-installed deps
+  if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    # Android NDK has no system sqlite3 or zlib — build from bundled source.
+    add_library(sqlite3_bundled STATIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3.c")
+    target_include_directories(sqlite3_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite")
+    # When -ffast-math is enabled globally, re-enable finite math for sqlite3 (uses INFINITY macro).
+    # Also suppress warnings treated as errors in vendored code.
+    target_compile_options(sqlite3_bundled PRIVATE -fno-finite-math-only -Wno-unused-function)
+
+    # Build zlib from bundled source, excluding Intel SIMD files (crc_folding.c,
+    # fill_window_sse.c, x86.c) that require SSE4.2/PCLMULQDQ and cannot compile
+    # on ARM. simd_stub.c provides the necessary stubs instead.
+    add_library(zlib_bundled STATIC
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/adler32.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/compress.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/crc32.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/deflate.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/gzclose.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/gzlib.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/gzread.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/gzwrite.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/infback.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/inffast.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/inflate.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/inftrees.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/trees.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/uncompr.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/zutil.c"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/simd_stub.c"
+    )
+    target_include_directories(zlib_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../zlib")
+    # Bundled zlib 1.2.11 uses K&R-style function definitions and POSIX functions
+    # (close/read/write) without explicit includes; suppress warnings from
+    # vendored code we don't modify.
+    target_compile_options(zlib_bundled PRIVATE
+      -Wno-strict-prototypes -Wno-deprecated-non-prototype -Wno-implicit-function-declaration)
+
+    target_link_libraries(mat PRIVATE sqlite3_bundled zlib_bundled ${LIBS})
+  elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
+    # Windows legacy: vendored sqlite/zlib headers are included via
+    # include_directories in the PAL section above; link only ${LIBS}
+    # (e.g. CURL if needed — sqlite/zlib come from .vcxproj references).
+    target_link_libraries(mat PRIVATE ${LIBS})
+  else()
+    # Linux/macOS legacy: link system-installed sqlite3 and zlib
+    add_library(sqlite3 STATIC IMPORTED GLOBAL)
+    find_library(SQLITE3_STATIC_LIB NAMES libsqlite3.a
+        PATHS /usr/local/lib /usr/local/opt/sqlite/lib /opt/homebrew/opt/sqlite/lib
+        NO_DEFAULT_PATH)
+    if(SQLITE3_STATIC_LIB)
+      set_target_properties(sqlite3 PROPERTIES IMPORTED_LOCATION ${SQLITE3_STATIC_LIB})
+    endif()
+    add_library(z STATIC IMPORTED GLOBAL)
+    target_link_libraries(mat PRIVATE sqlite3 z ${LIBS})
+  endif()
+endif()
+
+# Platform-specific link dependencies
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+  target_link_libraries(mat PUBLIC "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}")
+  if(THREADS_HAVE_PTHREAD_ARG)
+    target_compile_options(mat PUBLIC "-pthread")
+  endif()
+  if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    target_link_libraries(mat PUBLIC log)
+  endif()
+elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
+  target_link_libraries(mat PUBLIC wininet crypt32 ws2_32)
+elseif(APPLE)
+  target_link_libraries(mat PUBLIC
+    "-framework CoreFoundation"
+    "-framework Foundation"
+    "-framework CFNetwork"
+    "-framework Network"
+    "-framework SystemConfiguration"
+  )
+  if(BUILD_IOS OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    target_link_libraries(mat PUBLIC "-framework UIKit")
+  else()
+    target_link_libraries(mat PUBLIC "-framework IOKit")
+  endif()
+endif()
+
+################################################################################################
+# Installation
+################################################################################################
+# The CMake package config / export workflow is used by vcpkg and any CMake-based
+# consumer that does find_package(MSTelemetry).  Legacy (non-vcpkg) builds install
+# via install.sh or MSBuild output directories and don't need this.
+if(MATSDK_USE_VCPKG_DEPS)
+  install(TARGETS mat
+    EXPORT MSTelemetryTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  )
+
+  message(STATUS "Library will be installed to ${CMAKE_INSTALL_LIBDIR}")
+
+  # Generate and install CMake package config files
+  install(EXPORT MSTelemetryTargets
+    FILE MSTelemetryTargets.cmake
+    NAMESPACE MSTelemetry::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
+  )
+
+  configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MSTelemetryConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
+  )
+
+  if(NOT DEFINED MATSDK_BUILD_VERSION OR MATSDK_BUILD_VERSION STREQUAL "")
+    message(FATAL_ERROR "MATSDK_BUILD_VERSION is not set. Cannot generate package version file.")
+  endif()
+
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
+    VERSION ${MATSDK_BUILD_VERSION}
+    COMPATIBILITY AnyNewerVersion
+  )
+
+  install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
+  )
+else()
+  # Legacy install: just put the library and headers in standard locations
+  install(TARGETS mat
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  )
+  message(STATUS "Library will be installed to ${CMAKE_INSTALL_LIBDIR}")
+endif()

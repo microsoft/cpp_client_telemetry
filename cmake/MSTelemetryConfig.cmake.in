@@ -1,0 +1,27 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Re-find dependencies that consumers need
+if(@MATSDK_USE_VCPKG_DEPS@)
+  find_dependency(unofficial-sqlite3 CONFIG)
+  find_dependency(ZLIB)
+  find_dependency(nlohmann_json CONFIG)
+endif()
+
+# Curl is needed on Linux (not Windows/iOS/Android/macOS-with-Apple-HTTP).
+# We capture the build-time decision as a boolean rather than re-deriving
+# it, because the macOS BUILD_APPLE_HTTP edge case can't be inferred from
+# CMAKE_SYSTEM_NAME alone.
+if(@MATSDK_NEEDS_CURL@)
+  find_dependency(CURL)
+endif()
+
+# Pthreads are needed on Linux and Android (POSIX threading)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+  find_dependency(Threads)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/MSTelemetryTargets.cmake")
+
+check_required_components(MSTelemetry)

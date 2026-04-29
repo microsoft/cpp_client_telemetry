@@ -1,0 +1,8 @@
+{
+  "name": "mstelemetry-vcpkg-test",
+  "version-string": "0.0.1",
+  "description": "Integration test for mstelemetry vcpkg port",
+  "dependencies": [
+    "mstelemetry"
+  ]
+}
