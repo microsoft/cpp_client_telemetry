@@ -27,6 +27,8 @@
 
 #import "ODWReachability.h"
 
+#import <sys/socket.h>
+#import <netinet/in.h>
 #import <arpa/inet.h>
 
 
@@ -41,8 +43,6 @@ NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityC
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)flags;
 -(BOOL)isReachableWithFlags:(SCNetworkReachabilityFlags)flags;
-+(ODWReachability *)handleReachabilityResponse:(NSURLResponse *)response error:(NSError *)error url:(NSURL *)url;
--(SCNetworkReachabilityFlags)checkNetworkReachability:(BOOL)checkData;
 
 @end
 
@@ -65,7 +65,6 @@ static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
             (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
 }
 
-#if ODW_LEGACY_REACHABILITY_REQUIRED
 // Start listening for reachability notifications on the current run loop
 static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void* info)
 {
@@ -80,7 +79,6 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
         [reachability reachabilityChanged:flags];
     }
 }
-#endif
 
 
 @implementation ODWReachability
