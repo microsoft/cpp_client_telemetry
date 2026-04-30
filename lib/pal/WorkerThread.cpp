@@ -37,6 +37,7 @@ namespace PAL_NS_BEGIN {
         std::list<MAT::Task*> m_timerQueue;
         Event                 m_event;
         MAT::Task*            m_itemInProgress;
+        bool                  m_shuttingDown = false;
         int count = 0;
 
     public:
@@ -55,12 +56,22 @@ namespace PAL_NS_BEGIN {
 
         void Join() final
         {
-            auto item = new WorkerThreadShutdownItem();
-            Queue(item);
             std::thread::id this_id = std::this_thread::get_id();
             bool joined = false;
+            {
+                LOCKGUARD(m_lock);
+                if (!m_shuttingDown) {
+                    m_shuttingDown = true;
+                    m_queue.push_back(new WorkerThreadShutdownItem());
+                    count++;
+                    m_event.post();
+                }
+            }
             try {
-                if (m_hThread.joinable() && (m_hThread.get_id() != this_id)) {
+                if (!m_hThread.joinable()) {
+                    return;
+                }
+                if (m_hThread.get_id() != this_id) {
                     m_hThread.join();
                     joined = true;
                 } else {
@@ -76,6 +87,7 @@ namespace PAL_NS_BEGIN {
 
             // Log pending work in both paths so operators can see if
             // shutdown is dropping tasks.
+            LOCKGUARD(m_lock);
             if (!m_queue.empty()) {
                 LOG_WARN("Shutdown with %zu queued task(s) pending", m_queue.size());
             }
@@ -99,6 +111,11 @@ namespace PAL_NS_BEGIN {
         {
             LOG_INFO("queue item=%p", &item);
             LOCKGUARD(m_lock);
+            if (m_shuttingDown) {
+                LOG_WARN("Dropping queued task %p during shutdown", item);
+                delete item;
+                return;
+            }
             if (item->Type == MAT::Task::TimedCall) {
                 auto it = m_timerQueue.begin();
                 while (it != m_timerQueue.end() && (*it)->TargetTime < item->TargetTime) {
