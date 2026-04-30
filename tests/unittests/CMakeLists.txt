@@ -74,7 +74,7 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests")
         )
 endif()
         
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
   ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/InitializationConfigurationTests.cpp
@@ -85,7 +85,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYG
   )
 endif()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/" AND BUILD_SANITIZER)
   list(APPEND SRCS
   ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerJwtTests.cpp
   ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerProviderTests.cpp

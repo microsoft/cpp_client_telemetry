@@ -3,13 +3,12 @@
     <CustomIncludePath>$(SolutionDir)\..\third_party\krabsetw\krabs;$(CustomIncludePath)</CustomIncludePath>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
-    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '15.0'">v141</PlatformToolset>
-    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '16.0'">v142</PlatformToolset>
-    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '17.0'">v143</PlatformToolset>
-    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(VisualStudioVersion)' == '18.0'">v145</PlatformToolset>
-    <!-- Fallback to the default toolset for the installed VS version -->
-    <PlatformToolset Condition="'$(PlatformToolset)' == ''">$(DefaultPlatformToolset)</PlatformToolset>
-    <PlatformToolset Condition="'$(PlatformToolset)' != ''">$(PlatformToolset)</PlatformToolset>
+    <!-- before.targets is imported before Microsoft.Cpp.Default.props, so DefaultPlatformToolset is not reliable here. -->
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '18.0'))">v145</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '17.0'))">v143</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '16.0'))">v142</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '15.0'))">v141</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == ''">v141</PlatformToolset>
     <!-- Customers may override WindowsTargetPlatformVersion before auto-detection of latest Win 10 SDK -->
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>

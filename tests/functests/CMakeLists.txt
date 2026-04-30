@@ -8,16 +8,16 @@ set(SRCS
   MultipleLogManagersTests.cpp
 )
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
-    PrivacyGuardFuncTests.cpp
+    ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/functests/PrivacyGuardFuncTests.cpp
   )
 endif()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/" AND BUILD_SANITIZER)
   list(APPEND SRCS
-    SanitizerFuncTests.cpp
+    ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/functests/SanitizerFuncTests.cpp
   )
 endif()
 
@@ -27,10 +27,10 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/")
   )
 endif()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/" AND BUILD_LIVEEVENTINSPECTOR)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/liveeventinspector/" AND BUILD_LIVEEVENTINSPECTOR)
   add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
   list(APPEND SRCS
-    LiveEventInspectorFuncTests.cpp
+    ${CMAKE_SOURCE_DIR}/lib/modules/liveeventinspector/tests/functests/LiveEventInspectorFuncTests.cpp
   )
 endif()
 
