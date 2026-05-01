@@ -120,7 +120,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # -Wno-unknown-warning-option is Clang-only, omitted here
   set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-but-set-variable")
 else()
-  # Clang / AppleClang
+  # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
   set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unknown-warning-option -Wno-unused-but-set-variable -Wno-nan-infinity-disabled")
 endif()
 
@@ -167,10 +167,17 @@ if(MSVC)
   endif()
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # GCC needs explicit position-independent code
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # using Clang
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # using GCC
+  # Prefer to generate position-independent code
   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  # using Intel C++
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  # using Visual Studio C++
 endif()
 
 include(tools/Utils.cmake)
@@ -292,9 +299,16 @@ if(BUILD_APPLE_HTTP)
   add_definitions(-DAPPLE_HTTP=1)
 endif()
 
+# Bond Lite subdirectories
 include_directories(bondlite/include)
 
 include_directories(lib/pal)
+
+#if(BUILD_UNIT_TESTS)
+#  message("Adding bondlite tests")
+#  enable_testing()
+#  add_subdirectory(bondlite/tests)
+#endif()
 
 # Include repo root to allow includes of sqlite, zlib, and nlohmann
 include_directories(${CMAKE_SOURCE_DIR})
@@ -320,14 +334,18 @@ endif()
 
 if (BUILD_PACKAGE)
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "deb")
+    # FIXME: hardcode it for 64-bit Linux for now
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
     include(tools/MakeDeb.cmake)
   endif()
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "rpm")
+    # TODO: [MG] - fix path
     set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
     include(tools/MakeRpm.cmake)
   endif()
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "tgz")
+    # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
+    # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
     include(tools/MakeTgz.cmake)
   endif()
 endif()
