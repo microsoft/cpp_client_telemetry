@@ -67,11 +67,13 @@ namespace MAT_NS_BEGIN {
             break;
 
         case HttpResult_Aborted:
+            ctx->httpResponse = nullptr;
             outcome = Abort;
             break;
 
         case HttpResult_LocalFailure:
         case HttpResult_NetworkFailure:
+            ctx->httpResponse = nullptr;
             outcome = RetryNetwork;
             break;
         }
@@ -127,7 +129,6 @@ namespace MAT_NS_BEGIN {
                 evt.param1 = 0; // response.GetStatusCode();
                 DispatchEvent(evt);
             }
-            delete ctx->httpResponse;
             ctx->httpResponse = nullptr;
             // eventsRejected(ctx); // FIXME: [MG] - investigate why ctx gets corrupt after eventsRejected
             requestAborted(ctx);
@@ -158,8 +159,6 @@ namespace MAT_NS_BEGIN {
                 evt.param1 = response.GetStatusCode();
                 DispatchEvent(evt);
             }
-            delete ctx->httpResponse;
-            ctx->httpResponse = nullptr;
             temporaryNetworkFailure(ctx);
             break;
         }
@@ -254,3 +253,4 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
+
