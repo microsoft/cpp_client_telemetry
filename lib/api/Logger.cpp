@@ -127,7 +127,8 @@ namespace MAT_NS_BEGIN
 
     Logger::~Logger() noexcept
     {
-        LOG_TRACE("%p: Destroyed", this);
+        // Intentionally empty — logging here triggers a static-destruction-order
+        // crash on iOS simulator after logging teardown.
     }
 
     ISemanticContext* Logger::GetSemanticContext() const

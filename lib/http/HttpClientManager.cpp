@@ -149,11 +149,17 @@ namespace MAT_NS_BEGIN {
     void HttpClientManager::cancelAllRequests()
     {
         cancelAllRequestsAsync();
-        while (!m_httpCallbacks.empty())
+        while (true)
+        {
+            {
+                LOCKGUARD(m_httpCallbacksMtx);
+                if (m_httpCallbacks.empty())
+                    break;
+            }
             std::this_thread::yield();
+        }
     }
 
     // start async cancellation
 
 } MAT_NS_END
-
