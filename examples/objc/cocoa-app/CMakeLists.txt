@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.8...3.5)
 project(foo)
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/MSTelemetrySample.cmake)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.1.0...3.5)
 project(MacProxy)
 
 # Uncomment for building i386 binary on x86_64 system
