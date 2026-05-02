@@ -17,13 +17,18 @@ on:
     - main
     - dev
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: windows-latest
     name: Build for Android
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: false
     - name: Update submodules
@@ -32,7 +37,7 @@ jobs:
         git config --global submodule.lib/modules.update none
         git -c protocol.version=2 submodule update --init --force --depth=1
     - name: Setup Java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v5
       with:
         distribution: 'adopt'
         java-version: '17'
@@ -40,14 +45,13 @@ jobs:
       # Workaround for: 'Unable to decrypt local Maven settings credentials'
       run: rm $Env:USERPROFILE\.m2\settings.xml
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@v3
     - name: Install NDK
       run: |
         java -version
         gci env:* | sort-object name
-        new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
-        echo yes | .\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;27.0.12077973" --sdk_root=$Env:ANDROID_SDK_ROOT
-      working-directory: ${{ env.ANDROID_SDK_ROOT }}\cmdline-tools\7.0\bin
+        new-item "$Env:USERPROFILE\.android\repositories.cfg" -ItemType "file"
+        echo yes | sdkmanager "ndk-bundle" "cmake;3.10.2.4988404" "ndk;27.0.12077973" --sdk_root=$Env:ANDROID_SDK_ROOT
     - name: Chocolatey
       run: |
         choco install --no-progress -y ninja
