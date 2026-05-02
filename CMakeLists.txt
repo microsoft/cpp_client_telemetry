@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.1.0...3.5)
 project(MSTelemetry LANGUAGES C CXX)
 
 ################################################################################################
