@@ -27,12 +27,26 @@
 
 #import "ODWReachability.h"
 
+#import <Network/Network.h>
+
 #import <sys/socket.h>
 #import <netinet/in.h>
 #import <arpa/inet.h>
+#import <netdb.h>
 
 
 NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityChangedNotification";
+
+@class ODWReachability;
+
+@interface ODWReachabilityMonitorContext : NSObject
+
+@property (nonatomic, assign) ODWReachability *owner;
+
+@end
+
+@implementation ODWReachabilityMonitorContext
+@end
 
 
 @interface ODWReachability ()
@@ -40,9 +54,21 @@ NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityC
 @property (nonatomic, assign) SCNetworkReachabilityRef  reachabilityRef;
 @property (nonatomic, strong) dispatch_queue_t          reachabilitySerialQueue;
 @property (nonatomic, strong) id                        reachabilityObject;
+@property (nonatomic, strong) nw_path_monitor_t         pathMonitor;
+@property (nonatomic, strong) ODWReachabilityMonitorContext *pathMonitorContext;
+@property (nonatomic, strong) dispatch_semaphore_t      initialPathSemaphore;
+@property (nonatomic, assign) nw_path_status_t          currentPathStatus;
+@property (nonatomic, assign) BOOL                      currentPathUsesWiFi;
+@property (nonatomic, assign) BOOL                      currentPathUsesWWAN;
+@property (nonatomic, assign) BOOL                      hasObservedPath;
+@property (nonatomic, assign) BOOL                      monitorLocalWiFiOnly;
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)flags;
 -(BOOL)isReachableWithFlags:(SCNetworkReachabilityFlags)flags;
+-(BOOL)ensureModernPathMonitor;
+-(BOOL)awaitModernPathSnapshot;
+-(void)handleModernPathUpdate:(nw_path_t)path;
+-(void)notifyModernPathChange;
 
 @end
 
@@ -62,9 +88,36 @@ static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
             (flags & kSCNetworkReachabilityFlagsConnectionOnTraffic)  ? 'C' : '-',
             (flags & kSCNetworkReachabilityFlagsConnectionOnDemand)   ? 'D' : '-',
             (flags & kSCNetworkReachabilityFlagsIsLocalAddress)       ? 'l' : '-',
-            (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
+             (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
 }
 
+static BOOL ODWModernPathIsReachable(nw_path_status_t status)
+{
+    return status == nw_path_status_satisfied || status == nw_path_status_satisfiable;
+}
+
+static BOOL ODWHostResolves(NSString *hostname)
+{
+    if (hostname == nil || hostname.length == 0)
+    {
+        return NO;
+    }
+
+    struct addrinfo hints = {};
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    struct addrinfo *result = NULL;
+    int lookupResult = getaddrinfo(hostname.UTF8String, NULL, &hints, &result);
+    if (result != NULL)
+    {
+        freeaddrinfo(result);
+    }
+
+    return lookupResult == 0;
+}
+
+#if ODW_LEGACY_REACHABILITY_REQUIRED
 // Start listening for reachability notifications on the current run loop
 static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void* info)
 {
@@ -79,6 +132,7 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
         [reachability reachabilityChanged:flags];
     }
 }
+#endif
 
 
 @implementation ODWReachability
@@ -103,20 +157,20 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        // Use URLSession for macOS 10.14 or higher
+        // Use Network.framework reachability for macOS 10.14 or higher.
         NSString *formattedHostname = hostname;
         if (![formattedHostname hasPrefix:@"https://"] && ![formattedHostname hasPrefix:@"http://"]) {
             formattedHostname = [NSString stringWithFormat:@"https://%@", hostname];
         }
         NSURL *url = [NSURL URLWithString:formattedHostname];
+        if (url == nil || url.host == nil || !ODWHostResolves(url.host))
+        {
+            NSLog(@"Invalid hostname");
+            return nil;
+        }
 
-        NSURLSession *session = [NSURLSession sharedSession];
-        __block ODWReachability *reachabilityInstance = [[self alloc] init];
+        ODWReachability *reachabilityInstance = [[self alloc] init];
         reachabilityInstance.url = url;
-        NSURLSessionDataTask *dataTask = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-            reachabilityInstance = [self handleReachabilityResponse:response error:error url:reachabilityInstance.url];
-        }];
-        [dataTask resume];
         return reachabilityInstance;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
@@ -148,17 +202,19 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        // Use URLSession for macOS 10.14 or higher
-        NSString *addressString = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)hostAddress)->sin_addr)];
+        // Use Network.framework reachability for macOS 10.14 or higher.
+        struct sockaddr_in *address = (struct sockaddr_in *)hostAddress;
+        if (address->sin_addr.s_addr == INADDR_ANY)
+        {
+            NSLog(@"Invalid address");
+            return nil;
+        }
+
+        NSString *addressString = [NSString stringWithUTF8String:inet_ntoa(address->sin_addr)];
         NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://%@", addressString]];
-        NSURLSession *session = [NSURLSession sharedSession];
-        __block ODWReachability *reachabilityInstance = [[self alloc] init];
+        ODWReachability *reachabilityInstance = [[self alloc] init];
         reachabilityInstance.url = url;
-        NSURLSessionDataTask *dataTask = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-            reachabilityInstance = [self handleReachabilityResponse:response error:error url:reachabilityInstance.url];
-        }];
-        [dataTask resume];
-        return reachabilityInstance; // Return the instance after resuming the data task
+        return reachabilityInstance;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
@@ -207,6 +263,13 @@ static int kTimeoutDurationInSeconds = 10;
 
 +(ODWReachability *)reachabilityForInternetConnection
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        return [[self alloc] init];
+    }
+#endif
+
     struct sockaddr_in zeroAddress;
     bzero(&zeroAddress, sizeof(zeroAddress));
     zeroAddress.sin_len = sizeof(zeroAddress);
@@ -217,6 +280,15 @@ static int kTimeoutDurationInSeconds = 10;
 
 +(ODWReachability*)reachabilityForLocalWiFi
 {
+#if ODW_LEGACY_REACHABILITY_REQUIRED
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+        ODWReachability *reachability = [[self alloc] init];
+        reachability.monitorLocalWiFiOnly = YES;
+        return reachability;
+    }
+#endif
+
     struct sockaddr_in localWifiAddress;
     bzero(&localWifiAddress, sizeof(localWifiAddress));
     localWifiAddress.sin_len            = sizeof(localWifiAddress);
@@ -230,21 +302,137 @@ static int kTimeoutDurationInSeconds = 10;
 
 // Initialization methods
 
--(ODWReachability *)initWithReachabilityRef:(SCNetworkReachabilityRef)ref
+-(instancetype)init
 {
     self = [super init];
     if (self != nil)
     {
         self.reachableOnWWAN = YES;
-        self.reachabilityRef = ref;
-
-        // We need to create a serial queue.
-        // We allocate this once for the lifetime of the notifier.
-
         self.reachabilitySerialQueue = dispatch_queue_create("com.tonymillion.reachability", NULL);
+        self.currentPathStatus = nw_path_status_invalid;
     }
 
     return self;
+}
+
+-(ODWReachability *)initWithReachabilityRef:(SCNetworkReachabilityRef)ref
+{
+    self = [self init];
+    if (self != nil)
+    {
+        self.reachabilityRef = ref;
+    }
+
+    return self;
+}
+
+-(BOOL)ensureModernPathMonitor
+{
+    if (self.pathMonitor != nil)
+    {
+        return YES;
+    }
+
+    self.hasObservedPath = NO;
+    self.currentPathStatus = nw_path_status_invalid;
+    self.currentPathUsesWiFi = NO;
+    self.currentPathUsesWWAN = NO;
+    self.initialPathSemaphore = dispatch_semaphore_create(0);
+    self.pathMonitor = self.monitorLocalWiFiOnly
+        ? nw_path_monitor_create_with_type(nw_interface_type_wifi)
+        : nw_path_monitor_create();
+
+    if (self.pathMonitor == nil)
+    {
+        return NO;
+    }
+
+    ODWReachabilityMonitorContext *context = [[ODWReachabilityMonitorContext alloc] init];
+    context.owner = self;
+    self.pathMonitorContext = context;
+#if !__has_feature(objc_arc)
+    [context release];
+#endif
+
+    nw_path_monitor_set_queue(self.pathMonitor, self.reachabilitySerialQueue);
+    nw_path_monitor_set_update_handler(self.pathMonitor, ^(nw_path_t path) {
+        ODWReachability *owner = context.owner;
+        if (owner == nil)
+        {
+            return;
+        }
+
+        [owner handleModernPathUpdate:path];
+    });
+    nw_path_monitor_start(self.pathMonitor);
+
+    return YES;
+}
+
+-(BOOL)awaitModernPathSnapshot
+{
+    if (![self ensureModernPathMonitor])
+    {
+        return NO;
+    }
+
+    if (self.hasObservedPath)
+    {
+        return YES;
+    }
+
+    if (self.initialPathSemaphore == nil)
+    {
+        return NO;
+    }
+
+    long waitResult = dispatch_semaphore_wait(
+        self.initialPathSemaphore,
+        dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
+    return waitResult == 0 && self.hasObservedPath;
+}
+
+-(void)handleModernPathUpdate:(nw_path_t)path
+{
+    self.currentPathStatus = nw_path_get_status(path);
+    self.currentPathUsesWiFi = nw_path_uses_interface_type(path, nw_interface_type_wifi);
+#if TARGET_OS_IPHONE
+    self.currentPathUsesWWAN = nw_path_uses_interface_type(path, nw_interface_type_cellular);
+#else
+    self.currentPathUsesWWAN = NO;
+#endif
+
+    BOOL firstPath = !self.hasObservedPath;
+    self.hasObservedPath = YES;
+    if (firstPath && self.initialPathSemaphore != nil)
+    {
+        dispatch_semaphore_signal(self.initialPathSemaphore);
+    }
+
+    if (self.reachabilityObject == self)
+    {
+        [self notifyModernPathChange];
+    }
+}
+
+-(void)notifyModernPathChange
+{
+    if (ODWModernPathIsReachable(self.currentPathStatus))
+    {
+        if (self.reachableBlock)
+        {
+            self.reachableBlock(self);
+        }
+    }
+    else if (self.unreachableBlock)
+    {
+        self.unreachableBlock(self);
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:kNetworkReachabilityChangedNotification
+                                                            object:self];
+    });
 }
 
 +(void)setTimeoutDurationInSeconds:(int)timeoutDuration
@@ -296,24 +484,17 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        // Use URLSession for macOS 10.14 or higher
-        NSURLSession *session = [NSURLSession sharedSession];
-        NSURLSessionDataTask *task = [session dataTaskWithURL:[self url] completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-            if (error) {
-                NSLog(@"URLSession failed: %@", error.localizedDescription);
-                self.reachabilityObject = nil;
-            } else {
-                self.reachabilityObject = self;
-                [[NSNotificationCenter defaultCenter] postNotificationName:kNetworkReachabilityChangedNotification object:self];
+        // Use NWPathMonitor for macOS 10.14 or higher.
+        if ([self ensureModernPathMonitor])
+        {
+            self.reachabilityObject = self;
+            if ([self awaitModernPathSnapshot])
+            {
+                [self notifyModernPathChange];
             }
-        }];
-        if (task) {
-            [task resume];
             return YES;
-        } else {
-            NSLog(@"Failed to create URLSessionDataTask");
-            return NO;
         }
+        return NO;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
@@ -366,8 +547,20 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        // Use URLSession for macOS 10.14 or higher, no specific action is needed for URLSession
+        // Use NWPathMonitor for macOS 10.14 or higher.
         self.reachabilityObject = nil;
+        if (self.pathMonitor != nil)
+        {
+            self.pathMonitorContext.owner = nil;
+            nw_path_monitor_cancel(self.pathMonitor);
+            self.pathMonitor = nil;
+        }
+        self.pathMonitorContext = nil;
+        self.initialPathSemaphore = nil;
+        self.hasObservedPath = NO;
+        self.currentPathStatus = nw_path_status_invalid;
+        self.currentPathUsesWiFi = NO;
+        self.currentPathUsesWWAN = NO;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
         return;
     }
@@ -429,7 +622,7 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        return [self checkNetworkReachability:true];
+        return [self awaitModernPathSnapshot] && ODWModernPathIsReachable(self.currentPathStatus);
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
@@ -450,6 +643,17 @@ static int kTimeoutDurationInSeconds = 10;
 -(BOOL)isReachableViaWWAN
 {
 #if ODW_LEGACY_REACHABILITY_REQUIRED
+    if (@available(macOS 10.14, iOS 12.0, *))
+    {
+#if TARGET_OS_IPHONE
+        return [self awaitModernPathSnapshot] &&
+               ODWModernPathIsReachable(self.currentPathStatus) &&
+               self.currentPathUsesWWAN;
+#else
+        return NO;
+#endif
+    }
+
 #if TARGET_OS_IPHONE
 
     SCNetworkReachabilityFlags flags = 0;
@@ -469,8 +673,15 @@ static int kTimeoutDurationInSeconds = 10;
 #endif
 
     return NO;
+#endif
+#if !ODW_LEGACY_REACHABILITY_REQUIRED
+#if TARGET_OS_IPHONE
+    return [self awaitModernPathSnapshot] &&
+           ODWModernPathIsReachable(self.currentPathStatus) &&
+           self.currentPathUsesWWAN;
 #else
     return NO;
+#endif
 #endif
 }
 
@@ -480,7 +691,20 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        return [self checkNetworkReachability:true];
+        if (![self awaitModernPathSnapshot] || !ODWModernPathIsReachable(self.currentPathStatus))
+        {
+            return NO;
+        }
+#if TARGET_OS_IPHONE
+        if (self.monitorLocalWiFiOnly)
+        {
+            return self.currentPathUsesWiFi;
+        }
+
+        return !self.currentPathUsesWWAN;
+#else
+        return self.monitorLocalWiFiOnly ? self.currentPathUsesWiFi : YES;
+#endif
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
@@ -524,7 +748,8 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        return [self checkNetworkReachability:false];
+        return [self awaitModernPathSnapshot] &&
+               self.currentPathStatus == nw_path_status_satisfiable;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
@@ -551,7 +776,7 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        return [self checkNetworkReachability:true];
+        return NO;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
@@ -579,7 +804,7 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        return [self checkNetworkReachability:false];
+        return NO;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
     
@@ -624,20 +849,26 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        __block SCNetworkReachabilityFlags flags = 0;
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-
-        NSURLSession *session = [NSURLSession sharedSession];
-        NSURLSessionDataTask *task = [session dataTaskWithURL:[self url] completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        if (error == nil && data != nil) {
-            flags = kSCNetworkReachabilityFlagsReachable;
+        if (![self awaitModernPathSnapshot])
+        {
+            return 0;
         }
-            dispatch_semaphore_signal(semaphore);
-        }];
 
-        [task resume];
-        dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
-
+        SCNetworkReachabilityFlags flags = 0;
+        if (ODWModernPathIsReachable(self.currentPathStatus))
+        {
+            flags |= kSCNetworkReachabilityFlagsReachable;
+        }
+        if (self.currentPathStatus == nw_path_status_satisfiable)
+        {
+            flags |= kSCNetworkReachabilityFlagsConnectionRequired;
+        }
+#if TARGET_OS_IPHONE
+        if (self.currentPathUsesWWAN)
+        {
+            flags |= kSCNetworkReachabilityFlagsIsWWAN;
+        }
+#endif
         return flags;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
