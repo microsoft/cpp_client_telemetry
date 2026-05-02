@@ -124,6 +124,15 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
     modules/sanitizer/SanitizerTrie.cpp
     modules/sanitizer/SanitizerTrieNode.cpp
   )
+  # Suppress -Wreorder for Sanitizer.cpp only: the submodule declares
+  # m_sanitizerprovider before m_notificationEventName in Sanitizer.hpp
+  # but the constructor init list reverses that order.  The proper fix
+  # belongs in the lib/modules submodule; this scopes the suppression
+  # until that is done.
+  if(NOT MSVC)
+    set_source_files_properties(modules/sanitizer/Sanitizer.cpp
+      PROPERTIES COMPILE_FLAGS "-Wno-reorder")
+  endif()
 endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
@@ -311,6 +320,12 @@ else()
       target_link_libraries(mat ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
     else()
       add_library(sqlite3 STATIC IMPORTED GLOBAL)
+      find_library(SQLITE3_STATIC_LIB NAMES libsqlite3.a
+          PATHS /usr/local/lib /usr/local/opt/sqlite/lib /opt/homebrew/opt/sqlite/lib
+          NO_DEFAULT_PATH)
+      if(SQLITE3_STATIC_LIB)
+        set_target_properties(sqlite3 PROPERTIES IMPORTED_LOCATION ${SQLITE3_STATIC_LIB})
+      endif()
       add_library(z STATIC IMPORTED GLOBAL)
       #
       # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging

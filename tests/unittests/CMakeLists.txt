@@ -19,6 +19,7 @@ set(SRCS
   EventPropertiesTests.cpp
   GuidTests.cpp
   HttpClientCAPITests.cpp
+  HttpClientCurlTests.cpp
   HttpClientManagerTests.cpp
   HttpClientTests.cpp
   HttpDeflateCompressionTests.cpp
@@ -136,6 +137,9 @@ else()
     set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
   elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
+  elseif(EXISTS "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
+    # Apple Silicon homebrew installs to /opt/homebrew instead of /usr/local
+    set (SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
   else()
     set (SQLITE3_LIB "sqlite3")
   endif()
