@@ -143,7 +143,18 @@ foreach ($arch in $archs) {
       }
 
       # Build!
-      & cmd /c "msbuild $solution /target:$targetStr /p:BuildProjectReferences=true /maxcpucount:$cpuCount /p:Configuration=$actualConfig /p:Platform=$actualArch $actualCustomProps"
+      $msbuildArgs = @(
+        $solution
+        "/target:$targetStr"
+        "/p:BuildProjectReferences=true"
+        "/maxcpucount:$cpuCount"
+        "/p:Configuration=$actualConfig"
+        "/p:Platform=$actualArch"
+      )
+      if ($actualCustomProps -ne "") {
+        $msbuildArgs += $actualCustomProps
+      }
+      & msbuild @msbuildArgs
 
       echo "...Done!"
       echo ""
