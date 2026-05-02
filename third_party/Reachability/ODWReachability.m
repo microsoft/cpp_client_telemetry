@@ -32,7 +32,6 @@
 #import <sys/socket.h>
 #import <netinet/in.h>
 #import <arpa/inet.h>
-#import <netdb.h>
 
 
 NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityChangedNotification";
@@ -41,7 +40,11 @@ NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityC
 
 @interface ODWReachabilityMonitorContext : NSObject
 
-@property (nonatomic, assign) ODWReachability *owner;
+#if __has_feature(objc_arc)
+@property (nonatomic, weak) ODWReachability *owner;
+#else
+@property (nonatomic, unsafe_unretained) ODWReachability *owner;
+#endif
 
 @end
 
@@ -96,27 +99,6 @@ static BOOL ODWModernPathIsReachable(nw_path_status_t status)
     return status == nw_path_status_satisfied || status == nw_path_status_satisfiable;
 }
 
-static BOOL ODWHostResolves(NSString *hostname)
-{
-    if (hostname == nil || hostname.length == 0)
-    {
-        return NO;
-    }
-
-    struct addrinfo hints = {};
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-
-    struct addrinfo *result = NULL;
-    int lookupResult = getaddrinfo(hostname.UTF8String, NULL, &hints, &result);
-    if (result != NULL)
-    {
-        freeaddrinfo(result);
-    }
-
-    return lookupResult == 0;
-}
-
 #if ODW_LEGACY_REACHABILITY_REQUIRED
 // Start listening for reachability notifications on the current run loop
 static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void* info)
@@ -163,7 +145,7 @@ static int kTimeoutDurationInSeconds = 10;
             formattedHostname = [NSString stringWithFormat:@"https://%@", hostname];
         }
         NSURL *url = [NSURL URLWithString:formattedHostname];
-        if (url == nil || url.host == nil || !ODWHostResolves(url.host))
+        if (url == nil || url.host == nil)
         {
             NSLog(@"Invalid hostname");
             return nil;
@@ -206,8 +188,7 @@ static int kTimeoutDurationInSeconds = 10;
         struct sockaddr_in *address = (struct sockaddr_in *)hostAddress;
         if (address->sin_addr.s_addr == INADDR_ANY)
         {
-            NSLog(@"Invalid address");
-            return nil;
+            return [[self alloc] init];
         }
 
         NSString *addressString = [NSString stringWithUTF8String:inet_ntoa(address->sin_addr)];
@@ -382,6 +363,14 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     if (self.initialPathSemaphore == nil)
+    {
+        return NO;
+    }
+
+    // Avoid blocking reachability queries on the main thread before the first
+    // NWPathMonitor update arrives. Callers get a conservative "unknown yet"
+    // result until the async update handler records the first snapshot.
+    if ([NSThread isMainThread])
     {
         return NO;
     }
