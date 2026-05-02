@@ -642,19 +642,15 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(BOOL)isReachableViaWWAN
 {
+#if TARGET_OS_IPHONE
+    BOOL modernWWANReachable = [self awaitModernPathSnapshot] &&
+                               ODWModernPathIsReachable(self.currentPathStatus) &&
+                               self.currentPathUsesWWAN;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
-#if TARGET_OS_IPHONE
-        return [self awaitModernPathSnapshot] &&
-               ODWModernPathIsReachable(self.currentPathStatus) &&
-               self.currentPathUsesWWAN;
-#else
-        return NO;
-#endif
+        return modernWWANReachable;
     }
-
-#if TARGET_OS_IPHONE
 
     SCNetworkReachabilityFlags flags = 0;
 
@@ -670,18 +666,14 @@ static int kTimeoutDurationInSeconds = 10;
             }
         }
     }
-#endif
 
     return NO;
 #endif
 #if !ODW_LEGACY_REACHABILITY_REQUIRED
-#if TARGET_OS_IPHONE
-    return [self awaitModernPathSnapshot] &&
-           ODWModernPathIsReachable(self.currentPathStatus) &&
-           self.currentPathUsesWWAN;
+    return modernWWANReachable;
+#endif
 #else
     return NO;
-#endif
 #endif
 }
 
