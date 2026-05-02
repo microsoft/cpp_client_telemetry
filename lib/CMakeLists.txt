@@ -375,15 +375,19 @@ else()
     target_link_libraries(mat PRIVATE ${LIBS})
   else()
     # Linux/macOS legacy: link system-installed sqlite3 and zlib
-    add_library(sqlite3 STATIC IMPORTED GLOBAL)
-    find_library(SQLITE3_STATIC_LIB NAMES libsqlite3.a
-        PATHS /usr/local/lib /usr/local/opt/sqlite/lib /opt/homebrew/opt/sqlite/lib
-        NO_DEFAULT_PATH)
-    if(SQLITE3_STATIC_LIB)
-      set_target_properties(sqlite3 PROPERTIES IMPORTED_LOCATION ${SQLITE3_STATIC_LIB})
+    if(EXISTS "/usr/local/lib/libsqlite3.a")
+      set(MATSDK_SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
+    elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
+      set(MATSDK_SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
+    elseif(EXISTS "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
+      set(MATSDK_SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
+    else()
+      set(MATSDK_SQLITE3_LIB "sqlite3")
     endif()
-    add_library(z STATIC IMPORTED GLOBAL)
-    target_link_libraries(mat PRIVATE sqlite3 z ${LIBS})
+
+    find_package(ZLIB REQUIRED)
+    target_include_directories(mat PRIVATE ${ZLIB_INCLUDE_DIRS})
+    target_link_libraries(mat PRIVATE ${MATSDK_SQLITE3_LIB} ZLIB::ZLIB ${LIBS})
   endif()
 endif()
 
@@ -466,4 +470,3 @@ else()
   )
   message(STATUS "Library will be installed to ${CMAKE_INSTALL_LIBDIR}")
 endif()
-
