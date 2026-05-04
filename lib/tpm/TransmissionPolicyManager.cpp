@@ -170,12 +170,10 @@ namespace MAT_NS_BEGIN {
         // Cancel upload if already scheduled.
         if (force || delay.count() == 0)
         {
-            scheduledUploadLock.unlock();
-            if (!cancelUploadTask())
+            if (!cancelUploadTaskNoWaitLocked())
             {
                 LOG_TRACE("Upload either hasn't been scheduled or already done.");
             }
-            scheduledUploadLock.lock();
             if (shouldSkipScheduling())
             {
                 return;
@@ -478,12 +476,31 @@ namespace MAT_NS_BEGIN {
        return (m_scheduledUploadAborted) ? DefaultTaskCancelTime : std::chrono::milliseconds {};
     }
 
+    bool TransmissionPolicyManager::cancelUploadTaskNoWaitLocked()
+    {
+        bool result = m_scheduledUpload.Cancel(std::chrono::milliseconds {}.count());
+
+        // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
+        //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
+        //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
+        if (result)
+        {
+            m_isUploadScheduled = false;
+            m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
+        }
+        return result;
+    }
+
     bool TransmissionPolicyManager::cancelUploadTask()
     {
         auto waitTime = std::chrono::milliseconds{};
         {
             LOCKGUARD(m_scheduledUploadMutex);
             waitTime = getCancelWaitTime();
+            if (waitTime.count() == 0)
+            {
+                return cancelUploadTaskNoWaitLocked();
+            }
         }
         bool result = m_scheduledUpload.Cancel(waitTime.count());
 

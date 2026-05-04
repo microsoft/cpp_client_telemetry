@@ -120,6 +120,12 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         std::chrono::milliseconds getCancelWaitTime() const noexcept;
 
         /// <summary>
+        /// Cancels a pending upload task without waiting for a running task to finish.
+        /// The caller must already hold m_scheduledUploadMutex.
+        /// </summary>
+        bool cancelUploadTaskNoWaitLocked();
+
+        /// <summary>
         /// Cancels pending upload task.
         /// </summary>
         bool cancelUploadTask();
@@ -160,4 +166,3 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
 } MAT_NS_END
 
 #endif // TRANSMISSIONPOLICYMANAGER_HPP
-

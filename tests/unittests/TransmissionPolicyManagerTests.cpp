@@ -11,14 +11,24 @@
 #include "tpm/TransmissionPolicyManager.hpp"
 #include "TransmitProfiles.hpp"
 
+#include <algorithm>
+#include <condition_variable>
+#include <future>
+#include <vector>
+
 using namespace testing;
 using namespace MAT;
 
 
 class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
   public:
+    TransmissionPolicyManager4Test(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController)
+      : TransmissionPolicyManager(system, taskDispatcher, bandwidthController)
+    {
+    }
+
     TransmissionPolicyManager4Test(ITelemetrySystem& system, IBandwidthController* bandwidthController)
-      : TransmissionPolicyManager(system, *PAL::getDefaultTaskDispatcher(), bandwidthController)
+      : TransmissionPolicyManager4Test(system, *PAL::getDefaultTaskDispatcher(), bandwidthController)
     {
     }
 
@@ -67,6 +77,82 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     {
         TransmissionPolicyManager::scheduleUpload(delay, latency, force);
     }
+};
+
+class BlockingCancelTaskDispatcher : public ITaskDispatcher
+{
+public:
+    ~BlockingCancelTaskDispatcher() override
+    {
+        Join();
+    }
+
+    void Join() override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        for (auto* task : m_tasks)
+        {
+            delete task;
+        }
+        m_tasks.clear();
+    }
+
+    void Queue(Task* task) override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        m_tasks.push_back(task);
+    }
+
+    bool Cancel(Task* task, uint64_t waitTime = 0) override
+    {
+        UNREFERENCED_PARAMETER(waitTime);
+
+        {
+            std::lock_guard<std::mutex> lock(m_tasksMutex);
+            auto it = std::find(m_tasks.begin(), m_tasks.end(), task);
+            if (it == m_tasks.end())
+            {
+                return false;
+            }
+            delete *it;
+            m_tasks.erase(it);
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(m_cancelMutex);
+            m_cancelEntered = true;
+        }
+        m_cancelEnteredCv.notify_all();
+
+        std::unique_lock<std::mutex> lock(m_cancelMutex);
+        m_cancelReleasedCv.wait(lock, [this]() { return m_cancelReleased; });
+        return true;
+    }
+
+    bool WaitForCancel(const std::chrono::milliseconds timeout)
+    {
+        std::unique_lock<std::mutex> lock(m_cancelMutex);
+        return m_cancelEnteredCv.wait_for(lock, timeout, [this]() { return m_cancelEntered; });
+    }
+
+    void ReleaseCancel()
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_cancelMutex);
+            m_cancelReleased = true;
+        }
+        m_cancelReleasedCv.notify_all();
+    }
+
+private:
+    std::mutex m_tasksMutex;
+    std::vector<Task*> m_tasks;
+
+    std::mutex m_cancelMutex;
+    std::condition_variable m_cancelEnteredCv;
+    std::condition_variable m_cancelReleasedCv;
+    bool m_cancelEntered = false;
+    bool m_cancelReleased = false;
 };
 
 class TransmissionPolicyManagerTests : public StrictMock<Test> {
@@ -606,6 +692,40 @@ TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_ScheduledUpload_IsUpload
     tpm.m_isUploadScheduled = true;
     tpm.cancelUploadTask();
     ASSERT_FALSE(tpm.m_isUploadScheduled);
+}
+
+TEST_F(TransmissionPolicyManagerTests, ForceScheduleRetainsImmediateUploadWhenCancelBlocks)
+{
+    BlockingCancelTaskDispatcher dispatcher;
+    TransmissionPolicyManager4Test blockingTpm(testing::getSystem(), dispatcher, &bandwidthControllerMock);
+    blockingTpm.paused(false);
+
+    blockingTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+
+    auto forceSchedule = std::async(std::launch::async, [&blockingTpm]() {
+        blockingTpm.scheduleUploadParent(std::chrono::milliseconds{}, EventLatency_RealTime, true);
+    });
+
+    ASSERT_TRUE(dispatcher.WaitForCancel(std::chrono::milliseconds{ 250 }));
+
+    auto delayedSchedule = std::async(std::launch::async, [&blockingTpm]() {
+        blockingTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+    });
+
+    EXPECT_EQ(delayedSchedule.wait_for(std::chrono::milliseconds{ 100 }), std::future_status::timeout);
+
+    dispatcher.ReleaseCancel();
+
+    forceSchedule.get();
+    delayedSchedule.get();
+
+    ASSERT_TRUE(blockingTpm.m_isUploadScheduled);
+
+    auto remainingDelayMs =
+        static_cast<int64_t>(blockingTpm.m_scheduledUploadTime) - static_cast<int64_t>(PAL::getMonotonicTimeMs());
+
+    EXPECT_GT(remainingDelayMs, -100);
+    EXPECT_LT(remainingDelayMs, 250);
 }
 
 TEST_F(TransmissionPolicyManagerTests, increaseBackoff_EmptyBackoffObject_ReturnZero)
