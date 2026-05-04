@@ -155,6 +155,65 @@ private:
     bool m_cancelReleased = false;
 };
 
+class RunningTaskDispatcher : public ITaskDispatcher
+{
+public:
+    ~RunningTaskDispatcher() override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        for (auto* task : m_tasks)
+        {
+            delete task;
+        }
+        m_tasks.clear();
+    }
+
+    void Join() override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        for (auto* task : m_tasks)
+        {
+            delete task;
+        }
+        m_tasks.clear();
+    }
+
+    void Queue(Task* task) override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        m_tasks.push_back(task);
+    }
+
+    bool Cancel(Task* task, uint64_t waitTime = 0) override
+    {
+        UNREFERENCED_PARAMETER(task);
+        UNREFERENCED_PARAMETER(waitTime);
+        // Simulate a task that is currently executing on the worker:
+        // cancellation can never proceed without waiting for the run
+        // to complete, so a no-wait cancel must return false.
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        m_cancelCount++;
+        return false;
+    }
+
+    size_t QueuedCount() const
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        return m_tasks.size();
+    }
+
+    size_t CancelCount() const
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        return m_cancelCount;
+    }
+
+private:
+    mutable std::mutex m_tasksMutex;
+    std::vector<Task*> m_tasks;
+    size_t m_cancelCount = 0;
+};
+
 class TransmissionPolicyManagerTests : public StrictMock<Test> {
   protected:
     StrictMock<MockIRuntimeConfig>       runtimeConfigMock;
@@ -726,6 +785,38 @@ TEST_F(TransmissionPolicyManagerTests, ForceScheduleRetainsImmediateUploadWhenCa
 
     EXPECT_GT(remainingDelayMs, -100);
     EXPECT_LT(remainingDelayMs, 250);
+}
+
+TEST_F(TransmissionPolicyManagerTests, ForceScheduleAppliesLatencyWhenRunningCancelFails)
+{
+    RunningTaskDispatcher dispatcher;
+    TransmissionPolicyManager4Test runningTpm(testing::getSystem(), dispatcher, &bandwidthControllerMock);
+    runningTpm.paused(false);
+
+    // Queue an initial upload so m_scheduledUpload has a non-null task and
+    // m_isUploadScheduled is set; the dispatcher's Cancel will fail later
+    // (simulating the "task currently executing on worker" race).
+    runningTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+    ASSERT_TRUE(runningTpm.m_isUploadScheduled);
+    ASSERT_EQ(dispatcher.QueuedCount(), 1u);
+
+    auto scheduledTimeBefore = runningTpm.m_scheduledUploadTime;
+    // Reset m_runningLatency so we can observe the force path updating it
+    // (the initial schedule may have bumped it depending on the active
+    // profile's timers).
+    runningTpm.runningLatency(EventLatency_Normal);
+
+    // Force a higher-priority schedule. The dispatcher's no-wait cancel
+    // returns false, so the previous task remains in flight. The fix in
+    // scheduleUpload must propagate the new latency to m_runningLatency
+    // so the running task picks it up under the same mutex.
+    runningTpm.scheduleUploadParent(std::chrono::milliseconds{}, EventLatency_RealTime, true);
+
+    EXPECT_GE(dispatcher.CancelCount(), 1u);
+    EXPECT_EQ(dispatcher.QueuedCount(), 1u);
+    EXPECT_TRUE(runningTpm.m_isUploadScheduled);
+    EXPECT_EQ(runningTpm.m_runningLatency, EventLatency_RealTime);
+    EXPECT_EQ(runningTpm.m_scheduledUploadTime, scheduledTimeBefore);
 }
 
 TEST_F(TransmissionPolicyManagerTests, increaseBackoff_EmptyBackoffObject_ReturnZero)

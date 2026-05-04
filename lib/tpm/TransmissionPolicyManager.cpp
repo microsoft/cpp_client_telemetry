@@ -173,6 +173,18 @@ namespace MAT_NS_BEGIN {
             if (!cancelUploadTaskNoWaitLocked())
             {
                 LOG_TRACE("Upload either hasn't been scheduled or already done.");
+                // Cancel can return false when the previous upload task is
+                // currently executing on the worker. If uploadAsync hasn't
+                // yet entered its own LOCKGUARD (m_isUploadScheduled is
+                // still set under the mutex we hold), propagate the
+                // requested latency so the running task picks it up when
+                // it acquires m_scheduledUploadMutex. Otherwise the
+                // running task has already cleared the flag and the
+                // schedule below will queue a fresh task.
+                if (m_isUploadScheduled)
+                {
+                    m_runningLatency = latency;
+                }
             }
             if (shouldSkipScheduling())
             {
