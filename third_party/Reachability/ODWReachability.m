@@ -68,10 +68,10 @@ NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityC
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)flags;
 -(BOOL)isReachableWithFlags:(SCNetworkReachabilityFlags)flags;
--(BOOL)ensureModernPathMonitor;
--(BOOL)awaitModernPathSnapshot;
--(void)handleModernPathUpdate:(nw_path_t)path;
--(void)notifyModernPathChange;
+-(BOOL)ensureModernPathMonitor API_AVAILABLE(macos(10.14), ios(12.0));
+-(BOOL)awaitModernPathSnapshot API_AVAILABLE(macos(10.14), ios(12.0));
+-(void)handleModernPathUpdate:(nw_path_t)path API_AVAILABLE(macos(10.14), ios(12.0));
+-(void)notifyModernPathChange API_AVAILABLE(macos(10.14), ios(12.0));
 
 @end
 
@@ -94,7 +94,7 @@ static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
              (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
 }
 
-static BOOL ODWModernPathIsReachable(nw_path_status_t status)
+static BOOL ODWModernPathIsReachable(nw_path_status_t status) API_AVAILABLE(macos(10.14), ios(12.0))
 {
     return status == nw_path_status_satisfied || status == nw_path_status_satisfiable;
 }
@@ -632,13 +632,12 @@ static int kTimeoutDurationInSeconds = 10;
 -(BOOL)isReachableViaWWAN
 {
 #if TARGET_OS_IPHONE
-    BOOL modernWWANReachable = [self awaitModernPathSnapshot] &&
-                               ODWModernPathIsReachable(self.currentPathStatus) &&
-                               self.currentPathUsesWWAN;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
-        return modernWWANReachable;
+        return [self awaitModernPathSnapshot] &&
+               ODWModernPathIsReachable(self.currentPathStatus) &&
+               self.currentPathUsesWWAN;
     }
 
     SCNetworkReachabilityFlags flags = 0;
@@ -657,9 +656,10 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     return NO;
-#endif
-#if !ODW_LEGACY_REACHABILITY_REQUIRED
-    return modernWWANReachable;
+#else
+    return [self awaitModernPathSnapshot] &&
+           ODWModernPathIsReachable(self.currentPathStatus) &&
+           self.currentPathUsesWWAN;
 #endif
 #else
     return NO;
