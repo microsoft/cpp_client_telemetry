@@ -23,6 +23,7 @@
 #include <future>
 #include <atomic>
 
+#include <poll.h>
 #include <curl/curl.h>
 
 #include <unistd.h>
@@ -55,12 +56,17 @@ public:
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
 
+    virtual void ApplySettings(ILogConfiguration& config) override;
+    void SetSslVerification(bool sslVerify, const std::string& caInfo = "");
+
 private:
     void EraseRequest(std::string const& id);
     void AddRequest(IHttpRequest* request);
 
     std::mutex m_requestsMtx;
     std::map<std::string, IHttpRequest*> m_requests;
+    std::atomic<bool> m_sslVerify { true };
+    std::string m_sslCaInfo;
 };
 
 class CurlHttpOperation {
@@ -91,7 +97,10 @@ public:
             const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
             // Default connectivity and response size options
             bool rawResponse                                         = false,
-            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT) :
+            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
+            // SSL certificate verification options
+            bool sslVerify                                           = true,
+            const std::string& sslCaInfo                             = "") :
 
             // Optional connection params
             rawResponse(rawResponse),
@@ -129,9 +138,11 @@ public:
         // Specify target URL
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
 
-        // TODO: expose SSL cert verification opts via ILogConfiguration
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);      // 1L
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);      // 2L
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L);
+        if (!sslCaInfo.empty()) {
+            curl_easy_setopt(curl, CURLOPT_CAINFO, sslCaInfo.c_str());
+        }
         // HTTP/2 please, fallback to HTTP/1.1 if not supported
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
@@ -452,28 +463,12 @@ protected:
      */
     static int WaitOnSocket(curl_socket_t sockfd, int for_recv, long timeout_ms)
     {
-        struct timeval tv;
-        fd_set infd, outfd, errfd;
-        int res;
-
-        tv.tv_sec = timeout_ms / 1000;
-        tv.tv_usec = (timeout_ms % 1000) * 1000;
-
-        FD_ZERO(&infd);
-        FD_ZERO(&outfd);
-        FD_ZERO(&errfd);
-
-        FD_SET(sockfd, &errfd); /* always check for error */
-
-        if(for_recv) {
-            FD_SET(sockfd, &infd);
-        } else {
-            FD_SET(sockfd, &outfd);
-        }
-
-        /* select() returns the number of signalled sockets or -1 */
-        res = select((int)sockfd + 1, &infd, &outfd, &errfd, &tv);
-        return res;
+        struct pollfd pfd;
+        pfd.fd = sockfd;
+        pfd.events = for_recv ? POLLIN : POLLOUT;
+        // Cap timeout to max int value to avoid overflow in poll()
+        auto timeout = std::min(timeout_ms, static_cast<long>(std::numeric_limits<int>::max()));   
+        return poll(&pfd, 1, static_cast<int>(timeout));
     }
 
     // Raw response buffer
