@@ -362,7 +362,11 @@ static int kTimeoutDurationInSeconds = 10;
         return YES;
     }
 
-    if (self.initialPathSemaphore == nil)
+    // Capture the semaphore into a local so a concurrent -stopNotifier on
+    // another thread cannot release the property between the nil-check and
+    // the wait below.
+    dispatch_semaphore_t semaphore = self.initialPathSemaphore;
+    if (semaphore == nil)
     {
         return NO;
     }
@@ -376,7 +380,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
     long waitResult = dispatch_semaphore_wait(
-        self.initialPathSemaphore,
+        semaphore,
         dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
     return waitResult == 0 && self.hasObservedPath;
 }
@@ -393,9 +397,16 @@ static int kTimeoutDurationInSeconds = 10;
 
     BOOL firstPath = !self.hasObservedPath;
     self.hasObservedPath = YES;
-    if (firstPath && self.initialPathSemaphore != nil)
+    if (firstPath)
     {
-        dispatch_semaphore_signal(self.initialPathSemaphore);
+        // Capture the semaphore into a local so a concurrent -stopNotifier
+        // on another thread cannot release the property between the
+        // nil-check and the signal below.
+        dispatch_semaphore_t semaphore = self.initialPathSemaphore;
+        if (semaphore != nil)
+        {
+            dispatch_semaphore_signal(semaphore);
+        }
     }
 
     if (self.reachabilityObject == self)
