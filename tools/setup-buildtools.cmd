@@ -16,8 +16,9 @@ if ERRORLEVEL 0 (
   vswhere -property installationPath
 )
 
-REM Install tools needed to build SDK with either Visual Studio or CMake
-choco install -y cmake svn git llvm zip
+REM Install baseline tools needed to build SDK with either Visual Studio or CMake
+REM LLVM is optional and handled below when INSTALL_LLVM is defined.
+choco install -y cmake svn git zip
 
 REM Try to autodetect Visual Studio
 call "%~dp0\vcvars.cmd"
