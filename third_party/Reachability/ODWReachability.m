@@ -158,6 +158,11 @@ static int kTimeoutDurationInSeconds = 10;
         url = [NSURL URLWithString:[NSString stringWithFormat:@"https://%@", reachabilityHost]];
     }
 
+    // NWPathMonitor has no public hostname-targeted API: it monitors the system
+    // network path, not per-host reachability. Hostname-based reachability still
+    // routes through SCNetworkReachabilityCreateWithName, with the deprecated-API
+    // warning locally suppressed. The modern path-monitor backend is used by the
+    // hostname-agnostic isReachable* methods below.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [reachabilityHost UTF8String]);
@@ -199,6 +204,15 @@ static int kTimeoutDurationInSeconds = 10;
         {
             ipv4Address->sin_len = sizeof(*ipv4Address);
         }
+        // Reject the unspecified IPv4 wildcard (INADDR_ANY / 0.0.0.0). It is not a
+        // routable host address; the SDK only uses it internally as the legacy
+        // "internet anywhere" SC probe, which goes through a private path that
+        // bypasses this validator.
+        if (ipv4Address->sin_addr.s_addr == htonl(INADDR_ANY))
+        {
+            NSLog(@"Invalid address: IPv4 unspecified address (0.0.0.0) is not a valid host");
+            return nil;
+        }
         address = (struct sockaddr *)ipv4Address;
         if (inet_ntop(AF_INET, &ipv4Address->sin_addr, addressString, sizeof(addressString)) != NULL)
         {
@@ -214,11 +228,22 @@ static int kTimeoutDurationInSeconds = 10;
         {
             ipv6Address->sin6_len = sizeof(*ipv6Address);
         }
+        // Reject the unspecified IPv6 wildcard (in6addr_any / ::), same reasoning as IPv4.
+        if (memcmp(&ipv6Address->sin6_addr, &in6addr_any, sizeof(struct in6_addr)) == 0)
+        {
+            NSLog(@"Invalid address: IPv6 unspecified address (::) is not a valid host");
+            return nil;
+        }
         address = (struct sockaddr *)ipv6Address;
         if (inet_ntop(AF_INET6, &ipv6Address->sin6_addr, addressString, sizeof(addressString)) != NULL)
         {
             url = [NSURL URLWithString:[NSString stringWithFormat:@"https://[%s]", addressString]];
         }
+    }
+    else
+    {
+        NSLog(@"Invalid address: unsupported sa_family %d (expected AF_INET or AF_INET6)", address->sa_family);
+        return nil;
     }
 
 #pragma clang diagnostic push
@@ -277,12 +302,25 @@ static int kTimeoutDurationInSeconds = 10;
     return [[self alloc] init];
 #endif
 
+    // Legacy SC fallback. Apple's reference Reachability uses the zero IPv4
+    // address (INADDR_ANY) here as a "probe any internet" sentinel — the public
+    // +reachabilityWithAddress: now rejects that wildcard, so create the SC ref
+    // directly and bypass the validator.
     struct sockaddr_in zeroAddress;
     bzero(&zeroAddress, sizeof(zeroAddress));
     zeroAddress.sin_len = sizeof(zeroAddress);
     zeroAddress.sin_family = AF_INET;
 
-    return [self reachabilityWithAddress:&zeroAddress];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithAddress(
+        kCFAllocatorDefault, (const struct sockaddr*)&zeroAddress);
+#pragma clang diagnostic pop
+    if (ref)
+    {
+        return [[self alloc] initWithReachabilityRef:ref];
+    }
+    return nil;
 }
 
 +(ODWReachability*)reachabilityForLocalWiFi
