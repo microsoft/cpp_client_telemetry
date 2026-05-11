@@ -324,7 +324,6 @@ static int kTimeoutDurationInSeconds = 10;
                                     &ODWReachabilityQueueKey,
                                     &ODWReachabilityQueueKey,
                                     NULL);
-        self.currentPathStatus = nw_path_status_invalid;
     }
 
     return self;
