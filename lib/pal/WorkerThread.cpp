@@ -109,10 +109,10 @@ namespace PAL_NS_BEGIN {
 
         void Queue(MAT::Task* item) final
         {
-            LOG_INFO("queue item=%p", &item);
+            LOG_INFO("queue item=%p", static_cast<void*>(item));
             LOCKGUARD(m_lock);
             if (m_shuttingDown) {
-                LOG_WARN("Dropping queued task %p during shutdown", item);
+                LOG_WARN("Dropping queued task %p during shutdown", static_cast<void*>(item));
                 delete item;
                 return;
             }
@@ -298,4 +298,3 @@ namespace PAL_NS_BEGIN {
 } PAL_NS_END
 
 #endif
-

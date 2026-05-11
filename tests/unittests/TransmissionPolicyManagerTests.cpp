@@ -766,7 +766,12 @@ TEST_F(TransmissionPolicyManagerTests, ForceScheduleRetainsImmediateUploadWhenCa
         blockingTpm.scheduleUploadParent(std::chrono::milliseconds{}, EventLatency_RealTime, true);
     });
 
-    ASSERT_TRUE(dispatcher.WaitForCancel(std::chrono::milliseconds{ 250 }));
+    if (!dispatcher.WaitForCancel(std::chrono::milliseconds{ 250 }))
+    {
+        dispatcher.ReleaseCancel();
+        forceSchedule.get();
+        FAIL() << "Timed out waiting for cancel to block";
+    }
 
     auto delayedSchedule = std::async(std::launch::async, [&blockingTpm]() {
         blockingTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);

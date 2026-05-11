@@ -115,7 +115,9 @@ namespace MAT_NS_BEGIN {
         {
             if (delay.count() < 0 || m_timerdelay.count() < 0)
             {
-                LOG_TRACE("Negative delay(%d) or m_timerdelay(%d), no upload", delay.count(), m_timerdelay.count());
+                LOG_TRACE("Negative delay(%lld) or m_timerdelay(%lld), no upload",
+                    static_cast<long long>(delay.count()),
+                    static_cast<long long>(m_timerdelay.count()));
                 return true;
             }
             if (m_scheduledUploadAborted)
