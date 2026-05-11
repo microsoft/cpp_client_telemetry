@@ -72,10 +72,10 @@ static char ODWReachabilityQueueKey;
 -(BOOL)getReachabilityFlags:(SCNetworkReachabilityFlags *)flags;
 -(BOOL)startLegacyNotifier;
 -(void)stopLegacyNotifier;
--(BOOL)ensureModernPathMonitor API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0));
--(BOOL)awaitModernPathSnapshot API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0));
--(void)handleModernPathUpdate:(nw_path_t)path API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0));
--(void)notifyModernPathChange API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0));
+-(BOOL)ensureModernPathMonitor API_AVAILABLE(macos(10.14), ios(12.0));
+-(BOOL)awaitModernPathSnapshot API_AVAILABLE(macos(10.14), ios(12.0));
+-(void)handleModernPathUpdate:(nw_path_t)path API_AVAILABLE(macos(10.14), ios(12.0));
+-(void)notifyModernPathChange API_AVAILABLE(macos(10.14), ios(12.0));
 
 @end
 
@@ -98,7 +98,7 @@ static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
              (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
 }
 
-static BOOL ODWModernPathIsReachable(nw_path_status_t status) API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0))
+static BOOL ODWModernPathIsReachable(nw_path_status_t status) API_AVAILABLE(macos(10.14), ios(12.0))
 {
     return status == nw_path_status_satisfied || status == nw_path_status_satisfiable;
 }
@@ -269,7 +269,7 @@ static int kTimeoutDurationInSeconds = 10;
 +(ODWReachability *)reachabilityForInternetConnection
 {
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
         return [[self alloc] init];
     }
@@ -288,7 +288,7 @@ static int kTimeoutDurationInSeconds = 10;
 +(ODWReachability*)reachabilityForLocalWiFi
 {
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
         ODWReachability *reachability = [[self alloc] init];
         reachability.monitorLocalWiFiOnly = YES;
@@ -524,7 +524,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
         // Use NWPathMonitor for macOS 10.14 or higher.
@@ -599,7 +599,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
         // Use NWPathMonitor for macOS 10.14 or higher.
@@ -698,7 +698,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
         return [self awaitModernPathSnapshot] && ODWModernPathIsReachable(self.currentPathStatus);
@@ -722,7 +722,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
         return [self awaitModernPathSnapshot] &&
@@ -758,7 +758,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
         if (![self awaitModernPathSnapshot] || !ODWModernPathIsReachable(self.currentPathStatus))
@@ -800,7 +800,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
         return [self awaitModernPathSnapshot] &&
@@ -878,7 +878,7 @@ static int kTimeoutDurationInSeconds = 10;
     }
 
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
         if (![self awaitModernPathSnapshot])
