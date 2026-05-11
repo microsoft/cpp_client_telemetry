@@ -137,7 +137,7 @@ namespace MAT_NS_BEGIN {
             return false;
         };
 
-        std::unique_lock<std::mutex> scheduledUploadLock(m_scheduledUploadMutex);
+        LOCKGUARD(m_scheduledUploadMutex);
         if (shouldSkipScheduling())
         {
             return;
@@ -492,9 +492,6 @@ namespace MAT_NS_BEGIN {
     {
         bool result = m_scheduledUpload.Cancel(std::chrono::milliseconds {}.count());
 
-        // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
-        //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
-        //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
         if (result)
         {
             m_isUploadScheduled = false;
@@ -516,9 +513,8 @@ namespace MAT_NS_BEGIN {
         }
         bool result = m_scheduledUpload.Cancel(waitTime.count());
 
-        // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
-        //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
-        //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
+        // Cancel may still fail if the task runs past the wait timeout;
+        // stronger task lifetime guarantees are tracked by Issue 388.
         if (result)
         {
             LOCKGUARD(m_scheduledUploadMutex);
