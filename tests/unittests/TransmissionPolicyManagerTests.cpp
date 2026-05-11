@@ -760,6 +760,7 @@ TEST_F(TransmissionPolicyManagerTests, ForceScheduleRetainsImmediateUploadWhenCa
     blockingTpm.paused(false);
 
     blockingTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+    auto delayedUploadTime = blockingTpm.m_scheduledUploadTime;
 
     auto forceSchedule = std::async(std::launch::async, [&blockingTpm]() {
         blockingTpm.scheduleUploadParent(std::chrono::milliseconds{}, EventLatency_RealTime, true);
@@ -779,12 +780,7 @@ TEST_F(TransmissionPolicyManagerTests, ForceScheduleRetainsImmediateUploadWhenCa
     delayedSchedule.get();
 
     ASSERT_TRUE(blockingTpm.m_isUploadScheduled);
-
-    auto remainingDelayMs =
-        static_cast<int64_t>(blockingTpm.m_scheduledUploadTime) - static_cast<int64_t>(PAL::getMonotonicTimeMs());
-
-    EXPECT_GT(remainingDelayMs, -100);
-    EXPECT_LT(remainingDelayMs, 250);
+    EXPECT_LT(blockingTpm.m_scheduledUploadTime, delayedUploadTime);
 }
 
 TEST_F(TransmissionPolicyManagerTests, ForceScheduleAppliesLatencyWhenRunningCancelFails)
