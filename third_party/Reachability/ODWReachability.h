@@ -44,13 +44,38 @@ extern NSString* const kNetworkReachabilityChangedNotification;
 
 // Older Apple deployment targets still need the legacy SCNetworkReachability
 // backend at runtime. Newer targets can compile directly to the modern path.
-#if TARGET_OS_IPHONE
+#ifndef TARGET_OS_IOS
+#define TARGET_OS_IOS TARGET_OS_IPHONE
+#endif
+#ifndef TARGET_OS_MACCATALYST
+#define TARGET_OS_MACCATALYST 0
+#endif
+#ifndef TARGET_OS_TV
+#define TARGET_OS_TV 0
+#endif
+#ifndef TARGET_OS_WATCH
+#define TARGET_OS_WATCH 0
+#endif
+#ifndef __TVOS_12_0
+#define __TVOS_12_0 120000
+#endif
+#ifndef __WATCHOS_5_0
+#define __WATCHOS_5_0 50000
+#endif
+
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
 #define ODW_LEGACY_REACHABILITY_REQUIRED (__IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_12_0)
+#elif TARGET_OS_TV
+#define ODW_LEGACY_REACHABILITY_REQUIRED (__TV_OS_VERSION_MIN_REQUIRED < __TVOS_12_0)
+#elif TARGET_OS_WATCH
+#define ODW_LEGACY_REACHABILITY_REQUIRED (__WATCH_OS_VERSION_MIN_REQUIRED < __WATCHOS_5_0)
 #elif TARGET_OS_OSX
 #define ODW_LEGACY_REACHABILITY_REQUIRED (__MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_14)
 #else
 #define ODW_LEGACY_REACHABILITY_REQUIRED 0
 #endif
+
+#define ODW_REACHABILITY_HAS_WWAN (TARGET_OS_IOS || TARGET_OS_MACCATALYST)
 
 typedef NS_ENUM(NSInteger, ODWNetworkStatus) {
     // Apple NetworkStatus Compatible Names.

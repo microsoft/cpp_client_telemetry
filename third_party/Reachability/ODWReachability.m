@@ -35,6 +35,7 @@
 
 
 NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityChangedNotification";
+static char ODWReachabilityQueueKey;
 
 @class ODWReachability;
 
@@ -68,10 +69,13 @@ NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityC
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)flags;
 -(BOOL)isReachableWithFlags:(SCNetworkReachabilityFlags)flags;
--(BOOL)ensureModernPathMonitor API_AVAILABLE(macos(10.14), ios(12.0));
--(BOOL)awaitModernPathSnapshot API_AVAILABLE(macos(10.14), ios(12.0));
--(void)handleModernPathUpdate:(nw_path_t)path API_AVAILABLE(macos(10.14), ios(12.0));
--(void)notifyModernPathChange API_AVAILABLE(macos(10.14), ios(12.0));
+-(BOOL)getReachabilityFlags:(SCNetworkReachabilityFlags *)flags;
+-(BOOL)startLegacyNotifier;
+-(void)stopLegacyNotifier;
+-(BOOL)ensureModernPathMonitor API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0));
+-(BOOL)awaitModernPathSnapshot API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0));
+-(void)handleModernPathUpdate:(nw_path_t)path API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0));
+-(void)notifyModernPathChange API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0));
 
 @end
 
@@ -79,7 +83,7 @@ NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityC
 static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
 {
     return [NSString stringWithFormat:@"%c%c %c%c%c%c%c%c%c",
-#if TARGET_OS_IPHONE
+#if ODW_REACHABILITY_HAS_WWAN
             (flags & kSCNetworkReachabilityFlagsIsWWAN)               ? 'W' : '-',
 #else
             'X',
@@ -94,12 +98,11 @@ static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
              (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
 }
 
-static BOOL ODWModernPathIsReachable(nw_path_status_t status) API_AVAILABLE(macos(10.14), ios(12.0))
+static BOOL ODWModernPathIsReachable(nw_path_status_t status) API_AVAILABLE(macos(10.14), ios(12.0), tvos(12.0), watchos(5.0))
 {
     return status == nw_path_status_satisfied || status == nw_path_status_satisfiable;
 }
 
-#if ODW_LEGACY_REACHABILITY_REQUIRED
 // Start listening for reachability notifications on the current run loop
 static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void* info)
 {
@@ -114,7 +117,6 @@ static void TMReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkRea
         [reachability reachabilityChanged:flags];
     }
 }
-#endif
 
 
 @implementation ODWReachability
@@ -125,94 +127,116 @@ static int kTimeoutDurationInSeconds = 10;
 
 +(ODWReachability*)reachabilityWithHostName:(NSString*)hostname
 {
-    if (hostname == nil || [hostname length] == 0)
-    {
-        NSLog(@"Invalid hostname");
-        return nil;
-    }
     return [ODWReachability reachabilityWithHostname:hostname];
 }
 
 +(instancetype)reachabilityWithHostname:(NSString*)hostname
 {
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (hostname == nil || [hostname length] == 0)
     {
-#endif
-        // Use Network.framework reachability for macOS 10.14 or higher.
-        NSString *formattedHostname = hostname;
-        if (![formattedHostname hasPrefix:@"https://"] && ![formattedHostname hasPrefix:@"http://"]) {
-            formattedHostname = [NSString stringWithFormat:@"https://%@", hostname];
-        }
-        NSURL *url = [NSURL URLWithString:formattedHostname];
-        if (url == nil || url.host == nil)
+        NSLog(@"Invalid hostname '%@': hostname is empty", hostname);
+        return nil;
+    }
+
+    NSString *reachabilityHost = hostname;
+    NSURL *url = nil;
+    NSURLComponents *components = [NSURLComponents componentsWithString:hostname];
+    if ([components.scheme length] > 0)
+    {
+        if ([components.host length] == 0)
         {
-            NSLog(@"Invalid hostname");
+            NSLog(@"Invalid hostname '%@': URL has no host", hostname);
             return nil;
         }
 
-        ODWReachability *reachabilityInstance = [[self alloc] init];
-        reachabilityInstance.url = url;
-        return reachabilityInstance;
-#if ODW_LEGACY_REACHABILITY_REQUIRED
+        reachabilityHost = components.host;
+        url = components.URL;
     }
 
-    // Use SCNetworkReachability for macOS 10.14 or lower
+    if (url == nil)
+    {
+        url = [NSURL URLWithString:[NSString stringWithFormat:@"https://%@", reachabilityHost]];
+    }
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [hostname UTF8String]);
+    SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithName(NULL, [reachabilityHost UTF8String]);
 #pragma clang diagnostic pop
     if (ref)
     {
-        id reachability = [[self alloc] initWithReachabilityRef:ref];
+        ODWReachability *reachability = [[self alloc] initWithReachabilityRef:ref];
+        reachability.url = url;
 
         return reachability;
     }
 
+    const char *errorString = SCErrorString(SCError());
+    NSLog(@"Invalid hostname '%@': SCNetworkReachabilityCreateWithName failed for '%@' (%s)",
+          hostname,
+          reachabilityHost,
+          errorString != NULL ? errorString : "unknown error");
     return nil;
-#endif
 }
 
 +(ODWReachability *)reachabilityWithAddress:(void *)hostAddress
 {
-    if (hostAddress == NULL) {
-        NSLog(@"Invalid address");
+    if (hostAddress == NULL)
+    {
+        NSLog(@"Invalid address: address pointer is null");
         return nil;
     }
 
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    struct sockaddr_storage addressStorage;
+    bzero(&addressStorage, sizeof(addressStorage));
+    struct sockaddr *address = (struct sockaddr *)hostAddress;
+    NSURL *url = nil;
+    if (address->sa_family == AF_INET)
     {
-#endif
-        // Use Network.framework reachability for macOS 10.14 or higher.
-        struct sockaddr_in *address = (struct sockaddr_in *)hostAddress;
-        if (address->sin_addr.s_addr == INADDR_ANY)
+        char addressString[INET_ADDRSTRLEN] = { 0 };
+        struct sockaddr_in *ipv4Address = (struct sockaddr_in *)&addressStorage;
+        *ipv4Address = *(struct sockaddr_in *)hostAddress;
+        if (ipv4Address->sin_len == 0)
         {
-            return [[self alloc] init];
+            ipv4Address->sin_len = sizeof(*ipv4Address);
         }
-
-        NSString *addressString = [NSString stringWithUTF8String:inet_ntoa(address->sin_addr)];
-        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://%@", addressString]];
-        ODWReachability *reachabilityInstance = [[self alloc] init];
-        reachabilityInstance.url = url;
-        return reachabilityInstance;
-#if ODW_LEGACY_REACHABILITY_REQUIRED
+        address = (struct sockaddr *)ipv4Address;
+        if (inet_ntop(AF_INET, &ipv4Address->sin_addr, addressString, sizeof(addressString)) != NULL)
+        {
+            url = [NSURL URLWithString:[NSString stringWithFormat:@"https://%s", addressString]];
+        }
     }
-    
-    // Use SCNetworkReachability for macOS 10.14 or lower
+    else if (address->sa_family == AF_INET6)
+    {
+        char addressString[INET6_ADDRSTRLEN] = { 0 };
+        struct sockaddr_in6 *ipv6Address = (struct sockaddr_in6 *)&addressStorage;
+        *ipv6Address = *(struct sockaddr_in6 *)hostAddress;
+        if (ipv6Address->sin6_len == 0)
+        {
+            ipv6Address->sin6_len = sizeof(*ipv6Address);
+        }
+        address = (struct sockaddr *)ipv6Address;
+        if (inet_ntop(AF_INET6, &ipv6Address->sin6_addr, addressString, sizeof(addressString)) != NULL)
+        {
+            url = [NSURL URLWithString:[NSString stringWithFormat:@"https://[%s]", addressString]];
+        }
+    }
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (const struct sockaddr*)hostAddress);
+    SCNetworkReachabilityRef ref = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (const struct sockaddr*)address);
 #pragma clang diagnostic pop
     if (ref)
     {
-        id reachability = [[self alloc] initWithReachabilityRef:ref];
+        ODWReachability *reachability = [[self alloc] initWithReachabilityRef:ref];
+        reachability.url = url;
 
         return reachability;
     }
 
+    const char *errorString = SCErrorString(SCError());
+    NSLog(@"Invalid address: SCNetworkReachabilityCreateWithAddress failed (%s)",
+          errorString != NULL ? errorString : "unknown error");
     return nil;
-#endif
 }
 
 +(ODWReachability *)handleReachabilityResponse:(NSURLResponse *)response error:(NSError *)error url:(NSURL *)url
@@ -245,10 +269,12 @@ static int kTimeoutDurationInSeconds = 10;
 +(ODWReachability *)reachabilityForInternetConnection
 {
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
     {
         return [[self alloc] init];
     }
+#else
+    return [[self alloc] init];
 #endif
 
     struct sockaddr_in zeroAddress;
@@ -262,12 +288,16 @@ static int kTimeoutDurationInSeconds = 10;
 +(ODWReachability*)reachabilityForLocalWiFi
 {
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
     {
         ODWReachability *reachability = [[self alloc] init];
         reachability.monitorLocalWiFiOnly = YES;
         return reachability;
     }
+#else
+    ODWReachability *reachability = [[self alloc] init];
+    reachability.monitorLocalWiFiOnly = YES;
+    return reachability;
 #endif
 
     struct sockaddr_in localWifiAddress;
@@ -290,6 +320,10 @@ static int kTimeoutDurationInSeconds = 10;
     {
         self.reachableOnWWAN = YES;
         self.reachabilitySerialQueue = dispatch_queue_create("com.tonymillion.reachability", NULL);
+        dispatch_queue_set_specific(self.reachabilitySerialQueue,
+                                    &ODWReachabilityQueueKey,
+                                    &ODWReachabilityQueueKey,
+                                    NULL);
         self.currentPathStatus = nw_path_status_invalid;
     }
 
@@ -378,6 +412,11 @@ static int kTimeoutDurationInSeconds = 10;
     {
         return NO;
     }
+    // The update handler runs on this serial queue, so waiting here would deadlock it.
+    if (dispatch_get_specific(&ODWReachabilityQueueKey) == &ODWReachabilityQueueKey)
+    {
+        return NO;
+    }
 
     long waitResult = dispatch_semaphore_wait(
         semaphore,
@@ -389,7 +428,7 @@ static int kTimeoutDurationInSeconds = 10;
 {
     self.currentPathStatus = nw_path_get_status(path);
     self.currentPathUsesWiFi = nw_path_uses_interface_type(path, nw_interface_type_wifi);
-#if TARGET_OS_IPHONE
+#if ODW_REACHABILITY_HAS_WWAN
     self.currentPathUsesWWAN = nw_path_uses_interface_type(path, nw_interface_type_cellular);
 #else
     self.currentPathUsesWWAN = NO;
@@ -480,8 +519,13 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(BOOL)startNotifier
 {
+    if (self.reachabilityRef != nil)
+    {
+        return [self startLegacyNotifier];
+    }
+
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
     {
 #endif
         // Use NWPathMonitor for macOS 10.14 or higher.
@@ -497,9 +541,14 @@ static int kTimeoutDurationInSeconds = 10;
         return NO;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
-    
-    // Use SCNetworkReachability for macOS 10.14 or lower
-    // allow start notifier to be called multiple times
+
+    return NO;
+#endif
+}
+
+-(BOOL)startLegacyNotifier
+{
+    // Allow start notifier to be called multiple times.
     if (self.reachabilityObject && (self.reachabilityObject == self))
     {
         return YES;
@@ -509,10 +558,12 @@ static int kTimeoutDurationInSeconds = 10;
     context.info = (__bridge void *)self;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (SCNetworkReachabilitySetCallback(self.reachabilityRef, TMReachabilityCallback, &context))
-    {
-        if (SCNetworkReachabilitySetDispatchQueue(self.reachabilityRef, self.reachabilitySerialQueue))
+    BOOL callbackSet = SCNetworkReachabilitySetCallback(self.reachabilityRef, TMReachabilityCallback, &context);
+    BOOL queueSet = callbackSet && SCNetworkReachabilitySetDispatchQueue(self.reachabilityRef, self.reachabilitySerialQueue);
 #pragma clang diagnostic pop
+    if (callbackSet)
+    {
+        if (queueSet)
         {
             self.reachabilityObject = self;
             return YES;
@@ -538,13 +589,18 @@ static int kTimeoutDurationInSeconds = 10;
     // if we get here we fail at the internet
     self.reachabilityObject = nil;
     return NO;
-#endif
 }
 
 -(void)stopNotifier
 {
+    if (self.reachabilityRef != nil)
+    {
+        [self stopLegacyNotifier];
+        return;
+    }
+
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
     {
 #endif
         // Use NWPathMonitor for macOS 10.14 or higher.
@@ -565,7 +621,12 @@ static int kTimeoutDurationInSeconds = 10;
         return;
     }
 
-    // Use SCNetworkReachability for macOS 10.14 or lower
+    return;
+#endif
+}
+
+-(void)stopLegacyNotifier
+{
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     // First stop, any callbacks!
@@ -575,7 +636,6 @@ static int kTimeoutDurationInSeconds = 10;
     SCNetworkReachabilitySetDispatchQueue(self.reachabilityRef, NULL);
 #pragma clang diagnostic pop
     self.reachabilityObject = nil;
-#endif
 }
 
 
@@ -601,7 +661,7 @@ static int kTimeoutDurationInSeconds = 10;
     if( (flags & testcase) == testcase )
         connectionUP = NO;
 
-#if TARGET_OS_IPHONE
+#if ODW_REACHABILITY_HAS_WWAN
     if(flags & kSCNetworkReachabilityFlagsIsWWAN)
     {
         // We're on 3G.
@@ -616,61 +676,63 @@ static int kTimeoutDurationInSeconds = 10;
     return connectionUP;
 }
 
+-(BOOL)getReachabilityFlags:(SCNetworkReachabilityFlags *)flags
+{
+    if (self.reachabilityRef == nil)
+    {
+        return NO;
+    }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    BOOL result = SCNetworkReachabilityGetFlags(self.reachabilityRef, flags);
+#pragma clang diagnostic pop
+    return result;
+}
+
 -(BOOL)isReachable
 {
+    if (self.reachabilityRef != nil)
+    {
+        SCNetworkReachabilityFlags flags;
+        return [self getReachabilityFlags:&flags] && [self isReachableWithFlags:flags];
+    }
+
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
     {
 #endif
         return [self awaitModernPathSnapshot] && ODWModernPathIsReachable(self.currentPathStatus);
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
-    // for macOS 10.14 or lower
-    SCNetworkReachabilityFlags flags;
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if(!SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
-        return NO;
-#pragma clang diagnostic pop
-
-    return [self isReachableWithFlags:flags];
+    return NO;
 #endif
 }
 
 
 -(BOOL)isReachableViaWWAN
 {
-#if TARGET_OS_IPHONE
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+#if ODW_REACHABILITY_HAS_WWAN
+    if (self.reachabilityRef != nil)
     {
+        SCNetworkReachabilityFlags flags = 0;
+        return [self getReachabilityFlags:&flags] &&
+               (flags & kSCNetworkReachabilityFlagsReachable) &&
+               (flags & kSCNetworkReachabilityFlagsIsWWAN);
+    }
+
+#if ODW_LEGACY_REACHABILITY_REQUIRED
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
+    {
+#endif
         return [self awaitModernPathSnapshot] &&
                ODWModernPathIsReachable(self.currentPathStatus) &&
                self.currentPathUsesWWAN;
-    }
-
-    SCNetworkReachabilityFlags flags = 0;
-
-    if(SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
-    {
-        // Check we're REACHABLE
-        if(flags & kSCNetworkReachabilityFlagsReachable)
-        {
-            // Now, check we're on WWAN
-            if(flags & kSCNetworkReachabilityFlagsIsWWAN)
-            {
-                return YES;
-            }
-        }
+#if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
     return NO;
-#else
-    return [self awaitModernPathSnapshot] &&
-           ODWModernPathIsReachable(self.currentPathStatus) &&
-           self.currentPathUsesWWAN;
 #endif
 #else
     return NO;
@@ -679,15 +741,32 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(BOOL)isReachableViaWiFi
 {
+    if (self.reachabilityRef != nil)
+    {
+        SCNetworkReachabilityFlags flags = 0;
+        if ([self getReachabilityFlags:&flags] && (flags & kSCNetworkReachabilityFlagsReachable))
+        {
+#if ODW_REACHABILITY_HAS_WWAN
+            if (flags & kSCNetworkReachabilityFlagsIsWWAN)
+            {
+                return NO;
+            }
+#endif
+            return YES;
+        }
+
+        return NO;
+    }
+
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
     {
 #endif
         if (![self awaitModernPathSnapshot] || !ODWModernPathIsReachable(self.currentPathStatus))
         {
             return NO;
         }
-#if TARGET_OS_IPHONE
+#if ODW_REACHABILITY_HAS_WWAN
         if (self.monitorLocalWiFiOnly)
         {
             return self.currentPathUsesWiFi;
@@ -698,28 +777,6 @@ static int kTimeoutDurationInSeconds = 10;
         return self.monitorLocalWiFiOnly ? self.currentPathUsesWiFi : YES;
 #endif
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    }
-    
-    // for macOS 10.14 or lower
-    SCNetworkReachabilityFlags flags = 0;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if(SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
-#pragma clang diagnostic pop
-    {
-        // Check we're reachable
-        if((flags & kSCNetworkReachabilityFlagsReachable))
-        {
-#if TARGET_OS_IPHONE
-            // Check we're NOT on WWAN
-            if((flags & kSCNetworkReachabilityFlagsIsWWAN))
-            {
-                return NO;
-            }
-#endif
-            return YES;
-        }
     }
 
     return NO;
@@ -736,24 +793,20 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(BOOL)connectionRequired
 {
+    if (self.reachabilityRef != nil)
+    {
+        SCNetworkReachabilityFlags flags;
+        return [self getReachabilityFlags:&flags] &&
+               (flags & kSCNetworkReachabilityFlagsConnectionRequired);
+    }
+
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
     {
 #endif
         return [self awaitModernPathSnapshot] &&
                self.currentPathStatus == nw_path_status_satisfiable;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    }
-    
-    // for macOS 10.14 or lower
-    SCNetworkReachabilityFlags flags;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if(SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
-#pragma clang diagnostic pop
-    {
-        return (flags & kSCNetworkReachabilityFlagsConnectionRequired);
     }
 
     return NO;
@@ -764,56 +817,38 @@ static int kTimeoutDurationInSeconds = 10;
 // Dynamic, on demand connection?
 -(BOOL)isConnectionOnDemand
 {
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (self.reachabilityRef != nil)
     {
-#endif
-        return NO;
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-    }
+        SCNetworkReachabilityFlags flags;
+        if (![self getReachabilityFlags:&flags])
+        {
+            return NO;
+        }
 
-    // for macOS 10.14 or lower
-    SCNetworkReachabilityFlags flags;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
-#pragma clang diagnostic pop
-    {
         return ((flags & kSCNetworkReachabilityFlagsConnectionRequired) &&
                 (flags & (kSCNetworkReachabilityFlagsConnectionOnTraffic | kSCNetworkReachabilityFlagsConnectionOnDemand)));
     }
 
     return NO;
-#endif
 }
 
 
 // Is user intervention required?
 -(BOOL)isInterventionRequired
 {
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (self.reachabilityRef != nil)
     {
-#endif
-        return NO;
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-    }
-    
-    // for macOS 10.14 or lower
-    SCNetworkReachabilityFlags flags;
+        SCNetworkReachabilityFlags flags;
+        if (![self getReachabilityFlags:&flags])
+        {
+            return NO;
+        }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
-#pragma clang diagnostic pop
-    {
         return ((flags & kSCNetworkReachabilityFlagsConnectionRequired) &&
                 (flags & kSCNetworkReachabilityFlagsInterventionRequired));
     }
 
     return NO;
-#endif
 }
 
 
@@ -827,7 +862,7 @@ static int kTimeoutDurationInSeconds = 10;
         if([self isReachableViaWiFi])
             return ReachableViaWiFi;
 
-#if TARGET_OS_IPHONE
+#if ODW_REACHABILITY_HAS_WWAN
         return ReachableViaWWAN;
 #endif
     }
@@ -837,8 +872,14 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(SCNetworkReachabilityFlags)reachabilityFlags
 {
+    if (self.reachabilityRef != nil)
+    {
+        SCNetworkReachabilityFlags flags = 0;
+        return [self getReachabilityFlags:&flags] ? flags : 0;
+    }
+
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    if (@available(macOS 10.14, iOS 12.0, *))
+    if (@available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *))
     {
 #endif
         if (![self awaitModernPathSnapshot])
@@ -855,7 +896,7 @@ static int kTimeoutDurationInSeconds = 10;
         {
             flags |= kSCNetworkReachabilityFlagsConnectionRequired;
         }
-#if TARGET_OS_IPHONE
+#if ODW_REACHABILITY_HAS_WWAN
         if (self.currentPathUsesWWAN)
         {
             flags |= kSCNetworkReachabilityFlagsIsWWAN;
@@ -863,17 +904,6 @@ static int kTimeoutDurationInSeconds = 10;
 #endif
         return flags;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-    }
-
-    // for macOS 10.14 or lower
-    SCNetworkReachabilityFlags flags = 0;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags))
-#pragma clang diagnostic pop
-    {
-        return flags;
     }
 
     return 0;
