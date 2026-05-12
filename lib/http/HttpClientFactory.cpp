@@ -16,8 +16,6 @@
 #if defined(MATSDK_PAL_WIN32)
   #ifdef _WINRT_DLL
     #include "http/HttpClient_WinRt.hpp"
-  #elif defined(HAVE_MAT_WININET_HTTP_CLIENT)
-    #include "http/HttpClient_WinInet.hpp"
   #endif
 #elif defined(MATSDK_PAL_CPP11)
   #if TARGET_OS_IPHONE || (defined(__APPLE__) && defined(APPLE_HTTP))
@@ -42,13 +40,13 @@ namespace MAT_NS_BEGIN {
         LOG_TRACE("Creating HttpClient_WinRt");
         return std::make_shared<HttpClient_WinRt>();
     }
-#elif defined(HAVE_MAT_WININET_HTTP_CLIENT)
-    /* Win32 WinInet HTTP client */
-    std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
-        LOG_TRACE("Creating HttpClient_WinInet");
-        return std::make_shared<HttpClient_WinInet>();
+#else
+    /* Win32 desktop - no default HTTP client; caller must supply their own IHttpClient */
+    std::shared_ptr<IHttpClient> HttpClientFactory::Create()
+    {
+        LOG_TRACE("No default HTTP client available for Win32 desktop");
+        return nullptr;
     }
-
 #endif
 #elif defined(HAVE_MAT_CURL_HTTP_CLIENT)
     std::shared_ptr<IHttpClient> HttpClientFactory::Create() {
