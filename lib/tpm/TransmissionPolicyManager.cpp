@@ -116,8 +116,7 @@ namespace MAT_NS_BEGIN {
             if (delay.count() < 0 || m_timerdelay.count() < 0)
             {
                 LOG_TRACE("Negative delay(%lld) or m_timerdelay(%lld), no upload",
-                    static_cast<long long>(delay.count()),
-                    static_cast<long long>(m_timerdelay.count()));
+                    delay.count(), m_timerdelay.count());
                 return true;
             }
             if (m_scheduledUploadAborted)
@@ -164,7 +163,7 @@ namespace MAT_NS_BEGIN {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
                 // the completion of upload will schedule more uploads as-needed, we only
                 // want to avoid the unnecessary wasteful rescheduling.
-                LOG_TRACE("WAIT  upload %d ms for lat=%d", delta, m_runningLatency);
+                LOG_TRACE("WAIT  upload %llu ms for lat=%d", delta, m_runningLatency);
                 return;
             }
         }
@@ -200,7 +199,7 @@ namespace MAT_NS_BEGIN {
             m_isUploadScheduled = true;
             m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delay.count();
             m_runningLatency = latency;
-            LOG_TRACE("SCHED upload %d ms for lat=%d", delay.count(), m_runningLatency);
+            LOG_TRACE("SCHED upload %lld ms for lat=%d", delay.count(), m_runningLatency);
             m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, static_cast<unsigned>(delay.count()), this, &TransmissionPolicyManager::uploadAsync, latency);
         }
     }
@@ -264,7 +263,7 @@ namespace MAT_NS_BEGIN {
         // Rescheduling upload
         if (nextUpload.count() >= 0)
         {
-            LOG_TRACE("Scheduling upload in %d ms", nextUpload.count());
+            LOG_TRACE("Scheduling upload in %lld ms", nextUpload.count());
             EventLatency proposed = calculateNewPriority();
             scheduleUpload(nextUpload, proposed); // reschedule uploadAsync again
         }

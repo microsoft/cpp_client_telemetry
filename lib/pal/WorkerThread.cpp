@@ -38,7 +38,6 @@ namespace PAL_NS_BEGIN {
         Event                 m_event;
         MAT::Task*            m_itemInProgress;
         bool                  m_shuttingDown = false;
-        int count = 0;
 
     public:
 
@@ -63,7 +62,6 @@ namespace PAL_NS_BEGIN {
                 if (!m_shuttingDown) {
                     m_shuttingDown = true;
                     m_queue.push_back(new WorkerThreadShutdownItem());
-                    count++;
                     m_event.post();
                 }
             }
@@ -126,7 +124,6 @@ namespace PAL_NS_BEGIN {
             else {
                 m_queue.push_back(item);
             }
-            count++;
             m_event.post();
         }
 
