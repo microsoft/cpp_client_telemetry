@@ -25,6 +25,16 @@
       "Component": {
         "Type": "git",
         "git": {
+          "RepositoryUrl": "https://github.com/nlohmann/json",
+          "CommitHash": "9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "git",
+        "git": {
           "RepositoryUrl": "https://github.com/clibs/sha1/",
           "CommitHash": "d5b29e11ec4871b78b370e8e00bd0cd56d798dda"
         }

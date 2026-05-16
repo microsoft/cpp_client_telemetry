@@ -310,8 +310,9 @@ include_directories(lib/pal)
 #  add_subdirectory(bondlite/tests)
 #endif()
 
-# Include repo root to allow includes of sqlite, zlib, and nlohmann
+# Include repo root to allow includes of sqlite and zlib; include third_party for nlohmann
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/third_party)
 
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)
