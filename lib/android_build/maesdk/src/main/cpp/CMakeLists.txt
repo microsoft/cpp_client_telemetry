@@ -162,6 +162,7 @@ target_include_directories(${TARGETNAME} PUBLIC
         ${SDK_ROOT}/sqlite
         ${SDK_ROOT}lib/pal
         ${SDK_ROOT}
+        ${SDK_ROOT}/third_party
         ${SDK_ROOT}/lib/modules/sanitizer/detectors
         ${SDK_ROOT}/lib/modules/sanitizer
         ${CURL_INCLUDE_DIRS})

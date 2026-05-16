@@ -84,7 +84,8 @@ cc_library_shared {
         "lib",
         "lib/include/public",
         "lib/include",
-        "lib/include/mat"
+        "lib/include/mat",
+        "third_party"
     ],
     min_sdk_version: "29",
     shared_libs: [

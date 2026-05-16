@@ -21,6 +21,7 @@ include_directories(AFTER
         ${SDK_ROOT}/sqlite
         ${SDK_ROOT}lib/pal
         ${SDK_ROOT}
+        ${SDK_ROOT}/third_party
         "${gmock_dir}/include"
         "${gmock_dir}"
         "${gtest_dir}/include"
