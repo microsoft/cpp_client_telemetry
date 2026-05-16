@@ -188,7 +188,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\StringUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\ZlibUtils.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\utils\Utils.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\nlohmann\json.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\third_party\nlohmann\json.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\lib\include\public\Version.hpp.template" />
