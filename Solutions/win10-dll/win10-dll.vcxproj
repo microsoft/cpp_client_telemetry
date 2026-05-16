@@ -114,7 +114,7 @@
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetName>Microsoft.Applications.Telemetry.Windows.native</TargetName>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -123,7 +123,7 @@
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetName>Microsoft.Applications.Telemetry.Windows.native</TargetName>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -132,42 +132,42 @@
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetName>Microsoft.Applications.Telemetry.Windows.native</TargetName>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_ARM);$(WindowsSDK_LibraryPath_ARM);$(NETFXKitsDir)Lib\um\arm</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetName>Microsoft.Applications.Telemetry.Windows.native</TargetName>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_ARM);$(WindowsSDK_LibraryPath_ARM);$(NETFXKitsDir)Lib\um\arm</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetName>Microsoft.Applications.Telemetry.Windows.native</TargetName>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_ARM);$(WindowsSDK_LibraryPath_ARM);$(NETFXKitsDir)Lib\um\arm</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetName>Microsoft.Applications.Telemetry.Windows.native</TargetName>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_ARM);$(WindowsSDK_LibraryPath_ARM);$(NETFXKitsDir)Lib\um\arm</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetName>Microsoft.Applications.Telemetry.Windows.native</TargetName>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <GenerateManifest>false</GenerateManifest>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <TargetName>Microsoft.Applications.Telemetry.Windows.native</TargetName>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(SolutionDir)\..\lib\shared\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>%(AdditionalLibraryDirectories);$(AriaDepsLibPath)\zlib;$(AriaDepsLibPath)\sqlite-uwp;$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -415,7 +415,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+    <ProjectReference Include="..\..\third_party\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
       <Project>{8FD826F8-3739-44E6-8CC8-997122E53B8D}</Project>
     </ProjectReference>
   </ItemGroup>

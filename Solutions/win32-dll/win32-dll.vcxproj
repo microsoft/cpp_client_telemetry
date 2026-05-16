@@ -109,7 +109,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
     <AdditionalIncludeDirectories Condition="'$(RunOACR)'=='Yes'">$(ProjectDir)..\..\lib\include\mat;$(ProjectDir)..\..\lib\include;$(ProjectDir)..\..\bondlite\include;$(ProjectDir)..\..\lib;$(ProjectDir)..\..\lib\include;$(ProjectDir);$(GeneratedFilesDir);$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    <IncludePath Condition="'$(RunOACR)'!='Yes'">$(SolutionDir)..;$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(RunOACR)'!='Yes'">$(SolutionDir)..;$(SolutionDir)..\third_party\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)\..\lib\pal\;$(UniversalCRT_IncludePath);$(VC_IncludePath);$(CustomIncludePath);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
@@ -327,7 +327,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+    <ProjectReference Include="..\..\third_party\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
       <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
     </ProjectReference>
   </ItemGroup>

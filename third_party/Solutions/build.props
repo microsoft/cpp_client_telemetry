@@ -1,0 +1,4 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Passthrough: zlib is one level deeper than expected, redirect to the real build.props -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Solutions\build.props" />
+</Project>

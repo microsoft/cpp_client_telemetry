@@ -30,6 +30,16 @@
         }
       },
       "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "git",
+        "git": {
+          "RepositoryUrl": "https://github.com/madler/zlib",
+          "CommitHash": "da607da739fa6047df13e66a2af6b8bec7c2a498"
+        }
+      },
+      "DevelopmentDependency": false
     }
   ]
 }
