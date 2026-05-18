@@ -5,17 +5,18 @@
       "Component": {
         "Type": "git",
         "git": {
-          "RepositoryUrl": "https://github.com/sqlite/sqlite",
-          "CommitHash": "60405cd15cdd085745101a29112043299d439cfa"
+          "RepositoryUrl": "https://github.com/nlohmann/json",
+          "CommitHash": "9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03"
         }
       },
-      "Devel
+      "DevelopmentDependency": false
+    },
     {
       "Component": {
         "Type": "git",
         "git": {
-          "RepositoryUrl": "https://github.com/nlohmann/json",
-          "CommitHash": "9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03"
+          "RepositoryUrl": "https://github.com/sqlite/sqlite",
+          "CommitHash": "60405cd15cdd085745101a29112043299d439cfa"
         }
       },
       "DevelopmentDependency": false
