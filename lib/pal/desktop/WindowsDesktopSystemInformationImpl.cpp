@@ -29,6 +29,7 @@
 
 #include "WindowsEnvironmentInfo.hpp"
 
+#include <cstdint>
 #include <string>
 
 // This define is only available for TH1+
@@ -139,17 +140,62 @@ namespace PAL_NS_BEGIN {
             std::to_string(static_cast<int>(LOWORD(pffi->dwProductVersionLS)));
     }
 
-    /**
-     * Get OS BuildLabEx string
-     */
-    std::string getOsBuildLabEx()
+    const PCSTR c_currentVersion_Key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
+
+    bool getCurrentVersionStringValue(PCSTR valueName, std::string& value)
     {
         char buff[MAX_PATH] = { 0 };
-        const PCSTR c_currentVersion_Key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
-        const PCSTR c_buildLabEx_ValueName = "BuildLabEx";
         DWORD size = sizeof(buff);
-        RegGetValueA(HKEY_LOCAL_MACHINE, c_currentVersion_Key, c_buildLabEx_ValueName, RRF_RT_REG_SZ | RRF_SUBKEY_WOW6464KEY, NULL, (char*)buff, &size);
-        return buff;
+        if (RegGetValueA(
+            HKEY_LOCAL_MACHINE,
+            c_currentVersion_Key,
+            valueName,
+            RRF_RT_REG_SZ | RRF_SUBKEY_WOW6464KEY,
+            NULL,
+            static_cast<char*>(buff),
+            &size) != ERROR_SUCCESS)
+        {
+            return false;
+        }
+
+        value = buff;
+        return !value.empty();
+    }
+
+    bool getCurrentVersionDwordValue(PCSTR valueName, uint32_t& value)
+    {
+        DWORD regValue = 0;
+        DWORD size = sizeof(regValue);
+        if (RegGetValueA(
+            HKEY_LOCAL_MACHINE,
+            c_currentVersion_Key,
+            valueName,
+            RRF_RT_REG_DWORD | RRF_SUBKEY_WOW6464KEY,
+            NULL,
+            &regValue,
+            &size) != ERROR_SUCCESS)
+        {
+            return false;
+        }
+
+        value = regValue;
+        return true;
+    }
+
+    std::string formatWindowsOsFullVersion(
+        unsigned long majorVersion,
+        unsigned long minorVersion,
+        std::string const& buildNumber,
+        uint32_t updateBuildRevision,
+        bool hasUpdateBuildRevision)
+    {
+        std::string version = std::to_string(majorVersion) + "." + std::to_string(minorVersion) + "." + buildNumber;
+        if (hasUpdateBuildRevision)
+        {
+            version += "." + std::to_string(updateBuildRevision);
+        }
+
+        return version;
     }
 
     /**
@@ -175,8 +221,6 @@ namespace PAL_NS_BEGIN {
      */
     void getOsVersion(std::string& osMajorVersion, std::string& osFullVersion)
     {
-        std::string buildLabEx = getOsBuildLabEx();
-
         HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
         typedef HRESULT NTSTATUS;
         typedef NTSTATUS(__stdcall * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
@@ -186,8 +230,22 @@ namespace PAL_NS_BEGIN {
         if (pRtlGetVersion && SUCCEEDED(pRtlGetVersion(&rtlOsvi)))
         {
             osMajorVersion = std::to_string((long long)rtlOsvi.dwMajorVersion) + "." + std::to_string((long long)rtlOsvi.dwMinorVersion);
-            osFullVersion = osMajorVersion + "." + std::to_string((long long)rtlOsvi.dwBuildNumber);
-            osFullVersion = osMajorVersion + "." + buildLabEx;
+
+            std::string buildNumber;
+            if (!getCurrentVersionStringValue("CurrentBuildNumber", buildNumber) &&
+                !getCurrentVersionStringValue("CurrentBuild", buildNumber))
+            {
+                buildNumber = std::to_string((long long)rtlOsvi.dwBuildNumber);
+            }
+
+            uint32_t updateBuildRevision = 0;
+            bool hasUpdateBuildRevision = getCurrentVersionDwordValue("UBR", updateBuildRevision);
+            osFullVersion = formatWindowsOsFullVersion(
+                rtlOsvi.dwMajorVersion,
+                rtlOsvi.dwMinorVersion,
+                buildNumber,
+                updateBuildRevision,
+                hasUpdateBuildRevision);
         }
     }
 
