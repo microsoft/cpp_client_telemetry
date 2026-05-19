@@ -15,7 +15,17 @@ $cpuCount = $env:NUMBER_OF_PROCESSORS
 
 $actualCustomProps = ""
 if ($customProps -ne "") {
-  $actualCustomProps = "/p:ForceImportBeforeCppTargets=$customProps"
+  if (-not (Test-Path -LiteralPath $customProps -PathType Leaf)) {
+    throw "Custom build input not found: $customProps`nPass an existing MSBuild .props or .targets file to ForceImportBeforeCppTargets."
+  }
+
+  $customPropsExtension = [System.IO.Path]::GetExtension($customProps)
+  if ($customPropsExtension -ine ".props" -and $customPropsExtension -ine ".targets") {
+    throw "Custom build input must be an MSBuild .props or .targets file: $customProps`nPass the MSBuild import file, not the CONFIG_CUSTOM_H header."
+  }
+
+  $resolvedCustomProps = (Resolve-Path -LiteralPath $customProps).Path
+  $actualCustomProps = "/p:ForceImportBeforeCppTargets=$resolvedCustomProps"
 }
 
 $coreTargets = @("zlib")
@@ -133,7 +143,18 @@ foreach ($arch in $archs) {
       }
 
       # Build!
-      & cmd /c "msbuild $solution /target:$targetStr /p:BuildProjectReferences=true /maxcpucount:$cpuCount /p:Configuration=$actualConfig /p:Platform=$actualArch $actualCustomProps"
+      $msbuildArgs = @(
+        $solution
+        "/target:$targetStr"
+        "/p:BuildProjectReferences=true"
+        "/maxcpucount:$cpuCount"
+        "/p:Configuration=$actualConfig"
+        "/p:Platform=$actualArch"
+      )
+      if ($actualCustomProps -ne "") {
+        $msbuildArgs += $actualCustomProps
+      }
+      & msbuild @msbuildArgs
 
       echo "...Done!"
       echo ""
