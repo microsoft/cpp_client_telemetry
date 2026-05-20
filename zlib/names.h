@@ -136,16 +136,4 @@
 /* An exported symbol that isn't handled by Z_PREFIX in zconf.h */
 #define z_errmsg act_z_z_errmsg
 
-/* Symbols added in simd.patch */
-#define copy_with_crc act_z_copy_with_crc
-#define crc_finalize act_z_crc_finalize
-#define crc_fold_512to32 act_z_crc_fold_512to32
-#define crc_fold_copy act_z_crc_fold_copy
-#define crc_fold_init act_z_crc_fold_init
-#define crc_reset act_z_crc_reset
-#define fill_window_sse act_z_fill_window_sse
-#define read_buf act_z_read_buf
-#define x86_check_features act_z_x86_check_features
-#define x86_cpu_enable_simd act_z_x86_cpu_enable_simd
-
 #endif  /* ZLIB_NAMES_H_ */
