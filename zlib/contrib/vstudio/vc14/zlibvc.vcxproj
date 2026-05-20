@@ -1181,15 +1181,12 @@ bld_ml64.bat</Command>
     <ClCompile Include="..\..\..\adler32.c" />
     <ClCompile Include="..\..\..\compress.c" />
     <ClCompile Include="..\..\..\crc32.c" />
-    <ClCompile Include="..\..\..\crc_folding.c" />
     <ClCompile Include="..\..\..\deflate.c" />
-    <ClCompile Include="..\..\..\fill_window_sse.c" />
     <ClCompile Include="..\..\..\gzclose.c" />
     <ClCompile Include="..\..\..\gzlib.c" />
     <ClCompile Include="..\..\..\gzread.c" />
     <ClCompile Include="..\..\..\gzwrite.c" />
     <ClCompile Include="..\..\..\infback.c" />
-    <ClCompile Include="..\..\..\x86.c" />
     <ClCompile Include="..\..\masmx64\inffas8664.c" />
     <ClCompile Include="..\..\..\inffast.c" />
     <ClCompile Include="..\..\..\inflate.c" />
