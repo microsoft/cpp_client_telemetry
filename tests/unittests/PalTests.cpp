@@ -161,6 +161,14 @@ TEST_F(PalTests, WindowsOsFullVersionOmitsMissingServicingBuildValue)
             10, 0, 19041, "26200", true, "22631", true, 0, false),
         Eq("10.0.26200"));
 }
+
+TEST_F(PalTests, WindowsOsFullVersionIncludesZeroServicingBuildValueWhenPresent)
+{
+    EXPECT_THAT(
+        PAL::getWindowsOsFullVersionFromSources(
+            10, 0, 19041, "26200", true, "22631", true, 0, true),
+        Eq("10.0.26200.0"));
+}
 #endif
 
 TEST_F(PalTests, MonotonicTime)
