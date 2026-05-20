@@ -109,7 +109,7 @@ typedef struct internal_state {
     ulg   gzindex;       /* where in extra, name, or comment */
     Byte  method;        /* can only be DEFLATED */
     int   last_flush;    /* value of flush param for previous deflate call */
-    unsigned zalign(16) crc0[4 * 5];
+
                 /* used by deflate.c: */
 
     uInt  w_size;        /* LZ77 window size (32K by default) */
@@ -344,24 +344,6 @@ void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, charf *buf,
 # define _tr_tally_lit(s, c, flush) flush = _tr_tally(s, 0, c)
 # define _tr_tally_dist(s, distance, length, flush) \
               flush = _tr_tally(s, distance, length)
-#endif
-
-#ifndef ARCH_ARM
-/* Functions that are SIMD optimised on x86 */
-void ZLIB_INTERNAL crc_fold_init(deflate_state* const s);
-void ZLIB_INTERNAL crc_fold_copy(deflate_state* const s,
-                                 unsigned char* dst,
-                                 const unsigned char* src,
-                                 long len);
-unsigned ZLIB_INTERNAL crc_fold_512to32(deflate_state* const s);
-
-void ZLIB_INTERNAL fill_window_sse(deflate_state* s);
-#else
-/* These functions are not available on ARM architectures */
-__inline void ZLIB_INTERNAL crc_fold_init(deflate_state* const s) { };
-__inline void ZLIB_INTERNAL crc_fold_copy(deflate_state* const s, unsigned char* dst, const unsigned char* src, long len) { };
-__inline unsigned ZLIB_INTERNAL crc_fold_512to32(deflate_state* const s) { return 0; };
-__inline void ZLIB_INTERNAL fill_window_sse(deflate_state* s) { };
 #endif
 
 #endif /* DEFLATE_H */
