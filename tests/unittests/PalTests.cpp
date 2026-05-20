@@ -35,6 +35,16 @@ namespace PAL_NS_BEGIN {
         std::string const& buildNumber,
         uint32_t updateBuildRevision,
         bool hasUpdateBuildRevision);
+    std::string getWindowsOsFullVersionFromSources(
+        unsigned long majorVersion,
+        unsigned long minorVersion,
+        unsigned long rtlBuildNumber,
+        std::string const& currentBuildNumber,
+        bool hasCurrentBuildNumber,
+        std::string const& currentBuild,
+        bool hasCurrentBuild,
+        uint32_t updateBuildRevision,
+        bool hasUpdateBuildRevision);
 } PAL_NS_END
 #endif
 
@@ -117,6 +127,38 @@ TEST_F(PalTests, WindowsOsFullVersionUsesServicingBuildValues)
         Eq("10.0.26200.1234"));
     EXPECT_THAT(
         PAL::formatWindowsOsFullVersion(10, 0, "26200", 0, false),
+        Eq("10.0.26200"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionPrefersCurrentBuildNumber)
+{
+    EXPECT_THAT(
+        PAL::getWindowsOsFullVersionFromSources(
+            10, 0, 19041, "26200", true, "22631", true, 1234, true),
+        Eq("10.0.26200.1234"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionFallsBackToCurrentBuild)
+{
+    EXPECT_THAT(
+        PAL::getWindowsOsFullVersionFromSources(
+            10, 0, 19041, "", false, "22631", true, 1234, true),
+        Eq("10.0.22631.1234"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionFallsBackToRtlBuild)
+{
+    EXPECT_THAT(
+        PAL::getWindowsOsFullVersionFromSources(
+            10, 0, 19041, "", false, "", false, 1234, true),
+        Eq("10.0.19041.1234"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionOmitsMissingServicingBuildValue)
+{
+    EXPECT_THAT(
+        PAL::getWindowsOsFullVersionFromSources(
+            10, 0, 19041, "26200", true, "22631", true, 0, false),
         Eq("10.0.26200"));
 }
 #endif

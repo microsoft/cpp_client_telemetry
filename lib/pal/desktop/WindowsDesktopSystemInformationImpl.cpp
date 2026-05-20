@@ -198,6 +198,39 @@ namespace PAL_NS_BEGIN {
         return version;
     }
 
+    std::string getWindowsOsFullVersionFromSources(
+        unsigned long majorVersion,
+        unsigned long minorVersion,
+        unsigned long rtlBuildNumber,
+        std::string const& currentBuildNumber,
+        bool hasCurrentBuildNumber,
+        std::string const& currentBuild,
+        bool hasCurrentBuild,
+        uint32_t updateBuildRevision,
+        bool hasUpdateBuildRevision)
+    {
+        std::string buildNumber;
+        if (hasCurrentBuildNumber && !currentBuildNumber.empty())
+        {
+            buildNumber = currentBuildNumber;
+        }
+        else if (hasCurrentBuild && !currentBuild.empty())
+        {
+            buildNumber = currentBuild;
+        }
+        else
+        {
+            buildNumber = std::to_string((long long)rtlBuildNumber);
+        }
+
+        return formatWindowsOsFullVersion(
+            majorVersion,
+            minorVersion,
+            buildNumber,
+            updateBuildRevision,
+            hasUpdateBuildRevision);
+    }
+
     /**
      * Get CommercialId from registry
      */
@@ -231,19 +264,20 @@ namespace PAL_NS_BEGIN {
         {
             osMajorVersion = std::to_string((long long)rtlOsvi.dwMajorVersion) + "." + std::to_string((long long)rtlOsvi.dwMinorVersion);
 
-            std::string buildNumber;
-            if (!getCurrentVersionStringValue("CurrentBuildNumber", buildNumber) &&
-                !getCurrentVersionStringValue("CurrentBuild", buildNumber))
-            {
-                buildNumber = std::to_string((long long)rtlOsvi.dwBuildNumber);
-            }
-
+            std::string currentBuildNumber;
+            bool hasCurrentBuildNumber = getCurrentVersionStringValue("CurrentBuildNumber", currentBuildNumber);
+            std::string currentBuild;
+            bool hasCurrentBuild = hasCurrentBuildNumber ? false : getCurrentVersionStringValue("CurrentBuild", currentBuild);
             uint32_t updateBuildRevision = 0;
             bool hasUpdateBuildRevision = getCurrentVersionDwordValue("UBR", updateBuildRevision);
-            osFullVersion = formatWindowsOsFullVersion(
+            osFullVersion = getWindowsOsFullVersionFromSources(
                 rtlOsvi.dwMajorVersion,
                 rtlOsvi.dwMinorVersion,
-                buildNumber,
+                rtlOsvi.dwBuildNumber,
+                currentBuildNumber,
+                hasCurrentBuildNumber,
+                currentBuild,
+                hasCurrentBuild,
                 updateBuildRevision,
                 hasUpdateBuildRevision);
         }
