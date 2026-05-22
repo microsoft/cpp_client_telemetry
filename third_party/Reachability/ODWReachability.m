@@ -200,10 +200,10 @@ static int kTimeoutDurationInSeconds = 10;
         char addressString[INET_ADDRSTRLEN] = { 0 };
         struct sockaddr_in *ipv4Address = (struct sockaddr_in *)&addressStorage;
         *ipv4Address = *(struct sockaddr_in *)hostAddress;
-        if (ipv4Address->sin_len == 0)
-        {
-            ipv4Address->sin_len = sizeof(*ipv4Address);
-        }
+        // BSD sockaddr_in callers (including the unit tests) don't reliably
+        // initialize sin_len; setting it ourselves avoids passing a garbage
+        // length to SCNetworkReachabilityCreateWithAddress.
+        ipv4Address->sin_len = sizeof(*ipv4Address);
         // Reject the unspecified IPv4 wildcard (INADDR_ANY / 0.0.0.0). It is not a
         // routable host address; the SDK only uses it internally as the legacy
         // "internet anywhere" SC probe, which goes through a private path that
@@ -224,10 +224,10 @@ static int kTimeoutDurationInSeconds = 10;
         char addressString[INET6_ADDRSTRLEN] = { 0 };
         struct sockaddr_in6 *ipv6Address = (struct sockaddr_in6 *)&addressStorage;
         *ipv6Address = *(struct sockaddr_in6 *)hostAddress;
-        if (ipv6Address->sin6_len == 0)
-        {
-            ipv6Address->sin6_len = sizeof(*ipv6Address);
-        }
+        // BSD sockaddr_in6 callers don't reliably initialize sin6_len; setting
+        // it ourselves avoids passing a garbage length to
+        // SCNetworkReachabilityCreateWithAddress.
+        ipv6Address->sin6_len = sizeof(*ipv6Address);
         // Reject the unspecified IPv6 wildcard (in6addr_any / ::), same reasoning as IPv4.
         if (memcmp(&ipv6Address->sin6_addr, &in6addr_any, sizeof(struct in6_addr)) == 0)
         {
@@ -293,19 +293,17 @@ static int kTimeoutDurationInSeconds = 10;
 
 +(ODWReachability *)reachabilityForInternetConnection
 {
-#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
         return [[self alloc] init];
     }
-#else
-    return [[self alloc] init];
-#endif
 
-    // Legacy SC fallback. Apple's reference Reachability uses the zero IPv4
-    // address (INADDR_ANY) here as a "probe any internet" sentinel — the public
-    // +reachabilityWithAddress: now rejects that wildcard, so create the SC ref
-    // directly and bypass the validator.
+#if ODW_LEGACY_REACHABILITY_REQUIRED
+    // Legacy SC fallback for deployment targets older than macOS 10.14 / iOS 12.
+    // Apple's reference Reachability uses the zero IPv4 address (INADDR_ANY) here
+    // as a "probe any internet" sentinel — the public +reachabilityWithAddress:
+    // now rejects that wildcard, so create the SC ref directly and bypass the
+    // validator.
     struct sockaddr_in zeroAddress;
     bzero(&zeroAddress, sizeof(zeroAddress));
     zeroAddress.sin_len = sizeof(zeroAddress);
@@ -320,24 +318,21 @@ static int kTimeoutDurationInSeconds = 10;
     {
         return [[self alloc] initWithReachabilityRef:ref];
     }
+#endif
     return nil;
 }
 
 +(ODWReachability*)reachabilityForLocalWiFi
 {
-#if ODW_LEGACY_REACHABILITY_REQUIRED
     if (@available(macOS 10.14, iOS 12.0, *))
     {
         ODWReachability *reachability = [[self alloc] init];
         reachability.monitorLocalWiFiOnly = YES;
         return reachability;
     }
-#else
-    ODWReachability *reachability = [[self alloc] init];
-    reachability.monitorLocalWiFiOnly = YES;
-    return reachability;
-#endif
 
+#if ODW_LEGACY_REACHABILITY_REQUIRED
+    // Legacy SC fallback for deployment targets older than macOS 10.14 / iOS 12.
     struct sockaddr_in localWifiAddress;
     bzero(&localWifiAddress, sizeof(localWifiAddress));
     localWifiAddress.sin_len            = sizeof(localWifiAddress);
@@ -346,6 +341,9 @@ static int kTimeoutDurationInSeconds = 10;
     localWifiAddress.sin_addr.s_addr    = htonl(IN_LINKLOCALNETNUM);
 
     return [self reachabilityWithAddress:&localWifiAddress];
+#else
+    return nil;
+#endif
 }
 
 
