@@ -120,7 +120,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # -Wno-unknown-warning-option is Clang-only, omitted here
   set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-but-set-variable")
 else()
-  # No -pedantic -Wno-extra-semi -Wno-gnu-zero-variadic-macro-arguments
+  # Clang / AppleClang
   set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unknown-warning-option -Wno-unused-but-set-variable")
 endif()
 
