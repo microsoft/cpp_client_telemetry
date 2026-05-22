@@ -26,7 +26,7 @@
         "Type": "git",
         "git": {
           "RepositoryUrl": "https://github.com/madler/zlib",
-          "CommitHash": "cacf7f1d4e3d44d871b605da3b647f07d718623f"
+          "CommitHash": "da607da739fa6047df13e66a2af6b8bec7c2a498"
         }
       },
       "DevelopmentDependency": false
