@@ -281,7 +281,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="TestApp.pfx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Solutions\win10-dll\win10-dll.vcxproj">
