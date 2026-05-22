@@ -200,10 +200,10 @@
     <ClCompile Include="EventSender.cpp" />
   </ItemGroup>
   <ItemGroup Condition="$(Configuration.Contains('static'))">
-    <ProjectReference Include="..\..\Solutions\win32-lib\win32-lib.vcxproj">
+    <ProjectReference Include="..\..\..\Solutions\win32-lib\win32-lib.vcxproj">
       <Project>{1DC6B38A-B390-34CE-907F-4958807A3D42}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
+    <ProjectReference Include="..\..\..\sqlite\sqlite.vcxproj">
       <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\third_party\Solutions\zlib\vc14\zlibvc.vcxproj">

@@ -1199,11 +1199,8 @@ bld_ml64.bat</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\zlib\deflate.h" />
-    <ClInclude Include="..\..\..\..\zlib\infblock.h" />
-    <ClInclude Include="..\..\..\..\zlib\infcodes.h" />
     <ClInclude Include="..\..\..\..\zlib\inffast.h" />
     <ClInclude Include="..\..\..\..\zlib\inftrees.h" />
-    <ClInclude Include="..\..\..\..\zlib\infutil.h" />
     <ClInclude Include="..\..\..\..\zlib\zconf.h" />
     <ClInclude Include="..\..\..\..\zlib\zlib.h" />
     <ClInclude Include="..\..\..\..\zlib\zutil.h" />
