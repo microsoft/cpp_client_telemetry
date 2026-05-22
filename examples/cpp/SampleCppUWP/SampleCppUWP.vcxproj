@@ -110,6 +110,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
+    <!-- PackageCertificateKeyFile>TestApp.pfx</PackageCertificateKeyFile -->
+    <!-- PackageCertificateThumbprint>C810DAF81A74B3834A3FB2F4B720F9AA24C30701</PackageCertificateThumbprint -->
     <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
