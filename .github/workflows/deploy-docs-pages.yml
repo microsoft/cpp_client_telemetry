@@ -72,6 +72,8 @@ jobs:
     steps:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Deploy to GitHub Pages
         id: deployment
