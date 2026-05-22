@@ -142,26 +142,6 @@ namespace PAL_NS_BEGIN {
 
     const PCSTR c_currentVersion_Key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
 
-    bool getCurrentVersionStringValue(PCSTR valueName, std::string& value)
-    {
-        char buff[MAX_PATH] = { 0 };
-        DWORD size = sizeof(buff);
-        if (RegGetValueA(
-            HKEY_LOCAL_MACHINE,
-            c_currentVersion_Key,
-            valueName,
-            RRF_RT_REG_SZ | RRF_SUBKEY_WOW6464KEY,
-            NULL,
-            static_cast<char*>(buff),
-            &size) != ERROR_SUCCESS)
-        {
-            return false;
-        }
-
-        value = buff;
-        return !value.empty();
-    }
-
     bool getCurrentVersionDwordValue(PCSTR valueName, uint32_t& value)
     {
         DWORD regValue = 0;
@@ -185,50 +165,19 @@ namespace PAL_NS_BEGIN {
     std::string formatWindowsOsFullVersion(
         unsigned long majorVersion,
         unsigned long minorVersion,
-        std::string const& buildNumber,
+        unsigned long buildNumber,
         uint32_t updateBuildRevision,
         bool hasUpdateBuildRevision)
     {
-        std::string version = std::to_string(majorVersion) + "." + std::to_string(minorVersion) + "." + buildNumber;
+        std::string version = std::to_string(majorVersion) + "." +
+                              std::to_string(minorVersion) + "." +
+                              std::to_string(static_cast<long long>(buildNumber));
         if (hasUpdateBuildRevision)
         {
             version += "." + std::to_string(updateBuildRevision);
         }
 
         return version;
-    }
-
-    std::string getWindowsOsFullVersionFromSources(
-        unsigned long majorVersion,
-        unsigned long minorVersion,
-        unsigned long rtlBuildNumber,
-        std::string const& currentBuildNumber,
-        bool hasCurrentBuildNumber,
-        std::string const& currentBuild,
-        bool hasCurrentBuild,
-        uint32_t updateBuildRevision,
-        bool hasUpdateBuildRevision)
-    {
-        std::string buildNumber;
-        if (hasCurrentBuildNumber && !currentBuildNumber.empty())
-        {
-            buildNumber = currentBuildNumber;
-        }
-        else if (hasCurrentBuild && !currentBuild.empty())
-        {
-            buildNumber = currentBuild;
-        }
-        else
-        {
-            buildNumber = std::to_string((long long)rtlBuildNumber);
-        }
-
-        return formatWindowsOsFullVersion(
-            majorVersion,
-            minorVersion,
-            buildNumber,
-            updateBuildRevision,
-            hasUpdateBuildRevision);
     }
 
     /**
@@ -264,20 +213,19 @@ namespace PAL_NS_BEGIN {
         {
             osMajorVersion = std::to_string((long long)rtlOsvi.dwMajorVersion) + "." + std::to_string((long long)rtlOsvi.dwMinorVersion);
 
-            std::string currentBuildNumber;
-            bool hasCurrentBuildNumber = getCurrentVersionStringValue("CurrentBuildNumber", currentBuildNumber);
-            std::string currentBuild;
-            bool hasCurrentBuild = hasCurrentBuildNumber ? false : getCurrentVersionStringValue("CurrentBuild", currentBuild);
+            // Use the kernel's authoritative dwBuildNumber from RtlGetVersion
+            // (see Windows team guidance on issue #1407). The registry
+            // CurrentBuildNumber / CurrentBuild values are only useful for
+            // offline reads of another Windows installation; for the running
+            // OS they are always in sync with the kernel build, so prefer the
+            // API. UBR is registry-only and is always safe to combine with the
+            // kernel build number.
             uint32_t updateBuildRevision = 0;
             bool hasUpdateBuildRevision = getCurrentVersionDwordValue("UBR", updateBuildRevision);
-            osFullVersion = getWindowsOsFullVersionFromSources(
+            osFullVersion = formatWindowsOsFullVersion(
                 rtlOsvi.dwMajorVersion,
                 rtlOsvi.dwMinorVersion,
                 rtlOsvi.dwBuildNumber,
-                currentBuildNumber,
-                hasCurrentBuildNumber,
-                currentBuild,
-                hasCurrentBuild,
                 updateBuildRevision,
                 hasUpdateBuildRevision);
         }
