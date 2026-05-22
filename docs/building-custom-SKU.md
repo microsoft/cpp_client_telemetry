@@ -44,6 +44,8 @@ build-all.bat %CD%\Solutions\build.compact.props
 
 produces a custom compact SDK build.
 
+The argument passed to `build-all.bat` must be an MSBuild `.props` or `.targets` file that sets the required preprocessor definitions. Do not pass the `config-*.h` header directly to `ForceImportBeforeCppTargets`.
+
 How it works:
 
 **build.compact.props** - contains the preprocessor definition that is functionally equivalent to
