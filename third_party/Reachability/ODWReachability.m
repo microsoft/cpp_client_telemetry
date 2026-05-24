@@ -967,30 +967,6 @@ static int kTimeoutDurationInSeconds = 10;
     return reachabilityFlags([self reachabilityFlags]);
 }
 
-- (SCNetworkReachabilityFlags)checkNetworkReachability:(BOOL)checkData
-{
-    __block BOOL connection = NO;
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-    
-    NSURLSession *session = [NSURLSession sharedSession];
-    NSURLSessionDataTask *task = [session dataTaskWithURL:[self url] completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        if (error == nil && !checkData)
-        {
-            connection = YES;
-        }
-        else if (error == nil && checkData && data != nil)
-        {
-            connection = YES;
-        }
-        dispatch_semaphore_signal(semaphore);
-    }];
-    
-    [task resume];
-    dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
-    
-    return connection;
-}
-
 #pragma mark - Callback function calls this method
 
 -(void)reachabilityChanged:(SCNetworkReachabilityFlags)flags
