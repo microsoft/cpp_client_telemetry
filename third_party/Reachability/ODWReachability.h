@@ -89,6 +89,28 @@ typedef void (^NetworkUnreachable)(ODWReachability * reachability);
 +(ODWReachability*)reachabilityForLocalWiFi;
 +(void)setTimeoutDurationInSeconds:(int)timeoutDuration;
 
+// -------------------------------------------------------------------------
+// Behavior note for hostname / address constructors (modern Apple targets):
+//
+// Prior to the NWPathMonitor migration, instances created via
+// +reachabilityWithHostname: or +reachabilityWithAddress: would, on
+// iOS 12+ / macOS 10.14+, internally issue an NSURLSession HTTPS GET to
+// the host's URL whenever -isReachable / -isReachableViaWiFi was queried,
+// yielding a true per-endpoint reachability answer (DNS + TLS round-trip).
+//
+// After the migration, those queries return OS-level reachability for the
+// hostname/address via SCNetworkReachabilityGetFlags on the SC ref the
+// constructor created. That still involves DNS via the SC stack but is
+// not the same as actually probing the endpoint with HTTPS. Callers that
+// require an authoritative "can I reach this exact endpoint over HTTPS?"
+// answer should perform that probe themselves rather than relying on
+// these per-host instances. The SDK's own production network detection
+// (NetworkInformationImpl) uses +reachabilityForInternetConnection on
+// legacy targets and nw_path_monitor_create() directly on modern targets;
+// neither path was ever per-endpoint, so this change does not affect the
+// SDK's own behavior.
+// -------------------------------------------------------------------------
+
 -(ODWReachability *)initWithReachabilityRef:(SCNetworkReachabilityRef)ref;
 
 -(BOOL)startNotifier;
