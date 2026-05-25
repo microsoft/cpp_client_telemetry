@@ -267,33 +267,6 @@ static int kTimeoutDurationInSeconds = 10;
     return nil;
 }
 
-+(ODWReachability *)handleReachabilityResponse:(NSURLResponse *)response error:(NSError *)error url:(NSURL *)url
-{
-    __block ODWReachability *reachabilityInstance = nil;
-
-    if (error == nil) {
-        // Handle successful reachability
-        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-        if (httpResponse.statusCode == 200)
-        {
-            NSLog(@"Reachability success: %@", url);
-            reachabilityInstance = [[self alloc] init];
-            reachabilityInstance.url = url;
-        }
-        else
-        {
-            NSLog(@"Reachability failed with status code: %ld", (long)httpResponse.statusCode);
-        }
-        return reachabilityInstance;
-    }
-    
-    // Handle reachability failure
-    NSLog(@"Reachability error: %@", error.localizedDescription);
-    
-    return nil;
-}
-
-
 +(ODWReachability *)reachabilityForInternetConnection
 {
     if (@available(macOS 10.14, iOS 12.0, *))
@@ -623,10 +596,6 @@ static int kTimeoutDurationInSeconds = 10;
         if ([self ensureModernPathMonitor])
         {
             self.reachabilityObject = self;
-            if ([self awaitModernPathSnapshot])
-            {
-                [self notifyModernPathChange];
-            }
             return YES;
         }
         return NO;

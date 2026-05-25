@@ -118,4 +118,16 @@
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 }
 
+- (void)testStartAndStopNotifier
+{
+    ODWReachability *reachability = [ODWReachability reachabilityForInternetConnection];
+    XCTAssertNotNil(reachability);
+
+    NSDate *start = [NSDate date];
+    XCTAssertTrue([reachability startNotifier]);
+    XCTAssertLessThan([[NSDate date] timeIntervalSinceDate:start], 1.0);
+
+    [reachability stopNotifier];
+}
+
 @end
