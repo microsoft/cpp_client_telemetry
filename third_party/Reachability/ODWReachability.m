@@ -64,7 +64,7 @@ typedef struct
 @property (nonatomic, strong) id                        reachabilityObject;
 @property (nonatomic, strong) nw_path_monitor_t         pathMonitor;
 @property (nonatomic, strong) ODWReachabilityMonitorContext *pathMonitorContext;
-@property (nonatomic, strong) dispatch_semaphore_t      initialPathSemaphore;
+@property (nonatomic, strong) dispatch_group_t          initialPathGroup;
 @property (nonatomic, assign) nw_path_status_t          currentPathStatus;
 @property (nonatomic, assign) BOOL                      currentPathUsesWiFi;
 @property (nonatomic, assign) BOOL                      currentPathUsesWWAN;
@@ -425,39 +425,56 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(BOOL)ensureModernPathMonitor
 {
-    if (self.pathMonitor != nil)
-    {
-        return YES;
-    }
+    __block BOOL ensured = NO;
+    void (^ensureMonitor)(void) = ^{
+        if (self.pathMonitor != nil)
+        {
+            ensured = YES;
+            return;
+        }
 
-    [self resetModernPathSnapshot];
-    self.initialPathSemaphore = dispatch_semaphore_create(0);
-    self.pathMonitor = self.monitorLocalWiFiOnly
-        ? nw_path_monitor_create_with_type(nw_interface_type_wifi)
-        : nw_path_monitor_create();
+        nw_path_monitor_t monitor = self.monitorLocalWiFiOnly
+            ? nw_path_monitor_create_with_type(nw_interface_type_wifi)
+            : nw_path_monitor_create();
 
-    if (self.pathMonitor == nil)
-    {
-        return NO;
-    }
-
-    ODWReachabilityMonitorContext *context = [[ODWReachabilityMonitorContext alloc] init];
-    context.owner = self;
-    self.pathMonitorContext = context;
-
-    nw_path_monitor_set_queue(self.pathMonitor, self.reachabilitySerialQueue);
-    nw_path_monitor_set_update_handler(self.pathMonitor, ^(nw_path_t path) {
-        ODWReachability *owner = context.owner;
-        if (owner == nil)
+        if (monitor == nil)
         {
             return;
         }
 
-        [owner handleModernPathUpdate:path];
-    });
-    nw_path_monitor_start(self.pathMonitor);
+        [self resetModernPathSnapshot];
+        self.initialPathGroup = dispatch_group_create();
+        dispatch_group_enter(self.initialPathGroup);
+        self.pathMonitor = monitor;
 
-    return YES;
+        ODWReachabilityMonitorContext *context = [[ODWReachabilityMonitorContext alloc] init];
+        context.owner = self;
+        self.pathMonitorContext = context;
+
+        nw_path_monitor_set_queue(self.pathMonitor, self.reachabilitySerialQueue);
+        nw_path_monitor_set_update_handler(self.pathMonitor, ^(nw_path_t path) {
+            ODWReachability *owner = context.owner;
+            if (owner == nil)
+            {
+                return;
+            }
+
+            [owner handleModernPathUpdate:path];
+        });
+        nw_path_monitor_start(self.pathMonitor);
+        ensured = YES;
+    };
+
+    if (dispatch_get_specific(&ODWReachabilityQueueKey) == &ODWReachabilityQueueKey)
+    {
+        ensureMonitor();
+    }
+    else
+    {
+        dispatch_sync(self.reachabilitySerialQueue, ensureMonitor);
+    }
+
+    return ensured;
 }
 
 -(BOOL)awaitModernPathSnapshot
@@ -472,11 +489,23 @@ static int kTimeoutDurationInSeconds = 10;
         return YES;
     }
 
-    // Capture the semaphore into a local so a concurrent -stopNotifier on
+    // Capture the group into a local so a concurrent -stopNotifier on
     // another thread cannot release the property between the nil-check and
     // the wait below.
-    dispatch_semaphore_t semaphore = self.initialPathSemaphore;
-    if (semaphore == nil)
+    __block dispatch_group_t group = nil;
+    void (^copyInitialPathGroup)(void) = ^{
+        group = self.initialPathGroup;
+    };
+    if (dispatch_get_specific(&ODWReachabilityQueueKey) == &ODWReachabilityQueueKey)
+    {
+        copyInitialPathGroup();
+    }
+    else
+    {
+        dispatch_sync(self.reachabilitySerialQueue, copyInitialPathGroup);
+    }
+
+    if (group == nil)
     {
         return NO;
     }
@@ -494,8 +523,8 @@ static int kTimeoutDurationInSeconds = 10;
         return NO;
     }
 
-    long waitResult = dispatch_semaphore_wait(
-        semaphore,
+    long waitResult = dispatch_group_wait(
+        group,
         dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
     return waitResult == 0 && [self currentModernPathSnapshot].hasObservedPath;
 }
@@ -514,13 +543,10 @@ static int kTimeoutDurationInSeconds = 10;
     self.hasObservedPath = YES;
     if (firstPath)
     {
-        // Capture the semaphore into a local so a concurrent -stopNotifier
-        // on another thread cannot release the property between the
-        // nil-check and the signal below.
-        dispatch_semaphore_t semaphore = self.initialPathSemaphore;
-        if (semaphore != nil)
+        dispatch_group_t group = self.initialPathGroup;
+        if (group != nil)
         {
-            dispatch_semaphore_signal(semaphore);
+            dispatch_group_leave(group);
         }
     }
 
@@ -672,21 +698,34 @@ static int kTimeoutDurationInSeconds = 10;
     {
 #endif
         // Use NWPathMonitor for macOS 10.14 or higher.
-        self.reachabilityObject = nil;
-        dispatch_semaphore_t semaphore = self.initialPathSemaphore;
-        if (self.pathMonitor != nil)
+        void (^stopMonitor)(void) = ^{
+            dispatch_group_t group = self.initialPathGroup;
+            BOOL shouldLeaveGroup = group != nil && !self.hasObservedPath;
+
+            self.reachabilityObject = nil;
+            if (self.pathMonitor != nil)
+            {
+                self.pathMonitorContext.owner = nil;
+                nw_path_monitor_cancel(self.pathMonitor);
+                self.pathMonitor = nil;
+            }
+            self.pathMonitorContext = nil;
+            [self resetModernPathSnapshot];
+            if (shouldLeaveGroup)
+            {
+                dispatch_group_leave(group);
+            }
+            self.initialPathGroup = nil;
+        };
+
+        if (dispatch_get_specific(&ODWReachabilityQueueKey) == &ODWReachabilityQueueKey)
         {
-            self.pathMonitorContext.owner = nil;
-            nw_path_monitor_cancel(self.pathMonitor);
-            self.pathMonitor = nil;
+            stopMonitor();
         }
-        self.pathMonitorContext = nil;
-        [self resetModernPathSnapshot];
-        if (semaphore != nil)
+        else
         {
-            dispatch_semaphore_signal(semaphore);
+            dispatch_sync(self.reachabilitySerialQueue, stopMonitor);
         }
-        self.initialPathSemaphore = nil;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
         return;
     }

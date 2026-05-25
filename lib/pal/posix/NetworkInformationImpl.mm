@@ -59,8 +59,8 @@ namespace PAL_NS_BEGIN {
         /// <summary>
         /// Setup initial network information and start net monitor if requested.
         /// This cannot be put in constructor because we need to use shared_from_this.
-         /// </summary>
-         void SetupNetDetect();
+        /// </summary>
+        void SetupNetDetect();
 
      private:
          void SetupModernNetDetect() API_AVAILABLE(macos(10.14), ios(12.0));
