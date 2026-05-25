@@ -144,24 +144,21 @@ static int kTimeoutDurationInSeconds = 10;
         return nil;
     }
 
-    NSString *reachabilityHost = hostname;
-    NSURL *url = nil;
-    NSURLComponents *components = [NSURLComponents componentsWithString:hostname];
-    if ([components.scheme length] > 0)
+    BOOL hasExplicitScheme = [hostname rangeOfString:@"://"].location != NSNotFound;
+    NSString *urlString = hasExplicitScheme ? hostname : [NSString stringWithFormat:@"https://%@", hostname];
+    NSURLComponents *components = [NSURLComponents componentsWithString:urlString];
+    if (components == nil || [components.host length] == 0)
     {
-        if ([components.host length] == 0)
-        {
-            NSLog(@"Invalid hostname '%@': URL has no host", hostname);
-            return nil;
-        }
-
-        reachabilityHost = components.host;
-        url = components.URL;
+        NSLog(@"Invalid hostname '%@': URL has no host", hostname);
+        return nil;
     }
 
+    NSString *reachabilityHost = components.host;
+    NSURL *url = components.URL;
     if (url == nil)
     {
-        url = [NSURL URLWithString:[NSString stringWithFormat:@"https://%@", reachabilityHost]];
+        NSLog(@"Invalid hostname '%@': URL could not be constructed", hostname);
+        return nil;
     }
 
     // NWPathMonitor has no public hostname-targeted API: it monitors the system

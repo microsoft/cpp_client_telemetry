@@ -37,15 +37,28 @@
 
 - (void)testReachabilityWithInvalidHostname
 {
+    NSString *hostname = @"https://";
+    ODWReachability *reachability = [ODWReachability reachabilityWithHostname:hostname];
+
+    XCTAssertNil(reachability);
+}
+
+- (void)testReachabilityWithUnresolvedHostname
+{
     NSString *hostname = @"invalid.hostname";
     ODWReachability *reachability = [ODWReachability reachabilityWithHostname:hostname];
-    
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Reachability check"];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        XCTAssertNil(reachability);
-        [expectation fulfill];
-    });
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+
+    XCTAssertNotNil(reachability);
+    XCTAssertEqualObjects(reachability.url.absoluteString, @"https://invalid.hostname");
+}
+
+- (void)testReachabilityWithHostAndPort
+{
+    NSString *hostname = @"example.com:8080";
+    ODWReachability *reachability = [ODWReachability reachabilityWithHostname:hostname];
+
+    XCTAssertNotNil(reachability);
+    XCTAssertEqualObjects(reachability.url.absoluteString, @"https://example.com:8080");
 }
 
 - (void)testReachabilityWithAddress
