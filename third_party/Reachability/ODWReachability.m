@@ -37,6 +37,14 @@
 NSString *const kNetworkReachabilityChangedNotification = @"NetworkReachabilityChangedNotification";
 static char ODWReachabilityQueueKey;
 
+typedef struct
+{
+    nw_path_status_t status;
+    BOOL usesWiFi;
+    BOOL usesWWAN;
+    BOOL hasObservedPath;
+} ODWModernPathSnapshot;
+
 @class ODWReachability;
 
 @interface ODWReachabilityMonitorContext : NSObject
@@ -70,6 +78,8 @@ static char ODWReachabilityQueueKey;
 -(void)stopLegacyNotifier;
 -(BOOL)ensureModernPathMonitor API_AVAILABLE(macos(10.14), ios(12.0));
 -(BOOL)awaitModernPathSnapshot API_AVAILABLE(macos(10.14), ios(12.0));
+-(ODWModernPathSnapshot)currentModernPathSnapshot API_AVAILABLE(macos(10.14), ios(12.0));
+-(void)resetModernPathSnapshot API_AVAILABLE(macos(10.14), ios(12.0));
 -(void)handleModernPathUpdate:(nw_path_t)path API_AVAILABLE(macos(10.14), ios(12.0));
 -(void)notifyModernPathChange API_AVAILABLE(macos(10.14), ios(12.0));
 
@@ -372,6 +382,47 @@ static int kTimeoutDurationInSeconds = 10;
     return self;
 }
 
+-(ODWModernPathSnapshot)currentModernPathSnapshot
+{
+    __block ODWModernPathSnapshot snapshot = { nw_path_status_invalid, NO, NO, NO };
+    void (^copySnapshot)(void) = ^{
+        snapshot.status = self.currentPathStatus;
+        snapshot.usesWiFi = self.currentPathUsesWiFi;
+        snapshot.usesWWAN = self.currentPathUsesWWAN;
+        snapshot.hasObservedPath = self.hasObservedPath;
+    };
+
+    if (dispatch_get_specific(&ODWReachabilityQueueKey) == &ODWReachabilityQueueKey)
+    {
+        copySnapshot();
+    }
+    else
+    {
+        dispatch_sync(self.reachabilitySerialQueue, copySnapshot);
+    }
+
+    return snapshot;
+}
+
+-(void)resetModernPathSnapshot
+{
+    void (^resetSnapshot)(void) = ^{
+        self.hasObservedPath = NO;
+        self.currentPathStatus = nw_path_status_invalid;
+        self.currentPathUsesWiFi = NO;
+        self.currentPathUsesWWAN = NO;
+    };
+
+    if (dispatch_get_specific(&ODWReachabilityQueueKey) == &ODWReachabilityQueueKey)
+    {
+        resetSnapshot();
+    }
+    else
+    {
+        dispatch_sync(self.reachabilitySerialQueue, resetSnapshot);
+    }
+}
+
 -(BOOL)ensureModernPathMonitor
 {
     if (self.pathMonitor != nil)
@@ -379,10 +430,7 @@ static int kTimeoutDurationInSeconds = 10;
         return YES;
     }
 
-    self.hasObservedPath = NO;
-    self.currentPathStatus = nw_path_status_invalid;
-    self.currentPathUsesWiFi = NO;
-    self.currentPathUsesWWAN = NO;
+    [self resetModernPathSnapshot];
     self.initialPathSemaphore = dispatch_semaphore_create(0);
     self.pathMonitor = self.monitorLocalWiFiOnly
         ? nw_path_monitor_create_with_type(nw_interface_type_wifi)
@@ -419,7 +467,7 @@ static int kTimeoutDurationInSeconds = 10;
         return NO;
     }
 
-    if (self.hasObservedPath)
+    if ([self currentModernPathSnapshot].hasObservedPath)
     {
         return YES;
     }
@@ -449,7 +497,7 @@ static int kTimeoutDurationInSeconds = 10;
     long waitResult = dispatch_semaphore_wait(
         semaphore,
         dispatch_time(DISPATCH_TIME_NOW, kTimeoutDurationInSeconds * NSEC_PER_SEC));
-    return waitResult == 0 && self.hasObservedPath;
+    return waitResult == 0 && [self currentModernPathSnapshot].hasObservedPath;
 }
 
 -(void)handleModernPathUpdate:(nw_path_t)path
@@ -484,7 +532,8 @@ static int kTimeoutDurationInSeconds = 10;
 
 -(void)notifyModernPathChange
 {
-    if (ODWModernPathIsReachable(self.currentPathStatus))
+    ODWModernPathSnapshot snapshot = [self currentModernPathSnapshot];
+    if (ODWModernPathIsReachable(snapshot.status))
     {
         if (self.reachableBlock)
         {
@@ -624,6 +673,7 @@ static int kTimeoutDurationInSeconds = 10;
 #endif
         // Use NWPathMonitor for macOS 10.14 or higher.
         self.reachabilityObject = nil;
+        dispatch_semaphore_t semaphore = self.initialPathSemaphore;
         if (self.pathMonitor != nil)
         {
             self.pathMonitorContext.owner = nil;
@@ -631,11 +681,12 @@ static int kTimeoutDurationInSeconds = 10;
             self.pathMonitor = nil;
         }
         self.pathMonitorContext = nil;
+        [self resetModernPathSnapshot];
+        if (semaphore != nil)
+        {
+            dispatch_semaphore_signal(semaphore);
+        }
         self.initialPathSemaphore = nil;
-        self.hasObservedPath = NO;
-        self.currentPathStatus = nw_path_status_invalid;
-        self.currentPathUsesWiFi = NO;
-        self.currentPathUsesWWAN = NO;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
         return;
     }
@@ -721,7 +772,13 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        return [self awaitModernPathSnapshot] && ODWModernPathIsReachable(self.currentPathStatus);
+        if (![self awaitModernPathSnapshot])
+        {
+            return NO;
+        }
+
+        ODWModernPathSnapshot snapshot = [self currentModernPathSnapshot];
+        return ODWModernPathIsReachable(snapshot.status);
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
@@ -745,9 +802,13 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        return [self awaitModernPathSnapshot] &&
-               ODWModernPathIsReachable(self.currentPathStatus) &&
-               self.currentPathUsesWWAN;
+        if (![self awaitModernPathSnapshot])
+        {
+            return NO;
+        }
+
+        ODWModernPathSnapshot snapshot = [self currentModernPathSnapshot];
+        return ODWModernPathIsReachable(snapshot.status) && snapshot.usesWWAN;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
@@ -781,19 +842,25 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        if (![self awaitModernPathSnapshot] || !ODWModernPathIsReachable(self.currentPathStatus))
+        if (![self awaitModernPathSnapshot])
+        {
+            return NO;
+        }
+
+        ODWModernPathSnapshot snapshot = [self currentModernPathSnapshot];
+        if (!ODWModernPathIsReachable(snapshot.status))
         {
             return NO;
         }
 #if ODW_REACHABILITY_HAS_WWAN
         if (self.monitorLocalWiFiOnly)
         {
-            return self.currentPathUsesWiFi;
+            return snapshot.usesWiFi;
         }
 
-        return !self.currentPathUsesWWAN;
+        return !snapshot.usesWWAN;
 #else
-        return self.monitorLocalWiFiOnly ? self.currentPathUsesWiFi : YES;
+        return self.monitorLocalWiFiOnly ? snapshot.usesWiFi : YES;
 #endif
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
@@ -823,8 +890,13 @@ static int kTimeoutDurationInSeconds = 10;
     if (@available(macOS 10.14, iOS 12.0, *))
     {
 #endif
-        return [self awaitModernPathSnapshot] &&
-               self.currentPathStatus == nw_path_status_satisfiable;
+        if (![self awaitModernPathSnapshot])
+        {
+            return NO;
+        }
+
+        ODWModernPathSnapshot snapshot = [self currentModernPathSnapshot];
+        return snapshot.status == nw_path_status_satisfiable;
 #if ODW_LEGACY_REACHABILITY_REQUIRED
     }
 
@@ -906,17 +978,18 @@ static int kTimeoutDurationInSeconds = 10;
             return 0;
         }
 
+        ODWModernPathSnapshot snapshot = [self currentModernPathSnapshot];
         SCNetworkReachabilityFlags flags = 0;
-        if (ODWModernPathIsReachable(self.currentPathStatus))
+        if (ODWModernPathIsReachable(snapshot.status))
         {
             flags |= kSCNetworkReachabilityFlagsReachable;
         }
-        if (self.currentPathStatus == nw_path_status_satisfiable)
+        if (snapshot.status == nw_path_status_satisfiable)
         {
             flags |= kSCNetworkReachabilityFlagsConnectionRequired;
         }
 #if ODW_REACHABILITY_HAS_WWAN
-        if (self.currentPathUsesWWAN)
+        if (snapshot.usesWWAN)
         {
             flags |= kSCNetworkReachabilityFlagsIsWWAN;
         }

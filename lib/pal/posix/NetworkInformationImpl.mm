@@ -95,7 +95,10 @@ namespace PAL_NS_BEGIN {
         {
             if (m_isNetDetectEnabled)
             {
-                nw_path_monitor_cancel(m_monitor);
+                if (m_monitor != nil)
+                {
+                    nw_path_monitor_cancel(m_monitor);
+                }
             }
         }
         else
@@ -109,7 +112,10 @@ namespace PAL_NS_BEGIN {
 #else
         if (m_isNetDetectEnabled)
         {
-            nw_path_monitor_cancel(m_monitor);
+            if (m_monitor != nil)
+            {
+                nw_path_monitor_cancel(m_monitor);
+            }
         }
 #endif
     }
@@ -119,6 +125,12 @@ namespace PAL_NS_BEGIN {
         auto weak_this = std::weak_ptr<NetworkInformation>(shared_from_this());
 
         m_monitor = nw_path_monitor_create();
+        if (m_monitor == nil)
+        {
+            LOG_WARN("Unable to create NWPathMonitor.");
+            return;
+        }
+
         nw_path_monitor_set_queue(m_monitor, dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0));
         nw_path_monitor_set_update_handler(m_monitor, ^(nw_path_t path)
         {
