@@ -41,11 +41,7 @@ static char ODWReachabilityQueueKey;
 
 @interface ODWReachabilityMonitorContext : NSObject
 
-#if __has_feature(objc_arc)
 @property (nonatomic, weak) ODWReachability *owner;
-#else
-@property (nonatomic, unsafe_unretained) ODWReachability *owner;
-#endif
 
 @end
 
@@ -400,9 +396,6 @@ static int kTimeoutDurationInSeconds = 10;
     ODWReachabilityMonitorContext *context = [[ODWReachabilityMonitorContext alloc] init];
     context.owner = self;
     self.pathMonitorContext = context;
-#if !__has_feature(objc_arc)
-    [context release];
-#endif
 
     nw_path_monitor_set_queue(self.pathMonitor, self.reachabilitySerialQueue);
     nw_path_monitor_set_update_handler(self.pathMonitor, ^(nw_path_t path) {
@@ -521,11 +514,6 @@ static int kTimeoutDurationInSeconds = 10;
     }
 }
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wobjc-missing-super-calls" // Not fixing third_party components.
-#endif
-
 -(void)dealloc
 {
     [self stopNotifier];
@@ -540,10 +528,6 @@ static int kTimeoutDurationInSeconds = 10;
     self.unreachableBlock        = nil;
     self.reachabilitySerialQueue = nil;
 }
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 
 #pragma mark - Notifier Methods
 
