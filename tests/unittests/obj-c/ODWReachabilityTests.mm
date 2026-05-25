@@ -43,7 +43,7 @@
     XCTAssertNil(reachability);
 }
 
-- (void)testReachabilityWithUnresolvedHostname
+- (void)testReachabilityWithUnresolvedHostnameCreatesInstance
 {
     NSString *hostname = @"invalid.hostname";
     ODWReachability *reachability = [ODWReachability reachabilityWithHostname:hostname];
