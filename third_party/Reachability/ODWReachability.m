@@ -101,7 +101,7 @@ static NSString *reachabilityFlags(SCNetworkReachabilityFlags flags)
             (flags & kSCNetworkReachabilityFlagsConnectionOnTraffic)  ? 'C' : '-',
             (flags & kSCNetworkReachabilityFlagsConnectionOnDemand)   ? 'D' : '-',
             (flags & kSCNetworkReachabilityFlagsIsLocalAddress)       ? 'l' : '-',
-             (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
+            (flags & kSCNetworkReachabilityFlagsIsDirect)             ? 'd' : '-'];
 }
 
 static BOOL ODWModernPathIsReachable(nw_path_status_t status) API_AVAILABLE(macos(10.14), ios(12.0))

@@ -20,7 +20,7 @@ namespace PAL_NS_BEGIN {
     class NetworkInformation : public NetworkInformationImpl,
                                public std::enable_shared_from_this<NetworkInformation>
     {
-     public:
+    public:
         /// <summary>
         ///
         /// </summary>
@@ -62,24 +62,24 @@ namespace PAL_NS_BEGIN {
         /// </summary>
         void SetupNetDetect();
 
-     private:
-         void SetupModernNetDetect() API_AVAILABLE(macos(10.14), ios(12.0));
+    private:
+        void SetupModernNetDetect() API_AVAILABLE(macos(10.14), ios(12.0));
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-         void SetupLegacyNetDetect();
+        void SetupLegacyNetDetect();
 #endif
-         void UpdateType(NetworkType type) noexcept;
-         void UpdateCost(NetworkCost cost) noexcept;
-         std::string m_network_provider {};
+        void UpdateType(NetworkType type) noexcept;
+        void UpdateCost(NetworkCost cost) noexcept;
+        std::string m_network_provider {};
 
-         // iOS 12+ / macOS 10.14+
-         nw_path_monitor_t m_monitor = nil;
+        // iOS 12+ / macOS 10.14+
+        nw_path_monitor_t m_monitor = nil;
 
 #if ODW_LEGACY_REACHABILITY_REQUIRED
-         // Older Apple deployment targets still need the legacy fallback.
-         ODWReachability* m_reach = nil;
-         id m_notificationId = nil;
+        // Older Apple deployment targets still need the legacy fallback.
+        ODWReachability* m_reach = nil;
+        id m_notificationId = nil;
 #endif
-     };
+    };
 
     NetworkInformation::NetworkInformation(IRuntimeConfig& configuration) :
         NetworkInformationImpl(configuration)
