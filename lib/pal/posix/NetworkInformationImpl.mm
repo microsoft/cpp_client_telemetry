@@ -6,8 +6,8 @@
 #include "pal/PAL.hpp"
 #include "pal/NetworkInformationImpl.hpp"
 
+#import <Foundation/Foundation.h>
 #import <Network/Network.h>
-#import "ODWReachability.h"
 
 namespace PAL_NS_BEGIN {
 
@@ -64,21 +64,12 @@ namespace PAL_NS_BEGIN {
 
     private:
         void SetupModernNetDetect() API_AVAILABLE(macos(10.14), ios(12.0));
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-        void SetupLegacyNetDetect();
-#endif
         void UpdateType(NetworkType type) noexcept;
         void UpdateCost(NetworkCost cost) noexcept;
         std::string m_network_provider {};
 
         // iOS 12+ / macOS 10.14+
         nw_path_monitor_t m_monitor = nil;
-
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-        // Older Apple deployment targets still need the legacy fallback.
-        ODWReachability* m_reach = nil;
-        id m_notificationId = nil;
-#endif
     };
 
     NetworkInformation::NetworkInformation(IRuntimeConfig& configuration) :
@@ -90,7 +81,6 @@ namespace PAL_NS_BEGIN {
 
     NetworkInformation::~NetworkInformation() noexcept
     {
-#if ODW_LEGACY_REACHABILITY_REQUIRED
         if (@available(macOS 10.14, iOS 12.0, *))
         {
             if (m_isNetDetectEnabled)
@@ -101,23 +91,6 @@ namespace PAL_NS_BEGIN {
                 }
             }
         }
-        else
-        {
-            if (m_isNetDetectEnabled)
-            {
-                [[NSNotificationCenter defaultCenter] removeObserver:m_notificationId];
-                [m_reach stopNotifier];
-            }
-        }
-#else
-        if (m_isNetDetectEnabled)
-        {
-            if (m_monitor != nil)
-            {
-                nw_path_monitor_cancel(m_monitor);
-            }
-        }
-#endif
     }
 
     void NetworkInformation::SetupModernNetDetect()
@@ -181,67 +154,16 @@ namespace PAL_NS_BEGIN {
         }
     }
 
-#if ODW_LEGACY_REACHABILITY_REQUIRED
-    void NetworkInformation::SetupLegacyNetDetect()
-    {
-        auto weak_this = std::weak_ptr<NetworkInformation>(shared_from_this());
-
-        m_reach = [ODWReachability reachabilityForInternetConnection];
-        void (^block)(NSNotification*) = ^(NSNotification*)
-        {
-            auto strong_this = weak_this.lock();
-            if (!strong_this)
-            {
-                return;
-            }
-
-            // NetworkCost information is not available until iOS 12.
-            // Just make the best guess here.
-            switch (m_reach.currentReachabilityStatus)
-            {
-                case NotReachable:
-                    strong_this->UpdateType(NetworkType_Unknown);
-                    strong_this->UpdateCost(NetworkCost_Unknown);
-                    break;
-                case ReachableViaWiFi:
-                    strong_this->UpdateType(NetworkType_Wifi);
-                    strong_this->UpdateCost(NetworkCost_Unmetered);
-                    break;
-                case ReachableViaWWAN:
-                    strong_this->UpdateType(NetworkType_WWAN);
-                    strong_this->UpdateCost(NetworkCost_Metered);
-                    break;
-            }
-        };
-        block(nil); // Update the initial status.
-
-        if (m_isNetDetectEnabled)
-        {
-            m_notificationId =
-                [[NSNotificationCenter defaultCenter]
-                addObserverForName: kNetworkReachabilityChangedNotification
-                object: nil
-                queue: nil
-                usingBlock: block];
-            [m_reach startNotifier];
-        }
-    }
-#endif
-
     void NetworkInformation::SetupNetDetect()
     {
-#if ODW_LEGACY_REACHABILITY_REQUIRED
         if (@available(macOS 10.14, iOS 12.0, *))
         {
             SetupModernNetDetect();
         }
         else
         {
-            SetupLegacyNetDetect();
+            LOG_WARN("Network detection requires iOS 12.0 or macOS 10.14 or newer.");
         }
-#else
-        SetupModernNetDetect();
-#endif
     }
 
     void NetworkInformation::UpdateType(NetworkType type) noexcept

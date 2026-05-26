@@ -1,7 +1,7 @@
 # Honor visibility properties for all target types
 cmake_policy(SET CMP0063 NEW)
 
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/Reachability ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer /usr/local/include )
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
@@ -170,11 +170,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 
     list(APPEND SRCS
         pal/posix/NetworkInformationImpl.mm
-        # TODO: this unit below needs to be deprecated and removed
-        ../third_party/Reachability/ODWReachability.m
     )
-    set_source_files_properties(../third_party/Reachability/ODWReachability.m
-      PROPERTIES COMPILE_FLAGS "-fobjc-arc")
   else()
     list(APPEND SRCS
       http/HttpClient_Curl.cpp
@@ -344,4 +340,3 @@ message("-- Library will be installed to ${INSTALL_LIB_DIR}")
 #  #target_link_libraries(mat PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
 #  #target_link_libraries(mat PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
 #endif()
-
