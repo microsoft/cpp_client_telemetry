@@ -972,6 +972,7 @@ namespace MAT_NS_BEGIN {
         m_DbSizeEstimate = GetSize();
         DebugEvent evt(DebugEventType::EVT_DROPPED);
         evt.param1 = eventsDropped;
+        evt.param2 = static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW);
         evt.size = eventsDropped;
         m_logManager.DispatchEvent(evt);
 
