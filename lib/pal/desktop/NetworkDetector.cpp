@@ -233,14 +233,35 @@ namespace MAT_NS_BEGIN
         /// <returns></returns>
         HRESULT NetworkDetector::QueryInterface(REFIID riid, void ** ppv) noexcept
         {
-            static const QITAB rgqit[] =
+            HRESULT hr;
+
+            if (IID_INetworkEvents == riid)
             {
-                QITABENT(NetworkDetector, INetworkEvents),
-                QITABENT(NetworkDetector, INetworkConnectionEvents),
-                QITABENT(NetworkDetector, INetworkListManagerEvents),
-                { nullptr,0 }
-            };
-            return QISearch(this, rgqit, riid, ppv);
+                *ppv = static_cast<INetworkEvents*>(this);
+                hr = S_OK;
+            }
+            else if (IID_INetworkConnectionEvents == riid)
+            {
+                *ppv = static_cast<INetworkConnectionEvents*>(this);
+                hr = S_OK;
+            }
+            else if (IID_INetworkListManagerEvents == riid)
+            {
+                *ppv = static_cast<INetworkListManagerEvents*>(this);
+                hr = S_OK;
+            }
+            else if (IID_IUnknown == riid)
+            {
+                *ppv = static_cast<IUnknown*>(static_cast<INetworkEvents*>(this));
+                hr = S_OK;
+            }
+            else
+            {
+                *ppv = nullptr;
+                hr = E_NOINTERFACE;
+            }
+
+            return hr;
         }
 
         ULONG NetworkDetector::AddRef(void) noexcept
