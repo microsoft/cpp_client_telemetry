@@ -80,3 +80,69 @@ jobs:
       with:
         name: reports
         path: lib\android_build\maesdk\build\reports
+
+  build-soong:
+    runs-on: ubuntu-latest
+    name: Build via Soong
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: false
+        path: vendor/microsoft/cpp_client_telemetry
+    - name: Update submodules
+      working-directory: vendor/microsoft/cpp_client_telemetry
+      run: |
+        git submodule sync
+        git config --global submodule.lib/modules.update none
+        git -c protocol.version=2 submodule update --init --force --depth=1
+    - name: Install build prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          bc bison build-essential curl flex git \
+          lib32ncurses5-dev lib32z1-dev libc6-dev-i386 \
+          libncurses5-dev libssl-dev libx11-dev \
+          libxml2-utils unzip zip zlib1g-dev
+    - name: Set up repo tool
+      run: |
+        mkdir -p ~/bin
+        curl -o ~/bin/repo https://storage.googleapis.com/git-repo-downloads/repo
+        chmod a+x ~/bin/repo
+        echo "$HOME/bin" >> $GITHUB_PATH
+    - name: Cache AOSP build tools
+      id: aosp-cache
+      uses: actions/cache@v4
+      with:
+        path: aosp
+        key: aosp-soong-android14-${{ runner.os }}
+    - name: Sync minimal AOSP build tools
+      if: steps.aosp-cache.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p aosp
+        cd aosp
+        repo init \
+          -u https://android.googlesource.com/platform/manifest \
+          -b android-14.0.0_r1 \
+          --depth=1 \
+          --no-tags \
+          --no-clone-bundle
+        repo sync -j$(nproc) --current-branch --no-clone-bundle \
+          build/soong \
+          build/blueprint \
+          build/make \
+          prebuilts/build-tools \
+          prebuilts/go/linux-x86 \
+          prebuilts/clang/host/linux-x86
+    - name: Place vendor module in AOSP tree
+      run: |
+        mkdir -p aosp/vendor/microsoft
+        ln -sfn "$(pwd)/vendor/microsoft/cpp_client_telemetry" \
+          aosp/vendor/microsoft/cpp_client_telemetry
+    - name: Build libmaesdk via Soong
+      run: |
+        cd aosp
+        source build/envsetup.sh
+        lunch aosp_arm64-eng
+        SOONG_ALLOW_MISSING_DEPENDENCIES=true \
+          m libmaesdk -j$(nproc)
