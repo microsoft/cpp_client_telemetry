@@ -233,7 +233,13 @@ namespace MAT_NS_BEGIN
         /// <returns></returns>
         HRESULT NetworkDetector::QueryInterface(REFIID riid, void ** ppv) noexcept
         {
-            HRESULT hr;
+            if (!ppv)
+            {
+                return E_POINTER;
+            }
+
+            *ppv = nullptr;
+            HRESULT hr = E_NOINTERFACE;
 
             if (IID_INetworkEvents == riid)
             {
@@ -255,10 +261,10 @@ namespace MAT_NS_BEGIN
                 *ppv = static_cast<IUnknown*>(static_cast<INetworkEvents*>(this));
                 hr = S_OK;
             }
-            else
+
+            if (SUCCEEDED(hr))
             {
-                *ppv = nullptr;
-                hr = E_NOINTERFACE;
+                AddRef();
             }
 
             return hr;
