@@ -16,8 +16,9 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 #set(CMAKE_CXX_FLAGS -m32)
 # End of i386 build
 
-# We ask for 14, but we may get C++11 on older gcc-4.x and gcc-5.x
+# Project's required C++ standard. gcc-5+, clang-3.4+, and MSVC 2015+ all support C++14.
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
@@ -149,13 +150,14 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   #TODO: -fno-rtti
   message(STATUS "Building Release ...")
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
-  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${REL_FLAGS}")
+  # C++ standard is set via CMAKE_CXX_STANDARD above; do not override here.
+  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} ${REL_FLAGS}")
 else()
   set(USE_TCMALLOC 1)
   message(STATUS "Building Debug ...")
   include(tools/FindTcmalloc.cmake)
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${DBG_FLAGS}")
-  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${DBG_FLAGS}")
+  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} ${DBG_FLAGS}")
 endif()
 
 #Remove /Zi for Win32 debug compiler issue
