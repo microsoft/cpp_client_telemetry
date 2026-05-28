@@ -68,38 +68,38 @@ endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests")
     list(APPEND SRCS
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp 
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientTests.cpp
+        "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp" 
+        "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp"
+        "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientTests.cpp"
         )
 endif()
         
 if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
-  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/InitializationConfigurationTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyConcernEventTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyConcernMetadataProviderTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyGuardTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/SystematicSamplerTests.cpp
+  "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/InitializationConfigurationTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyConcernEventTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyConcernMetadataProviderTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/PrivacyGuardTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/SystematicSamplerTests.cpp"
   )
 endif()
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/" AND BUILD_SANITIZER)
   list(APPEND SRCS
-  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerJwtTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerProviderTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerSitePathTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerStringUtilsTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerUrlTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerTrieTests.cpp
-  ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SPOPasswordTests.cpp
+  "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerJwtTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerProviderTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerSitePathTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerStringUtilsTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerUrlTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerTrieTests.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SPOPasswordTests.cpp"
   )
 endif()
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/")
   list(APPEND SRCS
-     ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/unittests/DefaultDataViewerTests.cpp
+     "${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/unittests/DefaultDataViewerTests.cpp"
      DataViewerCollectionTests.cpp
   )
 endif()

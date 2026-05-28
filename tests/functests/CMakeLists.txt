@@ -11,34 +11,34 @@ set(SRCS
 if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
-    ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/functests/PrivacyGuardFuncTests.cpp
+    "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/functests/PrivacyGuardFuncTests.cpp"
   )
 endif()
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/" AND BUILD_SANITIZER)
   list(APPEND SRCS
-    ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/functests/SanitizerFuncTests.cpp
+    "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/functests/SanitizerFuncTests.cpp"
   )
 endif()
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/")
   list(APPEND SRCS
-     ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp
+     "${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp"
   )
 endif()
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/liveeventinspector/" AND BUILD_LIVEEVENTINSPECTOR)
   add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
   list(APPEND SRCS
-    ${CMAKE_SOURCE_DIR}/lib/modules/liveeventinspector/tests/functests/LiveEventInspectorFuncTests.cpp
+    "${CMAKE_SOURCE_DIR}/lib/modules/liveeventinspector/tests/functests/LiveEventInspectorFuncTests.cpp"
   )
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests")
     list(APPEND SRCS
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
+        "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp"
+        "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp"
+        "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp"
         )
     if (EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json")
       configure_file("${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json" "${CMAKE_BINARY_DIR}/test.json" COPYONLY)
