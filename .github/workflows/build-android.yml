@@ -115,7 +115,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: aosp
-        key: aosp-soong-android14-${{ runner.os }}
+        key: aosp-soong-android14-bazel-${{ runner.os }}
     - name: Sync minimal AOSP build tools
       if: steps.aosp-cache.outputs.cache-hit != 'true'
       run: |
@@ -131,6 +131,7 @@ jobs:
           build/soong \
           build/blueprint \
           build/make \
+          prebuilts/bazel/common \
           prebuilts/build-tools \
           prebuilts/go/linux-x86 \
           prebuilts/clang/host/linux-x86
