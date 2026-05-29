@@ -79,7 +79,9 @@ namespace MAT_NS_BEGIN {
                         // Hard-stop if it takes longer than planned.
                         // Emit an EVT_DROPPED carrying the remaining record count
                         // so listeners can attribute teardown-timeout losses.
-                        const size_t remaining = storage.GetRecordCount();
+                        // Include in-flight upload records too: GetRecordCount() can be 0
+                        // during teardown while records are still being uploaded.
+                        const size_t remaining = storage.GetRecordCount() + tpm.inflightRecordCount();
                         if (remaining > 0)
                         {
                             DebugEvent evt(DebugEventType::EVT_DROPPED, remaining,

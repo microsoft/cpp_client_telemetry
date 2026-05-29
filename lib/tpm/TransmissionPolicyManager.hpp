@@ -154,6 +154,11 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
 
         virtual bool isUploadInProgress() const noexcept;
 
+        /// <summary>
+        /// Returns the total number of records currently in flight across all active uploads.
+        /// </summary>
+        virtual size_t inflightRecordCount() const noexcept;
+
         virtual bool isPaused() const noexcept;
     };
 

@@ -181,7 +181,7 @@ namespace MAT_NS_BEGIN {
             DebugEvent evt;
             evt.type = EVT_DROPPED;
             evt.param1 = overallCount;
-            evt.param2 = static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW);
+            evt.param2 = static_cast<size_t>(DROPPED_REASON_RETRY_EXCEEDED);
             evt.size = overallCount;
             DispatchEvent(evt);
         }
