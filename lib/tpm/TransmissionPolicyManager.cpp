@@ -479,20 +479,6 @@ namespace MAT_NS_BEGIN {
         return (uploadCount() > 0) || m_isUploadScheduled;
     }
 
-    size_t TransmissionPolicyManager::inflightRecordCount() const noexcept
-    {
-        LOCKGUARD(m_activeUploads_lock);
-        size_t total = 0;
-        for (const auto& ctx : m_activeUploads)
-        {
-            if (ctx)
-            {
-                total += ctx->recordIdsAndTenantIds.size();
-            }
-        }
-        return total;
-    }
-
     bool TransmissionPolicyManager::isPaused() const noexcept
     {
         return m_isPaused;
