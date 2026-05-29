@@ -87,6 +87,12 @@ GNUmakefile             text
 *.xml                   text
 *.cfg                   text
 
+## Exclude vcpkg port and test scaffolding from GitHub tarballs.
+## This avoids a chicken-and-egg problem: the portfile contains a SHA512
+## of the tarball, so changes to the portfile must not change the tarball.
+tools/ports/            export-ignore
+tests/vcpkg/            export-ignore
+
 ## Self-reference =)
 .gitignore              text
 .gitattributes          text

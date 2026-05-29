@@ -1,4 +1,4 @@
-message("--- unittests")
+message(STATUS "Building unittests")
 
 set(SRCS
   AIJsonSerializerTests.cpp
@@ -54,7 +54,7 @@ set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-dec
 
 # Enable Azure Monitor unit tests when the module is present.
 # The AIJsonSerializer test sources are guarded by HAVE_MAT_AI.
-if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/azmon/AIJsonSerializer.hpp)
+if (EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/azmon/AIJsonSerializer.hpp")
   add_definitions(-DHAVE_MAT_AI)
 endif()
 
@@ -66,7 +66,7 @@ if (APPLE)
   endif()
 endif()
 
-if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+if (EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/exp/tests")
     list(APPEND SRCS
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp 
         ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSClientUtilsTests.cpp
@@ -74,7 +74,7 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
         )
 endif()
         
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
   ${CMAKE_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/InitializationConfigurationTests.cpp
@@ -85,7 +85,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/" AND BUILD_SANITIZER)
   list(APPEND SRCS
   ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerJwtTests.cpp
   ${CMAKE_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerProviderTests.cpp
@@ -97,7 +97,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
   )
 endif()
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
+if(EXISTS "${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/")
   list(APPEND SRCS
      ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/unittests/DefaultDataViewerTests.cpp
      DataViewerCollectionTests.cpp
@@ -115,11 +115,11 @@ endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # Link against prebuilt libraries on Windows
-  message("--- WIN32: Linking against prebuilt libraries")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
+  message(STATUS "WIN32: Linking against prebuilt libraries")
+  message(STATUS "WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
+  message(STATUS "WIN32: ... ${CMAKE_BINARY_DIR}/gmock")
+  message(STATUS "WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
+  message(STATUS "WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
   # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
   target_link_libraries(UnitTests
@@ -162,10 +162,9 @@ else()
     set (PLATFORM_LIBS "atomic")
   endif()
 
-  # Find libraries
-  message("--- Linking libraries! ")
-  message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
-  message("Binary Dir: ${CMAKE_BINARY_DIR}")
+  message(STATUS "Linking libraries")
+  message(STATUS "Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
+  message(STATUS "Binary Dir: ${CMAKE_BINARY_DIR}")
 
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/ )
 
@@ -183,14 +182,14 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
   )
 
-  message("GTEST: ${LIBGTEST}")
-  message("GMOCK: ${LIBGMOCK}")
+  message(STATUS "GTEST: ${LIBGTEST}")
+  message(STATUS "GMOCK: ${LIBGMOCK}")
 
   target_link_libraries(UnitTests 
     ${LIBGTEST}
     ${LIBGMOCK}
     mat
-    ${ZLIB_LIBRARIES}
+    ZLIB::ZLIB
     ${SQLITE3_LIB}
     ${PLATFORM_LIBS}
     dl)

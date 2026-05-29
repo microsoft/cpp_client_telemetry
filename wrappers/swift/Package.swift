@@ -2,6 +2,45 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import Foundation
+
+let packageDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+
+func moduleExists(_ relativePath: String) -> Bool {
+    FileManager.default.fileExists(atPath: packageDirectory.appendingPathComponent(relativePath).standardizedFileURL.path)
+}
+
+let hasDiagnosticDataViewer = moduleExists("../../lib/modules/dataviewer")
+let hasPrivacyGuard = moduleExists("../../lib/modules/privacyguard")
+let hasSanitizer = moduleExists("../../lib/modules/sanitizer")
+
+var excludedSources: [String] = []
+var swiftSettings: [SwiftSetting] = []
+
+if hasDiagnosticDataViewer {
+    swiftSettings.append(.define("MATSDK_DATAVIEWER_AVAILABLE"))
+} else {
+    excludedSources.append("DiagnosticDataViewer.swift")
+}
+
+if hasPrivacyGuard {
+    swiftSettings.append(.define("MATSDK_PRIVACYGUARD_AVAILABLE"))
+} else {
+    excludedSources.append(contentsOf: [
+        "CommonDataContext.swift",
+        "PrivacyGuard.swift",
+        "PrivacyGuardInitConfig.swift",
+    ])
+}
+
+if hasSanitizer {
+    swiftSettings.append(.define("MATSDK_SANITIZER_AVAILABLE"))
+} else {
+    excludedSources.append(contentsOf: [
+        "Sanitizer.swift",
+        "SanitizerInitConfig.swift",
+    ])
+}
 
 let package = Package(
     name: "OneDSSwiftWrapper",
@@ -21,8 +60,11 @@ let package = Package(
         .target(
             name: "OneDSSwift",
             dependencies: [],
+            path: "Sources/OneDSSwift",
+            exclude: excludedSources,
             cSettings: [
                 .headerSearchPath("../../Modules/")
-            ]),
+            ],
+            swiftSettings: swiftSettings),
     ]
 )
