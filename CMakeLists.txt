@@ -243,14 +243,6 @@ else()
   set(MATSDK_BUILD_VERSION ${MATSDK_API_VERSION}.${DAYNUMBER}.0)
 endif()
 
-if(MATSDK_BUILD_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)")
-  set(MATSDK_PACKAGE_VERSION_MAJOR "${CMAKE_MATCH_1}")
-  set(MATSDK_PACKAGE_VERSION_MINOR "${CMAKE_MATCH_2}")
-  set(MATSDK_PACKAGE_VERSION_PATCH "${CMAKE_MATCH_3}")
-else()
-  message(FATAL_ERROR "MATSDK_BUILD_VERSION (${MATSDK_BUILD_VERSION}) must include at least major.minor.patch components.")
-endif()
-
 message(STATUS "SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 ################################################################################################
