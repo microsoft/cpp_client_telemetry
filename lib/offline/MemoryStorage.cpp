@@ -524,7 +524,7 @@ namespace MAT_NS_BEGIN {
     /// Memory storage does not include in-flight (reserved) records in
     /// GetRecordCount(), so add them here for accurate shutdown reporting.
     /// </summary>
-    size_t MemoryStorage::GetRemainingRecordCountForShutdown() const
+    size_t MemoryStorage::GetRemainingRecordCountForShutdown()
     {
         return GetRecordCount() + GetReservedCount();
     }
