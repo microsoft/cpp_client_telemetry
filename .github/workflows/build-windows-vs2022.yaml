@@ -13,6 +13,12 @@ on:
     - main
     - dev
 
+# Least-privilege GITHUB_TOKEN scope: this workflow only checks out source
+# and runs the Visual Studio 2022 build. Explicit block satisfies CodeQL
+# rule actions/missing-workflow-permissions if Actions analysis is enabled.
+permissions:
+  contents: read
+
 jobs:
   build:
 
