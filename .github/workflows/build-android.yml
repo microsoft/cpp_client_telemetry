@@ -18,6 +18,13 @@ on:
     - dev
 
 
+# Least-privilege GITHUB_TOKEN scope: this workflow only checks out source
+# and builds + uploads artifacts (upload-artifact uses its own per-run SAS,
+# not GITHUB_TOKEN). Explicit block satisfies CodeQL rule
+# actions/missing-workflow-permissions if Actions analysis is enabled.
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}

@@ -22,7 +22,7 @@ The SDK provides an option to use a secure version of the traditional `memset` f
 
 JSON for Modern C++.
 
-SDK maintains its own snapshot of the mainline `nlohmann/json` header-only library [here](../lib/include/mat/json.hpp).
+SDK maintains its own snapshot of the mainline `nlohmann/json` header-only library [here](../nlohmann/json.hpp).
 
 ## [libcurl](https://curl.haxx.se/libcurl/)
 
