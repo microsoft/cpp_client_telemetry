@@ -15,8 +15,8 @@ Integration steps
   between them via NDEBUG, even though the file contents are identical now)
 * Copy sqlite3.h, sqlite3ext.h, shell.c on top of the matching files in sqlite/
 * Re-apply the MEMSET_S patches from PR #1286 to both sqlite3_debug.c and
-  sqlite3_retail.c (search for the four memset call sites identified in the
-  PR-1286 commit and wrap them as MEMSET_S(...))
+  sqlite3_retail.c (wrap the four remaining memset call sites, and verify
+  whether the original sqlite3ExprListAppend site still no longer needs it)
 * Compare sqlite.vcxproj source list with the upstream shell tool list; bring
   over any new options that affect the Windows build
 
