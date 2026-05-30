@@ -15,10 +15,12 @@ Integration steps
   between them via NDEBUG, even though the file contents are identical now)
 * Copy sqlite3.h, sqlite3ext.h, shell.c on top of the matching files in sqlite/
 * Re-apply the MEMSET_S patches from PR #1286 to both sqlite3_debug.c and
-  sqlite3_retail.c (wrap the four remaining memset call sites, and verify
-  whether the original sqlite3ExprListAppend site still no longer needs it)
-* Compare sqlite.vcxproj source list with the upstream shell tool list; bring
-  over any new options that affect the Windows build
+  sqlite3_retail.c. Review all five historical PR #1286 sites during each
+  refresh: wrap the four remaining memset call sites, and verify whether the
+  original sqlite3ExprListAppend site still no longer needs it.
+* Compare sqlite.vcxproj and sqliteUWP/sqlite-uwp.vcxproj source lists with
+  the upstream shell tool list; bring over any new options that affect the
+  Windows desktop or UWP builds.
 
 Shipping products that include SQLite
 -------------------------------------
