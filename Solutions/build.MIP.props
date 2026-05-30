@@ -10,8 +10,12 @@
   </ItemDefinitionGroup>
   <PropertyGroup>
     <DisableWinRT>true</DisableWinRT>
-    <PlatformToolset>v141</PlatformToolset>
-    <VCToolsVersion>14.1</VCToolsVersion>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND '$(DefaultPlatformToolset)' != ''">$(DefaultPlatformToolset)</PlatformToolset>
+    <!-- Map only known-shipped toolsets explicitly; unknown/future VS versions fall through to v141 below. -->
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '17.0'))">v143</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '16.0'))">v142</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == '' AND $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '15.0'))">v141</PlatformToolset>
+    <PlatformToolset Condition="'$(PlatformToolset)' == ''">v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RootNamespace)'=='ClientTelemetry'">
     <TargetName>mip_ClientTelemetry</TargetName>
