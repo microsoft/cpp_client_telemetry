@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ master, main ]
 
+# Least-privilege GITHUB_TOKEN scope: misspell only reads .md/.txt files
+# (no PR comments, no status updates, no package writes). Explicit block
+# satisfies CodeQL "actions/missing-workflow-permissions" and keeps the
+# token narrowly scoped if Actions analysis is enabled here later.
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,9 +28,22 @@ jobs:
       continue-on-error: true
 
     - name: install misspell
+      env:
+        # misspell v0.3.4 linux 64-bit tarball SHA256 (from upstream
+        # release checksums.txt). Pinning version + verifying SHA
+        # avoids executing an unpinned bootstrap script from a floating
+        # ref (the prior 'curl https://git.io/misspell | sh' pattern is
+        # a supply-chain risk) and keeps CI reproducible. Bump
+        # deliberately when upstream releases.
+        MISSPELL_VERSION: "0.3.4"
+        MISSPELL_SHA256: "afd95caf1eecc72ff382791e00b3b11523a20b0579d95e2295c1c043688743d5"
       run: |
-        curl -L -o ./install-misspell.sh https://git.io/misspell
-        sh ./install-misspell.sh
+        curl -fsSL -o misspell.tar.gz \
+          "https://github.com/client9/misspell/releases/download/v${MISSPELL_VERSION}/misspell_${MISSPELL_VERSION}_linux_64bit.tar.gz"
+        echo "${MISSPELL_SHA256}  misspell.tar.gz" | sha256sum -c -
+        mkdir -p bin
+        tar -xzf misspell.tar.gz -C bin misspell
+        rm misspell.tar.gz
 
     - name: run misspell
       run: |
