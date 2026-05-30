@@ -20,7 +20,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
-
+import static android.content.Context.RECEIVER_EXPORTED;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -255,7 +255,7 @@ public class HttpClient {
     }
     m_power_receiver = new PowerInfoReceiver(this);
     IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-    Intent status = context.registerReceiver(m_power_receiver, filter);
+    Intent status = context.registerReceiver(m_power_receiver, filter, RECEIVER_EXPORTED);
     if (status != null) {
       m_power_receiver.onReceive(context, status);
     }
