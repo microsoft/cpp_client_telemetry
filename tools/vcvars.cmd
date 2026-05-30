@@ -8,14 +8,6 @@ REM 2. Visual Studio 2017 BuildTools
 REM 3. Visual Studio 2019 Enterprise
 REM 4. Visual Studio 2019 Community
 REM 5. Visual Studio 2019 BuildTools
-REM 6. Visual Studio 2022 Enterprise
-REM 7. Visual Studio 2022 Professional
-REM 8. Visual Studio 2022 Community
-REM 9. Visual Studio 2022 BuildTools
-REM 10. Visual Studio 2026 Enterprise
-REM 11. Visual Studio 2026 Professional
-REM 12. Visual Studio 2026 Community
-REM 13. Visual Studio 2026 BuildTools
 REM
 
 REM 1st parameter - Visual Studio version
@@ -92,73 +84,12 @@ if exist "%VSDEVCMD%" (
   goto tools_configured
 )
 
-:vs2022_professional
-SET VSVERSION=2022
-set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat"
-if exist "%VSDEVCMD%" (
-  set "VSINSTALLDIR=%ProgramFiles%\Microsoft Visual Studio\2022\Professional"
-  echo Building with vs2022 Professional...
-  call "%VSDEVCMD%"
-  goto tools_configured
-)
-
 :vs2022_community
 SET VSVERSION=2022
 set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
 if exist "%VSDEVCMD%" (
   set "VSINSTALLDIR=%ProgramFiles%\Microsoft Visual Studio\2022\Community"
   echo Building with vs2022 Community...
-  call "%VSDEVCMD%"
-  goto tools_configured
-)
-
-:vs2022_buildtools
-SET VSVERSION=2022
-set "VSDEVCMD=%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat"
-if exist "%VSDEVCMD%" (
-  set "VSINSTALLDIR=%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools"
-  echo Building with vs2022 BuildTools...
-  call "%VSDEVCMD%"
-  goto tools_configured
-)
-
-:vs2026
-:vs2026_enterprise
-SET VSVERSION=2026
-set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\18\Enterprise\Common7\Tools\VsDevCmd.bat"
-if exist "%VSDEVCMD%" (
-  set "VSINSTALLDIR=%ProgramFiles%\Microsoft Visual Studio\18\Enterprise"
-  echo Building with vs2026 Enterprise...
-  call "%VSDEVCMD%"
-  goto tools_configured
-)
-
-:vs2026_professional
-SET VSVERSION=2026
-set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\18\Professional\Common7\Tools\VsDevCmd.bat"
-if exist "%VSDEVCMD%" (
-  set "VSINSTALLDIR=%ProgramFiles%\Microsoft Visual Studio\18\Professional"
-  echo Building with vs2026 Professional...
-  call "%VSDEVCMD%"
-  goto tools_configured
-)
-
-:vs2026_community
-SET VSVERSION=2026
-set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\18\Community\Common7\Tools\VsDevCmd.bat"
-if exist "%VSDEVCMD%" (
-  set "VSINSTALLDIR=%ProgramFiles%\Microsoft Visual Studio\18\Community"
-  echo Building with vs2026 Community...
-  call "%VSDEVCMD%"
-  goto tools_configured
-)
-
-:vs2026_buildtools
-SET VSVERSION=2026
-set "VSDEVCMD=%ProgramFiles(x86)%\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat"
-if exist "%VSDEVCMD%" (
-  set "VSINSTALLDIR=%ProgramFiles(x86)%\Microsoft Visual Studio\18\BuildTools"
-  echo Building with vs2026 BuildTools...
   call "%VSDEVCMD%"
   goto tools_configured
 )

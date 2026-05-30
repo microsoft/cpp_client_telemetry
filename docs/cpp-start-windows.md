@@ -16,18 +16,13 @@ If your project requires the Universal Telemetry Client (a.k.a. UTC) to send tel
 
 ## **Windows prerequisites and dependencies for building from source**
 
-* Visual Studio 2019, 2022, or 2026 (2022 or newer is recommended).
+* Visual Studio 2019 or 2022 (2022 is recommended).
 * C++ Dev Tools
 
 ## **Option 1: Build the SDK from source using Visual Studio**
 
 * Open the *cpp_client_telemetry/Solutions/MSTelemetrySDK.sln* solution in Visual Studio.
-* Alternatively, build from the workspace root with the script that matches your Visual Studio toolset:
-  * Visual Studio 2019: `build-all-v142.bat`
-  * Visual Studio 2022: `build-all-v143.bat`
-  * Visual Studio 2026: `build-all-v145.bat`
-
-The version-specific scripts set `VSTOOLS_VERSION` and `PlatformToolset` before calling `build-all.bat`. If you already have a developer command prompt configured, you can also call `build-all.bat` directly and override `PlatformToolset` yourself.
+* Alternatively you can use *build-all.bat* located in workspace root folder to build from command line
 
 If your build fails, then you most likely missing the following optional Visual Studio components:
 
