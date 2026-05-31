@@ -514,7 +514,7 @@ namespace MAT_NS_BEGIN {
     /// This method is currently internal, but up for consideration to add it to common storage interface.
     /// </summary>
     /// <returns></returns>
-    size_t MemoryStorage::GetReservedCount()
+    size_t MemoryStorage::GetReservedCount() const
     {
         LOCKGUARD(m_reserved_lock);
         return m_reserved_records.size();
@@ -524,7 +524,7 @@ namespace MAT_NS_BEGIN {
     /// Memory storage does not include in-flight (reserved) records in
     /// GetRecordCount(), so add them here for accurate shutdown reporting.
     /// </summary>
-    size_t MemoryStorage::GetRemainingRecordCountForShutdown()
+    size_t MemoryStorage::GetRemainingRecordCountForShutdown() const
     {
         return GetRecordCount() + GetReservedCount();
     }

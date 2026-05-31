@@ -339,7 +339,7 @@ namespace MAT_NS_BEGIN {
         /// still counted in the on-disk total. Volatile storages (e.g. memory)
         /// must override to also include their in-flight / reserved records.
         /// </remarks>
-        virtual size_t GetRemainingRecordCountForShutdown() { return GetRecordCount(); }
+        virtual size_t GetRemainingRecordCountForShutdown() const { return GetRecordCount(); }
 
         /// <summary>
         /// Get Vector of records from DB

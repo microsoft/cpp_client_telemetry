@@ -62,7 +62,7 @@ namespace MAT_NS_BEGIN {
             return m_offlineStorage.GetRecordCount();
         }
 
-        size_t GetRemainingRecordCountForShutdown()
+        size_t GetRemainingRecordCountForShutdown() const
         {
             return m_offlineStorage.GetRemainingRecordCountForShutdown();
         }
