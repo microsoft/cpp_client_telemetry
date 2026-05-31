@@ -966,7 +966,7 @@ namespace MAT_NS_BEGIN {
                     Execute("DELETE FROM " TABLE_NAME_EVENTS " WHERE persistence=1");
                 }
                 eventsDropped = count - GetRecordCountUnsafe(EventLatency::EventLatency_Unspecified);
-                LOG_TRACE("Db resized, events dropeed: %d", eventsDropped);
+                LOG_TRACE("Db resized, events dropped: %zu", eventsDropped);
                 trimStmt.reset();
             }
         }
