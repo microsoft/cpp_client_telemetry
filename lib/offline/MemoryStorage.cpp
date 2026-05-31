@@ -520,5 +520,14 @@ namespace MAT_NS_BEGIN {
         return m_reserved_records.size();
     }
 
+    /// <summary>
+    /// Memory storage does not include in-flight (reserved) records in
+    /// GetRecordCount(), so add them here for accurate shutdown reporting.
+    /// </summary>
+    size_t MemoryStorage::GetRemainingRecordCountForShutdown()
+    {
+        return GetRecordCount() + GetReservedCount();
+    }
+
 } MAT_NS_END
 

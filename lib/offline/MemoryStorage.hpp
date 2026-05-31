@@ -67,6 +67,8 @@ namespace MAT_NS_BEGIN {
 
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;
 
+        virtual size_t GetRemainingRecordCountForShutdown() override;
+
         virtual size_t GetReservedCount();
 
         virtual std::vector<StorageRecord> GetRecords(bool shutdown = false, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
