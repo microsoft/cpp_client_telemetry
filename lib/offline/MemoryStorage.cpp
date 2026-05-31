@@ -514,7 +514,7 @@ namespace MAT_NS_BEGIN {
     /// This method is currently internal, but up for consideration to add it to common storage interface.
     /// </summary>
     /// <returns></returns>
-    size_t MemoryStorage::GetReservedCount() const
+    size_t MemoryStorage::GetReservedCount()
     {
         LOCKGUARD(m_reserved_lock);
         return m_reserved_records.size();
@@ -524,9 +524,21 @@ namespace MAT_NS_BEGIN {
     /// Memory storage does not include in-flight (reserved) records in
     /// GetRecordCount(), so add them here for accurate shutdown reporting.
     /// </summary>
+    /// <remarks>
+    /// Take both locks (reserved first, then records — matching the order used
+    /// by Shutdown() and GetAndReserveRecords()) so the returned count is an
+    /// atomic snapshot. Without this, a record moving between the active queue
+    /// and the reserved map (e.g. via GetAndReserveRecords / ReleaseRecords)
+    /// could be double-counted or missed.
+    /// </remarks>
     size_t MemoryStorage::GetRemainingRecordCountForShutdown() const
     {
-        return GetRecordCount() + GetReservedCount();
+        LOCKGUARD(m_reserved_lock);
+        LOCKGUARD(m_records_lock);
+        size_t records = 0;
+        for (unsigned lat = EventLatency_Off; lat <= EventLatency_Max; lat++)
+            records += m_records[lat].size();
+        return records + m_reserved_records.size();
     }
 
 } MAT_NS_END
