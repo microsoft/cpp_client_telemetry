@@ -318,7 +318,6 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
     EventsUploadContextPtr upload;
     EXPECT_CALL(*this, resultInitiateUpload(_))
         .WillOnce(SaveArg<0>(&upload));
-    EXPECT_CALL(tpm, uploadAsync(_)).Times(AnyNumber());
     tpm.uploadAsyncParent(EventLatency_Normal);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
@@ -339,7 +338,6 @@ TEST_F(TransmissionPolicyManagerTests, UploadUsesConfiguredMaxEventCount)
     EventsUploadContextPtr upload;
     EXPECT_CALL(*this, resultInitiateUpload(_))
         .WillOnce(SaveArg<0>(&upload));
-    EXPECT_CALL(tpm, uploadAsync(_)).Times(AnyNumber());
     tpm.uploadAsyncParent(EventLatency_Normal);
 
     unsigned requestedMaxCount = upload ? upload->requestedMaxCount : 0;
@@ -389,10 +387,9 @@ TEST_F(TransmissionPolicyManagerTests, UploadPackagesNoMoreThanConfiguredMaxEven
         }));
     EXPECT_CALL(*this, resultPackagedEvents(_))
         .WillOnce(SaveArg<0>(&packaged));
-
     tpm.uploadScheduled(true);
     tpm.paused(false);
-    EXPECT_CALL(tpm, uploadAsync(_)).Times(AnyNumber());
+    tpm.paused(false);
     tpm.uploadAsyncParent(EventLatency_Normal);
 
     ASSERT_THAT(packaged, NotNull());

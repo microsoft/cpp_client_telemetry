@@ -272,7 +272,7 @@ extern NSString * _Nonnull const ODWCFG_STR_TPM_BACKOFF;
 extern NSString * _Nonnull const ODWCFG_INT_TPM_MAX_BLOB_BYTES;
 
 /*!
- TPM configuration map
+ TPM configuration: maximum events per upload request. Set to 0 for unlimited.
 */
 extern NSString * _Nonnull const ODWCFG_INT_TPM_MAX_EVENTS_PER_UPLOAD;
 

@@ -278,7 +278,7 @@ NSString *const ODWCFG_STR_TPM_BACKOFF = @"backoffConfig";
 NSString *const ODWCFG_INT_TPM_MAX_BLOB_BYTES = @"maxBlobSize";
 
 /*!
- TPM configuration map
+ TPM configuration: maximum events per upload request. Set to 0 for unlimited.
 */
 NSString *const ODWCFG_INT_TPM_MAX_EVENTS_PER_UPLOAD = @"maxEventsPerUpload";
 
