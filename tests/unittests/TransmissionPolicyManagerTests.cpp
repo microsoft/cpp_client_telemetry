@@ -13,6 +13,8 @@
 #include "offline/MemoryStorage.hpp"
 #include "offline/StorageObserver.hpp"
 #include "packager/Packager.hpp"
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_writers.hpp"
 
 using namespace testing;
 using namespace MAT;
@@ -343,13 +345,19 @@ TEST_F(TransmissionPolicyManagerTests, UploadPackagesNoMoreThanConfiguredMaxEven
     ASSERT_THAT(storageObserver.start(), true);
     for (unsigned i = 0; i < 10; ++i)
     {
+        ::CsProtocol::Record sourceRecord;
+        sourceRecord.name = "testEvent" + std::to_string(i);
+        std::vector<uint8_t> recordBlob;
+        bond_lite::CompactBinaryProtocolWriter writer(recordBlob);
+        bond_lite::Serialize(writer, sourceRecord);
+
         StorageRecord record(
             "r" + std::to_string(i),
             "tenant-token",
             EventLatency_Normal,
             EventPersistence_Normal,
             1234567890 + i,
-            std::vector<uint8_t>{static_cast<uint8_t>(i)});
+            std::move(recordBlob));
         ASSERT_THAT(storage.StoreRecord(record), true);
     }
 
