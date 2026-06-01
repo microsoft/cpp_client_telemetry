@@ -6,7 +6,7 @@
         "Type": "git",
         "git": {
           "RepositoryUrl": "https://github.com/nlohmann/json",
-          "CommitHash": "9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03"
+          "CommitHash": "55f93686c01528224f448c19128836e7df245f72"
         }
       },
       "DevelopmentDependency": false
@@ -26,7 +26,7 @@
         "Type": "git",
         "git": {
           "RepositoryUrl": "https://github.com/madler/zlib",
-          "CommitHash": "cacf7f1d4e3d44d871b605da3b647f07d718623f"
+          "CommitHash": "da607da739fa6047df13e66a2af6b8bec7c2a498"
         }
       },
       "DevelopmentDependency": false
