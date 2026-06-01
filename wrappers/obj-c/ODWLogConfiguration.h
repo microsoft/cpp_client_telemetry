@@ -274,6 +274,11 @@ extern NSString * _Nonnull const ODWCFG_INT_TPM_MAX_BLOB_BYTES;
 /*!
  TPM configuration map
 */
+extern NSString * _Nonnull const ODWCFG_INT_TPM_MAX_EVENTS_PER_UPLOAD;
+
+/*!
+ TPM configuration map
+*/
 extern NSString * _Nonnull const ODWCFG_BOOL_TPM_CLOCK_SKEW_ENABLED;
 
 /*!

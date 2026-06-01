@@ -578,6 +578,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     assertThat(tpm, is(notNullValue()));
     assertThat(tpm, isA(ILogConfiguration.class));
     assertThat(tpm.getLong(LogConfigurationKey.CFG_INT_TPM_MAX_BLOB_BYTES), is(2L * 1024 * 1024));
+    assertThat(tpm.getLong(LogConfigurationKey.CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD), is(1500L));
     assertThat(tpm.getLong(LogConfigurationKey.CFG_INT_TPM_MAX_RETRY), is(5L));
     assertThat(tpm.getBoolean(LogConfigurationKey.CFG_BOOL_TPM_CLOCK_SKEW_ENABLED), is(true));
     ILogConfiguration compat = defaultConfig.getLogConfiguration(LogConfigurationKey.CFG_MAP_COMPAT);

@@ -280,6 +280,11 @@ NSString *const ODWCFG_INT_TPM_MAX_BLOB_BYTES = @"maxBlobSize";
 /*!
  TPM configuration map
 */
+NSString *const ODWCFG_INT_TPM_MAX_EVENTS_PER_UPLOAD = @"maxEventsPerUpload";
+
+/*!
+ TPM configuration map
+*/
 NSString *const ODWCFG_BOOL_TPM_CLOCK_SKEW_ENABLED = @"clockSkewEnabled";
 
 /*!

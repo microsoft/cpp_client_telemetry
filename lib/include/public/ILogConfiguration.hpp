@@ -392,6 +392,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_INT_TPM_MAX_BLOB_BYTES = "maxBlobSize";
 
     /// <summary>
+    /// TPM configuration: maximum number of events per upload request. A value of 0 means unlimited.
+    /// </summary>
+    static constexpr const char* const CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD = "maxEventsPerUpload";
+
+    /// <summary>
     /// TPM configuration map
     /// </summary>
     static constexpr const char* const CFG_BOOL_TPM_CLOCK_SKEW_ENABLED = "clockSkewEnabled";
@@ -471,4 +476,3 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 #endif
-

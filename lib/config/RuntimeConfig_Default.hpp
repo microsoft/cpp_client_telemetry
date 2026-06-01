@@ -68,6 +68,7 @@ namespace MAT_NS_BEGIN
         {CFG_MAP_TPM,
          {
              {CFG_INT_TPM_MAX_BLOB_BYTES, 2097152},
+             {CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD, 1500},
              {CFG_INT_TPM_MAX_RETRY, 5},
              {CFG_BOOL_TPM_CLOCK_SKEW_ENABLED, true},
              {CFG_STR_TPM_BACKOFF, "E,3000,300000,2,1"},
@@ -233,4 +234,3 @@ namespace MAT_NS_BEGIN
 
 }
 MAT_NS_END
-

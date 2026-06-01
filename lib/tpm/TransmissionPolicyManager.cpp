@@ -218,6 +218,7 @@ namespace MAT_NS_BEGIN {
 
         auto ctx = m_system.createEventsUploadContext();
         ctx->requestedMinLatency = m_runningLatency;
+        ctx->requestedMaxCount = m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
         addUpload(ctx);
         initiateUpload(ctx);
     }
@@ -336,6 +337,7 @@ namespace MAT_NS_BEGIN {
         if (event->record.latency > EventLatency_RealTime) {
             auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
+            ctx->requestedMaxCount = m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
             addUpload(ctx);
             initiateUpload(ctx);
             return;

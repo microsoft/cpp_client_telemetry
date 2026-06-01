@@ -166,6 +166,8 @@ public enum LogConfigurationKey {
 
   CFG_INT_TPM_MAX_BLOB_BYTES("maxBlobSize", Long.class),
 
+  CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD("maxEventsPerUpload", Long.class),
+
   CFG_BOOL_SESSION_RESET_ENABLED("sessionResetEnabled", Boolean.class);
 
   private String key;
@@ -184,4 +186,3 @@ public enum LogConfigurationKey {
     return valueType;
   }
 }
-

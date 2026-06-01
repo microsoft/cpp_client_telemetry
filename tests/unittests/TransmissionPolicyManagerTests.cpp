@@ -246,6 +246,7 @@ TEST_F(TransmissionPolicyManagerTests, ImmediateIncomingEventStartsUploadImmedia
 
     ASSERT_THAT(upload, NotNull());
     EXPECT_THAT(upload->requestedMinLatency, EventLatency_Max);
+    EXPECT_THAT(upload->requestedMaxCount, 1500u);
 }
 
 TEST_F(TransmissionPolicyManagerTests, UploadDoesNothingWhenPaused)
@@ -288,11 +289,35 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
     EventsUploadContextPtr upload;
     EXPECT_CALL(*this, resultInitiateUpload(_))
         .WillOnce(SaveArg<0>(&upload));
-    tpm.uploadAsync(EventLatency_Normal);
+    EXPECT_CALL(tpm, uploadAsync(_)).Times(AnyNumber());
+    tpm.uploadAsyncParent(EventLatency_Normal);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
     EXPECT_THAT(upload, NotNull());
+    EXPECT_THAT(upload->requestedMaxCount, 1500u);
     EXPECT_THAT(tpm.activeUploads(), Contains(upload));
+}
+
+TEST_F(TransmissionPolicyManagerTests, UploadUsesConfiguredMaxEventCount)
+{
+    auto& config = testing::getSystem().getConfig();
+    unsigned previousMaxCount = config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
+    config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = 3;
+
+    tpm.uploadScheduled(true);
+    tpm.paused(false);
+
+    EventsUploadContextPtr upload;
+    EXPECT_CALL(*this, resultInitiateUpload(_))
+        .WillOnce(SaveArg<0>(&upload));
+    EXPECT_CALL(tpm, uploadAsync(_)).Times(AnyNumber());
+    tpm.uploadAsyncParent(EventLatency_Normal);
+
+    unsigned requestedMaxCount = upload ? upload->requestedMaxCount : 0;
+    config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = previousMaxCount;
+
+    ASSERT_THAT(upload, NotNull());
+    EXPECT_THAT(requestedMaxCount, 3u);
 }
 
 TEST_F(TransmissionPolicyManagerTests, EmptyUploadCeasesUploadingForRunningLatencyNormal)
