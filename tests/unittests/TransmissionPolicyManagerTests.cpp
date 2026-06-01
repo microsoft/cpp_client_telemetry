@@ -10,6 +10,9 @@
 #include "common/MockIBandwidthController.hpp"
 #include "tpm/TransmissionPolicyManager.hpp"
 #include "TransmitProfiles.hpp"
+#include "offline/MemoryStorage.hpp"
+#include "offline/StorageObserver.hpp"
+#include "packager/Packager.hpp"
 
 using namespace testing;
 using namespace MAT;
@@ -77,6 +80,7 @@ class TransmissionPolicyManagerTests : public StrictMock<Test> {
 
     RouteSink<TransmissionPolicyManagerTests, EventsUploadContextPtr const&> initiateUpload{this, &TransmissionPolicyManagerTests::resultInitiateUpload};
     RouteSink<TransmissionPolicyManagerTests>                                allUploadsFinished{this, &TransmissionPolicyManagerTests::resultAllUploadsFinished};
+    RouteSink<TransmissionPolicyManagerTests, EventsUploadContextPtr const&> packagedEvents{this, &TransmissionPolicyManagerTests::resultPackagedEvents};
 
   protected:
     TransmissionPolicyManagerTests()
@@ -88,6 +92,7 @@ class TransmissionPolicyManagerTests : public StrictMock<Test> {
 
     MOCK_METHOD1(resultInitiateUpload, void(EventsUploadContextPtr const &));
     MOCK_METHOD0(resultAllUploadsFinished, void());
+    MOCK_METHOD1(resultPackagedEvents, void(EventsUploadContextPtr const &));
 
     virtual void SetUp() override
     {
@@ -318,6 +323,58 @@ TEST_F(TransmissionPolicyManagerTests, UploadUsesConfiguredMaxEventCount)
 
     ASSERT_THAT(upload, NotNull());
     EXPECT_THAT(requestedMaxCount, 3u);
+}
+
+TEST_F(TransmissionPolicyManagerTests, UploadPackagesNoMoreThanConfiguredMaxEventCount)
+{
+    auto& system = testing::getSystem();
+    auto& config = system.getConfig();
+    unsigned previousMaxCount = config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
+    config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = 3;
+
+    MemoryStorage storage(system.getLogManager(), config);
+    StorageObserver storageObserver(system, storage);
+    Packager packager(config);
+
+    storageObserver.retrievedEvent >> packager.addEventToPackage;
+    storageObserver.retrievalFinished >> packager.finalizePackage;
+    packager.packagedEvents >> packagedEvents;
+
+    ASSERT_THAT(storageObserver.start(), true);
+    for (unsigned i = 0; i < 10; ++i)
+    {
+        StorageRecord record(
+            "r" + std::to_string(i),
+            "tenant-token",
+            EventLatency_Normal,
+            EventPersistence_Normal,
+            1234567890 + i,
+            std::vector<uint8_t>{static_cast<uint8_t>(i)});
+        ASSERT_THAT(storage.StoreRecord(record), true);
+    }
+
+    EventsUploadContextPtr packaged;
+    EXPECT_CALL(*this, resultInitiateUpload(_))
+        .WillOnce(Invoke([&storageObserver](EventsUploadContextPtr const& ctx) {
+            storageObserver.retrieveEvents(ctx);
+        }));
+    EXPECT_CALL(*this, resultPackagedEvents(_))
+        .WillOnce(SaveArg<0>(&packaged));
+
+    tpm.uploadScheduled(true);
+    tpm.paused(false);
+    EXPECT_CALL(tpm, uploadAsync(_)).Times(AnyNumber());
+    tpm.uploadAsyncParent(EventLatency_Normal);
+
+    config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = previousMaxCount;
+
+    ASSERT_THAT(packaged, NotNull());
+    EXPECT_THAT(packaged->requestedMaxCount, 3u);
+    EXPECT_THAT(packaged->recordIdsAndTenantIds, SizeIs(3));
+    EXPECT_THAT(storage.LastReadRecordCount(), 3u);
+    EXPECT_THAT(storage.GetRecordCount(), 7u);
+    EXPECT_THAT(storage.GetReservedCount(), 3u);
+    EXPECT_THAT(packaged->fromMemory, true);
 }
 
 TEST_F(TransmissionPolicyManagerTests, EmptyUploadCeasesUploadingForRunningLatencyNormal)
