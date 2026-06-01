@@ -20,6 +20,28 @@ using namespace testing;
 using namespace MAT;
 
 
+class ScopedTpmMaxEventsPerUploadConfig {
+  public:
+    ScopedTpmMaxEventsPerUploadConfig(IRuntimeConfig& config, unsigned value)
+      : m_config(config),
+        m_previousMaxCount(config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD])
+    {
+        m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = value;
+    }
+
+    ~ScopedTpmMaxEventsPerUploadConfig()
+    {
+        m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = m_previousMaxCount;
+    }
+
+    ScopedTpmMaxEventsPerUploadConfig(const ScopedTpmMaxEventsPerUploadConfig&) = delete;
+    ScopedTpmMaxEventsPerUploadConfig& operator=(const ScopedTpmMaxEventsPerUploadConfig&) = delete;
+
+  private:
+    IRuntimeConfig& m_config;
+    unsigned        m_previousMaxCount;
+};
+
 class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
   public:
     TransmissionPolicyManager4Test(ITelemetrySystem& system, IBandwidthController* bandwidthController)
@@ -308,8 +330,8 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
 TEST_F(TransmissionPolicyManagerTests, UploadUsesConfiguredMaxEventCount)
 {
     auto& config = testing::getSystem().getConfig();
-    unsigned previousMaxCount = config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
-    config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = 3;
+    ScopedTpmMaxEventsPerUploadConfig maxEventsConfig(config, 3);
+    UNREFERENCED_PARAMETER(maxEventsConfig);
 
     tpm.uploadScheduled(true);
     tpm.paused(false);
@@ -321,7 +343,6 @@ TEST_F(TransmissionPolicyManagerTests, UploadUsesConfiguredMaxEventCount)
     tpm.uploadAsyncParent(EventLatency_Normal);
 
     unsigned requestedMaxCount = upload ? upload->requestedMaxCount : 0;
-    config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = previousMaxCount;
 
     ASSERT_THAT(upload, NotNull());
     EXPECT_THAT(requestedMaxCount, 3u);
@@ -331,8 +352,8 @@ TEST_F(TransmissionPolicyManagerTests, UploadPackagesNoMoreThanConfiguredMaxEven
 {
     auto& system = testing::getSystem();
     auto& config = system.getConfig();
-    unsigned previousMaxCount = config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
-    config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = 3;
+    ScopedTpmMaxEventsPerUploadConfig maxEventsConfig(config, 3);
+    UNREFERENCED_PARAMETER(maxEventsConfig);
 
     MemoryStorage storage(system.getLogManager(), config);
     StorageObserver storageObserver(system, storage);
@@ -373,8 +394,6 @@ TEST_F(TransmissionPolicyManagerTests, UploadPackagesNoMoreThanConfiguredMaxEven
     tpm.paused(false);
     EXPECT_CALL(tpm, uploadAsync(_)).Times(AnyNumber());
     tpm.uploadAsyncParent(EventLatency_Normal);
-
-    config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD] = previousMaxCount;
 
     ASSERT_THAT(packaged, NotNull());
     EXPECT_THAT(packaged->requestedMaxCount, 3u);
