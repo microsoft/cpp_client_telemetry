@@ -201,7 +201,18 @@ TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
     ASSERT_THAT(consumer.records.size(), 1);
     consumer.records.clear();
 
-    PAL::sleep(2000);
+    auto records = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
+    ASSERT_THAT(records.size(), 2);
+    int64_t waitUntilMs = 0;
+    for (auto const& record : records)
+    {
+        waitUntilMs = std::max(waitUntilMs, record.reservedUntil);
+    }
+
+    while (PAL::getUtcSystemTimeMs() <= waitUntilMs + 250)
+    {
+        PAL::sleep(50);
+    }
 
     // Both records are timed out
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 1000), true);
