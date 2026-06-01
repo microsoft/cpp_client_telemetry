@@ -41,6 +41,20 @@ namespace MAT_NS_BEGIN {
         return (a > b) ? (a - b) : (b - a);
     }
 
+    unsigned getMaxEventsPerUpload(IRuntimeConfig& config)
+    {
+        const int64_t configuredMaxCount = config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
+        if (configuredMaxCount <= 0)
+        {
+            return 0;
+        }
+        if (configuredMaxCount > static_cast<int64_t>(std::numeric_limits<unsigned>::max()))
+        {
+            return std::numeric_limits<unsigned>::max();
+        }
+        return static_cast<unsigned>(configuredMaxCount);
+    }
+
     MATSDK_LOG_INST_COMPONENT_CLASS(TransmissionPolicyManager, "EventsSDK.TPM", "Events telemetry client - TransmissionPolicyManager class")
 
     TransmissionPolicyManager::TransmissionPolicyManager(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController) :
@@ -218,7 +232,7 @@ namespace MAT_NS_BEGIN {
 
         auto ctx = m_system.createEventsUploadContext();
         ctx->requestedMinLatency = m_runningLatency;
-        ctx->requestedMaxCount = m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
+        ctx->requestedMaxCount = getMaxEventsPerUpload(m_config);
         addUpload(ctx);
         initiateUpload(ctx);
     }
@@ -337,7 +351,7 @@ namespace MAT_NS_BEGIN {
         if (event->record.latency > EventLatency_RealTime) {
             auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
-            ctx->requestedMaxCount = m_config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD];
+            ctx->requestedMaxCount = getMaxEventsPerUpload(m_config);
             addUpload(ctx);
             initiateUpload(ctx);
             return;

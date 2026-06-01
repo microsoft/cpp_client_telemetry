@@ -16,13 +16,15 @@
 #include "bond/All.hpp"
 #include "bond/generated/CsProtocol_writers.hpp"
 
+#include <limits>
+
 using namespace testing;
 using namespace MAT;
 
 
 class ScopedTpmMaxEventsPerUploadConfig {
   public:
-    ScopedTpmMaxEventsPerUploadConfig(IRuntimeConfig& config, unsigned value)
+    ScopedTpmMaxEventsPerUploadConfig(IRuntimeConfig& config, Variant value)
       : m_config(config),
         m_previousMaxCount(config[CFG_MAP_TPM][CFG_INT_TPM_MAX_EVENTS_PER_UPLOAD])
     {
@@ -39,7 +41,7 @@ class ScopedTpmMaxEventsPerUploadConfig {
 
   private:
     IRuntimeConfig& m_config;
-    unsigned        m_previousMaxCount;
+    Variant         m_previousMaxCount;
 };
 
 class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
@@ -278,6 +280,26 @@ TEST_F(TransmissionPolicyManagerTests, ImmediateIncomingEventStartsUploadImmedia
     EXPECT_THAT(upload->requestedMaxCount, 1500u);
 }
 
+TEST_F(TransmissionPolicyManagerTests, ImmediateIncomingEventTreatsNonPositiveMaxEventCountAsUnlimited)
+{
+    auto& config = testing::getSystem().getConfig();
+    ScopedTpmMaxEventsPerUploadConfig maxEventsConfig(config, static_cast<int64_t>(-1));
+    UNREFERENCED_PARAMETER(maxEventsConfig);
+
+    tpm.paused(false);
+
+    auto event = new IncomingEventContext();
+    event->record.latency = EventLatency_Max;
+    EventsUploadContextPtr upload;
+    EXPECT_CALL(*this, resultInitiateUpload(_))
+        .WillOnce(SaveArg<0>(&upload));
+    tpm.eventArrived(event);
+
+    ASSERT_THAT(upload, NotNull());
+    EXPECT_THAT(upload->requestedMinLatency, EventLatency_Max);
+    EXPECT_THAT(upload->requestedMaxCount, 0u);
+}
+
 TEST_F(TransmissionPolicyManagerTests, UploadDoesNothingWhenPaused)
 {
     tpm.uploadScheduled(true);
@@ -346,6 +368,43 @@ TEST_F(TransmissionPolicyManagerTests, UploadUsesConfiguredMaxEventCount)
     EXPECT_THAT(requestedMaxCount, 3u);
 }
 
+TEST_F(TransmissionPolicyManagerTests, UploadTreatsNonPositiveMaxEventCountAsUnlimited)
+{
+    auto& config = testing::getSystem().getConfig();
+    ScopedTpmMaxEventsPerUploadConfig maxEventsConfig(config, static_cast<int64_t>(-1));
+    UNREFERENCED_PARAMETER(maxEventsConfig);
+
+    tpm.uploadScheduled(true);
+    tpm.paused(false);
+
+    EventsUploadContextPtr upload;
+    EXPECT_CALL(*this, resultInitiateUpload(_))
+        .WillOnce(SaveArg<0>(&upload));
+    tpm.uploadAsyncParent(EventLatency_Normal);
+
+    ASSERT_THAT(upload, NotNull());
+    EXPECT_THAT(upload->requestedMaxCount, 0u);
+}
+
+TEST_F(TransmissionPolicyManagerTests, UploadCapsOversizedMaxEventCount)
+{
+    auto& config = testing::getSystem().getConfig();
+    int64_t oversizedMaxCount = static_cast<int64_t>(std::numeric_limits<unsigned>::max()) + 1;
+    ScopedTpmMaxEventsPerUploadConfig maxEventsConfig(config, oversizedMaxCount);
+    UNREFERENCED_PARAMETER(maxEventsConfig);
+
+    tpm.uploadScheduled(true);
+    tpm.paused(false);
+
+    EventsUploadContextPtr upload;
+    EXPECT_CALL(*this, resultInitiateUpload(_))
+        .WillOnce(SaveArg<0>(&upload));
+    tpm.uploadAsyncParent(EventLatency_Normal);
+
+    ASSERT_THAT(upload, NotNull());
+    EXPECT_THAT(upload->requestedMaxCount, std::numeric_limits<unsigned>::max());
+}
+
 TEST_F(TransmissionPolicyManagerTests, UploadPackagesNoMoreThanConfiguredMaxEventCount)
 {
     auto& system = testing::getSystem();
@@ -388,7 +447,6 @@ TEST_F(TransmissionPolicyManagerTests, UploadPackagesNoMoreThanConfiguredMaxEven
     EXPECT_CALL(*this, resultPackagedEvents(_))
         .WillOnce(SaveArg<0>(&packaged));
     tpm.uploadScheduled(true);
-    tpm.paused(false);
     tpm.paused(false);
     tpm.uploadAsyncParent(EventLatency_Normal);
 
