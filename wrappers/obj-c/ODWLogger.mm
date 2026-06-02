@@ -10,18 +10,20 @@
 #import "ODWSemanticContext.h"
 #import "ODWSemanticContext_private.h"
 
-#if __has_include("PrivacyGuard.hpp")
-#define MATSDK_OBJC_PRIVACYGUARD_AVAILABLE 1
-#import "ODWPrivacyGuard_private.h"
-#else
+#ifndef MATSDK_OBJC_PRIVACYGUARD_AVAILABLE
 #define MATSDK_OBJC_PRIVACYGUARD_AVAILABLE 0
 #endif
 
-#if __has_include("Sanitizer.hpp")
-#define MATSDK_OBJC_SANITIZER_AVAILABLE 1
-#import "ODWSanitizer_private.h"
-#else
+#if MATSDK_OBJC_PRIVACYGUARD_AVAILABLE
+#import "ODWPrivacyGuard_private.h"
+#endif
+
+#ifndef MATSDK_OBJC_SANITIZER_AVAILABLE
 #define MATSDK_OBJC_SANITIZER_AVAILABLE 0
+#endif
+
+#if MATSDK_OBJC_SANITIZER_AVAILABLE
+#import "ODWSanitizer_private.h"
 #endif
 
 #include "EventProperties.hpp"

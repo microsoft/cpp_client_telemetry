@@ -143,6 +143,9 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
   endif()
 endif()
 
+set(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE OFF)
+set(MATSDK_OBJC_SANITIZER_AVAILABLE OFF)
+
 if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   if(APPLE)
     list(APPEND SRCS
@@ -208,13 +211,15 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
         )
     endif()
       if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
-            list(APPEND SRCS
-            ../wrappers/obj-c/ODWCommonDataContext.mm
-            ../wrappers/obj-c/ODWPrivacyGuard.mm
+          set(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE ON)
+          list(APPEND SRCS
+          ../wrappers/obj-c/ODWCommonDataContext.mm
+          ../wrappers/obj-c/ODWPrivacyGuard.mm
             ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
             )
       endif()
       if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
+        set(MATSDK_OBJC_SANITIZER_AVAILABLE ON)
         list(APPEND SRCS
         ../wrappers/obj-c/ODWSanitizerInitConfig.mm 
         ../wrappers/obj-c/ODWSanitizer.mm
@@ -314,6 +319,20 @@ target_include_directories(mat
     ${CMAKE_CURRENT_SOURCE_DIR}/pal
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
+
+if(APPLE AND BUILD_OBJC_WRAPPER)
+  if(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE)
+    target_compile_definitions(mat PRIVATE MATSDK_OBJC_PRIVACYGUARD_AVAILABLE=1)
+  else()
+    target_compile_definitions(mat PRIVATE MATSDK_OBJC_PRIVACYGUARD_AVAILABLE=0)
+  endif()
+
+  if(MATSDK_OBJC_SANITIZER_AVAILABLE)
+    target_compile_definitions(mat PRIVATE MATSDK_OBJC_SANITIZER_AVAILABLE=1)
+  else()
+    target_compile_definitions(mat PRIVATE MATSDK_OBJC_SANITIZER_AVAILABLE=0)
+  endif()
+endif()
 
 ################################################################################################
 # Link dependencies
