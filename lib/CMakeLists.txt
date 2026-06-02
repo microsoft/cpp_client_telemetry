@@ -204,6 +204,9 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       ../wrappers/obj-c/ODWEventProperties.mm
       ../wrappers/obj-c/ODWLogConfiguration.mm
       ../wrappers/obj-c/ODWSemanticContext.mm
+      ../wrappers/obj-c/ODWCommonDataContext.mm
+      ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
+      ../wrappers/obj-c/ODWSanitizerInitConfig.mm
       )
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/")
         list(APPEND SRCS
@@ -213,15 +216,12 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
           set(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE ON)
           list(APPEND SRCS
-          ../wrappers/obj-c/ODWCommonDataContext.mm
           ../wrappers/obj-c/ODWPrivacyGuard.mm
-            ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
             )
       endif()
       if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
         set(MATSDK_OBJC_SANITIZER_AVAILABLE ON)
         list(APPEND SRCS
-        ../wrappers/obj-c/ODWSanitizerInitConfig.mm 
         ../wrappers/obj-c/ODWSanitizer.mm
         )
       endif()

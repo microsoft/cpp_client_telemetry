@@ -349,10 +349,6 @@ if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
     add_library(gmock STATIC IMPORTED GLOBAL)
 endif()
 
-if(BUILD_APPLE_HTTP)
-  add_definitions(-DAPPLE_HTTP=1)
-endif()
-
 # Bond Lite subdirectories
 include_directories(bondlite/include)
 
