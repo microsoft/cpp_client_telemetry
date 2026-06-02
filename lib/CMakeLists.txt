@@ -353,7 +353,7 @@ else()
     add_library(sqlite3_bundled STATIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3.c")
     target_include_directories(sqlite3_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite")
     set_target_properties(sqlite3_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    # When -ffast-math is enabled globally, re-enable finite math for sqlite3 (uses INFINITY macro).
+    # Guard bundled sqlite3 against toolchain or environment flags that imply finite-math-only (uses INFINITY macro).
     # Also suppress warnings treated as errors in vendored code.
     target_compile_options(sqlite3_bundled PRIVATE -fno-finite-math-only -Wno-unused-function)
 

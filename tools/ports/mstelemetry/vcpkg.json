@@ -5,7 +5,7 @@
   "description": "Microsoft 1DS C/C++ Client Telemetry Library",
   "homepage": "https://github.com/microsoft/cpp_client_telemetry",
   "license": "Apache-2.0",
-  "supports": "!uwp",
+  "supports": "(windows | linux | osx | ios | android) & !uwp",
   "dependencies": [
     "nlohmann-json",
     "sqlite3",
