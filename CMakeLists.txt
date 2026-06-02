@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0...3.5)
+cmake_minimum_required(VERSION 3.5)
 project(MSTelemetry LANGUAGES C CXX)
 
 ################################################################################################
@@ -179,13 +179,13 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(STATUS "Building Release ...")
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
   # C++ standard is set via CMAKE_CXX_STANDARD above; do not override here.
-  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} ${REL_FLAGS}")
+  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} ${REL_FLAGS} ${CXX_EXTRA_WARN_FLAGS}")
 else()
   set(USE_TCMALLOC 1)
   message(STATUS "Building Debug ...")
   include(tools/FindTcmalloc.cmake)
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${DBG_FLAGS}")
-  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} ${DBG_FLAGS}")
+  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} ${DBG_FLAGS} ${CXX_EXTRA_WARN_FLAGS}")
 endif()
 
 #Remove /Zi for Win32 debug compiler issue
