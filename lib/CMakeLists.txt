@@ -292,7 +292,7 @@ endif()
 ################################################################################################
 # Build the library
 ################################################################################################
-if(BUILD_SHARED_LIBS STREQUAL "ON")
+if(BUILD_SHARED_LIBS)
   message(STATUS "Building shared SDK library")
   add_library(mat SHARED ${SRCS})
 else()

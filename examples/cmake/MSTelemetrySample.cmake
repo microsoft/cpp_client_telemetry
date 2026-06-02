@@ -9,7 +9,9 @@ set(MATSDK_LIB_DIR "${MATSDK_INSTALL_DIR}/lib" CACHE PATH "MSTelemetry library d
 
 if(NOT EXISTS "${MATSDK_LIB_DIR}/libmat.a"
    AND NOT EXISTS "${MATSDK_LIB_DIR}/libmat.dylib"
-   AND EXISTS "${MATSDK_LIB_DIR}/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu/libmat.a")
+   AND NOT EXISTS "${MATSDK_LIB_DIR}/libmat.so"
+   AND (EXISTS "${MATSDK_LIB_DIR}/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu/libmat.a"
+        OR EXISTS "${MATSDK_LIB_DIR}/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu/libmat.so"))
   set(MATSDK_LIB_DIR "${MATSDK_LIB_DIR}/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu" CACHE PATH "MSTelemetry library directory" FORCE)
 endif()
 
