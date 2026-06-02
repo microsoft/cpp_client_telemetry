@@ -44,6 +44,13 @@ if [ "$(uname)" != "Darwin" ]; then
   exit 1
 fi
 
+HAS_ARM64_HARDWARE="$(sysctl -n hw.optional.arm64 2>/dev/null || echo 0)"
+if [ "${USE_SIMULATOR}" = true ] && [ "$(uname -m)" != "arm64" ] && [ "${HAS_ARM64_HARDWARE}" != "1" ]; then
+  echo "ERROR: --simulator builds arm64-ios-simulator and requires an Apple Silicon macOS host."
+  echo "       Use the default device cross-compile mode on Intel macOS."
+  exit 1
+fi
+
 if ! command -v python3 &> /dev/null; then
   echo "ERROR: python3 is required for simulator device detection but was not found."
   exit 1
