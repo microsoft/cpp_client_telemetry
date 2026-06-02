@@ -1169,6 +1169,7 @@ namespace MAT_NS_BEGIN
 
         DebugEvent evt(DebugEventType::EVT_DROPPED);
         evt.param1 = dropped;
+        evt.param2 = static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW);
         evt.size = dropped;
         m_manager.DispatchEvent(evt);
 
