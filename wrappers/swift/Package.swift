@@ -17,9 +17,7 @@ let hasSanitizer = moduleExists("../../lib/modules/sanitizer")
 var excludedSources: [String] = []
 var swiftSettings: [SwiftSetting] = []
 
-if hasDiagnosticDataViewer {
-    swiftSettings.append(.define("MATSDK_DATAVIEWER_AVAILABLE"))
-} else {
+if !hasDiagnosticDataViewer {
     excludedSources.append("DiagnosticDataViewer.swift")
 }
 
@@ -33,9 +31,7 @@ if hasPrivacyGuard {
     ])
 }
 
-if hasSanitizer {
-    swiftSettings.append(.define("MATSDK_SANITIZER_AVAILABLE"))
-} else {
+if !hasSanitizer {
     excludedSources.append(contentsOf: [
         "Sanitizer.swift",
         "SanitizerInitConfig.swift",
