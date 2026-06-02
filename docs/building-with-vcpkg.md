@@ -104,7 +104,7 @@ The vcpkg port automatically resolves the following dependencies:
 | SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | All                |
 | zlib           | `zlib`          | `ZLIB::ZLIB`                      | All                |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
-| libcurl        | `curl[ssl]`     | `CURL::libcurl`                   | Linux              |
+| libcurl        | `curl[ssl]`     | `CURL::libcurl`                   | Non-Windows, non-Apple, non-Android |
 
 Windows, macOS/iOS, and Android use platform-native HTTP clients (WinInet,
 NSURLSession, and HttpClient_Android respectively), so curl is not required
