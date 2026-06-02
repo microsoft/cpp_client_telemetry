@@ -130,7 +130,10 @@ print('')
 
   if [ -z "${DEVICE_UDID}" ]; then
     echo "ERROR: No available iPhone simulator found."
-    echo "Create one with: xcrun simctl create 'Test iPhone' 'iPhone 15'"
+    echo "Create one in Xcode's Devices and Simulators window, or use:"
+    echo "  xcrun simctl list devicetypes"
+    echo "  xcrun simctl list runtimes"
+    echo "  xcrun simctl create <name> <device-type-identifier> <runtime-identifier>"
     exit 1
   fi
 
