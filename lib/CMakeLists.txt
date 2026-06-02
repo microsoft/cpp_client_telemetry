@@ -333,6 +333,7 @@ else()
     # Android NDK has no system sqlite3 or zlib — build from bundled source.
     add_library(sqlite3_bundled STATIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3.c")
     target_include_directories(sqlite3_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite")
+    set_target_properties(sqlite3_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
     # When -ffast-math is enabled globally, re-enable finite math for sqlite3 (uses INFINITY macro).
     # Also suppress warnings treated as errors in vendored code.
     target_compile_options(sqlite3_bundled PRIVATE -fno-finite-math-only -Wno-unused-function)
@@ -359,6 +360,7 @@ else()
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/simd_stub.c"
     )
     target_include_directories(zlib_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../zlib")
+    set_target_properties(zlib_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
     # Bundled zlib 1.2.11 uses K&R-style function definitions and POSIX functions
     # (close/read/write) without explicit includes; suppress warnings from
     # vendored code we don't modify.
