@@ -3,11 +3,9 @@
 include(CMakeFindDependencyMacro)
 
 # Re-find dependencies that consumers need
-if(@MATSDK_USE_VCPKG_DEPS@)
-  find_dependency(unofficial-sqlite3 CONFIG)
-  find_dependency(ZLIB)
-  find_dependency(nlohmann_json CONFIG)
-endif()
+find_dependency(unofficial-sqlite3 CONFIG)
+find_dependency(ZLIB)
+find_dependency(nlohmann_json CONFIG)
 
 # Curl is needed on Linux (not Windows/iOS/Android/macOS-with-Apple-HTTP).
 # We capture the build-time decision as a boolean rather than re-deriving

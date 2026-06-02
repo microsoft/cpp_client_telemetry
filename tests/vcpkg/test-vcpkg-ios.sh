@@ -134,14 +134,12 @@ print('')
 
   # Run the test binary on the simulator
   echo "Executing vcpkg_test on simulator..."
-  xcrun simctl spawn "${DEVICE_UDID}" "${BINARY}"
-  EXIT_CODE=$?
-
-  if [ ${EXIT_CODE} -eq 0 ]; then
+  if xcrun simctl spawn "${DEVICE_UDID}" "${BINARY}"; then
     echo "[PASS] iOS Simulator execution succeeded"
   else
+    EXIT_CODE=$?
     echo "[FAIL] iOS Simulator execution failed with exit code ${EXIT_CODE}"
-    exit 1
+    exit ${EXIT_CODE}
   fi
 else
   echo ""

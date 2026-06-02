@@ -91,10 +91,23 @@ if (-not $clExe) {
     $vcvarsall = Join-Path $vsInstall "VC\Auxiliary\Build\vcvarsall.bat"
     Write-Host "Initializing VS environment from: $vcvarsall"
 
-    # Build and run everything in a single cmd /c call
-    $cmakeArgStr = $CmakeArgs -join " "
-    $cmdLine = "`"$vcvarsall`" $VcvarsArch && cmake $cmakeArgStr -G `"NMake Makefiles`" && cmake --build `"$ConsumerBuild`" --config Release"
-    cmd /c $cmdLine
+    # Build and run everything from a temporary batch file so each argument remains quoted.
+    $quoteCmdArg = {
+        param([string]$Value)
+        '"' + $Value.Replace('"', '""') + '"'
+    }
+    $configureArgs = @($CmakeArgs + @("-G", "NMake Makefiles")) | ForEach-Object { & $quoteCmdArg $_ }
+    $buildArgs = @("--build", $ConsumerBuild, "--config", "Release") | ForEach-Object { & $quoteCmdArg $_ }
+    $batchFile = Join-Path $BuildDir "run-vcpkg-test.cmd"
+    @(
+        "@echo off",
+        "call $(& $quoteCmdArg $vcvarsall) $VcvarsArch",
+        "if errorlevel 1 exit /b %errorlevel%",
+        "cmake $($configureArgs -join ' ')",
+        "if errorlevel 1 exit /b %errorlevel%",
+        "cmake $($buildArgs -join ' ')"
+    ) | Set-Content -LiteralPath $batchFile -Encoding ASCII
+    cmd /d /s /c "`"$batchFile`""
     if ($LASTEXITCODE -ne 0) { Write-Error "Build failed"; exit 1 }
 } else {
     Write-Host "Using cl.exe from: $($clExe.Source)"
