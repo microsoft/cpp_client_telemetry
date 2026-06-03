@@ -76,7 +76,20 @@ namespace MAT_NS_BEGIN {
                     auto uploadTime = GetUptimeMs() - stopTimes[0];
                     if (uploadTime >= (1000L * timeoutInSec))
                     {
-                        // Hard-stop if it takes longer than planned
+                        // Hard-stop if it takes longer than planned.
+                        // Emit an EVT_DROPPED carrying the remaining record count
+                        // so listeners can attribute teardown-timeout losses.
+                        // Delegate the "remaining" calculation to the storage layer
+                        // so each backend (memory vs SQLite/Room) can decide whether
+                        // in-flight records need to be added on top of GetRecordCount().
+                        const size_t remaining = storage.GetRemainingRecordCountForShutdown();
+                        if (remaining > 0)
+                        {
+                            DebugEvent evt(DebugEventType::EVT_DROPPED, remaining,
+                                static_cast<size_t>(DROPPED_REASON_TEARDOWN_TIMEOUT));
+                            evt.size = remaining;
+                            m_logManager.DispatchEvent(evt);
+                        }
                         LOG_TRACE("Shutdown timer expired, exiting...");
                         break;
                     }

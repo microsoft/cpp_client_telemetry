@@ -150,6 +150,16 @@ namespace MAT_NS_BEGIN {
         return count;
     }
 
+    size_t OfflineStorageHandler::GetRemainingRecordCountForShutdown() const
+    {
+        size_t count = 0;
+        if (m_offlineStorageMemory != nullptr)
+            count += m_offlineStorageMemory->GetRemainingRecordCountForShutdown();
+        if (m_offlineStorageDisk != nullptr)
+            count += m_offlineStorageDisk->GetRemainingRecordCountForShutdown();
+        return count;
+    }
+
     void OfflineStorageHandler::Flush()
     {
         if (!m_logManager.StartActivity()) {

@@ -576,7 +576,9 @@ namespace MAT_NS_BEGIN
 
         if (latency == EventLatency_Off)
         {
-            DispatchEvent(DebugEventType::EVT_DROPPED);
+            // Event dropped because the active TransmitProfile has disabled this
+            // latency tier. param1 = 1 record dropped; param2 = reason code.
+            DispatchEvent(DebugEvent(DebugEventType::EVT_DROPPED, 1u, static_cast<size_t>(DROPPED_REASON_LATENCY_DISABLED_BY_PROFILE)));
             LOG_INFO("Event %s/%s dropped: calculated latency 0 (Off)",
                      tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
             return;

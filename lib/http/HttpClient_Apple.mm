@@ -197,15 +197,16 @@ void HttpClient_Apple::CancelAllRequests()
     for (const auto &id : ids)
         CancelRequestAsync(id);
 
-    while (true)
+    for (;;)
     {
         {
             std::lock_guard<std::mutex> lock(m_requestsMtx);
             if (m_requests.empty())
-                break;
+            {
+                return;
+            }
         }
         PAL::sleep(100);
-        std::this_thread::yield();
     }
 }
 
