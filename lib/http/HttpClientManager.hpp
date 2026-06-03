@@ -32,6 +32,12 @@ class HttpClientManager
 
         size_t requestCount() const
         {
+            // Access to m_httpCallbacks must be serialized via m_httpCallbacksMtx.
+            // Without the lock this is a std::list data race vs onHttpResponse,
+            // handleSendRequest, and cancelAllRequests (same UB class as the
+            // empty()-check bug fixed in cancelAllRequests). The mutex is
+            // declared mutable below so a const observer can take it.
+            LOCKGUARD(m_httpCallbacksMtx);
             return m_httpCallbacks.size();
         }
 
@@ -54,7 +60,7 @@ class HttpClientManager
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;
         ITaskDispatcher&          m_taskDispatcher;
-        std::recursive_mutex      m_httpCallbacksMtx;
+        mutable std::recursive_mutex m_httpCallbacksMtx;
         std::list<HttpCallback*>  m_httpCallbacks;
 };
 
