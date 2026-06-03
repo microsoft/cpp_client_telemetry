@@ -160,6 +160,7 @@ namespace MAT_NS_BEGIN {
         DebugEvent evt;
         evt.type = DebugEventType::EVT_DROPPED;
         evt.param1 = 1;
+        evt.param2 = static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED);
         OnDebugEvent(evt);
 
         return true;
