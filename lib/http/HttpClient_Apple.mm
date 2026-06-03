@@ -132,23 +132,6 @@ public:
     void Cancel()
     {
         [m_dataTask cancel];
-        [session getTasksWithCompletionHandler:^(NSArray* dataTasks, NSArray* uploadTasks, NSArray* downloadTasks)
-        {
-            for (NSURLSessionTask* _task in dataTasks)
-            {
-                [_task cancel];
-            }
-
-            for (NSURLSessionTask* _task in downloadTasks)
-            {
-                [_task cancel];
-            }
-
-            for (NSURLSessionTask* _task in uploadTasks)
-            {
-                [_task cancel];
-            }
-        }];
     }
 
 private:
