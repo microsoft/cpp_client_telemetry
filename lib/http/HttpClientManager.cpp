@@ -152,44 +152,9 @@ namespace MAT_NS_BEGIN {
     {
         cancelAllRequestsAsync();
 
-        // Defense-in-depth hardening for the telemetryd_v2 96 percent CPU
-        // bug. The original loop had two issues:
-        //
-        //   1. Data race (UB): m_httpCallbacks.empty() was read WITHOUT
-        //      holding m_httpCallbacksMtx, while onHttpResponse (a few
-        //      lines above) calls m_httpCallbacks.remove(callback) under
-        //      that same mutex. Concurrent access to a std::list's internal
-        //      state from two threads without synchronization is undefined
-        //      behavior; it only "worked" because empty() happens to be
-        //      cheap and rarely visibly miscompiled.
-        //
-        //   2. Liveness / CPU: std::this_thread::yield() on Darwin maps to
-        //      sched_yield / swtch_pri, which the scheduler treats as
-        //      "willing to give up the slice but want it back ASAP". With a
-        //      broken IHttpClient adapter that does not honor the cancel
-        //      contract, this manifests as a thread sitting at ~96 percent
-        //      CPU forever -- exactly what the customer's sysdiagnose
-        //      reported. Even with a correctly-implementing adapter, the
-        //      yield burns more CPU than necessary during the brief drain
-        //      window.
-        //
-        // Fix:
-        //   - Read m_httpCallbacks.empty() under m_httpCallbacksMtx every
-        //     iteration -- removes the data race.
-        //   - Replace yield() with a 50ms sleep -- caps drain-window CPU
-        //     at about 1 percent, even if the IHttpClient adapter is slow
-        //     to honor the cancel.
-        //
-        // Note: the wait is intentionally still unbounded. Adding a
-        // deadline would let cancelAllRequests return while in-flight
-        // callbacks are still pending; those callbacks operate on this
-        // HttpClientManager's state (m_httpCallbacks, requestDone), so
-        // returning before drainage is unsafe when the caller is about to
-        // destroy this object (e.g. the onStop / onCleanup paths in
-        // TelemetrySystem). The primary protection against indefinite
-        // waits is the matching change in OneDsHttpClient which actually
-        // implements CancelAllRequests; this loop simply finishes promptly
-        // once the adapter starts delivering OnHttpResponse calls.
+        // Wait for callbacks to drain before shutdown can destroy state that
+        // those callbacks still use. Keep the list check synchronized and sleep
+        // between polls so a slow adapter does not burn CPU while draining.
         for (;;)
         {
             {
@@ -206,4 +171,3 @@ namespace MAT_NS_BEGIN {
     // start async cancellation
 
 } MAT_NS_END
-
