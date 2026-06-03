@@ -38,4 +38,4 @@ jobs:
         PlatformToolset: v143
         VSTOOLS_VERSION: vs2022
       shell: cmd
-      run: build-all.bat
+      run: build-all-windows.bat
