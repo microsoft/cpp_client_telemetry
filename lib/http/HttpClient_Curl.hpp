@@ -149,11 +149,11 @@ public:
         // Headers are copied into m_headersChunk during construction and the
         // curl_slist is kept alive until destruction, so the original map does
         // not need operation-lifetime storage.
-        for(auto &kv : requestHeaders)
+        for(const auto &kv : requestHeaders)
         {
             std::string header = kv.first.c_str();
             header += ": ";
-            header += kv.second.c_str();
+const std::string header = kv.first + ":" + kv.second;
             m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
         }
 
