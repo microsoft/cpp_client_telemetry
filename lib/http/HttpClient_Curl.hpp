@@ -74,8 +74,10 @@ public:
 
     void DispatchEvent(HttpStateEvent type)
     {
-        if(m_callback != nullptr)
+        if (m_callback != nullptr)
+        {
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
+        }
     }
 
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
@@ -149,11 +151,9 @@ public:
         // Headers are copied into m_headersChunk during construction and the
         // curl_slist is kept alive until destruction, so the original map does
         // not need operation-lifetime storage.
-        for(const auto &kv : requestHeaders)
+        for (const auto& kv : requestHeaders)
         {
-            std::string header = kv.first.c_str();
-            header += ": ";
-const std::string header = kv.first + ":" + kv.second;
+            std::string header = kv.first + ": " + kv.second;
             m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
         }
 
@@ -193,7 +193,7 @@ const std::string header = kv.first + ":" + kv.second;
 
         ReleaseResponse();
         // Request buffer
-        const void *request  = (requestBody.empty())?NULL:&requestBody[0];
+        const void *request  = requestBody.empty() ? nullptr : requestBody.data();
         const size_t reqSize = requestBody.size();
 
         if(!curl)
@@ -265,7 +265,7 @@ const std::string header = kv.first + ":" + kv.second;
         {
             // POST
             curl_easy_setopt(curl, CURLOPT_POST, true);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char *)request);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, static_cast<const char*>(request));
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, reqSize);
         } else
         if (m_method.compare("GET") == 0)
@@ -342,18 +342,20 @@ cleanup:
     }
 
     /**
-     * Return a copy of resposne headers
+     * Return a copy of response headers
      *
      * @return
      */
     std::map<std::string, std::string> GetResponseHeaders()
     {
         std::map<std::string, std::string> result;
-        if (respHeaders.size() == 0)
+        if (respHeaders.empty())
+        {
             return result;
+        }
 
         std::stringstream ss;
-        std::string headers((const char *)&respHeaders[0], respHeaders.size());
+        std::string headers(reinterpret_cast<const char*>(respHeaders.data()), respHeaders.size());
         ss.str(headers);
 
         std::string header;
@@ -384,8 +386,11 @@ cleanup:
     std::vector<uint8_t> GetRawResponse()
     {
         std::vector<uint8_t> result;
-        if ((response.memory!=nullptr)&&(response.size!=0))
-            result.insert(result.end(), (const char *)response.memory, ((const char *)response.memory) + response.size);
+        if ((response.memory != nullptr) && (response.size != 0))
+        {
+            const auto* begin = reinterpret_cast<const uint8_t*>(response.memory);
+            result.insert(result.end(), begin, begin + response.size);
+        }
         return result;
     }
 
@@ -394,7 +399,7 @@ cleanup:
      */
     void ReleaseResponse()
     {
-        if (response.memory!=nullptr) {
+        if (response.memory != nullptr) {
             free(response.memory);
             response.memory = nullptr;
             response.size = 0;
@@ -497,12 +502,13 @@ protected:
         size_t realsize = size * nmemb;
         struct MemoryStruct *mem = (struct MemoryStruct *)userp;
 
-        mem->memory = (char *)(realloc(mem->memory, mem->size + realsize + 1));
-        if(mem->memory == NULL) {
+        auto* memory = static_cast<char*>(realloc(mem->memory, mem->size + realsize + 1));
+        if(memory == nullptr) {
           /* out of memory! */
           TRACE("not enough memory (realloc returned NULL)\n");
           return 0;
         }
+        mem->memory = memory;
 #ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
         BoundCheckFunctions::oneds_memcpy_s(&(mem->memory[mem->size]), realsize, contents, realsize);
 #else
@@ -525,9 +531,9 @@ protected:
      */
     static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
     {
-        if (data!=nullptr) {
-            const unsigned char * begin = (unsigned char *)(ptr);
-            const unsigned char * end   = begin + size * nmemb;
+        if (data != nullptr) {
+            const auto* begin = static_cast<const uint8_t*>(ptr);
+            const auto* end   = begin + size * nmemb;
             data->insert( data->end(), begin, end);
         }
         return size * nmemb;
