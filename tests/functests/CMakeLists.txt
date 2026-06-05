@@ -124,7 +124,7 @@ else()
     ${LIBGTEST}
     ${LIBGMOCK}
     mat
-    ${ZLIB_LIBRARIES}
+    ZLIB::ZLIB
     ${SQLITE3_LIB}
     ${PLATFORM_LIBS}
     dl)

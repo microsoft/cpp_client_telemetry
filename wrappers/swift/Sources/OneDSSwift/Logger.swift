@@ -137,10 +137,12 @@ public final class Logger {
 
     /**
     Initializes and gets an instance of Privacy Guard.
-    */
+     */
+    #if MATSDK_PRIVACYGUARD_AVAILABLE
     public func apply(config initConfigObject: PrivacyGuardInitConfig) {
         odwLogger.initializePrivacyGuard(with: initConfigObject.getODWPrivacyGuardInitConfig())
     }
+    #endif
 
     // MARK: Set Context methods
 
