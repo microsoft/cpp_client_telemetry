@@ -109,6 +109,7 @@ public:
             m_callback(callback),
             m_method(method),
             m_url(url),
+            m_sslCaInfo(sslCaInfo),
 
             // Local vars
             requestHeaders(requestHeaders),
@@ -140,8 +141,8 @@ public:
 
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L);
-        if (!sslCaInfo.empty()) {
-            curl_easy_setopt(curl, CURLOPT_CAINFO, sslCaInfo.c_str());
+        if (!m_sslCaInfo.empty()) {
+            curl_easy_setopt(curl, CURLOPT_CAINFO, m_sslCaInfo.c_str());
         }
         // HTTP/2 please, fallback to HTTP/1.1 if not supported
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
@@ -434,6 +435,7 @@ protected:
     // Request values
     std::string m_method;
     std::string m_url;
+    std::string m_sslCaInfo;
     const std::map<std::string, std::string>& requestHeaders;
     const std::vector<uint8_t>& requestBody;
     struct curl_slist *m_headersChunk = nullptr;
@@ -534,4 +536,3 @@ protected:
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENTCURL_HPP
-
