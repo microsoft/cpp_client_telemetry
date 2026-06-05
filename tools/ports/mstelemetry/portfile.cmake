@@ -1,13 +1,13 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO microsoft/cpp_client_telemetry
-    REF dc53d660024772cd6fd858f7897ff124c2330c28
-    SHA512 a8c70f4cc1a3f4dc88a0c5ed3bf2992bad7e85f1cf75238f1a608bc726f9c5317c8a549aeb2174022cf79bbe77a14940f687cc7cdbcbdeb5afd1b2db3944e174
+    REF a1b2dc0f73243a65cb21d4b5188729e2eae46e9d
+    SHA512 332a41906eb332dee33e0e3774d31ecd8952326ba46a65c5bc50de207e36df40fc2d441254748c618200073b5d27ff50f79daad2b0f461659612d90eff4c7368
     HEAD_REF main
 )
 
 # Determine if Apple HTTP should be used (no curl needed).
-# Note: BUILD_APPLE_HTTP must remain ON for macOS/iOS — the vcpkg.json
+# Note: BUILD_APPLE_HTTP must remain ON for macOS/iOS because the vcpkg.json
 # curl dependency is excluded on these platforms.
 set(MATSDK_BUILD_APPLE_HTTP OFF)
 if(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
