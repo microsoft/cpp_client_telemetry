@@ -47,7 +47,7 @@ jobs:
           - os: macos-15
             simulator: "'iPad Pro (11-inch) (4th generation)'"
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       CMAKE_POLICY_VERSION_MINIMUM: "3.5"
     steps:
