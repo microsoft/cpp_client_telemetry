@@ -436,6 +436,10 @@ protected:
     std::string m_method;
     std::string m_url;
     std::string m_sslCaInfo;
+    // The SDK upload path keeps the owning IHttpRequest alive through the
+    // callback context until Send() completes; copying this body would duplicate
+    // every upload payload. Unlike CURLOPT_CAINFO, the body pointer is set and
+    // consumed during Send(), not retained from construction.
     const std::map<std::string, std::string>& requestHeaders;
     const std::vector<uint8_t>& requestBody;
     struct curl_slist *m_headersChunk = nullptr;
