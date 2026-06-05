@@ -112,7 +112,6 @@ public:
             m_sslCaInfo(sslCaInfo),
 
             // Local vars
-            requestHeaders(requestHeaders),
             requestBody(requestBody)
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
@@ -147,8 +146,10 @@ public:
         // HTTP/2 please, fallback to HTTP/1.1 if not supported
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
-        // Specify our custom headers
-        for(auto &kv : this->requestHeaders)
+        // Headers are copied into m_headersChunk during construction and the
+        // curl_slist is kept alive until destruction, so the original map does
+        // not need operation-lifetime storage.
+        for(auto &kv : requestHeaders)
         {
             std::string header = kv.first.c_str();
             header += ": ";
@@ -440,7 +441,6 @@ protected:
     // callback context until Send() completes; copying this body would duplicate
     // every upload payload. Unlike CURLOPT_CAINFO, the body pointer is set and
     // consumed during Send(), not retained from construction.
-    const std::map<std::string, std::string>& requestHeaders;
     const std::vector<uint8_t>& requestBody;
     struct curl_slist *m_headersChunk = nullptr;
 
