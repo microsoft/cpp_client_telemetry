@@ -15,7 +15,7 @@
       "features": [
         "ssl"
       ],
-      "platform": "!windows & !osx & !ios & !android"
+      "platform": "!windows & !osx & !ios"
     },
     {
       "name": "vcpkg-cmake",

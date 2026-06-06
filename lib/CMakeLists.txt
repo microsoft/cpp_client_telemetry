@@ -194,12 +194,21 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
       list(APPEND SRCS
         pal/posix/NetworkInformationImpl_Android.cpp
-        http/HttpClient_Android.cpp
-        http/HttpClient_Android.hpp
       )
-      if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        set_source_files_properties(http/HttpClient_Android.cpp
-          PROPERTIES COMPILE_FLAGS "-Wno-unused-const-variable")
+      if(MATSDK_USE_VCPKG_DEPS)
+        list(APPEND SRCS
+          http/HttpClient_Curl.cpp
+          http/HttpClient_Curl.hpp
+        )
+      else()
+        list(APPEND SRCS
+          http/HttpClient_Android.cpp
+          http/HttpClient_Android.hpp
+        )
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+          set_source_files_properties(http/HttpClient_Android.cpp
+            PROPERTIES COMPILE_FLAGS "-Wno-unused-const-variable")
+        endif()
       endif()
     else()
       list(APPEND SRCS

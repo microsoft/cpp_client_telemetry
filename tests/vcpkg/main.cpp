@@ -40,7 +40,14 @@ int main()
     auto& config = LogManager::GetLogConfiguration();
     check(true, "LogManager::GetLogConfiguration() callable");
 
-    // 3. EventProperties with multiple types
+    // 3. LogManager initialization
+    {
+        ILogger* logger = LogManager::Initialize("vcpkg-test-token");
+        check(logger != nullptr, "LogManager::Initialize() callable");
+        LogManager::FlushAndTeardown();
+    }
+
+    // 4. EventProperties with multiple types
     {
         EventProperties props("TestEvent");
         props.SetProperty("strProp", "value");
@@ -51,7 +58,7 @@ int main()
         check(true, "SetProperty for string, int, double, bool");
     }
 
-    // 4. Multiple event types
+    // 5. Multiple event types
     {
         std::vector<std::string> names = {"App.Started", "App.PageView", "App.Error"};
         for (const auto& name : names) {
@@ -61,7 +68,7 @@ int main()
         check(true, "Created multiple event types");
     }
 
-    // 5. PII annotations
+    // 6. PII annotations
     {
         EventProperties props("PiiTest");
         props.SetProperty("userId", "user@example.com", PiiKind_Identity);
@@ -69,7 +76,7 @@ int main()
         check(true, "PII-annotated properties compile and link");
     }
 
-    // 6. Event priority
+    // 7. Event priority
     {
         EventProperties props("PriorityTest");
         props.SetPriority(EventPriority_High);
