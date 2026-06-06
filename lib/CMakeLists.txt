@@ -361,8 +361,10 @@ endif()
 ################################################################################################
 if(MATSDK_USE_VCPKG_DEPS)
   # vcpkg mode: all deps resolved via find_package() in root CMakeLists.txt
+  # These are PUBLIC so static-library consumers get the transitive link set
+  # through the exported MSTelemetry::mat target.
   target_link_libraries(mat
-    PRIVATE
+    PUBLIC
       unofficial::sqlite3::sqlite3
       ZLIB::ZLIB
       nlohmann_json::nlohmann_json

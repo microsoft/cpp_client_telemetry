@@ -8,7 +8,7 @@ list(GET MATSDK_BUILD_VERSION_SPLIT 3 BUILD_NUMBER)
 #configure_file(public/Version.hpp.template "${CMAKE_CURRENT_SOURCE_DIR}/public/Version.hpp")
 
 set(MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
-  PATTERN "public/*.template" EXCLUDE
+  PATTERN "*.template" EXCLUDE
 )
 
 if(MATSDK_USE_VCPKG_DEPS)
