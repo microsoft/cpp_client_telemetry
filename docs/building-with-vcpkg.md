@@ -86,7 +86,10 @@ for details on creating your own custom triplets for other platforms.
 
 ### Android (cross-compile)
 
-Requires the Android NDK (`ANDROID_NDK_HOME` must be set):
+Requires the Android NDK (`ANDROID_NDK_HOME` must be set). The validation
+script targets Android API 28, which matches vcpkg's Android triplet default
+and avoids mixing dependencies built for a newer API level into a lower-API
+consumer binary:
 
 ```bash
 vcpkg install mstelemetry --triplet=arm64-android

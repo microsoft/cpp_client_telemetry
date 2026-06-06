@@ -77,7 +77,9 @@ The simulator mode uses the built-in vcpkg community triplet `arm64-ios-simulato
 
 ### Android (cross-compile)
 
-**Requires:** Android NDK, cmake, VCPKG_ROOT set
+**Requires:** Android NDK, cmake, VCPKG_ROOT set. The test targets
+`android-28`, matching vcpkg's Android triplet default and its prebuilt
+dependency ABI expectations.
 
 ```bash
 # Default: arm64-v8a

@@ -72,7 +72,7 @@ cmake -S "${SCRIPT_DIR}" -B "${BUILD_DIR}/consumer" \
   -DVCPKG_OVERLAY_PORTS="${OVERLAY_PORTS}" \
   -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake" \
   -DANDROID_ABI="${ANDROID_ABI}" \
-  -DANDROID_PLATFORM=android-24 \
+  -DANDROID_PLATFORM=android-28 \
   -DCMAKE_BUILD_TYPE=Release
 
 echo ""

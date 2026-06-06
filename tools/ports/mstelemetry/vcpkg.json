@@ -14,7 +14,7 @@
       "name": "curl",
       "default-features": false,
       "features": [
-        "ssl"
+        "openssl"
       ],
       "platform": "!windows & !osx & !ios"
     },
@@ -28,3 +28,4 @@
     }
   ]
 }
+
