@@ -7,10 +7,26 @@ list(GET MATSDK_BUILD_VERSION_SPLIT 3 BUILD_NUMBER)
 #TODO: allow regeneration of Version.hpp using template
 #configure_file(public/Version.hpp.template "${CMAKE_CURRENT_SOURCE_DIR}/public/Version.hpp")
 
+set(MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
+  PATTERN "public/*.template" EXCLUDE
+)
+
+if(MATSDK_USE_VCPKG_DEPS)
+  # GitHub source archives used by the public vcpkg port do not include the
+  # private lib/modules submodule, so do not install public headers whose
+  # exported factories/functions are implemented only by those modules.
+  list(APPEND MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
+    PATTERN "CompliantByDefaultFilterApi.hpp" EXCLUDE
+    PATTERN "IAFDClient.hpp" EXCLUDE
+    PATTERN "ICdsFactory.hpp" EXCLUDE
+    PATTERN "IECSClient.hpp" EXCLUDE
+  )
+endif()
+
 install(
   DIRECTORY
     public/
   DESTINATION
     include/mat
-  PATTERN "public/*.template" EXCLUDE
+  ${MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES}
 )
