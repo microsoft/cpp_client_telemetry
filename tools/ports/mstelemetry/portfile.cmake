@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO microsoft/cpp_client_telemetry
-    REF 960379ab98b0e6d33348dd828c51a46c39b3a334
-    SHA512 afd7ce6c2e3ffacacf69d0be3d3532f231dccdbc7b9de27bc90b42351464fef761ea0b3b26ef1830735f5369f2f40368446ef777507fbc8d7ed0927f4b6eb9fa
+    REF 7bf984fcd52019ef2e6ade2c05e3bf5e8f20faef
+    SHA512 5ece8842a0646239413e58bf74bdac755deb3c949414f64354396501a97396120794fe73d062d8c57a28048ef8b5b46ca316425a05e88b457f11ce4ea894e0b9
     HEAD_REF main
 )
 
@@ -51,4 +51,3 @@ file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_D
 
 # Install license
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
-
