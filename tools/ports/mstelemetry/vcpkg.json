@@ -16,7 +16,7 @@
       "features": [
         "openssl"
       ],
-      "platform": "!windows & !osx & !ios"
+      "platform": "linux | android"
     },
     {
       "name": "vcpkg-cmake",
@@ -28,4 +28,3 @@
     }
   ]
 }
-

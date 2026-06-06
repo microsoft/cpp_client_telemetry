@@ -77,17 +77,21 @@ The simulator mode uses the built-in vcpkg community triplet `arm64-ios-simulato
 
 ### Android (cross-compile)
 
-**Requires:** Android NDK, cmake, VCPKG_ROOT set. The test targets
-`android-28`, matching vcpkg's Android triplet default and its prebuilt
-dependency ABI expectations.
+**Requires:** Android NDK, cmake, ninja, VCPKG_ROOT set. The default test
+targets `android-23`, matching this repo's Android `minSdk`. vcpkg's built-in
+Android triplets default to `android-28`; use the API 28 form below to test
+that default.
 
 ```bash
-# Default: arm64-v8a
+# Default: arm64-v8a, android-23
 ./tests/vcpkg/test-vcpkg-android.sh
 
 # Other ABIs:
 ./tests/vcpkg/test-vcpkg-android.sh armeabi-v7a
 ./tests/vcpkg/test-vcpkg-android.sh x86_64
+
+# vcpkg built-in Android triplet default: android-28
+./tests/vcpkg/test-vcpkg-android.sh arm64-v8a 28
 ```
 
 Set `ANDROID_NDK_HOME` if the script can't find your NDK automatically. Cross-compiled binary can be tested on device via `adb push`/`adb shell`.

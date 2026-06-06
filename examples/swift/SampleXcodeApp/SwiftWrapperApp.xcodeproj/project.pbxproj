@@ -333,10 +333,10 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = "$(MATSDK_INSTALL_DIR)/lib";
-				LIBRARY_SEARCH_PATHS = "$(MATSDK_INSTALL_DIR)/lib";
-				MATSDK_INSTALL_DIR = /usr/local;
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = "$(MATSDK_INSTALL_DIR)/lib";
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MATSDK_INSTALL_DIR = /usr/local;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = OneDSSwift.SwiftWrapperApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";

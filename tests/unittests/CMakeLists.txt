@@ -144,9 +144,13 @@ else()
     set (SQLITE3_LIB "sqlite3")
   endif()
 
-  # Find zlib
-  find_package( ZLIB REQUIRED )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
+  if(TARGET zlib_bundled)
+    set(MATSDK_TEST_ZLIB zlib_bundled)
+  else()
+    find_package( ZLIB REQUIRED )
+    set(MATSDK_TEST_ZLIB ZLIB::ZLIB)
+    include_directories( ${ZLIB_INCLUDE_DIRS} )
+  endif()
 
   set (PLATFORM_LIBS "")
   # Add flags for obtaining system UUID via IOKit
@@ -189,7 +193,7 @@ else()
     ${LIBGTEST}
     ${LIBGMOCK}
     mat
-    ZLIB::ZLIB
+    ${MATSDK_TEST_ZLIB}
     ${SQLITE3_LIB}
     ${PLATFORM_LIBS}
     dl)

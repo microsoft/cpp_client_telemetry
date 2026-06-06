@@ -86,14 +86,27 @@ for details on creating your own custom triplets for other platforms.
 
 ### Android (cross-compile)
 
-Requires the Android NDK (`ANDROID_NDK_HOME` must be set). The validation
-script targets Android API 28, which matches vcpkg's Android triplet default
-and avoids mixing dependencies built for a newer API level into a lower-API
-consumer binary:
+Requires the Android NDK (`ANDROID_NDK_HOME` must be set). vcpkg's built-in
+Android triplets default to Android API 28:
 
 ```bash
 vcpkg install mstelemetry --triplet=arm64-android
 ```
+
+This repo's Android build declares `minSdk 23`. To build the SDK and all
+vcpkg dependencies for API 23, use a custom triplet that sets
+`VCPKG_CMAKE_SYSTEM_VERSION` to `23`. The integration tests include API 23
+triplet examples:
+
+```bash
+vcpkg install mstelemetry \
+  --triplet=arm64-android-api23 \
+  --overlay-triplets=tests/vcpkg/triplets
+```
+
+Do not mix dependencies built with the default API 28 triplets into an API 23
+consumer binary; build the whole dependency graph with the same Android API
+triplet.
 
 Supported triplets: `arm64-android`, `arm-neon-android`, `x64-android`,
 `x86-android`.
@@ -107,11 +120,12 @@ The vcpkg port automatically resolves the following dependencies:
 | SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | All                |
 | zlib           | `zlib`          | `ZLIB::ZLIB`                      | All                |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
-| libcurl        | `curl[ssl]`     | `CURL::libcurl`                   | Non-Windows, non-Apple, non-Android |
+| libcurl        | `curl[openssl]` | `CURL::libcurl`                   | Non-Windows, non-Apple |
 
-Windows, macOS/iOS, and Android use platform-native HTTP clients (WinInet,
-NSURLSession, and HttpClient_Android respectively), so curl is not required
-on those platforms.
+Windows and macOS/iOS use platform-native HTTP clients (WinInet and
+NSURLSession respectively). Android vcpkg consumers use native libcurl because
+the Java-backed `HttpClient_Android` singleton is initialized by the repo's
+Android Gradle/AAR flow, not by standalone native vcpkg consumers.
 
 ## Optional: SIMD-Optimized zlib with zlib-ng
 

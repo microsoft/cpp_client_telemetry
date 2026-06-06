@@ -381,8 +381,7 @@ else()
     # Also suppress warnings treated as errors in vendored code.
     target_compile_options(sqlite3_bundled PRIVATE -fno-finite-math-only -Wno-unused-function)
 
-    # Build zlib from bundled source. The upstream SIMD sources are not part of
-    # this tree, so no Android-specific stubs are needed.
+    # Build zlib from bundled source.
     add_library(zlib_bundled STATIC
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/adler32.c"
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/compress.c"

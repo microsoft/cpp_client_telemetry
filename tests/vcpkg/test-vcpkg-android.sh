@@ -1,34 +1,51 @@
 #!/bin/bash
 # Test script: Verify mstelemetry vcpkg port for Android (cross-compile only)
-# Usage: ./tests/vcpkg/test-vcpkg-android.sh [ABI]
+# Usage: ./tests/vcpkg/test-vcpkg-android.sh [ABI] [API_LEVEL]
 #   ABI: arm64-v8a (default), armeabi-v7a, x86_64, x86
-# Prerequisites: VCPKG_ROOT set, ANDROID_NDK_HOME set, cmake
+#   API_LEVEL: 23 (default), 28, or another level with a matching overlay triplet
+# Prerequisites: VCPKG_ROOT set, ANDROID_NDK_HOME set, cmake, ninja
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 OVERLAY_PORTS="${REPO_ROOT}/tools/ports"
 
-# Android ABI (default: arm64-v8a)
+# Android ABI/API (defaults match the repo's Android minSdk)
 ANDROID_ABI="${1:-arm64-v8a}"
+ANDROID_API="${2:-23}"
 
 # Map ABI to vcpkg triplet
 case "${ANDROID_ABI}" in
-  arm64-v8a)    TRIPLET="arm64-android" ;;
-  armeabi-v7a)  TRIPLET="arm-neon-android" ;;
-  x86_64)       TRIPLET="x64-android" ;;
-  x86)          TRIPLET="x86-android" ;;
+  arm64-v8a)    BASE_TRIPLET="arm64-android" ;;
+  armeabi-v7a)  BASE_TRIPLET="arm-neon-android" ;;
+  x86_64)       BASE_TRIPLET="x64-android" ;;
+  x86)          BASE_TRIPLET="x86-android" ;;
   *)
     echo "ERROR: Unsupported ABI '${ANDROID_ABI}'. Use: arm64-v8a, armeabi-v7a, x86_64, x86"
     exit 1
     ;;
 esac
 
-BUILD_DIR="${SCRIPT_DIR}/build-android-${ANDROID_ABI}"
+if [ "${ANDROID_API}" = "28" ]; then
+  TRIPLET="${BASE_TRIPLET}"
+  OVERLAY_TRIPLETS_ARGS=()
+else
+  TRIPLET="${BASE_TRIPLET}-api${ANDROID_API}"
+  OVERLAY_TRIPLETS="${SCRIPT_DIR}/triplets"
+  if [ ! -f "${OVERLAY_TRIPLETS}/${TRIPLET}.cmake" ]; then
+    echo "ERROR: Android API ${ANDROID_API} requires overlay triplet ${TRIPLET}."
+    echo "       Add ${OVERLAY_TRIPLETS}/${TRIPLET}.cmake or use API 23/28."
+    exit 1
+  fi
+  OVERLAY_TRIPLETS_ARGS=(-DVCPKG_OVERLAY_TRIPLETS="${OVERLAY_TRIPLETS}")
+fi
+
+BUILD_DIR="${SCRIPT_DIR}/build-android-${ANDROID_ABI}-api${ANDROID_API}"
 
 echo "=== MSTelemetry vcpkg port test (Android cross-compile) ==="
 echo "Repository root: ${REPO_ROOT}"
 echo "ABI: ${ANDROID_ABI}"
+echo "Android API: ${ANDROID_API}"
 echo "Triplet: ${TRIPLET}"
 
 # Check prerequisites
@@ -60,19 +77,26 @@ if [ -z "${ANDROID_NDK_HOME}" ] || [ ! -d "${ANDROID_NDK_HOME}" ]; then
 fi
 echo "NDK: ${ANDROID_NDK_HOME}"
 
+if ! command -v ninja >/dev/null 2>&1; then
+  echo "ERROR: ninja is required for Android vcpkg tests."
+  echo "       Using Ninja avoids host IDE generators selecting a different Android NDK."
+  exit 1
+fi
+
 # Clean previous build
 rm -rf "${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}"
 
 echo ""
 echo "--- Step 1: Configure (vcpkg installs deps automatically) ---"
-cmake -S "${SCRIPT_DIR}" -B "${BUILD_DIR}/consumer" \
+cmake -G Ninja -S "${SCRIPT_DIR}" -B "${BUILD_DIR}/consumer" \
   -DCMAKE_TOOLCHAIN_FILE="${VCPKG_TOOLCHAIN}" \
   -DVCPKG_TARGET_TRIPLET="${TRIPLET}" \
   -DVCPKG_OVERLAY_PORTS="${OVERLAY_PORTS}" \
+  "${OVERLAY_TRIPLETS_ARGS[@]}" \
   -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake" \
   -DANDROID_ABI="${ANDROID_ABI}" \
-  -DANDROID_PLATFORM=android-28 \
+  -DANDROID_PLATFORM=android-${ANDROID_API} \
   -DCMAKE_BUILD_TYPE=Release
 
 echo ""
