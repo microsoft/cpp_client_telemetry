@@ -161,11 +161,19 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       )
     endif()
   endif()
-  list(APPEND SRCS
-    pal/posix/DeviceInformationImpl.cpp
-    pal/posix/SystemInformationImpl.cpp
-    pal/posix/sysinfo_sources.cpp
-  )
+  if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    list(APPEND SRCS
+      pal/posix/DeviceInformationImpl_Android.cpp
+      pal/posix/SystemInformationImpl_Android.cpp
+      pal/posix/sysinfo_sources.cpp
+    )
+  else()
+    list(APPEND SRCS
+      pal/posix/DeviceInformationImpl.cpp
+      pal/posix/SystemInformationImpl.cpp
+      pal/posix/sysinfo_sources.cpp
+    )
+  endif()
 
   if(APPLE)
     if(BUILD_APPLE_HTTP OR BUILD_IOS)
@@ -183,14 +191,19 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
         pal/posix/NetworkInformationImpl.mm
     )
   else()
-    list(APPEND SRCS pal/posix/NetworkInformationImpl.cpp)
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
       list(APPEND SRCS
+        pal/posix/NetworkInformationImpl_Android.cpp
         http/HttpClient_Android.cpp
         http/HttpClient_Android.hpp
       )
+      if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set_source_files_properties(http/HttpClient_Android.cpp
+          PROPERTIES COMPILE_FLAGS "-Wno-unused-const-variable")
+      endif()
     else()
       list(APPEND SRCS
+        pal/posix/NetworkInformationImpl.cpp
         http/HttpClient_Curl.cpp
         http/HttpClient_Curl.hpp
       )
@@ -357,9 +370,8 @@ else()
     # Also suppress warnings treated as errors in vendored code.
     target_compile_options(sqlite3_bundled PRIVATE -fno-finite-math-only -Wno-unused-function)
 
-    # Build zlib from bundled source, excluding Intel SIMD files (crc_folding.c,
-    # fill_window_sse.c, x86.c) that require SSE4.2/PCLMULQDQ and cannot compile
-    # on ARM. simd_stub.c provides the necessary stubs instead.
+    # Build zlib from bundled source. The upstream SIMD sources are not part of
+    # this tree, so no Android-specific stubs are needed.
     add_library(zlib_bundled STATIC
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/adler32.c"
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/compress.c"
@@ -376,7 +388,6 @@ else()
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/trees.c"
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/uncompr.c"
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/zutil.c"
-      "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/simd_stub.c"
     )
     target_include_directories(zlib_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../zlib")
     set_target_properties(zlib_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
