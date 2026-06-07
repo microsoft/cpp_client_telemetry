@@ -28,9 +28,9 @@
 		277E76FF2A45FE4D004A3A8F /* swift */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = swift; path = ../../../wrappers/swift; sourceTree = "<group>"; };
 		A34744232A4643B20039D419 /* libmat.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmat.a; path = "$(MATSDK_INSTALL_DIR)/lib/libmat.a"; sourceTree = "<group>"; };
 		A34744252A4643FE0039D419 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
-		A34744272A46440F0039D419 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
-		A34744292A46441A0039D419 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
-		A347442B2A46442C0039D419 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
+		A34744272A46440F0039D419 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		A34744292A46441A0039D419 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
+		A347442B2A46442C0039D419 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

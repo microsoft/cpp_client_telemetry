@@ -73,8 +73,12 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   )
 else()
 
-  # Prefer linking to more recent local sqlite3
-  if(EXISTS "/usr/local/lib/libsqlite3.a")
+  # Prefer the SDK's bundled sqlite3 when present (e.g. the Android legacy
+  # build, where the NDK has no system sqlite3), then a more recent local
+  # sqlite3, otherwise the system library.
+  if(TARGET sqlite3_bundled)
+    set (SQLITE3_LIB sqlite3_bundled)
+  elseif(EXISTS "/usr/local/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
   elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
@@ -133,7 +137,10 @@ else()
     ${PLATFORM_LIBS}
     dl)
 
-  if(NOT BUILD_IOS)
+  # Link curl only when the SDK actually uses the curl HTTP client (Linux, and
+  # macOS without Apple HTTP). The tests don't use curl directly, and on the
+  # Android legacy path mat uses HttpClient_Android (no system curl in the NDK).
+  if(NOT BUILD_IOS AND MATSDK_NEEDS_CURL)
     target_link_libraries(FuncTests curl)
   endif()
 
