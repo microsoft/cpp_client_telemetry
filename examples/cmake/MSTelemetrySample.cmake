@@ -1,9 +1,7 @@
-set(_MATSDK_DEFAULT_INSTALL_DIR "/usr/local")
-if(NOT "$ENV{MATSDK_INSTALL_DIR}" STREQUAL "")
-  set(_MATSDK_DEFAULT_INSTALL_DIR "$ENV{MATSDK_INSTALL_DIR}")
+set(MATSDK_INSTALL_DIR "$ENV{MATSDK_INSTALL_DIR}" CACHE PATH "MSTelemetry install prefix")
+if(MATSDK_INSTALL_DIR STREQUAL "")
+  set(MATSDK_INSTALL_DIR "/usr/local" CACHE PATH "MSTelemetry install prefix" FORCE)
 endif()
-
-set(MATSDK_INSTALL_DIR "${_MATSDK_DEFAULT_INSTALL_DIR}" CACHE PATH "MSTelemetry install prefix")
 set(MATSDK_INCLUDE_DIR "${MATSDK_INSTALL_DIR}/include/mat" CACHE PATH "MSTelemetry public headers")
 set(MATSDK_LIB_DIR "${MATSDK_INSTALL_DIR}/lib" CACHE PATH "MSTelemetry library directory")
 
