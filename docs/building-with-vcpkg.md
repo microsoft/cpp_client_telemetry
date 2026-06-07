@@ -21,6 +21,23 @@ git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 # then build with the repo's own CMake/build scripts
 ```
 
+### Migrating from the previous overlay port
+
+Earlier versions of this overlay port detected a local `--recurse-submodules`
+checkout and built the SDK from it via `build.sh`/`install.sh` (or MSBuild on
+Windows), which **included** the private `lib/modules` submodules. That behavior
+has been removed. The port now always builds the **core** SDK from a pinned,
+immutable upstream archive.
+
+| Before | Now |
+| ------ | --- |
+| `vcpkg install --head --overlay-ports=tools/ports mstelemetry` (built from your local checkout, with private submodules) | `vcpkg install mstelemetry` (or `--overlay-ports=tools/ports`) builds the core SDK only, from a pinned commit |
+| `vcpkg install @tools/ports/mstelemetry/response_file_linux.txt` / `response_file_mac.txt` | Removed — use a standard triplet (see [Platform-Specific Instructions](#platform-specific-instructions)) |
+
+If you were relying on the old command to get the proprietary modules, switch to
+the full source build above (`git clone --recurse-submodules …`); the modules are
+not available through the vcpkg port.
+
 ## Quick Start
 
 ### Installing from the vcpkg registry
