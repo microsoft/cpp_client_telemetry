@@ -2,6 +2,25 @@
 
 [vcpkg](https://vcpkg.io/) is a Microsoft cross-platform open source C++ package manager. Onboarding instructions for Windows, Linux and Mac OS X [available here](https://docs.microsoft.com/en-us/cpp/build/vcpkg). This document assumes that the customer build system is already configured to use vcpkg ([getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/overview)). 1DS C++ SDK maintainers provide a build recipe, `mstelemetry` port or CONTROL file for vcpkg. The mainline vcpkg repo is refreshed to point to latest stable open source release of 1DS C++ SDK.
 
+## Scope: core SDK only (no private modules)
+
+The vcpkg port builds the **core** 1DS C++ SDK target `MSTelemetry::mat`. It
+does **not** include the optional Microsoft-proprietary modules (Privacy Guard,
+Sanitizer, ECS/EXP, Compliant-by-Default, AFD, CDS) that live in the private
+`lib/modules` submodule. Official vcpkg source archives pin an immutable upstream
+commit and do not fetch git submodules, and that submodule is an internal-only
+repository, so the port cannot build them. The module-only public headers
+(`CompliantByDefaultFilterApi.hpp`, `IAFDClient.hpp`, `ICdsFactory.hpp`,
+`IECSClient.hpp`) are intentionally excluded from the installed headers.
+
+If you need the proprietary modules, build from a full source checkout with
+submodules instead of consuming the SDK through vcpkg:
+
+```console
+git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
+# then build with the repo's own CMake/build scripts
+```
+
 ## Quick Start
 
 ### Installing from the vcpkg registry
@@ -173,15 +192,16 @@ cmake -DMATSDK_USE_VCPKG_DEPS=ON \
 
 ## Troubleshooting
 
-vcpkg build log files are created in
-`${VCPKG_INSTALL_DIR}/buildtrees/mstelemetry/`. Review the following logs
-if you encounter package installation failures:
+vcpkg build log files are created under your vcpkg root in
+`buildtrees/mstelemetry/` (or wherever `--x-buildtrees-root` points). Review
+these logs if you encounter package installation failures:
 
 | File | Contents |
 | ---- | -------- |
-| `build-out.log` | Build stdout (compiler output) |
-| `build-err.log` | Build stderr (compiler errors/warnings) |
-| `config-*.log`  | CMake configure output |
+| `config-<triplet>-out.log` / `config-<triplet>-err.log` | CMake configure stdout/stderr |
+| `config-<triplet>-<dbg\|rel>-*.log` | Per-config configure detail (CMakeCache, CMakeConfigureLog, ninja) |
+| `install-<triplet>-<dbg\|rel>-out.log` / `-err.log` | Build + install stdout/stderr (compiler output/errors) |
+| `stdout-<triplet>.log` | vcpkg per-triplet summary output |
 
 You can also pass `--debug` to `vcpkg install` for verbose diagnostics.
 
