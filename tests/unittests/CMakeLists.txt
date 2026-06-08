@@ -205,8 +205,10 @@ else()
   # Link curl only when the SDK actually uses the curl HTTP client (Linux, and
   # macOS without Apple HTTP). The tests don't use curl directly, and on the
   # Android legacy path mat uses HttpClient_Android (no system curl in the NDK).
-  if(NOT BUILD_IOS AND MATSDK_NEEDS_CURL)
-    target_link_libraries(UnitTests curl)
+  # MATSDK_NEEDS_CURL already excludes iOS/Apple-HTTP; use the CURL::libcurl
+  # imported target so this is also correct under vcpkg (matches ZLIB::ZLIB above).
+  if(MATSDK_NEEDS_CURL)
+    target_link_libraries(UnitTests CURL::libcurl)
   endif()
 
 endif()
