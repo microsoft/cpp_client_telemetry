@@ -359,6 +359,9 @@ endif()
 ################################################################################################
 # Link dependencies
 ################################################################################################
+# TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
+# (USE_TCMALLOC / FindTcmalloc.cmake are configured for Debug builds in the root CMakeLists.txt,
+# but the library is not yet linked here).
 if(MATSDK_USE_VCPKG_DEPS)
   # vcpkg mode: all deps resolved via find_package() in root CMakeLists.txt
   # These are PUBLIC so static-library consumers get the transitive link set
@@ -401,11 +404,13 @@ else()
     )
     target_include_directories(zlib_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../zlib")
     set_target_properties(zlib_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    # Bundled zlib 1.2.11 uses K&R-style function definitions and POSIX functions
-    # (close/read/write) without explicit includes; suppress warnings from
-    # vendored code we don't modify.
-    target_compile_options(zlib_bundled PRIVATE
-      -Wno-strict-prototypes -Wno-deprecated-non-prototype -Wno-implicit-function-declaration)
+    # Bundled zlib 1.3.2's gz*.c call POSIX functions (read/write/lseek/close)
+    # without including <unistd.h> -- this target compiles the sources directly
+    # and does not run zlib's configure step that would define Z_HAVE_UNISTD_H.
+    # Suppress the resulting implicit-declaration error so the project's -Werror
+    # does not fail on vendored code we don't modify. (zlib 1.3 removed K&R
+    # function definitions, so the prototype warnings no longer need suppressing.)
+    target_compile_options(zlib_bundled PRIVATE -Wno-implicit-function-declaration)
 
     target_link_libraries(mat PRIVATE sqlite3_bundled zlib_bundled ${LIBS})
   elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")

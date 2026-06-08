@@ -321,9 +321,15 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
   if(MATSDK_USE_VCPKG_DEPS)
     list(APPEND LIBS CURL::libcurl)
   else()
-    include_directories(CURL_INCLUDE_DIRS)
-    set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
-    list(APPEND LIBS "${CURL_LIBRARIES}")
+    # Prefer the imported target, which carries curl's include dirs and link
+    # flags. Fall back to the find-module variables on CMake < 3.12, where
+    # find_package(CURL) does not define CURL::libcurl.
+    if(TARGET CURL::libcurl)
+      list(APPEND LIBS CURL::libcurl)
+    else()
+      include_directories(${CURL_INCLUDE_DIRS})
+      list(APPEND LIBS "${CURL_LIBRARIES}")
+    endif()
   endif()
 endif()
 
@@ -379,13 +385,9 @@ endif()
 
 if (BUILD_PACKAGE)
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "deb")
-    # FIXME: hardcode it for 64-bit Linux for now
-    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
     include(tools/MakeDeb.cmake)
   endif()
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "rpm")
-    # TODO: [MG] - fix path
-    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
     include(tools/MakeRpm.cmake)
   endif()
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "tgz")

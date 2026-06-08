@@ -153,6 +153,14 @@ NSURLSession respectively). Android vcpkg consumers use native libcurl because
 the Java-backed `HttpClient_Android` singleton is initialized by the repo's
 Android Gradle/AAR flow, not by standalone native vcpkg consumers.
 
+> **Note (Windows):** The port targets the MSVC/`WIN32` PAL on Windows, which
+> uses WinInet, so `curl` is declared for `linux | android` only. A MinGW /
+> non-MSVC Windows triplet — or forcing `-DPAL_IMPLEMENTATION=CPP11` on Windows —
+> selects the curl HTTP client, which the port does not provision on Windows
+> (broadening `curl` to `windows` would pull an unused curl into every MSVC
+> build, since vcpkg platform expressions can't key off the PAL). Use a standard
+> MSVC triplet such as `x64-windows-static` for Windows vcpkg builds.
+
 ## Optional: SIMD-Optimized zlib with zlib-ng
 
 The vcpkg port depends on stock `zlib` by default. If you want SIMD-optimized
