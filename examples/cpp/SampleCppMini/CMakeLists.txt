@@ -18,10 +18,9 @@ include_directories(. ${MATSDK_SAMPLE_INCLUDE_DIRS})
 add_executable(SampleCppMini main.cpp demo.c)
 source_group(" " REGULAR_EXPRESSION "")
 
-set (PLATFORM_LIBS "")
 # The 1DS SDK's required Apple frameworks are provided by MATSDK_SAMPLE_PLATFORM_LIBS.
 
 #tcmalloc turned off by default
 #target_link_libraries(SampleCppMini ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
 
-target_link_libraries(SampleCppMini ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} ${PLATFORM_LIBS} dl)
+target_link_libraries(SampleCppMini ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} dl)

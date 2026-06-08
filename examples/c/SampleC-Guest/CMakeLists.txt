@@ -18,7 +18,6 @@ include_directories(. ${MATSDK_SAMPLE_INCLUDE_DIRS})
 add_executable(SampleC-Guest main.cpp demo.c)
 source_group(" " REGULAR_EXPRESSION "")
 
-set (PLATFORM_LIBS "")
 # The 1DS SDK's required Apple frameworks are provided by MATSDK_SAMPLE_PLATFORM_LIBS.
 
-target_link_libraries(SampleC-Guest ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} ${PLATFORM_LIBS} dl)
+target_link_libraries(SampleC-Guest ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} dl)
