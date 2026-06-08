@@ -130,19 +130,33 @@ vcpkg install mstelemetry --triplet=arm64-android
 ```
 
 This repo's Android build declares `minSdk 23`. To build the SDK and all
-vcpkg dependencies for API 23, use a custom triplet that sets
-`VCPKG_CMAKE_SYSTEM_VERSION` to `23`. The integration tests include API 23
-triplet examples:
+vcpkg dependencies for API 23, create a custom triplet in your **own**
+overlay-triplets directory that sets `VCPKG_CMAKE_SYSTEM_VERSION` to `23`. For
+example, save the following as `<your-triplets-dir>/arm64-android-api23.cmake`:
+
+```cmake
+set(VCPKG_TARGET_ARCHITECTURE arm64)
+set(VCPKG_CRT_LINKAGE dynamic)
+set(VCPKG_LIBRARY_LINKAGE static)
+set(VCPKG_CMAKE_SYSTEM_NAME Android)
+set(VCPKG_CMAKE_SYSTEM_VERSION 23)
+set(VCPKG_MAKE_BUILD_TRIPLET "--host=aarch64-linux-android")
+set(VCPKG_CMAKE_CONFIGURE_OPTIONS -DANDROID_ABI=arm64-v8a)
+```
+
+Then install, pointing `--overlay-triplets` at that directory:
 
 ```bash
 vcpkg install mstelemetry \
   --triplet=arm64-android-api23 \
-  --overlay-triplets=tests/vcpkg/triplets
+  --overlay-triplets=<your-triplets-dir>
 ```
 
 Do not mix dependencies built with the default API 28 triplets into an API 23
 consumer binary; build the whole dependency graph with the same Android API
-triplet.
+triplet. (For reference, this repo's CI validates equivalent API 23 triplets
+under `tests/vcpkg/triplets`, but those are test scaffolding and are not part of
+the published package.)
 
 Supported triplets: `arm64-android`, `arm-neon-android`, `x64-android`,
 `x86-android`.
