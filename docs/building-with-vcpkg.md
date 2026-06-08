@@ -2,41 +2,15 @@
 
 [vcpkg](https://vcpkg.io/) is a Microsoft cross-platform open source C++ package manager. Onboarding instructions for Windows, Linux and Mac OS X [available here](https://docs.microsoft.com/en-us/cpp/build/vcpkg). This document assumes that the customer build system is already configured to use vcpkg ([getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/overview)). 1DS C++ SDK maintainers provide a build recipe, `mstelemetry` port or CONTROL file for vcpkg. The mainline vcpkg repo is refreshed to point to latest stable open source release of 1DS C++ SDK.
 
-## Scope: core SDK only (no private modules)
-
-The vcpkg port builds the **core** 1DS C++ SDK target `MSTelemetry::mat`. It
-does **not** include the optional Microsoft-proprietary modules (Privacy Guard,
-Sanitizer, ECS/EXP, Compliant-by-Default, AFD, CDS) that live in the private
-`lib/modules` submodule. Official vcpkg source archives pin an immutable upstream
-commit and do not fetch git submodules, and that submodule is an internal-only
-repository, so the port cannot build them. The module-only public headers
-(`CompliantByDefaultFilterApi.hpp`, `IAFDClient.hpp`, `ICdsFactory.hpp`,
-`IECSClient.hpp`) are intentionally excluded from the installed headers.
-
-If you need the proprietary modules, build from a full source checkout with
-submodules instead of consuming the SDK through vcpkg:
+The port provides the core SDK — the `MSTelemetry::mat` target and its public
+C++ headers. The optional Microsoft-proprietary modules (Privacy Guard,
+Sanitizer, ECS/EXP, Compliant-by-Default, AFD, CDS) are not part of the public
+package; to use those, build from a source checkout with submodules:
 
 ```console
 git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 # then build with the repo's own CMake/build scripts
 ```
-
-### Migrating from the previous overlay port
-
-Earlier versions of this overlay port detected a local `--recurse-submodules`
-checkout and built the SDK from it via `build.sh`/`install.sh` (or MSBuild on
-Windows), which **included** the private `lib/modules` submodules. That behavior
-has been removed. The port now always builds the **core** SDK from a pinned,
-immutable upstream archive.
-
-| Before | Now |
-| ------ | --- |
-| `vcpkg install --head --overlay-ports=tools/ports mstelemetry` (built from your local checkout, with private submodules) | `vcpkg install mstelemetry` (or `--overlay-ports=tools/ports`) builds the core SDK only, from a pinned commit |
-| `vcpkg install @tools/ports/mstelemetry/response_file_linux.txt` / `response_file_mac.txt` | Removed — use a standard triplet (see [Platform-Specific Instructions](#platform-specific-instructions)) |
-
-If you were relying on the old command to get the proprietary modules, switch to
-the full source build above (`git clone --recurse-submodules …`); the modules are
-not available through the vcpkg port.
 
 ## Quick Start
 
@@ -220,6 +194,15 @@ cmake -DMATSDK_USE_VCPKG_DEPS=ON \
       -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
       ..
 ```
+
+## Migrating from the older overlay port
+
+Older revisions of this overlay port could build the SDK with the private
+`lib/modules` submodules from a local `--recurse-submodules` checkout. The port
+now builds the core SDK from a pinned upstream commit, and the
+`response_file_*.txt` shortcuts have been removed (use a standard triplet). If
+you relied on the old flow for the proprietary modules, build from a
+`--recurse-submodules` source checkout instead.
 
 ## Troubleshooting
 
