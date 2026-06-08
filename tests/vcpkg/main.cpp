@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -24,6 +25,11 @@ static void check(bool cond, const char* name)
     } else {
         printf("  [FAIL] %s\n", name);
     }
+}
+
+static bool near(double actual, double expected)
+{
+    return std::fabs(actual - expected) < 0.000001;
 }
 
 int main()
@@ -62,9 +68,25 @@ int main()
         check(props.GetName() == "TestEvent", "Event name round-trips");
 
         const auto& stored = props.GetProperties();
-        check(stored.size() == 4, "All four typed properties stored");
+        check(stored.count("strProp") == 1 &&
+              stored.count("intProp") == 1 &&
+              stored.count("dblProp") == 1 &&
+              stored.count("boolProp") == 1,
+              "All four typed properties stored");
+        check(stored.count("strProp") == 1 &&
+              stored.at("strProp").type == EventProperty::TYPE_STRING &&
+              std::string(stored.at("strProp").as_string) == "value",
+              "String property value round-trips");
         check(stored.count("intProp") == 1 && stored.at("intProp").as_int64 == 42,
               "Int64 property value round-trips");
+        check(stored.count("dblProp") == 1 &&
+              stored.at("dblProp").type == EventProperty::TYPE_DOUBLE &&
+              near(stored.at("dblProp").as_double, 3.14),
+              "Double property value round-trips");
+        check(stored.count("boolProp") == 1 &&
+              stored.at("boolProp").type == EventProperty::TYPE_BOOLEAN &&
+              stored.at("boolProp").as_bool,
+              "Bool property value round-trips");
     }
 
     // PII annotation is recorded on the stored property.
