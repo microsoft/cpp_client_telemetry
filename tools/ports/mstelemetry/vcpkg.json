@@ -16,7 +16,7 @@
       "features": [
         "openssl"
       ],
-      "platform": "linux | android"
+      "platform": "linux | android | mingw"
     },
     {
       "name": "vcpkg-cmake",
