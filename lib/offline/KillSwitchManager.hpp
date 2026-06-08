@@ -178,6 +178,7 @@ namespace MAT_NS_BEGIN {
             }
             catch (const std::exception&)
             {
+                outSeconds = 0;
                 return false;
             }
         }

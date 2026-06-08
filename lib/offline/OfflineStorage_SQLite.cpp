@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <numeric>
 #include <set>
+#include <stdexcept>
 
 namespace MAT_NS_BEGIN {
 
@@ -433,7 +434,7 @@ namespace MAT_NS_BEGIN {
             {
                 if (kAllowedColumns.find(it->first) == kAllowedColumns.end())
                 {
-                    LOG_WARN("DeleteRecords: ignoring unrecognized filter column");
+                    LOG_WARN("DeleteRecords: ignoring unrecognized filter column '%s'", it->first.c_str());
                     continue;
                 }
                 clause += clause.empty() ? "" : " AND ";
@@ -455,27 +456,47 @@ namespace MAT_NS_BEGIN {
             for (const auto& it : boundColumns)
             {
                 const std::string& value = it->second;
+                int rc = SQLITE_OK;
                 if (kAllowedColumns.at(it->first) == ColumnType::Text)
                 {
-                    g_sqlite3Proxy->sqlite3_bind_text(stmt.handle(), idx,
+                    rc = g_sqlite3Proxy->sqlite3_bind_text(stmt.handle(), idx,
                         value.data(), static_cast<int>(value.size()), SQLITE_STATIC);
                 }
                 else
                 {
                     int64_t numeric = 0;
+                    size_t consumed = 0;
                     try
                     {
-                        numeric = static_cast<int64_t>(std::stoll(value));
+                        numeric = static_cast<int64_t>(std::stoll(value, &consumed));
                     }
-                    catch (...)
+                    catch (const std::exception&)
                     {
-                        numeric = 0;
+                        consumed = 0;
                     }
-                    g_sqlite3Proxy->sqlite3_bind_int64(stmt.handle(), idx, numeric);
+                    // Treat a non-numeric value for an integer column as an invalid
+                    // filter and abort, rather than coercing to 0 and deleting rows
+                    // that happen to match 0.
+                    if (value.empty() || consumed != value.size())
+                    {
+                        LOG_WARN("DeleteRecords: invalid numeric filter value for column '%s'; nothing deleted",
+                            it->first.c_str());
+                        return;
+                    }
+                    rc = g_sqlite3Proxy->sqlite3_bind_int64(stmt.handle(), idx, numeric);
+                }
+                if (rc != SQLITE_OK)
+                {
+                    LOG_ERROR("DeleteRecords: failed to bind filter column '%s': %d (%s)",
+                        it->first.c_str(), rc, g_sqlite3Proxy->sqlite3_errmsg(*m_db));
+                    return;
                 }
                 ++idx;
             }
-            stmt.execute();
+            if (!stmt.execute())
+            {
+                LOG_ERROR("DeleteRecords: failed to execute delete for table " TABLE_NAME_EVENTS);
+            }
         }
     }
 
