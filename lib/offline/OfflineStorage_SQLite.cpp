@@ -434,8 +434,12 @@ namespace MAT_NS_BEGIN {
             {
                 if (kAllowedColumns.find(it->first) == kAllowedColumns.end())
                 {
-                    LOG_WARN("DeleteRecords: ignoring unrecognized filter column '%s'", it->first.c_str());
-                    continue;
+                    // Fail closed: an unrecognized column cannot be honored, so
+                    // delete nothing rather than running a looser predicate. This
+                    // matches MemoryStorage, whose matcher treats an unknown column
+                    // as "no match".
+                    LOG_WARN("DeleteRecords: unrecognized filter column '%s'; nothing deleted", it->first.c_str());
+                    return;
                 }
                 clause += clause.empty() ? "" : " AND ";
                 clause += it->first;

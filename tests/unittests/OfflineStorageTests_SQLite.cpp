@@ -214,6 +214,23 @@ TEST_F(OfflineStorageTests_SQLite, DeleteRecordsByTenantTokenDeletesOnlyMatching
     EXPECT_THAT(consumer.records[0].id, StrEq("guid2"));
 }
 
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsFailsClosedOnUnrecognizedColumn)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // An unrecognized column cannot be honored. Like MemoryStorage's matcher,
+    // the delete must fail closed (remove nothing) rather than drop the column
+    // and run a looser predicate.
+    offlineStorage->DeleteRecords({{"not_a_column", "x"}});
+    offlineStorage->DeleteRecords({{"tenant_token", "tokenA"}, {"not_a_column", "x"}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
 {
     initializeStorage();
