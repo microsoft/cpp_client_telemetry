@@ -408,8 +408,7 @@ else()
     # without including <unistd.h> -- this target compiles the sources directly
     # and does not run zlib's configure step that would define Z_HAVE_UNISTD_H.
     # Suppress the resulting implicit-declaration error so the project's -Werror
-    # does not fail on vendored code we don't modify. (zlib 1.3 removed K&R
-    # function definitions, so the prototype warnings no longer need suppressing.)
+    # does not fail on vendored code we don't modify.
     target_compile_options(zlib_bundled PRIVATE -Wno-implicit-function-declaration)
 
     target_link_libraries(mat PRIVATE sqlite3_bundled zlib_bundled ${LIBS})
