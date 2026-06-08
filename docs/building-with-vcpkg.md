@@ -126,11 +126,17 @@ vcpkg install mstelemetry \
   --overlay-triplets=<your-triplets-dir>
 ```
 
-Do not mix dependencies built with the default API 28 triplets into an API 23
-consumer binary; build the whole dependency graph with the same Android API
-triplet. (For reference, this repo's CI validates equivalent API 23 triplets
-under `tests/vcpkg/triplets`, but those are test scaffolding and are not part of
-the published package.)
+Build the whole dependency graph with the same Android API triplet. The failing
+case is mixing dependencies built at a *higher* API level into a *lower*-API
+consumer binary: the default `*-android` triplets target API 28, so linking them
+into an API 23 consumer can fail because the higher-API objects reference Bionic
+libc symbols that do not exist at API 23 (for example FORTIFY helpers such as
+`__sendto_chk`, which Bionic added at API 26), producing unresolved-symbol link
+errors — or, if they slip through, runtime crashes on lower-API devices. The
+reverse — lower-API dependencies in a higher-API consumer — is safe, because
+Android native code is forward-compatible. (For reference, this repo's CI
+validates equivalent API 23 triplets under `tests/vcpkg/triplets`, but those are
+test scaffolding and are not part of the published package.)
 
 Supported triplets: `arm64-android`, `arm-neon-android`, `x64-android`,
 `x86-android`.
