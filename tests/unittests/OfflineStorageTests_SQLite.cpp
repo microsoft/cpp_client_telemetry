@@ -183,6 +183,37 @@ TEST_F(OfflineStorageTests_SQLite, DeletedRecordsAreNotReturned)
     EXPECT_THAT(consumer.records[0].id, StrEq("guid2"));
 }
 
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsRejectsTenantTokenSqlInjection)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // A malicious kill-token value attempting stacked SQL (OR 1=1 / DROP TABLE).
+    // It must be treated as a literal tenant_token value that matches nothing.
+    const std::string malicious = "x\" OR 1=1; DROP TABLE events; --";
+    offlineStorage->DeleteRecords({{"tenant_token", malicious}});
+
+    // The events table must still exist and no rows should have been deleted.
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsByTenantTokenDeletesOnlyMatching)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    offlineStorage->DeleteRecords({{"tenant_token", "tokenA"}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 1);
+    EXPECT_THAT(consumer.records[0].id, StrEq("guid2"));
+}
+
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
 {
     initializeStorage();

@@ -64,6 +64,15 @@ namespace MAT_NS_BEGIN {
                         // Strip suffix and assume ':all' events of that tenant are killed
                         token.erase(pos, token.length() - pos);
                     }
+                    // Defense in depth: only accept tenant tokens that match the
+                    // expected character set. Offline-storage deletes are already
+                    // parameterized, but rejecting clearly-malformed tokens avoids
+                    // acting on attacker-shaped values from a (possibly MITM'd)
+                    // collector response.
+                    if (!isValidTenantToken(token))
+                    {
+                        continue;
+                    }
                     killtokensVector.push_back(token);
                 }
 
@@ -156,6 +165,30 @@ namespace MAT_NS_BEGIN {
         }
 
     private:
+        // A tenant token is the API ingestion key tenant id: alphanumeric with
+        // '-', '_' or '.' separators. Reject anything else (quotes, ';',
+        // whitespace, control characters) that a legitimate token never contains.
+        static bool isValidTenantToken(const std::string& token)
+        {
+            if (token.empty() || token.size() > 256)
+            {
+                return false;
+            }
+            for (char c : token)
+            {
+                const bool ok =
+                    (c >= '0' && c <= '9') ||
+                    (c >= 'a' && c <= 'z') ||
+                    (c >= 'A' && c <= 'Z') ||
+                    (c == '-') || (c == '_') || (c == '.');
+                if (!ok)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         std::map<std::string, int64_t> m_tokenTime;
         std::mutex      m_lock;
         bool            m_isRetryAfterActive;

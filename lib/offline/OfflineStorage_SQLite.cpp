@@ -398,7 +398,6 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
-        UNREFERENCED_PARAMETER(whereFilter);
         if (!isOpen()) {
             return;
         }
@@ -413,40 +412,70 @@ namespace MAT_NS_BEGIN {
                 return;
             }
 #endif
-            auto formatter = [&](const std::map<std::string, std::string> & whereFilter)
-            {
-                std::string clause;
-                for (const auto &kv : whereFilter)
-                {
-                    bool quotes = false;
-                    if ((kv.first == "record_id") ||
-                        (kv.first == "tenant_token"))
-                    {
-                        // string types
-                        quotes = true;
-                    } 
-                    else if (
-                        // integer types
-                        (kv.first == "latency") ||
-                        (kv.first == "persistence") ||
-                        (kv.first == "retry_count"))
-                    {
-                        quotes = false;
-                    }
-                    if (!clause.empty())
-                    {
-                        clause += " AND ";
-                    }
-                    clause += kv.first;
-                    clause += "=";
-                    clause += (quotes) ?
-                        ("\"" + kv.second + "\"") :
-                        kv.second;
-                }
-                return clause;
+            // SECURITY: build a parameterized statement. Column names are taken
+            // from a fixed whitelist (never from server/response data) and every
+            // value is bound via sqlite3_bind_* instead of being concatenated into
+            // the SQL text. This prevents untrusted values (for example kill-token
+            // tenant ids carried in a collector response) from altering the
+            // statement or appending additional "stacked" statements.
+            enum class ColumnType { Text, Integer };
+            static const std::map<std::string, ColumnType> kAllowedColumns = {
+                { "record_id",    ColumnType::Text },
+                { "tenant_token", ColumnType::Text },
+                { "latency",      ColumnType::Integer },
+                { "persistence",  ColumnType::Integer },
+                { "retry_count",  ColumnType::Integer },
             };
-            std::string sql = "DELETE FROM " TABLE_NAME_EVENTS " WHERE ";
-            Execute(sql + formatter(whereFilter));
+
+            std::string clause;
+            std::vector<std::map<std::string, std::string>::const_iterator> boundColumns;
+            for (auto it = whereFilter.begin(); it != whereFilter.end(); ++it)
+            {
+                if (kAllowedColumns.find(it->first) == kAllowedColumns.end())
+                {
+                    LOG_WARN("DeleteRecords: ignoring unrecognized filter column");
+                    continue;
+                }
+                clause += clause.empty() ? "" : " AND ";
+                clause += it->first;
+                clause += "=?";
+                boundColumns.push_back(it);
+            }
+
+            // Never run a DELETE with no predicate, which would erase the table.
+            if (clause.empty())
+            {
+                LOG_WARN("DeleteRecords: no recognized filter columns; nothing deleted");
+                return;
+            }
+
+            const std::string sql = "DELETE FROM " TABLE_NAME_EVENTS " WHERE " + clause;
+            SqliteStatement stmt(*m_db, sql.c_str());
+            int idx = 1;
+            for (const auto& it : boundColumns)
+            {
+                const std::string& value = it->second;
+                if (kAllowedColumns.at(it->first) == ColumnType::Text)
+                {
+                    g_sqlite3Proxy->sqlite3_bind_text(stmt.handle(), idx,
+                        value.data(), static_cast<int>(value.size()), SQLITE_STATIC);
+                }
+                else
+                {
+                    int64_t numeric = 0;
+                    try
+                    {
+                        numeric = static_cast<int64_t>(std::stoll(value));
+                    }
+                    catch (...)
+                    {
+                        numeric = 0;
+                    }
+                    g_sqlite3Proxy->sqlite3_bind_int64(stmt.handle(), idx, numeric);
+                }
+                ++idx;
+            }
+            stmt.execute();
         }
     }
 
