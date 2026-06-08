@@ -7,6 +7,7 @@
 
 #include "pal/PAL.hpp"
 
+#include <cctype>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -171,14 +172,26 @@ namespace MAT_NS_BEGIN {
         // Retry-After as an HTTP-date, which is non-numeric and must be ignored.
         static bool tryParseSeconds(const std::string& value, int64_t& outSeconds)
         {
+            outSeconds = 0;
             try
             {
-                outSeconds = static_cast<int64_t>(std::stoll(value));
+                size_t consumed = 0;
+                const long long parsed = std::stoll(value, &consumed);
+                // Reject trailing garbage (e.g. "120; foo"); only trailing
+                // whitespace is allowed, so a malformed header is ignored rather
+                // than silently parsed from its numeric prefix.
+                for (size_t i = consumed; i < value.size(); ++i)
+                {
+                    if (std::isspace(static_cast<unsigned char>(value[i])) == 0)
+                    {
+                        return false;
+                    }
+                }
+                outSeconds = static_cast<int64_t>(parsed);
                 return true;
             }
             catch (const std::exception&)
             {
-                outSeconds = 0;
                 return false;
             }
         }

@@ -45,6 +45,27 @@ TEST(KillSwitchManagerTests, handleResponse_OutOfRangeRetryAfter_DoesNotThrowAnd
     ASSERT_FALSE(manager.isRetryAfterActive());
 }
 
+TEST(KillSwitchManagerTests, handleResponse_RetryAfterWithTrailingGarbage_IsIgnored)
+{
+    // A numeric prefix followed by trailing garbage (e.g. "120; foo") must be
+    // treated as malformed, not parsed as 120.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("Retry-After", "120; foo");
+    ASSERT_NO_THROW(manager.handleResponse(headers));
+    ASSERT_FALSE(manager.isRetryAfterActive());
+}
+
+TEST(KillSwitchManagerTests, handleResponse_RetryAfterWithTrailingWhitespace_IsAccepted)
+{
+    // Trailing whitespace is allowed (HTTP OWS) and must still parse.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("Retry-After", "120  ");
+    manager.handleResponse(headers);
+    ASSERT_TRUE(manager.isRetryAfterActive());
+}
+
 TEST(KillSwitchManagerTests, handleResponse_ValidKillTokenAndDuration_BlocksToken)
 {
     KillSwitchManager manager;
