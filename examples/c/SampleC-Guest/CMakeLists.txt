@@ -19,9 +19,6 @@ add_executable(SampleC-Guest main.cpp demo.c)
 source_group(" " REGULAR_EXPRESSION "")
 
 set (PLATFORM_LIBS "")
-# Add flags for obtaining system UUID via IOKit
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
-endif()
+# The 1DS SDK's required Apple frameworks are provided by MATSDK_SAMPLE_PLATFORM_LIBS.
 
 target_link_libraries(SampleC-Guest ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} ${PLATFORM_LIBS} dl)

@@ -19,10 +19,7 @@ add_executable(SampleCppMini main.cpp demo.c)
 source_group(" " REGULAR_EXPRESSION "")
 
 set (PLATFORM_LIBS "")
-# Add flags for obtaining system UUID via IOKit
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit")
-endif()
+# The 1DS SDK's required Apple frameworks are provided by MATSDK_SAMPLE_PLATFORM_LIBS.
 
 #tcmalloc turned off by default
 #target_link_libraries(SampleCppMini ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)

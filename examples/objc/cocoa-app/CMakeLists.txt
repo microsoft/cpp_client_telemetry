@@ -12,9 +12,10 @@ find_package (Threads)
 include_directories(. ${MATSDK_SAMPLE_INCLUDE_DIRS})
 
 set (PLATFORM_LIBS "")
-# Add flags for obtaining system UUID via IOKit
+# AppKit is required by this Cocoa sample app itself; the SDK's Apple frameworks
+# are provided by MATSDK_SAMPLE_PLATFORM_LIBS.
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-set (PLATFORM_LIBS "-framework Foundation -framework CoreFoundation -framework IOKit -framework AppKit")
+set (PLATFORM_LIBS "-framework AppKit")
 endif()
 
 
