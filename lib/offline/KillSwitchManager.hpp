@@ -68,8 +68,9 @@ namespace MAT_NS_BEGIN {
                         // Strip suffix and assume ':all' events of that tenant are killed
                         token.erase(pos, token.length() - pos);
                     }
-                    // Only act on kill-tokens that match the expected
-                    // tenant-token character set; ignore malformed values.
+                    // Ignore kill-tokens containing control characters; tenant
+                    // tokens are otherwise opaque and safe (the DELETE is
+                    // parameterized), so they must remain killable.
                     if (!isValidTenantToken(token))
                     {
                         continue;
@@ -198,22 +199,23 @@ namespace MAT_NS_BEGIN {
             }
         }
 
-        // A tenant token is the API ingestion key tenant id: alphanumeric with
-        // '-', '_' or '.' separators. Reject anything outside that set.
+        // Tenant tokens are opaque strings elsewhere in the SDK (they may contain
+        // spaces, quotes, etc.), and the offline-storage DELETE is parameterized,
+        // so any value is safe to act on. Only reject genuinely unsafe content:
+        // control characters (including CR/LF, which could enable log injection)
+        // and over-long values. Over-restricting here would prevent a legitimately
+        // stored tenant token from ever being killed.
         static bool isValidTenantToken(const std::string& token)
         {
             if (token.empty() || token.size() > 256)
             {
                 return false;
             }
-            for (char c : token)
+            for (unsigned char c : token)
             {
-                const bool ok =
-                    (c >= '0' && c <= '9') ||
-                    (c >= 'a' && c <= 'z') ||
-                    (c >= 'A' && c <= 'Z') ||
-                    (c == '-') || (c == '_') || (c == '.');
-                if (!ok)
+                // Reject C0 control characters and DEL; allow any other byte
+                // (printable ASCII and UTF-8 sequences).
+                if (c < 0x20 || c == 0x7f)
                 {
                     return false;
                 }

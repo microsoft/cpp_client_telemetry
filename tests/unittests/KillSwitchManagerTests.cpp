@@ -86,13 +86,28 @@ TEST(KillSwitchManagerTests, handleResponse_NonNumericKillDuration_DoesNotThrowA
     ASSERT_FALSE(manager.isTokenBlocked("tenant-token-1"));
 }
 
-TEST(KillSwitchManagerTests, handleResponse_MalformedKillToken_IsRejected)
+TEST(KillSwitchManagerTests, handleResponse_KillTokenWithControlChars_IsRejected)
 {
-    // A token containing characters outside the tenant-token set must be ignored.
+    // A token containing control characters (e.g. CR/LF) is unsafe -- it could
+    // enable log injection -- and must be ignored.
     KillSwitchManager manager;
     HttpHeaders headers;
-    headers.add("kill-tokens", "x\" OR 1=1; DROP TABLE events; --");
+    headers.add("kill-tokens", std::string("tenant\r\ninjected"));
     headers.add("kill-duration", "300");
     ASSERT_NO_THROW(manager.handleResponse(headers));
     ASSERT_FALSE(manager.isActive());
+}
+
+TEST(KillSwitchManagerTests, handleResponse_OpaqueKillTokenWithUnusualChars_IsBlocked)
+{
+    // Tenant tokens are opaque (they may contain spaces/quotes), and the
+    // offline-storage DELETE is parameterized, so such a token is safe to act on
+    // and must remain killable -- over-restricting would let it escape kill.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    const std::string token = "x\" OR 1=1; DROP TABLE events; --";
+    headers.add("kill-tokens", token);
+    headers.add("kill-duration", "300");
+    ASSERT_TRUE(manager.handleResponse(headers));
+    ASSERT_TRUE(manager.isTokenBlocked(token));
 }
