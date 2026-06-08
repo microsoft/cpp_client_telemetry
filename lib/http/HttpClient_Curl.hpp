@@ -94,8 +94,9 @@ public:
             std::string method,
             std::string url,
             IHttpResponseCallback* callback,
-            // Caller-owned headers and request body; both must outlive this
-            // operation (requestBody is read by Send(), not copied).
+            // requestHeaders is copied into the curl_slist during construction
+            // and need not outlive this operation. requestBody is stored by
+            // reference and read by Send(), so it must outlive this operation.
             const std::map<std::string, std::string>& requestHeaders,
             const std::vector<uint8_t>& requestBody,
             // Default connectivity and response size options
