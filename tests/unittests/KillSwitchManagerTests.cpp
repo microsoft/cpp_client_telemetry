@@ -67,7 +67,7 @@ TEST(KillSwitchManagerTests, handleResponse_NonNumericKillDuration_DoesNotThrowA
 
 TEST(KillSwitchManagerTests, handleResponse_MalformedKillToken_IsRejected)
 {
-    // A token carrying SQL/HTTP-injection characters must not be acted upon.
+    // A token containing characters outside the tenant-token set must be ignored.
     KillSwitchManager manager;
     HttpHeaders headers;
     headers.add("kill-tokens", "x\" OR 1=1; DROP TABLE events; --");

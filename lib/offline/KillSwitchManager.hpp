@@ -65,11 +65,8 @@ namespace MAT_NS_BEGIN {
                         // Strip suffix and assume ':all' events of that tenant are killed
                         token.erase(pos, token.length() - pos);
                     }
-                    // Defense in depth: only accept tenant tokens that match the
-                    // expected character set. Offline-storage deletes are already
-                    // parameterized, but rejecting clearly-malformed tokens avoids
-                    // acting on attacker-shaped values from a (possibly MITM'd)
-                    // collector response.
+                    // Only act on kill-tokens that match the expected
+                    // tenant-token character set; ignore malformed values.
                     if (!isValidTenantToken(token))
                     {
                         continue;
@@ -166,13 +163,12 @@ namespace MAT_NS_BEGIN {
         }
 
     private:
-        // Parse a count of seconds from an untrusted response-header value
-        // (Retry-After / kill-duration). Returns false when the value is
-        // non-numeric or out of range instead of letting std::stoi throw: the
-        // worker thread that drives handleResponse has no exception guard, so a
-        // throw here would crash the process. Note that a standards-compliant
-        // server may legitimately send Retry-After as an HTTP-date, which is
-        // non-numeric and must be ignored rather than fatal.
+        // Parse a count of seconds from a response-header value (Retry-After /
+        // kill-duration). Returns false when the value is non-numeric or out of
+        // range instead of letting std::stoll throw: the worker thread that
+        // drives handleResponse has no exception guard, so a throw here would
+        // crash the process. A standards-compliant server may legitimately send
+        // Retry-After as an HTTP-date, which is non-numeric and must be ignored.
         static bool tryParseSeconds(const std::string& value, int64_t& outSeconds)
         {
             try
@@ -187,8 +183,7 @@ namespace MAT_NS_BEGIN {
         }
 
         // A tenant token is the API ingestion key tenant id: alphanumeric with
-        // '-', '_' or '.' separators. Reject anything else (quotes, ';',
-        // whitespace, control characters) that a legitimate token never contains.
+        // '-', '_' or '.' separators. Reject anything outside that set.
         static bool isValidTenantToken(const std::string& token)
         {
             if (token.empty() || token.size() > 256)
