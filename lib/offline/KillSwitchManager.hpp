@@ -8,6 +8,7 @@
 #include "pal/PAL.hpp"
 
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <mutex>
 
@@ -39,8 +40,8 @@ namespace MAT_NS_BEGIN {
             std::string timeStr = headers.get("Retry-After");
             if (!timeStr.empty())
             {
-                int64_t timeinSecs = std::stoi(timeStr);
-                if (timeinSecs > 0)
+                int64_t timeinSecs = 0;
+                if (tryParseSeconds(timeStr, timeinSecs) && timeinSecs > 0)
                 {
                     std::lock_guard<std::mutex> guard(m_lock);
                     m_retryAfterExpiryTime = PAL::getUtcSystemTime() + timeinSecs;
@@ -80,7 +81,7 @@ namespace MAT_NS_BEGIN {
                 std::string timeString = headers.get("kill-duration");
                 if (!timeString.empty())
                 {
-                    timeinSecs = std::stoi(timeString);
+                    tryParseSeconds(timeString, timeinSecs);
                 }
 
                 if (killtokensVector.size() > 0 && timeinSecs > 0)
@@ -165,6 +166,26 @@ namespace MAT_NS_BEGIN {
         }
 
     private:
+        // Parse a count of seconds from an untrusted response-header value
+        // (Retry-After / kill-duration). Returns false when the value is
+        // non-numeric or out of range instead of letting std::stoi throw: the
+        // worker thread that drives handleResponse has no exception guard, so a
+        // throw here would crash the process. Note that a standards-compliant
+        // server may legitimately send Retry-After as an HTTP-date, which is
+        // non-numeric and must be ignored rather than fatal.
+        static bool tryParseSeconds(const std::string& value, int64_t& outSeconds)
+        {
+            try
+            {
+                outSeconds = static_cast<int64_t>(std::stoll(value));
+                return true;
+            }
+            catch (const std::exception&)
+            {
+                return false;
+            }
+        }
+
         // A tenant token is the API ingestion key tenant id: alphanumeric with
         // '-', '_' or '.' separators. Reject anything else (quotes, ';',
         // whitespace, control characters) that a legitimate token never contains.
