@@ -94,9 +94,10 @@ public:
             std::string method,
             std::string url,
             IHttpResponseCallback* callback,
-            // Default empty headers and empty request body
-            const std::map<std::string, std::string>& requestHeaders = std::map<std::string, std::string>(),
-            const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
+            // Caller-owned headers and request body; both must outlive this
+            // operation (requestBody is read by Send(), not copied).
+            const std::map<std::string, std::string>& requestHeaders,
+            const std::vector<uint8_t>& requestBody,
             // Default connectivity and response size options
             bool rawResponse                                         = false,
             size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
