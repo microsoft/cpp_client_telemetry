@@ -8,10 +8,12 @@
 #include "pal/PAL.hpp"
 
 #include <cctype>
+#include <list>
 #include <map>
+#include <mutex>
 #include <stdexcept>
 #include <string>
-#include <mutex>
+#include <vector>
 
 #include <atomic>
 
