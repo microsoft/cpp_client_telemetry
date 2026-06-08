@@ -62,7 +62,11 @@ int main()
         check(props.GetName() == "TestEvent", "Event name round-trips");
 
         const auto& stored = props.GetProperties();
-        check(stored.size() == 4, "All four typed properties stored");
+        check(stored.count("strProp") == 1 &&
+              stored.count("intProp") == 1 &&
+              stored.count("dblProp") == 1 &&
+              stored.count("boolProp") == 1,
+              "All four typed properties stored");
         check(stored.count("intProp") == 1 && stored.at("intProp").as_int64 == 42,
               "Int64 property value round-trips");
     }
