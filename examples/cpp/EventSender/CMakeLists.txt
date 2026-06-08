@@ -21,6 +21,6 @@ source_group(" " REGULAR_EXPRESSION "")
 # The 1DS SDK's required Apple frameworks are provided by MATSDK_SAMPLE_PLATFORM_LIBS.
 
 #tcmalloc turned off by default
-#target_link_libraries(EventSender ${MAT_SDK_LIB}/libmat.a curl z ${CMAKE_THREAD_LIBS_INIT} ${SQLITE3_LIB} dl tcmalloc)
+#target_link_libraries(EventSender ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} dl tcmalloc)
 
 target_link_libraries(EventSender ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} dl)
