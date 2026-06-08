@@ -52,12 +52,7 @@
 #endif
 
 // TODO: [MG] - ideally we'd like to use __attribute__((unused)) with gcc/clang
-#ifndef _MSC_VER
-#ifdef UNREFERENCED_PARAMETER
-#undef UNREFERENCED_PARAMETER
-#endif
-#define UNREFERENCED_PARAMETER(...)
-#elif !defined(UNREFERENCED_PARAMETER)
+#ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(...)
 #endif
 
