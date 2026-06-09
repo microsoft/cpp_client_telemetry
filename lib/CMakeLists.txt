@@ -205,10 +205,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
           http/HttpClient_Android.cpp
           http/HttpClient_Android.hpp
         )
-        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-          set_source_files_properties(http/HttpClient_Android.cpp
-            PROPERTIES COMPILE_FLAGS "-Wno-unused-const-variable")
-        endif()
       endif()
     else()
       list(APPEND SRCS

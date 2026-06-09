@@ -143,13 +143,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # -Wno-unknown-warning-option is Clang-only, omitted here
   set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-but-set-variable")
-  # -Wno-reorder is C++-only; added to CXX_FLAGS below (suppresses member-init-order warnings in submodule code)
-  set(CXX_EXTRA_WARN_FLAGS "-Wno-reorder")
 else()
   # Clang / AppleClang
   set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unknown-warning-option -Wno-unused-but-set-variable")
-  # -Wno-reorder is C++-only; added to CXX_FLAGS below (suppresses member-init-order warnings in submodule code)
-  set(CXX_EXTRA_WARN_FLAGS "-Wno-reorder")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -177,13 +173,13 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   #TODO: -fno-rtti
   message(STATUS "Building Release ...")
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
-  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${REL_FLAGS} ${CXX_EXTRA_WARN_FLAGS}")
+  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${REL_FLAGS}")
 else()
   set(USE_TCMALLOC 1)
   message(STATUS "Building Debug ...")
   include(tools/FindTcmalloc.cmake)
   set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${DBG_FLAGS}")
-  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${DBG_FLAGS} ${CXX_EXTRA_WARN_FLAGS}")
+  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${DBG_FLAGS}")
 endif()
 
 #Remove /Zi for Win32 debug compiler issue
