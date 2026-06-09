@@ -205,10 +205,15 @@ else()
   # Link curl only when the SDK actually uses the curl HTTP client (Linux, and
   # macOS without Apple HTTP). The tests don't use curl directly, and on the
   # Android legacy path mat uses HttpClient_Android (no system curl in the NDK).
-  # MATSDK_NEEDS_CURL already excludes iOS/Apple-HTTP; use the CURL::libcurl
-  # imported target so this is also correct under vcpkg (matches ZLIB::ZLIB above).
+  # MATSDK_NEEDS_CURL already excludes iOS/Apple-HTTP. Prefer the CURL::libcurl
+  # imported target (correct under vcpkg, matches ZLIB::ZLIB above) and fall back
+  # to the find-module variables on CMake < 3.12, which does not define it.
   if(MATSDK_NEEDS_CURL)
-    target_link_libraries(UnitTests CURL::libcurl)
+    if(TARGET CURL::libcurl)
+      target_link_libraries(UnitTests CURL::libcurl)
+    else()
+      target_link_libraries(UnitTests ${CURL_LIBRARIES})
+    endif()
   endif()
 
 endif()
