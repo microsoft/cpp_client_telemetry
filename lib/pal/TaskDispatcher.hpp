@@ -122,7 +122,14 @@ namespace PAL_NS_BEGIN {
     {
         auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
         auto task = new detail::TaskCall<decltype(bound)>(bound, getMonotonicTimeMs() + (int64_t)delayMs);
-        taskDispatcher->Queue(task);
+        if (!taskDispatcher->QueueWithResult(task))
+        {
+            // The dispatcher could not queue the task (for example during
+            // shutdown) and has already destroyed it. Return a no-op handle so the
+            // caller never holds a pointer to a freed task and Cancel() is a safe
+            // no-op.
+            return DeferredCallbackHandle();
+        }
         return DeferredCallbackHandle(task, taskDispatcher);
     }
 
