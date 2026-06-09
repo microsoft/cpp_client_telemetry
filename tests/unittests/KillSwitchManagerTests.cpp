@@ -77,6 +77,27 @@ TEST(KillSwitchManagerTests, handleResponse_RetryAfterWithTrailingCRLF_IsIgnored
     ASSERT_FALSE(manager.isRetryAfterActive());
 }
 
+TEST(KillSwitchManagerTests, handleResponse_RetryAfterWithLeadingWhitespace_IsAccepted)
+{
+    // Leading HTTP OWS (SP / HTAB) is trimmed; the value still parses.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("Retry-After", "  120");
+    manager.handleResponse(headers);
+    ASSERT_TRUE(manager.isRetryAfterActive());
+}
+
+TEST(KillSwitchManagerTests, handleResponse_RetryAfterWithLeadingSign_IsIgnored)
+{
+    // RFC 7231 delay-seconds is 1*DIGIT; a leading '+'/'-' sign (which std::stoll
+    // would accept) is malformed and must be ignored.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("Retry-After", "+120");
+    manager.handleResponse(headers);
+    ASSERT_FALSE(manager.isRetryAfterActive());
+}
+
 TEST(KillSwitchManagerTests, handleResponse_ValidKillTokenAndDuration_BlocksToken)
 {
     KillSwitchManager manager;

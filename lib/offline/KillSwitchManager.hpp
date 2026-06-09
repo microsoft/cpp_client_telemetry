@@ -167,32 +167,47 @@ namespace MAT_NS_BEGIN {
 
     private:
         // Parse a count of seconds from a response-header value (Retry-After /
-        // kill-duration). Returns false when the value is non-numeric or out of
-        // range instead of letting std::stoll throw: the worker thread that
-        // drives handleResponse has no exception guard, so a throw here would
-        // crash the process. A standards-compliant server may legitimately send
-        // Retry-After as an HTTP-date, which is non-numeric and must be ignored.
+        // kill-duration). Returns false when the value is malformed or out of
+        // range instead of letting std::stoll throw: the worker thread that drives
+        // handleResponse has no exception guard, so a throw here would crash the
+        // process. A standards-compliant server may legitimately send Retry-After
+        // as an HTTP-date, which is non-numeric and must be ignored.
+        //
+        // RFC 7231 delay-seconds is 1*DIGIT, optionally surrounded by HTTP optional
+        // whitespace (OWS = SP / HTAB). We trim only OWS and require the remaining
+        // value to be all digits. This rejects malformed inputs that std::stoll
+        // would otherwise accept -- a leading '+'/'-' sign, or leading CR/LF and
+        // other control whitespace that stoll silently skips -- and keeps leading
+        // and trailing handling symmetric.
         static bool tryParseSeconds(const std::string& value, int64_t& outSeconds)
         {
             outSeconds = 0;
+            size_t begin = 0;
+            size_t end = value.size();
+            while (begin < end && (value[begin] == ' ' || value[begin] == '\t'))
+            {
+                ++begin;
+            }
+            while (end > begin && (value[end - 1] == ' ' || value[end - 1] == '\t'))
+            {
+                --end;
+            }
+            if (begin == end)
+            {
+                return false;
+            }
+            for (size_t i = begin; i < end; ++i)
+            {
+                if (value[i] < '0' || value[i] > '9')
+                {
+                    return false;
+                }
+            }
             try
             {
-                size_t consumed = 0;
-                const long long parsed = std::stoll(value, &consumed);
-                // Reject trailing garbage (e.g. "120; foo"). Only HTTP optional
-                // whitespace (OWS = SP / HTAB, per RFC 7230) is tolerated after the
-                // number; broader whitespace such as CR/LF is treated as malformed,
-                // so a value like "120\r\n" is ignored rather than silently parsed
-                // from its numeric prefix.
-                for (size_t i = consumed; i < value.size(); ++i)
-                {
-                    const char ch = value[i];
-                    if (ch != ' ' && ch != '\t')
-                    {
-                        return false;
-                    }
-                }
-                outSeconds = static_cast<int64_t>(parsed);
+                // Only std::out_of_range can fire now (the substring is all digits);
+                // catching it ignores an over-large value rather than crashing.
+                outSeconds = static_cast<int64_t>(std::stoll(value.substr(begin, end - begin)));
                 return true;
             }
             catch (const std::exception&)
