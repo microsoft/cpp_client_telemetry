@@ -19,20 +19,23 @@ class HttpClientCurlTests : public ::testing::Test
 {
 protected:
     HttpClient_Curl m_client;
+    // Named, fixture-lifetime values so they outlive each CurlHttpOperation.
+    const std::map<std::string, std::string> m_headers;
+    const std::vector<uint8_t> m_body;
 };
 
 // --- SetSslVerification wiring ---
 
 TEST_F(HttpClientCurlTests, SslVerification_DefaultsToTrue)
 {
-    CurlHttpOperation op("GET", "https://example.com", nullptr);
+    CurlHttpOperation op("GET", "https://example.com", nullptr, m_headers, m_body);
     ASSERT_NE(op.GetHandle(), nullptr);
 }
 
 TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithVerifyTrue)
 {
     CurlHttpOperation op("GET", "https://example.com", nullptr,
-        std::map<std::string, std::string>(), std::vector<uint8_t>(),
+        m_headers, m_body,
         false, 5, true, "");
     ASSERT_NE(op.GetHandle(), nullptr);
 }
@@ -40,7 +43,7 @@ TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithVerifyTrue)
 TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithVerifyFalse)
 {
     CurlHttpOperation op("GET", "https://example.com", nullptr,
-        std::map<std::string, std::string>(), std::vector<uint8_t>(),
+        m_headers, m_body,
         false, 5, false, "");
     ASSERT_NE(op.GetHandle(), nullptr);
 }
@@ -48,7 +51,7 @@ TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithVerifyFalse)
 TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithCaInfo)
 {
     CurlHttpOperation op("GET", "https://example.com", nullptr,
-        std::map<std::string, std::string>(), std::vector<uint8_t>(),
+        m_headers, m_body,
         false, 5, true, "/etc/ssl/certs/ca-certificates.crt");
     ASSERT_NE(op.GetHandle(), nullptr);
 }
