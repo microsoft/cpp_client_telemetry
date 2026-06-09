@@ -171,8 +171,20 @@ namespace MAT_NS_BEGIN {
         // kill-duration). Returns false when the value is malformed or out of
         // range instead of letting std::stoll throw: the worker thread that drives
         // handleResponse has no exception guard, so a throw here would crash the
-        // process. A standards-compliant server may legitimately send Retry-After
-        // as an HTTP-date, which is non-numeric and must be ignored.
+        // process.
+        //
+        // RFC 7231 allows Retry-After to be either delay-seconds or an HTTP-date.
+        // We deliberately accept only delay-seconds and ignore the HTTP-date form:
+        //   - The collector this SDK targets sends Retry-After as delay-seconds, so
+        //     the date form does not occur in practice.
+        //   - An HTTP-date is absolute and would have to be converted to a delay
+        //     against the device clock, which a telemetry SDK cannot trust (it has
+        //     a separate clock-skew channel for exactly this reason); a skewed clock
+        //     would yield a wrong, negative, or huge back-off.
+        //   - Parsing it would add an error-prone three-format date parser on this
+        //     no-exception-guard worker thread for no practical benefit.
+        // Ignoring an unparseable value degrades safely: the SDK's own retry
+        // back-off still applies; only the server's exact instant is not honored.
         //
         // RFC 7231 delay-seconds is 1*DIGIT, optionally surrounded by HTTP optional
         // whitespace (OWS = SP / HTAB). We trim only OWS and require the remaining
