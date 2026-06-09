@@ -458,7 +458,8 @@ namespace MAT_NS_BEGIN {
             SqliteStatement stmt(*m_db, sql.c_str());
             if (stmt.handle() == nullptr)
             {
-                LOG_ERROR("DeleteRecords: failed to prepare delete statement for table " TABLE_NAME_EVENTS);
+                LOG_ERROR("DeleteRecords: failed to prepare delete statement for table " TABLE_NAME_EVENTS ": %s",
+                    g_sqlite3Proxy->sqlite3_errmsg(*m_db));
                 return;
             }
             int idx = 1;
