@@ -11,8 +11,6 @@
 
 namespace MAT_NS_BEGIN
 {
-    constexpr static auto Tag __attribute__((unused)) = "HttpClient_Android";
-
     HttpClient_Android::HttpRequest::~HttpRequest() noexcept
     {
         EraseFromParent();
