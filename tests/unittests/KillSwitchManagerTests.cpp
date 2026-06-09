@@ -98,6 +98,18 @@ TEST(KillSwitchManagerTests, handleResponse_RetryAfterWithLeadingSign_IsIgnored)
     ASSERT_FALSE(manager.isRetryAfterActive());
 }
 
+TEST(KillSwitchManagerTests, handleResponse_HugeRetryAfter_IsClampedNotWrapped)
+{
+    // A huge (still in-range) Retry-After must be clamped so the expiry time does
+    // not overflow and wrap into the past; the back-off must stay active.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("Retry-After", "9000000000000000000"); // ~9e18, near INT64_MAX
+    manager.handleResponse(headers);
+    ASSERT_TRUE(manager.isRetryAfterActive());
+    ASSERT_TRUE(manager.isTokenBlocked("any-token")); // far-future expiry, not wrapped
+}
+
 TEST(KillSwitchManagerTests, handleResponse_ValidKillTokenAndDuration_BlocksToken)
 {
     KillSwitchManager manager;

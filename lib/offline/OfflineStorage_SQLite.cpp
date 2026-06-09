@@ -456,6 +456,11 @@ namespace MAT_NS_BEGIN {
 
             const std::string sql = "DELETE FROM " TABLE_NAME_EVENTS " WHERE " + clause;
             SqliteStatement stmt(*m_db, sql.c_str());
+            if (stmt.handle() == nullptr)
+            {
+                LOG_ERROR("DeleteRecords: failed to prepare delete statement for table " TABLE_NAME_EVENTS);
+                return;
+            }
             int idx = 1;
             for (const auto& it : boundColumns)
             {

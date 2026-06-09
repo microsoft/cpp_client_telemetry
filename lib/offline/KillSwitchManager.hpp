@@ -207,7 +207,13 @@ namespace MAT_NS_BEGIN {
             {
                 // Only std::out_of_range can fire now (the substring is all digits);
                 // catching it ignores an over-large value rather than crashing.
-                outSeconds = static_cast<int64_t>(std::stoll(value.substr(begin, end - begin)));
+                const long long parsed = std::stoll(value.substr(begin, end - begin));
+                // Clamp to a value that cannot overflow when later added to a current
+                // UTC timestamp (seconds) to compute an expiry time. No legitimate
+                // Retry-After / kill-duration approaches this; an absurd value is
+                // capped instead of wrapping the expiry into the past.
+                const int64_t kMaxSeconds = 100LL * 365 * 24 * 60 * 60; // ~100 years
+                outSeconds = (parsed > kMaxSeconds) ? kMaxSeconds : static_cast<int64_t>(parsed);
                 return true;
             }
             catch (const std::exception&)
