@@ -27,7 +27,7 @@ static void check(bool cond, const char* name)
     }
 }
 
-static bool near(double actual, double expected)
+static bool nearlyEqual(double actual, double expected)
 {
     return std::fabs(actual - expected) < 0.000001;
 }
@@ -81,7 +81,7 @@ int main()
               "Int64 property value round-trips");
         check(stored.count("dblProp") == 1 &&
               stored.at("dblProp").type == EventProperty::TYPE_DOUBLE &&
-              near(stored.at("dblProp").as_double, 3.14),
+              nearlyEqual(stored.at("dblProp").as_double, 3.14),
               "Double property value round-trips");
         check(stored.count("boolProp") == 1 &&
               stored.at("boolProp").type == EventProperty::TYPE_BOOLEAN &&
