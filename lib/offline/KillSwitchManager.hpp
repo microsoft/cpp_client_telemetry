@@ -7,7 +7,6 @@
 
 #include "pal/PAL.hpp"
 
-#include <cctype>
 #include <list>
 #include <map>
 #include <mutex>
@@ -180,12 +179,15 @@ namespace MAT_NS_BEGIN {
             {
                 size_t consumed = 0;
                 const long long parsed = std::stoll(value, &consumed);
-                // Reject trailing garbage (e.g. "120; foo"); only trailing
-                // whitespace is allowed, so a malformed header is ignored rather
-                // than silently parsed from its numeric prefix.
+                // Reject trailing garbage (e.g. "120; foo"). Only HTTP optional
+                // whitespace (OWS = SP / HTAB, per RFC 7230) is tolerated after the
+                // number; broader whitespace such as CR/LF is treated as malformed,
+                // so a value like "120\r\n" is ignored rather than silently parsed
+                // from its numeric prefix.
                 for (size_t i = consumed; i < value.size(); ++i)
                 {
-                    if (std::isspace(static_cast<unsigned char>(value[i])) == 0)
+                    const char ch = value[i];
+                    if (ch != ' ' && ch != '\t')
                     {
                         return false;
                     }

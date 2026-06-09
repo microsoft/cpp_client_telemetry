@@ -66,6 +66,17 @@ TEST(KillSwitchManagerTests, handleResponse_RetryAfterWithTrailingWhitespace_IsA
     ASSERT_TRUE(manager.isRetryAfterActive());
 }
 
+TEST(KillSwitchManagerTests, handleResponse_RetryAfterWithTrailingCRLF_IsIgnored)
+{
+    // CR/LF are not HTTP OWS (only SP / HTAB is); a value carrying them is
+    // malformed and must be ignored rather than parsed from its numeric prefix.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("Retry-After", "120\r\n");
+    manager.handleResponse(headers);
+    ASSERT_FALSE(manager.isRetryAfterActive());
+}
+
 TEST(KillSwitchManagerTests, handleResponse_ValidKillTokenAndDuration_BlocksToken)
 {
     KillSwitchManager manager;
