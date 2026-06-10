@@ -135,14 +135,14 @@ namespace MAT_NS_BEGIN
         LogManagerBase(){}
 
         /// <summary>
-        /// LogManager copy constructor
+        /// LogManager copy constructor (deleted; LogManagerBase is non-copyable)
         /// </summary>
-        LogManagerBase(const LogManagerBase&){}
+        LogManagerBase(const LogManagerBase&) = delete;
 
         /// <summary>
-        /// LogManager assignment operator
+        /// LogManager assignment operator (deleted; LogManagerBase is non-copyable)
         /// </summary>
-        LogManagerBase& operator=(const LogManagerBase&){ return *this; }
+        LogManagerBase& operator=(const LogManagerBase&) = delete;
 
         /// <summary>
         /// LogManager destructor
