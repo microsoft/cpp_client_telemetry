@@ -148,8 +148,9 @@ namespace MAT_NS_BEGIN
         ans["iKey"] = iKey;
         if (!source->cV.empty())
             ans[CorrelationVector::PropertyName] = source->cV;
-        // privTags is the single source of truth in record.extMetadata (populated by
-        // EventPropertiesDecorator for well-typed int64 values); emit it whenever present.
+        // For well-typed int64 values, privTags is carried in record.extMetadata (populated by
+        // EventPropertiesDecorator); emit it from there whenever present. Non-int64 values are left
+        // as ordinary Part C properties and serialized through the normal data path below.
         if (!source->extMetadata.empty()) {
             ans["ext"]["metadata"]["privTags"] = source->extMetadata[0].privTags;
         }
