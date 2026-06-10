@@ -126,8 +126,14 @@ namespace MAT_NS_BEGIN {
             int64_t tags = eventProperties.GetPolicyBitFlags();
             int64_t flags = 0;
 
-            // Scrub/obfuscate IP addresses.
-            flags = RECORD_FLAGS_EVENTTAG_SCRUB_IP;
+            // Scrub/obfuscate the client IP address at the collector by default.
+            // Hosts that require the client IP (e.g. for geo-location enrichment)
+            // can opt out by setting CFG_BOOL_ENABLE_IP_SCRUBBING = false.
+            ILogConfiguration& config = m_owner.GetLogConfiguration();
+            if (!config.HasConfig(CFG_BOOL_ENABLE_IP_SCRUBBING) || config[CFG_BOOL_ENABLE_IP_SCRUBBING])
+            {
+                flags |= RECORD_FLAGS_EVENTTAG_SCRUB_IP;
+            }
             // We must remap from one bitfield set to another, no way to bit-shift :(
             // At the moment 1DS SDK in direct upload mode supports DROP and MARK tags only:
             flags |= (tags & MICROSOFT_EVENTTAG_MARK_PII) ? RECORD_FLAGS_EVENTTAG_MARK_PII : 0;

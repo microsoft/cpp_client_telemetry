@@ -105,6 +105,13 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_NET_DETECT = "enableNetworkDetector";
 
     /// <summary>
+    /// Scrub (obfuscate) the client IP address at the collector for telemetry
+    /// uploaded in direct-upload mode. Enabled by default; set to false to opt
+    /// out (e.g. when the client IP is required for geo-location enrichment).
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_IP_SCRUBBING = "enableIpScrubbing";
+
+    /// <summary>
     /// Parameter that allows to check if the SDK is running on UTC mode
     /// </summary>
     static constexpr const char* const CFG_BOOL_UTC_ENABLED = "enabled";
