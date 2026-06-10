@@ -19,6 +19,13 @@ REM 13. Visual Studio 2026 BuildTools
 REM
 
 REM 1st parameter - Visual Studio version
+
+REM Remember an explicit version request so we can warn later if detection falls
+REM back to a different Visual Studio install than the one that was asked for.
+set "VSTOOLS_REQUESTED="
+if "%1" neq "" set "VSTOOLS_REQUESTED=%1"
+if not defined VSTOOLS_REQUESTED if "%VSTOOLS_VERSION%" neq "" set "VSTOOLS_REQUESTED=%VSTOOLS_VERSION%"
+
 if "%1" neq "" (
   goto %1
 )
@@ -203,3 +210,20 @@ set VSVERSION=
 exit /b 0
 
 :tools_configured
+
+REM Warn if an explicit version was requested but detection fell back to a
+REM different Visual Studio install (the label cascade silently moves forward,
+REM e.g. a vs2022 request can end up on vs2026), which can lead to a confusing
+REM toolset mismatch later when PlatformToolset is pinned to the requested version.
+if not defined VSTOOLS_REQUESTED goto :tools_configured_done
+if not defined VSVERSION goto :tools_configured_done
+echo "%VSTOOLS_REQUESTED%" | findstr /I /C:"%VSVERSION%" >nul
+if errorlevel 1 (
+  echo WARNING: Requested Visual Studio "%VSTOOLS_REQUESTED%" was not found; using Visual Studio %VSVERSION% instead.
+  echo WARNING: If a specific toolset is required, install that Visual Studio version or set VSTOOLS_VERSION/PlatformToolset to match what is installed.
+)
+
+:tools_configured_done
+REM Visual Studio was configured; callers rely on VSTOOLS_NOTFOUND rather than
+REM this script's exit code, so return success regardless of the version probe.
+exit /b 0
