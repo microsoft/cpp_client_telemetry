@@ -56,8 +56,10 @@ void test_cpp_api(const char * token, int ticketType, const char *ticket)
     // Log detailed event with various properties
     EventProperties detailed_event("MyApp.detailed_event",
         {
+#ifdef _MSC_VER
             // Log compiler version
             { "_MSC_VER", _MSC_VER },
+#endif
             // Pii-typed fields
             { "piiKind.None",               EventProperty("field_value",  PiiKind_None) },
             { "piiKind.DistinguishedName",  EventProperty("/CN=Jack Frost,OU=PIE,DC=REDMOND,DC=COM",  PiiKind_DistinguishedName) },
@@ -75,7 +77,7 @@ void test_cpp_api(const char * token, int ticketType, const char *ticket)
             // Various typed key-values
             { "strKey1",  "hello1" },
             { "strKey2",  "hello2" },
-            { "int64Key", 1L },
+            { "int64Key", 1LL },
             { "dblKey",   3.14 },
             { "boolKey",  false },
             { "guidKey0", GUID_t("00000000-0000-0000-0000-000000000000") },
