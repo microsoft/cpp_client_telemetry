@@ -23,6 +23,7 @@
 #include <future>
 #include <atomic>
 
+#include <poll.h>
 #include <curl/curl.h>
 
 #include <unistd.h>
@@ -55,12 +56,17 @@ public:
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
 
+    virtual void ApplySettings(ILogConfiguration& config) override;
+    void SetSslVerification(bool sslVerify, const std::string& caInfo = "");
+
 private:
     void EraseRequest(std::string const& id);
     void AddRequest(IHttpRequest* request);
 
     std::mutex m_requestsMtx;
     std::map<std::string, IHttpRequest*> m_requests;
+    std::atomic<bool> m_sslVerify { true };
+    std::string m_sslCaInfo;
 };
 
 class CurlHttpOperation {
@@ -68,8 +74,10 @@ public:
 
     void DispatchEvent(HttpStateEvent type)
     {
-        if(m_callback != nullptr)
+        if (m_callback != nullptr)
+        {
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
+        }
     }
 
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
@@ -86,12 +94,17 @@ public:
             std::string method,
             std::string url,
             IHttpResponseCallback* callback,
-            // Default empty headers and empty request body
-            const std::map<std::string, std::string>& requestHeaders = std::map<std::string, std::string>(),
-            const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
+            // requestHeaders is copied into the curl_slist during construction
+            // and need not outlive this operation. requestBody is stored by
+            // reference and read by Send(), so it must outlive this operation.
+            const std::map<std::string, std::string>& requestHeaders,
+            const std::vector<uint8_t>& requestBody,
             // Default connectivity and response size options
             bool rawResponse                                         = false,
-            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT) :
+            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
+            // SSL certificate verification options
+            bool sslVerify                                           = true,
+            const std::string& sslCaInfo                             = "") :
 
             // Optional connection params
             rawResponse(rawResponse),
@@ -100,9 +113,9 @@ public:
             m_callback(callback),
             m_method(method),
             m_url(url),
+            m_sslCaInfo(sslCaInfo),
 
             // Local vars
-            requestHeaders(requestHeaders),
             requestBody(requestBody)
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
@@ -129,18 +142,20 @@ public:
         // Specify target URL
         curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
 
-        // TODO: expose SSL cert verification opts via ILogConfiguration
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);      // 1L
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);      // 2L
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L);
+        if (!m_sslCaInfo.empty()) {
+            curl_easy_setopt(curl, CURLOPT_CAINFO, m_sslCaInfo.c_str());
+        }
         // HTTP/2 please, fallback to HTTP/1.1 if not supported
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
-        // Specify our custom headers
-        for(auto &kv : this->requestHeaders)
+        // Headers are copied into m_headersChunk during construction and the
+        // curl_slist is kept alive until destruction, so the original map does
+        // not need operation-lifetime storage.
+        for (const auto& kv : requestHeaders)
         {
-            std::string header = kv.first.c_str();
-            header += ": ";
-            header += kv.second.c_str();
+            std::string header = kv.first + ": " + kv.second;
             m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
         }
 
@@ -180,7 +195,7 @@ public:
 
         ReleaseResponse();
         // Request buffer
-        const void *request  = (requestBody.empty())?NULL:&requestBody[0];
+        const void *request  = requestBody.empty() ? nullptr : requestBody.data();
         const size_t reqSize = requestBody.size();
 
         if(!curl)
@@ -208,7 +223,13 @@ public:
          * Note that this API takes a pointer to a 'long' while we use
          * curl_socket_t for sockets otherwise.
          */
+
+#if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
+        res = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
+#else
         res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockextr);
+#endif
+
         if(CURLE_OK != res)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
@@ -246,7 +267,7 @@ public:
         {
             // POST
             curl_easy_setopt(curl, CURLOPT_POST, true);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char *)request);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, static_cast<const char*>(request));
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, reqSize);
         } else
         if (m_method.compare("GET") == 0)
@@ -323,18 +344,20 @@ cleanup:
     }
 
     /**
-     * Return a copy of resposne headers
+     * Return a copy of response headers
      *
      * @return
      */
     std::map<std::string, std::string> GetResponseHeaders()
     {
         std::map<std::string, std::string> result;
-        if (respHeaders.size() == 0)
+        if (respHeaders.empty())
+        {
             return result;
+        }
 
         std::stringstream ss;
-        std::string headers((const char *)&respHeaders[0], respHeaders.size());
+        std::string headers(reinterpret_cast<const char*>(respHeaders.data()), respHeaders.size());
         ss.str(headers);
 
         std::string header;
@@ -365,8 +388,11 @@ cleanup:
     std::vector<uint8_t> GetRawResponse()
     {
         std::vector<uint8_t> result;
-        if ((response.memory!=nullptr)&&(response.size!=0))
-            result.insert(result.end(), (const char *)response.memory, ((const char *)response.memory) + response.size);
+        if ((response.memory != nullptr) && (response.size != 0))
+        {
+            const auto* begin = reinterpret_cast<const uint8_t*>(response.memory);
+            result.insert(result.end(), begin, begin + response.size);
+        }
         return result;
     }
 
@@ -375,7 +401,7 @@ cleanup:
      */
     void ReleaseResponse()
     {
-        if (response.memory!=nullptr) {
+        if (response.memory != nullptr) {
             free(response.memory);
             response.memory = nullptr;
             response.size = 0;
@@ -417,7 +443,11 @@ protected:
     // Request values
     std::string m_method;
     std::string m_url;
-    const std::map<std::string, std::string>& requestHeaders;
+    std::string m_sslCaInfo;
+    // The SDK upload path keeps the owning IHttpRequest alive through the
+    // callback context until Send() completes; copying this body would duplicate
+    // every upload payload. Unlike CURLOPT_CAINFO, the body pointer is set and
+    // consumed during Send(), not retained from construction.
     const std::vector<uint8_t>& requestBody;
     struct curl_slist *m_headersChunk = nullptr;
 
@@ -446,28 +476,12 @@ protected:
      */
     static int WaitOnSocket(curl_socket_t sockfd, int for_recv, long timeout_ms)
     {
-        struct timeval tv;
-        fd_set infd, outfd, errfd;
-        int res;
-
-        tv.tv_sec = timeout_ms / 1000;
-        tv.tv_usec = (timeout_ms % 1000) * 1000;
-
-        FD_ZERO(&infd);
-        FD_ZERO(&outfd);
-        FD_ZERO(&errfd);
-
-        FD_SET(sockfd, &errfd); /* always check for error */
-
-        if(for_recv) {
-            FD_SET(sockfd, &infd);
-        } else {
-            FD_SET(sockfd, &outfd);
-        }
-
-        /* select() returns the number of signalled sockets or -1 */
-        res = select((int)sockfd + 1, &infd, &outfd, &errfd, &tv);
-        return res;
+        struct pollfd pfd;
+        pfd.fd = sockfd;
+        pfd.events = for_recv ? POLLIN : POLLOUT;
+        // Cap timeout to max int value to avoid overflow in poll()
+        auto timeout = std::min(timeout_ms, static_cast<long>(std::numeric_limits<int>::max()));   
+        return poll(&pfd, 1, static_cast<int>(timeout));
     }
 
     // Raw response buffer
@@ -490,12 +504,13 @@ protected:
         size_t realsize = size * nmemb;
         struct MemoryStruct *mem = (struct MemoryStruct *)userp;
 
-        mem->memory = (char *)(realloc(mem->memory, mem->size + realsize + 1));
-        if(mem->memory == NULL) {
+        auto* memory = static_cast<char*>(realloc(mem->memory, mem->size + realsize + 1));
+        if(memory == nullptr) {
           /* out of memory! */
           TRACE("not enough memory (realloc returned NULL)\n");
           return 0;
         }
+        mem->memory = memory;
 #ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
         BoundCheckFunctions::oneds_memcpy_s(&(mem->memory[mem->size]), realsize, contents, realsize);
 #else
@@ -518,9 +533,9 @@ protected:
      */
     static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
     {
-        if (data!=nullptr) {
-            const unsigned char * begin = (unsigned char *)(ptr);
-            const unsigned char * end   = begin + size * nmemb;
+        if (data != nullptr) {
+            const auto* begin = static_cast<const uint8_t*>(ptr);
+            const auto* end   = begin + size * nmemb;
             data->insert( data->end(), begin, end);
         }
         return size * nmemb;
@@ -533,4 +548,3 @@ protected:
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENTCURL_HPP
-

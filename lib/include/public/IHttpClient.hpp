@@ -18,6 +18,7 @@
 ///@cond INTERNAL_DOCS
 namespace MAT_NS_BEGIN
 {
+    class ILogConfiguration;
     /// <summary>
     /// The HttpHeaders class contains a set of HTTP headers.
     /// </summary>
@@ -494,7 +495,7 @@ namespace MAT_NS_BEGIN
             std::ignore = state;
             std::ignore = data;
             std::ignore = size;
-        };
+        }
     };
 
     /// <summary>
@@ -542,7 +543,15 @@ namespace MAT_NS_BEGIN
         /// <param name="id">A string that contains the ID of the request to cancel.</param>
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
-        virtual void CancelAllRequests() {};
+        virtual void CancelAllRequests() {}
+
+        /// <summary>
+        /// Apply HTTP settings from the log configuration.
+        /// Subclasses override to handle platform-specific options.
+        /// Default implementation is a no-op.
+        /// </summary>
+        /// <param name="config">The log configuration to read settings from.</param>
+        virtual void ApplySettings(ILogConfiguration& /*config*/) {}
     };
 
     /// @endcond

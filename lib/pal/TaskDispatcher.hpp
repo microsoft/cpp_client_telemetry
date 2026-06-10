@@ -69,12 +69,12 @@ namespace PAL_NS_BEGIN {
 
         DeferredCallbackHandle(MAT::Task* task, MAT::ITaskDispatcher* taskDispatcher) :
             m_task(task),
-            m_taskDispatcher(taskDispatcher) { };
-        DeferredCallbackHandle() {};
+            m_taskDispatcher(taskDispatcher) { }
+        DeferredCallbackHandle() {}
         DeferredCallbackHandle(DeferredCallbackHandle&& h)
         {
             *this = std::move(h);
-        };
+        }
 
         DeferredCallbackHandle& operator=(DeferredCallbackHandle&& other)
         {

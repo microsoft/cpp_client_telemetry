@@ -26,9 +26,10 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
-        submodules: 'true'
+        submodules: true
+        depth: 1
       continue-on-error: true
 
     - name: Build and Test
@@ -41,7 +42,7 @@ jobs:
         script: ./testandlog
     - name: Upload
       if: ${{ always() }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: logcat
         path: ./lib/android_build/logcat.txt

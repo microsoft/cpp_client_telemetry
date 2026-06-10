@@ -4,7 +4,7 @@ pushd "%~dp0"
 REM Users may override the default %ANDROID_SDK_ROOT% location if necessary
 
 if "%ANDROID_SDK_ROOT%"      == "" set "ANDROID_SDK_ROOT=C:\Android\android-sdk"
-if "%ANDROID_NDK_VERSION%"   == "" set "ANDROID_NDK_VERSION=21.4.7075529"
+if "%ANDROID_NDK_VERSION%"   == "" set "ANDROID_NDK_VERSION=27.0.12077973"
 if "%ANDROID_CMAKE_VERSION%" == "" set "ANDROID_CMAKE_VERSION=3.10.2.4988404"
 if "%ANDROID_HOME%"          == "" set "ANDROID_HOME=%ANDROID_SDK_ROOT%"
 if "%ANDROID_NDK%"           == "" set "ANDROID_NDK=%ANDROID_SDK_ROOT%\ndk\%ANDROID_NDK_VERSION%"

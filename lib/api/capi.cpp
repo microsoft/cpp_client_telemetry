@@ -337,7 +337,7 @@ evt_status_t mat_flushAndTeardown(evt_context_t *ctx)
     return STATUS_SUCCESS;
 }
 
-evt_status_t mat_flush(evt_context_t *ctx)
+static evt_status_t mat_flush(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(client->logmanager->Flush());

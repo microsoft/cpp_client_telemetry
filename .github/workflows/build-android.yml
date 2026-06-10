@@ -17,38 +17,48 @@ on:
     - main
     - dev
 
+
+# Least-privilege GITHUB_TOKEN scope: this workflow only checks out source
+# and builds + uploads artifacts (upload-artifact uses its own per-run SAS,
+# not GITHUB_TOKEN). Explicit block satisfies CodeQL rule
+# actions/missing-workflow-permissions if Actions analysis is enabled.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: windows-latest
     name: Build for Android
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
-        depth: 1
-        submodules: 'false'
+        submodules: false
     - name: Update submodules
       run: |
         git submodule sync
         git config --global submodule.lib/modules.update none
         git -c protocol.version=2 submodule update --init --force --depth=1
     - name: Setup Java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v5
       with:
         distribution: 'adopt'
-        java-version: '11'
+        java-version: '17'
     - name: Remove default github maven configuration
       # Workaround for: 'Unable to decrypt local Maven settings credentials'
       run: rm $Env:USERPROFILE\.m2\settings.xml
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@v3
     - name: Install NDK
       run: |
         java -version
         gci env:* | sort-object name
-        new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
-        echo yes | .\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;21.4.7075529" --sdk_root=$Env:ANDROID_SDK_ROOT
-      working-directory: ${{ env.ANDROID_SDK_ROOT }}\cmdline-tools\7.0\bin
+        new-item "$Env:USERPROFILE\.android\repositories.cfg" -ItemType "file"
+        echo yes | sdkmanager "ndk-bundle" "cmake;3.10.2.4988404" "ndk;27.0.12077973" --sdk_root=$Env:ANDROID_SDK_ROOT
     - name: Chocolatey
       run: |
         choco install --no-progress -y ninja
@@ -73,7 +83,7 @@ jobs:
       working-directory: lib\android_build
     - name: Upload Reports
       if: failure()
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: reports
         path: lib\android_build\maesdk\build\reports

@@ -6,7 +6,7 @@
 #include "LogConfiguration.hpp"
 
 #ifdef HAVE_MAT_JSONHPP
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 #endif
 

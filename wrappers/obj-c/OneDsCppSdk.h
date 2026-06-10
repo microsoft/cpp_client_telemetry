@@ -12,6 +12,7 @@
 #import "ODWLogger.h"
 #import "ODWLogManager.h"
 #import "ODWPrivacyGuard.h"
+#import "ODWSanitizer.h"
 #import "ODWSemanticContext.h"
 
 #endif

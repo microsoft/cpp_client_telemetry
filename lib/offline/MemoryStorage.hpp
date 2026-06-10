@@ -67,6 +67,8 @@ namespace MAT_NS_BEGIN {
 
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;
 
+        virtual size_t GetRemainingRecordCountForShutdown() const override;
+
         virtual size_t GetReservedCount();
 
         virtual std::vector<StorageRecord> GetRecords(bool shutdown = false, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
@@ -88,7 +90,7 @@ namespace MAT_NS_BEGIN {
         /// Contains reserved (aka in-flight) records.
         /// Current storage interface API requires deletion and release by StorageRecordId.
         /// </summary>
-        std::mutex                  m_reserved_lock;
+        mutable std::mutex          m_reserved_lock;
         std::map<StorageRecordId, StorageRecord> m_reserved_records;
 
         size_t                      m_size;

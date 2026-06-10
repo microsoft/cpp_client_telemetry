@@ -1,8 +1,37 @@
 @echo off
 
 cd %~dp0
-call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
+
+set CUSTOM_PROPS=
+if not "%~1"=="" (
+  if not exist "%~f1" (
+    goto custom_props_missing
+  )
+  if /I not "%~x1"==".props" (
+    if /I not "%~x1"==".targets" (
+      goto custom_props_invalid_type
+    )
+  )
+  set CUSTOM_PROPS="/p:ForceImportBeforeCppTargets=%~f1"
+  echo Using custom properties file for the build:
+  echo %CUSTOM_PROPS%
+)
+
+goto after_custom_props_validation
+
+:custom_props_missing
+echo ERROR: Custom build input not found: %~1
+echo        Pass an existing MSBuild .props or .targets file to ForceImportBeforeCppTargets.
+exit /b 1
+
+:custom_props_invalid_type
+echo ERROR: Custom build input must be an MSBuild .props or .targets file: %~1
+echo        Pass the MSBuild import file, not the CONFIG_CUSTOM_H header.
+exit /b 1
+
+:after_custom_props_validation
+call tools\gen-version.cmd
 
 echo Update all public submodules...
 git -c submodule."lib/modules".update=none submodule update --init --recursive
@@ -17,18 +46,11 @@ if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
  git clone --depth 1 --branch release-1.12.1 https://github.com/google/googletest %GTEST_PATH%
 )
 
-set CUSTOM_PROPS=
-if ("%~1"=="") goto skip
-set CUSTOM_PROPS="/p:ForceImportBeforeCppTargets=%1"
-echo Using custom properties file for the build:
-echo %CUSTOM_PROPS%
-:skip
-
 if NOT DEFINED SKIP_MD_BUILD (
   REM DLL and static /MD build
   REM Release
-  call tools\RunMsBuild.bat Win32 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
-  call tools\RunMsBuild.bat x64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild,Samples\cs\SampleCsNet40:Rebuild" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild,Samples\cs\SampleCsNet40:Rebuild" %CUSTOM_PROPS%
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
     call tools\RunMsBuild.bat Win32 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,net40:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%

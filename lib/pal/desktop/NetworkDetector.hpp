@@ -30,13 +30,6 @@
 #include <windows.networking.h>
 #include <windows.networking.connectivity.h>
 
-// ATL exceptions expose header incompatibilities with Edge's build, using libc++
-#ifndef _ATL_NO_EXCEPTIONS
-#define _ATL_NO_EXCEPTIONS
-#endif
-
-#include <atlbase.h>
-
 #include <Netlistmgr.h>
 #include <OCIdl.h>
 #include <oaidl.h>
@@ -153,7 +146,7 @@ namespace MAT_NS_BEGIN
                     /// Register and listen to network state notifications
                     /// </summary>
                     /// <returns></returns>
-                    bool RegisterAndListen();
+                    bool RegisterAndListen() noexcept;
 
                     /// <summary>
                     /// Reset network state listener to uninitialized state

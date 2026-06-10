@@ -31,7 +31,7 @@ namespace MAT_NS_BEGIN {
 
         virtual bool IsViewerRegistered(const char* viewerName) const override;
 
-        virtual ~DataViewerCollection() noexcept {};
+        virtual ~DataViewerCollection() noexcept {}
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 

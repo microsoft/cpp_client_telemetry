@@ -27,13 +27,13 @@ namespace MAT_NS_BEGIN
         /// Initializes the module.
         /// Invoked as part of parent ILogManager is constructed.
         /// </summary>
-        virtual void Initialize(ILogManager*) noexcept {};
+        virtual void Initialize(ILogManager*) noexcept {}
 
         /// <summary>
         /// Tears down the module.
         /// Invoked as part of parent ILogManager's FlushAndTeardown() method.
         /// </summary>
-        virtual void Teardown() noexcept {};
+        virtual void Teardown() noexcept {}
     };
 
     /// @endcond
