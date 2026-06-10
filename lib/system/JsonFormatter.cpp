@@ -148,9 +148,10 @@ namespace MAT_NS_BEGIN
         ans["iKey"] = iKey;
         if (!source->cV.empty())
             ans[CorrelationVector::PropertyName] = source->cV;
-        if (source->data[0].properties.find(COMMONFIELDS_EVENT_PRIVTAGS) != source->data[0].properties.end()) {
-            ans["ext"]["metadata"]["privTags"] = source->data[0].properties[COMMONFIELDS_EVENT_PRIVTAGS].longValue;
-            source->data[0].properties.erase(COMMONFIELDS_EVENT_PRIVTAGS);
+        // privTags is the single source of truth in record.extMetadata (populated by
+        // EventPropertiesDecorator for well-typed int64 values); emit it whenever present.
+        if (!source->extMetadata.empty()) {
+            ans["ext"]["metadata"]["privTags"] = source->extMetadata[0].privTags;
         }
         addExtApp(ans, source->extApp);
         addExtNet(ans, source->extNet);

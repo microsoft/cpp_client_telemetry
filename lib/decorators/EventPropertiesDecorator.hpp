@@ -174,11 +174,11 @@ namespace MAT_NS_BEGIN {
                 const auto &k = kv.first;
                 const auto &v = kv.second;
 
-                // Additionally surface the privacy tag (EventInfo.PrivTags) in ext.metadata.privTags
-                // so the cross-platform bond path carries it the same way the UTC path does. The
-                // property is intentionally left in Part C as well: the JSON path still reads it from
-                // there, and leaving it preserves the pre-existing behavior. Only a well-typed int64
-                // value is mirrored; anything else is handled as an ordinary property below.
+                // Route the privacy tag (EventInfo.PrivTags) into ext.metadata.privTags so the
+                // cross-platform bond path carries it the same way the UTC path does. extMetadata
+                // is the single source of truth: a well-typed int64 value is moved out of Part C
+                // (the JSON path reads it from extMetadata too). Non-int64 values are left to be
+                // handled as an ordinary property below.
                 // TODO(privacy-parity): confirm the canonical Common Schema ext.metadata wire contract.
                 if (k == COMMONFIELDS_EVENT_PRIVTAGS && v.type == EventProperty::TYPE_INT64)
                 {
@@ -187,6 +187,7 @@ namespace MAT_NS_BEGIN {
                         record.extMetadata.push_back(::CsProtocol::MetaData());
                     }
                     record.extMetadata[0].privTags = static_cast<uint64_t>(v.as_int64);
+                    continue;
                 }
 
                 if (v.piiKind != PiiKind_None)
