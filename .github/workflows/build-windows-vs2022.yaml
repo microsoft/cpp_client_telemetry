@@ -29,12 +29,12 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v4
-      continue-on-error: true
 
     - name: Build
       env:
         SKIP_ARM_BUILD: 1
         SKIP_ARM64_BUILD: 1
+        SKIP_NET40_BUILD: 1
         PlatformToolset: v143
         VSTOOLS_VERSION: vs2022
       shell: cmd

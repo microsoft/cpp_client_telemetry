@@ -58,11 +58,15 @@ if NOT DEFINED SKIP_MD_BUILD (
   REM DLL and static /MD build
   REM Release
   call tools\RunMsBuild.bat Win32 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET40_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild%NET40_SAMPLE_TARGETS%" %CUSTOM_PROPS%
+  if errorlevel 1 exit /b 1
   call tools\RunMsBuild.bat x64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET40_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild%NET40_SAMPLE_TARGETS%" %CUSTOM_PROPS%
+  if errorlevel 1 exit /b 1
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
     call tools\RunMsBuild.bat Win32 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET40_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+    if errorlevel 1 exit /b 1
     call tools\RunMsBuild.bat x64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET40_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+    if errorlevel 1 exit /b 1
   )
 )
 
@@ -70,11 +74,15 @@ if NOT DEFINED SKIP_MT_BUILD (
   REM Static /MT build
   REM Release
   call tools\RunMsBuild.bat Win32 Release.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
+  if errorlevel 1 exit /b 1
   call tools\RunMsBuild.bat x64 Release.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
+  if errorlevel 1 exit /b 1
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
     call tools\RunMsBuild.bat Win32 Debug.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
+    if errorlevel 1 exit /b 1
     call tools\RunMsBuild.bat x64 Debug.vc14x.MT-sqlite "sqlite:Rebuild,zlib:Rebuild,win32-lib:Rebuild" %CUSTOM_PROPS%
+    if errorlevel 1 exit /b 1
   )
 )
 
@@ -82,9 +90,11 @@ if NOT DEFINED SKIP_ARM_BUILD (
   REM ARM DLL build
   REM Release
   call tools\RunMsBuild.bat ARM Release "zlib:Rebuild,sqlite-uwp:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild" %CUSTOM_PROPS%
+  if errorlevel 1 exit /b 1
   if NOT DEFINED SKIP_DEBUG_BUILD (
     REM Debug
     call tools\RunMsBuild.bat ARM Debug "zlib:Rebuild,sqlite-uwp:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild" %CUSTOM_PROPS%
+    if errorlevel 1 exit /b 1
   )
 )
 
@@ -92,8 +102,10 @@ if NOT DEFINED SKIP_ARM64_BUILD (
   REM ARM64 DLL build
   REM Release
   call tools\RunMsBuild.bat ARM64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild" %CUSTOM_PROPS%
+  if errorlevel 1 exit /b 1
   if NOT DEFINED SKIP_DEBUG_BUILD (
     REM Debug
     call tools\RunMsBuild.bat ARM64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild" %CUSTOM_PROPS%
+    if errorlevel 1 exit /b 1
   )
 )
