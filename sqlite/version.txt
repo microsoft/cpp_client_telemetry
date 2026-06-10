@@ -1,6 +1,6 @@
 Source obtained from
 --------------------
-https://www.sqlite.org/tmp/sqlite-win10-all-3340100.zip
+https://www.sqlite.org/2026/sqlite-amalgamation-3530100.zip
 
 OSS approval
 ------------
@@ -9,9 +9,18 @@ https://ossmsft.visualstudio.com/_oss?searchText=SQLite&_a=componentversion&cvid
 Integration steps
 -----------------
 * Obtain the .zip from above link and unzip
-* Copy contents of .\Source directory with a new version on top of existing files
-* Ignore .\Debug and .\Release prebuilts as we are not building / using winsqlite3.dll
-* Check Makefile.msc new build options, migrate new options to sqlite.vcxproj and ..\sqliteUWP\sqlite-uwp.vcxproj
+* Copy sqlite3.c on top of both sqlite/sqlite3_debug.c and sqlite/sqlite3_retail.c
+  (both files are kept as separate copies of the upstream amalgamation; the
+  retail/debug split is preserved for the sqlite/sqlite3.c wrapper that selects
+  between them via NDEBUG, even though the file contents are identical now)
+* Copy sqlite3.h, sqlite3ext.h, shell.c on top of the matching files in sqlite/
+* Re-apply the MEMSET_S patches from PR #1286 to both sqlite3_debug.c and
+  sqlite3_retail.c. Review all five historical PR #1286 sites during each
+  refresh: wrap the four remaining memset call sites, and verify whether the
+  original sqlite3ExprListAppend site still no longer needs it.
+* Compare sqlite.vcxproj and sqliteUWP/sqlite-uwp.vcxproj source lists with
+  the upstream shell tool list; bring over any new options that affect the
+  Windows desktop or UWP builds.
 
 Shipping products that include SQLite
 -------------------------------------

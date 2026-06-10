@@ -32,7 +32,7 @@ function generateVersionHpp() {
   // Read version tag
   var ver1 = readAll("../Solutions/version.txt");
   // Remove end-of-line
-  ver1 = ver1.replace("\n", "");
+  ver1 = ver1.trim();
   // Replace placeholders in version tag
   ver1 = ver1.replace("year", verMinor).replace("day", verPatch);
 

@@ -7,6 +7,9 @@
 #include "pal/PseudoRandomGenerator.hpp"
 #include "Version.hpp"
 
+#include <cstdint>
+#include <string>
+
 #ifdef HAVE_MAT_LOGGING
 #include "pal/PAL.hpp"
 #include <gtest/gtest.h>
@@ -23,6 +26,17 @@ using namespace PAL::detail;
 #endif
 
 using namespace testing;
+
+#if defined(_WIN32) || defined(_WIN64)
+namespace PAL_NS_BEGIN {
+    std::string formatWindowsOsFullVersion(
+        unsigned long majorVersion,
+        unsigned long minorVersion,
+        unsigned long buildNumber,
+        uint32_t updateBuildRevision,
+        bool hasUpdateBuildRevision);
+} PAL_NS_END
+#endif
 
 class PalTests : public Test {};
 
@@ -94,6 +108,29 @@ TEST_F(PalTests, FormatUtcTimestampMsAsISO8601)
     EXPECT_THAT(PAL::formatUtcTimestampMsAsISO8601(1234567890123ll), Eq("2009-02-13T23:31:30.123Z"));
     EXPECT_THAT(PAL::formatUtcTimestampMsAsISO8601(2147483647999ll), Eq("2038-01-19T03:14:07.999Z"));
 }
+
+#if defined(_WIN32) || defined(_WIN64)
+TEST_F(PalTests, WindowsOsFullVersionIncludesUbrWhenPresent)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 1234, true),
+        Eq("10.0.26200.1234"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionOmitsUbrWhenMissing)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 0, false),
+        Eq("10.0.26200"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionIncludesZeroUbrWhenPresent)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 0, true),
+        Eq("10.0.26200.0"));
+}
+#endif
 
 TEST_F(PalTests, MonotonicTime)
 {

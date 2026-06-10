@@ -1,7 +1,7 @@
 # Honor visibility properties for all target types
 cmake_policy(SET CMP0063 NEW)
 
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/Reachability ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer /usr/local/include )
+include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer /usr/local/include )
 
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
@@ -60,7 +60,7 @@ if(BUILD_AZMON)
   include(modules/azmon/CMakeLists.txt OPTIONAL)
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/")
   list(APPEND SRCS
     modules/exp/afd/afdclient/AFDClientUtils.cpp
     modules/exp/afd/afdclient/AFDClient.cpp
@@ -74,14 +74,14 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/)
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/")
   list(APPEND SRCS
     modules/dataviewer/DefaultDataViewer.cpp
     modules/dataviewer/OnDisableNotificationCollection.cpp
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
   list(APPEND SRCS
     modules/privacyguard/PrivacyGuard.cpp
     modules/privacyguard/RegisteredFileTypes.cpp
@@ -89,14 +89,14 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUA
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/ AND BUILD_LIVEEVENTINSPECTOR)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/" AND BUILD_LIVEEVENTINSPECTOR)
   list(APPEND SRCS
     modules/liveeventinspector/LiveEventInspector.cpp
     modules/liveeventinspector/LiveEventInspector.hpp
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds/ AND BUILD_CDS)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/cds/" AND BUILD_CDS)
   add_definitions(-DHAVE_MAT_CDS)
   list(APPEND SRCS
     modules/cds/CdsFactory.hpp
@@ -104,14 +104,14 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds/ AND BUILD_CDS)
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals/ AND BUILD_SIGNALS)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/signals/" AND BUILD_SIGNALS)
   list(APPEND SRCS
     modules/signals/Signals.cpp
     modules/signals/SignalsEncoder.cpp
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
   list(APPEND SRCS
     modules/sanitizer/detectors/EmailAddressDetector.cpp
     modules/sanitizer/detectors/JwtDetector.cpp
@@ -170,8 +170,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 
     list(APPEND SRCS
         pal/posix/NetworkInformationImpl.mm
-        # TODO: this unit below needs to be deprecated and removed
-        ../third_party/Reachability/ODWReachability.m
     )
   else()
     list(APPEND SRCS
@@ -181,7 +179,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     )
   endif()
   if(APPLE AND BUILD_OBJC_WRAPPER)
-    message("Include ObjC Wrappers")
+    message(STATUS "Include ObjC Wrappers")
     list(APPEND SRCS
       ../wrappers/obj-c/ODWLogger.mm
       ../wrappers/obj-c/ODWLogManager.mm
@@ -189,19 +187,19 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       ../wrappers/obj-c/ODWLogConfiguration.mm
       ../wrappers/obj-c/ODWSemanticContext.mm
       )
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/")
         list(APPEND SRCS
         ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
         )
     endif()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+      if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
             list(APPEND SRCS
             ../wrappers/obj-c/ODWCommonDataContext.mm
             ../wrappers/obj-c/ODWPrivacyGuard.mm
             ../wrappers/obj-c/ODWPrivacyGuardInitConfig.mm
             )
       endif()
-      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/ AND BUILD_SANITIZER)
+      if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
         list(APPEND SRCS
         ../wrappers/obj-c/ODWSanitizerInitConfig.mm 
         ../wrappers/obj-c/ODWSanitizer.mm
@@ -210,7 +208,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   endif()
 
   if(APPLE AND BUILD_SWIFT_WRAPPER)
-    message("Building Swift Wrappers")
+    message(STATUS "Building Swift Wrappers")
     # Run swift build for the Swift Wrappers Package
     string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
     execute_process(
@@ -222,9 +220,9 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     )
 
     if(SWIFT_BUILD_RESULT EQUAL 0)
-        message("Swift Wrappers build succeeded!")
+        message(STATUS "Swift Wrappers build succeeded!")
     else()
-        message(FATAL_ERROR, "Swift build failed with error code: ${SWIFT_BUILD_RESULT}")
+        message(FATAL_ERROR "Swift build failed with error code: ${SWIFT_BUILD_RESULT}")
     endif()
 
   endif()
@@ -247,7 +245,7 @@ remove_definitions(-D_MBCS)
   )
 
   # UTC module
-  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/utc)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/utc")
     list(APPEND SRCS
       modules/utc/desktop/UtcHelpers.cpp
       modules/utc/UtcTelemetrySystem.cpp
@@ -259,7 +257,7 @@ else()
 endif()
 
 # Filtering module
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/filter)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/filter")
   list(APPEND SRCS
     modules/filter/CompliantByDefaultEventFilterModule.cpp
     modules/filter/CompliantByDefaultFilterApi.cpp
@@ -278,7 +276,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(BUILD_SHARED_LIBS STREQUAL "ON")
-  message("-- Building shared SDK library")
+  message(STATUS "Building shared SDK library")
 
   # include(FindCURL)
   # find_package(CURL REQUIRED)
@@ -313,7 +311,7 @@ if(BUILD_SHARED_LIBS STREQUAL "ON")
   # target_link_libraries(mat PUBLIC libsqlite3 libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
   install(TARGETS mat EXPORT mat LIBRARY DESTINATION ${INSTALL_LIB_DIR})
 else()
-  message("-- Building static SDK library")
+  message(STATUS "Building static SDK library")
   add_library(mat STATIC ${SRCS})
   if(LINK_STATIC_DEPENDS)
     if(PAL_IMPLEMENTATION STREQUAL "WIN32")
@@ -336,10 +334,4 @@ else()
   install(TARGETS mat EXPORT mat ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 endif()
 
-message("-- Library will be installed to ${INSTALL_LIB_DIR}")
-
-#if(PAL_IMPLEMENTATION STREQUAL "CPP11")
-#  #target_link_libraries(mat PUBLIC libcurl.a libz.a libssl.a libcrypto.a "${SQLITE_LIBRARY}" "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-#  #target_link_libraries(mat PUBLIC libsqlite3.a libz.a ${LIBS} "${CMAKE_THREAD_LIBS_INIT}" "${CMAKE_DL_LIBS}" )
-#endif()
-
+message(STATUS "Library will be installed to ${INSTALL_LIB_DIR}")
