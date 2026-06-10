@@ -133,8 +133,12 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   )
 else()
 
-  # Prefer linking to more recent local sqlite3
-  if(EXISTS "/usr/local/lib/libsqlite3.a")
+  # Prefer the SDK's bundled sqlite3 when present (e.g. the Android legacy
+  # build, where the NDK has no system sqlite3), then a more recent local
+  # sqlite3, otherwise the system library.
+  if(TARGET sqlite3_bundled)
+    set (SQLITE3_LIB sqlite3_bundled)
+  elseif(EXISTS "/usr/local/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
   elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
@@ -145,9 +149,13 @@ else()
     set (SQLITE3_LIB "sqlite3")
   endif()
 
-  # Find zlib
-  find_package( ZLIB REQUIRED )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
+  if(TARGET zlib_bundled)
+    set(MATSDK_TEST_ZLIB zlib_bundled)
+  else()
+    find_package( ZLIB REQUIRED )
+    set(MATSDK_TEST_ZLIB ZLIB::ZLIB)
+    include_directories( ${ZLIB_INCLUDE_DIRS} )
+  endif()
 
   set (PLATFORM_LIBS "")
   # Add flags for obtaining system UUID via IOKit
@@ -190,13 +198,23 @@ else()
     ${LIBGTEST}
     ${LIBGMOCK}
     mat
-    ${ZLIB_LIBRARIES}
+    ${MATSDK_TEST_ZLIB}
     ${SQLITE3_LIB}
     ${PLATFORM_LIBS}
     dl)
 
-  if(NOT BUILD_IOS)
-    target_link_libraries(UnitTests curl)
+  # Link curl only when the SDK actually uses the curl HTTP client (Linux, and
+  # macOS without Apple HTTP). The tests don't use curl directly, and on the
+  # Android legacy path mat uses HttpClient_Android (no system curl in the NDK).
+  # MATSDK_NEEDS_CURL already excludes iOS/Apple-HTTP. Prefer the CURL::libcurl
+  # imported target (correct under vcpkg, matches ZLIB::ZLIB above) and fall back
+  # to the find-module variables on CMake < 3.12, which does not define it.
+  if(MATSDK_NEEDS_CURL)
+    if(TARGET CURL::libcurl)
+      target_link_libraries(UnitTests CURL::libcurl)
+    else()
+      target_link_libraries(UnitTests ${CURL_LIBRARIES})
+    endif()
   endif()
 
 endif()
