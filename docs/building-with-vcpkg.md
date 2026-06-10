@@ -1,6 +1,6 @@
 # Building 1DS C++ SDK with vcpkg
 
-[vcpkg](https://vcpkg.io/) is a Microsoft cross-platform open source C++ package manager. Onboarding instructions for Windows, Linux and Mac OS X [available here](https://docs.microsoft.com/en-us/cpp/build/vcpkg). This document assumes that the customer build system is already configured to use vcpkg ([getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/overview)). 1DS C++ SDK maintainers provide a build recipe, `mstelemetry` port or CONTROL file for vcpkg. The mainline vcpkg repo is refreshed to point to latest stable open source release of 1DS C++ SDK.
+[vcpkg](https://vcpkg.io/) is a Microsoft cross-platform open source C++ package manager. Onboarding instructions for Windows, Linux and Mac OS X [available here](https://docs.microsoft.com/en-us/cpp/build/vcpkg). This document assumes that the customer build system is already configured to use vcpkg ([getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/overview)). 1DS C++ SDK maintainers provide a build recipe, `cpp-client-telemetry` port or CONTROL file for vcpkg. The mainline vcpkg repo is refreshed to point to latest stable open source release of 1DS C++ SDK.
 
 The port provides the core SDK — the `MSTelemetry::mat` target and its public
 C++ headers. The optional Microsoft-proprietary modules (Privacy Guard,
@@ -19,7 +19,7 @@ git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 Once a new port has been accepted into the official vcpkg registry, install with:
 
 ```console
-vcpkg install mstelemetry
+vcpkg install cpp-client-telemetry
 ```
 
 That's it! The package should be compiled for the current OS.
@@ -32,7 +32,7 @@ shipped in this repository:
 ```console
 git clone https://github.com/microsoft/cpp_client_telemetry
 cd cpp_client_telemetry
-vcpkg install --overlay-ports=tools/ports mstelemetry
+vcpkg install --overlay-ports=tools/ports cpp-client-telemetry
 ```
 
 ### Using in your CMake project
@@ -44,12 +44,12 @@ find_package(MSTelemetry CONFIG REQUIRED)
 target_link_libraries(your_target PRIVATE MSTelemetry::mat)
 ```
 
-If you use vcpkg manifest mode (recommended), add `mstelemetry` to your
+If you use vcpkg manifest mode (recommended), add `cpp-client-telemetry` to your
 project's `vcpkg.json`:
 
 ```json
 {
-  "dependencies": ["mstelemetry"]
+  "dependencies": ["cpp-client-telemetry"]
 }
 ```
 
@@ -58,29 +58,29 @@ project's `vcpkg.json`:
 ### Windows
 
 ```powershell
-vcpkg install mstelemetry --triplet=x64-windows-static
+vcpkg install cpp-client-telemetry --triplet=x64-windows-static
 ```
 
 ### Linux
 
 ```bash
-vcpkg install mstelemetry --triplet=x64-linux
+vcpkg install cpp-client-telemetry --triplet=x64-linux
 ```
 
 ### macOS
 
 ```bash
 # Apple Silicon
-vcpkg install mstelemetry --triplet=arm64-osx
+vcpkg install cpp-client-telemetry --triplet=arm64-osx
 
 # Intel
-vcpkg install mstelemetry --triplet=x64-osx
+vcpkg install cpp-client-telemetry --triplet=x64-osx
 ```
 
 ### iOS (cross-compile)
 
 ```bash
-vcpkg install mstelemetry --triplet=arm64-ios
+vcpkg install cpp-client-telemetry --triplet=arm64-ios
 ```
 
 ### iOS Simulator
@@ -88,7 +88,7 @@ vcpkg install mstelemetry --triplet=arm64-ios
 vcpkg ships a built-in community triplet for the iOS Simulator:
 
 ```bash
-vcpkg install mstelemetry --triplet=arm64-ios-simulator
+vcpkg install cpp-client-telemetry --triplet=arm64-ios-simulator
 ```
 
 See the [vcpkg triplet documentation](https://learn.microsoft.com/en-us/vcpkg/users/triplets)
@@ -100,7 +100,7 @@ Requires the Android NDK (`ANDROID_NDK_HOME` must be set). vcpkg's built-in
 Android triplets default to Android API 28:
 
 ```bash
-vcpkg install mstelemetry --triplet=arm64-android
+vcpkg install cpp-client-telemetry --triplet=arm64-android
 ```
 
 This repo's Android build declares `minSdk 23`. To build the SDK and all
@@ -121,7 +121,7 @@ set(VCPKG_CMAKE_CONFIGURE_OPTIONS -DANDROID_ABI=arm64-v8a)
 Then install, pointing `--overlay-triplets` at that directory:
 
 ```bash
-vcpkg install mstelemetry \
+vcpkg install cpp-client-telemetry \
   --triplet=arm64-android-api23 \
   --overlay-triplets=<your-triplets-dir>
 ```
@@ -177,13 +177,13 @@ set(ZLIB_COMPAT ON)
 Then install `zlib-ng` instead of `zlib`:
 
 ```console
-vcpkg install zlib-ng mstelemetry --triplet=x64-windows-static
+vcpkg install zlib-ng cpp-client-telemetry --triplet=x64-windows-static
 ```
 
 With `ZLIB_COMPAT=ON`, zlib-ng installs as a drop-in replacement — it provides
 the same `zlib.h` header, the same function names (`deflate`, `inflate`,
 `crc32`), and the same `ZLIB::ZLIB` CMake target. All packages that depend on
-`zlib` (including `mstelemetry` and any other libraries like `onnxruntime`)
+`zlib` (including `cpp-client-telemetry` and any other libraries like `onnxruntime`)
 will automatically use the optimized zlib-ng build.
 
 > **Important:** All libraries in the same binary should link against the same
@@ -217,7 +217,7 @@ you relied on the old flow for the proprietary modules, build from a
 ## Troubleshooting
 
 vcpkg build log files are created under your vcpkg root in
-`buildtrees/mstelemetry/` (or wherever `--x-buildtrees-root` points). Review
+`buildtrees/cpp-client-telemetry/` (or wherever `--x-buildtrees-root` points). Review
 these logs if you encounter package installation failures:
 
 | File | Contents |
