@@ -20,10 +20,15 @@ REM
 
 REM 1st parameter - Visual Studio version
 
-REM Start from a clean detection state so a stale VSTOOLS_NOTFOUND left in the
-REM shell by a previous failed run can't be mistaken for a failure of this run;
-REM only the not-found path below sets it again.
+REM Start from a clean detection state so values left in the shell by a previous
+REM run (or the caller environment) can't be mistaken for the result of this run.
+REM Only the matching detection path below sets these again; in particular this
+REM prevents a stale VSINSTALLDIR/VSVERSION from making callers such as
+REM tools\setup-buildtools.cmd act on the wrong install after a failed detection.
 set "VSTOOLS_NOTFOUND="
+set "VSINSTALLDIR="
+set "VSDEVCMD="
+set "VSVERSION="
 
 REM Remember an explicit version request so we can warn later if detection falls
 REM back to a different Visual Studio install than the one that was asked for.
