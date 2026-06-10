@@ -155,3 +155,29 @@ TEST(KillSwitchManagerTests, handleResponse_OpaqueKillTokenWithUnusualChars_IsBl
     ASSERT_TRUE(manager.handleResponse(headers));
     ASSERT_TRUE(manager.isTokenBlocked(token));
 }
+
+TEST(KillSwitchManagerTests, handleResponse_HugeKillDuration_IsClampedNotWrapped)
+{
+    // A huge (still in-range) kill-duration flows through the same parser as
+    // Retry-After but is applied per-token via addToken(); it must be clamped so
+    // the token's expiry does not overflow and wrap into the past -- the token
+    // must stay blocked.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("kill-tokens", "tenant-token-1");
+    headers.add("kill-duration", "9000000000000000000"); // ~9e18, near INT64_MAX
+    ASSERT_TRUE(manager.handleResponse(headers));
+    ASSERT_TRUE(manager.isTokenBlocked("tenant-token-1")); // clamped expiry, not wrapped
+}
+
+TEST(KillSwitchManagerTests, handleResponse_OutOfRangeKillDuration_DoesNotThrowAndDoesNotBlock)
+{
+    // An out-of-range kill-duration cannot be parsed; it must be ignored (no
+    // token blocked) rather than throwing out of the worker thread.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("kill-tokens", "tenant-token-1");
+    headers.add("kill-duration", "999999999999999999999999999999");
+    ASSERT_NO_THROW(manager.handleResponse(headers));
+    ASSERT_FALSE(manager.isTokenBlocked("tenant-token-1"));
+}

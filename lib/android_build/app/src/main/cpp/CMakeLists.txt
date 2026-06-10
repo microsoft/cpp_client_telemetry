@@ -55,6 +55,7 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/HttpDeflateCompressionTests.cpp
         ${SDK_ROOT}/tests/unittests/HttpRequestEncoderTests.cpp
         ${SDK_ROOT}/tests/unittests/HttpResponseDecoderTests.cpp
+        ${SDK_ROOT}/tests/unittests/KillSwitchManagerTests.cpp
         ${SDK_ROOT}/tests/unittests/LoggerTests.cpp
         ${SDK_ROOT}/tests/unittests/LogManagerImplTests.cpp
         ${SDK_ROOT}/tests/unittests/LogSessionDataTests.cpp

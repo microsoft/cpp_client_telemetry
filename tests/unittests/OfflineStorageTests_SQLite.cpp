@@ -200,6 +200,38 @@ TEST_F(OfflineStorageTests_SQLite, DeleteRecordsRejectsTenantTokenSqlInjection)
     ASSERT_THAT(consumer.records.size(), 2);
 }
 
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsEmptyFilterDeletesNothing)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // An empty filter has no predicate; it must fail closed (delete nothing)
+    // rather than erase the entire table.
+    offlineStorage->DeleteRecords({});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsInvalidNumericFilterDeletesNothing)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // A non-numeric value for an integer column (here an injection attempt) must
+    // be rejected as an invalid filter, not coerced to 0 and used to match rows.
+    // Both stored records have retry_count = 0, so a coerced "0" would wrongly
+    // delete them; fail-closed behavior leaves both intact.
+    offlineStorage->DeleteRecords({{"retry_count", "0 OR 1=1"}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
 TEST_F(OfflineStorageTests_SQLite, DeleteRecordsByTenantTokenDeletesOnlyMatching)
 {
     initializeStorage();
