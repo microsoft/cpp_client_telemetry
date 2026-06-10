@@ -179,7 +179,6 @@ namespace MAT_NS_BEGIN
         source->data[0].properties.erase(COMMONFIELDS_APP_VERSION);
         source->data[0].properties.erase(COMMONFIELDS_EVENT_NAME);
         source->data[0].properties.erase(COMMONFIELDS_EVENT_INITID);
-        source->data[0].properties.erase(COMMONFIELDS_EVENT_PRIVTAGS);
         source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGPRODUCERID);
         source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGCATEGORY);
         source->data[0].properties.erase(COMMONFIELDS_METADATA_VIEWINGPAYLOADDECODERPATH);
