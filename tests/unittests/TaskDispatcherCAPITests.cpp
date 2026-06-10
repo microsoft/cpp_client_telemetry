@@ -258,7 +258,7 @@ namespace
 // When the dispatcher drops the task (for example during shutdown), scheduleTask
 // must return a no-op handle rather than one pointing at the freed task, so the
 // caller never holds a dangling pointer and Cancel() is a safe no-op.
-TEST(TaskDispatcherTests, ScheduleTaskReturnsNoOpHandleWhenTaskDropped)
+TEST(TaskDispatcherCAPITests, ScheduleTaskReturnsNoOpHandleWhenTaskDropped)
 {
     DroppingTaskDispatcher dispatcher;
     NoopCallbackTarget target;

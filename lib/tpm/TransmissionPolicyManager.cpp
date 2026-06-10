@@ -163,7 +163,7 @@ namespace MAT_NS_BEGIN {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
                 // the completion of upload will schedule more uploads as-needed, we only
                 // want to avoid the unnecessary wasteful rescheduling.
-                LOG_TRACE("WAIT  upload %llu ms for lat=%d", delta, m_runningLatency);
+                LOG_TRACE("WAIT  upload %llu ms for lat=%d", static_cast<unsigned long long>(delta), m_runningLatency);
                 return;
             }
         }
