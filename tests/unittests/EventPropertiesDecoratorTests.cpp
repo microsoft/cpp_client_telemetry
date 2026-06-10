@@ -565,3 +565,21 @@ TEST(EventPropertiesDecoratorTests, Decorate_PrivTags_RoutedToExtMetadata)
     EXPECT_THAT(record.data[0].properties.find(COMMONFIELDS_EVENT_PRIVTAGS),
                 Eq(record.data[0].properties.end()));
 }
+
+TEST(EventPropertiesDecoratorTests, Decorate_PrivTags_NonInt64_FallsThroughToPartC)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    // A non-int64 PrivTags value must not be routed via the inactive union member;
+    // it falls through to normal Part C property handling instead.
+    props.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, std::string{"not-an-int"});
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    EXPECT_THAT(record.extMetadata, SizeIs(0));
+    EXPECT_THAT(record.data[0].properties.find(COMMONFIELDS_EVENT_PRIVTAGS),
+                Ne(record.data[0].properties.end()));
+}

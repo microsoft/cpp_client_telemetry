@@ -148,9 +148,10 @@ namespace MAT_NS_BEGIN
         ans["iKey"] = iKey;
         if (!source->cV.empty())
             ans[CorrelationVector::PropertyName] = source->cV;
-        if (source->data[0].properties.find(COMMONFIELDS_EVENT_PRIVTAGS) != source->data[0].properties.end()) {
-            ans["ext"]["metadata"]["privTags"] = source->data[0].properties[COMMONFIELDS_EVENT_PRIVTAGS].longValue;
-            source->data[0].properties.erase(COMMONFIELDS_EVENT_PRIVTAGS);
+        // privTags is carried in record.extMetadata (populated by EventPropertiesDecorator);
+        // read it from there so the JSON path matches the bond serialization path.
+        if (!source->extMetadata.empty() && source->extMetadata[0].privTags != 0) {
+            ans["ext"]["metadata"]["privTags"] = source->extMetadata[0].privTags;
         }
         addExtApp(ans, source->extApp);
         addExtNet(ans, source->extNet);

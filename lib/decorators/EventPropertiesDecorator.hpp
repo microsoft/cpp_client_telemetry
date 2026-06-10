@@ -176,9 +176,10 @@ namespace MAT_NS_BEGIN {
 
                 // Route the privacy tag (EventInfo.PrivTags) into ext.metadata.privTags so the
                 // cross-platform serialization path carries it the same way the UTC and JSON
-                // paths already do, rather than emitting it as a Part C property.
+                // paths already do, rather than emitting it as a Part C property. Only route a
+                // well-typed int64 value; anything else falls through to normal property handling.
                 // TODO(privacy-parity): confirm the canonical Common Schema ext.metadata wire contract.
-                if (k == COMMONFIELDS_EVENT_PRIVTAGS)
+                if (k == COMMONFIELDS_EVENT_PRIVTAGS && v.type == EventProperty::TYPE_INT64)
                 {
                     if (record.extMetadata.empty())
                     {
