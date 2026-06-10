@@ -2,6 +2,7 @@
   "version": "1.0",
   "components": [
     "Microsoft.VisualStudio.Component.Windows10SDK",
+    "Microsoft.VisualStudio.Component.Windows11SDK.22621",
     "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
     "Microsoft.VisualStudio.Component.VC.Tools.ARM",
     "Microsoft.VisualStudio.Component.VC.Tools.ARM64",
