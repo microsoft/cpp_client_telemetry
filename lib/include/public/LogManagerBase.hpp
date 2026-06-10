@@ -137,12 +137,12 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// LogManager copy constructor
         /// </summary>
-        LogManagerBase(const LogManagerBase&){}
+        LogManagerBase(const LogManagerBase&) = delete;
 
         /// <summary>
         /// [not implemented] LogManager assignment operator
         /// </summary>
-        LogManagerBase& operator=(const LogManagerBase&){}
+        LogManagerBase& operator=(const LogManagerBase&) = delete;
 
         /// <summary>
         /// LogManager destructor
