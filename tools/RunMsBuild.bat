@@ -14,7 +14,7 @@ echo %CUSTOM_PROPS%
 :endCustomProps
 
 call tools\vcvars.cmd
-if defined VSTOOLS_NOTFOUND (
+if "%VSTOOLS_NOTFOUND%"=="1" (
   echo.
   echo ERROR: Visual Studio was not detected, so the build cannot continue.
   echo        Install Visual Studio 2019, 2022, or 2026 with the Desktop development with C++ workload,

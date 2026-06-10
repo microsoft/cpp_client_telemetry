@@ -20,6 +20,11 @@ REM
 
 REM 1st parameter - Visual Studio version
 
+REM Start from a clean detection state so a stale VSTOOLS_NOTFOUND left in the
+REM shell by a previous failed run can't be mistaken for a failure of this run;
+REM only the not-found path below sets it again.
+set "VSTOOLS_NOTFOUND="
+
 REM Remember an explicit version request so we can warn later if detection falls
 REM back to a different Visual Studio install than the one that was asked for.
 set "VSTOOLS_REQUESTED="
