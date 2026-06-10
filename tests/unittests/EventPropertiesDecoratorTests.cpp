@@ -558,12 +558,12 @@ TEST(EventPropertiesDecoratorTests, Decorate_PrivTags_RoutedToExtMetadata)
 
     EXPECT_TRUE(decorator.decorate(record, latency, props));
 
-    // EventInfo.PrivTags is routed into ext.metadata.privTags ...
+    // EventInfo.PrivTags is mirrored into ext.metadata.privTags ...
     ASSERT_THAT(record.extMetadata, SizeIs(1));
     EXPECT_THAT(record.extMetadata[0].privTags, Eq(static_cast<uint64_t>(privTags)));
-    // ... and is not emitted as a Part C property.
+    // ... and is also retained as a Part C property (the JSON path reads it from there).
     EXPECT_THAT(record.data[0].properties.find(COMMONFIELDS_EVENT_PRIVTAGS),
-                Eq(record.data[0].properties.end()));
+                Ne(record.data[0].properties.end()));
 }
 
 TEST(EventPropertiesDecoratorTests, Decorate_PrivTags_NonInt64_FallsThroughToPartC)
