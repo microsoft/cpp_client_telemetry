@@ -545,3 +545,23 @@ TEST(EventPropertiesDecoratorTests, DropPiiPartA_StripsValues)
     EXPECT_THAT(record->extSdk[0].installId, Eq(""));
     EXPECT_THAT(record->cV, Eq(""));
 }
+
+TEST(EventPropertiesDecoratorTests, Decorate_PrivTags_RoutedToExtMetadata)
+{
+    NullLogManager logManager;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props{"TestEvent"};
+    const int64_t privTags = 0x0000000800000002;
+    props.SetProperty(COMMONFIELDS_EVENT_PRIVTAGS, privTags);
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+
+    // EventInfo.PrivTags is routed into ext.metadata.privTags ...
+    ASSERT_THAT(record.extMetadata, SizeIs(1));
+    EXPECT_THAT(record.extMetadata[0].privTags, Eq(static_cast<uint64_t>(privTags)));
+    // ... and is not emitted as a Part C property.
+    EXPECT_THAT(record.data[0].properties.find(COMMONFIELDS_EVENT_PRIVTAGS),
+                Eq(record.data[0].properties.end()));
+}

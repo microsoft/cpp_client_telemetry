@@ -7,6 +7,7 @@
 
 #include "IDecorator.hpp"
 #include "EventProperties.hpp"
+#include "CommonFields.h"
 #include "CorrelationVector.hpp"
 #include "utils/Utils.hpp"
 
@@ -172,6 +173,21 @@ namespace MAT_NS_BEGIN {
                 }
                 const auto &k = kv.first;
                 const auto &v = kv.second;
+
+                // Route the privacy tag (EventInfo.PrivTags) into ext.metadata.privTags so the
+                // cross-platform serialization path carries it the same way the UTC and JSON
+                // paths already do, rather than emitting it as a Part C property.
+                // TODO(privacy-parity): confirm the canonical Common Schema ext.metadata wire contract.
+                if (k == COMMONFIELDS_EVENT_PRIVTAGS)
+                {
+                    if (record.extMetadata.empty())
+                    {
+                        record.extMetadata.push_back(::CsProtocol::MetaData());
+                    }
+                    record.extMetadata[0].privTags = static_cast<uint64_t>(v.as_int64);
+                    continue;
+                }
+
                 if (v.piiKind != PiiKind_None)
                 {
                     if (v.piiKind == PiiKind::CustomerContentKind_GenericData)

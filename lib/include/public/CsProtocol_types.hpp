@@ -330,6 +330,22 @@ struct M365a {
     }
 };
 
+struct MetaData {
+    // 1: optional uint64 privTags
+    // TODO(privacy-parity): best-effort layout; confirm canonical Common Schema ext.metadata.
+    uint64_t privTags = 0;
+
+    bool operator==(MetaData const& other) const
+    {
+        return (privTags == other.privTags);
+    }
+
+    bool operator!=(MetaData const& other) const
+    {
+        return !(*this == other);
+    }
+};
+
 struct Xbl {
     // 5: optional map<string, string> claims
     std::map<std::string, std::string> claims;
@@ -1012,6 +1028,8 @@ struct Record {
 #endif
     // 37: optional vector<M365a> extM365a
     std::vector< ::CsProtocol::M365a> extM365a;
+    // 38: optional vector<MetaData> extMetadata
+    std::vector< ::CsProtocol::MetaData> extMetadata;
     // 41: optional vector<Data> ext
     std::vector< ::CsProtocol::Data> ext;
 #ifdef HAVE_CS4_FULL
@@ -1065,6 +1083,7 @@ struct Record {
             && (extCs == other.extCs)
 #endif
             && (extM365a == other.extM365a)
+            && (extMetadata == other.extMetadata)
             && (ext == other.ext)
 #ifdef HAVE_CS4_FULL
             && (extMscv == other.extMscv)

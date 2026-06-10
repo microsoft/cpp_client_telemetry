@@ -101,6 +101,13 @@ struct M365a
     2: optional uint64 msp;
 }
 
+struct MetaData
+{
+    // TODO(privacy-parity): best-effort field layout. Confirm the canonical Common
+    // Schema ext.metadata field ordinals/types before relying on the wire contract.
+    1: optional uint64 privTags;
+}
+
 struct Xbl
 {
     5: optional map<string, string> claims;
@@ -354,6 +361,8 @@ struct Record
     35: optional vector<Service> extService;
     36: optional vector<Cs> extCs;
     37: optional vector<M365a> extM365a;
+    // TODO(privacy-parity): 38 is a best-effort ordinal for ext.metadata; confirm against canonical CS.
+    38: optional vector<MetaData> extMetadata;
     41: optional vector<Data> ext;
     42: optional vector<Mscv> extMscv;
     43: optional vector<IntWeb> extIntWeb;

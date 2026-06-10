@@ -542,6 +542,22 @@ void Serialize(TWriter& writer, ::CsProtocol::M365a const& value, bool isBase)
 }
 
 template<typename TWriter>
+void Serialize(TWriter& writer, ::CsProtocol::MetaData const& value, bool isBase)
+{
+    writer.WriteStructBegin(nullptr, isBase);
+
+    if (value.privTags != 0) {
+        writer.WriteFieldBegin(BT_UINT64, 1, nullptr);
+        writer.WriteUInt64(value.privTags);
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_UINT64, 1, nullptr);
+    }
+
+    writer.WriteStructEnd(isBase);
+}
+
+template<typename TWriter>
 void Serialize(TWriter& writer, ::CsProtocol::Xbl const& value, bool isBase)
 {
     writer.WriteStructBegin(nullptr, isBase);
@@ -1896,6 +1912,18 @@ void Serialize(TWriter& writer, ::CsProtocol::Record const& value, bool isBase)
         writer.WriteFieldEnd();
     } else {
         writer.WriteFieldOmitted(BT_LIST, 37, nullptr);
+    }
+
+    if (!value.extMetadata.empty()) {
+        writer.WriteFieldBegin(BT_LIST, 38, nullptr);
+        writer.WriteContainerBegin(value.extMetadata.size(), BT_STRUCT);
+        for (auto const& item2 : value.extMetadata) {
+            Serialize(writer, item2, false);
+        }
+        writer.WriteContainerEnd();
+        writer.WriteFieldEnd();
+    } else {
+        writer.WriteFieldOmitted(BT_LIST, 38, nullptr);
     }
 
     if (!value.ext.empty()) {
