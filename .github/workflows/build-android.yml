@@ -58,7 +58,7 @@ jobs:
         java -version
         gci env:* | sort-object name
         new-item "$Env:USERPROFILE\.android\repositories.cfg" -ItemType "file"
-        echo yes | sdkmanager "ndk-bundle" "cmake;3.10.2.4988404" "ndk;27.0.12077973" --sdk_root=$Env:ANDROID_SDK_ROOT
+        echo yes | sdkmanager "ndk-bundle" "cmake;3.22.1" "ndk;27.0.12077973" --sdk_root=$Env:ANDROID_SDK_ROOT
     - name: Chocolatey
       run: |
         choco install --no-progress -y ninja
