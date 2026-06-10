@@ -29,7 +29,7 @@ If your project requires the Universal Telemetry Client (a.k.a. UTC) to send tel
 
 The version-specific scripts set `VSTOOLS_VERSION` and `PlatformToolset` before calling `build-all-windows.bat`, which builds the Windows Visual Studio solution matrix. `build-all.bat` remains as a compatibility wrapper for existing automation; if you call either script directly, set both values yourself so `tools\vcvars.cmd` selects the same Visual Studio installation as your requested toolset.
 
-Visual Studio 2022 and newer may report the legacy .NET Framework 4.0 projects (`net40`, `win32-cs`, and `SampleCsNet40`) as unsupported. They are only needed for the legacy .NET Framework wrapper; the VS2022 and VS2026 command-line wrappers skip those projects, and you can unload them in the IDE when building the native SDK.
+Visual Studio 2022 and newer may report the legacy .NET Framework 4.0 projects (`net40` and `SampleCsNet40`) as unsupported. They are only needed for the legacy .NET Framework wrapper; the VS2022 and VS2026 command-line wrappers skip those projects, and you can unload them in the IDE when building the native SDK.
 
 If your build fails, then you most likely missing the following optional Visual Studio components:
 
