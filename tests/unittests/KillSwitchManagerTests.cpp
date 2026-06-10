@@ -181,3 +181,17 @@ TEST(KillSwitchManagerTests, handleResponse_OutOfRangeKillDuration_DoesNotThrowA
     ASSERT_NO_THROW(manager.handleResponse(headers));
     ASSERT_FALSE(manager.isTokenBlocked("tenant-token-1"));
 }
+
+TEST(KillSwitchManagerTests, handleResponse_KillTokenWithAllSuffix_BlocksBaseToken)
+{
+    // The collector may send "<tenant>:all" to mean all events of that tenant are
+    // killed. The ":all" suffix (everything from the first ':') is stripped and
+    // the base tenant token is what gets blocked.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("kill-tokens", "tenant-token-1:all");
+    headers.add("kill-duration", "300");
+    ASSERT_TRUE(manager.handleResponse(headers));
+    ASSERT_TRUE(manager.isTokenBlocked("tenant-token-1"));       // suffix stripped
+    ASSERT_FALSE(manager.isTokenBlocked("tenant-token-1:all"));  // unstripped form is not blocked
+}

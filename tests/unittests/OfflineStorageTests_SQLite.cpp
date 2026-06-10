@@ -232,6 +232,40 @@ TEST_F(OfflineStorageTests_SQLite, DeleteRecordsInvalidNumericFilterDeletesNothi
     ASSERT_THAT(consumer.records.size(), 2);
 }
 
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsByNumericColumnDeletesOnlyMatching)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_RealTime, EventPersistence_Normal, 1, {}}), true);
+
+    // A well-typed numeric filter is bound as int64 and must delete only matching
+    // rows -- this exercises the positive integer-bind path (not just rejection).
+    offlineStorage->DeleteRecords({{"latency", std::to_string(static_cast<int>(EventLatency_Normal))}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 1);
+    EXPECT_THAT(consumer.records[0].id, StrEq("guid2"));
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsMultiColumnFilterDeletesOnlyRowsMatchingAll)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenA", EventLatency_RealTime, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid3", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // Multiple whitelisted columns are combined with AND. Only the row matching
+    // BOTH tenant_token=tokenA AND latency=Normal (guid1) must be deleted; guid2
+    // (tokenA but RealTime) and guid3 (Normal but tokenB) must survive.
+    offlineStorage->DeleteRecords({{"tenant_token", "tokenA"},
+                                   {"latency", std::to_string(static_cast<int>(EventLatency_Normal))}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
 TEST_F(OfflineStorageTests_SQLite, DeleteRecordsByTenantTokenDeletesOnlyMatching)
 {
     initializeStorage();
