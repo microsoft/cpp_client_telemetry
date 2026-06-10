@@ -1,14 +1,15 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.5...3.29)
 project(MSTelemetry LANGUAGES C CXX)
 
-# Set installation prefix for macOS and Linux
-if(UNIX AND NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation directory prefix" FORCE)
+################################################################################################
+# Vcpkg dependency mode: detect early so it can guard platform-specific flag logic
+################################################################################################
+if(DEFINED VCPKG_TOOLCHAIN OR DEFINED VCPKG_TARGET_TRIPLET)
+  option(MATSDK_USE_VCPKG_DEPS "Use vcpkg-provided dependencies via find_package()" ON)
+else()
+  option(MATSDK_USE_VCPKG_DEPS "Use vcpkg-provided dependencies via find_package()" OFF)
 endif()
-
-set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
-set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
-set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
+message(STATUS "MATSDK_USE_VCPKG_DEPS: ${MATSDK_USE_VCPKG_DEPS}")
 
 # Begin Uncomment for i386 build
 #set(CMAKE_SYSTEM_PROCESSOR i386)
@@ -24,6 +25,14 @@ if (NOT TARGET_ARCH)
 endif()
 
 # Enable ARC for obj-c on Apple
+# Initialize platform options before conditional blocks (needed for config templates)
+if(NOT DEFINED BUILD_IOS)
+  set(BUILD_IOS OFF)
+endif()
+if(NOT APPLE AND NOT DEFINED BUILD_APPLE_HTTP)
+  set(BUILD_APPLE_HTTP OFF)
+endif()
+
 if(APPLE)
   message(STATUS "BUILD_IOS:              ${BUILD_IOS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
@@ -35,75 +44,86 @@ if(APPLE)
     set(FORCE_RESET_OSX_DEPLOYMENT_TARGET ${FORCE_RESET_DEPLOYMENT_TARGET})
   endif()
 
-  if(BUILD_IOS)
-    set(TARGET_ARCH "APPLE")
-    set(IOS True)
-    set(APPLE True)
+  # When building via vcpkg, the toolchain file handles architecture, sysroot,
+  # deployment target, and platform flags. Skip manual flag configuration.
+  if(NOT MATSDK_USE_VCPKG_DEPS)
+    if(BUILD_IOS)
+      set(TARGET_ARCH "APPLE")
+      set(IOS True)
+      set(APPLE True)
 
-    if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
-      set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-      if (${IOS_PLAT} STREQUAL "iphonesimulator")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
-      else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+      if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
+        if (${IOS_PLAT} STREQUAL "iphonesimulator")
+          set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
+        else()
+          set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
+        endif()
       endif()
-    endif()
 
-    if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator") OR (${IOS_PLAT} STREQUAL "xros") OR (${IOS_PLAT} STREQUAL "xrsimulator"))
-      set(IOS_PLATFORM "${IOS_PLAT}")
+      if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator") OR (${IOS_PLAT} STREQUAL "xros") OR (${IOS_PLAT} STREQUAL "xrsimulator"))
+        set(IOS_PLATFORM "${IOS_PLAT}")
+      else()
+        message(FATAL_ERROR "Unrecognized iOS platform '${IOS_PLAT}'")
+      endif()
+
+      if(${IOS_ARCH} STREQUAL "x86_64")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
+        set(CMAKE_SYSTEM_PROCESSOR x86_64)
+      elseif(${IOS_ARCH} STREQUAL "arm64")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+        set(CMAKE_SYSTEM_PROCESSOR arm64)
+      elseif(${IOS_ARCH} STREQUAL "arm64e")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
+        set(CMAKE_SYSTEM_PROCESSOR arm64e)
+      else()
+        message(FATAL_ERROR "Unrecognized iOS architecture '${IOS_ARCH}'")
+      endif()
+
+      execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} ONLY_ACTIVE_ARCH=NO Path
+        OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+      message(STATUS "CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
+      message(STATUS "ARCHITECTURE:           ${CMAKE_SYSTEM_PROCESSOR}")
+      message(STATUS "PLATFORM:               ${IOS_PLATFORM}")
     else()
-      message(FATAL_ERROR "Unrecognized iOS platform '${IOS_PLAT}'")
+      if("${MAC_ARCH}" STREQUAL "x86_64")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
+        set(CMAKE_SYSTEM_PROCESSOR x86_64)
+        set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+        set(CMAKE_OSX_ARCHITECTURES ${MAC_ARCH})
+        set(APPLE True)
+      elseif("${MAC_ARCH}" STREQUAL "arm64")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+        set(CMAKE_SYSTEM_PROCESSOR arm64)
+        set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+        set(CMAKE_OSX_ARCHITECTURES ${MAC_ARCH})
+        set(APPLE True)
+      else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
+      endif()
+      message(STATUS "MAC_ARCH:               ${MAC_ARCH}")
     endif()
-
-    if(${IOS_ARCH} STREQUAL "x86_64")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
-      set(CMAKE_SYSTEM_PROCESSOR x86_64)
-    elseif(${IOS_ARCH} STREQUAL "arm64")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
-      set(CMAKE_SYSTEM_PROCESSOR arm64)
-    elseif(${IOS_ARCH} STREQUAL "arm64e")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
-      set(CMAKE_SYSTEM_PROCESSOR arm64e)
-    else()
-      message(FATAL_ERROR "Unrecognized iOS architecture '${IOS_ARCH}'")
-    endif()
-
-    execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} ONLY_ACTIVE_ARCH=NO Path
-      OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    message(STATUS "CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
-    message(STATUS "ARCHITECTURE:           ${CMAKE_SYSTEM_PROCESSOR}")
-    message(STATUS "PLATFORM:               ${IOS_PLATFORM}")
   else()
-    if(${MAC_ARCH} STREQUAL "x86_64")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
-      set(CMAKE_SYSTEM_PROCESSOR x86_64)
-      set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
-      set(CMAKE_OSX_ARCHITECTURES ${MAC_ARCH})
-      set(APPLE True)
-    elseif(${MAC_ARCH} STREQUAL "arm64")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
-      set(CMAKE_SYSTEM_PROCESSOR arm64)
-      set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
-      set(CMAKE_OSX_ARCHITECTURES ${MAC_ARCH})
-      set(APPLE True)
-    else()
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
+    # vcpkg mode: just set internal flags from what the toolchain provides
+    if(BUILD_IOS OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
+      set(BUILD_IOS ON)
+      set(TARGET_ARCH "APPLE")
+      set(IOS True)
     endif()
-    message(STATUS "MAC_ARCH:               ${MAC_ARCH}")
+    message(STATUS "vcpkg toolchain managing architecture and platform flags")
   endif()
 endif()
 
-message(STATUS "CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
 message(STATUS "CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
 message(STATUS "CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "CMAKE_SYSTEM:           ${CMAKE_SYSTEM}")
@@ -113,6 +133,10 @@ message(STATUS "TARGET_ARCH:            ${TARGET_ARCH}")
 message(STATUS "CMAKE_CXX_COMPILER_ID:  ${CMAKE_CXX_COMPILER_ID}")
 
 include(tools/ParseOsRelease.cmake)
+
+# When building via vcpkg, let the toolchain manage compiler flags.
+# Only apply project-specific flags for non-vcpkg (legacy) builds.
+if(NOT MATSDK_USE_VCPKG_DEPS)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(WARN_FLAGS "/W4 /WX")
@@ -180,7 +204,11 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
 
+endif() # NOT MATSDK_USE_VCPKG_DEPS (compiler flags)
+
 include(tools/Utils.cmake)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 if (NOT DEFAULT_PAL_IMPLEMENTATION)
 if(MSVC)
@@ -212,7 +240,7 @@ if(USE_ONEDS_SECURE_MEM_FUNCTIONS)
   add_definitions(-DUSE_ONEDS_SECURE_MEM_FUNCTIONS)
 endif()
 
-if(PAL_IMPLEMENTATION STREQUAL "WIN32")
+if(PAL_IMPLEMENTATION STREQUAL "WIN32" AND NOT MATSDK_USE_VCPKG_DEPS)
   add_definitions(-DZLIB_WINAPI)
 endif()
 
@@ -244,26 +272,7 @@ endif()
 message(STATUS "SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 ################################################################################################
-# HTTP stack section
-################################################################################################
-
-# Only use custom curl if compiling with CPP11 PAL
-if (PAL_IMPLEMENTATION STREQUAL "CPP11")
-
-  if(NOT BUILD_IOS)
-    include(FindCURL)
-    find_package(CURL REQUIRED)
-    if (NOT CURL_FOUND)
-      message (FATAL_ERROR "libcurl not found! Have you installed deps?")
-    endif (NOT CURL_FOUND)
-    include_directories(CURL_INCLUDE_DIRS)
-    set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
-    list(APPEND LIBS "${CURL_LIBRARIES}")
-  endif()
-endif()
-
-################################################################################################
-# User options
+# User options (must be before HTTP stack section for BUILD_APPLE_HTTP)
 ################################################################################################
 option(BUILD_HEADERS      "Build API headers"       YES)
 option(BUILD_LIBRARY      "Build library"           YES)
@@ -288,15 +297,57 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
 endif()
 
+if(BUILD_APPLE_HTTP)
+  add_definitions(-DAPPLE_HTTP=1)
+endif()
+
+################################################################################################
+# HTTP stack section
+################################################################################################
+
+# Only use custom curl if compiling with CPP11 PAL
+set(MATSDK_NEEDS_CURL OFF)
+if(PAL_IMPLEMENTATION STREQUAL "CPP11"
+   AND NOT BUILD_IOS
+   AND (NOT CMAKE_SYSTEM_NAME STREQUAL "Android" OR MATSDK_USE_VCPKG_DEPS)
+   AND NOT BUILD_APPLE_HTTP)
+  set(MATSDK_NEEDS_CURL ON)
+  add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
+  find_package(CURL REQUIRED)
+  if(MATSDK_USE_VCPKG_DEPS)
+    list(APPEND LIBS CURL::libcurl)
+  else()
+    # Prefer the imported target, which carries curl's include dirs and link
+    # flags. Fall back to the find-module variables on CMake < 3.12, where
+    # find_package(CURL) does not define CURL::libcurl.
+    if(TARGET CURL::libcurl)
+      list(APPEND LIBS CURL::libcurl)
+    else()
+      include_directories(${CURL_INCLUDE_DIRS})
+      list(APPEND LIBS "${CURL_LIBRARIES}")
+    endif()
+  endif()
+endif()
+
+################################################################################################
+# Dependency resolution (vcpkg mode vs vendored)
+################################################################################################
+if(MATSDK_USE_VCPKG_DEPS)
+  find_package(unofficial-sqlite3 CONFIG REQUIRED)
+  find_package(ZLIB REQUIRED)
+  find_package(nlohmann_json CONFIG REQUIRED)
+  message(STATUS "Using vcpkg-provided sqlite3, zlib, nlohmann-json")
+else()
+  # Include repo root to allow includes of vendored sqlite, zlib, and nlohmann
+  include_directories(${CMAKE_SOURCE_DIR})
+  message(STATUS "Using vendored sqlite3, zlib, nlohmann-json")
+endif()
+
 if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
     message(STATUS "Adding gtest")
     add_library(gtest STATIC IMPORTED GLOBAL)
     message(STATUS "Adding gmock")
     add_library(gmock STATIC IMPORTED GLOBAL)
-endif()
-
-if(BUILD_APPLE_HTTP)
-  add_definitions(-DAPPLE_HTTP=1)
 endif()
 
 # Bond Lite subdirectories
@@ -309,10 +360,6 @@ include_directories(lib/pal)
 #  enable_testing()
 #  add_subdirectory(bondlite/tests)
 #endif()
-
-# Include repo root to allow includes of sqlite, zlib, and nlohmann
-include_directories(${CMAKE_SOURCE_DIR})
-
 if(BUILD_HEADERS)
   add_subdirectory(lib/include)
 endif()
@@ -334,13 +381,9 @@ endif()
 
 if (BUILD_PACKAGE)
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "deb")
-    # FIXME: hardcode it for 64-bit Linux for now
-    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CPACK_DEBIAN_ARCHITECTURE}-linux-gnu)
     include(tools/MakeDeb.cmake)
   endif()
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "rpm")
-    # TODO: [MG] - fix path
-    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
     include(tools/MakeRpm.cmake)
   endif()
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "tgz")
