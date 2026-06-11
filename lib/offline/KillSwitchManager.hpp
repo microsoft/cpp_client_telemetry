@@ -65,7 +65,7 @@ namespace MAT_NS_BEGIN {
                     if (pos != std::string::npos)
                     {
                         // Strip suffix and assume ':all' events of that tenant are killed
-                        token.erase(pos, token.length() - pos);
+                        token.erase(pos);
                     }
                     // Reject kill-tokens with control characters (defensive
                     // hygiene; see isValidTenantToken). Any other opaque value is
@@ -240,13 +240,15 @@ namespace MAT_NS_BEGIN {
         // offline-storage DELETE is parameterized (SQLite bind / Room DAO) and the
         // in-memory match is a plain string compare -- so any printable value must
         // remain killable; over-restricting would let that tenant escape the kill.
-        // We still reject control characters and over-long values as defensive
-        // hygiene: a legitimate token never contains them, an embedded NUL would be
-        // truncated by the Room JNI NewStringUTF(c_str()) call (acting on the wrong
+        // We still reject empty tokens and control characters as defensive hygiene:
+        // a legitimate token never contains control characters, an embedded NUL would
+        // be truncated by the Room JNI NewStringUTF(c_str()) call (acting on the wrong
         // token), and it keeps the value safe if it ever reaches a log/display sink.
+        // No maximum length is enforced: there is no authoritative max token size, and
+        // capping it could let an over-long-but-legitimate tenant escape the kill.
         static bool isValidTenantToken(const std::string& token)
         {
-            if (token.empty() || token.size() > 256)
+            if (token.empty())
             {
                 return false;
             }
