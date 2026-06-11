@@ -300,6 +300,13 @@ option(BUILD_AZMON        "Build for Azure Monitor" YES)
 # adds server/service extensions and implies HAVE_CS4.
 option(MATSDK_HAVE_CS4      "Build with Common Schema 4.0 (CS4) support" OFF)
 option(MATSDK_HAVE_CS4_FULL "Build with CS4 plus server/service extensions" OFF)
+# CS4_FULL requires CS4. Force the options consistent so the cache state and any
+# downstream checks of MATSDK_HAVE_CS4 are reliable (rather than relying on a
+# downstream OR).
+if(MATSDK_HAVE_CS4_FULL AND NOT MATSDK_HAVE_CS4)
+  message(STATUS "MATSDK_HAVE_CS4_FULL implies MATSDK_HAVE_CS4; enabling MATSDK_HAVE_CS4.")
+  set(MATSDK_HAVE_CS4 ON CACHE BOOL "Build with Common Schema 4.0 (CS4) support" FORCE)
+endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)

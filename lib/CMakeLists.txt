@@ -342,8 +342,9 @@ target_include_directories(mat
 # presence changes the public struct layout, so it must be defined consistently
 # across the SDK and its consumers. Expose it as a PUBLIC (propagating) compile
 # definition on the exported target rather than a raw build flag, so consumers
-# linking MSTelemetry::mat inherit it automatically. HAVE_CS4_FULL implies HAVE_CS4.
-if(MATSDK_HAVE_CS4 OR MATSDK_HAVE_CS4_FULL)
+# linking MSTelemetry::mat inherit it automatically. MATSDK_HAVE_CS4_FULL forces
+# MATSDK_HAVE_CS4 on in the root CMakeLists, so checking MATSDK_HAVE_CS4 suffices.
+if(MATSDK_HAVE_CS4)
   target_compile_definitions(mat PUBLIC HAVE_CS4)
 endif()
 if(MATSDK_HAVE_CS4_FULL)

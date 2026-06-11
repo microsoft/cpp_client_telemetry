@@ -30,8 +30,8 @@ Build recipe must contain the following preprocessor definitions:
 | HAVE_MAT_STORAGE | on | Enable SQLite persistent offline storage |
 | HAVE_MAT_NETDETECT | on | _Win32 Desktop only_: Use NLM COM object for network cost detection on Windows 8+ |
 | HAVE_MAT_SHORT_NS | off | Use short "MAT::" namespace instead of "Microsoft::Applications::Events::" to reduce the .DLL size |
-| HAVE_CS4 | off | Build with Common Schema 4.0 support (CS3 by default). Enable via the `-DMATSDK_HAVE_CS4=ON` CMake option, which defines `HAVE_CS4` as a PUBLIC compile definition on the exported `MSTelemetry::mat` target so consumers stay in sync (`HAVE_CS4` changes the public CsProtocol struct layout and must match across the SDK and its consumers). |
-| HAVE_CS4_FULL | off | Enable additional Common Schema 4.0 protocol features needed by server / services SDK. Enable via `-DMATSDK_HAVE_CS4_FULL=ON` (implies `HAVE_CS4`). |
+| HAVE_CS4 | off | Preprocessor define enabling Common Schema 4.0 (CS3 by default). Any build system can define it (e.g. via a custom config header or compiler flag); CMake builds should prefer `-DMATSDK_HAVE_CS4=ON`, which defines `HAVE_CS4` and propagates it to consumers via the exported `MSTelemetry::mat` target. It changes the public CsProtocol struct layout and must match across the SDK and its consumers. |
+| HAVE_CS4_FULL | off | Preprocessor define adding the Common Schema 4.0 server / services extensions (implies `HAVE_CS4`). CMake builds should use `-DMATSDK_HAVE_CS4_FULL=ON`. |
 | COMPACT_SDK | off | Built-in build recipe for smallest possible SDK. Turns most features off. Includes_mat/config-compact.h_ |
 
 ## Building custom SDK SKU: MSBuild example
