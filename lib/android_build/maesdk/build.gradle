@@ -27,6 +27,18 @@ android {
                     if (!cxxFlag.isEmpty()) {
                         args.add("-DCMAKE_CXX_FLAGS=\"" + cxxFlag + "\"")
                     }
+                    // Common Schema 4.0: -PHAVE_CS4=1 (or HAVE_CS4 env) maps to the
+                    // MATSDK_HAVE_CS4 CMake option (preferred over a raw CXX flag, and
+                    // propagated to consumers via the exported target). HAVE_CS4_FULL
+                    // adds the server/service extensions.
+                    String haveCs4 = project.findProperty("HAVE_CS4") ?: System.getenv("HAVE_CS4") ?: ""
+                    if (haveCs4.equalsIgnoreCase("1") || haveCs4.equalsIgnoreCase("true") || haveCs4.equalsIgnoreCase("on")) {
+                        args.add("-DMATSDK_HAVE_CS4=ON")
+                    }
+                    String haveCs4Full = project.findProperty("HAVE_CS4_FULL") ?: System.getenv("HAVE_CS4_FULL") ?: ""
+                    if (haveCs4Full.equalsIgnoreCase("1") || haveCs4Full.equalsIgnoreCase("true") || haveCs4Full.equalsIgnoreCase("on")) {
+                        args.add("-DMATSDK_HAVE_CS4_FULL=ON")
+                    }
                     // Passes optional arguments to CMake.
                     arguments args.toArray(new String[args.size()])
                     println "cmake flag: " + arguments
