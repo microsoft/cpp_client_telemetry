@@ -1,8 +1,8 @@
 {
-  "name": "mstelemetry-vcpkg-test",
+  "name": "cpp-client-telemetry-vcpkg-test",
   "version-string": "0.0.1",
-  "description": "Integration test for mstelemetry vcpkg port",
+  "description": "Integration test for cpp-client-telemetry vcpkg port",
   "dependencies": [
-    "mstelemetry"
+    "cpp-client-telemetry"
   ]
 }
