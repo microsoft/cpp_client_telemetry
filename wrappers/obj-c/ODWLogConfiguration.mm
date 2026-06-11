@@ -51,7 +51,7 @@ NSString *const ODWCFG_BOOL_ENABLE_WAL_JOURNAL = @"enableWALJournal";
 NSString *const ODWCFG_BOOL_ENABLE_NET_DETECT = @"enableNetworkDetector";
 
 /*!
- Scrub (obfuscate) the client IP address at the collector. Enabled by default; set to false to opt out.
+ Scrub (obfuscate) the client IP address at the collector. Applied unless explicitly set to false (on by default; not present in the default configuration).
 */
 NSString *const ODWCFG_BOOL_ENABLE_IP_SCRUBBING = @"enableIpScrubbing";
 

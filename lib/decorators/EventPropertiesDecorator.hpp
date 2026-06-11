@@ -6,6 +6,7 @@
 #define EVENTPROPERTIESDECORATOR_HPP
 
 #include "IDecorator.hpp"
+#include "ILogManager.hpp"
 #include "EventProperties.hpp"
 #include "CorrelationVector.hpp"
 #include "utils/Utils.hpp"

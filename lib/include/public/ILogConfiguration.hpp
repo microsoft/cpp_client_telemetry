@@ -106,10 +106,11 @@ namespace MAT_NS_BEGIN
 
     /// <summary>
     /// Request collector-side scrubbing (obfuscation) of the client IP address.
-    /// Enabled by default; set to false to opt out (e.g. when the client IP is
-    /// needed for geo-location enrichment). The scrub flag is honored by the
-    /// OneCollector direct-upload path; in UTC mode client privacy is governed
-    /// by the OS UTC pipeline instead.
+    /// Applied unless explicitly set to false (on by default; the key is not
+    /// present in the default configuration). Opt out when the client IP is
+    /// needed, e.g. for geo-location enrichment. Honored by the OneCollector
+    /// direct-upload path; in UTC mode client privacy is governed by the OS UTC
+    /// pipeline instead.
     /// </summary>
     static constexpr const char* const CFG_BOOL_ENABLE_IP_SCRUBBING = "enableIpScrubbing";
 
