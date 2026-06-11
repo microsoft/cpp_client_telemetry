@@ -53,24 +53,6 @@ project's `vcpkg.json`:
 }
 ```
 
-> **If `cpp-client-telemetry` is not in the official vcpkg registry yet:**
-> manifest mode only installs packages it can resolve from a registry, so
-> `vcpkg install` fails with an *unknown port* error until the port is
-> published. Until then, point vcpkg at the overlay port shipped in this repo by
-> adding a `vcpkg-configuration.json` next to your `vcpkg.json`:
->
-> ```json
-> {
->   "overlay-ports": ["/path/to/cpp_client_telemetry/tools/ports"]
-> }
-> ```
->
-> Use the path to your `cpp_client_telemetry` checkout (the directory that holds
-> the `cpp-client-telemetry/` port folder). Classic-mode users can pass the same
-> directory on the command line instead — see *Installing from the overlay port*
-> above. Remove the `overlay-ports` entry once the port is available in the
-> registry.
-
 ## Platform-Specific Instructions
 
 ### Windows

@@ -149,6 +149,11 @@ jobs:
           ./vcpkg x-add-version "${PORT}" --overwrite-version
           git add versions
           git commit -m "[${PORT}] Update version database"
+          # Ensure a remote-tracking ref exists so --force-with-lease has a lease
+          # to compare against on reruns: the bump branch may already exist on the
+          # fork but be absent from this fresh clone. Ignore failure on the first
+          # run, when the branch does not exist remotely yet.
+          git fetch origin "+refs/heads/${BR}:refs/remotes/origin/${BR}" || true
           git push --force-with-lease origin "${BR}"
           if [ -n "$(gh pr list --repo "${VCPKG_UPSTREAM}" --head "$(printf '%s' "${VCPKG_FORK_REPO}" | cut -d/ -f1):${BR}" --state open --json number --jq '.[0].number' 2>/dev/null)" ]; then
             echo "An open PR already exists for ${BR}; the force-pushed branch refreshes it."
