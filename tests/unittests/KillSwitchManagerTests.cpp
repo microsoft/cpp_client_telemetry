@@ -195,3 +195,18 @@ TEST(KillSwitchManagerTests, handleResponse_KillTokenWithAllSuffix_BlocksBaseTok
     ASSERT_TRUE(manager.isTokenBlocked("tenant-token-1"));       // suffix stripped
     ASSERT_FALSE(manager.isTokenBlocked("tenant-token-1:all"));  // unstripped form is not blocked
 }
+
+TEST(KillSwitchManagerTests, handleResponse_EmptyKillToken_IsRejected)
+{
+    // An empty kill-token -- sent empty, or one that reduces to empty after the
+    // ":all" suffix is stripped (e.g. ":all") -- has no tenant to act on and must
+    // be rejected (fail closed) rather than blocking the empty string.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    headers.add("kill-tokens", std::string(""));
+    headers.add("kill-tokens", ":all"); // strips to empty
+    headers.add("kill-duration", "300");
+    ASSERT_NO_THROW(manager.handleResponse(headers));
+    ASSERT_FALSE(manager.isActive());
+    ASSERT_FALSE(manager.isTokenBlocked(""));
+}

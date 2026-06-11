@@ -220,8 +220,10 @@ namespace MAT_NS_BEGIN {
             }
             try
             {
-                // Only std::out_of_range can fire now (the substring is all digits);
-                // catching it ignores an over-large value rather than crashing.
+                // The substring is all digits, so std::stoll itself can only throw
+                // std::out_of_range; substr() may also throw (e.g. std::bad_alloc).
+                // Either way the std::exception catch below ignores the value rather
+                // than crashing.
                 const long long parsed = std::stoll(value.substr(begin, end - begin));
                 // Clamp to a value that cannot overflow when later added to a current
                 // UTC timestamp (seconds) to compute an expiry time. No legitimate
