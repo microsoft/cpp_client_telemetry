@@ -13,4 +13,19 @@
     <TargetPath>$(OutDir)$(TargetName)$(TargetExt)</TargetPath>
   </PropertyGroup>
   <Import Condition="Exists('$(CUSTOM_PROPS_VS)')" Project="$(CUSTOM_PROPS_VS)" />
+  <!--
+    Build the native desktop SDK projects in MSVC conformance mode (/permissive-)
+    so non-standard constructs are caught at build time. Two project families are
+    excluded:
+      * UWP / Windows Store (AppContainerApplication) projects use C++/CX, where
+        /permissive- is incompatible with /ZW (CompileAsWinRT).
+      * C++/CLI managed projects (Keyword=ManagedCProj, e.g. net40) build against
+        the managed runtime and are a separate conformance domain.
+    See issue #255.
+  -->
+  <ItemDefinitionGroup Condition="'$(AppContainerApplication)' != 'true' AND '$(Keyword)' != 'ManagedCProj'">
+    <ClCompile>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
 </Project>
