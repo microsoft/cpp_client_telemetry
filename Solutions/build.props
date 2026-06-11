@@ -13,16 +13,4 @@
     <TargetPath>$(OutDir)$(TargetName)$(TargetExt)</TargetPath>
   </PropertyGroup>
   <Import Condition="Exists('$(CUSTOM_PROPS_VS)')" Project="$(CUSTOM_PROPS_VS)" />
-  <!--
-    Build the SDK projects in MSVC conformance mode (/permissive-) so
-    non-standard constructs are caught at build time. UWP / Windows Store
-    (AppContainerApplication) projects are excluded because they compile as
-    C++/CX (/ZW), which MSVC rejects in combination with /permissive-.
-    See issue #255.
-  -->
-  <ItemDefinitionGroup Condition="'$(AppContainerApplication)' != 'true'">
-    <ClCompile>
-      <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
-  </ItemDefinitionGroup>
 </Project>
