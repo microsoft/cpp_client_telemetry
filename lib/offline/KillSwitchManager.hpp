@@ -60,7 +60,9 @@ namespace MAT_NS_BEGIN {
 
                 for (std::multimap<std::string, std::string>::const_iterator it = ret.first; it != ret.second; ++it)
                 {
-                    std::string token = std::move(it->second);
+                    // it->second is a const reference (const_iterator), so this is a
+                    // copy; no std::move (moving from const silently copies anyway).
+                    std::string token = it->second;
                     size_t pos = token.find(':');
                     if (pos != std::string::npos)
                     {
