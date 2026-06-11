@@ -293,6 +293,14 @@ option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
 
+# Common Schema 4.0 (CS4) protocol support (CS3 by default). HAVE_CS4 toggles
+# optional CsProtocol fields whose presence changes the public struct layout, so
+# it is applied as a PUBLIC compile definition on the exported target (see
+# lib/CMakeLists.txt) to keep the SDK and its consumers in sync. HAVE_CS4_FULL
+# adds server/service extensions and implies HAVE_CS4.
+option(MATSDK_HAVE_CS4      "Build with Common Schema 4.0 (CS4) support" OFF)
+option(MATSDK_HAVE_CS4_FULL "Build with CS4 plus server/service extensions" OFF)
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
 endif()

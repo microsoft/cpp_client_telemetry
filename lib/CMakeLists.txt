@@ -338,6 +338,18 @@ target_include_directories(mat
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
 
+# Common Schema 4.0 support. HAVE_CS4 toggles optional CsProtocol fields whose
+# presence changes the public struct layout, so it must be defined consistently
+# across the SDK and its consumers. Expose it as a PUBLIC (propagating) compile
+# definition on the exported target rather than a raw build flag, so consumers
+# linking MSTelemetry::mat inherit it automatically. HAVE_CS4_FULL implies HAVE_CS4.
+if(MATSDK_HAVE_CS4 OR MATSDK_HAVE_CS4_FULL)
+  target_compile_definitions(mat PUBLIC HAVE_CS4)
+endif()
+if(MATSDK_HAVE_CS4_FULL)
+  target_compile_definitions(mat PUBLIC HAVE_CS4_FULL)
+endif()
+
 if(APPLE AND BUILD_OBJC_WRAPPER)
   if(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE)
     target_compile_definitions(mat PRIVATE MATSDK_OBJC_PRIVACYGUARD_AVAILABLE=1)
