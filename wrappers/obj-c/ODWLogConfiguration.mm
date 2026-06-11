@@ -51,6 +51,11 @@ NSString *const ODWCFG_BOOL_ENABLE_WAL_JOURNAL = @"enableWALJournal";
 NSString *const ODWCFG_BOOL_ENABLE_NET_DETECT = @"enableNetworkDetector";
 
 /*!
+ Scrub (obfuscate) the client IP address at the collector. Enabled by default; set to false to opt out.
+*/
+NSString *const ODWCFG_BOOL_ENABLE_IP_SCRUBBING = @"enableIpScrubbing";
+
+/*!
  The event collection URI.
 */
 NSString *const ODWCFG_STR_COLLECTOR_URL = @"eventCollectorUri";

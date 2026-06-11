@@ -9,6 +9,7 @@
 #include "ILogManager.hpp"
 #include "mat/config.h"
 #include "utils/Utils.hpp"
+#include "decorators/EventPropertiesDecorator.hpp"
 #include <oacr.h>
 
 namespace MAT_NS_BEGIN {
@@ -83,6 +84,13 @@ namespace MAT_NS_BEGIN {
             result &= m_baseDecorator.decorate(record);
             // Allow stats to capture Part A common properties, but not the custom
             result &= m_semanticContextDecorator.decorate(record, true);
+            // Stats events bypass EventPropertiesDecorator, so apply the same
+            // collector-side client-IP scrub here (on by default; opt out via
+            // CFG_BOOL_ENABLE_IP_SCRUBBING = false).
+            if (!m_config.HasConfig(CFG_BOOL_ENABLE_IP_SCRUBBING) || m_config[CFG_BOOL_ENABLE_IP_SCRUBBING])
+            {
+                record.flags |= RECORD_FLAGS_EVENTTAG_SCRUB_IP;
+            }
             if (result)
             {
                 IncomingEventContext evt(PAL::generateUuidString(), tenantToken, EventLatency_Normal, EventPersistence_Normal, &record);

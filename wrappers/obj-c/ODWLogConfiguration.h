@@ -45,6 +45,11 @@ extern NSString * _Nonnull const ODWCFG_BOOL_ENABLE_WAL_JOURNAL;
 extern NSString * _Nonnull const ODWCFG_BOOL_ENABLE_NET_DETECT;
 
 /*!
+ Scrub (obfuscate) the client IP address at the collector. Enabled by default; set to false to opt out.
+*/
+extern NSString * _Nonnull const ODWCFG_BOOL_ENABLE_IP_SCRUBBING;
+
+/*!
  The event collection URI.
 */
 extern NSString * _Nonnull const ODWCFG_STR_COLLECTOR_URL;
