@@ -74,8 +74,10 @@ public:
 
     void DispatchEvent(HttpStateEvent type)
     {
-        if(m_callback != nullptr)
+        if (m_callback != nullptr)
+        {
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
+        }
     }
 
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
@@ -92,9 +94,11 @@ public:
             std::string method,
             std::string url,
             IHttpResponseCallback* callback,
-            // Default empty headers and empty request body
-            const std::map<std::string, std::string>& requestHeaders = std::map<std::string, std::string>(),
-            const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
+            // requestHeaders is copied into the curl_slist during construction
+            // and need not outlive this operation. requestBody is stored by
+            // reference and read by Send(), so it must outlive this operation.
+            const std::map<std::string, std::string>& requestHeaders,
+            const std::vector<uint8_t>& requestBody,
             // Default connectivity and response size options
             bool rawResponse                                         = false,
             size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
@@ -109,9 +113,9 @@ public:
             m_callback(callback),
             m_method(method),
             m_url(url),
+            m_sslCaInfo(sslCaInfo),
 
             // Local vars
-            requestHeaders(requestHeaders),
             requestBody(requestBody)
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
@@ -140,18 +144,18 @@ public:
 
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L);
-        if (!sslCaInfo.empty()) {
-            curl_easy_setopt(curl, CURLOPT_CAINFO, sslCaInfo.c_str());
+        if (!m_sslCaInfo.empty()) {
+            curl_easy_setopt(curl, CURLOPT_CAINFO, m_sslCaInfo.c_str());
         }
         // HTTP/2 please, fallback to HTTP/1.1 if not supported
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
-        // Specify our custom headers
-        for(auto &kv : this->requestHeaders)
+        // Headers are copied into m_headersChunk during construction and the
+        // curl_slist is kept alive until destruction, so the original map does
+        // not need operation-lifetime storage.
+        for (const auto& kv : requestHeaders)
         {
-            std::string header = kv.first.c_str();
-            header += ": ";
-            header += kv.second.c_str();
+            std::string header = kv.first + ": " + kv.second;
             m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
         }
 
@@ -206,7 +210,7 @@ public:
 
         ReleaseResponse();
         // Request buffer
-        const void *request  = (requestBody.empty())?NULL:&requestBody[0];
+        const void *request  = requestBody.empty() ? nullptr : requestBody.data();
         const size_t reqSize = requestBody.size();
 
         if(!curl)
@@ -278,7 +282,7 @@ public:
         {
             // POST
             curl_easy_setopt(curl, CURLOPT_POST, true);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char *)request);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, static_cast<const char*>(request));
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, reqSize);
         } else
         if (m_method.compare("GET") == 0)
@@ -355,18 +359,20 @@ cleanup:
     }
 
     /**
-     * Return a copy of resposne headers
+     * Return a copy of response headers
      *
      * @return
      */
     std::map<std::string, std::string> GetResponseHeaders()
     {
         std::map<std::string, std::string> result;
-        if (respHeaders.size() == 0)
+        if (respHeaders.empty())
+        {
             return result;
+        }
 
         std::stringstream ss;
-        std::string headers((const char *)&respHeaders[0], respHeaders.size());
+        std::string headers(reinterpret_cast<const char*>(respHeaders.data()), respHeaders.size());
         ss.str(headers);
 
         std::string header;
@@ -397,8 +403,11 @@ cleanup:
     std::vector<uint8_t> GetRawResponse()
     {
         std::vector<uint8_t> result;
-        if ((response.memory!=nullptr)&&(response.size!=0))
-            result.insert(result.end(), (const char *)response.memory, ((const char *)response.memory) + response.size);
+        if ((response.memory != nullptr) && (response.size != 0))
+        {
+            const auto* begin = reinterpret_cast<const uint8_t*>(response.memory);
+            result.insert(result.end(), begin, begin + response.size);
+        }
         return result;
     }
 
@@ -407,7 +416,7 @@ cleanup:
      */
     void ReleaseResponse()
     {
-        if (response.memory!=nullptr) {
+        if (response.memory != nullptr) {
             free(response.memory);
             response.memory = nullptr;
             response.size = 0;
@@ -449,7 +458,11 @@ protected:
     // Request values
     std::string m_method;
     std::string m_url;
-    const std::map<std::string, std::string>& requestHeaders;
+    std::string m_sslCaInfo;
+    // The SDK upload path keeps the owning IHttpRequest alive through the
+    // callback context until Send() completes; copying this body would duplicate
+    // every upload payload. Unlike CURLOPT_CAINFO, the body pointer is set and
+    // consumed during Send(), not retained from construction.
     const std::vector<uint8_t>& requestBody;
     struct curl_slist *m_headersChunk = nullptr;
 
@@ -506,12 +519,13 @@ protected:
         size_t realsize = size * nmemb;
         struct MemoryStruct *mem = (struct MemoryStruct *)userp;
 
-        mem->memory = (char *)(realloc(mem->memory, mem->size + realsize + 1));
-        if(mem->memory == NULL) {
+        auto* memory = static_cast<char*>(realloc(mem->memory, mem->size + realsize + 1));
+        if(memory == nullptr) {
           /* out of memory! */
           TRACE("not enough memory (realloc returned NULL)\n");
           return 0;
         }
+        mem->memory = memory;
 #ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
         BoundCheckFunctions::oneds_memcpy_s(&(mem->memory[mem->size]), realsize, contents, realsize);
 #else
@@ -534,9 +548,9 @@ protected:
      */
     static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
     {
-        if (data!=nullptr) {
-            const unsigned char * begin = (unsigned char *)(ptr);
-            const unsigned char * end   = begin + size * nmemb;
+        if (data != nullptr) {
+            const auto* begin = static_cast<const uint8_t*>(ptr);
+            const auto* end   = begin + size * nmemb;
             data->insert( data->end(), begin, end);
         }
         return size * nmemb;
@@ -549,4 +563,3 @@ protected:
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENTCURL_HPP
-

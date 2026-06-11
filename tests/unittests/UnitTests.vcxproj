@@ -495,7 +495,6 @@
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\unittests\SignalsTests.cpp" />
   </ItemGroup>
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\sanitizer')">
-    <ClInclude Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerBaseTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerEmailTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerJwtTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerSitePathTests.cpp" />
