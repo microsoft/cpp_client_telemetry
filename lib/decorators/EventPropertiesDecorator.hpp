@@ -7,6 +7,7 @@
 
 #include "IDecorator.hpp"
 #include "ILogManager.hpp"
+#include "RecordFlagConstants.hpp"
 #include "EventProperties.hpp"
 #include "CorrelationVector.hpp"
 #include "utils/Utils.hpp"
@@ -16,16 +17,6 @@
 #include <string>
 
 namespace MAT_NS_BEGIN {
-
-// Bit remapping has to happen on bits passed via API surface.
-// Ref CS2.1+ : https://osgwiki.com/wiki/CommonSchema/flags
-// #define MICROSOFT_EVENTTAG_MARK_PII 0x08000000
-#define RECORD_FLAGS_EVENTTAG_MARK_PII 0x00080000
-// #define MICROSOFT_EVENTTAG_HASH_PII 0x04000000
-#define RECORD_FLAGS_EVENTTAG_HASH_PII 0x00100000
-// #define MICROSOFT_EVENTTAG_DROP_PII 0x02000000
-#define RECORD_FLAGS_EVENTTAG_DROP_PII 0x00200000
-#define RECORD_FLAGS_EVENTTAG_SCRUB_IP 0x00400000
 
     class EventPropertiesDecorator : public IDecorator
     {

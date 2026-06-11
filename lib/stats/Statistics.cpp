@@ -9,7 +9,7 @@
 #include "ILogManager.hpp"
 #include "mat/config.h"
 #include "utils/Utils.hpp"
-#include "decorators/EventPropertiesDecorator.hpp"
+#include "decorators/RecordFlagConstants.hpp"
 #include <oacr.h>
 
 namespace MAT_NS_BEGIN {
