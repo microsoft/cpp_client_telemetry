@@ -169,11 +169,26 @@ public:
      */
     virtual ~CurlHttpOperation()
     {
-        // Given the request has not been aborted we should wait for completion here
-        // This guarantees the lifetime of this request.
+        // libstdc++'s std::future<>::~future implicitly joins the async
+        // thread via call_once during destruction. If this destructor runs
+        // ON that same async thread (e.g. the user callback released the
+        // last shared_ptr from inside the lambda), the implicit self-join
+        // throws std::system_error("Resource deadlock avoided"), and because
+        // the throw originates inside a noexcept destructor it aborts the
+        // process. try/catch around `result` cannot rescue it.
+        //
+        // Defuse by moving the future onto a detached helper thread that is
+        // by definition NOT the async thread, so its implicit join succeeds
+        // immediately (the work has already finished, which is the only way
+        // we could be running this destructor on the async thread). On the
+        // common path (destructed from the caller thread) this just spawns
+        // a no-op helper that exits in microseconds.
         if (result.valid())
         {
-            result.wait();
+            std::thread([f = std::move(result)]() mutable {
+                // f goes out of scope here. ~future joins on this new
+                // thread (!= the original async thread), so no EDEADLK.
+            }).detach();
         }
         DispatchEvent(OnDestroy);
         res = CURLE_OK;
