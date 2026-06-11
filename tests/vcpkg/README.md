@@ -1,6 +1,6 @@
 # Vcpkg Port Integration Tests
 
-End-to-end tests that verify the `mstelemetry` vcpkg port can be installed, found via `find_package(MSTelemetry CONFIG)`, linked, and executed on all supported platforms.
+End-to-end tests that verify the `cpp-client-telemetry` vcpkg port can be installed, found via `find_package(MSTelemetry CONFIG)`, linked, and executed on all supported platforms.
 
 ## Prerequisites
 
@@ -100,7 +100,7 @@ Set `ANDROID_NDK_HOME` if the script can't find your NDK automatically. Cross-co
 
 Each script runs 3 steps:
 
-1. **Configure** — CMake configures a minimal consumer project with the vcpkg toolchain. Dependencies (including the `mstelemetry` overlay port) are installed automatically.
+1. **Configure** — CMake configures a minimal consumer project with the vcpkg toolchain. Dependencies (including the `cpp-client-telemetry` overlay port) are installed automatically.
 2. **Build** — The consumer links against `MSTelemetry::mat`
 3. **Run** — The test binary exercises `LogManager`, `EventProperties`, and verifies all symbols resolve
 

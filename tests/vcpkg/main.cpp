@@ -1,4 +1,4 @@
-// Vcpkg integration test for mstelemetry
+// Vcpkg integration test for cpp-client-telemetry
 // Verifies that find_package(MSTelemetry) works and core APIs are callable
 
 #include <cstdio>
