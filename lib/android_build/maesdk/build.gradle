@@ -32,11 +32,15 @@ android {
                     // propagated to consumers via the exported target). HAVE_CS4_FULL
                     // adds the server/service extensions.
                     String haveCs4 = project.findProperty("HAVE_CS4") ?: System.getenv("HAVE_CS4") ?: ""
-                    if (haveCs4.equalsIgnoreCase("1") || haveCs4.equalsIgnoreCase("true") || haveCs4.equalsIgnoreCase("on")) {
+                    String haveCs4Full = project.findProperty("HAVE_CS4_FULL") ?: System.getenv("HAVE_CS4_FULL") ?: ""
+                    boolean cs4Full = haveCs4Full.equalsIgnoreCase("1") || haveCs4Full.equalsIgnoreCase("true") || haveCs4Full.equalsIgnoreCase("on")
+                    // CS4_FULL implies CS4, so enable the base option too rather than
+                    // relying on the CMake-side implication.
+                    boolean cs4 = cs4Full || haveCs4.equalsIgnoreCase("1") || haveCs4.equalsIgnoreCase("true") || haveCs4.equalsIgnoreCase("on")
+                    if (cs4) {
                         args.add("-DMATSDK_HAVE_CS4=ON")
                     }
-                    String haveCs4Full = project.findProperty("HAVE_CS4_FULL") ?: System.getenv("HAVE_CS4_FULL") ?: ""
-                    if (haveCs4Full.equalsIgnoreCase("1") || haveCs4Full.equalsIgnoreCase("true") || haveCs4Full.equalsIgnoreCase("on")) {
+                    if (cs4Full) {
                         args.add("-DMATSDK_HAVE_CS4_FULL=ON")
                     }
                     // Passes optional arguments to CMake.
