@@ -105,9 +105,11 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_NET_DETECT = "enableNetworkDetector";
 
     /// <summary>
-    /// Scrub (obfuscate) the client IP address at the collector for telemetry
-    /// uploaded in direct-upload mode. Enabled by default; set to false to opt
-    /// out (e.g. when the client IP is required for geo-location enrichment).
+    /// Request collector-side scrubbing (obfuscation) of the client IP address.
+    /// Enabled by default; set to false to opt out (e.g. when the client IP is
+    /// needed for geo-location enrichment). The scrub flag is honored by the
+    /// OneCollector direct-upload path; in UTC mode client privacy is governed
+    /// by the OS UTC pipeline instead.
     /// </summary>
     static constexpr const char* const CFG_BOOL_ENABLE_IP_SCRUBBING = "enableIpScrubbing";
 
