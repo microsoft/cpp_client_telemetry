@@ -54,6 +54,21 @@ NS_ASSUME_NONNULL_BEGIN
 -(void) setDeviceId:(nonnull NSString*)deviceId;
 
 /*!
+ @brief Set the operating system version context information of telemetry event.
+ @details Overrides the OS version that the SDK populates automatically (Common Schema field `ext.os.ver`).
+ @param osVersion A string that contains the operating system version.
+ */
+-(void) setOsVersion:(nonnull NSString*)osVersion;
+
+/*!
+ @brief Set the operating system build context information of telemetry event.
+ @details In the CS3 schema the OS version field (`ext.os.ver`) is populated from the OS build,
+ so set this if setOsVersion: alone does not update `ext.os.ver`.
+ @param osBuild A string that contains the operating system build.
+ */
+-(void) setOsBuild:(nonnull NSString*)osBuild;
+
+/*!
  @brief Set the user time zone context information of telemetry event.
  @param userTimeZone user's time zone relative to UTC, in ISO 8601 time zone format
  */
