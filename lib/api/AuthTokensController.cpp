@@ -9,7 +9,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(AuthTokensController, "EventsSDK.AuthTokensController", "Events telemetry client - AuthTokensController class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(AuthTokensController, "EventsSDK.AuthTokensController", "Events telemetry client - AuthTokensController class")
 
     AuthTokensController::AuthTokensController()
         :m_IsStrictModeEnabled(false)

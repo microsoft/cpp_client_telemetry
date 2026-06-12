@@ -105,6 +105,7 @@ std::shared_ptr<PrivacyGuard> _privacyGuardPtr;
     config.UseEventFieldPrefix = [initConfigObject useEventFieldPrefix];
     config.ScanForUrls = [initConfigObject scanForUrls];
     config.DisableAdvancedScans = [initConfigObject disableAdvancedScans];
+    config.StampEventIKeyForConcerns = [initConfigObject stampEventIKeyForConcerns];
     _privacyGuardPtr = std::make_shared<PrivacyGuard>(config);
     LogManager::GetInstance()->SetDataInspector(_privacyGuardPtr);
 }

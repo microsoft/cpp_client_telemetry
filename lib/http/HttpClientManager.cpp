@@ -9,6 +9,8 @@
 
 #include <assert.h>
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 #ifdef linux
 #include <unistd.h>
@@ -61,7 +63,7 @@ namespace MAT_NS_BEGIN {
             // as well pass the data back by updating the data structure.
             DebugEvent evt(EVT_HTTP_STATE, size_t(state), 0, data, size);
             m_hcm.m_logManager.DispatchEvent(evt);
-        };
+        }
 
 
         virtual ~HttpCallback()
@@ -149,11 +151,23 @@ namespace MAT_NS_BEGIN {
     void HttpClientManager::cancelAllRequests()
     {
         cancelAllRequestsAsync();
-        while (!m_httpCallbacks.empty())
-            std::this_thread::yield();
+
+        // Wait for callbacks to drain before shutdown can destroy state that
+        // those callbacks still use. Keep the list check synchronized and sleep
+        // between polls so a slow adapter does not burn CPU while draining.
+        for (;;)
+        {
+            {
+                LOCKGUARD(m_httpCallbacksMtx);
+                if (m_httpCallbacks.empty())
+                {
+                    return;
+                }
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
     }
 
     // start async cancellation
 
 } MAT_NS_END
-

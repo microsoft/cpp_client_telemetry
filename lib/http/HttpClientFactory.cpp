@@ -33,7 +33,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(HttpClientFactory, "EventsSDK.HttpClientFactory", "Events telemetry client - HttpClientFactory class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(HttpClientFactory, "EventsSDK.HttpClientFactory", "Events telemetry client - HttpClientFactory class")
 
 #if defined(MATSDK_PAL_WIN32)
 #ifdef _WINRT_DLL

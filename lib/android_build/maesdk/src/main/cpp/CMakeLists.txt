@@ -4,12 +4,14 @@
 # Sets the minimum version of CMake required to build the native library.
 
 cmake_minimum_required(VERSION 3.10.2)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
 option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
 option(BUILD_SIGNALS      "Build Signals"           YES)
+option(BUILD_SANITIZER    "Build Sanitizer"         YES)
 
 if(ENABLE_CAPI_HTTP_CLIENT)
   add_definitions(-DENABLE_CAPI_HTTP_CLIENT)
@@ -43,6 +45,7 @@ set(SRCS
         ${SDK_ROOT}/lib/bond/BondSerializer.cpp
         ${SDK_ROOT}/lib/callbacks/DebugSource.cpp
         ${SDK_ROOT}/lib/compression/HttpDeflateCompression.cpp
+        ${SDK_ROOT}/lib/decoder/PayloadDecoder.cpp
         ${SDK_ROOT}/lib/decorators/BaseDecorator.cpp
         ${SDK_ROOT}/lib/filter/EventFilterCollection.cpp
         ${SDK_ROOT}/lib/http/HttpClientFactory.cpp
@@ -113,6 +116,22 @@ if (EXISTS ${SDK_ROOT}/lib/modules/signals/ AND BUILD_SIGNALS)
         )
 endif()
 
+if (EXISTS ${SDK_ROOT}/lib/modules/sanitizer/ AND BUILD_SANITIZER)
+        list(APPEND SRCS
+                ${SDK_ROOT}/lib/jni/Sanitizer_jni.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/detectors/EmailAddressDetector.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/detectors/JwtDetector.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/detectors/SPOPassword.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/detectors/UrlDetector.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/Sanitizer.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerProvider.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerStringUtils.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerTargets.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerTrie.cpp
+                ${SDK_ROOT}/lib/modules/sanitizer/SanitizerTrieNode.cpp
+        )
+endif()
+
 if (USE_ROOM)
         add_definitions("-DUSE_ROOM")
         list(APPEND SRCS ${SDK_ROOT}/lib/offline/OfflineStorage_Room.cpp)
@@ -142,6 +161,9 @@ target_include_directories(${TARGETNAME} PUBLIC
         ${SDK_ROOT}/lib/include/mat
         ${SDK_ROOT}/sqlite
         ${SDK_ROOT}lib/pal
+        ${SDK_ROOT}
+        ${SDK_ROOT}/lib/modules/sanitizer/detectors
+        ${SDK_ROOT}/lib/modules/sanitizer
         ${CURL_INCLUDE_DIRS})
 
 

@@ -31,7 +31,7 @@ namespace MAT_NS_BEGIN {
             {
                 locked = m_db->trylock();
             }
-        };
+        }
 
         ~DbTransaction()
         {
@@ -42,7 +42,7 @@ namespace MAT_NS_BEGIN {
         }
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class")
 
     static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_EVENTS   "events"
@@ -954,24 +954,27 @@ namespace MAT_NS_BEGIN {
                 LOG_TRACE("DB is too big, deleting...");
                 Execute("DELETE FROM " TABLE_NAME_EVENTS);
                 Execute("VACUUM");
-                return true;
+                eventsDropped = count;
             }
-
-            SqliteStatement trimStmt(*m_db, m_stmtTrimEvents_percent);
-            if (!trimStmt.execute(25))
+            else
             {
-                // If something went wrong with trimming 25%, try more radical measure
-                LOG_TRACE("Evict all non-critical");
-                Execute("DELETE FROM " TABLE_NAME_EVENTS " WHERE persistence=1");
+                SqliteStatement trimStmt(*m_db, m_stmtTrimEvents_percent);
+                if (!trimStmt.execute(25))
+                {
+                    // If something went wrong with trimming 25%, try more radical measure
+                    LOG_TRACE("Evict all non-critical");
+                    Execute("DELETE FROM " TABLE_NAME_EVENTS " WHERE persistence=1");
+                }
+                eventsDropped = count - GetRecordCountUnsafe(EventLatency::EventLatency_Unspecified);
+                LOG_TRACE("Db resized, events dropped: %zu", eventsDropped);
+                trimStmt.reset();
             }
-            eventsDropped = count - GetRecordCountUnsafe(EventLatency::EventLatency_Unspecified);
-            LOG_TRACE("Db resized, events dropeed: %d", eventsDropped);
-            trimStmt.reset();
         }
 
         m_DbSizeEstimate = GetSize();
         DebugEvent evt(DebugEventType::EVT_DROPPED);
         evt.param1 = eventsDropped;
+        evt.param2 = static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW);
         evt.size = eventsDropped;
         m_logManager.DispatchEvent(evt);
 

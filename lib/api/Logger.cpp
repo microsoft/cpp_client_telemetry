@@ -175,37 +175,37 @@ namespace MAT_NS_BEGIN
     void Logger::SetContext(const std::string& k, const char v[], PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, const std::string& v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, double v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, int64_t v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, time_ticks_t v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, GUID_t v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     void Logger::SetContext(const std::string& k, bool v, PiiKind pii)
     {
         SetContext(k, EventProperty(v, pii));
-    };
+    }
 
     // The goal of this method is to rewire the logger instance to any other ISemanticContext issued by SDK.
     // SDK may provide a future option for a guest logger to opt-in into its own semantic context. The method will then
@@ -575,7 +575,9 @@ namespace MAT_NS_BEGIN
 
         if (latency == EventLatency_Off)
         {
-            DispatchEvent(DebugEventType::EVT_DROPPED);
+            // Event dropped because the active TransmitProfile has disabled this
+            // latency tier. param1 = 1 record dropped; param2 = reason code.
+            DispatchEvent(DebugEvent(DebugEventType::EVT_DROPPED, 1u, static_cast<size_t>(DROPPED_REASON_LATENCY_DISABLED_BY_PROFILE)));
             LOG_INFO("Event %s/%s dropped: calculated latency 0 (Off)",
                      tenantTokenToId(m_tenantToken).c_str(), record.baseType.c_str());
             return;

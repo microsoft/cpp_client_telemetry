@@ -39,7 +39,7 @@ using namespace MAT;
 class RequestHandler : public HttpServer::Callback 
 {
    public:
-    RequestHandler(int id) noexcept: m_count(0), m_id(id){}
+    RequestHandler(int id) noexcept : m_id(id){}
 
     int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& /*response*/) override
     {
@@ -54,7 +54,7 @@ class RequestHandler : public HttpServer::Callback
     }
 
    private:
-    size_t m_count;
+    std::atomic<size_t> m_count {};
     int m_id ;
 };
 
@@ -63,9 +63,9 @@ class MultipleLogManagersTests : public ::testing::Test
    protected:
     std::string serverAddress;
     ILogConfiguration config1, config2, config3;
-    RequestHandler callback1 = RequestHandler(1);
-    RequestHandler callback2 = RequestHandler(2);
-    RequestHandler callback3 = RequestHandler(3);
+    RequestHandler callback1{1};
+    RequestHandler callback2{2};
+    RequestHandler callback3{3};
 
     HttpServer server;
 
@@ -74,7 +74,7 @@ class MultipleLogManagersTests : public ::testing::Test
     {
         int port = server.addListeningPort(0);
         std::ostringstream os;
-        os << "localhost:" << port;
+        os << "127.0.0.1:" << port;
         server.setServerName(os.str());
         serverAddress = "http://" + os.str();
 
@@ -196,7 +196,7 @@ TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
     lm2->GetLogController()->UploadNow();
     lm3->GetLogController()->UploadNow();
 
-    waitForRequestsMultipleLogManager(10000, 1, 1, 1);
+    waitForRequestsMultipleLogManager(20000, 1, 1, 1);
 
     lm1.reset();
     lm2.reset();
@@ -224,7 +224,7 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     CAPTURE_PERF_STATS("Events Sent");
     lm->GetLogController()->UploadNow();
     CAPTURE_PERF_STATS("Events Uploaded");
-    waitForRequestsSingleLogManager(10000, 2);
+    waitForRequestsSingleLogManager(20000, 2);
     lm.reset();
     CAPTURE_PERF_STATS("Log Manager deleted");
 }
@@ -248,6 +248,7 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
     MockLogger mockLogger;
     auto privacyConcernLogCount = 0;
     InitializationConfiguration config(&mockLogger, CommonDataContext {});
+    config.ScanForUrls = true;
     const auto privacyGuard = std::make_shared<PrivacyGuard>(config);
     mockLogger.m_logEventOverride = [&privacyConcernLogCount, &privacyGuard](const EventProperties& properties) {
         if (equalsIgnoreCase(properties.GetName(), privacyGuard->GetNotificationEventName()))

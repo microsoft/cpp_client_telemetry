@@ -1,5 +1,0 @@
-package EventLogger
-// #cgo CFLAGS: -DGENERIC_VALUE=32 -I/usr/local/include/mat
-// #cgo CXXFLAGS: -std=c++11 -I/usr/local/include/mat
-// #cgo LDFLAGS: -L/usr/local/lib/x86_64-linux-gnu -lmat -lcurl -lz -lsqlite3 -ldl
-import "C"

@@ -440,7 +440,9 @@ namespace MAT_NS_BEGIN {
         }
 
         bool lock() {
+#ifndef NDEBUG
             unsigned count = 0;
+#endif
             unsigned waitTime = 0;
             while (!trylock()) {
                 if (waitTime >= MAX_DB_LOCKWAIT_DELAY) {
@@ -452,8 +454,10 @@ namespace MAT_NS_BEGIN {
                     return false;
                 }
                 waitTime += MAX_DB_LOCKWAIT_DELAY;  // 500ms, 1000ms
+#ifndef NDEBUG
                 count++;
                 LOG_DEBUG("Lock: waiting to acquire the lock: count=%u, waitTime=%u", count, waitTime);
+#endif
                 PAL::sleep(MAX_DB_LOCKWAIT_DELAY);
             }
             LOG_DEBUG("Lock: acquired [time=%u]", waitTime);
@@ -514,7 +518,7 @@ namespace MAT_NS_BEGIN {
         MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class")
 
     //---
 
@@ -799,13 +803,13 @@ namespace MAT_NS_BEGIN {
         bool          m_error;
 
     public:
-        sqlite3_stmt * handle() { return m_stmt; };
+        sqlite3_stmt * handle() { return m_stmt; }
 
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class")
 
 
 } MAT_NS_END

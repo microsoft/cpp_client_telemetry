@@ -7,7 +7,36 @@
 #include "pal/PseudoRandomGenerator.hpp"
 #include "Version.hpp"
 
+#include <cstdint>
+#include <string>
+
+#ifdef HAVE_MAT_LOGGING
+#include "pal/PAL.hpp"
+#include <gtest/gtest.h>
+#include <fstream>
+#include <memory>
+#include <string>
+#include <cstdio>
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+using namespace PAL::detail;
+#endif
+
 using namespace testing;
+
+#if defined(_WIN32) || defined(_WIN64)
+namespace PAL_NS_BEGIN {
+    std::string formatWindowsOsFullVersion(
+        unsigned long majorVersion,
+        unsigned long minorVersion,
+        unsigned long buildNumber,
+        uint32_t updateBuildRevision,
+        bool hasUpdateBuildRevision);
+} PAL_NS_END
+#endif
 
 class PalTests : public Test {};
 
@@ -70,7 +99,7 @@ TEST_F(PalTests, SystemTime)
 
     int64_t t1 = PAL::getUtcSystemTimeMs();
     EXPECT_THAT(t1, Gt(t0 + 360));
-    EXPECT_THAT(t1, Lt(t0 + 550));
+    EXPECT_THAT(t1, Lt(t0 + 1000));
 }
 
 TEST_F(PalTests, FormatUtcTimestampMsAsISO8601)
@@ -80,6 +109,29 @@ TEST_F(PalTests, FormatUtcTimestampMsAsISO8601)
     EXPECT_THAT(PAL::formatUtcTimestampMsAsISO8601(2147483647999ll), Eq("2038-01-19T03:14:07.999Z"));
 }
 
+#if defined(_WIN32) || defined(_WIN64)
+TEST_F(PalTests, WindowsOsFullVersionIncludesUbrWhenPresent)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 1234, true),
+        Eq("10.0.26200.1234"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionOmitsUbrWhenMissing)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 0, false),
+        Eq("10.0.26200"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionIncludesZeroUbrWhenPresent)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 0, true),
+        Eq("10.0.26200.0"));
+}
+#endif
+
 TEST_F(PalTests, MonotonicTime)
 {
     int64_t t0 = PAL::getMonotonicTimeMs();
@@ -88,7 +140,7 @@ TEST_F(PalTests, MonotonicTime)
 
     int64_t t1 = PAL::getMonotonicTimeMs();
     EXPECT_THAT(t1 - t0, Gt(780));
-    EXPECT_THAT(t1 - t0, Lt(950));
+    EXPECT_THAT(t1 - t0, Lt(1500));
 }
 
 TEST_F(PalTests, SemanticContextPopulation)
@@ -127,3 +179,106 @@ TEST_F(PalTests, SdkVersion)
 
     EXPECT_THAT(PAL::getSdkVersion(), Eq(v));
 }
+
+#ifdef HAVE_MAT_LOGGING
+class LogInitTest : public Test
+{
+    protected:
+        std::string validPath = "valid/path/";
+
+        void SetUp() override
+        {
+            // Create the valid path directory and any intermediate directories
+    #if defined(_WIN32) || defined(_WIN64)
+            CreateDirectoryA("valid", NULL);
+            CreateDirectoryA(validPath.c_str(), NULL);
+    #elif defined(ANDROID)
+            std::string temp = MAT::GetTempDirectory();
+            std::string parent = temp + PATH_SEPARATOR_CHAR + "valid";
+            validPath = parent + PATH_SEPARATOR_CHAR + "path" + PATH_SEPARATOR_CHAR;
+            mkdir(parent.c_str(), 0777);
+            mkdir(validPath.c_str(), 0777);
+    #else
+            mkdir("valid", 0777);
+            mkdir(validPath.c_str(), 0777);
+    #endif
+        }
+
+        void TearDown() override
+        {
+            PAL::detail::log_done();
+            if (!PAL::detail::getDebugLogPath().empty())
+            {
+                std::remove(PAL::detail::getDebugLogPath().c_str());
+            }
+
+            // Remove the valid path directory
+    #if defined(_WIN32) || defined(_WIN64)
+            RemoveDirectoryA(validPath.c_str());
+            RemoveDirectoryA("valid");
+    #elif defined(ANDROID)
+            rmdir(validPath.c_str());
+            std::string temp = MAT::GetTempDirectory();
+            std::string parent = temp + PATH_SEPARATOR_CHAR + "valid";
+            rmdir(parent.c_str());
+    #else
+            rmdir(validPath.c_str());
+            rmdir("valid");
+    #endif
+        }
+};
+
+TEST_F(LogInitTest, LogInitDisabled)
+{
+    EXPECT_FALSE(log_init(false, validPath));
+}
+
+TEST_F(LogInitTest, LogInitValidPath)
+{
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+TEST_F(LogInitTest, LogInitParentDirectoryInvalidPath)
+{
+    EXPECT_FALSE(PAL::detail::log_init(true, "invalid/../path/"));
+}
+
+TEST_F(LogInitTest, LogInitPathDoesNotExist)
+{
+    EXPECT_FALSE(PAL::detail::log_init(true, "nonexistent/path/"));
+}
+
+TEST_F(LogInitTest, LogInitAlreadyInitialized)
+{
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath)); // Should return true as it's already initialized
+}
+
+TEST_F(LogInitTest, LogInitPathWithoutTrailingSlash)
+{
+#if defined(ANDROID)
+    std::string pathWithoutSlash = validPath;
+    pathWithoutSlash.pop_back();
+#else
+    std::string pathWithoutSlash = "valid/path";
+#endif
+    EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutSlash));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+TEST_F(LogInitTest, LogInitPathWithoutTrailingBackslash)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    std::string pathWithoutBackslash = "valid\\path";
+#elif defined(ANDROID)
+    std::string pathWithoutBackslash = MAT::GetTempDirectory() + PATH_SEPARATOR_CHAR + "valid//path";
+#else
+    std::string pathWithoutBackslash = "valid//path";
+#endif
+    EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutBackslash));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+#endif

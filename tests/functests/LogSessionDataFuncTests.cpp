@@ -69,14 +69,14 @@ std::pair<unsigned long long, std::string> ReadPropertiesFromSessionFile(const c
     return std::make_pair(std::stoull(sessionFirstTime), skuID);
 }
 
-TEST(LogSessionDataFuncTests, Constructor_SessionFile_FileCreated)
+TEST_F(LogSessionDataFuncTests, Constructor_SessionFile_FileCreated)
 {
     auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
     logSessionDataProvider.CreateLogSessionData();
     ASSERT_TRUE(MAT::FileExists(SessionFile));
 }
 
-TEST(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToExistingFile)
+TEST_F(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToExistingFile)
 {
     const std::string validSessionFirstTime{ "123456" };
     const std::string validSkuId{ "abc123" };
@@ -90,7 +90,7 @@ TEST(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToExi
     ASSERT_EQ(logSessionData->getSessionSDKUid(), validSkuId);
 }
 
-TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_MembersRegenerated)
+TEST_F(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_MembersRegenerated)
 {
     const std::string invalidSessionFirstTime{ "not-a-number" };
     const std::string validSkuId{ "abc123" };
@@ -104,7 +104,7 @@ TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_MembersRegene
     ASSERT_NE(logSessionData->getSessionSDKUid(), validSkuId);
 }
 
-TEST(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWritten)
+TEST_F(LogSessionDataFuncTests, Constructor_InvalidSessionFileExists_NewFileWritten)
 {
     const std::string invalidSessionFirstTime{ "not-a-number" };
     const std::string validSkuId{ "abc123" };

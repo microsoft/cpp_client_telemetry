@@ -11,7 +11,7 @@ static void DebugPrintf(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     int nBuf;
-    nBuf = _vsnprintf(szBuffer, MAX_BUFF_SIZE-1, fmt, args);
+    nBuf = _vsnprintf_s(szBuffer, MAX_BUFF_SIZE-1, fmt, args);
     ::OutputDebugStringA(szBuffer);
     ::OutputDebugStringA("\n"); // eppend endl
     va_end(args);

@@ -313,6 +313,18 @@ public class LogManagerProvider {
       return Signals.isInitialized() && nativeUnregisterSignals(nativeLogManager);
     }
 
+    private native boolean nativeRegisterSanitizer(long nativeLogManager);
+    @Override
+    public boolean registerSanitizer() {
+      return Sanitizer.isInitialized() && nativeRegisterSanitizer(nativeLogManager);
+    }
+
+    private native boolean nativeUnregisterSanitizer(long nativeLogManager);
+    @Override
+    public boolean unregisterSanitizer() {
+      return Sanitizer.isInitialized() && nativeUnregisterSanitizer(nativeLogManager);
+    }
+
     protected native void nativePauseActivity(long nativeLogManager);
     protected native void nativeResumeActivity(long nativeLogManager);
     protected native void nativeWaitPause(long nativeLogManager);

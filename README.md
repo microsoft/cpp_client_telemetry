@@ -18,8 +18,31 @@ data pipeline.
 
 ## Getting Started
 
+### New customer?
+
+ - The 1DS C/C++ SDK is designed for Microsoft products to send data to public-facing end-points which route to Microsoft's internal data pipeline.
+   It is not meant to be used outside of Microsoft products and is open-sourced to demonstrate best practices and to be transparent about what is being collected.
+
+ - Users with [Microsoft Organization GH account](https://opensource.microsoft.com/), please refer to the link [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md) for internal community discussion channels.
+
+### Need support?
+
+ - Microsoft products using SDK may use [GitHub issues](https://github.com/microsoft/cpp_client_telemetry/issues/new/choose)
+as the communication channel for both feature requests and issues.
+
+### Want to Contribute?
+
+ - This project does not accept *Public* contributions at this time.
+
+ - [Microsoft-authorized
+contributors](https://github.com/orgs/microsoft/teams/everyone) - please refer
+to contributing instructions
+[here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
+ 
+## Release policy:
+
 The SDK is released as a [source package](https://github.com/microsoft/cpp_client_telemetry/releases)
-every month, following the [milestones](https://github.com/microsoft/cpp_client_telemetry/milestones).
+on need basis.
 There is no plan to release prebuilt binaries.
 
 ## Build
@@ -42,42 +65,38 @@ Other resources to learn how to setup the build system:
   
   | Operating System              | Compiler                         |
   | ----------------------------- | -------------------------------- |
-  | Mac OS X 10.11.6              | Clang Xcode 8.3                  |
-  | Mac OS X 10.12.6              | Clang Xcode 9.0, 9.1             |
-  | Mac OS X 10.13.3              | Clang Xcode 9.2, 9.3, 10.0, 10.1 |
-  | Raspbian GNU/Linux 8 (jessie) | GCC 4.9.2 (armv7l)               |
-  | Ubuntu 14.04.x LTS            | GCC 5.x.x                        |
-  | Ubuntu 16.04 LTS              | GCC 5.x.x, GCC 5.x.x (armv7l)    |
-  | Ubuntu 18.04 LTS              | GCC 7.5.x                        |  
-  | Windows 10                    | Android Studio/Gradle            |
+  | macOS 10.15+                  | Clang Xcode 12.0+                |
+  | Ubuntu 20.04 LTS              | GCC 9.x.x                        |
+  | Ubuntu 22.04 LTS              | GCC 11.x.x                       |
+  | Windows 10                    | Android Studio/Gradle 8.5, Java 17 |
   | Windows Server 2016           | Visual Studio 2017 (vc141)       |
-  | Windows Server 2019           | Visual Studio 2019 (vc142)       |
+  | Windows Server 2022           | Visual Studio 2022 (vc143)       |
 
 ## Target Platforms
   
   | Target Platform                | Supported          | Covered by CI      |
   | ------------------------------ | ------------------ | ------------------ |
-  | Android                        | :white_check_mark: | :white_check_mark: |
-  | iOS 10+ (simulator)            | :white_check_mark: | :white_check_mark: |
-  | iOS 10+ (arm64, arm64e)        | :white_check_mark: |                    |
+  | Android (API 23+)              | :white_check_mark: | :white_check_mark: |
+  | iOS 12+ (simulator)            | :white_check_mark: | :white_check_mark: |
+  | iOS 12+ (arm64, arm64e)        | :white_check_mark: |                    |
   | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
-  | Mac OS X 10.11+                | :white_check_mark: |                    |
-  | Mac OS X (latest)              | :white_check_mark: | :white_check_mark: |
-  | Ubuntu 14.04.x LTS             | :white_check_mark: |                    |
-  | Ubuntu 16.04.x LTS             | :white_check_mark: |                    |
-  | Ubuntu 18.04.x LTS             | :white_check_mark: |                    |
+  | macOS 10.15+                   | :white_check_mark: |                    |
+  | macOS (latest)                 | :white_check_mark: | :white_check_mark: |
   | Ubuntu 20.04.x LTS             | :white_check_mark: | :white_check_mark: |
+  | Ubuntu 22.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
-  | Windows 7.1                    | :white_check_mark: |                    |
-  | Windows 8.1                    | :white_check_mark: |                    |
   | Windows 10.x                   | :white_check_mark: |                    |
-  | Windows Server 2012            | :white_check_mark: |                    |
+  | Windows 11                     | :white_check_mark: |                    |
   | Windows Server 2016            | :white_check_mark: |                    |
-  | Windows Server 2019            | :white_check_mark: | :white_check_mark: |
+  | Windows Server 2019            | :white_check_mark: |                    |
+  | Windows Server 2022            | :white_check_mark: | :white_check_mark: |
   
 * **Supported** - these platforms are known to work well with the SDK in
     production.
 * **Covered by CI** - these platforms are tested as part of CI.
+* For iOS simulator, CI covers representative supported simulator
+  configurations on the current macOS runner images rather than every
+  supported iOS 12+ runtime.
 
 ## Test
 
@@ -93,11 +112,6 @@ These tests use Google Test / Google Mock framework and get built alongside
 the SDK. Launch `functests` and `unittests` binary executables to capture
 the test results.
 
-## Getting Support
-
-Microsoft products using SDK may use [GitHub issues](https://github.com/microsoft/cpp_client_telemetry/issues/new/choose)
-as the communication channel for both feature requests and issues.
-
 **Note**:
 
 * Please refer to the supported [platforms](#build), anything not in the list
@@ -106,15 +120,6 @@ as the communication channel for both feature requests and issues.
   provided as-is, and not supported.
 * Build issues are in general out of the support scope due to the unlimited
   number of build flags combinations.
-
-## Contributing
-
-This project does not accept *Public* contributions at this time.
-
-**[Microsoft-authorized
-contributors](https://github.com/orgs/microsoft/teams/everyone) - please refer
-to contributing instructions
-[here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
 
 ## Versioning
 

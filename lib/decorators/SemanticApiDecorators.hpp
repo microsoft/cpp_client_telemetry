@@ -16,7 +16,7 @@ namespace MAT_NS_BEGIN {
     class SemanticApiDecorators : public BaseDecorator {
 
     public:
-        SemanticApiDecorators(ILogManager& owner) : BaseDecorator(owner) {};
+        SemanticApiDecorators(ILogManager& owner) : BaseDecorator(owner) {}
 
         bool decorateAggregatedMetricMessage(::CsProtocol::Record& record, AggregatedMetricData const& metricData)
         {

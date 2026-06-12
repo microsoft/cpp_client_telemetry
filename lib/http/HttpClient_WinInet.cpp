@@ -540,12 +540,17 @@ void HttpClient_WinInet::CancelAllRequests()
         PAL::sleep(100);
         std::this_thread::yield();
     }
-};
+}
 
 /// <summary>
 /// Enforces MS-root server certificate check.
 /// </summary>
 /// <param name="enforceMsRoot">if set to <c>true</c> [enforce verification that server cert is MS-Rooted].</param>
+void HttpClient_WinInet::ApplySettings(ILogConfiguration& config)
+{
+    SetMsRootCheck(config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
+}
+
 void HttpClient_WinInet::SetMsRootCheck(bool enforceMsRoot)
 {
     m_msRootCheck = enforceMsRoot;
