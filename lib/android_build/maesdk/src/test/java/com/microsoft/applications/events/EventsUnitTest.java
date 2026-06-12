@@ -390,4 +390,15 @@ public class EventsUnitTest {
         }
     }
 
+    @Test
+    public void newEventPropertiesGetTypeReturnsEmptyString() {
+        // Regression test for #1329: getType() on a freshly constructed
+        // EventProperties must return its documented default of "" (an empty
+        // string), not null -- EventPropertiesStorage previously left eventType
+        // uninitialized.
+        EventProperties props = new EventProperties("MyEvent", DiagnosticLevel.DIAG_LEVEL_OPTIONAL);
+        assertNotNull(props.getType());
+        assertEquals("", props.getType());
+    }
+
 }
