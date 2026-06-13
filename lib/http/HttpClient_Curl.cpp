@@ -85,9 +85,12 @@ namespace MAT_NS_BEGIN {
         curlRequest->SetOperation(curlOperation);
         
         // The lifetime of curlOperation across the async Send is guaranteed by
-        // ~CurlHttpOperation: when this shared_ptr is released from another
-        // thread it waits for the async result; when the callback below drops
-        // the last reference (EraseRequest) it defers the join instead.
+        // ~CurlHttpOperation. After this function returns, the only remaining
+        // shared_ptr is the one held by the owning CurlHttpRequest. When that
+        // request is destroyed from another thread, the destructor waits for the
+        // async result; if the callback below leads to the request being
+        // destroyed on the async thread itself (OnHttpResponse ->
+        // EventsUploadContext::clear()), the destructor defers the join instead.
         curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {
             this->EraseRequest(requestId);
 

@@ -177,12 +177,13 @@ public:
     {
         // libstdc++'s std::future<>::~future implicitly joins the async thread
         // during destruction. If this destructor runs ON that same async thread
-        // (the Send() callback dropped the last reference to us, e.g. via
-        // EraseRequest), that join is a self-join and throws
-        // std::system_error("Resource deadlock avoided"); since it originates in
-        // this noexcept destructor it aborts the process.
+        // (the async callback led to the owning CurlHttpRequest being destroyed
+        // on that thread, e.g. OnHttpResponse -> EventsUploadContext::clear()),
+        // that join is a self-join and throws std::system_error("Resource
+        // deadlock avoided"); since it originates in this noexcept destructor it
+        // aborts the process.
         //
-        // Distinguish the two cases by the thread id recorded when the async
+        // Distinguish the two cases by the thread id published when the async
         // task started:
         //   * self-join   -> the work is necessarily complete; defer the
         //                    future's join to a detached helper thread instead
@@ -192,7 +193,8 @@ public:
         //                    by-reference request body alive until it finishes.
         if (result.valid())
         {
-            if (std::this_thread::get_id() == m_asyncThreadId.load(std::memory_order_acquire))
+            if (m_asyncThreadIdSet.load(std::memory_order_acquire) &&
+                std::this_thread::get_id() == m_asyncThreadId)
             {
                 // Heap-allocate first so a rare std::thread spawn failure leaks
                 // the already-finished future rather than joining it on this
@@ -362,7 +364,8 @@ cleanup:
 
     std::future<long> & SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
         result = std::async(std::launch::async, [this, callback] {
-            m_asyncThreadId.store(std::this_thread::get_id(), std::memory_order_release);
+            m_asyncThreadId = std::this_thread::get_id();
+            m_asyncThreadIdSet.store(true, std::memory_order_release);
             long result = Send();
             if (callback!=nullptr)
                 callback(*this);
@@ -482,10 +485,14 @@ protected:
     CURL *curl;                     // Local curl instance
     CURLcode res = CURLE_OK;        // Curl result OR HTTP status code if successful
 
-    // Id of the thread running the async Send() task (set when the task starts).
-    // Lets ~CurlHttpOperation detect a self-join (destruction from within the
-    // async callback) and avoid the EDEADLK that joining the future would raise.
-    std::atomic<std::thread::id> m_asyncThreadId{};
+    // Id of the thread running the async Send() task, published via the
+    // atomic<bool> flag below (release/acquire). ~CurlHttpOperation uses these
+    // to detect a self-join (destruction from within the async callback) and
+    // avoid the EDEADLK that joining the future would raise. A plain thread::id
+    // plus an atomic<bool> flag is used instead of std::atomic<std::thread::id>,
+    // which is not guaranteed to be supported across standard libraries.
+    std::thread::id m_asyncThreadId{};
+    std::atomic<bool> m_asyncThreadIdSet{ false };
     
     IHttpResponseCallback* m_callback = nullptr;
 
