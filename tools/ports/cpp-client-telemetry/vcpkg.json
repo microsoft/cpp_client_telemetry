@@ -6,9 +6,6 @@
   "license": "Apache-2.0",
   "supports": "((windows & !mingw) | linux | osx | ios | android) & !uwp",
   "dependencies": [
-    "nlohmann-json",
-    "sqlite3",
-    "zlib",
     {
       "name": "curl",
       "default-features": false,
@@ -17,6 +14,8 @@
       ],
       "platform": "linux | android"
     },
+    "nlohmann-json",
+    "sqlite3",
     {
       "name": "vcpkg-cmake",
       "host": true
@@ -24,6 +23,7 @@
     {
       "name": "vcpkg-cmake-config",
       "host": true
-    }
+    },
+    "zlib"
   ]
 }
