@@ -23,6 +23,7 @@
 #include <future>
 #include <atomic>
 #include <thread>
+#include <new>
 
 #include <poll.h>
 #include <curl/curl.h>
@@ -198,16 +199,22 @@ public:
                 // async thread (EDEADLK) or letting std::system_error escape
                 // this noexcept destructor.
                 std::future<long>* pending = new (std::nothrow) std::future<long>(std::move(result));
-                if (pending != nullptr)
+                if (pending == nullptr)
                 {
-                    try
-                    {
-                        std::thread([pending]() { delete pending; }).detach();
-                    }
-                    catch (...)
-                    {
-                        // Thread exhaustion: intentionally leak *pending.
-                    }
+                    // Out of memory: `result` is still valid and would self-join
+                    // (EDEADLK) when destroyed on this async thread at the end of
+                    // the destructor, and there is no allocation-free way to move
+                    // it off-thread. Abort as a last resort rather than fall
+                    // through to a guaranteed EDEADLK abort.
+                    std::abort();
+                }
+                try
+                {
+                    std::thread([pending]() { delete pending; }).detach();
+                }
+                catch (...)
+                {
+                    // Thread exhaustion: intentionally leak *pending.
                 }
             }
             else
