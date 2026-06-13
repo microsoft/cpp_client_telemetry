@@ -185,9 +185,13 @@ public:
         //
         // Distinguish the two cases by the thread id published when the async
         // task started:
-        //   * self-join   -> the work is necessarily complete; defer the
-        //                    future's join to a detached helper thread instead
-        //                    of blocking/joining on this (the async) thread.
+        //   * self-join   -> Send() has returned (we are running inside its
+        //                    callback), but the async task itself has not yet
+        //                    returned (this destructor is executing inside it),
+        //                    so defer the future's join to a detached helper
+        //                    thread rather than joining on this (the async)
+        //                    thread; the helper's join completes once the task
+        //                    returns after this destructor unwinds.
         //   * cross-thread -> the async Send() may still be running, so wait()
         //                    to keep the curl handle, response buffer and the
         //                    by-reference request body alive until it finishes.
@@ -363,6 +367,10 @@ cleanup:
     }
 
     std::future<long> & SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
+        // Reset the publication flag before launching so self-join detection
+        // stays correct even if this operation were ever reused (today each
+        // CurlHttpOperation is single-use: one SendAsync call per request).
+        m_asyncThreadIdSet.store(false, std::memory_order_release);
         result = std::async(std::launch::async, [this, callback] {
             m_asyncThreadId = std::this_thread::get_id();
             m_asyncThreadIdSet.store(true, std::memory_order_release);
