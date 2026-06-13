@@ -70,10 +70,18 @@ jobs:
           TAG="${{ github.event.release.tag_name }}"
           if [ -z "${TAG}" ]; then TAG="${{ inputs.tag }}"; fi
           if [ -z "${TAG}" ]; then echo "::error::No release tag could be resolved."; exit 1; fi
-          # Only act on version tags: vMAJOR.MINOR.PATCH.BUILD
+          # Only act on version tags: vMAJOR.MINOR.PATCH.BUILD. A non-matching
+          # tag from the automatic release trigger is a clean no-op (the SDK also
+          # has historical 3-part tags such as v3.3.8); a non-matching tag from a
+          # manual workflow_dispatch is user error and fails loudly.
           if ! printf '%s' "${TAG}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::Tag '${TAG}' is not a version tag (expected vX.Y.Z.W); skipping."
-            exit 1
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::Tag '${TAG}' is not a version tag (expected vX.Y.Z.W)."
+              exit 1
+            fi
+            echo "::notice::Tag '${TAG}' is not a version tag (expected vX.Y.Z.W); nothing to bump."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           VERSION="${TAG#v}"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
@@ -83,6 +91,7 @@ jobs:
 
       - name: Compute source archive SHA512
         id: sha
+        if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
           URL="https://github.com/${UPSTREAM_REPO}/archive/${{ steps.ver.outputs.tag }}.tar.gz"
@@ -93,11 +102,17 @@ jobs:
           echo "SHA512=${SHA512}"
 
       - name: Clone vcpkg fork and branch off upstream master
+        if: ${{ steps.ver.outputs.skip != 'true' }}
         env:
-          VCPKG_BUMP_TOKEN: ${{ secrets.VCPKG_BUMP_TOKEN }}
+          GH_TOKEN: ${{ secrets.VCPKG_BUMP_TOKEN }}
         run: |
           set -euo pipefail
-          git clone --depth 1 "https://x-access-token:${VCPKG_BUMP_TOKEN}@github.com/${VCPKG_FORK_REPO}.git" vcpkg
+          # Authenticate git via gh's credential helper instead of embedding the
+          # token in the clone URL (which would persist it in .git/config and
+          # risk leaking it if git echoes the remote). The helper is written to
+          # the global gitconfig and reused by the later push step.
+          gh auth setup-git
+          git clone --depth 1 "https://github.com/${VCPKG_FORK_REPO}.git" vcpkg
           cd vcpkg
           git remote add upstream "https://github.com/${VCPKG_UPSTREAM}.git"
           git fetch --depth 1 upstream master
@@ -106,9 +121,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Bootstrap vcpkg
+        if: ${{ steps.ver.outputs.skip != 'true' }}
         run: cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics
 
       - name: Update port REF, SHA512 and version
+        if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
           cd vcpkg
@@ -126,6 +143,7 @@ jobs:
 
       - name: Detect change
         id: diff
+        if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
           cd vcpkg
@@ -137,12 +155,14 @@ jobs:
           fi
 
       - name: Commit, update version DB, push and open PR
-        if: ${{ steps.diff.outputs.changed == 'true' }}
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.diff.outputs.changed == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.VCPKG_BUMP_TOKEN }}
         run: |
           set -euo pipefail
           cd vcpkg
+          # gh auth setup-git ran in the clone step; reuse that credential helper
+          # so 'git push' authenticates without a token in the remote URL.
           BR="${{ steps.ver.outputs.branch }}"
           git add "ports/${PORT}"
           git commit -m "[${PORT}] Update to ${{ steps.ver.outputs.version }}"
