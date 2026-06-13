@@ -67,6 +67,30 @@ public class SemanticContext {
     }
 
     /**
+    Set the operating system version context information of the telemetry event.
+
+    - Note: Overrides the OS version that the SDK populates automatically (Common Schema field `ext.os.ver`).
+
+    - Parameters:
+        - osVersion: A `String` that contains the operating system version.
+    */
+    public func setOsVersion(_ osVersion: String) {
+        odwSemanticContext.setOsVersion(osVersion)
+    }
+
+    /**
+    Set the operating system build context information of the telemetry event.
+
+    - Note: In the CS3 schema the OS version field (`ext.os.ver`) is populated from the OS build, so set this if `setOsVersion(_:)` alone does not update `ext.os.ver`.
+
+    - Parameters:
+        - osBuild: A `String` that contains the operating system build.
+    */
+    public func setOsBuild(_ osBuild: String) {
+        odwSemanticContext.setOsBuild(osBuild)
+    }
+
+    /**
     Set the user time zone context information of telemetry event.
 
     - Parameters:
