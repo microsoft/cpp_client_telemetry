@@ -391,14 +391,16 @@ public class EventsUnitTest {
     }
 
     @Test
-    public void newEventPropertiesGetTypeReturnsEmptyString() {
-        // Regression test for #1329: getType() on a freshly constructed
-        // EventProperties must return its documented default of "" (an empty
-        // string), not null -- EventPropertiesStorage previously left eventType
-        // uninitialized.
-        EventProperties props = new EventProperties("MyEvent", DiagnosticLevel.DIAG_LEVEL_OPTIONAL);
-        assertNotNull(props.getType());
-        assertEquals("", props.getType());
+    public void newEventPropertiesStorageEventTypeDefaultsToEmptyString() {
+        // Regression test for #1329: EventPropertiesStorage previously left
+        // eventType uninitialized (null), so EventProperties.getType() (which
+        // returns mStorage.eventType) returned null instead of its documented
+        // "" default. Exercise the pure-Java storage directly: constructing an
+        // EventProperties here would call setName() -> native validateEventName(),
+        // which is not loaded in these JVM (MockitoJUnitRunner) unit tests.
+        EventPropertiesStorage storage = new EventPropertiesStorage();
+        assertNotNull(storage.eventType);
+        assertEquals("", storage.eventType);
     }
 
 }
