@@ -55,7 +55,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 /*!
  @brief Set the operating system version context information of telemetry event.
- @details Overrides the OS version that the SDK populates automatically (Common Schema field `ext.os.ver`).
+ @details Overrides the OS version that the SDK populates automatically (the `DeviceInfo.OsVersion` field). Note: in the CS3 schema `ext.os.ver` is populated from the OS build, not this field, so use setOsBuild: to override `ext.os.ver`.
  @param osVersion A string that contains the operating system version.
  */
 -(void) setOsVersion:(nonnull NSString*)osVersion;

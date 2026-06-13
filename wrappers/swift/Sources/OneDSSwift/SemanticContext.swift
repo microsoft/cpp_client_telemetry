@@ -69,7 +69,7 @@ public class SemanticContext {
     /**
     Set the operating system version context information of the telemetry event.
 
-    - Note: Overrides the OS version that the SDK populates automatically (Common Schema field `ext.os.ver`).
+    - Note: Overrides the OS version that the SDK populates automatically (the `DeviceInfo.OsVersion` field). In the CS3 schema `ext.os.ver` is populated from the OS build, not this field — use `setOsBuild(_:)` to override `ext.os.ver`.
 
     - Parameters:
         - osVersion: A `String` that contains the operating system version.
