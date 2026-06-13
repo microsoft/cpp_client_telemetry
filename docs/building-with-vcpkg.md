@@ -1,6 +1,6 @@
 # Building 1DS C++ SDK with vcpkg
 
-[vcpkg](https://vcpkg.io/) is a Microsoft cross-platform open source C++ package manager. Onboarding instructions for Windows, Linux and Mac OS X [available here](https://docs.microsoft.com/en-us/cpp/build/vcpkg). This document assumes that the customer build system is already configured to use vcpkg ([getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/overview)). 1DS C++ SDK maintainers provide a build recipe, `cpp-client-telemetry` port or CONTROL file for vcpkg. The mainline vcpkg repo is refreshed to point to latest stable open source release of 1DS C++ SDK.
+[vcpkg](https://vcpkg.io/) is a Microsoft cross-platform open source C++ package manager. Onboarding instructions for Windows, Linux and Mac OS X [available here](https://docs.microsoft.com/en-us/cpp/build/vcpkg). This document assumes that the customer build system is already configured to use vcpkg ([getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/overview)). The `cpp-client-telemetry` port is published in the official vcpkg registry, so it can be consumed directly with no overlay or extra configuration. Maintainers refresh the registry to point to the latest stable open source release of the 1DS C++ SDK on each release.
 
 The port provides the core SDK — the `MSTelemetry::mat` target and its public
 C++ headers. The optional Microsoft-proprietary modules (Privacy Guard,
@@ -16,7 +16,8 @@ git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 
 ### Installing from the vcpkg registry
 
-Once a new port has been accepted into the official vcpkg registry, install with:
+The `cpp-client-telemetry` port is available in the [official vcpkg registry](https://github.com/microsoft/vcpkg/tree/master/ports/cpp-client-telemetry),
+so you can install it directly — no overlay or extra configuration required:
 
 ```console
 vcpkg install cpp-client-telemetry
@@ -26,8 +27,9 @@ That's it! The package should be compiled for the current OS.
 
 ### Installing from the overlay port (development / pre-release)
 
-Before the port is published, or to test local changes, use the overlay port
-shipped in this repository:
+The overlay port shipped in this repository is for **development only** — use it
+to test local changes to the port, or a newer SDK revision, before they are
+published to the registry:
 
 ```console
 git clone https://github.com/microsoft/cpp_client_telemetry
