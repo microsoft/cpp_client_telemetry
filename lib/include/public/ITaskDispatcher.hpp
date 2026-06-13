@@ -132,8 +132,11 @@ namespace MAT_NS_BEGIN
         /// so existing dispatcher implementations keep their current behavior.
         ///
         /// Declared after Cancel so that adding this method does not shift the
-        /// vtable slots of the pre-existing virtuals, preserving binary
-        /// compatibility for client ITaskDispatcher implementations.
+        /// vtable slot indices of the pre-existing virtuals (Join/Queue/Cancel).
+        /// The SDK makes no general C++ ABI guarantee -- adding a virtual grows
+        /// the vtable and clients should be recompiled -- but keeping the
+        /// existing slots stable avoids silently dispatching old call sites
+        /// (e.g. Cancel) through the wrong slot.
         /// </summary>
         /// <param name="task">Task to be executed on a worker thread</param>
         /// <returns>True if the task was queued, false if it was dropped</returns>
