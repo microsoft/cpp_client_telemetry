@@ -65,10 +65,16 @@ jobs:
 
       - name: Resolve tag and version
         id: ver
+        env:
+          # Pass untrusted tag values through the environment instead of
+          # interpolating ${{ ... }} directly into the script body, so a tag
+          # containing shell metacharacters cannot inject commands into this
+          # step (which shares a runner with later PAT-bearing steps).
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
-          TAG="${{ github.event.release.tag_name }}"
-          if [ -z "${TAG}" ]; then TAG="${{ inputs.tag }}"; fi
+          TAG="${RELEASE_TAG:-$INPUT_TAG}"
           if [ -z "${TAG}" ]; then echo "::error::No release tag could be resolved."; exit 1; fi
           # Only act on version tags: vMAJOR.MINOR.PATCH.BUILD. A non-matching
           # tag from the automatic release trigger is a clean no-op (the SDK also
