@@ -149,16 +149,17 @@ else()
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # Using GCC with -s and -Wl linker flags
-  set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants")
+  # Using GCC with -s and -Wl linker flags. -ffunction-sections/-fdata-sections
+  # are set once for all dep modes by the global block further below.
+  set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -fmerge-all-constants")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(REL_FLAGS "${WARN_FLAGS}")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  # AppleClang does not support -ffunction-sections and -fdata-sections with the -fembed-bitcode and -fembed-bitcode-marker
   set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants")
 else()
-  # Using clang - strip unsupported GCC options
-  set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants")
+  # Using clang - strip unsupported GCC options (-ffunction-sections is set by
+  # the global block further below).
+  set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants")
 endif()
 
 ## Uncomment this to reduce the volume of note warnings on RPi4 w/gcc-8 Ref. https://gcc.gnu.org/ml/gcc/2017-05/msg00073.html
