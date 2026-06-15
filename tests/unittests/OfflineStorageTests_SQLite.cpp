@@ -189,7 +189,7 @@ TEST_F(OfflineStorageTests_SQLite, DeleteRecordsRejectsTenantTokenSqlInjection)
     ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
 
-    // A malicious kill-token value attempting stacked SQL (OR 1=1 / DROP TABLE).
+    // A malicious tenant_token value attempting stacked SQL (OR 1=1 / DROP TABLE).
     // It must be treated as a literal tenant_token value that matches nothing.
     const std::string malicious = "x\" OR 1=1; DROP TABLE events; --";
     offlineStorage->DeleteRecords({{"tenant_token", malicious}});
