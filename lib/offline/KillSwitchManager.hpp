@@ -244,15 +244,19 @@ namespace MAT_NS_BEGIN {
         // offline-storage DELETE is parameterized (SQLite bind / Room DAO) and the
         // in-memory match is a plain string compare -- so any printable value must
         // remain killable; over-restricting would let that tenant escape the kill.
-        // We still reject empty tokens and control characters as defensive hygiene:
+        // We reject empty tokens and control characters as defensive hygiene:
         // a legitimate token never contains control characters, an embedded NUL would
         // be truncated by the Room JNI NewStringUTF(c_str()) call (acting on the wrong
         // token), and it keeps the value safe if it ever reaches a log/display sink.
-        // No maximum length is enforced: there is no authoritative max token size, and
-        // capping it could let an over-long-but-legitimate tenant escape the kill.
+        // We also bound the length: real tenant tokens are a fixed, small size
+        // (~74 chars; see HttpRequestEncoder.cpp), so kMaxTenantTokenBytes (256) is a
+        // generous ceiling -- it caps memory growth from a malicious/oversized
+        // kill-token in an untrusted HTTP response, while staying far above any real
+        // token so a legitimate tenant can never be made unkillable by this check.
+        static constexpr size_t kMaxTenantTokenBytes = 256;
         static bool isValidTenantToken(const std::string& token)
         {
-            if (token.empty())
+            if (token.empty() || token.size() > kMaxTenantTokenBytes)
             {
                 return false;
             }

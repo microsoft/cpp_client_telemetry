@@ -156,6 +156,34 @@ TEST(KillSwitchManagerTests, handleResponse_OpaqueKillTokenWithUnusualChars_IsBl
     ASSERT_TRUE(manager.isTokenBlocked(token));
 }
 
+TEST(KillSwitchManagerTests, handleResponse_MaxLengthKillToken_IsBlocked)
+{
+    // A token exactly at the 256-byte ceiling is still valid and must remain
+    // killable -- the length cap only rejects values longer than that.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    const std::string maxLen(256, 'a');
+    headers.add("kill-tokens", maxLen);
+    headers.add("kill-duration", "300");
+    ASSERT_TRUE(manager.handleResponse(headers));
+    ASSERT_TRUE(manager.isTokenBlocked(maxLen));
+}
+
+TEST(KillSwitchManagerTests, handleResponse_OverlongKillToken_IsIgnored)
+{
+    // Kill-tokens come from an untrusted HTTP response header. Real tenant tokens
+    // are a fixed, small size (~74 chars), so a token longer than the 256-byte
+    // ceiling is rejected to bound memory growth from a malicious/oversized value.
+    KillSwitchManager manager;
+    HttpHeaders headers;
+    const std::string overlong(257, 'a');  // one byte past the cap
+    headers.add("kill-tokens", overlong);
+    headers.add("kill-duration", "300");
+    ASSERT_NO_THROW(manager.handleResponse(headers));
+    ASSERT_FALSE(manager.isActive());
+    ASSERT_FALSE(manager.isTokenBlocked(overlong));
+}
+
 TEST(KillSwitchManagerTests, handleResponse_HugeKillDuration_IsClampedNotWrapped)
 {
     // A huge (still in-range) kill-duration flows through the same parser as
