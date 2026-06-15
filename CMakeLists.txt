@@ -207,14 +207,16 @@ endif()
 endif() # NOT MATSDK_USE_VCPKG_DEPS (compiler flags)
 
 # --- Dead-strip enablement (applies in BOTH vendored and vcpkg modes) ---------
-# Split functions/data into separate COMDATs/sections so a consumer's linker can
-# drop unreferenced SDK code: MSVC /OPT:REF + /OPT:ICF, GNU/Clang --gc-sections,
-# Apple ld -dead_strip. The vendored-deps flag block above sets these only when
-# NOT MATSDK_USE_VCPKG_DEPS, and never sets /Gy at all on MSVC -- so the vcpkg
-# build (the one packaged for downstream consumers) and every MSVC build link
-# whole .obj files instead of individual functions. This block closes that gap
-# and matches the MSBuild Release projects, which already enable
-# FunctionLevelLinking + OptimizeReferences + EnableCOMDATFolding.
+# Deliberate exception to the "let the toolchain manage compiler flags" note
+# above (the NOT MATSDK_USE_VCPKG_DEPS block): these flags are NOT optimization
+# or dependency choices the vcpkg toolchain owns -- they only split functions and
+# data into separate COMDATs/sections so a *consumer's* linker can drop
+# unreferenced SDK code (MSVC /OPT:REF + /OPT:ICF, GNU/Clang --gc-sections, Apple
+# ld -dead_strip). The toolchain does not set them, and the vcpkg-packaged
+# library (and every MSVC build, which never gets /Gy from the block above) would
+# otherwise link whole .obj files instead of individual functions. Applying them
+# here in both modes closes that gap and matches the MSBuild Release projects,
+# which already enable FunctionLevelLinking + OptimizeReferences + COMDATFolding.
 if(MSVC)
   add_compile_options(/Gy /Gw)
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
