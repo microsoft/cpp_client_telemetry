@@ -192,19 +192,50 @@ will automatically use the optimized zlib-ng build.
 > zlib. When using `ZLIB_COMPAT=ON`, ensure all dependencies resolve to
 > zlib-ng rather than mixing stock zlib and zlib-ng.
 
-## Optional: Reducing footprint (SQLite features)
+## Reducing binary footprint
 
-The SDK uses SQLite only for offline event storage — simple tables and indexes,
-with no JSON, FTS, R*Tree, or virtual-table features. The port therefore
-requests `sqlite3` **without default features**, so it never pulls SQLite's
-`json1` extension on the SDK's behalf.
+The SDK links statically into your binary, so most footprint control lives on
+*your* side of the link.
 
-vcpkg resolves a dependency's features as the *union* across the whole graph and
-**ignores `default-features: false` on transitive dependencies** — only the
-top-level (root) manifest can drop a default feature. So to actually omit
-`json1` (which compiles SQLite with `SQLITE_OMIT_JSON`, ~50 KB smaller in a
-static `x64-windows-static` Release build), a footprint-conscious consumer must
-also declare it in their own manifest:
+### Enable linker dead-stripping (largest lever)
+
+The SDK is compiled with function-level linking (`/Gy /Gw` on MSVC,
+`-ffunction-sections -fdata-sections` on GCC/Clang) so that **your** linker can
+discard SDK code you never reference. Make sure your final link enables it:
+
+- **MSVC:** `/OPT:REF` (drop unreferenced functions/data) and `/OPT:ICF` (fold
+  identical COMDATs). These are on by default for Release, **but `/DEBUG`
+  silently disables them** — if you ship PDBs, re-enable them explicitly. Also
+  use `/INCREMENTAL:NO` (incremental linking disables `/OPT:REF`):
+
+  ```cmake
+  target_link_options(your_target PRIVATE
+    $<$<CONFIG:Release,RelWithDebInfo>:/OPT:REF>
+    $<$<CONFIG:Release,RelWithDebInfo>:/OPT:ICF>
+    $<$<CONFIG:Release,RelWithDebInfo>:/INCREMENTAL:NO>)
+  ```
+
+- **GCC / Clang:** link with `-Wl,--gc-sections`.
+- **Apple (clang):** link with `-Wl,-dead_strip`.
+
+This is by far the largest lever — on a static `x64-windows-static` Release link
+it can roughly halve the binary. The SDK's `/Gy /Gw` flags only *enable* this;
+the stripping happens at your link. Keep the SDK a static dependency linked
+*into* your binary: if you re-export its API across your own DLL boundary, the
+export table pins its symbols and defeats `/OPT:REF`.
+
+### Drop unused SQLite features (json1)
+
+The SDK uses SQLite only for offline event storage — plain tables and indexes,
+with no JSON, FTS, R*Tree, or virtual-table features. This in-repo overlay port
+already requests `sqlite3` with `default-features: false` on its dependency edge
+(the published registry port will follow once this change is upstreamed).
+
+vcpkg unions feature requests across the whole dependency graph, and a
+transitive opt-out alone is **not** enough: you must **also** request `sqlite3`
+with `default-features: false` in your own top-level manifest to actually omit
+`json1` (which compiles SQLite with `SQLITE_OMIT_JSON`, ~50 KB smaller on a
+static `x64-windows-static` Release build):
 
 ```json
 {
@@ -215,9 +246,9 @@ also declare it in their own manifest:
 }
 ```
 
-If any package in your build (including your own code) needs SQLite's JSON
-functions, request `sqlite3[json1]` instead and the extension is restored for
-the whole graph.
+If any package in your build (or your own code) needs SQLite's JSON functions,
+request `sqlite3[json1]` instead and the extension is restored for the whole
+graph.
 
 ## How It Works: MATSDK_USE_VCPKG_DEPS
 
