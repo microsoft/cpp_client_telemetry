@@ -192,6 +192,33 @@ will automatically use the optimized zlib-ng build.
 > zlib. When using `ZLIB_COMPAT=ON`, ensure all dependencies resolve to
 > zlib-ng rather than mixing stock zlib and zlib-ng.
 
+## Optional: Reducing footprint (SQLite features)
+
+The SDK uses SQLite only for offline event storage — simple tables and indexes,
+with no JSON, FTS, R*Tree, or virtual-table features. The port therefore
+requests `sqlite3` **without default features**, so it never pulls SQLite's
+`json1` extension on the SDK's behalf.
+
+vcpkg resolves a dependency's features as the *union* across the whole graph and
+**ignores `default-features: false` on transitive dependencies** — only the
+top-level (root) manifest can drop a default feature. So to actually omit
+`json1` (which compiles SQLite with `SQLITE_OMIT_JSON`, ~50 KB smaller in a
+static `x64-windows-static` Release build), a footprint-conscious consumer must
+also declare it in their own manifest:
+
+```json
+{
+  "dependencies": [
+    "cpp-client-telemetry",
+    { "name": "sqlite3", "default-features": false }
+  ]
+}
+```
+
+If any package in your build (including your own code) needs SQLite's JSON
+functions, request `sqlite3[json1]` instead and the extension is restored for
+the whole graph.
+
 ## How It Works: MATSDK_USE_VCPKG_DEPS
 
 When the SDK detects it is being built via vcpkg (by checking for
