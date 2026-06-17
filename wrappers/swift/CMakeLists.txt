@@ -15,7 +15,7 @@
 #    and linking the static libs to generate the executable.
 # ------------------------------------------------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
+cmake_minimum_required(VERSION 3.15...3.31)
 
 # Set build and path related variables
 string(TOLOWER ${CMAKE_BUILD_TYPE} LOWER_BUILD_TYPE)
