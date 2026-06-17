@@ -27,6 +27,7 @@ set(SRCS
   HttpResponseDecoderTests.cpp
   HttpServerTests.cpp
   InformationProviderImplTests.cpp
+  KillSwitchManagerTests.cpp
   LoggerTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp
