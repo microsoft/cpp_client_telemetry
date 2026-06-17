@@ -157,21 +157,24 @@ namespace MAT_NS_BEGIN
     {
         uint64_t res = 0ull;
         char *endptr = nullptr;
-        res = std::strtoll(s.c_str(), &endptr, 10);
-        if (errno == ERANGE && (res == LONG_MAX || res == 0 ))
+        errno = 0;
+        long long parsed = std::strtoll(s.c_str(), &endptr, 10);
+        if (errno == ERANGE)
         {
-            LOG_WARN ("Converted value falls out of uint64_t range.");
-            res = 0;
-        } 
-        else if ( 0 != errno  && 0 == res )
-        {
-            LOG_WARN("Conversion cannot be performed.");
+            LOG_WARN ("Converted value falls out of range.");
         }
-        else if (std::strlen(endptr) > 0)
+        else if (endptr == s.c_str() || std::strlen(endptr) > 0)
         {
-            LOG_WARN ("Conversion cannot be performed. Alphanumeric characters present");
-            res = 0;
-        } 
+            LOG_WARN ("Conversion cannot be performed.");
+        }
+        else if (parsed < 0)
+        {
+            LOG_WARN ("Converted value is negative; rejecting.");
+        }
+        else
+        {
+            res = static_cast<uint64_t>(parsed);
+        }
         return res;
     }
 
