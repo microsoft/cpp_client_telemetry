@@ -240,6 +240,10 @@ namespace MAT_NS_BEGIN
             MATSDK_THROW(std::logic_error("whereFilter not implemented"));
         }
 
+        if (!env)
+        {
+            return;
+        }
         if (!m_room)
         {
             return;
@@ -436,6 +440,9 @@ namespace MAT_NS_BEGIN
                 int persist_lb = static_cast<int>(EventPersistence_Normal);
                 int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
 
+                // Set if a null array element is hit below, so the early-release
+                // path skips releaseUnconsumed (which would index into the null).
+                bool sawNullElement = false;
                 for (index = 0; index < limit; ++index)
                 {
                     env.pushLocalFrame(32);
@@ -444,9 +451,12 @@ namespace MAT_NS_BEGIN
                     if (!record)
                     {
                         // Null array element (observed with some androidx.room
-                        // versions): pop this frame and stop. index < limit below
-                        // releases the rest for retry rather than dereferencing
-                        // null in GetObjectClass.
+                        // versions): pop this frame and stop rather than
+                        // dereferencing null in GetObjectClass. We cannot safely
+                        // release the tail here (it contains this null and Java
+                        // releaseUnconsumed indexes from 0), so leave the
+                        // remaining reservations to expire and be retried.
+                        sawNullElement = true;
                         env.popLocalFrame();
                         break;
                     }
@@ -539,11 +549,14 @@ namespace MAT_NS_BEGIN
                 if (index < limit)
                 {
                     // we did not consume all these events
-                    auto release = env->GetMethodID(room_class, "releaseUnconsumed",
-                                                    "([Lcom/microsoft/applications/events/StorageRecord;I)V");
-                    ThrowLogic(env, "releaseUnconsumed");
-                    env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
-                    ThrowRuntime(env, "call ru");
+                    if (!sawNullElement)
+                    {
+                        auto release = env->GetMethodID(room_class, "releaseUnconsumed",
+                                                        "([Lcom/microsoft/applications/events/StorageRecord;I)V");
+                        ThrowLogic(env, "releaseUnconsumed");
+                        env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
+                        ThrowRuntime(env, "call ru");
+                    }
                     break;  // break out of the request > collected loop--end early by request
                 }
             }
@@ -654,6 +667,10 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return;
+            }
             if (!m_room)
             {
                 return;
@@ -959,6 +976,10 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return false;
+            }
             if (!m_room)
             {
                 return false;
@@ -1003,6 +1024,10 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return false;
+            }
             if (!m_room)
             {
                 return false;
@@ -1247,6 +1272,10 @@ namespace MAT_NS_BEGIN
         {
             ConnectedEnv env(s_vm);
 
+            if (!env)
+            {
+                return records;
+            }
             if (!m_room)
             {
                 return records;
