@@ -232,6 +232,17 @@ else()
   add_compile_options(-ffunction-sections -fdata-sections)
 endif()
 
+# Hidden symbol visibility (non-Windows): export only the MATSDK_LIBABI-decorated
+# public API (classes + the C API), hiding SDK internals and the bundled
+# sqlite3/zlib. This shrinks the dynamic symbol table (faster dynamic
+# linking/loading, smaller binaries) and enables more inlining + dead-code
+# elimination -- the non-Windows analog of what /Gy plus the consumer's /OPT:REF
+# achieve on MSVC. Windows already restricts exports via __declspec(dllexport)
+# on MATSDK_LIBABI (lib/include/public/ctmacros.hpp).
+if(NOT MSVC)
+  add_compile_options(-fvisibility=hidden -fvisibility-inlines-hidden)
+endif()
+
 include(tools/Utils.cmake)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

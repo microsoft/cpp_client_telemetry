@@ -47,8 +47,15 @@
 #define MATSDK_LIBABI_CDECL
 #endif
 
-#ifndef MATSDK_LIBABI 
-#define MATSDK_LIBABI
+#ifndef MATSDK_LIBABI
+// Mark the public API as default-visibility so it stays exported when the SDK is
+// built with -fvisibility=hidden (see CMakeLists.txt). This is the non-Windows
+// analog of the __declspec(dllexport) gating above. Harmless without the flag.
+#  if defined(__GNUC__) || defined(__clang__)
+#    define MATSDK_LIBABI __attribute__((visibility("default")))
+#  else
+#    define MATSDK_LIBABI
+#  endif
 #endif
 
 // TODO: [MG] - ideally we'd like to use __attribute__((unused)) with gcc/clang
