@@ -1,9 +1,9 @@
 # Swift Package Manager (xcframework) — prototype
 
-**Status: prototype / not yet validated on macOS.** This is a first-pass scaffold
-for distributing the 1DS C++ SDK to Apple app developers via **Swift Package
-Manager (SPM)**, the successor to CocoaPods (the CocoaPods trunk goes read-only
-on 2 Dec 2026, and there is no official in-repo podspec today).
+**Status: validated prototype.** This is a first-pass scaffold for distributing
+the 1DS C++ SDK to Apple app developers via **Swift Package Manager (SPM)**, the
+successor to CocoaPods (the CocoaPods trunk goes read-only on 2 Dec 2026, and
+there is no official in-repo podspec today).
 
 ## Approach
 
@@ -28,6 +28,7 @@ so the xcframework just needs to vend a Clang module named `ObjCModule`
 | `tools/apple/build-xcframework.sh` | Builds a static `libmat.a` per Apple slice via `build-ios.sh`, lipo's the simulator archs, and assembles the xcframework with `xcodebuild -create-xcframework` |
 | `tools/apple/module.modulemap` | Defines the `ObjCModule` Clang module the Swift layer imports |
 | `tools/apple/MATTelemetry-umbrella.h` | Umbrella over the `ODW*.h` headers baked into the xcframework |
+| `tools/apple/MATTelemetryAvailability.json` | Build-time optional-module manifest consumed by `Package.swift` so Swift sources match the xcframework contents |
 
 ## Build (on macOS)
 
@@ -66,16 +67,20 @@ This mirrors the `vcpkg-release-bump` workflow. It requires the root
 `Package.swift` to already exist at the release tag (i.e. this prototype merged
 before the release is cut).
 
-## Known gaps / TODO (validate on macOS)
+## Validation performed
+
+- `tools/apple/build-xcframework.sh release` builds the iOS device and simulator
+  slices and prints the SPM checksum.
+- `xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build`
+  validates local SwiftPM consumption.
+- A small Obj-C module/static-link smoke test was built and run on an iOS
+  Simulator.
+
+## Known gaps / TODO
 
 - **macOS / Catalyst / visionOS slices** — only iOS device + simulator are wired
   up in this first pass; add the macOS slice (see section 3 of the script).
-- **Conditional modules** — carry over the `moduleExists()` source exclusions
-  from `wrappers/swift/Package.swift` (PrivacyGuard / Sanitizer / DataViewer) and
-  keep the umbrella header in sync with the headers actually built.
-- **Header flattening** — confirm the `ODW*.h` headers reference each other by
-  bare name in the flattened `Headers/` layout (adjust the copy step if not).
-- **Static-lib path** — verify `out/lib/libmat.a` is the actual artifact name and
-  that `-DBUILD_SHARED_LIBS=OFF` yields a static archive for every slice.
 - **Code signing** — release xcframeworks are typically signed; add a signing
   step before zipping for distribution.
+- **Release workflow validation** — exercise `.github/workflows/spm-release.yml`
+  end-to-end on an actual published release.

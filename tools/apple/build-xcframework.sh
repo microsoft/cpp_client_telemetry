@@ -17,8 +17,8 @@
 # A macOS slice (and visionOS, Catalyst) can be folded in the same way -- see
 # the note in section 3.
 #
-# NOTE: this is a first-pass scaffold. It has NOT been executed on macOS yet;
-# validate on a mac and adjust the static-lib path / header flattening as needed.
+# NOTE: this is a first-pass scaffold. It has been validated on macOS for iOS
+# device + simulator slices; macOS/Catalyst/visionOS slices are still TODO.
 
 set -euo pipefail
 
@@ -43,9 +43,31 @@ mkdir -p "$HDRS"
 has_dataviewer=false
 has_privacyguard=false
 has_sanitizer=false
+
+cmake_option_enabled() { # option-name default-value
+  local option="$1"
+  local value="$2"
+  local token
+  for token in $CMAKE_OPTS; do
+    case "$token" in
+      -D${option}=*) value="${token#*=}" ;;
+      -D${option}) value=ON ;;
+    esac
+  done
+  value="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
+  case "$value" in
+    0|false|no|off) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
 [[ -d "$ROOT/lib/modules/dataviewer" ]] && has_dataviewer=true
-[[ -d "$ROOT/lib/modules/privacyguard" ]] && has_privacyguard=true
-[[ -d "$ROOT/lib/modules/sanitizer" ]] && has_sanitizer=true
+if [[ -d "$ROOT/lib/modules/privacyguard" ]] && cmake_option_enabled BUILD_PRIVACYGUARD ON; then
+  has_privacyguard=true
+fi
+if [[ -d "$ROOT/lib/modules/sanitizer" ]] && cmake_option_enabled BUILD_SANITIZER ON; then
+  has_sanitizer=true
+fi
 
 cat > "$OUT/MATTelemetryAvailability.json" <<EOF
 {
