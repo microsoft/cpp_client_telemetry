@@ -8,8 +8,9 @@
 // Headers/ directory, so these are imported by bare name (not by the
 // ../../obj-c/ relative path the in-repo Swift bridging header uses).
 //
-// build-xcframework.sh copies this template and appends imports for optional
-// module headers only when those modules were actually built into the binary.
+// This template intentionally lists only always-available Obj-C headers.
+// build-xcframework.sh appends imports for optional module headers only when
+// those modules were actually built into the binary.
 
 #import <Foundation/Foundation.h>
 

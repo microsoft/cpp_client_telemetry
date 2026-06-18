@@ -88,17 +88,19 @@ cp "$ROOT"/tools/apple/MATTelemetry-umbrella.h "$HDRS/"
 } >> "$HDRS/MATTelemetry-umbrella.h"
 
 # --- 2. Build one static lib per (arch, platform) ----------------------------
-build_slice() {  # arch platform out-subdir
+build_slice() {  # clean-arg arch platform out-subdir
+  local clean_arg="$1"
+  shift
   local arch="$1" plat="$2" sub="$3"
   echo "=== building $arch / $plat ($CONFIG) ==="
-  ( cd "$ROOT" && ./build-ios.sh clean "$CONFIG" "$arch" "$plat" )
+  ( cd "$ROOT" && ./build-ios.sh $clean_arg "$CONFIG" "$arch" "$plat" )
   mkdir -p "$OUT/$sub"
   cp "$ROOT/out/lib/$LIB" "$OUT/$sub/$LIB"
 }
 
-build_slice arm64  iphoneos        ios-arm64
-build_slice arm64  iphonesimulator ios-arm64-sim
-build_slice x86_64 iphonesimulator ios-x86_64-sim
+build_slice clean arm64  iphoneos        ios-arm64
+build_slice ""    arm64  iphonesimulator ios-arm64-sim
+build_slice ""    x86_64 iphonesimulator ios-x86_64-sim
 
 # Fat simulator archive (arm64 + x86_64) -- a single xcframework slice cannot
 # mix device and simulator, but it can contain multiple archs for one platform.

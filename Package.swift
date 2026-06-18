@@ -82,7 +82,6 @@ let package = Package(
     name: "OneDSSwift",
     platforms: [
         .iOS(.v12),
-        .macOS(.v10_15),
     ],
     products: [
         .library(name: "OneDSSwift", targets: ["OneDSSwift"]),
@@ -112,6 +111,17 @@ let package = Package(
             dependencies: ["MATTelemetry"],
             path: "wrappers/swift/Sources/OneDSSwift",
             exclude: excludedSources,
-            swiftSettings: swiftSettings),
+            swiftSettings: swiftSettings,
+            linkerSettings: [
+                .linkedLibrary("sqlite3"),
+                .linkedLibrary("z"),
+                .linkedFramework("CFNetwork"),
+                .linkedFramework("CoreFoundation"),
+                .linkedFramework("Foundation"),
+                .linkedFramework("IOKit"),
+                .linkedFramework("Network"),
+                .linkedFramework("SystemConfiguration"),
+                .linkedFramework("UIKit"),
+            ]),
     ]
 )
