@@ -41,19 +41,30 @@ swift build      # resolves Package.swift against the local xcframework
 ## Consume
 
 - **Local:** point a sample app at this package directory (path dependency).
-- **Released:** in Xcode, *File → Add Packages…* and enter the repo URL once the
-  release flow below is in place.
+- **Released:** in Xcode *File -> Add Package Dependencies...*, enter the repo
+  URL and pick a version. SPM only accepts **3-component SemVer**, and the SDK's
+  own `vX.Y.Z.W` tags are not valid SemVer, so consumers pin the **parallel
+  3-component tag** the release workflow publishes:
 
-## Release wiring (to make it URL-consumable)
+  ```swift
+  .package(url: "https://github.com/microsoft/cpp_client_telemetry.git", from: "3.10.161")
+  ```
 
-1. Build the xcframework and zip it (the script does both).
-2. Attach `MATTelemetry.xcframework.zip` to the GitHub Release for the tag.
-3. Switch the `.binaryTarget` in `Package.swift` from `path:` to
-   `url:`+`checksum:` (the `compute-checksum` value the script prints).
+## Release wiring
 
-This mirrors the `vcpkg-release-bump` workflow: a release-triggered job can build
-the xcframework, upload it to the Release, and bump the `binaryTarget` URL +
-checksum automatically.
+`.github/workflows/spm-release.yml` automates distribution on each published
+release (a 4-component `vX.Y.Z.W` tag). On a macOS runner it:
+
+1. Builds `MATTelemetry.xcframework` and zips it.
+2. Uploads the zip to the GitHub Release.
+3. Computes the SPM checksum and rewrites the `Package.swift` `binaryTarget`
+   from `path:` to `url:`+`checksum:`.
+4. Commits that manifest and pushes a **3-component SemVer tag** (`X.Y.Z`,
+   derived by dropping the trailing build component) that SPM can resolve.
+
+This mirrors the `vcpkg-release-bump` workflow. It requires the root
+`Package.swift` to already exist at the release tag (i.e. this prototype merged
+before the release is cut).
 
 ## Known gaps / TODO (validate on macOS)
 
