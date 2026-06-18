@@ -204,9 +204,10 @@ The SDK is compiled with function-level linking (`/Gy /Gw` on MSVC,
 discard SDK code you never reference. Make sure your final link enables it:
 
 - **MSVC:** `/OPT:REF` (drop unreferenced functions/data) and `/OPT:ICF` (fold
-  identical COMDATs). These are on by default for Release, **but `/DEBUG`
-  silently disables them** — if you ship PDBs, re-enable them explicitly. Also
-  use `/INCREMENTAL:NO` (incremental linking disables `/OPT:REF`):
+  identical COMDATs). These are on by default for Release, **but `/DEBUG` flips
+  their default to off** (`/OPT:NOREF,NOICF`, per the MSVC `/OPT` docs) — so if
+  you ship PDBs, re-enable them explicitly. `/OPT:REF` is also incompatible with
+  incremental linking, so set `/INCREMENTAL:NO`:
 
   ```cmake
   target_link_options(your_target PRIVATE
