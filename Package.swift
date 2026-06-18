@@ -113,15 +113,15 @@ let package = Package(
             exclude: excludedSources,
             swiftSettings: swiftSettings,
             linkerSettings: [
+                .linkedLibrary("c++"),
                 .linkedLibrary("sqlite3"),
                 .linkedLibrary("z"),
-                .linkedFramework("CFNetwork"),
-                .linkedFramework("CoreFoundation"),
-                .linkedFramework("Foundation"),
-                .linkedFramework("IOKit"),
-                .linkedFramework("Network"),
-                .linkedFramework("SystemConfiguration"),
-                .linkedFramework("UIKit"),
+                .linkedFramework("CFNetwork", .when(platforms: [.iOS])),
+                .linkedFramework("CoreFoundation", .when(platforms: [.iOS])),
+                .linkedFramework("Foundation", .when(platforms: [.iOS])),
+                .linkedFramework("Network", .when(platforms: [.iOS])),
+                .linkedFramework("SystemConfiguration", .when(platforms: [.iOS])),
+                .linkedFramework("UIKit", .when(platforms: [.iOS])),
             ]),
     ]
 )

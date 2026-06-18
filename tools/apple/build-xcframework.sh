@@ -54,7 +54,9 @@ cat > "$OUT/MATTelemetryAvailability.json" <<EOF
   "sanitizer": $has_sanitizer
 }
 EOF
-cp "$OUT/MATTelemetryAvailability.json" "$ROOT/tools/apple/MATTelemetryAvailability.json"
+if [[ "${GITHUB_ACTIONS:-}" == "true" || "${MATTELEMETRY_UPDATE_PACKAGE_AVAILABILITY:-}" == "1" ]]; then
+  cp "$OUT/MATTelemetryAvailability.json" "$ROOT/tools/apple/MATTelemetryAvailability.json"
+fi
 
 headers=(
   ODWCommonDataContext.h
