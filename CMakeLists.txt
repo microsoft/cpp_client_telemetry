@@ -221,8 +221,11 @@ endif() # NOT MATSDK_USE_VCPKG_DEPS (compiler flags)
 if(MSVC)
   add_compile_options(/Gy /Gw)
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  # -fdata-sections historically conflicted with bitcode on AppleClang, and the
-  # mach-o linker already dead-strips at symbol granularity with -dead_strip.
+  # On Mach-O, clang emits .subsections_via_symbols, so ld64's -dead_strip
+  # already removes unreferenced code at per-symbol (function) granularity
+  # without -ffunction-sections; we add it only for cross-toolchain
+  # consistency. -fdata-sections is omitted because it historically conflicted
+  # with bitcode on AppleClang.
   add_compile_options(-ffunction-sections)
 else()
   # GCC / Clang (Linux, Android, MinGW)
