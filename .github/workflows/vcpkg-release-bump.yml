@@ -32,7 +32,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: vcpkg-release-bump-${{ github.event.release.tag_name || inputs.tag }}
+  group: vcpkg-release-bump-${{ github.event.release.tag_name || github.event.inputs.tag }}
   cancel-in-progress: false
 
 jobs:
@@ -71,7 +71,7 @@ jobs:
           # containing shell metacharacters cannot inject commands into this
           # step (which shares a runner with later PAT-bearing steps).
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
         run: |
           set -euo pipefail
           TAG="${RELEASE_TAG:-$INPUT_TAG}"

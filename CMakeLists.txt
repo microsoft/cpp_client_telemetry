@@ -219,7 +219,13 @@ endif() # NOT MATSDK_USE_VCPKG_DEPS (compiler flags)
 # here in both modes closes that gap and matches the MSBuild Release projects,
 # which already enable FunctionLevelLinking + OptimizeReferences + COMDATFolding.
 if(MSVC)
-  add_compile_options(/Gy /Gw)
+  # /Gy (function-level linking) is supported by both cl.exe and clang-cl.
+  add_compile_options(/Gy)
+  # /Gw (whole-program global data) is cl.exe-only; the ClangCL toolset (for
+  # which MSVC is also true) does not support it.
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(/Gw)
+  endif()
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
   # On Mach-O, clang emits .subsections_via_symbols, so ld64's -dead_strip
   # already removes unreferenced code at per-symbol (function) granularity
