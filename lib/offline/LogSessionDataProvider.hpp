@@ -57,7 +57,7 @@ namespace MAT_NS_BEGIN
         std::unique_ptr<LogSessionData> m_logSessionData;
         static uint64_t convertStrToLong(const std::string&) noexcept;
         static void writeFileContents(const std::string&, uint64_t, const std::string&);
-        void remove_eol(std::string& );
+        void remove_eol(std::string& ) noexcept;
     };
 }
 MAT_NS_END

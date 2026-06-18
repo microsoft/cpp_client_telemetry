@@ -200,7 +200,7 @@ namespace MAT_NS_BEGIN
         }
     }
 
-    void LogSessionDataProvider::remove_eol(std::string& result)
+    void LogSessionDataProvider::remove_eol(std::string& result) noexcept
     {
         if (!result.empty() && result[result.length() - 1] == '\n')
         {
