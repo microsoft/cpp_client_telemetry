@@ -23,7 +23,7 @@
 
 namespace MAT_NS_BEGIN
 {
-    class OfflineStorage_Room : public IOfflineStorage
+    class OfflineStorage_Room final : public IOfflineStorage
     {
        protected:
         class ConnectedEnv

@@ -24,7 +24,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    class MemoryStorage : public IOfflineStorage
+    class MemoryStorage final : public IOfflineStorage
     {
 
     public:

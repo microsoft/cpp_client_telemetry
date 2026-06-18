@@ -20,7 +20,7 @@ typedef void* HINTERNET;
 
 class WinInetRequestWrapper;
 
-class HttpClient_WinInet : public IHttpClient {
+class HttpClient_WinInet final : public IHttpClient {
   public:
     // Common IHttpClient methods
     HttpClient_WinInet();

@@ -13,7 +13,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    class HttpClient_Apple : public IHttpClient {
+    class HttpClient_Apple final : public IHttpClient {
     public:
         HttpClient_Apple();
         virtual ~HttpClient_Apple() noexcept;

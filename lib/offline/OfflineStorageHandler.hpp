@@ -23,7 +23,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
+    class OfflineStorageHandler final : public IOfflineStorage, public IOfflineStorageObserver
     {
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
