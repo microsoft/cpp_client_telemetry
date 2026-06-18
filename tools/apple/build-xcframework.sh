@@ -39,7 +39,7 @@ mkdir -p "$OUT"
 # module is named `ObjCModule` to match what wrappers/swift sources import.
 HDRS="$OUT/Headers"
 mkdir -p "$HDRS"
-cp "$ROOT"/wrappers/obj-c/ODW*.h "$HDRS/"
+find "$ROOT/wrappers/obj-c" -maxdepth 1 -name 'ODW*.h' ! -name '*_private.h' -exec cp {} "$HDRS/" \;
 cp "$ROOT"/wrappers/obj-c/objc_begin.h "$HDRS/"
 cp "$ROOT"/wrappers/obj-c/objc_end.h "$HDRS/"
 cp "$ROOT"/tools/apple/MATTelemetry-umbrella.h "$HDRS/"
