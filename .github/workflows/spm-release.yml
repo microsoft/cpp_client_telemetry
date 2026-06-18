@@ -131,7 +131,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Package.swift
+          git add Package.swift tools/apple/MATTelemetryAvailability.json
           git commit -m "[spm] ${{ steps.ver.outputs.spm_version }}: pin xcframework url + checksum"
           # The SPM tag points at this commit (release source + resolved
           # binaryTarget). It is published as a tag only, not merged to a branch.

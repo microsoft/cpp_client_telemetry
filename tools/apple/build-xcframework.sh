@@ -39,11 +39,53 @@ mkdir -p "$OUT"
 # module is named `ObjCModule` to match what wrappers/swift sources import.
 HDRS="$OUT/Headers"
 mkdir -p "$HDRS"
-find "$ROOT/wrappers/obj-c" -maxdepth 1 -name 'ODW*.h' ! -name '*_private.h' -exec cp {} "$HDRS/" \;
+
+has_dataviewer=false
+has_privacyguard=false
+has_sanitizer=false
+[[ -d "$ROOT/lib/modules/dataviewer" ]] && has_dataviewer=true
+[[ -d "$ROOT/lib/modules/privacyguard" ]] && has_privacyguard=true
+[[ -d "$ROOT/lib/modules/sanitizer" ]] && has_sanitizer=true
+
+cat > "$OUT/MATTelemetryAvailability.json" <<EOF
+{
+  "diagnosticDataViewer": $has_dataviewer,
+  "privacyGuard": $has_privacyguard,
+  "sanitizer": $has_sanitizer
+}
+EOF
+cp "$OUT/MATTelemetryAvailability.json" "$ROOT/tools/apple/MATTelemetryAvailability.json"
+
+headers=(
+  ODWCommonDataContext.h
+  ODWEventProperties.h
+  ODWLogConfiguration.h
+  ODWLogger.h
+  ODWLogManager.h
+  ODWPrivacyGuardInitConfig.h
+  ODWSanitizerInitConfig.h
+  ODWSemanticContext.h
+)
+[[ "$has_dataviewer" == true ]] && headers+=(ODWDiagnosticDataViewer.h)
+[[ "$has_privacyguard" == true ]] && headers+=(ODWPrivacyGuard.h)
+[[ "$has_sanitizer" == true ]] && headers+=(ODWSanitizer.h)
+
+header_paths=()
+for header in "${headers[@]}"; do
+  header_paths+=("$ROOT/wrappers/obj-c/$header")
+done
+
+cp "${header_paths[@]}" "$HDRS/"
 cp "$ROOT"/wrappers/obj-c/objc_begin.h "$HDRS/"
 cp "$ROOT"/wrappers/obj-c/objc_end.h "$HDRS/"
-cp "$ROOT"/tools/apple/MATTelemetry-umbrella.h "$HDRS/"
 cp "$ROOT"/tools/apple/module.modulemap "$HDRS/"
+
+cp "$ROOT"/tools/apple/MATTelemetry-umbrella.h "$HDRS/"
+{
+  [[ "$has_dataviewer" == true ]] && echo '#import "ODWDiagnosticDataViewer.h"'
+  [[ "$has_privacyguard" == true ]] && echo '#import "ODWPrivacyGuard.h"'
+  [[ "$has_sanitizer" == true ]] && echo '#import "ODWSanitizer.h"'
+} >> "$HDRS/MATTelemetry-umbrella.h"
 
 # --- 2. Build one static lib per (arch, platform) ----------------------------
 build_slice() {  # arch platform out-subdir

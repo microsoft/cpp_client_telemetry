@@ -8,22 +8,16 @@
 // Headers/ directory, so these are imported by bare name (not by the
 // ../../obj-c/ relative path the in-repo Swift bridging header uses).
 //
-// Keep this list in sync with:
-//   * the ODW*.h headers copied by tools/apple/build-xcframework.sh, and
-//   * the Swift sources compiled in wrappers/swift/Sources/OneDSSwift.
-//
-// TODO(validate on macOS): confirm the ODW headers reference each other by bare
-// name (or adjust the copy step) so the flattened layout compiles cleanly.
+// build-xcframework.sh copies this template and appends imports for optional
+// module headers only when those modules were actually built into the binary.
 
 #import <Foundation/Foundation.h>
 
-#import "ODWDiagnosticDataViewer.h"
+#import "ODWCommonDataContext.h"
 #import "ODWEventProperties.h"
 #import "ODWLogConfiguration.h"
 #import "ODWLogger.h"
 #import "ODWLogManager.h"
-#import "ODWPrivacyGuard.h"
 #import "ODWPrivacyGuardInitConfig.h"
-#import "ODWSanitizer.h"
 #import "ODWSanitizerInitConfig.h"
 #import "ODWSemanticContext.h"

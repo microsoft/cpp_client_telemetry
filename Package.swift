@@ -31,13 +31,28 @@ import Foundation
 
 let packageDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
 
-func moduleExists(_ relativePath: String) -> Bool {
-    FileManager.default.fileExists(atPath: packageDirectory.appendingPathComponent(relativePath).standardizedFileURL.path)
+func readAvailability() -> [String: Bool] {
+    let candidates = [
+        "build/apple/MATTelemetryAvailability.json",
+        "tools/apple/MATTelemetryAvailability.json",
+    ]
+
+    for relativePath in candidates {
+        let url = packageDirectory.appendingPathComponent(relativePath).standardizedFileURL
+        guard let data = try? Data(contentsOf: url),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Bool] else {
+            continue
+        }
+        return object
+    }
+
+    return [:]
 }
 
-let hasDiagnosticDataViewer = moduleExists("lib/modules/dataviewer")
-let hasPrivacyGuard = moduleExists("lib/modules/privacyguard")
-let hasSanitizer = moduleExists("lib/modules/sanitizer")
+let availability = readAvailability()
+let hasDiagnosticDataViewer = availability["diagnosticDataViewer"] ?? false
+let hasPrivacyGuard = availability["privacyGuard"] ?? false
+let hasSanitizer = availability["sanitizer"] ?? false
 
 var excludedSources: [String] = []
 var swiftSettings: [SwiftSetting] = []

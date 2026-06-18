@@ -27,4 +27,6 @@ public typealias TransmissionProfile = ODWTransmissionProfile
 public typealias FlushStatus = ODWStatus
 
 // ODWPrivacyGuard.h
+#if MATSDK_PRIVACYGUARD_AVAILABLE
 public typealias DataConcernType = ODWDataConcernType
+#endif
