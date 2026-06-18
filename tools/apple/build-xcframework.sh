@@ -40,6 +40,8 @@ mkdir -p "$OUT"
 HDRS="$OUT/Headers"
 mkdir -p "$HDRS"
 cp "$ROOT"/wrappers/obj-c/ODW*.h "$HDRS/"
+cp "$ROOT"/wrappers/obj-c/objc_begin.h "$HDRS/"
+cp "$ROOT"/wrappers/obj-c/objc_end.h "$HDRS/"
 cp "$ROOT"/tools/apple/MATTelemetry-umbrella.h "$HDRS/"
 cp "$ROOT"/tools/apple/module.modulemap "$HDRS/"
 
