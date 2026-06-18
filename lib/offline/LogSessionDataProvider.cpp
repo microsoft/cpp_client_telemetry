@@ -157,8 +157,16 @@ namespace MAT_NS_BEGIN
     {
         uint64_t res = 0ull;
         char *endptr = nullptr;
+        // strtoull silently wraps a leading '-' into a large value, so reject
+        // negative input explicitly before parsing.
+        size_t firstNonSpace = s.find_first_not_of(" \t\n\r\f\v");
+        if (firstNonSpace != std::string::npos && s[firstNonSpace] == '-')
+        {
+            LOG_WARN ("Converted value is negative; rejecting.");
+            return 0;
+        }
         errno = 0;
-        long long parsed = std::strtoll(s.c_str(), &endptr, 10);
+        unsigned long long parsed = std::strtoull(s.c_str(), &endptr, 10);
         if (errno == ERANGE)
         {
             LOG_WARN ("Converted value falls out of range.");
@@ -166,10 +174,6 @@ namespace MAT_NS_BEGIN
         else if (endptr == s.c_str() || std::strlen(endptr) > 0)
         {
             LOG_WARN ("Conversion cannot be performed.");
-        }
-        else if (parsed < 0)
-        {
-            LOG_WARN ("Converted value is negative; rejecting.");
         }
         else
         {
