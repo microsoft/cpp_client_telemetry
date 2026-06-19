@@ -1,4 +1,4 @@
-# Test script: Verify mstelemetry vcpkg port on Windows
+# Test script: Verify cpp-client-telemetry vcpkg port on Windows
 # Usage: Run from a VS Developer Command Prompt, or the script will find VS automatically.
 #   .\tests\vcpkg\test-vcpkg-windows.ps1
 #   .\tests\vcpkg\test-vcpkg-windows.ps1 -Triplet x64-windows

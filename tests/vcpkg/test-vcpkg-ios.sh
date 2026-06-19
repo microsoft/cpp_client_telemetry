@@ -1,5 +1,5 @@
 #!/bin/bash
-# Test script: Verify mstelemetry vcpkg port for iOS
+# Test script: Verify cpp-client-telemetry vcpkg port for iOS
 # Usage: ./tests/vcpkg/test-vcpkg-ios.sh [--simulator]
 # Prerequisites: VCPKG_ROOT set, macOS with Xcode + iOS SDK, cmake
 #

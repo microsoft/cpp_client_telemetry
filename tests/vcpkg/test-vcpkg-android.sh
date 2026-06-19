@@ -1,5 +1,5 @@
 #!/bin/bash
-# Test script: Verify mstelemetry vcpkg port for Android (cross-compile only)
+# Test script: Verify cpp-client-telemetry vcpkg port for Android (cross-compile only)
 # Usage: ./tests/vcpkg/test-vcpkg-android.sh [ABI] [API_LEVEL]
 #   ABI: arm64-v8a (default), armeabi-v7a, x86_64, x86
 #   API_LEVEL: 23 (default), 28, or another level with a matching overlay triplet

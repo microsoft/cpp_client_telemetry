@@ -1,5 +1,5 @@
 #!/bin/bash
-# Test script: Verify mstelemetry vcpkg port on Linux
+# Test script: Verify cpp-client-telemetry vcpkg port on Linux
 # Usage: ./tests/vcpkg/test-vcpkg-linux.sh
 # Prerequisites: VCPKG_ROOT set, gcc/g++, cmake
 set -e
