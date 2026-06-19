@@ -126,7 +126,7 @@ build_slice() {  # clean-arg arch platform out-subdir
   shift
   local arch="$1" plat="$2" sub="$3"
   echo "=== building $arch / $plat ($CONFIG) ==="
-  ( cd "$ROOT" && ./build-ios.sh $clean_arg "$CONFIG" "$arch" "$plat" )
+  ( cd "$ROOT" && MATTELEMETRY_SKIP_PACKAGE=1 ./build-ios.sh $clean_arg "$CONFIG" "$arch" "$plat" )
   mkdir -p "$OUT/$sub"
   cp "$ROOT/out/lib/$LIB" "$OUT/$sub/$LIB"
 }
