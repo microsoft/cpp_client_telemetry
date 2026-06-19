@@ -14,11 +14,11 @@
 #   build/apple/MATTelemetry.xcframework.zip   (+ prints the SPM checksum)
 #
 # Slices built here: iOS device (arm64), iOS simulator (arm64 + x86_64 fat),
-# Mac Catalyst (arm64 + x86_64 fat), and macOS (arm64 + x86_64 universal).
+# Mac Catalyst (arm64 + x86_64 fat), visionOS device/simulator (arm64), and
+# macOS (arm64 + x86_64 universal).
 #
 # NOTE: this is a first-pass scaffold. It has been validated on macOS for iOS
-# device, simulator, Mac Catalyst, and macOS slices; visionOS slices are still
-# TODO.
+# device, simulator, Mac Catalyst, visionOS, and macOS slices.
 
 set -euo pipefail
 
@@ -137,6 +137,10 @@ build_slice ""    x86_64 iphonesimulator ios-x86_64-sim
 build_slice ""    arm64  maccatalyst     maccatalyst-arm64
 build_slice ""    x86_64 maccatalyst     maccatalyst-x86_64
 
+# visionOS uses a different CMake system name, so start it from a fresh cache.
+build_slice clean arm64  xros            visionos-arm64
+build_slice ""    arm64  xrsimulator     visionos-arm64-sim
+
 # Fat simulator archive (arm64 + x86_64) -- a single xcframework slice cannot
 # mix device and simulator, but it can contain multiple archs for one platform.
 mkdir -p "$OUT/ios-simulator"
@@ -177,6 +181,8 @@ xcodebuild -create-xcframework \
   -library "$OUT/ios-arm64/$LIB"     -headers "$HDRS" \
   -library "$OUT/ios-simulator/$LIB" -headers "$HDRS" \
   -library "$OUT/maccatalyst/$LIB"   -headers "$HDRS" \
+  -library "$OUT/visionos-arm64/$LIB" -headers "$HDRS" \
+  -library "$OUT/visionos-arm64-sim/$LIB" -headers "$HDRS" \
   -library "$OUT/macos-universal/$LIB" -headers "$HDRS" \
   -output  "$OUT/MATTelemetry.xcframework"
 echo "Created $OUT/MATTelemetry.xcframework"

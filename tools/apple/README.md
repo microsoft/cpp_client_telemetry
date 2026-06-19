@@ -70,19 +70,19 @@ before the release is cut).
 ## Validation performed
 
 - `tools/apple/build-xcframework.sh release` builds the iOS device, iOS
-  simulator, Mac Catalyst, and macOS slices, and prints the SPM checksum.
+  simulator, Mac Catalyst, visionOS device, visionOS simulator, and macOS
+  slices, and prints the SPM checksum.
 - `swift build` validates local macOS SwiftPM consumption.
 - `xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build`
   validates iOS Simulator SwiftPM consumption.
 - `xcodebuild -scheme OneDSSwift -destination 'platform=macOS,variant=Mac Catalyst' build`
   validates Mac Catalyst SwiftPM consumption.
+- `xcodebuild -scheme OneDSSwift -destination 'generic/platform=visionOS Simulator' build`
+  validates visionOS Simulator SwiftPM consumption.
 - Small Obj-C module/static-link smoke tests validate binary module linkability.
 
 ## Known gaps / TODO
 
-- **visionOS slices** — iOS device, iOS simulator, Mac Catalyst, and macOS are
-  wired up in this first pass; visionOS still needs separate slice wiring and
-  validation.
 - **Code signing** — release xcframeworks are typically signed; add a signing
   step before zipping for distribution.
 - **Release workflow validation** — exercise `.github/workflows/spm-release.yml`

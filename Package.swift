@@ -17,9 +17,9 @@
 // Local development:
 //   1. Run `tools/apple/build-xcframework.sh release` on macOS with Xcode.
 //      It produces ./build/apple/MATTelemetry.xcframework.
-//   2. `swift build` validates macOS consumption; for iOS / Mac Catalyst, add
-//      this package as a local dependency or build the package with the desired
-//      Xcode destination.
+//   2. `swift build` validates macOS consumption; for iOS / Mac Catalyst /
+//      visionOS, add this package as a local dependency or build the package
+//      with the desired Xcode destination.
 //
 // Release distribution (so consumers can add the repo by URL in Xcode):
 //   1. Build the xcframework, zip it, and attach it to the GitHub Release.
@@ -86,6 +86,7 @@ let package = Package(
         .iOS(.v12),
         .macCatalyst(.v14),
         .macOS(.v10_15),
+        .visionOS(.v1),
     ],
     products: [
         .library(name: "OneDSSwift", targets: ["OneDSSwift"]),
@@ -120,13 +121,13 @@ let package = Package(
                 .linkedLibrary("c++"),
                 .linkedLibrary("sqlite3"),
                 .linkedLibrary("z"),
-                .linkedFramework("CFNetwork", .when(platforms: [.iOS, .macCatalyst, .macOS])),
-                .linkedFramework("CoreFoundation", .when(platforms: [.iOS, .macCatalyst, .macOS])),
-                .linkedFramework("Foundation", .when(platforms: [.iOS, .macCatalyst, .macOS])),
-                .linkedFramework("Network", .when(platforms: [.iOS, .macCatalyst, .macOS])),
-                .linkedFramework("SystemConfiguration", .when(platforms: [.iOS, .macCatalyst, .macOS])),
+                .linkedFramework("CFNetwork", .when(platforms: [.iOS, .macCatalyst, .macOS, .visionOS])),
+                .linkedFramework("CoreFoundation", .when(platforms: [.iOS, .macCatalyst, .macOS, .visionOS])),
+                .linkedFramework("Foundation", .when(platforms: [.iOS, .macCatalyst, .macOS, .visionOS])),
+                .linkedFramework("Network", .when(platforms: [.iOS, .macCatalyst, .macOS, .visionOS])),
+                .linkedFramework("SystemConfiguration", .when(platforms: [.iOS, .macCatalyst, .macOS, .visionOS])),
                 .linkedFramework("IOKit", .when(platforms: [.macOS])),
-                .linkedFramework("UIKit", .when(platforms: [.iOS, .macCatalyst])),
+                .linkedFramework("UIKit", .when(platforms: [.iOS, .macCatalyst, .visionOS])),
             ]),
     ]
 )
