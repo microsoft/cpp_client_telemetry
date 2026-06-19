@@ -19,6 +19,21 @@ The xcframework vendors a Clang module named `MATTelemetryObjC` through
 `tools/apple/module.modulemap` and `MATTelemetry-umbrella.h`, matching the
 existing Swift sources' `import MATTelemetryObjC`.
 
+## Runtime dependencies (sqlite3 / zlib)
+
+The xcframework does **not** bundle sqlite3 or zlib. `Package.swift` links the
+**system** `libsqlite3` and `libz` that Apple ships on every iOS / macOS / Mac
+Catalyst / visionOS target (`.linkedLibrary("sqlite3")` / `.linkedLibrary("z")`),
+so consumers do not need to add them.
+
+This is deliberate. Embedding a private static copy of sqlite3 into the
+xcframework would give any app that also uses SQLite (Core Data, GRDB, FMDB,
+etc.) two copies of the library in one process — risking duplicate-symbol link
+errors or divergent SQLite state. Linking the OS-provided libraries guarantees a
+single shared instance. For comparison, the vcpkg build consumes vcpkg's own
+sqlite3/zlib packages, and only the Android build bundles them (the NDK ships no
+system copy).
+
 ## Supported slices
 
 `tools/apple/build-xcframework.sh release` builds:
