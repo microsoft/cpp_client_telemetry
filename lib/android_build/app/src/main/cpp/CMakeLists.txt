@@ -3,7 +3,7 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.5...3.29)
+cmake_minimum_required(VERSION 3.15...3.31)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -55,6 +55,7 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/HttpDeflateCompressionTests.cpp
         ${SDK_ROOT}/tests/unittests/HttpRequestEncoderTests.cpp
         ${SDK_ROOT}/tests/unittests/HttpResponseDecoderTests.cpp
+        ${SDK_ROOT}/tests/unittests/KillSwitchManagerTests.cpp
         ${SDK_ROOT}/tests/unittests/LoggerTests.cpp
         ${SDK_ROOT}/tests/unittests/LogManagerImplTests.cpp
         ${SDK_ROOT}/tests/unittests/LogSessionDataTests.cpp
