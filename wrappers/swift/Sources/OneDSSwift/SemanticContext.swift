@@ -53,7 +53,7 @@ public class SemanticContext {
             - Note: Default value is `PIIKind.identity`.
     */
     public func setUserID(_ userID: String, withPiiKind piiKind: PIIKind = PIIKind.identity) {
-        odwSemanticContext.setUserId(userID)
+        odwSemanticContext.setUserId(userID, piiKind: piiKind)
     }
 
     /**
