@@ -1,8 +1,8 @@
 # Swift Package Manager xcframework prototype
 
-**Status: validated prototype.** This packages the 1DS C++ SDK for Apple
-developers through Swift Package Manager (SPM), using a prebuilt xcframework for
-the C++ core plus Obj-C wrappers and compiling the Swift API from source.
+This packages the 1DS C++ SDK for Apple developers through Swift Package Manager
+(SPM), using a prebuilt xcframework for the C++ core plus Obj-C wrappers and
+compiling the Swift API from source.
 
 ## Package shape
 
