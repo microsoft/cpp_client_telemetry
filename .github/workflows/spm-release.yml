@@ -91,6 +91,23 @@ jobs:
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
+          swift package dump-package > package.json
+          python3 - <<'PY'
+          import json
+          expected = {
+              "ios": "12.0",
+              "maccatalyst": "14.0",
+              "macos": "10.15",
+              "visionos": "1.0",
+          }
+          with open("package.json", encoding="utf-8") as f:
+              platforms = {
+                  item["platformName"]: item["version"]
+                  for item in json.load(f)["platforms"]
+              }
+          if platforms != expected:
+              raise SystemExit(f"Unexpected Package.swift platforms: {platforms}")
+          PY
           swift build
           xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build
           xcodebuild -scheme OneDSSwift -destination 'platform=macOS,variant=Mac Catalyst' build
