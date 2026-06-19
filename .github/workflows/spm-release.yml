@@ -37,7 +37,7 @@ jobs:
     if: >-
       ${{ github.event_name == 'workflow_dispatch' ||
           (github.event.release.draft == false && github.event.release.prerelease == false) }}
-    runs-on: macos-14   # provides Xcode (xcodebuild, swift)
+    runs-on: macos-15   # provides Xcode with Apple platform SDKs (xcodebuild, swift)
     env:
       ARTIFACT: MATTelemetry.xcframework.zip
     steps:
@@ -86,6 +86,15 @@ jobs:
           chmod +x tools/apple/build-xcframework.sh
           tools/apple/build-xcframework.sh release
           test -f "build/apple/$ARTIFACT"
+
+      - name: Validate SwiftPM package consumption
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          swift build
+          xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme OneDSSwift -destination 'platform=macOS,variant=Mac Catalyst' build
+          xcodebuild -scheme OneDSSwift -destination 'generic/platform=visionOS Simulator' build
 
       - name: Compute SPM checksum
         id: sum
