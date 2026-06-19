@@ -111,7 +111,7 @@ eval $cmake_cmd
 
 make
 
-if [ "${MATTELEMETRY_SKIP_PACKAGE:-}" == "1" ]; then
+if [ "${MATTELEMETRY_SKIP_PACKAGE:-}" = "1" ]; then
   echo "MATTELEMETRY_SKIP_PACKAGE=1: skipping package creation"
 else
   make package
