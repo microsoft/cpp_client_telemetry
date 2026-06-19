@@ -64,6 +64,18 @@ using namespace MAT;
     _wrappedSemanticContext->SetDeviceId(strDeviceId);
 }
 
+-(void) setOsVersion:(nonnull NSString*)osVersion
+{
+    std::string strOsVersion = std::string([osVersion UTF8String]);
+    _wrappedSemanticContext->SetOsVersion(strOsVersion);
+}
+
+-(void) setOsBuild:(nonnull NSString*)osBuild
+{
+    std::string strOsBuild = std::string([osBuild UTF8String]);
+    _wrappedSemanticContext->SetOsBuild(strOsBuild);
+}
+
 -(void) setUserTimeZone:(nonnull NSString*)userTimeZone
 {
     std::string strUserTimeZone = std::string([userTimeZone UTF8String]);
