@@ -5,12 +5,12 @@
 
 /// Contains alias for the types declared in the ObjC header files to make them available
 /// as part of the swift package module.
-/// To avoid clients not have to import ObjCModule explicitly.
+/// To avoid clients not have to import MATTelemetryObjC explicitly.
 /// Important: Due to objc->swift conventions, Type name is removed, so ODWPiiKindGenericData would be accessed as .genericData in swift.
 
 /// Check corresponding header file for the doc of each type.
 
-import ObjCModule
+import MATTelemetryObjC
 
 // ODWEventProperties.h
 public typealias EventPriority = ODWEventPriority

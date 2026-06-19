@@ -15,9 +15,9 @@ conditionals. Instead, the package is split into:
 | C++ core + Obj-C wrappers (`ODW*`) | `MATTelemetry.xcframework` binary target |
 | Swift API (`OneDSSwift`) | Source target in `wrappers/swift/Sources/OneDSSwift` |
 
-The xcframework vendors a Clang module named `ObjCModule` through
+The xcframework vendors a Clang module named `MATTelemetryObjC` through
 `tools/apple/module.modulemap` and `MATTelemetry-umbrella.h`, matching the
-existing Swift sources' `import ObjCModule`.
+existing Swift sources' `import MATTelemetryObjC`.
 
 ## Supported slices
 
@@ -38,7 +38,7 @@ existing Swift sources' `import ObjCModule`.
 | --- | --- |
 | `Package.swift` | Root SPM manifest: binary target + Swift source target |
 | `tools/apple/build-xcframework.sh` | Builds static `libmat.a` slices and assembles `MATTelemetry.xcframework` |
-| `tools/apple/module.modulemap` | Defines the `ObjCModule` Clang module |
+| `tools/apple/module.modulemap` | Defines the `MATTelemetryObjC` Clang module |
 | `tools/apple/MATTelemetry-umbrella.h` | Base umbrella for always-available Obj-C wrapper headers |
 | `tools/apple/MATTelemetryAvailability.json` | Optional-module manifest consumed by `Package.swift` |
 | `.github/workflows/spm-release.yml` | Release automation for the hosted xcframework and SPM tag |

@@ -92,7 +92,7 @@ let package = Package(
     ],
     targets: [
         // Prebuilt C++ core + Obj-C wrappers. The xcframework's bundled
-        // module map vends the Clang module `ObjCModule` (see
+        // module map vends the Clang module `MATTelemetryObjC` (see
         // tools/apple/module.modulemap), which the Swift layer imports.
         //
         // For a tagged release, swap the local path for the hosted artifact:

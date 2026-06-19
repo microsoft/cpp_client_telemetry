@@ -53,7 +53,7 @@ mkdir -p "$OUT"
 
 # --- 1. Public Obj-C headers + module map (vended by the xcframework) --------
 # Flatten the ODW*.h headers + umbrella + modulemap into one Headers dir. The
-# module is named `ObjCModule` to match what wrappers/swift sources import.
+# module is named `MATTelemetryObjC` to match what wrappers/swift sources import.
 HDRS="$OUT/Headers"
 mkdir -p "$HDRS"
 
