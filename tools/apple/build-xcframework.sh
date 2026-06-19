@@ -36,9 +36,17 @@ case "$CONFIG" in
     ;;
 esac
 
-# Force a STATIC libmat that includes the Obj-C wrappers, regardless of the
-# repo's default library type.
-export CMAKE_OPTS="${CMAKE_OPTS:-} -DBUILD_SHARED_LIBS=OFF -DBUILD_OBJC_WRAPPER=YES"
+# Build only the static libmat archive with Obj-C wrappers; slice builds do not
+# need the repo's test, Swift wrapper, or package targets.
+CMAKE_OPTS="${CMAKE_OPTS:-}"
+CMAKE_OPTS="$CMAKE_OPTS -DBUILD_SHARED_LIBS=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DBUILD_OBJC_WRAPPER=YES"
+CMAKE_OPTS="$CMAKE_OPTS -DBUILD_TEST_TOOL=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DBUILD_UNIT_TESTS=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DBUILD_FUNC_TESTS=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DBUILD_SWIFT_WRAPPER=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DBUILD_PACKAGE=OFF"
+export CMAKE_OPTS
 
 rm -rf "$OUT"
 mkdir -p "$OUT"
@@ -121,25 +129,26 @@ cp "$ROOT"/tools/apple/MATTelemetry-umbrella.h "$HDRS/"
 } >> "$HDRS/MATTelemetry-umbrella.h"
 
 # --- 2. Build one static lib per (arch, platform) ----------------------------
-build_slice() {  # clean-arg arch platform out-subdir
-  local clean_arg="$1"
-  shift
+build_slice() {  # arch platform out-subdir
   local arch="$1" plat="$2" sub="$3"
   echo "=== building $arch / $plat ($CONFIG) ==="
-  ( cd "$ROOT" && MATTELEMETRY_SKIP_PACKAGE=1 ./build-ios.sh $clean_arg "$CONFIG" "$arch" "$plat" )
+  (
+    cd "$ROOT"
+    rm -f CMakeCache.txt *.cmake
+    rm -rf out
+    MATTELEMETRY_SKIP_PACKAGE=1 ./build-ios.sh "$CONFIG" "$arch" "$plat"
+  )
   mkdir -p "$OUT/$sub"
   cp "$ROOT/out/lib/$LIB" "$OUT/$sub/$LIB"
 }
 
-build_slice clean arm64  iphoneos        ios-arm64
-build_slice ""    arm64  iphonesimulator ios-arm64-sim
-build_slice ""    x86_64 iphonesimulator ios-x86_64-sim
-build_slice ""    arm64  maccatalyst     maccatalyst-arm64
-build_slice ""    x86_64 maccatalyst     maccatalyst-x86_64
-
-# visionOS uses a different CMake system name, so start it from a fresh cache.
-build_slice clean arm64  xros            visionos-arm64
-build_slice ""    arm64  xrsimulator     visionos-arm64-sim
+build_slice arm64  iphoneos        ios-arm64
+build_slice arm64  iphonesimulator ios-arm64-sim
+build_slice x86_64 iphonesimulator ios-x86_64-sim
+build_slice arm64  maccatalyst     maccatalyst-arm64
+build_slice x86_64 maccatalyst     maccatalyst-x86_64
+build_slice arm64  xros            visionos-arm64
+build_slice arm64  xrsimulator     visionos-arm64-sim
 
 # Fat simulator archive (arm64 + x86_64) -- a single xcframework slice cannot
 # mix device and simulator, but it can contain multiple archs for one platform.
@@ -169,7 +178,6 @@ cmake -S "$ROOT" -B "$MACOS_BUILD" \
   -DBUILD_UNIT_TESTS=OFF \
   -DBUILD_FUNC_TESTS=OFF \
   -DBUILD_SWIFT_WRAPPER=OFF \
-  -DBUILD_PACKAGE=OFF \
   $CMAKE_OPTS
 cmake --build "$MACOS_BUILD" --target mat
 mkdir -p "$OUT/macos-universal"
