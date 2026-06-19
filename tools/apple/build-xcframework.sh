@@ -134,7 +134,6 @@ build_slice() {  # arch platform out-subdir
   echo "=== building $arch / $plat ($CONFIG) ==="
   (
     cd "$ROOT"
-    rm -f CMakeCache.txt *.cmake
     rm -rf out
     MATTELEMETRY_SKIP_PACKAGE=1 ./build-ios.sh "$CONFIG" "$arch" "$plat"
   )
