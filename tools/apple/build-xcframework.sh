@@ -25,7 +25,7 @@ set -euo pipefail
 CONFIG="${1:-release}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="$ROOT/build/apple"
-LIB="libmat.a"   # mat target; the Obj-C wrappers compile into it (lib/CMakeLists.txt:217)
+LIB="libmat.a"   # mat target; the Obj-C wrappers compile into it.
 
 case "$CONFIG" in
   release) CMAKE_BUILD_TYPE="Release" ;;
@@ -175,7 +175,7 @@ cmake --build "$MACOS_BUILD" --target mat
 mkdir -p "$OUT/macos-universal"
 cp "$MACOS_BUILD/lib/$LIB" "$OUT/macos-universal/$LIB"
 
-# --- 4. Assemble the xcframework ---------------------------------------------
+# --- 3. Assemble the xcframework ---------------------------------------------
 rm -rf "$OUT/MATTelemetry.xcframework"
 xcodebuild -create-xcframework \
   -library "$OUT/ios-arm64/$LIB"     -headers "$HDRS" \
@@ -187,7 +187,7 @@ xcodebuild -create-xcframework \
   -output  "$OUT/MATTelemetry.xcframework"
 echo "Created $OUT/MATTelemetry.xcframework"
 
-# --- 5. Zip + checksum for release distribution ------------------------------
+# --- 4. Zip + checksum for release distribution ------------------------------
 ( cd "$OUT" && rm -f MATTelemetry.xcframework.zip \
   && zip -qry MATTelemetry.xcframework.zip MATTelemetry.xcframework )
 echo "Zipped:  $OUT/MATTelemetry.xcframework.zip"
