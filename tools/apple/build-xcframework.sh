@@ -14,10 +14,11 @@
 #   build/apple/MATTelemetry.xcframework.zip   (+ prints the SPM checksum)
 #
 # Slices built here: iOS device (arm64), iOS simulator (arm64 + x86_64 fat),
-# and macOS (arm64 + x86_64 universal).
+# Mac Catalyst (arm64 + x86_64 fat), and macOS (arm64 + x86_64 universal).
 #
 # NOTE: this is a first-pass scaffold. It has been validated on macOS for iOS
-# device, simulator, and macOS slices; Catalyst/visionOS slices are still TODO.
+# device, simulator, Mac Catalyst, and macOS slices; visionOS slices are still
+# TODO.
 
 set -euo pipefail
 
@@ -133,12 +134,20 @@ build_slice() {  # clean-arg arch platform out-subdir
 build_slice clean arm64  iphoneos        ios-arm64
 build_slice ""    arm64  iphonesimulator ios-arm64-sim
 build_slice ""    x86_64 iphonesimulator ios-x86_64-sim
+build_slice ""    arm64  maccatalyst     maccatalyst-arm64
+build_slice ""    x86_64 maccatalyst     maccatalyst-x86_64
 
 # Fat simulator archive (arm64 + x86_64) -- a single xcframework slice cannot
 # mix device and simulator, but it can contain multiple archs for one platform.
 mkdir -p "$OUT/ios-simulator"
 lipo -create "$OUT/ios-arm64-sim/$LIB" "$OUT/ios-x86_64-sim/$LIB" \
      -output "$OUT/ios-simulator/$LIB"
+
+# Fat Catalyst archive (arm64 + x86_64), emitted as a separate platform variant
+# from both iOS simulator and native macOS.
+mkdir -p "$OUT/maccatalyst"
+lipo -create "$OUT/maccatalyst-arm64/$LIB" "$OUT/maccatalyst-x86_64/$LIB" \
+     -output "$OUT/maccatalyst/$LIB"
 
 # Native universal macOS archive. Build only the `mat` target in an isolated
 # CMake build directory so switching away from the iOS toolchain does not
@@ -167,6 +176,7 @@ rm -rf "$OUT/MATTelemetry.xcframework"
 xcodebuild -create-xcframework \
   -library "$OUT/ios-arm64/$LIB"     -headers "$HDRS" \
   -library "$OUT/ios-simulator/$LIB" -headers "$HDRS" \
+  -library "$OUT/maccatalyst/$LIB"   -headers "$HDRS" \
   -library "$OUT/macos-universal/$LIB" -headers "$HDRS" \
   -output  "$OUT/MATTelemetry.xcframework"
 echo "Created $OUT/MATTelemetry.xcframework"
