@@ -13,12 +13,11 @@
 #   build/apple/MATTelemetry.xcframework
 #   build/apple/MATTelemetry.xcframework.zip   (+ prints the SPM checksum)
 #
-# Slices built here: iOS device (arm64) and iOS simulator (arm64 + x86_64 fat).
-# A macOS slice (and visionOS, Catalyst) can be folded in the same way -- see
-# the note in section 3.
+# Slices built here: iOS device (arm64), iOS simulator (arm64 + x86_64 fat),
+# and macOS (arm64 + x86_64 universal).
 #
 # NOTE: this is a first-pass scaffold. It has been validated on macOS for iOS
-# device + simulator slices; macOS/Catalyst/visionOS slices are still TODO.
+# device, simulator, and macOS slices; Catalyst/visionOS slices are still TODO.
 
 set -euo pipefail
 
@@ -26,6 +25,15 @@ CONFIG="${1:-release}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="$ROOT/build/apple"
 LIB="libmat.a"   # mat target; the Obj-C wrappers compile into it (lib/CMakeLists.txt:217)
+
+case "$CONFIG" in
+  release) CMAKE_BUILD_TYPE="Release" ;;
+  debug) CMAKE_BUILD_TYPE="Debug" ;;
+  *)
+    echo "Usage: $0 [release|debug]" >&2
+    exit 1
+    ;;
+esac
 
 # Force a STATIC libmat that includes the Obj-C wrappers, regardless of the
 # repo's default library type.
@@ -132,17 +140,34 @@ mkdir -p "$OUT/ios-simulator"
 lipo -create "$OUT/ios-arm64-sim/$LIB" "$OUT/ios-x86_64-sim/$LIB" \
      -output "$OUT/ios-simulator/$LIB"
 
-# --- 3. (Optional) macOS slice ------------------------------------------------
-# Add a native macOS build (e.g. cmake -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-# -DBUILD_APPLE_HTTP=YES) here and append another `-library .../libmat.a
-# -headers "$HDRS"` pair to the xcodebuild call below. Omitted from this first
-# pass to keep the prototype focused on iOS.
+# Native universal macOS archive. Build only the `mat` target in an isolated
+# CMake build directory so switching away from the iOS toolchain does not
+# disturb the already-copied iOS archives.
+echo "=== building arm64+x86_64 / macosx ($CONFIG) ==="
+MACOS_BUILD="$OUT/macos-build"
+MACOS_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-10.15}"
+cmake -S "$ROOT" -B "$MACOS_BUILD" \
+  -DMAC_ARCH=universal \
+  -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOS_DEPLOYMENT_TARGET" \
+  -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
+  -DCMAKE_PACKAGE_TYPE=tgz \
+  -DBUILD_TEST_TOOL=OFF \
+  -DBUILD_UNIT_TESTS=OFF \
+  -DBUILD_FUNC_TESTS=OFF \
+  -DBUILD_SWIFT_WRAPPER=OFF \
+  -DBUILD_PACKAGE=OFF \
+  $CMAKE_OPTS
+cmake --build "$MACOS_BUILD" --target mat
+mkdir -p "$OUT/macos-universal"
+cp "$MACOS_BUILD/lib/$LIB" "$OUT/macos-universal/$LIB"
 
 # --- 4. Assemble the xcframework ---------------------------------------------
 rm -rf "$OUT/MATTelemetry.xcframework"
 xcodebuild -create-xcframework \
   -library "$OUT/ios-arm64/$LIB"     -headers "$HDRS" \
   -library "$OUT/ios-simulator/$LIB" -headers "$HDRS" \
+  -library "$OUT/macos-universal/$LIB" -headers "$HDRS" \
   -output  "$OUT/MATTelemetry.xcframework"
 echo "Created $OUT/MATTelemetry.xcframework"
 

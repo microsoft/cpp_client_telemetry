@@ -25,7 +25,7 @@ so the xcframework just needs to vend a Clang module named `ObjCModule`
 | File | Purpose |
 | --- | --- |
 | `Package.swift` (repo root) | Distributable SPM manifest: `binaryTarget` (xcframework) + `OneDSSwift` source target |
-| `tools/apple/build-xcframework.sh` | Builds a static `libmat.a` per Apple slice via `build-ios.sh`, lipo's the simulator archs, and assembles the xcframework with `xcodebuild -create-xcframework` |
+| `tools/apple/build-xcframework.sh` | Builds a static `libmat.a` per Apple slice, lipo's the simulator/macOS archs where needed, and assembles the xcframework with `xcodebuild -create-xcframework` |
 | `tools/apple/module.modulemap` | Defines the `ObjCModule` Clang module the Swift layer imports |
 | `tools/apple/MATTelemetry-umbrella.h` | Umbrella over the `ODW*.h` headers baked into the xcframework |
 | `tools/apple/MATTelemetryAvailability.json` | Build-time optional-module manifest consumed by `Package.swift` so Swift sources match the xcframework contents |
@@ -70,7 +70,8 @@ before the release is cut).
 ## Validation performed
 
 - `tools/apple/build-xcframework.sh release` builds the iOS device and simulator
-  slices and prints the SPM checksum.
+  slices, plus a universal macOS slice, and prints the SPM checksum.
+- `swift build` validates local macOS SwiftPM consumption.
 - `xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build`
   validates local SwiftPM consumption.
 - A small Obj-C module/static-link smoke test was built and run on an iOS
@@ -78,8 +79,9 @@ before the release is cut).
 
 ## Known gaps / TODO
 
-- **macOS / Catalyst / visionOS slices** — only iOS device + simulator are wired
-  up in this first pass; add the macOS slice (see section 3 of the script).
+- **Catalyst / visionOS slices** — iOS device, iOS simulator, and macOS are wired
+  up in this first pass; Catalyst and visionOS still need separate slice wiring
+  and validation.
 - **Code signing** — release xcframeworks are typically signed; add a signing
   step before zipping for distribution.
 - **Release workflow validation** — exercise `.github/workflows/spm-release.yml`

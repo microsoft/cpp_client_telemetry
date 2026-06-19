@@ -17,7 +17,8 @@
 // Local development:
 //   1. Run `tools/apple/build-xcframework.sh release` on macOS with Xcode.
 //      It produces ./build/apple/MATTelemetry.xcframework.
-//   2. `swift build` (or add this package as a local dependency).
+//   2. `swift build` validates macOS consumption; for iOS, add this package as a
+//      local dependency or build the package with an iOS Simulator destination.
 //
 // Release distribution (so consumers can add the repo by URL in Xcode):
 //   1. Build the xcframework, zip it, and attach it to the GitHub Release.
@@ -82,6 +83,7 @@ let package = Package(
     name: "OneDSSwift",
     platforms: [
         .iOS(.v12),
+        .macOS(.v10_15),
     ],
     products: [
         .library(name: "OneDSSwift", targets: ["OneDSSwift"]),
@@ -116,11 +118,12 @@ let package = Package(
                 .linkedLibrary("c++"),
                 .linkedLibrary("sqlite3"),
                 .linkedLibrary("z"),
-                .linkedFramework("CFNetwork", .when(platforms: [.iOS])),
-                .linkedFramework("CoreFoundation", .when(platforms: [.iOS])),
-                .linkedFramework("Foundation", .when(platforms: [.iOS])),
-                .linkedFramework("Network", .when(platforms: [.iOS])),
-                .linkedFramework("SystemConfiguration", .when(platforms: [.iOS])),
+                .linkedFramework("CFNetwork", .when(platforms: [.iOS, .macOS])),
+                .linkedFramework("CoreFoundation", .when(platforms: [.iOS, .macOS])),
+                .linkedFramework("Foundation", .when(platforms: [.iOS, .macOS])),
+                .linkedFramework("Network", .when(platforms: [.iOS, .macOS])),
+                .linkedFramework("SystemConfiguration", .when(platforms: [.iOS, .macOS])),
+                .linkedFramework("IOKit", .when(platforms: [.macOS])),
                 .linkedFramework("UIKit", .when(platforms: [.iOS])),
             ]),
     ]
