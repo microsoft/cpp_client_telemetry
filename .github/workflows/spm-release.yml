@@ -92,7 +92,8 @@ jobs:
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
-          echo "checksum=$(swift package compute-checksum "build/apple/$ARTIFACT")" >> "$GITHUB_OUTPUT"
+          checksum="$(swift package compute-checksum "build/apple/$ARTIFACT")"
+          echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
 
       - name: Upload xcframework to the release
         if: ${{ steps.ver.outputs.skip != 'true' }}

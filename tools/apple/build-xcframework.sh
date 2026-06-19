@@ -38,7 +38,7 @@ esac
 
 # Force a STATIC libmat that includes the Obj-C wrappers, regardless of the
 # repo's default library type.
-export CMAKE_OPTS="-DBUILD_SHARED_LIBS=OFF -DBUILD_OBJC_WRAPPER=YES ${CMAKE_OPTS:-}"
+export CMAKE_OPTS="${CMAKE_OPTS:-} -DBUILD_SHARED_LIBS=OFF -DBUILD_OBJC_WRAPPER=YES"
 
 rm -rf "$OUT"
 mkdir -p "$OUT"

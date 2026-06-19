@@ -22,11 +22,10 @@
 //      with the desired Xcode destination.
 //
 // Release distribution (so consumers can add the repo by URL in Xcode):
-//   1. Build the xcframework, zip it, and attach it to the GitHub Release.
-//   2. Run `swift package compute-checksum MATTelemetry.xcframework.zip`.
-//   3. Replace the `.binaryTarget(... path:)` below with the `url:`+`checksum:`
-//      form shown in the comment. The vcpkg-release-bump workflow pattern can be
-//      extended to automate steps 1-3 on each release tag.
+//   .github/workflows/spm-release.yml builds and uploads the xcframework,
+//   computes the checksum, rewrites the local `.binaryTarget(... path:)` below
+//   to `url:`+`checksum:`, and pushes the 3-component SemVer tag that SPM can
+//   resolve.
 
 import PackageDescription
 import Foundation
