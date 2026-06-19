@@ -50,9 +50,9 @@ public class SemanticContext {
     - Parameters:
         - userID: A `String` that contains the unique user identifier.
         - withPiiKind: A PIIKind of the userID. Set it to PiiKind_None t odenote it as non-PII.
-            - Note: Default value is `ODWPiiKind.identity`.
+            - Note: Default value is `PIIKind.identity`.
     */
-    public func setUserID(_ userID: String, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.identity) {
+    public func setUserID(_ userID: String, withPiiKind piiKind: PIIKind = PIIKind.identity) {
         odwSemanticContext.setUserId(userID)
     }
 
