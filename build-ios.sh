@@ -76,6 +76,9 @@ elif [ "$IOS_PLAT" == "xros" ] || [ "$IOS_PLAT" == "xrsimulator" ]; then
     DEPLOYMENT_TARGET="1.0"
     FORCE_RESET_DEPLOYMENT_TARGET=YES
   fi
+else
+  echo "ERROR: unsupported Apple platform '$IOS_PLAT'. Expected iphoneos, iphonesimulator, maccatalyst, xros, or xrsimulator." 1>&2
+  exit 1
 fi
 
 echo "deployment target = $DEPLOYMENT_TARGET"

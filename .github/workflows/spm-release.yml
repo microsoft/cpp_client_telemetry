@@ -130,6 +130,10 @@ jobs:
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null; then
+            echo "::notice::SPM tag ${{ steps.ver.outputs.spm_version }} already exists; skipping tag publish."
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Package.swift tools/apple/MATTelemetryAvailability.json

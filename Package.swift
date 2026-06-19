@@ -106,10 +106,8 @@ let package = Package(
             path: "build/apple/MATTelemetry.xcframework"),
 
         // Thin Swift API layer (source). Depends on the Obj-C module from the
-        // xcframework. NOTE: the conditional source exclusions in
-        // wrappers/swift/Package.swift (PrivacyGuard / Sanitizer / DataViewer
-        // when those private modules aren't built) should be carried over here
-        // and kept in sync with the headers baked into the xcframework.
+        // xcframework. The conditional source exclusions above must stay in sync
+        // with the headers baked into the xcframework.
         .target(
             name: "OneDSSwift",
             dependencies: ["MATTelemetry"],
