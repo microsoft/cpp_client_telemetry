@@ -722,8 +722,9 @@ namespace MAT_NS_BEGIN
                     auto count = env->GetLongField(byTenant, count_id);
                     ThrowLogic(env, "Exception fetching count");
                     auto utf = env->GetStringUTFChars(token, nullptr);
-                    std::string key(utf);
-                    env->ReleaseStringUTFChars(token, utf);
+                    std::string key(utf != nullptr ? utf : "");
+                    if (utf != nullptr)
+                        env->ReleaseStringUTFChars(token, utf);
                     dropped[key] = static_cast<size_t>(count);
                     env.popLocalFrame();
                 }

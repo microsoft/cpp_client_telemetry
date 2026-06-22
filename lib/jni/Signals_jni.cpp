@@ -26,10 +26,10 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
                                                           jstring signal_item_json) {
     jboolean isCopy = true;
     const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
-    env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
 
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
     EventProperties eventProperties = Signals::CreateEventProperties(signalItemJson);
+    env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
     logger->LogEvent(eventProperties);
     return true;
 }

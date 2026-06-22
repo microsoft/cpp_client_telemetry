@@ -13,6 +13,8 @@ std::string JStringToStdString(JNIEnv* env, const jstring& jstr) {
 
     size_t jstr_length = env->GetStringUTFLength(jstr);
     auto jstr_utf = env->GetStringUTFChars(jstr, nullptr);
+    if (jstr_utf == nullptr)
+        return "";
     std::string str(jstr_utf, jstr_utf + jstr_length);
     env->ReleaseStringUTFChars(jstr, jstr_utf);
     return str;

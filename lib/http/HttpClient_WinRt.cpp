@@ -351,11 +351,21 @@ namespace MAT_NS_BEGIN {
         for (const auto &id : ids)
             CancelRequestAsync(id);
 
-        // wait for all destructors to run
-        while (!m_requests.empty())
+        // wait for all destructors to run. Read m_requests under the lock each
+        // iteration; erase() runs on the PPL continuation thread under the same lock.
+        bool done;
+        {
+            std::lock_guard<std::mutex> lock(m_requestsMutex);
+            done = m_requests.empty();
+        }
+        while (!done)
         {
             PAL::sleep(100);
             std::this_thread::yield();
+            {
+                std::lock_guard<std::mutex> lock(m_requestsMutex);
+                done = m_requests.empty();
+            }
         }
     };
 

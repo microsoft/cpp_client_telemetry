@@ -80,7 +80,15 @@ namespace PAL_NS_BEGIN {
 
         // The DeviceFamilyVersion is a decimalized form of the ULONGLONG hex form. For example:
         // 2814750430068736 = 000A000027840000 = 10.0.10116.0
-        auto versionDec = std::stoull(AnalyticsInfo::VersionInfo->DeviceFamilyVersion->Data());
+        unsigned long long versionDec = 0ull;
+        try
+        {
+            versionDec = std::stoull(AnalyticsInfo::VersionInfo->DeviceFamilyVersion->Data());
+        }
+        catch (const std::exception&)
+        {
+            versionDec = 0ull;
+        }
         if (versionDec != 0ull)
         {
             m_os_major_version = std::to_string(versionDec >> 16 * 3) + "." + std::to_string(versionDec >> 16 * 2 & 0xFFFF);
