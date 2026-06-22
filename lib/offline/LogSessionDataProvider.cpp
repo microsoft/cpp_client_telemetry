@@ -69,7 +69,7 @@ namespace MAT_NS_BEGIN
             sessionSDKUid = PAL::generateUuidString();
             if (!m_offlineStorage->StoreSetting(sessionFirstLaunchTimeName, std::to_string(sessionFirstTimeLaunch))) 
             {
-                LOG_WARN("Unable to save session analytics to DB for %d", sessionFirstLaunchTimeName);
+                LOG_WARN("Unable to save session analytics to DB for %s", sessionFirstLaunchTimeName);
             }
             if (!m_offlineStorage->StoreSetting(sessionSdkUidName, sessionSDKUid)) {
                 LOG_WARN("Unable to save session analytics to DB for %s", sessionSDKUid.c_str());
@@ -87,11 +87,11 @@ namespace MAT_NS_BEGIN
         }
         if (!m_offlineStorage->DeleteSetting(sessionFirstLaunchTimeName))
         {
-            LOG_WARN("Unable to delete session analytics from DB for %d", sessionFirstLaunchTimeName);
+            LOG_WARN("Unable to delete session analytics from DB for %s", sessionFirstLaunchTimeName);
         }
         if (!m_offlineStorage->DeleteSetting(sessionSdkUidName))
         {
-            LOG_WARN("Unable to delete session analytics from DB for %d", sessionSdkUidName);
+            LOG_WARN("Unable to delete session analytics from DB for %s", sessionSdkUidName);
         }
     }
 
