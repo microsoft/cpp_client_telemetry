@@ -40,7 +40,7 @@
     <ProjectReference Include="..\..\sqlite\sqlite.vcxproj">
       <Project>{2ebc7b3c-2af1-442c-9285-cab39bbb8c00}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+    <ProjectReference Include="..\..\third_party\Solutions\zlib\vc14\zlibvc.vcxproj">
       <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
     </ProjectReference>
   </ItemGroup>
@@ -437,6 +437,7 @@
     <ClCompile Include="$(ProjectDir)\LogManagerImplTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogSessionDataTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LogSessionDataDBTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\KillSwitchManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
@@ -481,7 +482,11 @@
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\exp\tests\unittests\ECSClientUtilsTests.cpp" />
   </ItemGroup>
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\privacyguard')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\InitializationConfigurationTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyConcernEventTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyConcernMetadataProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\PrivacyGuardTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\privacyguard\tests\unittests\SystematicSamplerTests.cpp" />
   </ItemGroup>
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\dataviewer')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\dataviewer\tests\unittests\DefaultDataViewerTests.cpp" />
@@ -489,6 +494,16 @@
   </ItemGroup>
   <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\signals')">
     <ClCompile Include="$(ProjectDir)..\..\lib\modules\signals\tests\unittests\SignalsTests.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="exists('$(ProjectDir)..\..\lib\modules\sanitizer')">
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerEmailTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerJwtTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerSitePathTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerUrlTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerProviderTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerStringUtilsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SanitizerTrieTests.cpp" />
+    <ClCompile Include="$(ProjectDir)..\..\lib\modules\sanitizer\tests\unittests\SPOPasswordTests.cpp" />
   </ItemGroup>
   <Import Project="$(SolutionDir)\build.props" Condition="Exists('$(SolutionDir)\build.props')" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

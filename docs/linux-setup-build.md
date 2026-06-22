@@ -41,11 +41,11 @@ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bi
 # After gcc-5.x is deployed, you may remove 'unstable' deps
 ```
 
-### Installing gcc-5.x on older Linux distributions (Ubuntu 14.04, Debian 8.x and below)
+### Installing gcc-5.x on older Linux distributions (Debian 8.x and below)
 
 This step is not required for recent distros which come with gcc version above 5+.
-Microsoft Events SDK expects gcc-5.x+ which is not included in Ubuntu-14.04, Debian 8 and below.
-Please install  recent gcc-5.x on older Ubuntu distributions as follows:
+Microsoft Events SDK expects gcc-5.x+ which is not included in Debian 8 and below.
+Please install recent gcc-5.x on older distributions as follows:
 
 ```console
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
@@ -56,7 +56,7 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /u
 # Check that gcc is the proper 5.x version
 gcc --version
 # Output:
-gcc (Ubuntu 5.4.1-2ubuntu1~14.04) 5.4.1 20160904
+gcc (Ubuntu 5.4.1-2ubuntu1) 5.4.1 20160904
 Copyright (C) 2015 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

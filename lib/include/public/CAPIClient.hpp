@@ -47,7 +47,7 @@ namespace MAT_NS_BEGIN
         {
             handle = evt_open(config);
             return handle;
-        };
+        }
 
         evt_status_t configure(const char* config)
         {

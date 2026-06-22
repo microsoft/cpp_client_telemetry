@@ -1,0 +1,41 @@
+name: C/C++ CI on Windows (vs2022)
+
+on:
+  push:
+    branches:
+    - master
+    - main
+    - dev
+
+  pull_request:
+    branches:
+    - master
+    - main
+    - dev
+
+# Least-privilege GITHUB_TOKEN scope: this workflow only checks out source
+# and runs the Visual Studio 2022 build. Explicit block satisfies CodeQL
+# rule actions/missing-workflow-permissions if Actions analysis is enabled.
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: windows-2022
+    name: Build
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      continue-on-error: true
+
+    - name: Build
+      env:
+        SKIP_ARM_BUILD: 1
+        SKIP_ARM64_BUILD: 1
+        PlatformToolset: v143
+        VSTOOLS_VERSION: vs2022
+      shell: cmd
+      run: build-all.bat

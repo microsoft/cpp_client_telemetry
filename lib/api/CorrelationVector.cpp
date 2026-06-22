@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <random>
+#include <stdexcept>
 #include <limits>
 
 using std::string;

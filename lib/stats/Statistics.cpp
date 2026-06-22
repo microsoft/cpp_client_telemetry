@@ -7,6 +7,7 @@
 
 #include "Statistics.hpp"
 #include "ILogManager.hpp"
+#include "mat/config.h"
 #include "utils/Utils.hpp"
 #include <oacr.h>
 
@@ -60,12 +61,21 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
+        std::string tenantToken = m_config.GetMetaStatsTenantToken();
+        // Stats are disabled by default for the built-in shared token to
+        // reduce OneCollector load (see #1420). Custom tokens always send.
+        // Set config["metaStats"]["enabled"] = true to opt in.
+        bool isDefaultToken = (tenantToken == STATS_TOKEN_PROD || tenantToken == STATS_TOKEN_INT);
+        if (isDefaultToken && !static_cast<bool>(m_config[CFG_MAP_METASTATS_CONFIG]["enabled"]))
+        {
+            return;
+        }
+
         std::vector< ::CsProtocol::Record> records;
         {
             LOCKGUARD(m_metaStats_mtx);
             records = m_metaStats.generateStatsEvent(rollupKind);
         }
-        std::string tenantToken = m_config.GetMetaStatsTenantToken();
 
         for (auto& record : records)
         {
@@ -150,6 +160,7 @@ namespace MAT_NS_BEGIN {
         DebugEvent evt;
         evt.type = DebugEventType::EVT_DROPPED;
         evt.param1 = 1;
+        evt.param2 = static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_SAVE_FAILED);
         OnDebugEvent(evt);
 
         return true;

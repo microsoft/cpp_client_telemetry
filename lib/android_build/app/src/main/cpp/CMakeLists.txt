@@ -3,8 +3,9 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.4.1)
-set(CMAKE_CXX_STANDARD 11)
+cmake_minimum_required(VERSION 3.15...3.31)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 string(REPLACE "/lib/android_build/app/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_DIR})
 
@@ -19,6 +20,7 @@ include_directories(AFTER
         ${SDK_ROOT}/lib/include/mat
         ${SDK_ROOT}/sqlite
         ${SDK_ROOT}lib/pal
+        ${SDK_ROOT}
         "${gmock_dir}/include"
         "${gmock_dir}"
         "${gtest_dir}/include"
@@ -53,6 +55,7 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/HttpDeflateCompressionTests.cpp
         ${SDK_ROOT}/tests/unittests/HttpRequestEncoderTests.cpp
         ${SDK_ROOT}/tests/unittests/HttpResponseDecoderTests.cpp
+        ${SDK_ROOT}/tests/unittests/KillSwitchManagerTests.cpp
         ${SDK_ROOT}/tests/unittests/LoggerTests.cpp
         ${SDK_ROOT}/tests/unittests/LogManagerImplTests.cpp
         ${SDK_ROOT}/tests/unittests/LogSessionDataTests.cpp
@@ -80,10 +83,8 @@ include_directories(
 
 find_library(zlib-path z)
 
-add_library(maesdk SHARED IMPORTED)
-set_target_properties(maesdk PROPERTIES
-        IMPORTED_LOCATION "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so"
-        IMPORTED_LOCATION_Release "${SDK_ROOT}/lib/android_build/maesdk/build/intermediates/cmake/debug/obj/${CMAKE_ANDROID_ARCH_ABI}/libmaesdk.so")
+#Add maesdk as a dependency
+add_subdirectory(../../../../maesdk/src/main/cpp maesdk)
 
 # include the other flavor of database: if maesdk builds with Room include sqlite
 # if maesdk builds with native sqlite, include Room

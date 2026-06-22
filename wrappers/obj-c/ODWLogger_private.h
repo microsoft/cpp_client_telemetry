@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "objc_begin.h"
+#include <atomic>
 #include "ILogger.hpp"
 #import "ODWLogger.h"
 #import "ODWEventProperties.h"

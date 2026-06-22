@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <numeric>
 #include <set>
+#include <stdexcept>
 
 namespace MAT_NS_BEGIN {
 
@@ -31,7 +32,7 @@ namespace MAT_NS_BEGIN {
             {
                 locked = m_db->trylock();
             }
-        };
+        }
 
         ~DbTransaction()
         {
@@ -42,7 +43,7 @@ namespace MAT_NS_BEGIN {
         }
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorage_SQLite, "EventsSDK.Storage", "Events telemetry client - OfflineStorage_SQLite class")
 
     static int const CURRENT_SCHEMA_VERSION = 1;
 #define TABLE_NAME_EVENTS   "events"
@@ -398,7 +399,6 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
-        UNREFERENCED_PARAMETER(whereFilter);
         if (!isOpen()) {
             return;
         }
@@ -413,40 +413,100 @@ namespace MAT_NS_BEGIN {
                 return;
             }
 #endif
-            auto formatter = [&](const std::map<std::string, std::string> & whereFilter)
-            {
-                std::string clause;
-                for (const auto &kv : whereFilter)
-                {
-                    bool quotes = false;
-                    if ((kv.first == "record_id") ||
-                        (kv.first == "tenant_token"))
-                    {
-                        // string types
-                        quotes = true;
-                    } 
-                    else if (
-                        // integer types
-                        (kv.first == "latency") ||
-                        (kv.first == "persistence") ||
-                        (kv.first == "retry_count"))
-                    {
-                        quotes = false;
-                    }
-                    if (!clause.empty())
-                    {
-                        clause += " AND ";
-                    }
-                    clause += kv.first;
-                    clause += "=";
-                    clause += (quotes) ?
-                        ("\"" + kv.second + "\"") :
-                        kv.second;
-                }
-                return clause;
+            // SECURITY: build a parameterized statement. Column names are taken
+            // from a fixed whitelist (never from server/response data) and every
+            // value is bound via sqlite3_bind_* instead of being concatenated into
+            // the SQL text. This prevents untrusted values (for example kill-token
+            // tenant ids carried in a collector response) from altering the
+            // statement or appending additional "stacked" statements.
+            enum class ColumnType { Text, Integer };
+            static const std::map<std::string, ColumnType> kAllowedColumns = {
+                { "record_id",    ColumnType::Text },
+                { "tenant_token", ColumnType::Text },
+                { "latency",      ColumnType::Integer },
+                { "persistence",  ColumnType::Integer },
+                { "retry_count",  ColumnType::Integer },
             };
-            std::string sql = "DELETE FROM " TABLE_NAME_EVENTS " WHERE ";
-            Execute(sql + formatter(whereFilter));
+
+            std::string clause;
+            std::vector<std::map<std::string, std::string>::const_iterator> boundColumns;
+            for (auto it = whereFilter.begin(); it != whereFilter.end(); ++it)
+            {
+                if (kAllowedColumns.find(it->first) == kAllowedColumns.end())
+                {
+                    // Fail closed: an unrecognized column cannot be honored, so
+                    // delete nothing rather than running a looser predicate. This
+                    // matches MemoryStorage, whose matcher treats an unknown column
+                    // as "no match".
+                    LOG_WARN("DeleteRecords: unrecognized filter column '%s'; nothing deleted", it->first.c_str());
+                    return;
+                }
+                clause += clause.empty() ? "" : " AND ";
+                clause += it->first;
+                clause += "=?";
+                boundColumns.push_back(it);
+            }
+
+            // Never run a DELETE with no predicate, which would erase the table.
+            if (clause.empty())
+            {
+                LOG_WARN("DeleteRecords: no recognized filter columns; nothing deleted");
+                return;
+            }
+
+            const std::string sql = "DELETE FROM " TABLE_NAME_EVENTS " WHERE " + clause;
+            SqliteStatement stmt(*m_db, sql.c_str());
+            if (stmt.handle() == nullptr)
+            {
+                LOG_ERROR("DeleteRecords: failed to prepare delete statement for table " TABLE_NAME_EVENTS ": %s",
+                    g_sqlite3Proxy->sqlite3_errmsg(*m_db));
+                return;
+            }
+            int idx = 1;
+            for (const auto& it : boundColumns)
+            {
+                const std::string& value = it->second;
+                int rc = SQLITE_OK;
+                if (kAllowedColumns.at(it->first) == ColumnType::Text)
+                {
+                    rc = g_sqlite3Proxy->sqlite3_bind_text(stmt.handle(), idx,
+                        value.data(), static_cast<int>(value.size()), SQLITE_STATIC);
+                }
+                else
+                {
+                    int64_t numeric = 0;
+                    size_t consumed = 0;
+                    try
+                    {
+                        numeric = static_cast<int64_t>(std::stoll(value, &consumed));
+                    }
+                    catch (const std::exception&)
+                    {
+                        consumed = 0;
+                    }
+                    // Treat a non-numeric value for an integer column as an invalid
+                    // filter and abort, rather than coercing to 0 and deleting rows
+                    // that happen to match 0.
+                    if (value.empty() || consumed != value.size())
+                    {
+                        LOG_WARN("DeleteRecords: invalid numeric filter value for column '%s'; nothing deleted",
+                            it->first.c_str());
+                        return;
+                    }
+                    rc = g_sqlite3Proxy->sqlite3_bind_int64(stmt.handle(), idx, numeric);
+                }
+                if (rc != SQLITE_OK)
+                {
+                    LOG_ERROR("DeleteRecords: failed to bind filter column '%s': %d (%s)",
+                        it->first.c_str(), rc, g_sqlite3Proxy->sqlite3_errmsg(*m_db));
+                    return;
+                }
+                ++idx;
+            }
+            if (!stmt.execute())
+            {
+                LOG_ERROR("DeleteRecords: failed to execute delete for table " TABLE_NAME_EVENTS);
+            }
         }
     }
 
@@ -954,24 +1014,27 @@ namespace MAT_NS_BEGIN {
                 LOG_TRACE("DB is too big, deleting...");
                 Execute("DELETE FROM " TABLE_NAME_EVENTS);
                 Execute("VACUUM");
-                return true;
+                eventsDropped = count;
             }
-
-            SqliteStatement trimStmt(*m_db, m_stmtTrimEvents_percent);
-            if (!trimStmt.execute(25))
+            else
             {
-                // If something went wrong with trimming 25%, try more radical measure
-                LOG_TRACE("Evict all non-critical");
-                Execute("DELETE FROM " TABLE_NAME_EVENTS " WHERE persistence=1");
+                SqliteStatement trimStmt(*m_db, m_stmtTrimEvents_percent);
+                if (!trimStmt.execute(25))
+                {
+                    // If something went wrong with trimming 25%, try more radical measure
+                    LOG_TRACE("Evict all non-critical");
+                    Execute("DELETE FROM " TABLE_NAME_EVENTS " WHERE persistence=1");
+                }
+                eventsDropped = count - GetRecordCountUnsafe(EventLatency::EventLatency_Unspecified);
+                LOG_TRACE("Db resized, events dropped: %zu", eventsDropped);
+                trimStmt.reset();
             }
-            eventsDropped = count - GetRecordCountUnsafe(EventLatency::EventLatency_Unspecified);
-            LOG_TRACE("Db resized, events dropeed: %d", eventsDropped);
-            trimStmt.reset();
         }
 
         m_DbSizeEstimate = GetSize();
         DebugEvent evt(DebugEventType::EVT_DROPPED);
         evt.param1 = eventsDropped;
+        evt.param2 = static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW);
         evt.size = eventsDropped;
         m_logManager.DispatchEvent(evt);
 

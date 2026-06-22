@@ -14,6 +14,7 @@
 
 #include "utils/Utils.hpp"
 #include "HttpClient_Curl.hpp"
+#include "ILogConfiguration.hpp"
 
 namespace MAT_NS_BEGIN {
 
@@ -74,7 +75,13 @@ namespace MAT_NS_BEGIN {
             requestHeaders[header.first] = header.second;
         }
 
-        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body);
+        std::string sslCaInfo;
+        {
+            std::lock_guard<std::mutex> lock(m_requestsMtx);
+            sslCaInfo = m_sslCaInfo;
+        }
+
+        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body, false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
         curlRequest->SetOperation(curlOperation);
         
         // The lifetime of curlOperation is guarnteed by the call to result.wait() in the d'tor.  
@@ -123,6 +130,20 @@ namespace MAT_NS_BEGIN {
         if (request != nullptr) {
             request->Cancel();
         }
+    }
+
+    void HttpClient_Curl::ApplySettings(ILogConfiguration& config)
+    {
+        SetSslVerification(
+            config[CFG_MAP_HTTP][CFG_BOOL_HTTP_SSL_VERIFY],
+            (const char *)config[CFG_MAP_HTTP][CFG_STR_HTTP_SSL_CAINFO]);
+    }
+
+    void HttpClient_Curl::SetSslVerification(bool sslVerify, const std::string& caInfo)
+    {
+        m_sslVerify = sslVerify;
+        std::lock_guard<std::mutex> lock(m_requestsMtx);
+        m_sslCaInfo = caInfo;
     }
 
     void HttpClient_Curl::EraseRequest(std::string const& id)

@@ -126,7 +126,7 @@ namespace MAT_NS_BEGIN {
         }
 
         return (*this);
-    };
+    }
 
     /// <summary>
     /// Set the Epoch unix timestamp in milliseconds of the event. 

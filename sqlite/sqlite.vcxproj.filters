@@ -29,5 +29,8 @@
     <ClInclude Include="msvc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="memset_s.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

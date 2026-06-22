@@ -23,7 +23,7 @@
 #include "IDecorator.hpp"
 
 #ifdef HAVE_MAT_JSONHPP
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 #endif
 
 #include "CorrelationVector.hpp"
@@ -302,7 +302,11 @@ static std::string GetStoragePath()
 
 static void CleanStorage()
 {
-    std::remove(GetStoragePath().c_str());
+    std::string path = GetStoragePath();
+    std::remove(path.c_str());
+    std::remove((path + "-wal").c_str());
+    std::remove((path + "-shm").c_str());
+    std::remove((path + "-journal").c_str());
 }
 
 #if 0
@@ -391,6 +395,10 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
             LogManager::GetLogger()->LogEvent(eventToLog);
         }
         LogManager::Flush();
+        // Storage-full callback fires asynchronously; give it time to arrive
+        for (int i = 0; i < 50 && debugListener.storageFullPct.load() < 100; i++) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
         EXPECT_GE(debugListener.storageFullPct.load(), (unsigned)100);
         LogManager::FlushAndTeardown();
 
@@ -404,8 +412,20 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     debugListener.numSent   = 0;
     debugListener.numLogged = 0;
 
-    CleanStorage();
+    // Use a unique DB path for Phase 2/3 on every invocation. The SDK
+    // closes SQLite with sqlite3_close_v2(), which defers file-descriptor
+    // cleanup when prepared statements linger.  If we reuse a fixed path
+    // and std::remove() the old files while deferred fds are still open,
+    // iOS emits "vnode unlinked while in use" and may invalidate the new
+    // DB's descriptors.  A fresh, never-before-seen path sidesteps the
+    // problem entirely — no stale files, no collisions, no sleep needed.
+    static std::atomic<int> s_phase2Counter{0};
+    std::string phase2Path = GetStoragePath() + ".phase2." +
+                             std::to_string(s_phase2Counter.fetch_add(1));
+    configuration[CFG_STR_CACHE_FILE_PATH] = phase2Path;
+    configuration[CFG_INT_CACHE_FILE_SIZE] = 0; // No size limit for phase 2
     ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
+    LogManager::PauseTransmission();     // Pause before logging to avoid production uploads
 
     // Log some foo
     size_t numIterations = MAX_ITERATIONS;
@@ -416,10 +436,6 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     EXPECT_EQ(0u, debugListener.numDropped);
     EXPECT_EQ(0u, debugListener.numReject);
 
-    LogManager::UploadNow();             // Try to upload whatever we got
-    PAL::sleep(1000);                    // Give enough time to upload at least one event
-    EXPECT_NE(0u, debugListener.numSent); // Some posts must succeed within 500ms
-    LogManager::PauseTransmission();     // There could still be some pending at this point
     LogManager::Flush();                 // Save all pending to disk
 
     numIterations = MAX_ITERATIONS;
@@ -434,15 +450,27 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     LogManager::Flush();
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numCached);
 
+    // Phase 3: resume transmission and upload the cached events
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::ResumeTransmission();
+    LogManager::UploadNow();
+    PAL::sleep(10000);                    // Give enough time to upload
     LogManager::FlushAndTeardown();
 
     // Check that we sent all of logged + whatever left overs
     // prior to PauseTransmission
     EXPECT_GE(debugListener.numSent, debugListener.numLogged);
+
     debugListener.printStats();
     removeAllListeners(debugListener);
+
+    // Best-effort cleanup. Assertions have already passed, so if
+    // sqlite3_close_v2 deferred cleanup triggers a vnode warning here
+    // it is harmless.
+    std::remove(phase2Path.c_str());
+    std::remove((phase2Path + "-wal").c_str());
+    std::remove((phase2Path + "-shm").c_str());
+    std::remove((phase2Path + "-journal").c_str());
 }
 
 #ifdef _WIN32
@@ -1180,10 +1208,12 @@ TEST(APITest, LogManager_BadNetwork_Test)
     // Clean temp file first
     const char *cacheFilePath = "bad-network.db";
     std::string fileName = MAT::GetTempDirectory();
-    fileName += "\\";
     fileName += cacheFilePath;
     printf("remove %s\n", fileName.c_str());
     std::remove(fileName.c_str());
+    std::remove((fileName + "-wal").c_str());
+    std::remove((fileName + "-shm").c_str());
+    std::remove((fileName + "-journal").c_str());
 
     for (auto url : {
 #if 0 /* [MG}: Temporary change to avoid GitHub Actions crash #92 */

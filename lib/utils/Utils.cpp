@@ -35,7 +35,7 @@
 #include <codecvt>
 
 namespace MAT_NS_BEGIN {
-    MATSDK_LOG_INST_COMPONENT_NS("MATSDK", "MS App Telemetry client");
+    MATSDK_LOG_INST_COMPONENT_NS("MATSDK", "MS App Telemetry client")
 } MAT_NS_END
 
 namespace MAT_NS_BEGIN {
@@ -58,7 +58,7 @@ namespace MAT_NS_BEGIN {
         strings = backtrace_symbols(array, size);
         printf("XXXXXXXXXXXXXXXXXXXX Obtained %zd stack frames:\n", size);
         for (i = 0; i < size; i++)
-            printf("[%2lu] %s\n", i, demangle(strings[i]).c_str());
+            printf("[%2lu] %s\n", i, mat_demangle(strings[i]).c_str());
         printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
         free(strings);
 #endif
@@ -125,10 +125,15 @@ namespace MAT_NS_BEGIN {
     std::string GetTempDirectory()
     {
 #ifdef _WIN32
+        auto lpGetTempPathW = reinterpret_cast<decltype(&::GetTempPathW)>(GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetTempPath2W"));
+        if (lpGetTempPathW == NULL)
+        {
+            lpGetTempPathW = ::GetTempPathW;
+        }
         /* UTF-8 temp directory for Win32 Desktop apps */
         std::string path = "";
         wchar_t lpTempPathBuffer[MAX_PATH + 1] = { 0 };
-        if (::GetTempPathW(MAX_PATH, lpTempPathBuffer))
+        if (lpGetTempPathW(MAX_PATH, lpTempPathBuffer))
         {
             path = to_utf8_string(lpTempPathBuffer);
         }

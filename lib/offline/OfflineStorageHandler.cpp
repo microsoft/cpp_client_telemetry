@@ -16,7 +16,7 @@
 namespace MAT_NS_BEGIN {
 
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class")
 
     OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher) :
         m_observer(nullptr),
@@ -147,6 +147,16 @@ namespace MAT_NS_BEGIN {
             count += m_offlineStorageMemory->GetRecordCount(latency);
         if (m_offlineStorageDisk != nullptr)
             count += m_offlineStorageDisk->GetRecordCount(latency);
+        return count;
+    }
+
+    size_t OfflineStorageHandler::GetRemainingRecordCountForShutdown() const
+    {
+        size_t count = 0;
+        if (m_offlineStorageMemory != nullptr)
+            count += m_offlineStorageMemory->GetRemainingRecordCountForShutdown();
+        if (m_offlineStorageDisk != nullptr)
+            count += m_offlineStorageDisk->GetRemainingRecordCountForShutdown();
         return count;
     }
 

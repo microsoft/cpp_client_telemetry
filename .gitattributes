@@ -87,6 +87,16 @@ GNUmakefile             text
 *.xml                   text
 *.cfg                   text
 
+## Keep GitHub source tarballs limited to what's needed to build the SDK.
+## The vcpkg portfile records a SHA512 of the tarball, so excluding content the
+## build never uses (the port files themselves, tests, docs, examples) both
+## solves the portfile chicken-and-egg and avoids churning that hash when those
+## non-build files change.
+tools/ports/            export-ignore
+tests/                  export-ignore
+docs/                   export-ignore
+examples/               export-ignore
+
 ## Self-reference =)
 .gitignore              text
 .gitattributes          text

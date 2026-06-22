@@ -15,7 +15,7 @@
 
 #include "LogManager.hpp"
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 using namespace testing;
 
@@ -118,7 +118,7 @@ class AISendTests : public ::testing::Test,
         }
         int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
-        os << "localhost:" << port;
+        os << "127.0.0.1:" << port;
         serverAddress = "http://" + os.str() + "/v2/track";
         server.setServerName(os.str());
         server.addHandler("/v2/track", *this);
@@ -142,6 +142,9 @@ class AISendTests : public ::testing::Test,
         fileName += PATH_SEPARATOR_CHAR;
         fileName += TEST_STORAGE_FILENAME;
         std::remove(fileName.c_str());
+        std::remove((fileName + "-wal").c_str());
+        std::remove((fileName + "-shm").c_str());
+        std::remove((fileName + "-journal").c_str());
     }
 
     virtual void Initialize(DebugEventListener& debugListener, std::string const& path, bool compression)

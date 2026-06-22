@@ -1,4 +1,4 @@
-message("--- functests")
+message(STATUS "Building functests")
 
 set(SRCS
   APITest.cpp
@@ -8,34 +8,40 @@ set(SRCS
   MultipleLogManagersTests.cpp
 )
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
-    PrivacyGuardFuncTests.cpp
+    "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/tests/functests/PrivacyGuardFuncTests.cpp"
   )
 endif()
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/" AND BUILD_SANITIZER)
   list(APPEND SRCS
-     ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp
+    "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/tests/functests/SanitizerFuncTests.cpp"
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/ AND BUILD_LIVEEVENTINSPECTOR)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/dataviewer/")
+  list(APPEND SRCS
+     "${PROJECT_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp"
+  )
+endif()
+
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/liveeventinspector/" AND BUILD_LIVEEVENTINSPECTOR)
   add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
   list(APPEND SRCS
-    LiveEventInspectorFuncTests.cpp
+    "${PROJECT_SOURCE_DIR}/lib/modules/liveeventinspector/tests/functests/LiveEventInspectorFuncTests.cpp"
   )
 endif()
 
-if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+if (EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests")
     list(APPEND SRCS
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
+        "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp"
+        "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp"
+        "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp"
         )
-    if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json)
-      file(COPY_FILE ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json ${CMAKE_BINARY_DIR}/test.json)
+    if (EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json")
+      configure_file("${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json" "${PROJECT_BINARY_DIR}/test.json" COPYONLY)
     endif()
 endif()
 
@@ -50,35 +56,44 @@ endif()
 
 if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   # Link against prebuilt libraries on Windows
-  message("--- WIN32: Linking against prebuilt libraries")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
-  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
+  message(STATUS "WIN32: Linking against prebuilt libraries")
+  message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/gtest")
+  message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/gmock")
+  message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/zlib")
+  message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/sqlite")
+  # link_directories(${PROJECT_BINARY_DIR}/gtest/ ${PROJECT_BINARY_DIR}/gmock/ ${PROJECT_BINARY_DIR}/zlib/ ${PROJECT_BINARY_DIR}/sqlite/)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
   target_link_libraries(FuncTests
   	mat
 	wininet.lib
-	${CMAKE_BINARY_DIR}/gtest/gtest.lib
-	${CMAKE_BINARY_DIR}/gmock/gmock.lib
-	${CMAKE_BINARY_DIR}/zlib/zlib.lib
-	${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
+	${PROJECT_BINARY_DIR}/gtest/gtest.lib
+	${PROJECT_BINARY_DIR}/gmock/gmock.lib
+	${PROJECT_BINARY_DIR}/zlib/zlib.lib
+	${PROJECT_BINARY_DIR}/sqlite/sqlite.lib
   )
 else()
 
-  # Prefer linking to more recent local sqlite3
-  if(EXISTS "/usr/local/lib/libsqlite3.a")
+  # Prefer the SDK's bundled sqlite3 when present (e.g. the Android legacy
+  # build, where the NDK has no system sqlite3), then a more recent local
+  # sqlite3, otherwise the system library.
+  if(TARGET sqlite3_bundled)
+    set (SQLITE3_LIB sqlite3_bundled)
+  elseif(EXISTS "/usr/local/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
   elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
     set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
   else()
-    set (SQLITE3_LIB "sqlite3")
+    find_package(SQLite3 REQUIRED)
+    set (SQLITE3_LIB SQLite::SQLite3)
   endif()
 
-  # Find zlib
-  find_package( ZLIB REQUIRED )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
+  if(TARGET zlib_bundled)
+    set(MATSDK_TEST_ZLIB zlib_bundled)
+  else()
+    find_package( ZLIB REQUIRED )
+    set(MATSDK_TEST_ZLIB ZLIB::ZLIB)
+    include_directories( ${ZLIB_INCLUDE_DIRS} )
+  endif()
 
   set (PLATFORM_LIBS "")
   # Add flags for obtaining system UUID via IOKit
@@ -96,10 +111,11 @@ else()
     set (PLATFORM_LIBS "atomic")
   endif()
 
-  # Find libraries
-  message("--- Linking libraries! ")
-  message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
-  message("Binary Dir: ${CMAKE_BINARY_DIR}")
+  message(STATUS "Linking libraries")
+  message(STATUS "Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
+  message(STATUS "Binary Dir: ${PROJECT_BINARY_DIR}")
+
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
 
   find_file(LIBGTEST
     NAMES libgtest.a
@@ -117,15 +133,25 @@ else()
     ${LIBGTEST}
     ${LIBGMOCK}
     mat
-    ${ZLIB_LIBRARIES}
+    ${MATSDK_TEST_ZLIB}
     ${SQLITE3_LIB}
     ${PLATFORM_LIBS}
     dl)
 
-  if(NOT BUILD_IOS)
-    target_link_libraries(FuncTests curl)
+  # Link curl only when the SDK actually uses the curl HTTP client (Linux, and
+  # macOS without Apple HTTP). The tests don't use curl directly, and on the
+  # Android legacy path mat uses HttpClient_Android (no system curl in the NDK).
+  # MATSDK_NEEDS_CURL already excludes iOS/Apple-HTTP. Prefer the CURL::libcurl
+  # imported target (correct under vcpkg, matches ZLIB::ZLIB above) and fall back
+  # to the find-module variables on CMake < 3.12, which does not define it.
+  if(MATSDK_NEEDS_CURL)
+    if(TARGET CURL::libcurl)
+      target_link_libraries(FuncTests CURL::libcurl)
+    else()
+      target_link_libraries(FuncTests ${CURL_LIBRARIES})
+    endif()
   endif()
 
 endif()
 
-add_test(FuncTests FuncTests "--gtest_output=xml:${CMAKE_BINARY_DIR}/test-reports/FuncTests.xml")
+add_test(FuncTests FuncTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/FuncTests.xml")

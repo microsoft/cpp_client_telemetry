@@ -102,6 +102,7 @@
     <Import Project="..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems" Condition="exists('..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems')" Label="Shared" />
     <Import Project="..\..\lib\modules\cds\cds.vcxitems" Condition="exists('..\..\lib\modules\cds\cds.vcxitems')" Label="Shared" />
     <Import Project="..\..\lib\modules\signals\signals.vcxitems" Condition="exists('..\..\lib\modules\signals\signals.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\sanitizer\sanitizer.vcxitems" Condition="exists('..\..\lib\modules\sanitizer\sanitizer.vcxitems')" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -326,7 +327,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+    <ProjectReference Include="..\..\third_party\Solutions\zlib\vc14\zlibvc.vcxproj">
       <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
     </ProjectReference>
   </ItemGroup>

@@ -132,23 +132,6 @@ public:
     void Cancel()
     {
         [m_dataTask cancel];
-        [session getTasksWithCompletionHandler:^(NSArray* dataTasks, NSArray* uploadTasks, NSArray* downloadTasks)
-        {
-            for (NSURLSessionTask* _task in dataTasks)
-            {
-                [_task cancel];
-            }
-
-            for (NSURLSessionTask* _task in downloadTasks)
-            {
-                [_task cancel];
-            }
-
-            for (NSURLSessionTask* _task in uploadTasks)
-            {
-                [_task cancel];
-            }
-        }];
     }
 
 private:
@@ -214,10 +197,16 @@ void HttpClient_Apple::CancelAllRequests()
     for (const auto &id : ids)
         CancelRequestAsync(id);
 
-    while (!m_requests.empty())
+    for (;;)
     {
+        {
+            std::lock_guard<std::mutex> lock(m_requestsMtx);
+            if (m_requests.empty())
+            {
+                return;
+            }
+        }
         PAL::sleep(100);
-        std::this_thread::yield();
     }
 }
 
