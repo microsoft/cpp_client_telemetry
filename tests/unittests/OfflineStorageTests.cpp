@@ -210,7 +210,7 @@ TEST(OfflineStorageHandlerFlushTests, FailedDiskWriteDuringFlushReturnsRecordsTo
     ON_CALL(config, GetMaximumRetryCount()).WillByDefault(Return(5));
 
     std::ostringstream dbPath;
-    dbPath << GetTempDirectory() << "FlushReserveTest.db";
+    dbPath << GetTempDirectory() << "FlushReserveTest-" << PAL::getUtcSystemTimeMs() << ".db";
     RemoveDbFiles(dbPath.str());
     config[CFG_STR_CACHE_FILE_PATH] = dbPath.str();
     config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;  // enable the in-memory queue

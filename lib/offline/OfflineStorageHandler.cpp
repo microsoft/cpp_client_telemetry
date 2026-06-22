@@ -174,7 +174,7 @@ namespace MAT_NS_BEGIN {
         // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
         m_flushHandle.Cancel();
 
-        size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
+        size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
             // Reserve the records in memory (with a nominal lease) instead of
@@ -191,7 +191,11 @@ namespace MAT_NS_BEGIN {
             m_offlineStorageMemory->GetAndReserveRecords(consumer, reserveLeaseMs, EventLatency_Unspecified);
 
             // Persist to disk one record at a time, tracking exactly which records
-            // were stored so we only drop the persisted ones from memory.
+            // were stored so we only drop the persisted ones from memory. This
+            // intentionally favors correctness over batching: a batched StoreRecords()
+            // only returns a count, so on a partial failure we could not tell which
+            // records to keep vs. retry, and re-storing already-saved records would
+            // duplicate them (the events table has no unique record_id constraint).
             std::vector<StorageRecordId> persistedIds;
             std::vector<StorageRecordId> failedIds;
             persistedIds.reserve(records.size());
