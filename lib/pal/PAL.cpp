@@ -372,7 +372,10 @@ namespace PAL_NS_BEGIN {
         // Use a CSPRNG-backed source (std::random_device reads from /dev/urandom
         // on Linux/Android) rather than std::rand()/srand(time(0)), so the session
         // and event identifiers built from this are not predictable.
-        std::random_device rd;
+        // thread_local so the entropy source is opened once per thread instead of
+        // on every call (generateUuidString is on the event logging hot path);
+        // each operator() call still draws fresh CSPRNG bytes.
+        thread_local std::random_device rd;
 
         GUID_t uuid;
         uuid.Data1 = static_cast<uint32_t>(rd());
