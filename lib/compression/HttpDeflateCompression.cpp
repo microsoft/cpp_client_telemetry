@@ -44,7 +44,7 @@ namespace MAT_NS_BEGIN {
 
         int result = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, m_windowBits, 8 /*DEF_MEM_LEVEL*/, Z_DEFAULT_STRATEGY);
         if (result != Z_OK) {
-            LOG_WARN("HTTP request compressing failed, error=%u/%u (%s)", 1, result, stream.msg);
+            LOG_WARN("HTTP request compressing failed, error=%u/%u (%s)", 1, result, (stream.msg ? stream.msg : "(null)"));
             compressionFailed(ctx);
             return false;
         }
@@ -80,7 +80,7 @@ namespace MAT_NS_BEGIN {
         deflateEnd(&stream);
 
         if (result != Z_STREAM_END) {
-            LOG_WARN("HTTP request compressing failed, error=%u/%u (%s)", 2, result, stream.msg);
+            LOG_WARN("HTTP request compressing failed, error=%u/%u (%s)", 2, result, (stream.msg ? stream.msg : "(null)"));
             compressionFailed(ctx);
             return false;
         }

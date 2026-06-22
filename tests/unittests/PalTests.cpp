@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <string>
+#include <set>
 
 #ifdef HAVE_MAT_LOGGING
 #include "pal/PAL.hpp"
@@ -68,6 +69,16 @@ TEST_F(PalTests, UuidGeneration)
         diff += (uuid0[i] != uuid1[i]);
     }
     EXPECT_THAT(diff, Gt(20u));
+
+    // A batch of generated UUIDs must all be distinct (guards against a stuck
+    // or low-entropy generator).
+    std::set<std::string> uuids;
+    for (size_t i = 0; i < 1000; i++) {
+        std::string u = PAL::generateUuidString();
+        EXPECT_THAT(u.length(), 36u);
+        uuids.insert(u);
+    }
+    EXPECT_THAT(uuids.size(), 1000u);
 }
 
 TEST_F(PalTests, PseudoRandomGenerator)

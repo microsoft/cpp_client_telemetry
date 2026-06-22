@@ -369,19 +369,17 @@ namespace PAL_NS_BEGIN {
 	std::transform(uuidStr.begin(), uuidStr.end(), uuidStr.begin(), ::tolower);
         return uuidStr;
 #else
-        static std::once_flag flag;
-        std::call_once(flag, [](){
-            auto now = std::chrono::high_resolution_clock::now();
-            auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
-            std::srand(static_cast<unsigned int>(std::time(0) ^ nanos));
-        });
+        // Use a CSPRNG-backed source (std::random_device reads from /dev/urandom
+        // on Linux/Android) rather than std::rand()/srand(time(0)), so the session
+        // and event identifiers built from this are not predictable.
+        std::random_device rd;
 
         GUID_t uuid;
-        uuid.Data1 = (static_cast<uint16_t>(std::rand()) << 16) | static_cast<uint16_t>(std::rand());
-        uuid.Data2 = static_cast<uint16_t>(std::rand());
-        uuid.Data3 = static_cast<uint16_t>(std::rand());
+        uuid.Data1 = static_cast<uint32_t>(rd());
+        uuid.Data2 = static_cast<uint16_t>(rd());
+        uuid.Data3 = static_cast<uint16_t>(rd());
         for (size_t i = 0; i < sizeof(uuid.Data4); i++)
-            uuid.Data4[i] = static_cast<uint8_t>(std::rand());
+            uuid.Data4[i] = static_cast<uint8_t>(rd());
 
         // TODO: [MG] - replace this sprintf by more robust GUID to string converter
         char buf[40] = { 0 };
