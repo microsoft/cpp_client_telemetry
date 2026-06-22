@@ -91,7 +91,10 @@ evt_status_t mat_open_core(
         {
             if (client->ctx_data == config)
             {
-                // Guest instance with the same config is already open
+                // Guest instance with the same config is already open.
+                // Return its handle so the caller still gets a usable handle
+                // (rather than leaving ctx->handle uninitialized).
+                ctx->handle = code;
                 return EALREADY;
             }
             // hash code is assigned to another client, increment and retry

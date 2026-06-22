@@ -92,6 +92,7 @@ namespace MAT_NS_BEGIN {
         unsigned                               m_memoryDbSize;
         unsigned                               m_memoryDbSizeNotificationLimit;
         unsigned                               m_queryDbSize;
+        uint32_t                               m_cacheMemorySizeLimitInBytes;
         bool                                   m_isStorageFullNotificationSend;
 
     protected:

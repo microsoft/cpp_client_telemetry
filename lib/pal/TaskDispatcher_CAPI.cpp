@@ -37,7 +37,13 @@ namespace PAL_NS_BEGIN {
         void OnCallback()
         {
             if (m_task) {
-                (*m_task)();
+                // The task is host/user code running on the external dispatcher's
+                // thread; an exception escaping here would terminate the process.
+                try {
+                    (*m_task)();
+                }
+                catch (...) {
+                }
             }
             ReleaseItem();
         }

@@ -238,7 +238,19 @@ namespace PAL_NS_BEGIN {
                     // Item wasn't cancelled before it could be executed
                     if (self->m_itemInProgress != nullptr) {
                         LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
-                        (*item)();
+                        // A task can run arbitrary work (storage I/O, HTTP encode, and
+                        // user DebugEventListener callbacks). An exception escaping here
+                        // would unwind out of the thread entry function and call
+                        // std::terminate, killing the host process. Contain it.
+                        try {
+                            (*item)();
+                        }
+                        catch (const std::exception& ex) {
+                            LOG_ERROR("Unhandled exception in worker task: %s", ex.what());
+                        }
+                        catch (...) {
+                            LOG_ERROR("Unhandled non-standard exception in worker task");
+                        }
                         self->m_itemInProgress = nullptr;
                     }
 
