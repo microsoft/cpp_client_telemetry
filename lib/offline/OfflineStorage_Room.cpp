@@ -722,10 +722,15 @@ namespace MAT_NS_BEGIN
                     auto count = env->GetLongField(byTenant, count_id);
                     ThrowLogic(env, "Exception fetching count");
                     auto utf = env->GetStringUTFChars(token, nullptr);
-                    std::string key(utf != nullptr ? utf : "");
+                    ThrowRuntime(env, "Exception fetching token string");
+                    // Skip rather than misattribute dropped records to an empty
+                    // tenant token when the string read fails.
                     if (utf != nullptr)
+                    {
+                        std::string key(utf);
                         env->ReleaseStringUTFChars(token, utf);
-                    dropped[key] = static_cast<size_t>(count);
+                        dropped[key] = static_cast<size_t>(count);
+                    }
                     env.popLocalFrame();
                 }
                 m_observer->OnStorageRecordsDropped(dropped);

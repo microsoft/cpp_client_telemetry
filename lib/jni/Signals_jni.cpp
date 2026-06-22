@@ -25,7 +25,15 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
                                                           jlong nativeLoggerPtr,
                                                           jstring signal_item_json) {
     jboolean isCopy = true;
+    if (signal_item_json == nullptr) {
+        return false;
+    }
     const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
+    if (signalItemJson == nullptr) {
+        // GetStringUTFChars returned null (e.g. OOM, with a pending exception);
+        // there is nothing valid to log.
+        return false;
+    }
 
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
     EventProperties eventProperties = Signals::CreateEventProperties(signalItemJson);
