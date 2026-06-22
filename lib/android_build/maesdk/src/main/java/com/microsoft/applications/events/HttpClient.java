@@ -20,7 +20,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
-import static android.content.Context.RECEIVER_EXPORTED;
+
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -255,7 +255,17 @@ public class HttpClient {
     }
     m_power_receiver = new PowerInfoReceiver(this);
     IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-    Intent status = context.registerReceiver(m_power_receiver, filter, RECEIVER_EXPORTED);
+    // ACTION_BATTERY_CHANGED is a protected system broadcast, so the receiver is
+    // registered as NOT_EXPORTED. Apps targeting API 34+ must pass an export flag
+    // or registerReceiver throws a SecurityException on Android 14. The flag
+    // constants and the 3-arg overload only exist on API 33+ (the SDK supports
+    // down to API 23), so older devices use the original 2-arg call.
+    Intent status;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      status = context.registerReceiver(m_power_receiver, filter, Context.RECEIVER_NOT_EXPORTED);
+    } else {
+      status = context.registerReceiver(m_power_receiver, filter);
+    }
     if (status != null) {
       m_power_receiver.onReceive(context, status);
     }
