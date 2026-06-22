@@ -177,28 +177,51 @@ namespace MAT_NS_BEGIN {
         size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-            // This will block on and then take a lock for the duration of this move, and
-            // StoreRecord() will then block until the move completes.
-            auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-            std::vector<StorageRecordId> ids;
+            // Reserve the records in memory (with a nominal lease) instead of
+            // removing them outright. The lease duration is not time-critical
+            // here because the records are persisted and resolved synchronously
+            // under m_flushLock; reserving simply keeps the originals retrievable
+            // so any that fail to persist can be returned to the queue.
+            const unsigned reserveLeaseMs = 120000;
+            std::vector<StorageRecord> records;
+            auto consumer = [&records](StorageRecord&& record) -> bool {
+                records.push_back(std::move(record));
+                return true;
+            };
+            m_offlineStorageMemory->GetAndReserveRecords(consumer, reserveLeaseMs, EventLatency_Unspecified);
 
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("BEGIN");
+            // Persist to disk one record at a time, tracking exactly which records
+            // were stored so we only drop the persisted ones from memory.
+            std::vector<StorageRecordId> persistedIds;
+            std::vector<StorageRecordId> failedIds;
+            persistedIds.reserve(records.size());
+            for (auto& record : records)
+            {
+                if (m_offlineStorageDisk->StoreRecord(record))
+                    persistedIds.push_back(record.id);
+                else
+                    failedIds.push_back(record.id);
+            }
 
-            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
-
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("END");
-
-            // Delete records from reserved on flush
             HttpHeaders dummy;
             bool fromMemory = true;
-            m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
+
+            // Persisted records are now safely on disk: drop them from memory.
+            if (!persistedIds.empty())
+                m_offlineStorageMemory->DeleteRecords(persistedIds, dummy, fromMemory);
+
+            // Records that failed to persist are returned to the in-memory queue
+            // so a partial or total disk write failure does not silently lose
+            // events; they are retried on a subsequent flush.
+            if (!failedIds.empty())
+            {
+                LOG_WARN("Flush: %zu of %zu records failed to persist to disk; returning them to the queue for retry",
+                    failedIds.size(), records.size());
+                m_offlineStorageMemory->ReleaseRecords(failedIds, false, dummy, fromMemory);
+            }
 
             // Notify event listener about the records cached
-            OnStorageRecordsSaved(totalSaved);
+            OnStorageRecordsSaved(persistedIds.size());
 
             if (m_offlineStorageMemory->GetSize() > dbSizeBeforeFlush)
             {

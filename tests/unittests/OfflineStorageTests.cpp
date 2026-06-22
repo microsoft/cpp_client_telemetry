@@ -2,7 +2,13 @@
 
 #include "common/Common.hpp"
 #include "common/MockIOfflineStorage.hpp"
+#include "common/MockIOfflineStorageObserver.hpp"
+#include "common/MockIRuntimeConfig.hpp"
+#include "offline/OfflineStorageHandler.hpp"
 #include "offline/StorageObserver.hpp"
+#include "NullObjects.hpp"
+
+#include <sstream>
 
 using namespace testing;
 using namespace MAT;
@@ -161,4 +167,64 @@ TEST_F(OfflineStorageTests, ReleaseRecordsIsForwarded)
     EXPECT_CALL(offlineStorageMock, ReleaseRecords(recordIds, true, test, fromMemory))
         .WillOnce(Return());
     EXPECT_THAT(offlineStorage.releaseRecordsIncRetryCount(ctx), true);
+}
+
+namespace
+{
+    // Dispatcher that drops queued work, so flushes only run when invoked directly.
+    class NoopTaskDispatcher : public ITaskDispatcher
+    {
+    public:
+        void Join() override {}
+        void Queue(Task* task) override { UNREFERENCED_PARAMETER(task); }
+        bool Cancel(Task* task, uint64_t waitTime = 0) override
+        {
+            UNREFERENCED_PARAMETER(task);
+            UNREFERENCED_PARAMETER(waitTime);
+            return true;
+        }
+    };
+}
+
+// Regression test: when records pulled from the in-memory queue fail to persist
+// to disk during Flush(), they must be returned to the queue rather than lost.
+TEST(OfflineStorageHandlerFlushTests, FailedDiskWriteDuringFlushReturnsRecordsToMemory)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    NiceMock<MockIOfflineStorageObserver> observer;
+
+    ON_CALL(config, GetOfflineStorageMaximumSizeBytes()).WillByDefault(Return(32 * 4096));
+    ON_CALL(config, GetMaximumRetryCount()).WillByDefault(Return(5));
+
+    std::ostringstream dbPath;
+    dbPath << GetTempDirectory() << "FlushReserveTest.db";
+    std::remove(dbPath.str().c_str());
+    config[CFG_STR_CACHE_FILE_PATH] = dbPath.str();
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;  // enable the in-memory queue
+
+    OfflineStorageHandler handler(logManager, config, dispatcher);
+    handler.Initialize(observer);
+
+    // timestamp <= 0 is accepted by the in-memory queue but rejected by the
+    // SQLite disk store, simulating a disk write failure during flush.
+    const size_t kCount = 5;
+    for (size_t i = 0; i < kCount; i++)
+    {
+        StorageRecord r("flush-id-" + std::to_string(i), "tenant-token",
+            EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 0,
+            std::vector<uint8_t>{ 'x' });
+        handler.StoreRecord(r);
+    }
+    EXPECT_EQ(handler.GetRecordCount(), kCount);
+
+    handler.Flush();
+
+    // The disk rejected every record; with the fix they are returned to the
+    // in-memory queue rather than silently dropped.
+    EXPECT_EQ(handler.GetRecordCount(), kCount);
+
+    handler.Shutdown();
+    std::remove(dbPath.str().c_str());
 }
