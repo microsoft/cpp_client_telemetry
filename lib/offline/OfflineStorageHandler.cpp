@@ -269,7 +269,9 @@ namespace MAT_NS_BEGIN {
             {
                 if (record.persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
                 {
-                    m_offlineStorageDisk->StoreRecord(record);
+                    // Propagate a synchronous disk write failure to the caller so a
+                    // failed store is not counted as successfully persisted.
+                    return m_offlineStorageDisk->StoreRecord(record);
                 }
             }
         }
