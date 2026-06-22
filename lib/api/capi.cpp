@@ -152,6 +152,9 @@ evt_status_t mat_open_core(
         }
         catch (...)
         {
+            // Roll back the partially-populated client so a later open with the
+            // same config does not find stale half-initialized state.
+            remove_client(code);
             ctx->result = static_cast<evt_status_t>(EFAULT);
             ctx->handle = 0;
             return EFAULT;
@@ -169,6 +172,9 @@ evt_status_t mat_open_core(
         }
         catch (...)
         {
+            // Roll back the partially-populated client so a later open with the
+            // same config does not find stale half-initialized state.
+            remove_client(code);
             ctx->result = static_cast<evt_status_t>(EFAULT);
             ctx->handle = 0;
             return EFAULT;
