@@ -8,6 +8,7 @@
 #include "offline/StorageObserver.hpp"
 #include "NullObjects.hpp"
 
+#include <cstdio>
 #include <sstream>
 
 using namespace testing;
@@ -171,6 +172,16 @@ TEST_F(OfflineStorageTests, ReleaseRecordsIsForwarded)
 
 namespace
 {
+    // Remove a SQLite db file along with its WAL-mode companion files
+    // (-wal/-shm/-journal), which would otherwise accumulate in the temp dir.
+    void RemoveDbFiles(const std::string& path)
+    {
+        std::remove(path.c_str());
+        std::remove((path + "-wal").c_str());
+        std::remove((path + "-shm").c_str());
+        std::remove((path + "-journal").c_str());
+    }
+
     // Dispatcher that drops queued work, so flushes only run when invoked directly.
     class NoopTaskDispatcher : public ITaskDispatcher
     {
@@ -200,7 +211,7 @@ TEST(OfflineStorageHandlerFlushTests, FailedDiskWriteDuringFlushReturnsRecordsTo
 
     std::ostringstream dbPath;
     dbPath << GetTempDirectory() << "FlushReserveTest.db";
-    std::remove(dbPath.str().c_str());
+    RemoveDbFiles(dbPath.str());
     config[CFG_STR_CACHE_FILE_PATH] = dbPath.str();
     config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;  // enable the in-memory queue
 
@@ -226,5 +237,5 @@ TEST(OfflineStorageHandlerFlushTests, FailedDiskWriteDuringFlushReturnsRecordsTo
     EXPECT_EQ(handler.GetRecordCount(), kCount);
 
     handler.Shutdown();
-    std::remove(dbPath.str().c_str());
+    RemoveDbFiles(dbPath.str());
 }
