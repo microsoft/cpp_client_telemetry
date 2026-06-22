@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <exception>
 #include <memory>
 #include <mutex>
 #include <map>
@@ -39,10 +40,15 @@ namespace PAL_NS_BEGIN {
             if (m_task) {
                 // The task is host/user code running on the external dispatcher's
                 // thread; an exception escaping here would terminate the process.
+                // Log it (mirroring WorkerThread) instead of swallowing silently.
                 try {
                     (*m_task)();
                 }
+                catch (const std::exception& ex) {
+                    LOG_ERROR("Unhandled exception in CAPI task: %s", ex.what());
+                }
                 catch (...) {
+                    LOG_ERROR("Unhandled non-standard exception in CAPI task");
                 }
             }
             ReleaseItem();

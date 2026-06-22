@@ -93,8 +93,10 @@ evt_status_t mat_open_core(
             {
                 // Guest instance with the same config is already open.
                 // Return its handle so the caller still gets a usable handle
-                // (rather than leaving ctx->handle uninitialized).
+                // (rather than leaving ctx->handle uninitialized), and set
+                // ctx->result to match the returned status like the other paths.
                 ctx->handle = code;
+                ctx->result = static_cast<evt_status_t>(EALREADY);
                 return EALREADY;
             }
             // hash code is assigned to another client, increment and retry
