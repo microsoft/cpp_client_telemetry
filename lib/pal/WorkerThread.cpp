@@ -6,6 +6,8 @@
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
 
+#include <exception>
+
 #if defined(MATSDK_PAL_CPP11) || defined(MATSDK_PAL_WIN32)
 
 /* Maximum scheduler interval for SDK is 1 hour required for clamping in case of monotonic clock drift */
