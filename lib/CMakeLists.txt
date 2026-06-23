@@ -438,7 +438,10 @@ else()
     elseif(EXISTS "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
       set(MATSDK_SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
     else()
-      set(MATSDK_SQLITE3_LIB "sqlite3")
+      # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
+      # SQLite::SQLite3 is an imported target carrying its own include dirs.
+      find_package(SQLite3 REQUIRED)
+      set(MATSDK_SQLITE3_LIB SQLite::SQLite3)
     endif()
 
     find_package(ZLIB REQUIRED)
