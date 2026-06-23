@@ -290,7 +290,7 @@ namespace MAT_NS_BEGIN {
             DbTransaction transaction(m_db.get());
             if (!transaction.locked)
             {
-                LOG_ERROR("Failed to store %zu events: Database error", records.size());
+                LOG_ERROR("Failed to store %zu events: Database error", valid.size());
                 m_observer->OnStorageFailed("Database error");
                 return 0;
             }
