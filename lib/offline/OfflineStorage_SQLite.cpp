@@ -147,7 +147,7 @@ namespace MAT_NS_BEGIN {
             m_db->execute(command.c_str());
     }
 
-    bool OfflineStorage_SQLite::isValidRecord(StorageRecord const& record)
+    bool OfflineStorage_SQLite::isValidRecord(StorageRecord const& record) const
     {
         if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
