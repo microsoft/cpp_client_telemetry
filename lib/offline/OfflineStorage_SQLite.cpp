@@ -158,10 +158,16 @@ namespace MAT_NS_BEGIN {
         return true;
     }
 
-    void OfflineStorage_SQLite::insertRecordUnsafe(StorageRecord const& record)
+    bool OfflineStorage_SQLite::insertRecordUnsafe(StorageRecord const& record)
     {
-        SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
+        if (!SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob))
+        {
+            LOG_ERROR("Failed to store event %s:%s: database write failed",
+                tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+            return false;
+        }
         m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
+        return true;
     }
 
     void OfflineStorage_SQLite::checkStorageSizeLimits()
@@ -224,7 +230,9 @@ namespace MAT_NS_BEGIN {
                 return false;
             }
 #endif
-            insertRecordUnsafe(record);
+            if (!insertRecordUnsafe(record)) {
+                return false;
+            }
         }
 
         checkStorageSizeLimits();
@@ -247,6 +255,21 @@ namespace MAT_NS_BEGIN {
             return 0;
         }
 
+        // Validate (and report rejects) before opening the transaction, so that
+        // no observer callback runs while the BEGIN EXCLUSIVE transaction is held
+        // (this matches the single StoreRecord(), which validates before its
+        // transaction).
+        std::vector<StorageRecord*> valid;
+        valid.reserve(records.size());
+        for (auto & i : records) {
+            if (isValidRecord(i)) {
+                valid.push_back(&i);
+            }
+        }
+        if (valid.empty()) {
+            return 0;
+        }
+
         size_t stored = 0;
         {
             // Batch all inserts into a single transaction: one BEGIN EXCLUSIVE /
@@ -261,12 +284,10 @@ namespace MAT_NS_BEGIN {
                 return 0;
             }
 #endif
-            for (auto & i : records) {
-                if (!isValidRecord(i)) {
-                    continue;
+            for (auto * r : valid) {
+                if (insertRecordUnsafe(*r)) {
+                    ++stored;
                 }
-                insertRecordUnsafe(i);
-                ++stored;
             }
         }
 

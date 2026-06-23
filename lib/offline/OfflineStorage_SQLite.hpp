@@ -127,7 +127,8 @@ namespace MAT_NS_BEGIN {
         bool isValidRecord(StorageRecord const& record);
         // Insert one already-validated record. Caller must hold m_lock and have an
         // active DbTransaction (when ENABLE_LOCKING). Updates m_DbSizeEstimate.
-        void insertRecordUnsafe(StorageRecord const& record);
+        // Returns false (without updating the size estimate) if the insert fails.
+        bool insertRecordUnsafe(StorageRecord const& record);
         // Run the DB-size-full notification and resize checks (after inserts).
         void checkStorageSizeLimits();
     };
