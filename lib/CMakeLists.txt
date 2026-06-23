@@ -216,7 +216,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   endif()
   if(APPLE AND BUILD_OBJC_WRAPPER)
     message(STATUS "Include ObjC Wrappers")
-    list(APPEND SRCS
+    set(OBJC_WRAPPER_SRCS
       ../wrappers/obj-c/ODWLogger.mm
       ../wrappers/obj-c/ODWLogManager.mm
       ../wrappers/obj-c/ODWEventProperties.mm
@@ -227,22 +227,23 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       ../wrappers/obj-c/ODWSanitizerInitConfig.mm
       )
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/")
-        list(APPEND SRCS
+        list(APPEND OBJC_WRAPPER_SRCS
         ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
         )
     endif()
       if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
           set(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE ON)
-          list(APPEND SRCS
+          list(APPEND OBJC_WRAPPER_SRCS
           ../wrappers/obj-c/ODWPrivacyGuard.mm
             )
       endif()
       if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
         set(MATSDK_OBJC_SANITIZER_AVAILABLE ON)
-        list(APPEND SRCS
+        list(APPEND OBJC_WRAPPER_SRCS
         ../wrappers/obj-c/ODWSanitizer.mm
         )
       endif()
+    list(APPEND SRCS ${OBJC_WRAPPER_SRCS})
   endif()
 
   if(APPLE AND BUILD_SWIFT_WRAPPER)
@@ -356,6 +357,17 @@ target_include_directories(mat
 )
 
 if(APPLE AND BUILD_OBJC_WRAPPER)
+  if(BUILD_SHARED_LIBS AND OBJC_WRAPPER_SRCS)
+    # The root CMakeLists.txt applies -fvisibility=hidden globally to shrink the
+    # exported symbol table of the core C++ SDK. For Objective-C that also hides
+    # the wrapper class symbols (_OBJC_CLASS_$_ODW*), which are public API on
+    # Apple: a shared libmat.dylib would export no ODW* classes and consumers
+    # would fail to link (undefined _OBJC_CLASS_$_...). Re-export just the wrapper
+    # translation units with default visibility; the C++ core stays hidden.
+    set_source_files_properties(${OBJC_WRAPPER_SRCS}
+      PROPERTIES COMPILE_FLAGS "-fvisibility=default")
+  endif()
+
   if(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE)
     target_compile_definitions(mat PRIVATE MATSDK_OBJC_PRIVACYGUARD_AVAILABLE=1)
   else()
