@@ -197,8 +197,9 @@ namespace
             {
                 delete *it;
                 m_tasks.erase(it);
+                return true;
             }
-            return true;
+            return false;
         }
         ~NoopTaskDispatcher() override { clear(); }
 
