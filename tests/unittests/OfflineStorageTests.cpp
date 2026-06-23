@@ -214,9 +214,10 @@ namespace
     };
 }
 
-// Regression test: when records pulled from the in-memory queue fail to persist
-// to disk during Flush(), they must be returned to the queue rather than lost.
-TEST(OfflineStorageHandlerFlushTests, FailedDiskWriteDuringFlushReturnsRecordsToMemory)
+// Regression test: when records drained from the in-memory queue fail to be
+// stored by the disk backend during Flush() (StoreRecord() returns false), they
+// must be returned to the queue rather than lost.
+TEST(OfflineStorageHandlerFlushTests, FailedDiskStoreDuringFlushReturnsRecordsToMemory)
 {
     NullLogManager logManager;
     NiceMock<MockIRuntimeConfig> config;
@@ -237,8 +238,8 @@ TEST(OfflineStorageHandlerFlushTests, FailedDiskWriteDuringFlushReturnsRecordsTo
 
     // A timestamp <= 0 is accepted by the in-memory queue but rejected by the
     // SQLite disk store's input validation, so its StoreRecord() returns false.
-    // This drives the same Flush() failure-handling path as a disk write failure
-    // (a failed record must be returned to memory, not dropped).
+    // This drives the same Flush() failure-handling path as any disk store
+    // failure (a failed record must be returned to memory, not dropped).
     const size_t kCount = 5;
     for (size_t i = 0; i < kCount; i++)
     {
