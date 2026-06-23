@@ -172,6 +172,16 @@ TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchStoresAllRecords)
     TestRecordConsumer consumer;
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
     ASSERT_THAT(consumer.records.size(), kCount);
+    for (size_t i = 0; i < kCount; i++)
+    {
+        std::string expectedId = "g" + std::to_string(i);
+        bool found = false;
+        for (auto const& r : consumer.records)
+        {
+            if (r.id == expectedId) { found = true; break; }
+        }
+        EXPECT_TRUE(found) << "record " << expectedId << " was not retrieved";
+    }
 }
 
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordIsNotReturned)
