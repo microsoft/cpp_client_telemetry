@@ -201,6 +201,11 @@ namespace MAT_NS_BEGIN {
             persistedIds.reserve(records.size());
             for (auto& record : records)
             {
+                // The in-memory reservation lease must not be carried onto disk:
+                // SQLite ignores reservedUntil, but the Room backend persists it,
+                // which would make freshly flushed records temporarily ineligible
+                // for upload selection.
+                record.reservedUntil = 0;
                 if (m_offlineStorageDisk->StoreRecord(record))
                     persistedIds.push_back(record.id);
                 else
