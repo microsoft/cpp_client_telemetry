@@ -154,20 +154,32 @@ namespace MAT_NS_BEGIN {
                 StorageRecord & record = m_records[latency].back();
 
                 size_t recordSize = record.blob.size() + sizeof(record);
-                StorageRecord forConsumer(record);
-                if (leaseTimeMs)
+
+                if (leaseTimeMs == 0)
                 {
-                    forConsumer.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
+                    // No reservation requested (e.g. the flush-read path): the
+                    // record is consumed and removed unconditionally, so move it
+                    // straight to the consumer instead of deep-copying it first.
+                    bool wantMore = consumer(std::move(record));
+                    m_records[latency].pop_back();
+                    m_size -= std::min(m_size, recordSize);
+                    maxCount--;
+                    m_lastReadCount++;
+                    if (!wantMore) {
+                        return true;
+                    }
+                    continue;
                 }
+
+                StorageRecord forConsumer(record);
+                forConsumer.reservedUntil = PAL::getUtcSystemTimeMs() + leaseTimeMs;
 
                 bool wantMore = consumer(std::move(forConsumer)); // move to consumer
                 if (!wantMore) {
                     return true;
                 }
 
-                if (leaseTimeMs) {
-                    m_reserved_records[record.id] = std::move(record); // move to reserved
-                }
+                m_reserved_records[record.id] = std::move(record); // move to reserved
                 m_records[latency].pop_back();
                 m_size -= std::min(m_size, recordSize);
                 maxCount--;

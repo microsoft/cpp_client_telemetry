@@ -153,6 +153,25 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReservedReturnsStoredRecord)
     EXPECT_THAT(consumer.records[0].reservedUntil, 0);
 }
 
+TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchStoresAllRecordsInOneTransaction)
+{
+    initializeStorage();
+    std::vector<StorageRecord> batch;
+    const size_t kCount = 8;
+    for (size_t i = 0; i < kCount; i++)
+    {
+        batch.push_back({ "g" + std::to_string(i), "token", EventLatency_Normal,
+            EventPersistence_Normal, static_cast<int64_t>(i + 1), { static_cast<uint8_t>(i) } });
+    }
+
+    // The whole batch is committed in a single transaction.
+    EXPECT_THAT(offlineStorage->StoreRecords(batch), kCount);
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), kCount);
+}
+
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordIsNotReturned)
 {
     initializeStorage();

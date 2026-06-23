@@ -147,40 +147,25 @@ namespace MAT_NS_BEGIN {
             m_db->execute(command.c_str());
     }
 
-    bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
+    bool OfflineStorage_SQLite::isValidRecord(StorageRecord const& record)
     {
-        // TODO: [MG] - this works, but may not play nicely with several LogManager instances
-        // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
-
         if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
             m_observer->OnStorageFailed("Invalid parameters");
             return false;
         }
+        return true;
+    }
 
-        if (!m_db) {
-            LOG_ERROR("Failed to store event %s:%s: Database is not open",
-                tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-            m_observer->OnStorageOpenFailed("Database is not open");
-            return false;
-        }
+    void OfflineStorage_SQLite::insertRecordUnsafe(StorageRecord const& record)
+    {
+        SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
+        m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
+    }
 
-        {
-#ifdef ENABLE_LOCKING
-            LOCKGUARD(m_lock);
-            DbTransaction transaction(m_db.get());
-            if (!transaction.locked)
-            {
-                LOG_ERROR("Failed to store event %s:%s: Database error", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-                m_observer->OnStorageFailed("Database error");
-                return false;
-            }
-#endif
-            SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
-            m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
-        }
-
+    void OfflineStorage_SQLite::checkStorageSizeLimits()
+    {
         if ((m_DbSizeNotificationLimit != 0) && (m_DbSizeEstimate>m_DbSizeNotificationLimit))
         {
             auto now = PAL::getMonotonicTimeMs();
@@ -210,6 +195,39 @@ namespace MAT_NS_BEGIN {
                 m_resizing = false;
             }
         }
+    }
+
+    bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
+    {
+        // TODO: [MG] - this works, but may not play nicely with several LogManager instances
+        // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
+
+        if (!isValidRecord(record)) {
+            return false;
+        }
+
+        if (!m_db) {
+            LOG_ERROR("Failed to store event %s:%s: Database is not open",
+                tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+            m_observer->OnStorageOpenFailed("Database is not open");
+            return false;
+        }
+
+        {
+#ifdef ENABLE_LOCKING
+            LOCKGUARD(m_lock);
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to store event %s:%s: Database error", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                m_observer->OnStorageFailed("Database error");
+                return false;
+            }
+#endif
+            insertRecordUnsafe(record);
+        }
+
+        checkStorageSizeLimits();
 
         return true;
 
@@ -217,12 +235,43 @@ namespace MAT_NS_BEGIN {
 
     size_t OfflineStorage_SQLite::StoreRecords(std::vector<StorageRecord> & records)
     {
+        if (records.empty()) {
+            return 0;
+        }
+
+        if (!m_db) {
+            LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
+            m_observer->OnStorageOpenFailed("Database is not open");
+            return 0;
+        }
+
         size_t stored = 0;
-        for (auto & i : records) {
-            if (StoreRecord(i)) {
+        {
+            // Batch all inserts into a single transaction: one BEGIN EXCLUSIVE /
+            // COMMIT (one fsync) for the whole flush instead of one per record.
+#ifdef ENABLE_LOCKING
+            LOCKGUARD(m_lock);
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to store %zu events: Database error", records.size());
+                m_observer->OnStorageFailed("Database error");
+                return 0;
+            }
+#endif
+            for (auto & i : records) {
+                if (!isValidRecord(i)) {
+                    continue;
+                }
+                insertRecordUnsafe(i);
                 ++stored;
             }
         }
+
+        if (stored) {
+            checkStorageSizeLimits();
+        }
+
         return stored;
     }
 
