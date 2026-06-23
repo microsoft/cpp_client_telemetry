@@ -194,8 +194,13 @@ will automatically use the optimized zlib-ng build.
 
 ## Reducing binary footprint
 
-The SDK links statically into your binary, so most footprint control lives on
-*your* side of the link.
+This section applies when the SDK is linked **statically** into your binary
+(the default for the `*-static` vcpkg triplets) — most footprint control then
+lives on *your* side of the link. If you instead consume a **dynamic** `mat`
+(e.g. the default `x64-windows` triplet, or `BUILD_SHARED_LIBS=ON`), the runtime
+ships as its own `mat.dll` / `libmat.so` / `libmat.dylib`; the SDK's own
+`-fvisibility=hidden` and `/Gy /Gw` already trim its exported symbol table, and
+the consumer-side linker options below are specific to the static-link case.
 
 ### Enable linker dead-stripping (largest lever)
 
