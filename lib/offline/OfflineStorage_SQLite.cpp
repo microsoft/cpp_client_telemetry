@@ -219,6 +219,7 @@ namespace MAT_NS_BEGIN {
             return false;
         }
 
+        bool stored = false;
         {
 #ifdef ENABLE_LOCKING
             LOCKGUARD(m_lock);
@@ -230,9 +231,14 @@ namespace MAT_NS_BEGIN {
                 return false;
             }
 #endif
-            if (!insertRecordUnsafe(record)) {
-                return false;
-            }
+            stored = insertRecordUnsafe(record);
+        }
+
+        if (!stored) {
+            // Report the write failure after the transaction has closed, so the
+            // observer callback never runs while BEGIN EXCLUSIVE is held.
+            m_observer->OnStorageFailed("Database write failed");
+            return false;
         }
 
         checkStorageSizeLimits();
@@ -271,6 +277,7 @@ namespace MAT_NS_BEGIN {
         }
 
         size_t stored = 0;
+        size_t failed = 0;
         {
             // Batch all inserts into a single transaction: one BEGIN EXCLUSIVE /
             // COMMIT (one fsync) for the whole flush instead of one per record.
@@ -288,7 +295,15 @@ namespace MAT_NS_BEGIN {
                 if (insertRecordUnsafe(*r)) {
                     ++stored;
                 }
+                else {
+                    ++failed;
+                }
             }
+        }
+
+        if (failed) {
+            // Report write failures once, after the transaction has closed.
+            m_observer->OnStorageFailed("Database write failed");
         }
 
         // Run the size-full notification / resize check once after the batch
