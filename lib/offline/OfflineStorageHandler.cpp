@@ -185,32 +185,20 @@ namespace MAT_NS_BEGIN {
             // persist to disk.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
 
-            // Persist one record at a time so we know exactly which succeeded. A
-            // batched StoreRecords() only returns a count, so on a partial failure
-            // we could not tell which records to re-queue, and re-storing
-            // already-saved records would duplicate them (the events table has no
-            // unique record_id constraint).
-            size_t totalSaved = 0;
-            size_t totalFailed = 0;
-            for (auto& record : records)
+            // Persist the whole batch to disk in a single transaction.
+            // StoreRecords() is all-or-nothing, so on any failure nothing is
+            // committed and we return every record to the in-memory queue for
+            // retry -- no events are lost, and there are no duplicates because the
+            // failed batch left nothing on disk.
+            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
+            if (totalSaved < records.size())
             {
-                if (m_offlineStorageDisk->StoreRecord(record))
+                LOG_WARN("Flush: disk store failed for the batch of %zu records; returned to the queue for retry",
+                    records.size());
+                for (auto& record : records)
                 {
-                    ++totalSaved;
-                }
-                else
-                {
-                    // Return the record to the in-memory queue for retry on a
-                    // subsequent flush instead of dropping it.
-                    ++totalFailed;
                     m_offlineStorageMemory->StoreRecord(record);
                 }
-            }
-
-            if (totalFailed > 0)
-            {
-                LOG_WARN("Flush: %zu of %zu records failed to persist to disk; returned to the queue for retry",
-                    totalFailed, records.size());
             }
 
             // Notify event listener about the records cached

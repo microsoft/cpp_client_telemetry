@@ -439,6 +439,13 @@ namespace MAT_NS_BEGIN {
             return isOK(sqlite3_exec("COMMIT;"));
         }
 
+        /**
+        * @brief   Roll back (discard) the current DB transaction.
+        */
+        bool rollback() {
+            return isOK(sqlite3_exec("ROLLBACK;"));
+        }
+
         bool lock() {
 #ifndef NDEBUG
             unsigned count = 0;
