@@ -35,9 +35,12 @@ Consequences that make this the robust choice:
   `_ITERATOR_DEBUG_LEVEL`, MSVC toolset/STL version, libstdc++ vs libc++,
   `_GLIBCXX_USE_CXX11_ABI`, …). A 1DS version bump does not force every module to
   rebuild in lockstep against an identical toolchain.
-* **It links without `__declspec(dllimport)`.** A plain C function resolves
-  through the shared library's import lib, so the C API works across the boundary
-  today.
+* **It does not *require* `__declspec(dllimport)` to link.** A plain C function
+  resolves through the shared library's import lib even without `dllimport`, so
+  the C API works across the boundary regardless. Consumers that link the shared
+  `MSTelemetry::mat` target do get `dllimport` applied automatically (via the
+  `MATSDK_IMPORT_LIB` interface define this PR adds); for a C function that is a
+  harmless calling-convention optimization, not a requirement.
 
 Each module includes `mat.h`, links the one shared runtime, and uses its own
 tenant/source. You still pin the **same SDK version** in every module (so the

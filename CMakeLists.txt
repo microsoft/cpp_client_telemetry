@@ -243,9 +243,12 @@ endif()
 # sqlite3/zlib. This shrinks the dynamic symbol table (faster dynamic
 # linking/loading, smaller binaries) and enables more inlining + dead-code
 # elimination -- the non-Windows analog of what /Gy plus the consumer's /OPT:REF
-# achieve on MSVC. Windows already restricts exports via __declspec(dllexport)
-# on MATSDK_LIBABI (lib/include/public/ctmacros.hpp).
-if(NOT MSVC)
+# achieve on MSVC. All Windows toolchains (MSVC, MinGW, ClangCL) restrict exports
+# via __declspec(dllexport) on MATSDK_LIBABI (lib/include/public/ctmacros.hpp),
+# so this is gated on NOT WIN32 (not NOT MSVC, which would also catch MinGW/
+# Clang-GNU Windows builds and apply ELF-style visibility that does not belong on
+# a PE/COFF target).
+if(NOT WIN32)
   # -fvisibility=hidden applies to C and C++; -fvisibility-inlines-hidden is a
   # C++-only option, so scope it to CXX. (Applying it to C sources -- e.g. the
   # bundled sqlite3/zlib on the legacy Android path -- makes Clang emit an
