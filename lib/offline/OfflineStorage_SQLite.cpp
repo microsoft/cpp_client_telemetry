@@ -240,6 +240,8 @@ namespace MAT_NS_BEGIN {
         }
 
         if (!m_db) {
+            // Report once for the whole batch (the previous per-record loop
+            // reported once per record).
             LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
             m_observer->OnStorageOpenFailed("Database is not open");
             return 0;
@@ -268,6 +270,9 @@ namespace MAT_NS_BEGIN {
             }
         }
 
+        // Run the size-full notification / resize check once after the batch
+        // commit (instead of after every record): m_DbSizeEstimate already
+        // reflects all inserts and the resize result is the same.
         if (stored) {
             checkStorageSizeLimits();
         }

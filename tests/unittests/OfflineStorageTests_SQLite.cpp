@@ -153,7 +153,7 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReservedReturnsStoredRecord)
     EXPECT_THAT(consumer.records[0].reservedUntil, 0);
 }
 
-TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchStoresAllRecordsInOneTransaction)
+TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchStoresAllRecords)
 {
     initializeStorage();
     std::vector<StorageRecord> batch;
@@ -164,7 +164,9 @@ TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchStoresAllRecordsInOneTransac
             EventPersistence_Normal, static_cast<int64_t>(i + 1), { static_cast<uint8_t>(i) } });
     }
 
-    // The whole batch is committed in a single transaction.
+    // Every record in the batch is stored and individually retrievable. (The
+    // single-transaction batching is a performance optimization verified by
+    // benchmarking; this test covers the batch's storage correctness.)
     EXPECT_THAT(offlineStorage->StoreRecords(batch), kCount);
 
     TestRecordConsumer consumer;
