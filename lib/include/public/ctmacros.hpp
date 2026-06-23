@@ -28,9 +28,14 @@
 #define MATSDK_LIBABI_CDECL __cdecl
 #  if defined(MATSDK_SHARED_LIB)
 #    define MATSDK_LIBABI __declspec(dllexport)
+#  elif defined(MATSDK_IMPORT_LIB)
+// Consumer importing the public API from a shared mat.dll. The installed
+// MSTelemetry::mat CMake target propagates this automatically when the SDK was
+// built shared (see lib/CMakeLists.txt).
+#    define MATSDK_LIBABI __declspec(dllimport)
 #  elif defined(MATSDK_STATIC_LIB)
 #    define MATSDK_LIBABI
-#  else // Header file included by client
+#  else // Header file included by client; linkage unspecified
 #    ifndef MATSDK_LIBABI
 #    define MATSDK_LIBABI
 #    endif

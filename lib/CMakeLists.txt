@@ -271,7 +271,7 @@ elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 if(NOT MATSDK_USE_VCPKG_DEPS)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
 endif()
-add_definitions(-D_UNICODE -DUNICODE -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
+add_definitions(-D_UNICODE -DUNICODE -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
@@ -321,6 +321,23 @@ if(BUILD_SHARED_LIBS)
 else()
   message(STATUS "Building static SDK library")
   add_library(mat STATIC ${SRCS})
+endif()
+
+# Windows export/import decoration (MATSDK_LIBABI in lib/include/public/ctmacros.hpp).
+# The SDK has no .def file, so __declspec(dllexport)/(dllimport) is the sole export
+# mechanism, and it must follow the actual linkage:
+#  * shared: export the public API from the SDK build (PRIVATE), and make
+#    consumers import it. The INTERFACE define is carried by the installed
+#    MSTelemetry::mat target, so find_package() + link gives consumers
+#    dllimport automatically -- no consumer-side configuration.
+#  * static: decorate nothing (define on both sides), so the SDK's public symbols
+#    are NOT re-exported by a consumer DLL that absorbs this static lib.
+if(WIN32)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(mat PRIVATE MATSDK_SHARED_LIB=1 INTERFACE MATSDK_IMPORT_LIB=1)
+  else()
+    target_compile_definitions(mat PUBLIC MATSDK_STATIC_LIB=1)
+  endif()
 endif()
 
 # Target-based include paths for vcpkg / install workflow.
