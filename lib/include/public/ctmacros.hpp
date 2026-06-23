@@ -53,10 +53,14 @@
 #endif
 
 #ifndef MATSDK_LIBABI
-// Mark the public API as default-visibility so it stays exported when the SDK is
-// built with -fvisibility=hidden (see CMakeLists.txt). This is the non-Windows
-// analog of the __declspec(dllexport) gating above. Harmless without the flag.
-#  if defined(__GNUC__) || defined(__clang__)
+// Mark the public API as default-visibility ONLY in shared builds, so it stays
+// exported when the SDK is compiled with -fvisibility=hidden (see CMakeLists.txt).
+// This mirrors the __declspec(dllexport) gating above: in a static build the
+// attribute is omitted, so the public symbols inherit -fvisibility=hidden and are
+// NOT re-exported when a consumer .so/.dylib statically absorbs libmat. (When a
+// consumer includes this header, MATSDK_SHARED_LIB is not defined either, which
+// is fine: the symbols are exported by the shared libmat they link against.)
+#  if (defined(__GNUC__) || defined(__clang__)) && defined(MATSDK_SHARED_LIB)
 #    define MATSDK_LIBABI __attribute__((visibility("default")))
 #  else
 #    define MATSDK_LIBABI

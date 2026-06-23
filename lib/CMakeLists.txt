@@ -324,21 +324,27 @@ else()
   add_library(mat STATIC ${SRCS})
 endif()
 
-# Windows export/import decoration (MATSDK_LIBABI in lib/include/public/ctmacros.hpp).
-# The SDK has no .def file, so __declspec(dllexport)/(dllimport) is the sole export
-# mechanism, and it must follow the actual linkage:
-#  * shared: export the public API from the SDK build (PRIVATE), and make
-#    consumers import it. The INTERFACE define is carried by the installed
-#    MSTelemetry::mat target, so find_package() + link gives consumers
-#    dllimport automatically -- no consumer-side configuration.
-#  * static: decorate nothing (define on both sides), so the SDK's public symbols
-#    are NOT re-exported by a consumer DLL that absorbs this static lib.
-if(WIN32)
-  if(BUILD_SHARED_LIBS)
-    target_compile_definitions(mat PRIVATE MATSDK_SHARED_LIB=1 INTERFACE MATSDK_IMPORT_LIB=1)
-  else()
-    target_compile_definitions(mat PUBLIC MATSDK_STATIC_LIB=1)
+# Public-API export decoration (MATSDK_LIBABI in lib/include/public/ctmacros.hpp).
+# The SDK has no .def file, so __declspec(dllexport)/(dllimport) on Windows and
+# __attribute__((visibility("default"))) elsewhere are the sole export mechanisms,
+# and the decoration must follow the actual linkage:
+#  * shared: the SDK's own translation units export the public API
+#    (MATSDK_SHARED_LIB, PRIVATE). On Windows, consumers must additionally import
+#    it -- the INTERFACE MATSDK_IMPORT_LIB is carried by the installed
+#    MSTelemetry::mat target, so find_package() + link gives consumers dllimport
+#    automatically with no consumer-side configuration. Non-Windows consumers need
+#    nothing: they call symbols exported by libmat.so/.dylib.
+#  * static: decorate nothing, so the SDK's public symbols are NOT re-exported by
+#    a consumer DLL/.so that statically absorbs this library. Windows needs an
+#    explicit (empty) MATSDK_STATIC_LIB; elsewhere the empty MATSDK_LIBABI default
+#    plus -fvisibility=hidden (root CMakeLists.txt) already hides them.
+if(BUILD_SHARED_LIBS)
+  target_compile_definitions(mat PRIVATE MATSDK_SHARED_LIB=1)
+  if(WIN32)
+    target_compile_definitions(mat INTERFACE MATSDK_IMPORT_LIB=1)
   endif()
+elseif(WIN32)
+  target_compile_definitions(mat PUBLIC MATSDK_STATIC_LIB=1)
 endif()
 
 # Target-based include paths for vcpkg / install workflow.
