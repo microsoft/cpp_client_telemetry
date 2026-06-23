@@ -234,8 +234,10 @@ TEST(OfflineStorageHandlerFlushTests, FailedDiskWriteDuringFlushReturnsRecordsTo
     OfflineStorageHandler handler(logManager, config, dispatcher);
     handler.Initialize(observer);
 
-    // timestamp <= 0 is accepted by the in-memory queue but rejected by the
-    // SQLite disk store, simulating a disk write failure during flush.
+    // A timestamp <= 0 is accepted by the in-memory queue but rejected by the
+    // SQLite disk store's input validation, so its StoreRecord() returns false.
+    // This drives the same Flush() failure-handling path as a disk write failure
+    // (a failed record must be returned to memory, not dropped).
     const size_t kCount = 5;
     for (size_t i = 0; i < kCount; i++)
     {
