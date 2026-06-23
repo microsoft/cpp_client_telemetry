@@ -240,9 +240,8 @@ namespace MAT_NS_BEGIN {
             m_observer->OnStorageFailed("Database write failed");
         }
 
-        // Always run the size-limit check, even on failure: a full-DB error
-        // (e.g. SQLITE_FULL) must still be able to trigger ResizeDb() so storage
-        // can recover.
+        // Run the size-limit check after the transaction, matching the original
+        // per-record path (which ran it on every StoreRecord call).
         checkStorageSizeLimits();
 
         return stored;
@@ -268,13 +267,16 @@ namespace MAT_NS_BEGIN {
             }
         }
 
-        if (!m_db) {
-            LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
-            m_observer->OnStorageOpenFailed("Database is not open");
+        if (valid.empty()) {
+            // Every record was invalid (already reported above). Match the single
+            // StoreRecord(), which returns after validation without checking
+            // DB-open.
             return 0;
         }
 
-        if (valid.empty()) {
+        if (!m_db) {
+            LOG_ERROR("Failed to store %zu events: Database is not open", valid.size());
+            m_observer->OnStorageOpenFailed("Database is not open");
             return 0;
         }
 
@@ -308,10 +310,8 @@ namespace MAT_NS_BEGIN {
             m_observer->OnStorageFailed("Database write failed");
         }
 
-        // Always run the size-full notification / resize check once after the
-        // batch (even if every insert failed): a full DB must still be able to
-        // trigger ResizeDb() to recover. m_DbSizeEstimate already reflects all
-        // successful inserts.
+        // Run the size-full notification / resize check once after the batch,
+        // matching the original per-record path (which ran it on every insert).
         checkStorageSizeLimits();
 
         return stored;
