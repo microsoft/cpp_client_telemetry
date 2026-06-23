@@ -247,18 +247,11 @@ namespace MAT_NS_BEGIN {
             return 0;
         }
 
-        if (!m_db) {
-            // Report once for the whole batch (the previous per-record loop
-            // reported once per record).
-            LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
-            m_observer->OnStorageOpenFailed("Database is not open");
-            return 0;
-        }
-
-        // Validate (and report rejects) before opening the transaction, so that
-        // no observer callback runs while the BEGIN EXCLUSIVE transaction is held
-        // (this matches the single StoreRecord(), which validates before its
-        // transaction).
+        // Validate (and report rejects) first -- before both the DB-open check and
+        // the transaction -- so reporting matches the single StoreRecord() (which
+        // validates before everything) regardless of whether the DB is open, and
+        // so that no observer callback runs while the BEGIN EXCLUSIVE transaction
+        // is held.
         std::vector<StorageRecord*> valid;
         valid.reserve(records.size());
         for (auto & i : records) {
@@ -266,6 +259,13 @@ namespace MAT_NS_BEGIN {
                 valid.push_back(&i);
             }
         }
+
+        if (!m_db) {
+            LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
+            m_observer->OnStorageOpenFailed("Database is not open");
+            return 0;
+        }
+
         if (valid.empty()) {
             return 0;
         }
