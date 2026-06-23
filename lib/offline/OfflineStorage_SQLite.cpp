@@ -238,12 +238,14 @@ namespace MAT_NS_BEGIN {
             // Report the write failure after the transaction has closed, so the
             // observer callback never runs while BEGIN EXCLUSIVE is held.
             m_observer->OnStorageFailed("Database write failed");
-            return false;
         }
 
+        // Always run the size-limit check, even on failure: a full-DB error
+        // (e.g. SQLITE_FULL) must still be able to trigger ResizeDb() so storage
+        // can recover.
         checkStorageSizeLimits();
 
-        return true;
+        return stored;
 
     }
 
@@ -258,9 +260,9 @@ namespace MAT_NS_BEGIN {
         // validates before everything) regardless of whether the DB is open, and
         // so that no observer callback runs while the BEGIN EXCLUSIVE transaction
         // is held.
-        std::vector<StorageRecord*> valid;
+        std::vector<const StorageRecord*> valid;
         valid.reserve(records.size());
-        for (auto & i : records) {
+        for (auto const& i : records) {
             if (isValidRecord(i)) {
                 valid.push_back(&i);
             }
@@ -291,7 +293,7 @@ namespace MAT_NS_BEGIN {
                 return 0;
             }
 #endif
-            for (auto * r : valid) {
+            for (auto const* r : valid) {
                 if (insertRecordUnsafe(*r)) {
                     ++stored;
                 }
@@ -306,12 +308,11 @@ namespace MAT_NS_BEGIN {
             m_observer->OnStorageFailed("Database write failed");
         }
 
-        // Run the size-full notification / resize check once after the batch
-        // commit (instead of after every record): m_DbSizeEstimate already
-        // reflects all inserts and the resize result is the same.
-        if (stored) {
-            checkStorageSizeLimits();
-        }
+        // Always run the size-full notification / resize check once after the
+        // batch (even if every insert failed): a full DB must still be able to
+        // trigger ResizeDb() to recover. m_DbSizeEstimate already reflects all
+        // successful inserts.
+        checkStorageSizeLimits();
 
         return stored;
     }
