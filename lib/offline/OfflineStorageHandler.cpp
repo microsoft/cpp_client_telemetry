@@ -177,60 +177,44 @@ namespace MAT_NS_BEGIN {
         size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-            // Reserve the records in memory (with a nominal lease) instead of
-            // removing them outright. The lease duration is not time-critical
-            // here because the records are persisted and resolved synchronously
-            // under m_flushLock; reserving simply keeps the originals retrievable
-            // so any that fail to persist can be returned to the queue.
-            const unsigned reserveLeaseMs = 120000;
-            std::vector<StorageRecord> records;
-            auto consumer = [&records](StorageRecord&& record) -> bool {
-                records.push_back(std::move(record));
-                return true;
-            };
-            m_offlineStorageMemory->GetAndReserveRecords(consumer, reserveLeaseMs, EventLatency_Unspecified);
+            // Drain the in-memory queue into a local batch. Records are removed
+            // from memory here; any that fail to persist below are re-inserted, so
+            // a disk write failure does not silently lose events. Draining (rather
+            // than reserving) keeps only a single copy of each record in flight and
+            // avoids stamping a reservation lease that the Room backend would
+            // persist to disk.
+            auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
 
-            // Persist to disk one record at a time, tracking exactly which records
-            // were stored so we only drop the persisted ones from memory. This
-            // intentionally favors correctness over batching: a batched StoreRecords()
-            // only returns a count, so on a partial failure we could not tell which
-            // records to keep vs. retry, and re-storing already-saved records would
-            // duplicate them (the events table has no unique record_id constraint).
-            std::vector<StorageRecordId> persistedIds;
-            std::vector<StorageRecordId> failedIds;
-            persistedIds.reserve(records.size());
+            // Persist one record at a time so we know exactly which succeeded. A
+            // batched StoreRecords() only returns a count, so on a partial failure
+            // we could not tell which records to re-queue, and re-storing
+            // already-saved records would duplicate them (the events table has no
+            // unique record_id constraint).
+            size_t totalSaved = 0;
+            size_t totalFailed = 0;
             for (auto& record : records)
             {
-                // The in-memory reservation lease must not be carried onto disk:
-                // SQLite ignores reservedUntil, but the Room backend persists it,
-                // which would make freshly flushed records temporarily ineligible
-                // for upload selection.
-                record.reservedUntil = 0;
                 if (m_offlineStorageDisk->StoreRecord(record))
-                    persistedIds.push_back(record.id);
+                {
+                    ++totalSaved;
+                }
                 else
-                    failedIds.push_back(record.id);
+                {
+                    // Return the record to the in-memory queue for retry on a
+                    // subsequent flush instead of dropping it.
+                    ++totalFailed;
+                    m_offlineStorageMemory->StoreRecord(record);
+                }
             }
 
-            HttpHeaders dummy;
-            bool fromMemory = true;
-
-            // Persisted records are now safely on disk: drop them from memory.
-            if (!persistedIds.empty())
-                m_offlineStorageMemory->DeleteRecords(persistedIds, dummy, fromMemory);
-
-            // Records that failed to persist are returned to the in-memory queue
-            // so a partial or total disk write failure does not silently lose
-            // events; they are retried on a subsequent flush.
-            if (!failedIds.empty())
+            if (totalFailed > 0)
             {
-                LOG_WARN("Flush: %zu of %zu records failed to persist to disk; returning them to the queue for retry",
-                    failedIds.size(), records.size());
-                m_offlineStorageMemory->ReleaseRecords(failedIds, false, dummy, fromMemory);
+                LOG_WARN("Flush: %zu of %zu records failed to persist to disk; returned to the queue for retry",
+                    totalFailed, records.size());
             }
 
             // Notify event listener about the records cached
-            OnStorageRecordsSaved(persistedIds.size());
+            OnStorageRecordsSaved(totalSaved);
 
             if (m_offlineStorageMemory->GetSize() > dbSizeBeforeFlush)
             {
