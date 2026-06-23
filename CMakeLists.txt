@@ -246,7 +246,11 @@ endif()
 # achieve on MSVC. Windows already restricts exports via __declspec(dllexport)
 # on MATSDK_LIBABI (lib/include/public/ctmacros.hpp).
 if(NOT MSVC)
-  add_compile_options(-fvisibility=hidden -fvisibility-inlines-hidden)
+  # -fvisibility=hidden applies to C and C++; -fvisibility-inlines-hidden is a
+  # C++-only option, so scope it to CXX. (Applying it to C sources -- e.g. the
+  # bundled sqlite3/zlib on the legacy Android path -- makes Clang emit an
+  # "unused argument" warning that becomes an error under the project's -Werror.)
+  add_compile_options(-fvisibility=hidden $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
 endif()
 
 include(tools/Utils.cmake)
