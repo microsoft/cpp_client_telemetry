@@ -211,9 +211,9 @@ discard SDK code you never reference. Make sure your final link enables it:
 
   ```cmake
   target_link_options(your_target PRIVATE
-    $<$<CONFIG:Release,RelWithDebInfo>:/OPT:REF>
-    $<$<CONFIG:Release,RelWithDebInfo>:/OPT:ICF>
-    $<$<CONFIG:Release,RelWithDebInfo>:/INCREMENTAL:NO>)
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:/OPT:REF>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:/OPT:ICF>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:/INCREMENTAL:NO>)
   ```
 
 - **GCC / Clang:** link with `-Wl,--gc-sections`.
