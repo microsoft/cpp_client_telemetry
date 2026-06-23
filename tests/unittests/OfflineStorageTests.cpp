@@ -182,18 +182,34 @@ namespace
         std::remove((path + "-journal").c_str());
     }
 
-    // Dispatcher that drops queued work, so flushes only run when invoked directly.
+    // No-op dispatcher that owns queued tasks and frees them, so flushes only
+    // run when invoked directly and scheduled tasks (if any) are not leaked.
     class NoopTaskDispatcher : public ITaskDispatcher
     {
     public:
-        void Join() override {}
-        void Queue(Task* task) override { UNREFERENCED_PARAMETER(task); }
+        void Join() override { clear(); }
+        void Queue(Task* task) override { m_tasks.push_back(task); }
         bool Cancel(Task* task, uint64_t waitTime = 0) override
         {
-            UNREFERENCED_PARAMETER(task);
             UNREFERENCED_PARAMETER(waitTime);
+            auto it = std::find(m_tasks.begin(), m_tasks.end(), task);
+            if (it != m_tasks.end())
+            {
+                delete *it;
+                m_tasks.erase(it);
+            }
             return true;
         }
+        ~NoopTaskDispatcher() override { clear(); }
+
+    private:
+        void clear()
+        {
+            for (auto* t : m_tasks)
+                delete t;
+            m_tasks.clear();
+        }
+        std::vector<Task*> m_tasks;
     };
 }
 

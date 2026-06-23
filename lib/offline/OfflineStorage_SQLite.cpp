@@ -177,7 +177,13 @@ namespace MAT_NS_BEGIN {
                 return false;
             }
 #endif
-            SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
+            if (!SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob))
+            {
+                LOG_ERROR("Failed to store event %s:%s: database write failed",
+                    tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                m_observer->OnStorageFailed("Database write failed");
+                return false;
+            }
             m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
         }
 
