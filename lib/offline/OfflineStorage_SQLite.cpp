@@ -268,20 +268,20 @@ namespace MAT_NS_BEGIN {
             return 0;
         }
 
-        // Validate (and report rejects) first -- before both the DB-open check and
-        // the transaction -- so reporting matches the single StoreRecord() (which
-        // validates before everything) regardless of whether the DB is open, and
-        // so that no observer callback runs while the BEGIN EXCLUSIVE transaction
-        // is held.
-        std::vector<const StorageRecord*> valid;
-        valid.reserve(records.size());
+        // Validate (and report rejects) up front -- before the DB-open check and
+        // the transaction -- so no observer callback runs while BEGIN EXCLUSIVE is
+        // held. The batch is all-or-nothing: if ANY record is invalid we store
+        // nothing and return 0, so a caller that re-queues the whole batch on a
+        // short return (e.g. Flush) can never duplicate records that would
+        // otherwise have been partially committed.
+        size_t validCount = 0;
         for (auto const& i : records) {
             if (isValidRecord(i)) {
-                valid.push_back(&i);
+                ++validCount;
             }
         }
 
-        if (valid.empty()) {
+        if (validCount == 0) {
             // Every record was invalid (already reported above). Match the single
             // StoreRecord(), which returns after validation without checking
             // DB-open.
@@ -289,13 +289,19 @@ namespace MAT_NS_BEGIN {
         }
 
         if (!m_db) {
-            LOG_ERROR("Failed to store %zu events: Database is not open", valid.size());
+            LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
             m_observer->OnStorageOpenFailed("Database is not open");
             return 0;
         }
 
-        size_t stored = 0;
+        if (validCount != records.size()) {
+            // At least one record was invalid (already reported). Store nothing so
+            // the batch stays all-or-nothing for the caller.
+            return 0;
+        }
+
         size_t addedSize = 0;
+        bool allStored = true;
         {
             // Batch all inserts into a single transaction: one BEGIN EXCLUSIVE /
             // COMMIT (one fsync) for the whole flush instead of one per record.
@@ -307,15 +313,14 @@ namespace MAT_NS_BEGIN {
             DbTransaction transaction(m_db.get());
             if (!transaction.locked)
             {
-                LOG_ERROR("Failed to store %zu events: Database error", valid.size());
+                LOG_ERROR("Failed to store %zu events: Database error", records.size());
                 m_observer->OnStorageFailed("Database error");
                 return 0;
             }
 #endif
-            bool allStored = true;
-            for (auto const* r : valid) {
-                if (insertRecordUnsafe(*r)) {
-                    addedSize += r->id.size() + r->tenantToken.size() + r->blob.size();
+            for (auto const& r : records) {
+                if (insertRecordUnsafe(r)) {
+                    addedSize += r.id.size() + r.tenantToken.size() + r.blob.size();
                 }
                 else {
                     allStored = false;
@@ -323,10 +328,7 @@ namespace MAT_NS_BEGIN {
                 }
             }
 
-            if (allStored) {
-                stored = valid.size();
-            }
-            else {
+            if (!allStored) {
 #ifdef ENABLE_LOCKING
                 transaction.markForRollback();
 #endif
@@ -335,7 +337,7 @@ namespace MAT_NS_BEGIN {
             }
         }
 
-        if (stored == 0) {
+        if (!allStored) {
             // The whole batch was rolled back after a write failure; report once.
             m_observer->OnStorageFailed("Database write failed");
         }
@@ -344,7 +346,7 @@ namespace MAT_NS_BEGIN {
         // matching the original per-record path (which ran it on every insert).
         checkStorageSizeLimits();
 
-        return stored;
+        return allStored ? records.size() : 0;
     }
 
     // Debug routine to print record count in the DB

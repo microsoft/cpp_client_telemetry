@@ -184,6 +184,27 @@ TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchStoresAllRecords)
     }
 }
 
+TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchWithAnyInvalidStoresNothing)
+{
+    initializeStorage();
+    std::vector<StorageRecord> batch = {
+        { "g1", "token", EventLatency_Normal, EventPersistence_Normal, 1, { 1 } }, // valid
+        { "g2", "token", EventLatency_Normal, EventPersistence_Normal, 0, { 2 } }, // invalid: timestamp <= 0
+    };
+
+    // The invalid record is reported during validation.
+    EXPECT_CALL(observerMock, OnStorageFailed("Invalid parameters"));
+
+    // All-or-nothing: with any invalid record in the batch, nothing is stored
+    // (so a caller that re-queues the batch on a short return can't duplicate the
+    // otherwise-valid record).
+    EXPECT_THAT(offlineStorage->StoreRecords(batch), static_cast<size_t>(0));
+
+    TestRecordConsumer consumer;
+    offlineStorage->GetAndReserveRecords(consumer, 100000);
+    EXPECT_THAT(consumer.records.size(), static_cast<size_t>(0));
+}
+
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordIsNotReturned)
 {
     initializeStorage();
