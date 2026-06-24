@@ -240,6 +240,14 @@ namespace MAT_NS_BEGIN
             MATSDK_THROW(std::logic_error("whereFilter not implemented"));
         }
 
+        if (!env)
+        {
+            return;
+        }
+        if (!m_room)
+        {
+            return;
+        }
         auto room_class = env->GetObjectClass(m_room);
         auto deleteByToken = env->GetMethodID(room_class,
                                               "deleteByToken",
@@ -271,6 +279,10 @@ namespace MAT_NS_BEGIN
             }
             ConnectedEnv env(s_vm);
             if (!env)
+            {
+                return;
+            }
+            if (!m_room)
             {
                 return;
             }
@@ -377,6 +389,10 @@ namespace MAT_NS_BEGIN
             {
                 return false;
             }
+            if (!m_room)
+            {
+                return false;
+            }
             auto room_class = env->GetObjectClass(m_room);
             auto reserve = env->GetMethodID(room_class, "getAndReserve",
                                             "(IJJJ)[Lcom/microsoft/applications/events/StorageRecord;");
@@ -424,11 +440,26 @@ namespace MAT_NS_BEGIN
                 int persist_lb = static_cast<int>(EventPersistence_Normal);
                 int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
 
+                // Set if a null array element is hit below, so the early-release
+                // path skips releaseUnconsumed (which would index into the null).
+                bool sawNullElement = false;
                 for (index = 0; index < limit; ++index)
                 {
                     env.pushLocalFrame(32);
                     auto record = env->GetObjectArrayElement(selected, index);
                     ThrowLogic(env, "getAndReserve element");
+                    if (!record)
+                    {
+                        // Null array element (observed with some androidx.room
+                        // versions): pop this frame and stop rather than
+                        // dereferencing null in GetObjectClass. We cannot safely
+                        // release the tail here (it contains this null and Java
+                        // releaseUnconsumed indexes from 0), so leave the
+                        // remaining reservations to expire and be retried.
+                        sawNullElement = true;
+                        env.popLocalFrame();
+                        break;
+                    }
                     if (!record_class)
                     {
                         // Promote to a global ref so it survives popLocalFrame on
@@ -521,11 +552,14 @@ namespace MAT_NS_BEGIN
                 if (index < limit)
                 {
                     // we did not consume all these events
-                    auto release = env->GetMethodID(room_class, "releaseUnconsumed",
-                                                    "([Lcom/microsoft/applications/events/StorageRecord;I)V");
-                    ThrowLogic(env, "releaseUnconsumed");
-                    env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
-                    ThrowRuntime(env, "call ru");
+                    if (!sawNullElement)
+                    {
+                        auto release = env->GetMethodID(room_class, "releaseUnconsumed",
+                                                        "([Lcom/microsoft/applications/events/StorageRecord;I)V");
+                        ThrowLogic(env, "releaseUnconsumed");
+                        env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
+                        ThrowRuntime(env, "call ru");
+                    }
                     break;  // break out of the request > collected loop--end early by request
                 }
             }
@@ -636,6 +670,14 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return;
+            }
+            if (!m_room)
+            {
+                return;
+            }
             auto room_class = env->GetObjectClass(m_room);
             ThrowLogic(env, "GetObjectClass for m_room");
             auto release = env->GetMethodID(room_class,
@@ -703,6 +745,12 @@ namespace MAT_NS_BEGIN
                     env.pushLocalFrame(8);
                     auto byTenant = env->GetObjectArrayElement(results, index);
                     ThrowRuntime(env, "Exception fetching element from results");
+                    if (!byTenant)
+                    {
+                        // Skip a null array element rather than dereference null.
+                        env.popLocalFrame();
+                        continue;
+                    }
                     if (!bt_class)
                     {
                         // Promote to a global ref so it survives popLocalFrame.
@@ -803,6 +851,10 @@ namespace MAT_NS_BEGIN
 
             static constexpr char newRecordSignature[] =
                 "(JIIJIJ[B)Lcom/microsoft/applications/events/StorageRecord;";
+            if (!m_room)
+            {
+                return 0;
+            }
             auto room_class = env->GetObjectClass(m_room);
 
             size_t count = std::min<size_t>(records.size(), INT32_MAX);
@@ -933,6 +985,14 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return false;
+            }
+            if (!m_room)
+            {
+                return false;
+            }
             auto room_class = env->GetObjectClass(m_room);
             auto delete_method = env->GetMethodID(room_class, "deleteSetting",
                                                   "(Ljava/lang/String;)V");
@@ -973,6 +1033,14 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return false;
+            }
+            if (!m_room)
+            {
+                return false;
+            }
             auto room_class = env->GetObjectClass(m_room);
             jmethodID store_setting = env->GetMethodID(
                 room_class,
@@ -1093,6 +1161,10 @@ namespace MAT_NS_BEGIN
 
     size_t OfflineStorage_Room::GetSizeInternal(ConnectedEnv& env) const
     {
+        if (!m_room)
+        {
+            return 0;
+        }
         auto room_class = env->GetObjectClass(m_room);
         auto method = env->GetMethodID(room_class, "totalSize", "()J");
         if (!method)
@@ -1116,6 +1188,10 @@ namespace MAT_NS_BEGIN
         {
             ConnectedEnv env(s_vm);
             if (!env)
+            {
+                return 0;
+            }
+            if (!m_room)
             {
                 return 0;
             }
@@ -1174,6 +1250,10 @@ namespace MAT_NS_BEGIN
         {
             return false;
         }
+        if (!m_room)
+        {
+            return false;
+        }
         auto room_class = env->GetObjectClass(m_room);
         auto trim_id = env->GetMethodID(room_class, "trim", "(J)J");
         ThrowLogic(env, "trim");
@@ -1204,6 +1284,14 @@ namespace MAT_NS_BEGIN
         {
             ConnectedEnv env(s_vm);
 
+            if (!env)
+            {
+                return records;
+            }
+            if (!m_room)
+            {
+                return records;
+            }
             auto room_class = env->GetObjectClass(m_room);
             auto method = env->GetMethodID(room_class, "getRecords",
                                            "(ZIJ)[Lcom/microsoft/applications/events/StorageRecord;");
