@@ -307,10 +307,13 @@ namespace MAT_NS_BEGIN {
     // How to sort 2 objects (needed for maps)
     bool GUID_t::operator<(GUID_t const& other) const
     {
-        return Data1 < other.Data1 ||
-            Data2 < other.Data2 ||
-            Data3 == other.Data3 ||
-            (memcmp(Data4, other.Data4, sizeof(Data4)) < 0);
+        if (Data1 != other.Data1)
+            return Data1 < other.Data1;
+        if (Data2 != other.Data2)
+            return Data2 < other.Data2;
+        if (Data3 != other.Data3)
+            return Data3 < other.Data3;
+        return memcmp(Data4, other.Data4, sizeof(Data4)) < 0;
     }
 
     void EventProperty::copydata(EventProperty const* source)

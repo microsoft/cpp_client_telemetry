@@ -28,9 +28,14 @@
 #define MATSDK_LIBABI_CDECL __cdecl
 #  if defined(MATSDK_SHARED_LIB)
 #    define MATSDK_LIBABI __declspec(dllexport)
+#  elif defined(MATSDK_IMPORT_LIB)
+// Consumer importing the public API from a shared mat.dll. The installed
+// MSTelemetry::mat CMake target propagates this automatically when the SDK was
+// built shared (see lib/CMakeLists.txt).
+#    define MATSDK_LIBABI __declspec(dllimport)
 #  elif defined(MATSDK_STATIC_LIB)
 #    define MATSDK_LIBABI
-#  else // Header file included by client
+#  else // Header file included by client; linkage unspecified
 #    ifndef MATSDK_LIBABI
 #    define MATSDK_LIBABI
 #    endif
@@ -47,8 +52,19 @@
 #define MATSDK_LIBABI_CDECL
 #endif
 
-#ifndef MATSDK_LIBABI 
-#define MATSDK_LIBABI
+#ifndef MATSDK_LIBABI
+// Mark the public API as default-visibility ONLY in shared builds, so it stays
+// exported when the SDK is compiled with -fvisibility=hidden (see CMakeLists.txt).
+// This mirrors the __declspec(dllexport) gating above: in a static build the
+// attribute is omitted, so the public symbols inherit -fvisibility=hidden and are
+// NOT re-exported when a consumer .so/.dylib statically absorbs libmat. (When a
+// consumer includes this header, MATSDK_SHARED_LIB is not defined either, which
+// is fine: the symbols are exported by the shared libmat they link against.)
+#  if (defined(__GNUC__) || defined(__clang__)) && defined(MATSDK_SHARED_LIB)
+#    define MATSDK_LIBABI __attribute__((visibility("default")))
+#  else
+#    define MATSDK_LIBABI
+#  endif
 #endif
 
 // TODO: [MG] - ideally we'd like to use __attribute__((unused)) with gcc/clang
