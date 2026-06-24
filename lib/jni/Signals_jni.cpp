@@ -63,10 +63,12 @@ Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jcl
 
     jboolean isCopy = true;
     const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
-    if (strlen(convertedValue) > 0) {
-        config.ServiceRequestConfig.BaseUrl = convertedValue;
+    if (convertedValue != nullptr) {
+        if (strlen(convertedValue) > 0) {
+            config.ServiceRequestConfig.BaseUrl = convertedValue;
+        }
+        env->ReleaseStringUTFChars(base_url, convertedValue);
     }
-    env->ReleaseStringUTFChars(base_url, convertedValue);
 
     config.ServiceRequestConfig.TimeoutMs = reinterpret_cast<int>(timeout_ms);
     config.ServiceRequestConfig.RetryTimes = reinterpret_cast<int>(retry_times);

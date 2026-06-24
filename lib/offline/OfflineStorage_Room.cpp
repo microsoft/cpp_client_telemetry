@@ -498,14 +498,17 @@ namespace MAT_NS_BEGIN
                     uint8_t* end = start + env->GetArrayLength(blob_java);
                     StorageRecord dest(
                         std::to_string(id_java),
-                        token_utf,
+                        token_utf != nullptr ? token_utf : "",
                         latency,
                         persistence,
                         timestamp,
                         StorageBlob(start, end),
                         retryCount,
                         reservedUntil);
-                    env->ReleaseStringUTFChars(tenantToken_java, token_utf);
+                    if (token_utf != nullptr)
+                    {
+                        env->ReleaseStringUTFChars(tenantToken_java, token_utf);
+                    }
                     env->ReleaseByteArrayElements(blob_java,
                                                   reinterpret_cast<jbyte*>(start), 0);
                     env.popLocalFrame();
@@ -1036,8 +1039,11 @@ namespace MAT_NS_BEGIN
             {
                 auto utf = env->GetStringUTFChars(java_value, nullptr);
                 ThrowRuntime(env, "copy setting value");
-                result = utf;
-                env->ReleaseStringUTFChars(java_value, utf);
+                if (utf != nullptr)
+                {
+                    result = utf;
+                    env->ReleaseStringUTFChars(java_value, utf);
+                }
             }
             return result;
         }
@@ -1277,14 +1283,17 @@ namespace MAT_NS_BEGIN
                 auto blob_end = blob_store + blob_length;
                 records.emplace_back(
                     std::to_string(id_j),
-                    tenant_utf,
+                    tenant_utf != nullptr ? tenant_utf : "",
                     latency,
                     persistence,
                     timestamp,
                     StorageBlob(blob_store, blob_end),
                     retryCount,
                     reservedUntil);
-                env->ReleaseStringUTFChars(tenant_j, tenant_utf);
+                if (tenant_utf != nullptr)
+                {
+                    env->ReleaseStringUTFChars(tenant_j, tenant_utf);
+                }
                 env->ReleaseByteArrayElements(blob_j, elements, 0);
                 env.popLocalFrame();
             }
