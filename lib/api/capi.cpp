@@ -231,7 +231,7 @@ static evt_status_t mat_open_with_params(evt_context_t *ctx)
 }
 
 /**
- * Marashal C struct to C++ API
+ * Marshal C struct to C++ API
  */
 static evt_status_t mat_log(evt_context_t *ctx)
 {
