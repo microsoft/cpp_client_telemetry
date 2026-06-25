@@ -20,9 +20,18 @@ if(VCPKG_TARGET_IS_IOS)
   set(MATSDK_BUILD_IOS ON)
 endif()
 
+# minimal-sqlite feature -> build a private feature-stripped SQLite instead of
+# linking the external sqlite3 package. Maps to -DMATSDK_MINIMAL_SQLITE=ON/OFF.
+vcpkg_check_features(
+    OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    FEATURES
+        minimal-sqlite MATSDK_MINIMAL_SQLITE
+)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
+        ${FEATURE_OPTIONS}
         -DMATSDK_USE_VCPKG_DEPS=ON
         -DBUILD_HEADERS=ON
         -DBUILD_LIBRARY=ON

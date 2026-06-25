@@ -11,6 +11,16 @@ else()
 endif()
 message(STATUS "MATSDK_USE_VCPKG_DEPS: ${MATSDK_USE_VCPKG_DEPS}")
 
+# Build a private, feature-stripped copy of the vendored SQLite amalgamation
+# instead of linking an external SQLite. The SDK uses SQLite only for its offline
+# event-storage cache, so the minimal build (see lib/CMakeLists.txt
+# MATSDK_SQLITE_MINIMAL_DEFS) omits every optional SQLite subsystem the SDK does
+# not use, shrinking the SQLite code ~10% and removing the external sqlite3
+# dependency. Off by default to preserve the existing external/system-SQLite
+# behavior; the Android NDK path always bundles SQLite regardless.
+option(MATSDK_MINIMAL_SQLITE "Build a feature-stripped vendored SQLite instead of an external one" OFF)
+message(STATUS "MATSDK_MINIMAL_SQLITE: ${MATSDK_MINIMAL_SQLITE}")
+
 # Begin Uncomment for i386 build
 #set(CMAKE_SYSTEM_PROCESSOR i386)
 #set(CMAKE_C_FLAGS -m32)
@@ -398,10 +408,24 @@ endif()
 # Dependency resolution (vcpkg mode vs vendored)
 ################################################################################################
 if(MATSDK_USE_VCPKG_DEPS)
-  find_package(unofficial-sqlite3 CONFIG REQUIRED)
+  # SQLite is provided by the private minimal build when MATSDK_MINIMAL_SQLITE is
+  # ON, so only require the external vcpkg sqlite3 package otherwise.
+  if(NOT MATSDK_MINIMAL_SQLITE)
+    find_package(unofficial-sqlite3 CONFIG QUIET)
+    if(NOT unofficial-sqlite3_FOUND)
+      message(FATAL_ERROR
+        "SQLite was not found and the minimal SQLite is not enabled. The vcpkg "
+        "port provides SQLite through one of two features: 'system-sqlite' "
+        "(default, links the external sqlite3 package) or 'minimal-sqlite' "
+        "(builds a private feature-stripped SQLite). Install "
+        "cpp-client-telemetry with its default features, or with "
+        "[core,minimal-sqlite]. For a direct CMake build, pass "
+        "-DMATSDK_MINIMAL_SQLITE=ON or ensure unofficial-sqlite3 is discoverable.")
+    endif()
+  endif()
   find_package(ZLIB REQUIRED)
   find_package(nlohmann_json CONFIG REQUIRED)
-  message(STATUS "Using vcpkg-provided sqlite3, zlib, nlohmann-json")
+  message(STATUS "Using vcpkg-provided zlib, nlohmann-json")
 else()
   # Include repo root to allow includes of vendored sqlite, zlib, and nlohmann
   include_directories(${CMAKE_SOURCE_DIR})

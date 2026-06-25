@@ -145,10 +145,15 @@ The vcpkg port automatically resolves the following dependencies:
 
 | Dependency     | vcpkg Package   | CMake Target                      | Platforms          |
 | -------------- | --------------- | --------------------------------- | ------------------ |
-| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | All                |
+| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | All (default; see `minimal-sqlite`) |
 | zlib           | `zlib`          | `ZLIB::ZLIB`                      | All                |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
 | libcurl        | `curl[openssl]` | `CURL::libcurl`                   | Non-Windows, non-Apple |
+
+The external `sqlite3` package is provided by the default `system-sqlite`
+feature. The `minimal-sqlite` feature replaces it with a private, feature-stripped
+SQLite built from the SDK's vendored amalgamation — see
+[Build a private minimal SQLite](#build-a-private-minimal-sqlite-minimal-sqlite-feature).
 
 Windows and macOS/iOS use platform-native HTTP clients (WinInet and
 NSURLSession respectively). Android vcpkg consumers use native libcurl because
@@ -255,6 +260,62 @@ static `x64-windows-static` Release build):
 If any package in your build (or your own code) needs SQLite's JSON functions,
 request `sqlite3[json1]` instead and the extension is restored for the whole
 graph.
+
+### Build a private minimal SQLite (`minimal-sqlite` feature)
+
+For a larger, self-contained reduction, the port can compile a private,
+feature-stripped SQLite directly from the SDK's vendored amalgamation instead of
+linking the external `sqlite3` package at all. The SDK uses SQLite only for its
+offline event-storage cache (plain tables and indexes, transactions, WAL,
+autovacuum/`VACUUM`, a few PRAGMAs, and one custom UTF-8 SQL function), so this
+build omits the unused SQLite subsystems — `SQLITE_OMIT_JSON` plus load-extension,
+shared-cache, deprecated APIs, authorization, EXPLAIN, introspection pragmas,
+deserialize, and more. The result is **~10% smaller SQLite code** (`.text`) and
+**~13% smaller** as a stripped object, and it drops the external `sqlite3`
+dependency from your graph entirely.
+
+Enable it through the vcpkg feature:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": [ "minimal-sqlite" ]
+    }
+  ]
+}
+```
+
+Use the `[core,minimal-sqlite]` form (here, `"default-features": false` is the
+`[core]` part) so the default `system-sqlite` feature — and its `sqlite3`
+dependency — is dropped. Requesting `minimal-sqlite` *without* `[core]` still
+pulls in the default `system-sqlite`; that is harmless (the external `sqlite3` is
+installed but unused) but does not save the dependency.
+
+For a plain (non-vcpkg) CMake build, pass the option directly:
+
+```bash
+cmake -DMATSDK_MINIMAL_SQLITE=ON ..
+```
+
+The strip is **amalgamation-safe**: it changes no SQLite grammar/parser, so no
+code generation is required. All offline storage features the SDK relies on (WAL,
+autovacuum, `VACUUM`, PRAGMAs, the custom UTF-8 function, blobs, 64-bit integers,
+transactions) are retained, and the SDK's offline-storage unit tests pass
+unchanged against the minimal build.
+
+> **Caveat — symbol visibility when linking statically.** The private SQLite keeps
+> SQLite's default `sqlite3_*` symbol names. For a **shared** `mat`
+> (`mat.dll` / `libmat.so` / `libmat.dylib`), those symbols are hidden by the
+> SDK's `-fvisibility=hidden`, so there is no conflict. For a **static** `mat`,
+> the minimal SQLite is installed and exported as a separate
+> `MSTelemetry::sqlite3_bundled` archive that links into your binary; if **any**
+> part of the final static link — your own code *or another dependency* — also
+> pulls in SQLite, the duplicate `sqlite3_*` symbols will collide at link time. In
+> that case, prefer the default `system-sqlite` feature so the whole graph shares a
+> single SQLite.
 
 ## How It Works: MATSDK_USE_VCPKG_DEPS
 
