@@ -62,8 +62,13 @@ Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jcl
     SubstrateSignalsConfiguration config;
 
     jboolean isCopy = true;
-    const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
-    if (convertedValue != nullptr) {
+    if (base_url != nullptr) {
+        const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
+        if (convertedValue == nullptr) {
+            // GetStringUTFChars failed (e.g. OOM) and left a pending exception;
+            // do not continue making JNI calls with an exception in flight.
+            return false;
+        }
         if (strlen(convertedValue) > 0) {
             config.ServiceRequestConfig.BaseUrl = convertedValue;
         }

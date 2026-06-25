@@ -495,7 +495,9 @@ namespace MAT_NS_BEGIN
                     auto tenantToken_java = static_cast<jstring>(env->GetObjectField(record,
                                                                                      tenantToken_id));
                     ThrowRuntime(env, "get tenant");
-                    auto token_utf = env->GetStringUTFChars(tenantToken_java, nullptr);
+                    auto token_utf = (tenantToken_java != nullptr)
+                                         ? env->GetStringUTFChars(tenantToken_java, nullptr)
+                                         : nullptr;
                     ThrowRuntime(env, "string tenant");
                     auto latency = static_cast<EventLatency>(std::max(latency_lb,
                                                                       std::min<int>(
@@ -772,7 +774,8 @@ namespace MAT_NS_BEGIN
                     ThrowLogic(env, "Exception fetching token");
                     auto count = env->GetLongField(byTenant, count_id);
                     ThrowLogic(env, "Exception fetching count");
-                    auto utf = env->GetStringUTFChars(token, nullptr);
+                    auto utf = (token != nullptr) ? env->GetStringUTFChars(token, nullptr)
+                                                  : nullptr;
                     ThrowRuntime(env, "Exception fetching token string");
                     // Skip rather than misattribute dropped records to an empty
                     // tenant token when the string read fails.
