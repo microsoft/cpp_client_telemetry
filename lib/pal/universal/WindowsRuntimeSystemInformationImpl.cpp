@@ -5,6 +5,7 @@
 #include "pal/PAL.hpp"
 
 #include <collection.h>
+#include <exception>
 
 #include "ISystemInformation.hpp"
 #include "pal/SystemInformationImpl.hpp"
