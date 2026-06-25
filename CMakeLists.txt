@@ -380,10 +380,22 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
   if(BUILD_CURL_HTTP_CLIENT)
     set(MATSDK_NEEDS_CURL ON)
     add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
-    find_package(CURL REQUIRED)
     if(MATSDK_USE_VCPKG_DEPS)
+      # The TLS backend (OpenSSL/mbedTLS) is selected by the vcpkg port's
+      # curl-openssl (default) / curl-mbedtls features; the SDK just links libcurl.
+      find_package(CURL QUIET)
+      if(NOT CURL_FOUND)
+        message(FATAL_ERROR
+          "libcurl was not found but the built-in HTTP client is enabled. The "
+          "vcpkg port provides the curl HTTP client through the curl-openssl "
+          "(default) or curl-mbedtls feature, or you can omit it with the "
+          "no-default-http-client feature (host supplies its own IHttpClient). "
+          "Install cpp-client-telemetry with its default features, with "
+          "[core,curl-mbedtls], or with [core,no-default-http-client].")
+      endif()
       list(APPEND LIBS CURL::libcurl)
     else()
+      find_package(CURL REQUIRED)
       # Prefer the imported target, which carries curl's include dirs and link
       # flags. Fall back to the find-module variables on CMake < 3.12, where
       # find_package(CURL) does not define CURL::libcurl.

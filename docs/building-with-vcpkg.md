@@ -148,12 +148,17 @@ The vcpkg port automatically resolves the following dependencies:
 | SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | All (default; see `minimal-sqlite`) |
 | zlib           | `zlib`          | `ZLIB::ZLIB`                      | All                |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
-| libcurl        | `curl[openssl]` | `CURL::libcurl`                   | Non-Windows, non-Apple |
+| libcurl        | `curl[openssl]` or `curl[mbedtls]` | `CURL::libcurl`          | Non-Windows, non-Apple (selectable; optional) |
 
 The external `sqlite3` package is provided by the default `system-sqlite`
 feature. The `minimal-sqlite` feature replaces it with a private, feature-stripped
 SQLite built from the SDK's vendored amalgamation — see
 [Build a private minimal SQLite](#build-a-private-minimal-sqlite-minimal-sqlite-feature).
+
+libcurl is provided by the default `curl-openssl` feature; `curl-mbedtls` swaps in
+the mbedTLS backend, and `no-default-http-client` drops the built-in client
+entirely — see
+[Choose the HTTP client / TLS backend](#choose-the-http-client--tls-backend-largest-lever-on-linux).
 
 Windows and macOS/iOS use platform-native HTTP clients (WinInet and
 NSURLSession respectively). Android vcpkg consumers use native libcurl because
@@ -234,6 +239,58 @@ it can roughly halve the binary. The SDK's `/Gy /Gw` flags only *enable* this;
 the stripping happens at your link. Keep the SDK a static dependency linked
 *into* your binary: if you re-export its API across your own DLL boundary, the
 export table pins its symbols and defeats `/OPT:REF`.
+
+### Choose the HTTP client / TLS backend (largest lever on Linux)
+
+On Linux/Android the built-in HTTP client is libcurl, and curl's TLS backend
+dominates the SDK's footprint. (Windows uses WinInet and Apple uses NSURLSession,
+so this section does not apply there.) The port exposes three mutually-exclusive
+choices as features; pick the one that matches what your application already has:
+
+| Feature | Transport | Approx. stripped size¹ | Use when |
+| ------- | --------- | ---------------------- | -------- |
+| `curl-openssl` (default) | libcurl + OpenSSL | ~10.6 MB | your app already links OpenSSL (share it) |
+| `curl-mbedtls` | libcurl + mbedTLS | ~4.4 MB | your app has no HTTP/TLS stack of its own |
+| `no-default-http-client` | none (host-supplied) | ~1.4 MB | your app already has its own HTTP client |
+
+¹ Rough stripped sizes of a minimal Linux consumer measured for this SDK; your
+numbers depend on triplet, dead-stripping, and what else shares those libraries.
+
+To select **mbedTLS**, two things are required in *your top-level* manifest:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": [ "minimal-sqlite", "curl-mbedtls" ]
+    },
+    { "name": "curl", "default-features": false, "features": [ "mbedtls" ] }
+  ]
+}
+```
+
+1. `[core,curl-mbedtls]` (the `"default-features": false` form) drops the SDK's
+   default `curl-openssl` feature, so the SDK no longer *requests* OpenSSL.
+2. The explicit top-level `curl` entry is also needed because vcpkg honors curl's
+   own `"default-features": false` **only for top-level dependencies** — curl's
+   default `ssl` feature (which pulls OpenSSL on Linux) and `non-http` are
+   installed transitively otherwise. With both, curl resolves to `curl[core,mbedtls]`
+   and OpenSSL is not built; with only the feature, you get
+   `curl[mbedtls,ssl,openssl,non-http]` (mbedTLS *and* OpenSSL). This recipe is
+   verified with `vcpkg install --dry-run`.
+
+The default install (no features specified) keeps `curl-openssl` and works out of
+the box.
+
+`no-default-http-client` omits the built-in client entirely (`-DBUILD_CURL_HTTP_CLIENT=OFF`,
+no curl, no TLS). The SDK then **requires** the host to register its own
+`IHttpClient` via `CFG_MODULE_HTTP_CLIENT`; without one, `LogManager::Initialize`
+throws and no telemetry is uploaded. This is the smallest option but only makes
+sense when your application already owns an HTTP/transport layer (it also lets
+telemetry share a single, policy-vetted TLS path instead of a second one). For a
+direct (non-vcpkg) CMake build, pass `-DBUILD_CURL_HTTP_CLIENT=OFF` instead.
 
 ### Drop unused SQLite features (json1)
 

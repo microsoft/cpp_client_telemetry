@@ -20,12 +20,18 @@ if(VCPKG_TARGET_IS_IOS)
   set(MATSDK_BUILD_IOS ON)
 endif()
 
-# minimal-sqlite feature -> build a private feature-stripped SQLite instead of
-# linking the external sqlite3 package. Maps to -DMATSDK_MINIMAL_SQLITE=ON/OFF.
+# Feature -> CMake option mapping:
+#  * minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).
+#  * no-default-http-client (INVERTED) -> -DBUILD_CURL_HTTP_CLIENT=OFF (omit the
+#    built-in libcurl client; host supplies its own IHttpClient). When the feature
+#    is absent the built-in curl client is built (ON), with its TLS backend chosen
+#    by the curl-openssl (default) / curl-mbedtls features in vcpkg.json.
 vcpkg_check_features(
     OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
         minimal-sqlite MATSDK_MINIMAL_SQLITE
+    INVERTED_FEATURES
+        no-default-http-client BUILD_CURL_HTTP_CLIENT
 )
 
 vcpkg_cmake_configure(

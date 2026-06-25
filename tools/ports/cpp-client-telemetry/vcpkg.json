@@ -6,14 +6,6 @@
   "license": "Apache-2.0",
   "supports": "((windows & !mingw) | linux | osx | ios | android) & !uwp",
   "dependencies": [
-    {
-      "name": "curl",
-      "default-features": false,
-      "features": [
-        "openssl"
-      ],
-      "platform": "linux | android"
-    },
     "nlohmann-json",
     {
       "name": "vcpkg-cmake",
@@ -26,7 +18,8 @@
     "zlib"
   ],
   "default-features": [
-    "system-sqlite"
+    "system-sqlite",
+    "curl-openssl"
   ],
   "features": {
     "system-sqlite": {
@@ -40,6 +33,35 @@
     },
     "minimal-sqlite": {
       "description": "Build a private, feature-stripped SQLite compiled from the SDK's vendored amalgamation instead of linking the external sqlite3 package. Smaller footprint; combine with [core,minimal-sqlite] to also drop the sqlite3 dependency."
+    },
+    "curl-openssl": {
+      "description": "Built-in libcurl HTTP client with the OpenSSL TLS backend (default). Affects Linux/Android only; Windows uses WinInet and Apple uses NSURLSession regardless.",
+      "dependencies": [
+        {
+          "name": "curl",
+          "default-features": false,
+          "features": [
+            "openssl"
+          ],
+          "platform": "linux | android"
+        }
+      ]
+    },
+    "curl-mbedtls": {
+      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux/Android only. Use [core,curl-mbedtls] to drop the default OpenSSL curl.",
+      "dependencies": [
+        {
+          "name": "curl",
+          "default-features": false,
+          "features": [
+            "mbedtls"
+          ],
+          "platform": "linux | android"
+        }
+      ]
+    },
+    "no-default-http-client": {
+      "description": "Omit the built-in libcurl HTTP client entirely (no curl, no TLS backend). The host must supply its own IHttpClient via CFG_MODULE_HTTP_CLIENT. Use [core,no-default-http-client] to also drop curl from the dependency graph."
     }
   }
 }
