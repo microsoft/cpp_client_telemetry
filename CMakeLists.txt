@@ -355,27 +355,42 @@ endif()
 # HTTP stack section
 ################################################################################################
 
+# Built-in libcurl HTTP client. Disable to omit curl (and its TLS backend, e.g.
+# OpenSSL/mbedTLS) from the build; the host must then supply an IHttpClient via
+# CFG_MODULE_HTTP_CLIENT. Only meaningful on the CPP11/curl path (non-Apple,
+# non-Windows); Apple/Windows use their native HTTP stacks regardless.
+option(BUILD_CURL_HTTP_CLIENT "Build the built-in libcurl HTTP client" ON)
+
 # Only use custom curl if compiling with CPP11 PAL
 set(MATSDK_NEEDS_CURL OFF)
 if(PAL_IMPLEMENTATION STREQUAL "CPP11"
    AND NOT BUILD_IOS
    AND (NOT CMAKE_SYSTEM_NAME STREQUAL "Android" OR MATSDK_USE_VCPKG_DEPS)
    AND NOT BUILD_APPLE_HTTP)
-  set(MATSDK_NEEDS_CURL ON)
-  add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
-  find_package(CURL REQUIRED)
-  if(MATSDK_USE_VCPKG_DEPS)
-    list(APPEND LIBS CURL::libcurl)
-  else()
-    # Prefer the imported target, which carries curl's include dirs and link
-    # flags. Fall back to the find-module variables on CMake < 3.12, where
-    # find_package(CURL) does not define CURL::libcurl.
-    if(TARGET CURL::libcurl)
+  if(BUILD_CURL_HTTP_CLIENT)
+    set(MATSDK_NEEDS_CURL ON)
+    add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
+    find_package(CURL REQUIRED)
+    if(MATSDK_USE_VCPKG_DEPS)
       list(APPEND LIBS CURL::libcurl)
     else()
-      include_directories(${CURL_INCLUDE_DIRS})
-      list(APPEND LIBS "${CURL_LIBRARIES}")
+      # Prefer the imported target, which carries curl's include dirs and link
+      # flags. Fall back to the find-module variables on CMake < 3.12, where
+      # find_package(CURL) does not define CURL::libcurl.
+      if(TARGET CURL::libcurl)
+        list(APPEND LIBS CURL::libcurl)
+      else()
+        include_directories(${CURL_INCLUDE_DIRS})
+        list(APPEND LIBS "${CURL_LIBRARIES}")
+      endif()
     endif()
+  else()
+    # No built-in HTTP client: omit the default client entirely so neither
+    # libcurl nor a TLS backend is linked. mat/config.h turns off
+    # HAVE_MAT_DEFAULT_HTTP_CLIENT in response, and LogManagerImpl then requires
+    # the host to provide an IHttpClient via CFG_MODULE_HTTP_CLIENT.
+    add_definitions(-DMATSDK_NO_DEFAULT_HTTP_CLIENT)
+    message(STATUS "BUILD_CURL_HTTP_CLIENT=OFF: omitting built-in HTTP client; host must supply IHttpClient via CFG_MODULE_HTTP_CLIENT")
   endif()
 endif()
 
