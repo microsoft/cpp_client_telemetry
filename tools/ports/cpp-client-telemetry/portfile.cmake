@@ -20,13 +20,12 @@ if(VCPKG_TARGET_IS_IOS)
   set(MATSDK_BUILD_IOS ON)
 endif()
 
-# The three HTTP-client features are mutually exclusive: curl-openssl (default) and
-# curl-mbedtls choose the TLS backend for the built-in client, and
-# no-default-http-client omits the client. vcpkg cannot express mutual exclusivity,
-# so fail fast if more than one is selected (e.g. requesting curl-mbedtls without
-# [core] keeps the default curl-openssl, which would union both TLS backends).
+# curl-openssl (default) and curl-mbedtls choose the TLS backend for the built-in
+# HTTP client and are mutually exclusive. vcpkg cannot express mutual exclusivity,
+# so fail fast if both are selected (e.g. requesting curl-mbedtls without [core]
+# keeps the default curl-openssl, which would union both TLS backends).
 set(_matsdk_http_features "")
-foreach(_matsdk_http_feature curl-openssl curl-mbedtls no-default-http-client)
+foreach(_matsdk_http_feature curl-openssl curl-mbedtls)
   if(_matsdk_http_feature IN_LIST FEATURES)
     list(APPEND _matsdk_http_features ${_matsdk_http_feature})
   endif()
@@ -34,25 +33,16 @@ endforeach()
 list(LENGTH _matsdk_http_features _matsdk_http_feature_count)
 if(_matsdk_http_feature_count GREATER 1)
   message(FATAL_ERROR
-    "Select at most one HTTP-client feature, but got: ${_matsdk_http_features}. "
-    "curl-openssl (default), curl-mbedtls, and no-default-http-client are mutually "
-    "exclusive. To use a non-default one, drop the default with the [core,...] form, "
-    "e.g. cpp-client-telemetry[core,curl-mbedtls] or "
-    "cpp-client-telemetry[core,no-default-http-client].")
+    "curl-openssl (default) and curl-mbedtls are mutually exclusive but both were "
+    "selected. To use mbedTLS, drop the default with the [core,...] form, e.g. "
+    "cpp-client-telemetry[core,curl-mbedtls].")
 endif()
 
-# Feature -> CMake option mapping:
-#  * minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).
-#  * no-default-http-client (INVERTED) -> -DBUILD_CURL_HTTP_CLIENT=OFF (omit the
-#    built-in libcurl client; host supplies its own IHttpClient). When the feature
-#    is absent the built-in curl client is built (ON), with its TLS backend chosen
-#    by the curl-openssl (default) / curl-mbedtls features in vcpkg.json.
+# minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).
 vcpkg_check_features(
     OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
         minimal-sqlite MATSDK_MINIMAL_SQLITE
-    INVERTED_FEATURES
-        no-default-http-client BUILD_CURL_HTTP_CLIENT
 )
 
 vcpkg_cmake_configure(

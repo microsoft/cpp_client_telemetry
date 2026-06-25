@@ -156,8 +156,7 @@ SQLite built from the SDK's vendored amalgamation — see
 [Build a private minimal SQLite](#build-a-private-minimal-sqlite-minimal-sqlite-feature).
 
 libcurl is provided by the default `curl-openssl` feature; `curl-mbedtls` swaps in
-the mbedTLS backend, and `no-default-http-client` drops the built-in client
-entirely — see
+the mbedTLS backend — see
 [Choose the HTTP client / TLS backend](#choose-the-http-client--tls-backend-largest-lever-on-linux).
 
 Windows and macOS/iOS use platform-native HTTP clients (WinInet and
@@ -244,17 +243,18 @@ export table pins its symbols and defeats `/OPT:REF`.
 
 On Linux/Android the built-in HTTP client is libcurl, and curl's TLS backend
 dominates the SDK's footprint. (Windows uses WinInet and Apple uses NSURLSession,
-so this section does not apply there.) The port exposes three mutually-exclusive
-choices as features; pick the one that matches what your application already has:
+so this section does not apply there.) The port exposes the TLS backend as two
+mutually-exclusive features; pick the one that matches what your application
+already has:
 
 | Feature | Transport | Approx. stripped size¹ | Use when |
 | ------- | --------- | ---------------------- | -------- |
 | `curl-openssl` (default) | libcurl + OpenSSL | ~10.6 MB | your app already links OpenSSL (share it) |
 | `curl-mbedtls` | libcurl + mbedTLS | ~4.4 MB | your app has no HTTP/TLS stack of its own |
-| `no-default-http-client` | none (host-supplied) | ~1.4 MB | your app already has its own HTTP client |
 
-¹ Rough stripped sizes of a minimal Linux consumer measured for this SDK; your
-numbers depend on triplet, dead-stripping, and what else shares those libraries.
+¹ Rough sizes of a minimal Linux consumer **without** consumer-side dead-stripping
+(worst case); enabling `-Wl,--gc-sections` at your link reduces them. Your numbers
+depend on triplet, dead-stripping, and what else shares those libraries.
 
 To select **mbedTLS**, two things are required in *your top-level* manifest:
 
@@ -283,14 +283,6 @@ To select **mbedTLS**, two things are required in *your top-level* manifest:
 
 The default install (no features specified) keeps `curl-openssl` and works out of
 the box.
-
-`no-default-http-client` omits the built-in client entirely (`-DBUILD_CURL_HTTP_CLIENT=OFF`,
-no curl, no TLS). The SDK then **requires** the host to register its own
-`IHttpClient` via `CFG_MODULE_HTTP_CLIENT`; without one, `LogManager::Initialize`
-throws and no telemetry is uploaded. This is the smallest option but only makes
-sense when your application already owns an HTTP/transport layer (it also lets
-telemetry share a single, policy-vetted TLS path instead of a second one). For a
-direct (non-vcpkg) CMake build, pass `-DBUILD_CURL_HTTP_CLIENT=OFF` instead.
 
 ### Drop unused SQLite features (json1)
 

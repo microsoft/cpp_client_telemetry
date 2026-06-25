@@ -59,9 +59,6 @@
           "platform": "linux | android"
         }
       ]
-    },
-    "no-default-http-client": {
-      "description": "Omit the built-in libcurl HTTP client entirely (no curl, no TLS backend). The host must supply its own IHttpClient via CFG_MODULE_HTTP_CLIENT. Use [core,no-default-http-client] to also drop curl from the dependency graph."
     }
   }
 }
