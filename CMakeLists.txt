@@ -405,27 +405,39 @@ endif()
 # Dependency resolution (vcpkg mode vs vendored)
 ################################################################################################
 if(MATSDK_USE_VCPKG_DEPS)
-  # SQLite is provided by the private minimal build when MATSDK_MINIMAL_SQLITE is
-  # ON, so only require the external vcpkg sqlite3 package otherwise.
-  if(NOT MATSDK_MINIMAL_SQLITE)
-    find_package(unofficial-sqlite3 CONFIG QUIET)
-    if(NOT unofficial-sqlite3_FOUND)
-      message(FATAL_ERROR
-        "SQLite was not found and the minimal SQLite is not enabled. The vcpkg "
-        "port provides SQLite through one of two features: 'system-sqlite' "
-        "(default, links the external sqlite3 package) or 'minimal-sqlite' "
-        "(builds a private feature-stripped SQLite). Install "
-        "cpp-client-telemetry with its default features, or with "
-        "[core,minimal-sqlite]. For a direct CMake build, pass "
-        "-DMATSDK_MINIMAL_SQLITE=ON or ensure unofficial-sqlite3 is discoverable.")
-    endif()
-  endif()
-  find_package(ZLIB REQUIRED)
-  find_package(nlohmann_json CONFIG REQUIRED)
-  if(MATSDK_MINIMAL_SQLITE)
-    message(STATUS "Using vcpkg-provided zlib, nlohmann-json; private minimal SQLite")
+  if(APPLE)
+    # macOS/iOS ship libsqlite3 and libz as system libraries (the SDK's SPM
+    # distribution links them the same way), so the vcpkg sqlite3/zlib packages are
+    # not pulled there -- find the system ones via CMake's standard find modules.
+    find_package(SQLite3 REQUIRED)
+    find_package(ZLIB REQUIRED)
+    find_package(nlohmann_json CONFIG REQUIRED)
+    set(MATSDK_APPLE_SYSTEM_DEPS ON)
+    message(STATUS "Apple: using system SQLite3 + zlib; vcpkg-provided nlohmann-json")
   else()
-    message(STATUS "Using vcpkg-provided sqlite3, zlib, nlohmann-json")
+    set(MATSDK_APPLE_SYSTEM_DEPS OFF)
+    # SQLite is provided by the private minimal build when MATSDK_MINIMAL_SQLITE is
+    # ON, so only require the external vcpkg sqlite3 package otherwise.
+    if(NOT MATSDK_MINIMAL_SQLITE)
+      find_package(unofficial-sqlite3 CONFIG QUIET)
+      if(NOT unofficial-sqlite3_FOUND)
+        message(FATAL_ERROR
+          "SQLite was not found and the minimal SQLite is not enabled. The vcpkg "
+          "port provides SQLite through one of two features: 'system-sqlite' "
+          "(default, links the external sqlite3 package) or 'minimal-sqlite' "
+          "(builds a private feature-stripped SQLite). Install "
+          "cpp-client-telemetry with its default features, or with "
+          "[core,minimal-sqlite]. For a direct CMake build, pass "
+          "-DMATSDK_MINIMAL_SQLITE=ON or ensure unofficial-sqlite3 is discoverable.")
+      endif()
+    endif()
+    find_package(ZLIB REQUIRED)
+    find_package(nlohmann_json CONFIG REQUIRED)
+    if(MATSDK_MINIMAL_SQLITE)
+      message(STATUS "Using vcpkg-provided zlib, nlohmann-json; private minimal SQLite")
+    else()
+      message(STATUS "Using vcpkg-provided sqlite3, zlib, nlohmann-json")
+    endif()
   endif()
 else()
   # Include repo root to allow includes of vendored sqlite, zlib, and nlohmann

@@ -145,10 +145,15 @@ The vcpkg port automatically resolves the following dependencies:
 
 | Dependency     | vcpkg Package   | CMake Target                      | Platforms          |
 | -------------- | --------------- | --------------------------------- | ------------------ |
-| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | All (default; see `minimal-sqlite`) |
-| zlib           | `zlib`          | `ZLIB::ZLIB`                      | All                |
+| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | Non-Apple (default; see `minimal-sqlite`). **macOS/iOS link the system `libsqlite3`** (`SQLite::SQLite3`) |
+| zlib           | `zlib`          | `ZLIB::ZLIB`                      | Non-Apple. **macOS/iOS link the system `libz`** |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
 | libcurl        | `curl[openssl]` or `curl[mbedtls]` | `CURL::libcurl`          | Non-Windows, non-Apple (selectable; optional) |
+
+On **macOS/iOS** the SDK links the OS-provided `libsqlite3` and `libz` (the same
+system libraries the SDK's Swift Package links), so the vcpkg `sqlite3` and `zlib`
+packages are not pulled there — those binaries carry no bundled SQLite/zlib.
+(`minimal-sqlite` therefore has no effect on Apple.)
 
 The external `sqlite3` package is provided by the default `system-sqlite`
 feature. The `minimal-sqlite` feature replaces it with a private, feature-stripped

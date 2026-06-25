@@ -441,7 +441,9 @@ set(MATSDK_SQLITE_MINIMAL_DEFS
 # MATSDK_MINIMAL_SQLITE is ON, so the default Android legacy build keeps its
 # existing (unstripped) bundled SQLite behavior.
 set(MATSDK_BUNDLE_SQLITE OFF)
-if(MATSDK_MINIMAL_SQLITE)
+if(MATSDK_MINIMAL_SQLITE AND NOT APPLE)
+  # On Apple the SDK links the system libsqlite3 (smaller than any bundled copy),
+  # so MATSDK_MINIMAL_SQLITE has no effect there.
   set(MATSDK_BUNDLE_SQLITE ON)
 elseif(NOT MATSDK_USE_VCPKG_DEPS AND CMAKE_SYSTEM_NAME STREQUAL "Android")
   set(MATSDK_BUNDLE_SQLITE ON)
@@ -484,22 +486,35 @@ if(MATSDK_USE_VCPKG_DEPS)
   # vcpkg mode: all deps resolved via find_package() in root CMakeLists.txt
   # These are PUBLIC so static-library consumers get the transitive link set
   # through the exported MSTelemetry::mat target.
-  if(MATSDK_BUNDLE_SQLITE)
-    # Private minimal SQLite instead of the vcpkg sqlite3 package. PRIVATE so its
-    # include dirs / compile definitions are not propagated as a public usage
-    # requirement. A static mat still propagates the archive itself for linking
-    # (via $<LINK_ONLY:...>), so it is added to the export set for static builds
-    # below; a shared mat absorbs it and propagates nothing.
-    target_link_libraries(mat PRIVATE sqlite3_bundled)
+  if(APPLE)
+    # macOS/iOS link the system libsqlite3 + libz (SQLite::SQLite3 / ZLIB::ZLIB
+    # resolve to the OS libraries via CMake's find modules), so the vcpkg
+    # sqlite3/zlib packages are neither pulled nor linked here.
+    target_link_libraries(mat
+      PUBLIC
+        SQLite::SQLite3
+        ZLIB::ZLIB
+        nlohmann_json::nlohmann_json
+        ${LIBS}
+    )
   else()
-    target_link_libraries(mat PUBLIC unofficial::sqlite3::sqlite3)
+    if(MATSDK_BUNDLE_SQLITE)
+      # Private minimal SQLite instead of the vcpkg sqlite3 package. PRIVATE so its
+      # include dirs / compile definitions are not propagated as a public usage
+      # requirement. A static mat still propagates the archive itself for linking
+      # (via $<LINK_ONLY:...>), so it is added to the export set for static builds
+      # below; a shared mat absorbs it and propagates nothing.
+      target_link_libraries(mat PRIVATE sqlite3_bundled)
+    else()
+      target_link_libraries(mat PUBLIC unofficial::sqlite3::sqlite3)
+    endif()
+    target_link_libraries(mat
+      PUBLIC
+        ZLIB::ZLIB
+        nlohmann_json::nlohmann_json
+        ${LIBS}
+    )
   endif()
-  target_link_libraries(mat
-    PUBLIC
-      ZLIB::ZLIB
-      nlohmann_json::nlohmann_json
-      ${LIBS}
-  )
 else()
   # Legacy mode: use vendored or system-installed deps
   if(CMAKE_SYSTEM_NAME STREQUAL "Android")

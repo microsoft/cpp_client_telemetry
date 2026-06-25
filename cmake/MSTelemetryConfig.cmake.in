@@ -2,10 +2,12 @@
 
 include(CMakeFindDependencyMacro)
 
-# Re-find dependencies that consumers need
-# SQLite is built into the SDK as a private minimal copy when MATSDK_MINIMAL_SQLITE
-# is set, so the external sqlite3 package is only re-found when it is not bundled.
-if(NOT @MATSDK_BUNDLE_SQLITE@)
+# Re-find dependencies that consumers need.
+# On Apple the SDK links the system libsqlite3 (SQLite::SQLite3); elsewhere it uses
+# the vcpkg sqlite3 package unless a private minimal SQLite is bundled.
+if(@MATSDK_APPLE_SYSTEM_DEPS@)
+  find_dependency(SQLite3)
+elseif(NOT @MATSDK_BUNDLE_SQLITE@)
   find_dependency(unofficial-sqlite3 CONFIG)
 endif()
 find_dependency(ZLIB)
