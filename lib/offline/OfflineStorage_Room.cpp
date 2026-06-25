@@ -1355,7 +1355,9 @@ namespace MAT_NS_BEGIN
                 auto id_j = env->GetLongField(record, id_id);
                 auto tenant_j = static_cast<jstring>(env->GetObjectField(record,
                                                                          tenantToken_id));
-                auto tenant_utf = env->GetStringUTFChars(tenant_j, nullptr);
+                const char* tenant_utf = (tenant_j != nullptr)
+                                             ? env->GetStringUTFChars(tenant_j, nullptr)
+                                             : nullptr;
                 auto latency = static_cast<EventLatency>(env->GetIntField(record,
                                                                           latency_id));
                 auto persistence = static_cast<EventPersistence>(env->GetIntField(record,
