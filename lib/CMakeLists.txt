@@ -485,8 +485,11 @@ if(MATSDK_USE_VCPKG_DEPS)
   # These are PUBLIC so static-library consumers get the transitive link set
   # through the exported MSTelemetry::mat target.
   if(MATSDK_BUNDLE_SQLITE)
-    # Private minimal SQLite instead of the vcpkg sqlite3 package. PRIVATE so the
-    # SDK-internal copy is not re-exported to consumers.
+    # Private minimal SQLite instead of the vcpkg sqlite3 package. PRIVATE so its
+    # include dirs / compile definitions are not propagated as a public usage
+    # requirement. A static mat still propagates the archive itself for linking
+    # (via $<LINK_ONLY:...>), so it is added to the export set for static builds
+    # below; a shared mat absorbs it and propagates nothing.
     target_link_libraries(mat PRIVATE sqlite3_bundled)
   else()
     target_link_libraries(mat PUBLIC unofficial::sqlite3::sqlite3)
