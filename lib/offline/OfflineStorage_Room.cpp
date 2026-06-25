@@ -1361,6 +1361,10 @@ namespace MAT_NS_BEGIN
                 const char* tenant_utf = (tenant_j != nullptr)
                                              ? env->GetStringUTFChars(tenant_j, nullptr)
                                              : nullptr;
+                // Clear/handle any pending exception from a failed string read
+                // (e.g. OOM) before making further JNI calls, consistent with the
+                // other read paths in this file.
+                ThrowRuntime(env, "string tenant");
                 auto latency = static_cast<EventLatency>(env->GetIntField(record,
                                                                           latency_id));
                 auto persistence = static_cast<EventPersistence>(env->GetIntField(record,
