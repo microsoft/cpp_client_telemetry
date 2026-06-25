@@ -597,11 +597,18 @@ endif()
 # via install.sh or MSBuild output directories and don't need this.
 if(MATSDK_USE_VCPKG_DEPS)
   # A static libmat propagates its PRIVATE static dependencies through its link
-  # interface, so the bundled SQLite must be part of the same export set and be
-  # installed alongside mat for downstream find_package() consumers to link.
+  # interface (as $<LINK_ONLY:...>), so the bundled SQLite must be part of the same
+  # export set and installed alongside mat for downstream find_package() consumers
+  # to link. A shared libmat absorbs sqlite3_bundled into the .so/.dylib/.dll and
+  # does not propagate the PRIVATE dep, so exporting the archive there is
+  # unnecessary (and risks a consumer linking a second SQLite copy) -- only export
+  # it for a static mat.
   set(MATSDK_INSTALL_TARGETS mat)
   if(MATSDK_BUNDLE_SQLITE AND TARGET sqlite3_bundled)
-    list(APPEND MATSDK_INSTALL_TARGETS sqlite3_bundled)
+    get_target_property(_mat_type mat TYPE)
+    if(_mat_type STREQUAL "STATIC_LIBRARY")
+      list(APPEND MATSDK_INSTALL_TARGETS sqlite3_bundled)
+    endif()
   endif()
   install(TARGETS ${MATSDK_INSTALL_TARGETS}
     EXPORT MSTelemetryTargets
