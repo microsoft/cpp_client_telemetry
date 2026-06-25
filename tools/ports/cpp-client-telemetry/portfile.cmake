@@ -20,6 +20,27 @@ if(VCPKG_TARGET_IS_IOS)
   set(MATSDK_BUILD_IOS ON)
 endif()
 
+# The three HTTP-client features are mutually exclusive: curl-openssl (default) and
+# curl-mbedtls choose the TLS backend for the built-in client, and
+# no-default-http-client omits the client. vcpkg cannot express mutual exclusivity,
+# so fail fast if more than one is selected (e.g. requesting curl-mbedtls without
+# [core] keeps the default curl-openssl, which would union both TLS backends).
+set(_matsdk_http_features "")
+foreach(_matsdk_http_feature curl-openssl curl-mbedtls no-default-http-client)
+  if(_matsdk_http_feature IN_LIST FEATURES)
+    list(APPEND _matsdk_http_features ${_matsdk_http_feature})
+  endif()
+endforeach()
+list(LENGTH _matsdk_http_features _matsdk_http_feature_count)
+if(_matsdk_http_feature_count GREATER 1)
+  message(FATAL_ERROR
+    "Select at most one HTTP-client feature, but got: ${_matsdk_http_features}. "
+    "curl-openssl (default), curl-mbedtls, and no-default-http-client are mutually "
+    "exclusive. To use a non-default one, drop the default with the [core,...] form, "
+    "e.g. cpp-client-telemetry[core,curl-mbedtls] or "
+    "cpp-client-telemetry[core,no-default-http-client].")
+endif()
+
 # Feature -> CMake option mapping:
 #  * minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).
 #  * no-default-http-client (INVERTED) -> -DBUILD_CURL_HTTP_CLIENT=OFF (omit the

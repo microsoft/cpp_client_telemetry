@@ -383,8 +383,11 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
     if(MATSDK_USE_VCPKG_DEPS)
       # The TLS backend (OpenSSL/mbedTLS) is selected by the vcpkg port's
       # curl-openssl (default) / curl-mbedtls features; the SDK just links libcurl.
-      find_package(CURL QUIET)
-      if(NOT CURL_FOUND)
+      # Force CONFIG mode so the vcpkg-provided CURLConfig (which defines the
+      # CURL::libcurl imported target) is used rather than the module FindCURL,
+      # which on some CMake versions does not define that target.
+      find_package(CURL CONFIG QUIET)
+      if(NOT TARGET CURL::libcurl)
         message(FATAL_ERROR
           "libcurl was not found but the built-in HTTP client is enabled. The "
           "vcpkg port provides the curl HTTP client through the curl-openssl "
