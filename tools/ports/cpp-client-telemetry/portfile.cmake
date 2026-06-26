@@ -34,8 +34,11 @@ list(LENGTH _matsdk_http_features _matsdk_http_feature_count)
 if(_matsdk_http_feature_count GREATER 1)
   message(FATAL_ERROR
     "curl-openssl (default) and curl-mbedtls are mutually exclusive but both were "
-    "selected. To use mbedTLS, drop the default with the [core,...] form, e.g. "
-    "cpp-client-telemetry[core,curl-mbedtls].")
+    "selected. To use mbedTLS, drop the defaults with the [core,...] form and "
+    "re-select a SQLite backend (the [core,...] form also drops the default "
+    "system-sqlite feature), e.g. "
+    "cpp-client-telemetry[core,curl-mbedtls,system-sqlite] "
+    "(or minimal-sqlite in place of system-sqlite).")
 endif()
 
 # minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).

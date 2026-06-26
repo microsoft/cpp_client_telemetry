@@ -276,8 +276,11 @@ To select **mbedTLS**, two things are required in *your top-level* manifest:
 }
 ```
 
-1. `[core,curl-mbedtls]` (the `"default-features": false` form) drops the SDK's
-   default `curl-openssl` feature, so the SDK no longer *requests* OpenSSL.
+1. `"default-features": false` (the `[core,...]` form) drops **all** of the SDK's
+   default features -- both `curl-openssl` *and* `system-sqlite` -- so the SDK no
+   longer *requests* OpenSSL. Because it also drops `system-sqlite`, you must
+   re-select a SQLite backend (`minimal-sqlite` above, or `system-sqlite`);
+   otherwise the SDK configure step fails with no SQLite feature selected.
 2. The explicit top-level `curl` entry is also needed because vcpkg honors curl's
    own `"default-features": false` **only for top-level dependencies** — curl's
    default `ssl` feature (which pulls OpenSSL on Linux) and `non-http` are

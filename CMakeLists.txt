@@ -384,7 +384,9 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
       message(FATAL_ERROR
         "libcurl was not found. The vcpkg port provides the curl HTTP client "
         "through the curl-openssl (default) or curl-mbedtls feature. Install "
-        "cpp-client-telemetry with its default features or with [core,curl-mbedtls].")
+        "cpp-client-telemetry with its default features, or, for mbedTLS, with "
+        "[core,curl-mbedtls,system-sqlite] -- the [core,...] form also drops the "
+        "default system-sqlite feature, so re-select system-sqlite or minimal-sqlite.")
     endif()
     list(APPEND LIBS CURL::libcurl)
   else()
