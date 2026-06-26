@@ -148,7 +148,7 @@ The vcpkg port automatically resolves the following dependencies:
 | SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | Non-Apple (default; see `minimal-sqlite`). **macOS/iOS link the system `libsqlite3`** (`SQLite::SQLite3`) |
 | zlib           | `zlib`          | `ZLIB::ZLIB`                      | Non-Apple. **macOS/iOS link the system `libz`** |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
-| libcurl        | `curl[openssl]` or `curl[mbedtls]` | `CURL::libcurl`          | Non-Windows, non-Apple (selectable; optional) |
+| libcurl        | `curl[openssl]` or `curl[mbedtls]` | `CURL::libcurl`          | Non-Windows, non-Apple (required; TLS backend selectable: OpenSSL default or mbedTLS) |
 
 On **macOS/iOS** the SDK links the OS-provided `libsqlite3` and `libz` (the same
 system libraries the SDK's Swift Package links), so the vcpkg `sqlite3` and `zlib`

@@ -52,7 +52,7 @@
       ]
     },
     "curl-mbedtls": {
-      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux/Android only. Use [core,curl-mbedtls] to drop the default OpenSSL curl.",
+      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux/Android only. Use [core,curl-mbedtls,system-sqlite] to drop the default OpenSSL curl; the [core,...] form drops all defaults (including system-sqlite), so also re-select system-sqlite or minimal-sqlite.",
       "dependencies": [
         {
           "name": "curl",
