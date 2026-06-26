@@ -21,9 +21,12 @@ if(VCPKG_TARGET_IS_IOS)
 endif()
 
 # curl-openssl (default) and curl-mbedtls choose the TLS backend for the built-in
-# HTTP client and are mutually exclusive. vcpkg cannot express mutual exclusivity,
-# so fail fast if both are selected (e.g. requesting curl-mbedtls without [core]
-# keeps the default curl-openssl, which would union both TLS backends).
+# HTTP client and are mutually exclusive. They only matter on Linux/Android: the
+# curl dependency is platform-filtered to those triplets, so on Windows/macOS/iOS
+# both features may be present (curl-openssl is a default) yet pull no curl, and
+# the SDK uses WinInet / Apple HTTP there. vcpkg cannot express mutual exclusivity
+# or "exactly one of", so validate it here -- but only where curl is actually used,
+# to avoid failing legitimate cross-platform manifests on Windows/Apple.
 set(_matsdk_http_features "")
 foreach(_matsdk_http_feature curl-openssl curl-mbedtls)
   if(_matsdk_http_feature IN_LIST FEATURES)
@@ -31,26 +34,26 @@ foreach(_matsdk_http_feature curl-openssl curl-mbedtls)
   endif()
 endforeach()
 list(LENGTH _matsdk_http_features _matsdk_http_feature_count)
-if(_matsdk_http_feature_count GREATER 1)
-  message(FATAL_ERROR
-    "curl-openssl (default) and curl-mbedtls are mutually exclusive but both were "
-    "selected. To use mbedTLS, drop the defaults with the [core,...] form and "
-    "re-select a SQLite backend (the [core,...] form also drops the default "
-    "system-sqlite feature), e.g. "
-    "cpp-client-telemetry[core,curl-mbedtls,system-sqlite] "
-    "(or minimal-sqlite in place of system-sqlite).")
-endif()
-
-# On Linux/Android the built-in curl HTTP client requires exactly one TLS backend.
-# The [core,...] form drops the default curl-openssl, so fail fast (with a complete
-# example) rather than letting the SDK CMake fail later on a missing libcurl.
-if((VCPKG_TARGET_IS_LINUX OR VCPKG_TARGET_IS_ANDROID) AND _matsdk_http_feature_count EQUAL 0)
-  message(FATAL_ERROR
-    "On Linux/Android the built-in curl HTTP client requires exactly one TLS "
-    "backend feature, but none was selected. The [core,...] form drops the "
-    "default curl-openssl feature, so re-add a curl backend together with a "
-    "SQLite backend, e.g. cpp-client-telemetry[core,curl-openssl,system-sqlite] "
-    "(or curl-mbedtls / minimal-sqlite in place of those).")
+if(VCPKG_TARGET_IS_LINUX OR VCPKG_TARGET_IS_ANDROID)
+  if(_matsdk_http_feature_count GREATER 1)
+    message(FATAL_ERROR
+      "curl-openssl (default) and curl-mbedtls are mutually exclusive but both were "
+      "selected. To use mbedTLS, drop the defaults with the [core,...] form and "
+      "re-select a SQLite backend (the [core,...] form also drops the default "
+      "system-sqlite feature), e.g. "
+      "cpp-client-telemetry[core,curl-mbedtls,system-sqlite] "
+      "(or minimal-sqlite in place of system-sqlite).")
+  elseif(_matsdk_http_feature_count EQUAL 0)
+    # The built-in curl HTTP client requires exactly one TLS backend. The [core,...]
+    # form drops the default curl-openssl, so fail fast (with a complete example)
+    # rather than letting the SDK CMake fail later on a missing libcurl.
+    message(FATAL_ERROR
+      "On Linux/Android the built-in curl HTTP client requires exactly one TLS "
+      "backend feature, but none was selected. The [core,...] form drops the "
+      "default curl-openssl feature, so re-add a curl backend together with a "
+      "SQLite backend, e.g. cpp-client-telemetry[core,curl-openssl,system-sqlite] "
+      "(or curl-mbedtls / minimal-sqlite in place of those).")
+  endif()
 endif()
 
 # minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).
