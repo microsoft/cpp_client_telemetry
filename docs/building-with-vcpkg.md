@@ -339,7 +339,7 @@ Enable it through the vcpkg feature:
     {
       "name": "cpp-client-telemetry",
       "default-features": false,
-      "features": [ "minimal-sqlite" ]
+      "features": [ "minimal-sqlite", "curl-openssl" ]
     }
   ]
 }
@@ -347,9 +347,12 @@ Enable it through the vcpkg feature:
 
 Use the `[core,minimal-sqlite]` form (here, `"default-features": false` is the
 `[core]` part) so the default `system-sqlite` feature — and its `sqlite3`
-dependency — is dropped. Requesting `minimal-sqlite` *without* `[core]` still
-pulls in the default `system-sqlite`; that is harmless (the external `sqlite3` is
-installed but unused) but does not save the dependency.
+dependency — is dropped. Because `[core]` drops **all** defaults, the example
+also re-selects `curl-openssl`: on Linux/Android the built-in curl client
+requires a TLS backend, so omitting it would fail to configure (swap in
+`curl-mbedtls` for the smaller mbedTLS backend). Requesting `minimal-sqlite`
+*without* `[core]` still pulls in the default `system-sqlite`; that is harmless
+(the external `sqlite3` is installed but unused) but does not save the dependency.
 
 For a plain (non-vcpkg) CMake build, pass the option directly:
 

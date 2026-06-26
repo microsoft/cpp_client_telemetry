@@ -41,6 +41,18 @@ if(_matsdk_http_feature_count GREATER 1)
     "(or minimal-sqlite in place of system-sqlite).")
 endif()
 
+# On Linux/Android the built-in curl HTTP client requires exactly one TLS backend.
+# The [core,...] form drops the default curl-openssl, so fail fast (with a complete
+# example) rather than letting the SDK CMake fail later on a missing libcurl.
+if((VCPKG_TARGET_IS_LINUX OR VCPKG_TARGET_IS_ANDROID) AND _matsdk_http_feature_count EQUAL 0)
+  message(FATAL_ERROR
+    "On Linux/Android the built-in curl HTTP client requires exactly one TLS "
+    "backend feature, but none was selected. The [core,...] form drops the "
+    "default curl-openssl feature, so re-add a curl backend together with a "
+    "SQLite backend, e.g. cpp-client-telemetry[core,curl-openssl,system-sqlite] "
+    "(or curl-mbedtls / minimal-sqlite in place of those).")
+endif()
+
 # minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).
 vcpkg_check_features(
     OUT_FEATURE_OPTIONS FEATURE_OPTIONS

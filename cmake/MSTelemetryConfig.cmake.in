@@ -20,7 +20,11 @@ find_dependency(nlohmann_json CONFIG)
 # because the macOS BUILD_APPLE_HTTP choice can't be inferred from
 # CMAKE_SYSTEM_NAME alone.
 if(@MATSDK_NEEDS_CURL@)
-  find_dependency(CURL)
+  # Force CONFIG mode so the vcpkg-provided CURLConfig (which defines the
+  # CURL::libcurl imported target referenced by MSTelemetryTargets.cmake) is
+  # used, rather than module-mode FindCURL, which on some CMake versions does
+  # not define that target.
+  find_dependency(CURL CONFIG)
 endif()
 
 # Pthreads are needed on Linux and Android (POSIX threading)

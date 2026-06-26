@@ -384,9 +384,10 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
       message(FATAL_ERROR
         "libcurl was not found. The vcpkg port provides the curl HTTP client "
         "through the curl-openssl (default) or curl-mbedtls feature. Install "
-        "cpp-client-telemetry with its default features, or, for mbedTLS, with "
-        "[core,curl-mbedtls,system-sqlite] -- the [core,...] form also drops the "
-        "default system-sqlite feature, so re-select system-sqlite or minimal-sqlite.")
+        "cpp-client-telemetry with its default features, or, under the [core,...] "
+        "form (which drops the default curl-openssl and system-sqlite features), "
+        "re-select a curl backend and a SQLite backend together, e.g. "
+        "[core,curl-openssl,system-sqlite] or [core,curl-mbedtls,minimal-sqlite].")
     endif()
     list(APPEND LIBS CURL::libcurl)
   else()
@@ -429,7 +430,7 @@ if(MATSDK_USE_VCPKG_DEPS)
           "(default, links the external sqlite3 package) or 'minimal-sqlite' "
           "(builds a private feature-stripped SQLite). Install "
           "cpp-client-telemetry with its default features, or with "
-          "[core,minimal-sqlite]. For a direct CMake build, pass "
+          "[core,system-sqlite] or [core,minimal-sqlite]. For a direct CMake build, pass "
           "-DMATSDK_MINIMAL_SQLITE=ON or ensure unofficial-sqlite3 is discoverable.")
       endif()
     endif()
