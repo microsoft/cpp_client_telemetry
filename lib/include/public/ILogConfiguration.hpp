@@ -105,6 +105,16 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_NET_DETECT = "enableNetworkDetector";
 
     /// <summary>
+    /// Request collector-side scrubbing (obfuscation) of the client IP address.
+    /// Applied unless explicitly set to false (on by default; the key is not
+    /// present in the default configuration). Opt out when the client IP is
+    /// needed, e.g. for geo-location enrichment. Honored by the OneCollector
+    /// direct-upload path; in UTC mode client privacy is governed by the OS UTC
+    /// pipeline instead.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_IP_SCRUBBING = "enableIpScrubbing";
+
+    /// <summary>
     /// Parameter that allows to check if the SDK is running on UTC mode
     /// </summary>
     static constexpr const char* const CFG_BOOL_UTC_ENABLED = "enabled";
