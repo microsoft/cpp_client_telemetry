@@ -30,7 +30,7 @@ Details:
     - OneDSSwift: Package containing swift wrappers
 
 - Modules Included
-    - ObjCModule: Module exposing ObjC headers via module.modulemap file.
+    - MATTelemetryObjC: Module exposing ObjC headers via module.modulemap file.
 
 - Libraries and Frameworks to link to Target
     - [Same as mentioned in the SampleXcodeApp section](#to-be-linked)

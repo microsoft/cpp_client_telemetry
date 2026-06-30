@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-import ObjCModule
+import MATTelemetryObjC
 
 public final class PrivacyGuardInitConfig {
     let odwPrivacyGuardInitConfig: ODWPrivacyGuardInitConfig
