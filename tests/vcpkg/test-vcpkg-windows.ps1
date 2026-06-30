@@ -17,6 +17,12 @@ $OverlayPorts = Join-Path $RepoRoot "tools\ports"
 # Build the working tree under review (not a pinned release) so this test
 # validates the actual SDK source together with the port manifest/portfile.
 $env:MATSDK_VCPKG_SOURCE_DIR = $RepoRoot
+# On Windows, vcpkg runs portfiles in a sanitized environment and strips custom
+# variables unless they are allow-listed here. Without this, the portfile does
+# not see MATSDK_VCPKG_SOURCE_DIR and silently builds the pinned release instead
+# of the working tree (POSIX vcpkg passes the variable through, so the Linux/
+# macOS scripts do not need this).
+$env:VCPKG_KEEP_ENV_VARS = "MATSDK_VCPKG_SOURCE_DIR"
 
 Write-Host "=== MSTelemetry vcpkg port test (Windows) ===" -ForegroundColor Cyan
 
