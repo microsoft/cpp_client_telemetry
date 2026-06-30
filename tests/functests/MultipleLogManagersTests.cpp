@@ -22,6 +22,10 @@
 
 #include "NullObjects.hpp"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #if defined __has_include && defined(HAVE_MAT_PRIVACYGUARD)
 #if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "modules/privacyguard/PrivacyGuard.hpp"
@@ -72,6 +76,15 @@ class MultipleLogManagersTests : public ::testing::Test
    public:
     virtual void SetUp() override
     {
+#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+        // These tests stand up a local HttpServer and run multiple concurrent
+        // LogManager instances against it. That pattern deadlocks on the iOS
+        // simulator sandbox (the in-process socket server hangs accepting the
+        // loopback uploads), causing the iOS CI job to sit until its 60-minute
+        // timeout. The behavior is exercised on the desktop/macOS targets.
+        GTEST_SKIP() << "Skipped on iOS: local HttpServer with multiple concurrent "
+                        "LogManager instances hangs on the iOS simulator.";
+#endif
         int port = server.addListeningPort(0);
         std::ostringstream os;
         os << "127.0.0.1:" << port;
