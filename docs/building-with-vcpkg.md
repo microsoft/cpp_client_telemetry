@@ -1,6 +1,6 @@
 # Building 1DS C++ SDK with vcpkg
 
-[vcpkg](https://vcpkg.io/) is a Microsoft cross-platform open source C++ package manager. Onboarding instructions for Windows, Linux and Mac OS X [available here](https://docs.microsoft.com/en-us/cpp/build/vcpkg). This document assumes that the customer build system is already configured to use vcpkg ([getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/overview)). 1DS C++ SDK maintainers provide a build recipe, `cpp-client-telemetry` port or CONTROL file for vcpkg. The mainline vcpkg repo is refreshed to point to latest stable open source release of 1DS C++ SDK.
+[vcpkg](https://vcpkg.io/) is a Microsoft cross-platform open source C++ package manager. Onboarding instructions for Windows, Linux and Mac OS X [available here](https://docs.microsoft.com/en-us/cpp/build/vcpkg). This document assumes that the customer build system is already configured to use vcpkg ([getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/overview)). The `cpp-client-telemetry` port is published in the official vcpkg registry, so it can be consumed directly with no overlay or extra configuration. Maintainers refresh the registry to point to the latest stable open source release of the 1DS C++ SDK on each release.
 
 The port provides the core SDK — the `MSTelemetry::mat` target and its public
 C++ headers. The optional Microsoft-proprietary modules (Privacy Guard,
@@ -16,7 +16,8 @@ git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
 
 ### Installing from the vcpkg registry
 
-Once a new port has been accepted into the official vcpkg registry, install with:
+The `cpp-client-telemetry` port is available in the [official vcpkg registry](https://github.com/microsoft/vcpkg/tree/master/ports/cpp-client-telemetry),
+so you can install it directly — no overlay or extra configuration required:
 
 ```console
 vcpkg install cpp-client-telemetry
@@ -26,8 +27,9 @@ That's it! The package should be compiled for the current OS.
 
 ### Installing from the overlay port (development / pre-release)
 
-Before the port is published, or to test local changes, use the overlay port
-shipped in this repository:
+The overlay port shipped in this repository is for **development only** — use it
+to test local changes to the port, or a newer SDK revision, before they are
+published to the registry:
 
 ```console
 git clone https://github.com/microsoft/cpp_client_telemetry
@@ -189,6 +191,70 @@ will automatically use the optimized zlib-ng build.
 > **Important:** All libraries in the same binary should link against the same
 > zlib. When using `ZLIB_COMPAT=ON`, ensure all dependencies resolve to
 > zlib-ng rather than mixing stock zlib and zlib-ng.
+
+## Reducing binary footprint
+
+This section applies when the SDK is linked **statically** into your binary
+(the default for the `*-static` vcpkg triplets) — most footprint control then
+lives on *your* side of the link. If you instead consume a **dynamic** `mat`
+(e.g. the default `x64-windows` triplet, or `BUILD_SHARED_LIBS=ON`), the runtime
+ships as its own `mat.dll` / `libmat.so` / `libmat.dylib`; the SDK's own
+`-fvisibility=hidden` and `/Gy /Gw` already trim its exported symbol table, and
+the consumer-side linker options below are specific to the static-link case.
+
+### Enable linker dead-stripping (largest lever)
+
+The SDK is compiled with function-level linking (`/Gy /Gw` on MSVC,
+`-ffunction-sections -fdata-sections` on GCC/Clang) so that **your** linker can
+discard SDK code you never reference. Make sure your final link enables it:
+
+- **MSVC:** `/OPT:REF` (drop unreferenced functions/data) and `/OPT:ICF` (fold
+  identical COMDATs). These are on by default for Release, **but `/DEBUG` flips
+  their default to off** (`/OPT:NOREF,NOICF`, per the MSVC `/OPT` docs) — so if
+  you ship PDBs, re-enable them explicitly. `/OPT:REF` is also incompatible with
+  incremental linking, so set `/INCREMENTAL:NO`:
+
+  ```cmake
+  target_link_options(your_target PRIVATE
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:/OPT:REF>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:/OPT:ICF>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:/INCREMENTAL:NO>)
+  ```
+
+- **GCC / Clang:** link with `-Wl,--gc-sections`.
+- **Apple (clang):** link with `-Wl,-dead_strip`.
+
+This is by far the largest lever — on a static `x64-windows-static` Release link
+it can roughly halve the binary. The SDK's `/Gy /Gw` flags only *enable* this;
+the stripping happens at your link. Keep the SDK a static dependency linked
+*into* your binary: if you re-export its API across your own DLL boundary, the
+export table pins its symbols and defeats `/OPT:REF`.
+
+### Drop unused SQLite features (json1)
+
+The SDK uses SQLite only for offline event storage — plain tables and indexes,
+with no JSON, FTS, R*Tree, or virtual-table features. This in-repo overlay port
+already requests `sqlite3` with `default-features: false` on its dependency edge
+(the published registry port will follow once this change is upstreamed).
+
+vcpkg unions feature requests across the whole dependency graph, and a
+transitive opt-out alone is **not** enough: you must **also** request `sqlite3`
+with `default-features: false` in your own top-level manifest to actually omit
+`json1` (which compiles SQLite with `SQLITE_OMIT_JSON`, ~50 KB smaller on a
+static `x64-windows-static` Release build):
+
+```json
+{
+  "dependencies": [
+    "cpp-client-telemetry",
+    { "name": "sqlite3", "default-features": false }
+  ]
+}
+```
+
+If any package in your build (or your own code) needs SQLite's JSON functions,
+request `sqlite3[json1]` instead and the extension is restored for the whole
+graph.
 
 ## How It Works: MATSDK_USE_VCPKG_DEPS
 
