@@ -1,10 +1,20 @@
-vcpkg_from_github(
-    OUT_SOURCE_PATH SOURCE_PATH
-    REPO microsoft/cpp_client_telemetry
-    REF v3.10.161.1
-    SHA512 4664b34ddce601d6a95669df4a59d11a6cc67de1f23de132192f791a275edc6a10b8498d340e6cf7d120d9e7a22c494d7517b24fc0954bf9e236e84a8800589a
-    HEAD_REF main
-)
+# In-repo port validation (tests/vcpkg/*) sets MATSDK_VCPKG_SOURCE_DIR so the port
+# builds the working tree under review instead of a pinned release -- this is what
+# lets the port tests actually exercise the SDK source + manifest together. When
+# the variable is unset (production installs), the pinned release is downloaded as
+# usual, so the published port behavior is unchanged.
+if(DEFINED ENV{MATSDK_VCPKG_SOURCE_DIR})
+    set(SOURCE_PATH "$ENV{MATSDK_VCPKG_SOURCE_DIR}")
+    message(STATUS "cpp-client-telemetry: building local source $ENV{MATSDK_VCPKG_SOURCE_DIR} (MATSDK_VCPKG_SOURCE_DIR is set)")
+else()
+    vcpkg_from_github(
+        OUT_SOURCE_PATH SOURCE_PATH
+        REPO microsoft/cpp_client_telemetry
+        REF v3.10.161.1
+        SHA512 4664b34ddce601d6a95669df4a59d11a6cc67de1f23de132192f791a275edc6a10b8498d340e6cf7d120d9e7a22c494d7517b24fc0954bf9e236e84a8800589a
+        HEAD_REF main
+    )
+endif()
 
 # Determine if Apple HTTP should be used (no curl needed).
 # Note: BUILD_APPLE_HTTP must remain ON for macOS/iOS because the vcpkg.json

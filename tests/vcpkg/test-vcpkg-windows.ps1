@@ -14,6 +14,10 @@ $RepoRoot = (Resolve-Path (Join-Path $ScriptDir "..\..")).Path
 $BuildDir = Join-Path $ScriptDir "build-windows"
 $OverlayPorts = Join-Path $RepoRoot "tools\ports"
 
+# Build the working tree under review (not a pinned release) so this test
+# validates the actual SDK source together with the port manifest/portfile.
+$env:MATSDK_VCPKG_SOURCE_DIR = $RepoRoot
+
 Write-Host "=== MSTelemetry vcpkg port test (Windows) ===" -ForegroundColor Cyan
 
 # Resolve vcpkg root: parameter > VCPKG_ROOT env var > error
