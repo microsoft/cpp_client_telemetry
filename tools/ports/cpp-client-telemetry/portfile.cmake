@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO microsoft/cpp_client_telemetry
-    REF 65a0c754d2ee6a53bdcb3b79b36ac66483a7cf98
-    SHA512 75da6be4233bfb05bafb1b31d6b80737e6efde4596adb93582dc0175f0154b8a5df7bdf5434d957ccdc31653da160959fe09f5e9f2997e6c0796759af9651755
+    REF v3.10.161.1
+    SHA512 4664b34ddce601d6a95669df4a59d11a6cc67de1f23de132192f791a275edc6a10b8498d340e6cf7d120d9e7a22c494d7517b24fc0954bf9e236e84a8800589a
     HEAD_REF main
 )
 
@@ -45,9 +45,6 @@ vcpkg_cmake_config_fixup(PACKAGE_NAME MSTelemetry CONFIG_PATH lib/cmake/MSTeleme
 # Remove duplicate headers and empty dirs
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
-
-# Install usage instructions
-file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
 
 # Install license
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

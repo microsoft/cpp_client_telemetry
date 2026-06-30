@@ -27,6 +27,7 @@ set(SRCS
   HttpResponseDecoderTests.cpp
   HttpServerTests.cpp
   InformationProviderImplTests.cpp
+  KillSwitchManagerTests.cpp
   LoggerTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp
@@ -145,7 +146,8 @@ else()
     # Apple Silicon homebrew installs to /opt/homebrew instead of /usr/local
     set (SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
   else()
-    set (SQLITE3_LIB "sqlite3")
+    find_package(SQLite3 REQUIRED)
+    set (SQLITE3_LIB SQLite::SQLite3)
   endif()
 
   if(TARGET zlib_bundled)
