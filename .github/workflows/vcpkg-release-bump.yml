@@ -1,0 +1,193 @@
+name: Vcpkg release bump
+
+# Opens a version-bump pull request against microsoft/vcpkg for the
+# `cpp-client-telemetry` port whenever a new SDK release is published.
+#
+# It runs ONLY when a new version is cut:
+#   * automatically on a published, non-draft, non-prerelease GitHub Release
+#     whose tag looks like a version (vMAJOR.MINOR.PATCH.BUILD), or
+#   * manually via workflow_dispatch for a specific tag (recovery / re-run).
+# It never runs on ordinary pushes, and it opens no PR if the port already
+# matches the release (no version change).
+#
+# One-time setup required in this repository:
+#   * Variable  VCPKG_FORK_REPO  -> the vcpkg fork to push branches to,
+#                                   e.g. "your-org/vcpkg".
+#   * Secret    VCPKG_BUMP_TOKEN -> a PAT (classic: repo+workflow, or
+#                                   fine-grained: Contents+Pull requests RW on
+#                                   the fork) able to push to VCPKG_FORK_REPO and
+#                                   open pull requests on microsoft/vcpkg.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to bump the vcpkg port to (e.g. v3.10.161.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vcpkg-release-bump-${{ github.event.release.tag_name || github.event.inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Bump cpp-client-telemetry port
+    # Skip drafts and pre-releases; always allow manual dispatch.
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          (github.event.release.draft == false && github.event.release.prerelease == false) }}
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM_REPO: ${{ github.repository }}            # microsoft/cpp_client_telemetry
+      VCPKG_UPSTREAM: microsoft/vcpkg
+      VCPKG_FORK_REPO: ${{ vars.VCPKG_FORK_REPO }}
+      PORT: cpp-client-telemetry
+    steps:
+      - name: Validate configuration
+        env:
+          VCPKG_BUMP_TOKEN: ${{ secrets.VCPKG_BUMP_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VCPKG_FORK_REPO}" ]; then
+            echo "::error::Repository variable VCPKG_FORK_REPO is not set (e.g. 'your-org/vcpkg')."
+            exit 1
+          fi
+          if [ -z "${VCPKG_BUMP_TOKEN}" ]; then
+            echo "::error::Secret VCPKG_BUMP_TOKEN is not set. Provide a token that can push to ${VCPKG_FORK_REPO} and open PRs on ${VCPKG_UPSTREAM}."
+            exit 1
+          fi
+
+      - name: Resolve tag and version
+        id: ver
+        env:
+          # Pass untrusted tag values through the environment instead of
+          # interpolating ${{ ... }} directly into the script body, so a tag
+          # containing shell metacharacters cannot inject commands into this
+          # step (which shares a runner with later PAT-bearing steps).
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG:-$INPUT_TAG}"
+          if [ -z "${TAG}" ]; then echo "::error::No release tag could be resolved."; exit 1; fi
+          # Only act on version tags: vMAJOR.MINOR.PATCH.BUILD. A non-matching
+          # tag from the automatic release trigger is a clean no-op (the SDK also
+          # has historical 3-part tags such as v3.3.8); a non-matching tag from a
+          # manual workflow_dispatch is user error and fails loudly.
+          if ! printf '%s' "${TAG}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::Tag '${TAG}' is not a version tag (expected vX.Y.Z.W)."
+              exit 1
+            fi
+            echo "::notice::Tag '${TAG}' is not a version tag (expected vX.Y.Z.W); nothing to bump."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "branch=port/${PORT}-${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Bumping ${PORT} -> tag=${TAG} version=${VERSION}"
+
+      - name: Compute source archive SHA512
+        id: sha
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          URL="https://github.com/${UPSTREAM_REPO}/archive/${{ steps.ver.outputs.tag }}.tar.gz"
+          echo "Downloading ${URL}"
+          curl -fsSL --retry 3 "${URL}" -o source.tar.gz
+          SHA512="$(sha512sum source.tar.gz | cut -d' ' -f1)"
+          echo "sha512=${SHA512}" >> "$GITHUB_OUTPUT"
+          echo "SHA512=${SHA512}"
+
+      - name: Clone vcpkg fork and branch off upstream master
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.VCPKG_BUMP_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Authenticate git via gh's credential helper instead of embedding the
+          # token in the clone URL (which would persist it in .git/config and
+          # risk leaking it if git echoes the remote). The helper is written to
+          # the global gitconfig and reused by the later push step.
+          gh auth setup-git
+          git clone --depth 1 "https://github.com/${VCPKG_FORK_REPO}.git" vcpkg
+          cd vcpkg
+          git remote add upstream "https://github.com/${VCPKG_UPSTREAM}.git"
+          git fetch --depth 1 upstream master
+          git checkout -B "${{ steps.ver.outputs.branch }}" upstream/master
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bootstrap vcpkg
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics
+
+      - name: Update port REF, SHA512 and version
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          cd vcpkg
+          PORTFILE="ports/${PORT}/portfile.cmake"
+          MANIFEST="ports/${PORT}/vcpkg.json"
+          if [ ! -f "${PORTFILE}" ] || [ ! -f "${MANIFEST}" ]; then
+            echo "::error::${PORT} port not found in ${VCPKG_UPSTREAM}. The port must already be in the registry before it can be bumped."
+            exit 1
+          fi
+          sed -i -E "s|^([[:space:]]*REF[[:space:]]+).*$|\1${{ steps.ver.outputs.tag }}|" "${PORTFILE}"
+          sed -i -E "s|^([[:space:]]*SHA512[[:space:]]+).*$|\1${{ steps.sha.outputs.sha512 }}|" "${PORTFILE}"
+          jq --arg v "${{ steps.ver.outputs.version }}" '.version = $v | del(."port-version")' "${MANIFEST}" > "${MANIFEST}.tmp"
+          mv "${MANIFEST}.tmp" "${MANIFEST}"
+          ./vcpkg format-manifest "${MANIFEST}"
+
+      - name: Detect change
+        id: diff
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          cd vcpkg
+          if git diff --quiet -- "ports/${PORT}"; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No change: ${PORT} is already at ${{ steps.ver.outputs.version }} with this REF/SHA512. Nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit, update version DB, push and open PR
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.diff.outputs.changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.VCPKG_BUMP_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd vcpkg
+          # gh auth setup-git ran in the clone step; reuse that credential helper
+          # so 'git push' authenticates without a token in the remote URL.
+          BR="${{ steps.ver.outputs.branch }}"
+          git add "ports/${PORT}"
+          git commit -m "[${PORT}] Update to ${{ steps.ver.outputs.version }}"
+          ./vcpkg x-add-version "${PORT}" --overwrite-version
+          git add versions
+          git commit -m "[${PORT}] Update version database"
+          # Ensure a remote-tracking ref exists so --force-with-lease has a lease
+          # to compare against on reruns: the bump branch may already exist on the
+          # fork but be absent from this fresh clone. Ignore failure on the first
+          # run, when the branch does not exist remotely yet.
+          git fetch origin "+refs/heads/${BR}:refs/remotes/origin/${BR}" || true
+          git push --force-with-lease origin "${BR}"
+          if [ -n "$(gh pr list --repo "${VCPKG_UPSTREAM}" --head "$(printf '%s' "${VCPKG_FORK_REPO}" | cut -d/ -f1):${BR}" --state open --json number --jq '.[0].number // empty' 2>/dev/null)" ]; then
+            echo "An open PR already exists for ${BR}; the force-pushed branch refreshes it."
+          else
+            gh pr create \
+              --repo "${VCPKG_UPSTREAM}" \
+              --base master \
+              --head "$(printf '%s' "${VCPKG_FORK_REPO}" | cut -d/ -f1):${BR}" \
+              --title "[${PORT}] Update to ${{ steps.ver.outputs.version }}" \
+              --body "Automated port bump to [\`${UPSTREAM_REPO}@${{ steps.ver.outputs.tag }}\`](https://github.com/${UPSTREAM_REPO}/releases/tag/${{ steps.ver.outputs.tag }}). Generated by the \`vcpkg-release-bump\` workflow."
+          fi
