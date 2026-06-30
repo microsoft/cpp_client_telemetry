@@ -216,7 +216,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   endif()
   if(APPLE AND BUILD_OBJC_WRAPPER)
     message(STATUS "Include ObjC Wrappers")
-    list(APPEND SRCS
+    set(OBJC_WRAPPER_SRCS
       ../wrappers/obj-c/ODWLogger.mm
       ../wrappers/obj-c/ODWLogManager.mm
       ../wrappers/obj-c/ODWEventProperties.mm
@@ -227,22 +227,23 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       ../wrappers/obj-c/ODWSanitizerInitConfig.mm
       )
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/")
-        list(APPEND SRCS
+        list(APPEND OBJC_WRAPPER_SRCS
         ../wrappers/obj-c/ODWDiagnosticDataViewer.mm
         )
     endif()
       if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
           set(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE ON)
-          list(APPEND SRCS
+          list(APPEND OBJC_WRAPPER_SRCS
           ../wrappers/obj-c/ODWPrivacyGuard.mm
             )
       endif()
       if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/" AND BUILD_SANITIZER)
         set(MATSDK_OBJC_SANITIZER_AVAILABLE ON)
-        list(APPEND SRCS
+        list(APPEND OBJC_WRAPPER_SRCS
         ../wrappers/obj-c/ODWSanitizer.mm
         )
       endif()
+    list(APPEND SRCS ${OBJC_WRAPPER_SRCS})
   endif()
 
   if(APPLE AND BUILD_SWIFT_WRAPPER)
@@ -271,7 +272,7 @@ elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 if(NOT MATSDK_USE_VCPKG_DEPS)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR}/../sqlite)
 endif()
-add_definitions(-D_UNICODE -DUNICODE -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -DMATSDK_SHARED_LIB=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
+add_definitions(-D_UNICODE -DUNICODE -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
@@ -323,6 +324,29 @@ else()
   add_library(mat STATIC ${SRCS})
 endif()
 
+# Public-API export decoration (MATSDK_LIBABI in lib/include/public/ctmacros.hpp).
+# The SDK has no .def file, so __declspec(dllexport)/(dllimport) on Windows and
+# __attribute__((visibility("default"))) elsewhere are the sole export mechanisms,
+# and the decoration must follow the actual linkage:
+#  * shared: the SDK's own translation units export the public API
+#    (MATSDK_SHARED_LIB, PRIVATE). On Windows, consumers must additionally import
+#    it -- the INTERFACE MATSDK_IMPORT_LIB is carried by the installed
+#    MSTelemetry::mat target, so find_package() + link gives consumers dllimport
+#    automatically with no consumer-side configuration. Non-Windows consumers need
+#    nothing: they call symbols exported by libmat.so/.dylib.
+#  * static: decorate nothing, so the SDK's public symbols are NOT re-exported by
+#    a consumer DLL/.so that statically absorbs this library. Windows needs an
+#    explicit (empty) MATSDK_STATIC_LIB; elsewhere the empty MATSDK_LIBABI default
+#    plus -fvisibility=hidden (root CMakeLists.txt) already hides them.
+if(BUILD_SHARED_LIBS)
+  target_compile_definitions(mat PRIVATE MATSDK_SHARED_LIB=1)
+  if(WIN32)
+    target_compile_definitions(mat INTERFACE MATSDK_IMPORT_LIB=1)
+  endif()
+elseif(WIN32)
+  target_compile_definitions(mat PUBLIC MATSDK_STATIC_LIB=1)
+endif()
+
 # Target-based include paths for vcpkg / install workflow.
 # PUBLIC propagates to consumers; PRIVATE is SDK-internal only.
 # BUILD_INTERFACE is used during the SDK build; INSTALL_INTERFACE is used
@@ -339,6 +363,17 @@ target_include_directories(mat
 )
 
 if(APPLE AND BUILD_OBJC_WRAPPER)
+  if(BUILD_SHARED_LIBS AND OBJC_WRAPPER_SRCS)
+    # The root CMakeLists.txt applies -fvisibility=hidden globally to shrink the
+    # exported symbol table of the core C++ SDK. For Objective-C that also hides
+    # the wrapper class symbols (_OBJC_CLASS_$_ODW*), which are public API on
+    # Apple: a shared libmat.dylib would export no ODW* classes and consumers
+    # would fail to link (undefined _OBJC_CLASS_$_...). Re-export just the wrapper
+    # translation units with default visibility; the C++ core stays hidden.
+    set_source_files_properties(${OBJC_WRAPPER_SRCS}
+      PROPERTIES COMPILE_FLAGS "-fvisibility=default")
+  endif()
+
   if(MATSDK_OBJC_PRIVACYGUARD_AVAILABLE)
     target_compile_definitions(mat PRIVATE MATSDK_OBJC_PRIVACYGUARD_AVAILABLE=1)
   else()
@@ -421,7 +456,10 @@ else()
     elseif(EXISTS "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
       set(MATSDK_SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
     else()
-      set(MATSDK_SQLITE3_LIB "sqlite3")
+      # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
+      # SQLite::SQLite3 is an imported target carrying its own include dirs.
+      find_package(SQLite3 REQUIRED)
+      set(MATSDK_SQLITE3_LIB SQLite::SQLite3)
     endif()
 
     find_package(ZLIB REQUIRED)

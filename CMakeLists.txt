@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5...3.29)
+cmake_minimum_required(VERSION 3.15...3.31)
 project(MSTelemetry LANGUAGES C CXX)
 
 ################################################################################################
@@ -149,16 +149,17 @@ else()
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # Using GCC with -s and -Wl linker flags
-  set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -ffunction-sections -fdata-sections -fmerge-all-constants")
+  # Using GCC with -s and -Wl linker flags. -ffunction-sections/-fdata-sections
+  # are set once for all dep modes by the global block further below.
+  set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -fmerge-all-constants")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(REL_FLAGS "${WARN_FLAGS}")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  # AppleClang does not support -ffunction-sections and -fdata-sections with the -fembed-bitcode and -fembed-bitcode-marker
   set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants")
 else()
-  # Using clang - strip unsupported GCC options
-  set(REL_FLAGS "-Os ${WARN_FLAGS} -ffunction-sections -fmerge-all-constants")
+  # Using clang - strip unsupported GCC options (-ffunction-sections is set by
+  # the global block further below).
+  set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants")
 endif()
 
 ## Uncomment this to reduce the volume of note warnings on RPi4 w/gcc-8 Ref. https://gcc.gnu.org/ml/gcc/2017-05/msg00073.html
@@ -205,6 +206,55 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 endif() # NOT MATSDK_USE_VCPKG_DEPS (compiler flags)
+
+# --- Dead-strip enablement (applies in BOTH vendored and vcpkg modes) ---------
+# Deliberate exception to the "let the toolchain manage compiler flags" note
+# above (the NOT MATSDK_USE_VCPKG_DEPS block): these flags are NOT optimization
+# or dependency choices the vcpkg toolchain owns -- they only split functions and
+# data into separate COMDATs/sections so a *consumer's* linker can drop
+# unreferenced SDK code (MSVC /OPT:REF + /OPT:ICF, GNU/Clang --gc-sections, Apple
+# ld -dead_strip). The toolchain does not set them, and the vcpkg-packaged
+# library (and every MSVC build, which never gets /Gy from the block above) would
+# otherwise link whole .obj files instead of individual functions. Applying them
+# here in both modes closes that gap and matches the MSBuild Release projects,
+# which already enable FunctionLevelLinking + OptimizeReferences + COMDATFolding.
+if(MSVC)
+  # /Gy (function-level linking) is supported by both cl.exe and clang-cl.
+  add_compile_options(/Gy)
+  # /Gw (whole-program global data) is cl.exe-only; the ClangCL toolset (for
+  # which MSVC is also true) does not support it.
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(/Gw)
+  endif()
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  # On Mach-O, clang emits .subsections_via_symbols, so ld64's -dead_strip
+  # already removes unreferenced code at per-symbol (function) granularity
+  # without -ffunction-sections; we add it only for cross-toolchain
+  # consistency. -fdata-sections is omitted because it historically conflicted
+  # with bitcode on AppleClang.
+  add_compile_options(-ffunction-sections)
+else()
+  # GCC / Clang (Linux, Android, MinGW)
+  add_compile_options(-ffunction-sections -fdata-sections)
+endif()
+
+# Hidden symbol visibility (non-Windows): export only the MATSDK_LIBABI-decorated
+# public API (classes + the C API), hiding SDK internals and the bundled
+# sqlite3/zlib. This shrinks the dynamic symbol table (faster dynamic
+# linking/loading, smaller binaries) and enables more inlining + dead-code
+# elimination -- the non-Windows analog of what /Gy plus the consumer's /OPT:REF
+# achieve on MSVC. All Windows toolchains (MSVC, MinGW, ClangCL) restrict exports
+# via __declspec(dllexport) on MATSDK_LIBABI (lib/include/public/ctmacros.hpp),
+# so this is gated on NOT WIN32 (not NOT MSVC, which would also catch MinGW/
+# Clang-GNU Windows builds and apply ELF-style visibility that does not belong on
+# a PE/COFF target).
+if(NOT WIN32)
+  # -fvisibility=hidden applies to C and C++; -fvisibility-inlines-hidden is a
+  # C++-only option, so scope it to CXX. (Applying it to C sources -- e.g. the
+  # bundled sqlite3/zlib on the legacy Android path -- makes Clang emit an
+  # "unused argument" warning that becomes an error under the project's -Werror.)
+  add_compile_options(-fvisibility=hidden $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
+endif()
 
 include(tools/Utils.cmake)
 include(GNUInstallDirs)
