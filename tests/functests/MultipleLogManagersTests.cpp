@@ -40,6 +40,15 @@
 using namespace testing;
 using namespace MAT;
 
+// MultipleLogManagersTests stand up an in-process HttpServer on a loopback port
+// and run multiple concurrent LogManager instances against it. That pattern
+// hangs/fails inside the iOS simulator sandbox (the loopback uploads stall),
+// which previously left the iOS CI job to sit until its 60-minute timeout. The
+// behavior is still exercised on the desktop and macOS targets; exclude the
+// whole suite from the iOS build. (GTEST_SKIP in SetUp is not honored by the
+// iOS xctest gtest wrapper, so the exclusion must be at compile time.)
+#if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
+
 class RequestHandler : public HttpServer::Callback 
 {
    public:
@@ -76,15 +85,6 @@ class MultipleLogManagersTests : public ::testing::Test
    public:
     virtual void SetUp() override
     {
-#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
-        // These tests stand up a local HttpServer and run multiple concurrent
-        // LogManager instances against it. That pattern deadlocks on the iOS
-        // simulator sandbox (the in-process socket server hangs accepting the
-        // loopback uploads), causing the iOS CI job to sit until its 60-minute
-        // timeout. The behavior is exercised on the desktop/macOS targets.
-        GTEST_SKIP() << "Skipped on iOS: local HttpServer with multiple concurrent "
-                        "LogManager instances hangs on the iOS simulator.";
-#endif
         int port = server.addListeningPort(0);
         std::ostringstream os;
         os << "127.0.0.1:" << port;
@@ -304,6 +304,8 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
     lm2.reset();
 }
 #endif  //END HAVE_MAT_PRIVACYGUARD
+
+#endif  // !TARGET_OS_IPHONE (suite excluded on iOS; see note above)
 
 #endif  // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
