@@ -121,6 +121,30 @@ namespace MAT_NS_BEGIN
         /// <param name="waitTime">Amount of time to wait for if the task is currently executing</param>
         /// <returns>True if successfully cancelled, else false</returns>
         virtual bool Cancel(Task* task, uint64_t waitTime = 0) = 0;
+
+        /// <summary>
+        /// Queue an asynchronous task and report whether the dispatcher accepted
+        /// it. Returns false if the task could not be queued (for example because
+        /// the dispatcher is shutting down) and was therefore destroyed by the
+        /// dispatcher; true otherwise. Callers that retain the task pointer for
+        /// later cancellation should treat a false result as "not scheduled" and
+        /// drop the pointer. The default delegates to Queue() and assumes success,
+        /// so existing dispatcher implementations keep their current behavior.
+        ///
+        /// Declared after Cancel so that adding this method does not shift the
+        /// vtable slot indices of the pre-existing virtuals (Join/Queue/Cancel).
+        /// The SDK makes no general C++ ABI guarantee -- adding a virtual grows
+        /// the vtable and clients should be recompiled -- but keeping the
+        /// existing slots stable avoids silently dispatching old call sites
+        /// (e.g. Cancel) through the wrong slot.
+        /// </summary>
+        /// <param name="task">Task to be executed on a worker thread</param>
+        /// <returns>True if the task was queued, false if it was dropped</returns>
+        virtual bool QueueWithResult(Task* task)
+        {
+            Queue(task);
+            return true;
+        }
     };
 
     /// @endcond
