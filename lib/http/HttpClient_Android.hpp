@@ -12,7 +12,7 @@
 
 namespace MAT_NS_BEGIN
 {
-    class HttpClient_Android final : public IHttpClient
+    class HttpClient_Android : public IHttpClient
     {
         enum class RequestState : int8_t
         {

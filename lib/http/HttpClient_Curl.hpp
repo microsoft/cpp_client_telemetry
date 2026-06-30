@@ -47,7 +47,7 @@ namespace MAT_NS_BEGIN {
 /**
  * Curl-based HTTP client
  */
-class HttpClient_Curl final : public IHttpClient {
+class HttpClient_Curl : public IHttpClient {
 public:
     HttpClient_Curl();
     virtual ~HttpClient_Curl();

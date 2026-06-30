@@ -13,7 +13,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    class HttpClient_CAPI final : public IHttpClient {
+    class HttpClient_CAPI : public IHttpClient {
     public:
         HttpClient_CAPI(http_send_fn_t sendFn, http_cancel_fn_t cancelFn);
 

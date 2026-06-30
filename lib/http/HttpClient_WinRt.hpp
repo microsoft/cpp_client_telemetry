@@ -28,7 +28,7 @@ namespace MAT_NS_BEGIN {
 
 class WinRtRequestWrapper;
 
-class HttpClient_WinRt final : public IHttpClient {
+class HttpClient_WinRt : public IHttpClient {
   public:
     HttpClient_WinRt();
     virtual ~HttpClient_WinRt();
