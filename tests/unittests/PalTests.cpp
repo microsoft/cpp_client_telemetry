@@ -90,8 +90,8 @@ TEST_F(PalTests, PseudoRandomGenerator)
 {
     PAL::PseudoRandomGenerator prg;
 
-    size_t const NumQueries = 1000;
-    size_t const NumBuckets = 11;
+    constexpr size_t NumQueries = 1000;
+    constexpr size_t NumBuckets = 11;
     size_t buckets[NumBuckets] = {};
 
     for (size_t i = 0; i < NumQueries; i++) {
