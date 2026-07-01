@@ -249,14 +249,35 @@ namespace MAT_NS_BEGIN {
                 // We cannot call plain ::remove() here, filename is in UTF-8. Rather
                 // than adding a new set of functions to PAL, let's use SQLite VFS.
                 sqlite3_vfs* vfs = g_sqlite3Proxy->sqlite3_vfs_find(NULL);
-                result = (vfs != NULL) ? vfs->xDelete(vfs, filename.c_str(), 0) : SQLITE_ERROR;
-                if (result == SQLITE_OK) {
-                    LOG_INFO("Unusable existing database file was successfully deleted");
-                }
-                else if (result != SQLITE_IOERR_DELETE_NOENT) {
-                    LOG_WARN("Failed to delete unusable database file (%d)", result);
+                if (vfs == NULL) {
+                    LOG_ERROR("Failed to delete unusable database file: no SQLite VFS");
                     shutdown_sqlite();
                     return false;
+                }
+                // Delete the main database file plus any SQLite companion files
+                // (-journal/-wal/-shm) left behind by the failed open. A stale
+                // rollback journal or WAL can otherwise prevent the freshly created
+                // database below from opening cleanly (observed on iOS, where leaving
+                // the companions behind made the recreate() open fail). xDelete
+                // returns SQLITE_IOERR_DELETE_NOENT when a file is already absent,
+                // which is expected and not an error.
+                static const char* const companionSuffixes[] = { "", "-journal", "-wal", "-shm" };
+                for (const char* suffix : companionSuffixes) {
+                    const std::string companion = filename + suffix;
+                    result = vfs->xDelete(vfs, companion.c_str(), 0);
+                    if (result == SQLITE_OK) {
+                        LOG_INFO("Deleted unusable database file \"<db>%s\"", suffix);
+                    }
+                    else if (result != SQLITE_IOERR_DELETE_NOENT) {
+                        LOG_WARN("Failed to delete database file \"<db>%s\" (%d)", suffix, result);
+                        // Only the main database file is fatal here; a leftover
+                        // companion that cannot be removed must not by itself abort
+                        // the recreate, since the open below may still succeed.
+                        if (suffix[0] == '\0') {
+                            shutdown_sqlite();
+                            return false;
+                        }
+                    }
                 }
             }
 
