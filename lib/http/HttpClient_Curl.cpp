@@ -84,7 +84,13 @@ namespace MAT_NS_BEGIN {
         auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body, false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
         curlRequest->SetOperation(curlOperation);
         
-        // The lifetime of curlOperation is guarnteed by the call to result.wait() in the d'tor.  
+        // The lifetime of curlOperation across the async Send is guaranteed by
+        // ~CurlHttpOperation. After this function returns, the only remaining
+        // shared_ptr is the one held by the owning CurlHttpRequest. When that
+        // request is destroyed from another thread, the destructor waits for the
+        // async result; if the callback below leads to the request being
+        // destroyed on the async thread itself (OnHttpResponse ->
+        // EventsUploadContext::clear()), the destructor defers the join instead.
         curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {
             this->EraseRequest(requestId);
 
