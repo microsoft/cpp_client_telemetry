@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <string>
+#include <set>
 
 #ifdef HAVE_MAT_LOGGING
 #include "pal/PAL.hpp"
@@ -42,9 +43,14 @@ class PalTests : public Test {};
 
 TEST_F(PalTests, UuidGeneration)
 {
+    // Canonical UUID string length ("8-4-4-4-12") and the number of UUIDs
+    // generated for the uniqueness check below.
+    constexpr size_t UuidStringLength = 36;
+    constexpr size_t UuidBatchSize = 1000;
+
     std::string uuid0 = PAL::generateUuidString();
 
-    EXPECT_THAT(uuid0.length(), 36u);
+    EXPECT_THAT(uuid0.length(), UuidStringLength);
 
     std::string mask = uuid0;
     for (char& ch : mask) {
@@ -61,21 +67,31 @@ TEST_F(PalTests, UuidGeneration)
 
     std::string uuid1 = PAL::generateUuidString();
 
-    EXPECT_THAT(uuid1.length(), 36u);
+    EXPECT_THAT(uuid1.length(), UuidStringLength);
 
     size_t diff = 0;
-    for (size_t i = 0; i < 36; i++) {
+    for (size_t i = 0; i < UuidStringLength; i++) {
         diff += (uuid0[i] != uuid1[i]);
     }
     EXPECT_THAT(diff, Gt(20u));
+
+    // A batch of generated UUIDs must all be distinct (guards against a stuck
+    // or low-entropy generator).
+    std::set<std::string> uuids;
+    for (size_t i = 0; i < UuidBatchSize; i++) {
+        std::string u = PAL::generateUuidString();
+        EXPECT_THAT(u.length(), UuidStringLength);
+        uuids.insert(u);
+    }
+    EXPECT_THAT(uuids.size(), UuidBatchSize);
 }
 
 TEST_F(PalTests, PseudoRandomGenerator)
 {
     PAL::PseudoRandomGenerator prg;
 
-    size_t const NumQueries = 1000;
-    size_t const NumBuckets = 11;
+    constexpr size_t NumQueries = 1000;
+    constexpr size_t NumBuckets = 11;
     size_t buckets[NumBuckets] = {};
 
     for (size_t i = 0; i < NumQueries; i++) {
