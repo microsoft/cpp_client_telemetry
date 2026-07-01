@@ -90,8 +90,33 @@ namespace MAT_NS_BEGIN {
 
     EventProperties& EventProperties::operator=(EventProperties const& copy)
     {
-        *m_storage = *copy.m_storage;
+        // m_storage may be null if this object was moved-from; reallocate then.
+        if (m_storage == nullptr)
+        {
+            m_storage = new EventPropertiesStorage(*copy.m_storage);
+        }
+        else
+        {
+            *m_storage = *copy.m_storage;
+        }
 
+        return *this;
+    }
+
+    EventProperties::EventProperties(EventProperties&& move) noexcept
+        : m_storage(move.m_storage)
+    {
+        move.m_storage = nullptr;
+    }
+
+    EventProperties& EventProperties::operator=(EventProperties&& move) noexcept
+    {
+        if (this != &move)
+        {
+            delete m_storage;
+            m_storage = move.m_storage;
+            move.m_storage = nullptr;
+        }
         return *this;
     }
 
