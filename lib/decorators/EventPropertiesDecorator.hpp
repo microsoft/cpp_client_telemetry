@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <map>
 #include <string>
+#include <utility>
 
 namespace MAT_NS_BEGIN {
 
@@ -188,11 +189,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
 
                     }
@@ -210,11 +211,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
 #if 0 /* v2 code */
                         if (v.piiKind != PiiKind_None)
@@ -252,11 +253,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -267,11 +268,11 @@ namespace MAT_NS_BEGIN {
                         temp.longValue = v.as_int64;
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -282,11 +283,11 @@ namespace MAT_NS_BEGIN {
                         temp.doubleValue = v.as_double;
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -297,11 +298,11 @@ namespace MAT_NS_BEGIN {
                         temp.longValue = v.as_time_ticks.ticks;
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -312,11 +313,11 @@ namespace MAT_NS_BEGIN {
                         temp.longValue = v.as_bool;
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -346,11 +347,11 @@ namespace MAT_NS_BEGIN {
                         temp.longArray.push_back(*v.as_longArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -361,11 +362,11 @@ namespace MAT_NS_BEGIN {
                         temp.doubleArray.push_back(*v.as_doubleArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -376,11 +377,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringArray.push_back(*v.as_stringArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -399,11 +400,11 @@ namespace MAT_NS_BEGIN {
                         temp.guidArray.push_back(values);
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -414,11 +415,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                     }
                     }
@@ -428,8 +429,8 @@ namespace MAT_NS_BEGIN {
             if (extPartB.size() > 0)
             {
                 ::CsProtocol::Data partBdata;
-                partBdata.properties = extPartB;
-                record.baseData.push_back(partBdata);
+                partBdata.properties = std::move(extPartB);
+                record.baseData.push_back(std::move(partBdata));
             }
 
             // special case of CorrelationVector value

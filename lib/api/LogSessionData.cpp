@@ -10,7 +10,7 @@ using namespace std;
 
 namespace MAT_NS_BEGIN {
 
-    uint64_t LogSessionData::getSessionFirstTime() const
+    uint64_t LogSessionData::getSessionFirstTime() const noexcept
     {
         return m_sessionFirstTimeLaunch;
     }
