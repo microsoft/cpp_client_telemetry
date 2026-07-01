@@ -534,11 +534,21 @@ void HttpClient_WinInet::CancelAllRequests()
     for (const auto &id : ids)
         CancelRequestAsync(id);
 
-    // wait for all destructors to run
-    while (!m_requests.empty())
+    // wait for all destructors to run. Read m_requests under the lock each
+    // iteration; erase() runs on the WinInet callback thread under the same lock.
+    bool done;
+    {
+        LOCKGUARD(m_requestsMutex);
+        done = m_requests.empty();
+    }
+    while (!done)
     {
         PAL::sleep(100);
         std::this_thread::yield();
+        {
+            LOCKGUARD(m_requestsMutex);
+            done = m_requests.empty();
+        }
     }
 }
 

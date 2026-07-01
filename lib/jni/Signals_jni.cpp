@@ -25,11 +25,19 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
                                                           jlong nativeLoggerPtr,
                                                           jstring signal_item_json) {
     jboolean isCopy = true;
+    if (signal_item_json == nullptr) {
+        return false;
+    }
     const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
-    env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
+    if (signalItemJson == nullptr) {
+        // GetStringUTFChars returned null (e.g. OOM, with a pending exception);
+        // there is nothing valid to log.
+        return false;
+    }
 
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
     EventProperties eventProperties = Signals::CreateEventProperties(signalItemJson);
+    env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
     logger->LogEvent(eventProperties);
     return true;
 }
@@ -54,11 +62,18 @@ Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jcl
     SubstrateSignalsConfiguration config;
 
     jboolean isCopy = true;
-    const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
-    if (strlen(convertedValue) > 0) {
-        config.ServiceRequestConfig.BaseUrl = convertedValue;
+    if (base_url != nullptr) {
+        const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
+        if (convertedValue == nullptr) {
+            // GetStringUTFChars failed (e.g. OOM) and left a pending exception;
+            // do not continue making JNI calls with an exception in flight.
+            return false;
+        }
+        if (strlen(convertedValue) > 0) {
+            config.ServiceRequestConfig.BaseUrl = convertedValue;
+        }
+        env->ReleaseStringUTFChars(base_url, convertedValue);
     }
-    env->ReleaseStringUTFChars(base_url, convertedValue);
 
     config.ServiceRequestConfig.TimeoutMs = reinterpret_cast<int>(timeout_ms);
     config.ServiceRequestConfig.RetryTimes = reinterpret_cast<int>(retry_times);
