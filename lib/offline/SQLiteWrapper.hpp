@@ -219,6 +219,16 @@ namespace MAT_NS_BEGIN {
         {
         }
 
+        ~SqliteDB()
+        {
+            // Finalize prepared statements and close the database even if
+            // shutdown() was not called explicitly (e.g. the owning storage was
+            // destroyed without Shutdown()). shutdown() is idempotent -- it
+            // returns immediately once m_db is null -- so an earlier explicit
+            // shutdown() makes this a no-op.
+            shutdown();
+        }
+
         bool initialize(std::string const& filename, bool deletePrevious, size_t maxHeapLimit = 0)
         {
             int result = SQLITE_OK;
@@ -458,6 +468,13 @@ namespace MAT_NS_BEGIN {
         */
         bool unlock() {
             return isOK(sqlite3_exec("COMMIT;"));
+        }
+
+        /**
+        * @brief   Roll back (discard) the current DB transaction.
+        */
+        bool rollback() {
+            return isOK(sqlite3_exec("ROLLBACK;"));
         }
 
         bool lock() {

@@ -85,8 +85,8 @@ namespace MAT_NS_BEGIN {
         std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
         std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
-        bool                                   m_readFromMemory;
-        unsigned                               m_lastReadCount;
+        std::atomic<bool>                      m_readFromMemory;
+        std::atomic<unsigned>                  m_lastReadCount;
 
         bool                                   m_shutdownStarted;
         unsigned                               m_memoryDbSize;

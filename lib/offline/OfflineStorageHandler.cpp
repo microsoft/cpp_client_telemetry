@@ -174,28 +174,37 @@ namespace MAT_NS_BEGIN {
         // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
         m_flushHandle.Cancel();
 
-        size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
+        size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-            // This will block on and then take a lock for the duration of this move, and
-            // StoreRecord() will then block until the move completes.
+            // Drain the in-memory queue into a local batch. Records are removed
+            // from memory here; any that fail to persist below are re-inserted, so
+            // a disk write failure does not silently lose events. Draining (rather
+            // than reserving) keeps only a single copy of each record in flight and
+            // avoids stamping a reservation lease that the Room backend would
+            // persist to disk.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-            std::vector<StorageRecordId> ids;
 
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("BEGIN");
-
+            // Persist the whole batch to disk in a single transaction. The disk
+            // StoreRecords() is all-or-nothing on both backends: it returns the
+            // full count on success, or 0 if nothing was committed (SQLite rolls
+            // the transaction back; Room returns 0 on a failed JNI batch). So a
+            // zero result means nothing was persisted -- return every record to
+            // the in-memory queue for retry. No events are lost, and there are no
+            // duplicates because a failed batch leaves nothing on disk.
+            // (We key off == 0 rather than < size so that a non-zero-but-capped
+            // count -- only possible for batches larger than the RAM queue can
+            // ever hold -- is not mistaken for a failure.)
             size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
-
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("END");
-
-            // Delete records from reserved on flush
-            HttpHeaders dummy;
-            bool fromMemory = true;
-            m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
+            if (totalSaved == 0 && !records.empty())
+            {
+                LOG_WARN("Flush: disk store failed for the batch of %zu records; returned to the queue for retry",
+                    records.size());
+                for (auto& record : records)
+                {
+                    m_offlineStorageMemory->StoreRecord(record);
+                }
+            }
 
             // Notify event listener about the records cached
             OnStorageRecordsSaved(totalSaved);
@@ -210,7 +219,7 @@ namespace MAT_NS_BEGIN {
         }
 
         // Checkpoint DB
-        if (m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH]) 
+        if (m_offlineStorageDisk && m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH])
         {
             m_offlineStorageDisk->Flush();
         }
@@ -269,7 +278,9 @@ namespace MAT_NS_BEGIN {
             {
                 if (record.persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
                 {
-                    m_offlineStorageDisk->StoreRecord(record);
+                    // Propagate a synchronous disk write failure to the caller so a
+                    // failed store is not counted as successfully persisted.
+                    return m_offlineStorageDisk->StoreRecord(record);
                 }
             }
         }

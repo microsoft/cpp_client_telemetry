@@ -58,6 +58,7 @@ static void initTransmitProfileFields()
     transmitProfilePowerState["unknown"] = (PowerSource_Unknown);
     transmitProfilePowerState["battery"] = (PowerSource_Battery);
     transmitProfilePowerState["charging"] = (PowerSource_Charging);
+    transmitProfilePowerState["low_battery"] = (PowerSource_LowBattery);
 };
 #endif
 
