@@ -2,8 +2,14 @@
 
 include(CMakeFindDependencyMacro)
 
-# Re-find dependencies that consumers need
-find_dependency(unofficial-sqlite3 CONFIG)
+# Re-find dependencies that consumers need.
+# On Apple the SDK links the system libsqlite3 (SQLite::SQLite3); elsewhere it uses
+# the vcpkg sqlite3 package unless a private minimal SQLite is bundled.
+if(@MATSDK_APPLE_SYSTEM_DEPS@)
+  find_dependency(SQLite3)
+elseif(NOT @MATSDK_BUNDLE_SQLITE@)
+  find_dependency(unofficial-sqlite3 CONFIG)
+endif()
 find_dependency(ZLIB)
 find_dependency(nlohmann_json CONFIG)
 
@@ -14,7 +20,11 @@ find_dependency(nlohmann_json CONFIG)
 # because the macOS BUILD_APPLE_HTTP choice can't be inferred from
 # CMAKE_SYSTEM_NAME alone.
 if(@MATSDK_NEEDS_CURL@)
-  find_dependency(CURL)
+  # Force CONFIG mode so the vcpkg-provided CURLConfig (which defines the
+  # CURL::libcurl imported target referenced by MSTelemetryTargets.cmake) is
+  # used, rather than module-mode FindCURL, which on some CMake versions does
+  # not define that target.
+  find_dependency(CURL CONFIG)
 endif()
 
 # Pthreads are needed on Linux and Android (POSIX threading)

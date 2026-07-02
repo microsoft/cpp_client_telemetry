@@ -11,6 +11,16 @@ else()
 endif()
 message(STATUS "MATSDK_USE_VCPKG_DEPS: ${MATSDK_USE_VCPKG_DEPS}")
 
+# Build a private, feature-stripped copy of the vendored SQLite amalgamation
+# instead of linking an external SQLite. The SDK uses SQLite only for its offline
+# event-storage cache, so the minimal build (see lib/CMakeLists.txt
+# MATSDK_SQLITE_MINIMAL_DEFS) omits every optional SQLite subsystem the SDK does
+# not use, shrinking the SQLite code ~10% and removing the external sqlite3
+# dependency. Off by default to preserve the existing external/system-SQLite
+# behavior; the Android NDK path always bundles SQLite regardless.
+option(MATSDK_MINIMAL_SQLITE "Build a feature-stripped vendored SQLite instead of an external one" OFF)
+message(STATUS "MATSDK_MINIMAL_SQLITE: ${MATSDK_MINIMAL_SQLITE}")
+
 # Begin Uncomment for i386 build
 #set(CMAKE_SYSTEM_PROCESSOR i386)
 #set(CMAKE_C_FLAGS -m32)
@@ -363,10 +373,25 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
    AND NOT BUILD_APPLE_HTTP)
   set(MATSDK_NEEDS_CURL ON)
   add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
-  find_package(CURL REQUIRED)
   if(MATSDK_USE_VCPKG_DEPS)
+    # The TLS backend (OpenSSL/mbedTLS) is selected by the vcpkg port's
+    # curl-openssl (default) / curl-mbedtls features; the SDK just links libcurl.
+    # Force CONFIG mode so the vcpkg-provided CURLConfig (which defines the
+    # CURL::libcurl imported target) is used rather than the module FindCURL,
+    # which on some CMake versions does not define that target.
+    find_package(CURL CONFIG QUIET)
+    if(NOT TARGET CURL::libcurl)
+      message(FATAL_ERROR
+        "libcurl was not found. The vcpkg port provides the curl HTTP client "
+        "through the curl-openssl (default) or curl-mbedtls feature. Install "
+        "cpp-client-telemetry with its default features, or, under the [core,...] "
+        "form (which drops the default curl-openssl and system-sqlite features), "
+        "re-select a curl backend and a SQLite backend together, e.g. "
+        "[core,curl-openssl,system-sqlite] or [core,curl-mbedtls,minimal-sqlite].")
+    endif()
     list(APPEND LIBS CURL::libcurl)
   else()
+    find_package(CURL REQUIRED)
     # Prefer the imported target, which carries curl's include dirs and link
     # flags. Fall back to the find-module variables on CMake < 3.12, where
     # find_package(CURL) does not define CURL::libcurl.
@@ -383,10 +408,40 @@ endif()
 # Dependency resolution (vcpkg mode vs vendored)
 ################################################################################################
 if(MATSDK_USE_VCPKG_DEPS)
-  find_package(unofficial-sqlite3 CONFIG REQUIRED)
-  find_package(ZLIB REQUIRED)
-  find_package(nlohmann_json CONFIG REQUIRED)
-  message(STATUS "Using vcpkg-provided sqlite3, zlib, nlohmann-json")
+  if(APPLE)
+    # macOS/iOS ship libsqlite3 and libz as system libraries (the SDK's SPM
+    # distribution links them the same way), so the vcpkg sqlite3/zlib packages are
+    # not pulled there -- find the system ones via CMake's standard find modules.
+    find_package(SQLite3 REQUIRED)
+    find_package(ZLIB REQUIRED)
+    find_package(nlohmann_json CONFIG REQUIRED)
+    set(MATSDK_APPLE_SYSTEM_DEPS ON)
+    message(STATUS "Apple: using system SQLite3 + zlib; vcpkg-provided nlohmann-json")
+  else()
+    set(MATSDK_APPLE_SYSTEM_DEPS OFF)
+    # SQLite is provided by the private minimal build when MATSDK_MINIMAL_SQLITE is
+    # ON, so only require the external vcpkg sqlite3 package otherwise.
+    if(NOT MATSDK_MINIMAL_SQLITE)
+      find_package(unofficial-sqlite3 CONFIG QUIET)
+      if(NOT unofficial-sqlite3_FOUND)
+        message(FATAL_ERROR
+          "SQLite was not found and the minimal SQLite is not enabled. The vcpkg "
+          "port provides SQLite through one of two features: 'system-sqlite' "
+          "(default, links the external sqlite3 package) or 'minimal-sqlite' "
+          "(builds a private feature-stripped SQLite). Install "
+          "cpp-client-telemetry with its default features, or with "
+          "[core,system-sqlite] or [core,minimal-sqlite]. For a direct CMake build, pass "
+          "-DMATSDK_MINIMAL_SQLITE=ON or ensure unofficial-sqlite3 is discoverable.")
+      endif()
+    endif()
+    find_package(ZLIB REQUIRED)
+    find_package(nlohmann_json CONFIG REQUIRED)
+    if(MATSDK_MINIMAL_SQLITE)
+      message(STATUS "Using vcpkg-provided zlib, nlohmann-json; private minimal SQLite")
+    else()
+      message(STATUS "Using vcpkg-provided sqlite3, zlib, nlohmann-json")
+    endif()
+  endif()
 else()
   # Include repo root to allow includes of vendored sqlite, zlib, and nlohmann
   include_directories(${CMAKE_SOURCE_DIR})

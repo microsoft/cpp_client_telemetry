@@ -390,6 +390,95 @@ endif()
 ################################################################################################
 # Link dependencies
 ################################################################################################
+# --- Minimal SQLite -----------------------------------------------------------
+# The SDK uses SQLite only for its offline event-storage cache: plain tables,
+# indexes, transactions, WAL, autovacuum/VACUUM, a handful of PRAGMAs, and one
+# custom UTF-8 SQL function. None of SQLite's optional subsystems are needed, so
+# when MATSDK_MINIMAL_SQLITE is set the bundled SQLite is compiled with these
+# options to strip out everything the SDK does not use (~10% smaller SQLite code).
+# They are all amalgamation-safe (no grammar/parser regeneration) and validated
+# against the offline-storage unit tests.
+#
+# Two options are deliberately NOT stripped because the SDK depends on them:
+#  * SQLITE_OMIT_AUTOINIT: the skipSqliteInitAndShutdown runtime config lets the
+#    host own SQLite's lifecycle and skip the SDK's explicit sqlite3_initialize()
+#    (lib/offline/SQLiteWrapper.hpp). With a private bundled SQLite the host cannot
+#    initialize the SDK's copy, so auto-init must remain on.
+#  * SQLITE_DEFAULT_MEMSTATUS=0: the SDK arms a soft heap limit via
+#    sqlite3_soft_heap_limit64(cacheMemorySizeLimitInBytes) on every open, and that
+#    limit is only enforced while memory statistics are enabled. Disabling them
+#    would silently turn the configured memory cap into a no-op.
+set(MATSDK_SQLITE_MINIMAL_DEFS
+  SQLITE_DQS=0
+  SQLITE_THREADSAFE=1
+  SQLITE_DEFAULT_WAL_SYNCHRONOUS=1
+  SQLITE_DEFAULT_FOREIGN_KEYS=0
+  SQLITE_LIKE_DOESNT_MATCH_BLOBS
+  SQLITE_MAX_EXPR_DEPTH=0
+  SQLITE_MAX_MMAP_SIZE=0
+  SQLITE_USE_ALLOCA
+  SQLITE_OMIT_DEPRECATED
+  SQLITE_OMIT_PROGRESS_CALLBACK
+  SQLITE_OMIT_SHARED_CACHE
+  SQLITE_OMIT_LOAD_EXTENSION
+  SQLITE_OMIT_DECLTYPE
+  SQLITE_OMIT_JSON
+  SQLITE_OMIT_TRACE
+  SQLITE_OMIT_COMPLETE
+  SQLITE_OMIT_GET_TABLE
+  SQLITE_OMIT_TCL_VARIABLE
+  SQLITE_OMIT_EXPLAIN
+  SQLITE_OMIT_AUTHORIZATION
+  SQLITE_OMIT_DESERIALIZE
+  SQLITE_OMIT_INTROSPECTION_PRAGMAS
+  SQLITE_UNTESTABLE
+)
+
+# Bundle a vendored SQLite (built from sqlite/sqlite3.c) when MATSDK_MINIMAL_SQLITE
+# is requested, or on the Android NDK legacy path (which has no system SQLite and
+# has always built the vendored amalgamation). Otherwise an external/system SQLite
+# is used. The feature-strip definitions above are applied ONLY when
+# MATSDK_MINIMAL_SQLITE is ON, so the default Android legacy build keeps its
+# existing (unstripped) bundled SQLite behavior.
+set(MATSDK_BUNDLE_SQLITE OFF)
+if(MATSDK_MINIMAL_SQLITE AND NOT APPLE)
+  # On Apple the SDK links the system libsqlite3 (smaller than any bundled copy),
+  # so MATSDK_MINIMAL_SQLITE has no effect there.
+  set(MATSDK_BUNDLE_SQLITE ON)
+elseif(NOT MATSDK_USE_VCPKG_DEPS AND CMAKE_SYSTEM_NAME STREQUAL "Android")
+  set(MATSDK_BUNDLE_SQLITE ON)
+endif()
+
+if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
+  add_library(sqlite3_bundled STATIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3.c")
+  # Consumers of MSTelemetry::mat never include sqlite3.h (it is an internal
+  # implementation detail), so the header path is only needed while building the
+  # SDK itself -- wrap it in BUILD_INTERFACE so install(EXPORT) stays valid.
+  target_include_directories(sqlite3_bundled PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../sqlite>")
+  set_target_properties(sqlite3_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  if(MATSDK_MINIMAL_SQLITE)
+    # Feature-stripped build: apply the minimal definitions.
+    target_compile_definitions(sqlite3_bundled PRIVATE ${MATSDK_SQLITE_MINIMAL_DEFS})
+  endif()
+  if(MSVC)
+    # Silence the vendored amalgamation's warnings so they are not promoted to
+    # errors by the SDK's /WX, and drop /WX for this third-party translation unit.
+    target_compile_options(sqlite3_bundled PRIVATE /w)
+  elseif(MATSDK_MINIMAL_SQLITE)
+    # -w disables all warnings for this vendored translation unit so the SDK's
+    # -Werror does not fire on amalgamation code (the OMIT_* options leave some
+    # debug-build macros expanding to empty/unused statements). -fno-finite-math-only:
+    # the amalgamation relies on the INFINITY macro, which -ffast-math /
+    # -ffinite-math-only would break.
+    target_compile_options(sqlite3_bundled PRIVATE -w -fno-finite-math-only)
+  else()
+    # Unstripped vendored build (Android legacy): keep the existing narrower
+    # warning suppression. -fno-finite-math-only guards the INFINITY macro.
+    target_compile_options(sqlite3_bundled PRIVATE -fno-finite-math-only -Wno-unused-function)
+  endif()
+endif()
+
 # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
 # (USE_TCMALLOC / FindTcmalloc.cmake are configured for Debug builds in the root CMakeLists.txt,
 # but the library is not yet linked here).
@@ -397,25 +486,41 @@ if(MATSDK_USE_VCPKG_DEPS)
   # vcpkg mode: all deps resolved via find_package() in root CMakeLists.txt
   # These are PUBLIC so static-library consumers get the transitive link set
   # through the exported MSTelemetry::mat target.
-  target_link_libraries(mat
-    PUBLIC
-      unofficial::sqlite3::sqlite3
-      ZLIB::ZLIB
-      nlohmann_json::nlohmann_json
-      ${LIBS}
-  )
+  if(APPLE)
+    # macOS/iOS link the system libsqlite3 + libz (SQLite::SQLite3 / ZLIB::ZLIB
+    # resolve to the OS libraries via CMake's find modules), so the vcpkg
+    # sqlite3/zlib packages are neither pulled nor linked here.
+    target_link_libraries(mat
+      PUBLIC
+        SQLite::SQLite3
+        ZLIB::ZLIB
+        nlohmann_json::nlohmann_json
+        ${LIBS}
+    )
+  else()
+    if(MATSDK_BUNDLE_SQLITE)
+      # Private minimal SQLite instead of the vcpkg sqlite3 package. PRIVATE so its
+      # include dirs / compile definitions are not propagated as a public usage
+      # requirement. A static mat still propagates the archive itself for linking
+      # (via $<LINK_ONLY:...>), so it is added to the export set for static builds
+      # below; a shared mat absorbs it and propagates nothing.
+      target_link_libraries(mat PRIVATE sqlite3_bundled)
+    else()
+      target_link_libraries(mat PUBLIC unofficial::sqlite3::sqlite3)
+    endif()
+    target_link_libraries(mat
+      PUBLIC
+        ZLIB::ZLIB
+        nlohmann_json::nlohmann_json
+        ${LIBS}
+    )
+  endif()
 else()
   # Legacy mode: use vendored or system-installed deps
   if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    # Android NDK has no system sqlite3 or zlib — build from bundled source.
-    add_library(sqlite3_bundled STATIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3.c")
-    target_include_directories(sqlite3_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite")
-    set_target_properties(sqlite3_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    # Guard bundled sqlite3 against toolchain or environment flags that imply finite-math-only (uses INFINITY macro).
-    # Also suppress warnings treated as errors in vendored code.
-    target_compile_options(sqlite3_bundled PRIVATE -fno-finite-math-only -Wno-unused-function)
-
-    # Build zlib from bundled source.
+    # Build zlib from bundled source (Android NDK has no system zlib). SQLite is
+    # provided by sqlite3_bundled, created above (MATSDK_BUNDLE_SQLITE is ON for
+    # the Android NDK path).
     add_library(zlib_bundled STATIC
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/adler32.c"
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/compress.c"
@@ -445,26 +550,34 @@ else()
   elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
     # Windows legacy: vendored sqlite/zlib headers are included via
     # include_directories in the PAL section above; link only ${LIBS}
-    # (e.g. CURL if needed — sqlite/zlib come from .vcxproj references).
-    target_link_libraries(mat PRIVATE ${LIBS})
-  else()
-    # Linux/macOS legacy: link system-installed sqlite3 and zlib
-    if(EXISTS "/usr/local/lib/libsqlite3.a")
-      set(MATSDK_SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
-    elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
-      set(MATSDK_SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
-    elseif(EXISTS "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
-      set(MATSDK_SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
+    # (e.g. CURL if needed — sqlite/zlib come from .vcxproj references), plus the
+    # private minimal SQLite when MATSDK_MINIMAL_SQLITE is enabled.
+    if(MATSDK_BUNDLE_SQLITE)
+      target_link_libraries(mat PRIVATE sqlite3_bundled ${LIBS})
     else()
-      # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
-      # SQLite::SQLite3 is an imported target carrying its own include dirs.
-      find_package(SQLite3 REQUIRED)
-      set(MATSDK_SQLITE3_LIB SQLite::SQLite3)
+      target_link_libraries(mat PRIVATE ${LIBS})
     endif()
-
+  else()
+    # Linux/macOS legacy: link system-installed (or private minimal) sqlite3 and system zlib
     find_package(ZLIB REQUIRED)
     target_include_directories(mat PRIVATE ${ZLIB_INCLUDE_DIRS})
-    target_link_libraries(mat PRIVATE ${MATSDK_SQLITE3_LIB} ZLIB::ZLIB ${LIBS})
+    if(MATSDK_BUNDLE_SQLITE)
+      target_link_libraries(mat PRIVATE sqlite3_bundled ZLIB::ZLIB ${LIBS})
+    else()
+      if(EXISTS "/usr/local/lib/libsqlite3.a")
+        set(MATSDK_SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
+      elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
+        set(MATSDK_SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
+      elseif(EXISTS "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
+        set(MATSDK_SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
+      else()
+        # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
+        # SQLite::SQLite3 is an imported target carrying its own include dirs.
+        find_package(SQLite3 REQUIRED)
+        set(MATSDK_SQLITE3_LIB SQLite::SQLite3)
+      endif()
+      target_link_libraries(mat PRIVATE ${MATSDK_SQLITE3_LIB} ZLIB::ZLIB ${LIBS})
+    endif()
   endif()
 endif()
 
@@ -501,7 +614,21 @@ endif()
 # consumer that does find_package(MSTelemetry).  Legacy (non-vcpkg) builds install
 # via install.sh or MSBuild output directories and don't need this.
 if(MATSDK_USE_VCPKG_DEPS)
-  install(TARGETS mat
+  # A static libmat propagates its PRIVATE static dependencies through its link
+  # interface (as $<LINK_ONLY:...>), so the bundled SQLite must be part of the same
+  # export set and installed alongside mat for downstream find_package() consumers
+  # to link. A shared libmat absorbs sqlite3_bundled into the .so/.dylib/.dll and
+  # does not propagate the PRIVATE dep, so exporting the archive there is
+  # unnecessary (and risks a consumer linking a second SQLite copy) -- only export
+  # it for a static mat.
+  set(MATSDK_INSTALL_TARGETS mat)
+  if(MATSDK_BUNDLE_SQLITE AND TARGET sqlite3_bundled)
+    get_target_property(_mat_type mat TYPE)
+    if(_mat_type STREQUAL "STATIC_LIBRARY")
+      list(APPEND MATSDK_INSTALL_TARGETS sqlite3_bundled)
+    endif()
+  endif()
+  install(TARGETS ${MATSDK_INSTALL_TARGETS}
     EXPORT MSTelemetryTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
