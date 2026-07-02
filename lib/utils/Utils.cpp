@@ -103,15 +103,26 @@ namespace MAT_NS_BEGIN {
         if (IsRunningInApp())
         {
             auto hr = RoInitialize(RO_INIT_MULTITHREADED);
-            /* Ignoring result from call to `RoInitialize` as either initialzation is successful, or else already
-             * initialized and it should be ok to proceed in both the scenarios */
-            UNREFERENCED_PARAMETER(hr);
+            // RoInitialize returns S_OK when it initializes the apartment and
+            // S_FALSE when it was already initialized on this thread; both add a
+            // reference that must be balanced with RoUninitialize. RPC_E_CHANGED_MODE
+            // and other failures did not initialize and are left unbalanced.
 
-            ::Windows::Storage::StorageFolder ^ temp = ::Windows::Storage::ApplicationData::Current->TemporaryFolder;
-            // TODO: [MG]
-            // - verify that the path ends with a slash
-            // -- add exception handler in case if AppData temp folder is not accessible
-            return from_platform_string(temp->Path->ToString());
+            std::string tempPath;
+            {
+                // Release the WinRT StorageFolder before RoUninitialize so the
+                // object is not destroyed in an uninitialized apartment.
+                ::Windows::Storage::StorageFolder ^ temp = ::Windows::Storage::ApplicationData::Current->TemporaryFolder;
+                // TODO: [MG]
+                // - verify that the path ends with a slash
+                // -- add exception handler in case if AppData temp folder is not accessible
+                tempPath = from_platform_string(temp->Path->ToString());
+            }
+            if (SUCCEEDED(hr))
+            {
+                RoUninitialize();
+            }
+            return tempPath;
         }
         else
         {
