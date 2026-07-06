@@ -565,6 +565,40 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     EXPECT_GE(receivedRequests.size(), (size_t)1); // at least 1 HTTP request with customer payload and stats
 }
 
+TEST_F(BasicFuncTests, teardownDuringInFlightUpload_ShutsDownCleanly)
+{
+    // Smoke test for teardown while an upload is in flight (motivated by #1391).
+    // Uploads target the /slow/ endpoint with large payloads and MAX_TEARDOWN_TIME
+    // is 0, so FlushAndTeardown() returns while an upload is still outstanding.
+    // Teardown must complete cleanly without touching freed SDK state; run under a
+    // sanitizer (ASan/TSan) this guards the teardown-vs-upload path.
+    CleanStorage();
+    static int64_t const ONE_EVENT_SIZE = 256 * 1024;
+
+    // Point Initialize() at the (slow) endpoint so uploads stay in flight.
+    std::string savedAddress = serverAddress;
+    size_t pos = serverAddress.rfind("/simple/");
+    if (pos != std::string::npos)
+        serverAddress.replace(pos, std::string("/simple/").size(), "/slow/");
+    Initialize();
+    serverAddress = savedAddress;
+
+    LogManager::GetLogConfiguration()[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+
+    for (int i = 0; i < 20; ++i)
+    {
+        EventProperties event("teardown_event");
+        event.SetPriority(EventPriority_Normal);
+        event.SetProperty("big_data", std::string(static_cast<size_t>(ONE_EVENT_SIZE), 'x'));
+        logger->LogEvent(event);
+    }
+    LogManager::UploadNow();
+    PAL::sleep(300); // let the upload reach the slow server so it is in flight
+    // Teardown with timeout 0 returns while the upload is still outstanding.
+    LogManager::FlushAndTeardown();
+    SUCCEED();
+}
+
 TEST_F(BasicFuncTests, sendNoPriorityEvents)
 {
     CleanStorage();
