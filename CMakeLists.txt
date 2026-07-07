@@ -337,8 +337,20 @@ message(STATUS "SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 option(BUILD_HEADERS      "Build API headers"       YES)
 option(BUILD_LIBRARY      "Build library"           YES)
 option(BUILD_TEST_TOOL    "Build console test tool" YES)
-option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
-option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
+# Default the test suites ON only when this repository is the top-level project
+# (developer/CI build), and OFF when it is consumed via add_subdirectory()/
+# FetchContent, so downstream projects don't build the tests or require the
+# third_party/googletest submodule. PROJECT_IS_TOP_LEVEL exists on CMake >= 3.21;
+# fall back to comparing the source dirs on older CMake (floor is 3.15).
+if(DEFINED PROJECT_IS_TOP_LEVEL)
+  set(MATSDK_TESTS_DEFAULT ${PROJECT_IS_TOP_LEVEL})
+elseif(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(MATSDK_TESTS_DEFAULT ON)
+else()
+  set(MATSDK_TESTS_DEFAULT OFF)
+endif()
+option(BUILD_UNIT_TESTS   "Build unit tests"        ${MATSDK_TESTS_DEFAULT})
+option(BUILD_FUNC_TESTS   "Build functional tests"  ${MATSDK_TESTS_DEFAULT})
 option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
 option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
 option(BUILD_SWIFT_WRAPPER "Build Swift Wrappers"   YES)
