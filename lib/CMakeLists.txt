@@ -465,9 +465,10 @@ if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
     target_compile_definitions(sqlite3_bundled PRIVATE ${MATSDK_SQLITE_MINIMAL_DEFS})
   endif()
   if(MSVC)
-    # Silence the vendored amalgamation's warnings so they are not promoted to
-    # errors by the SDK's /WX, and drop /WX for this third-party translation unit.
-    target_compile_options(sqlite3_bundled PRIVATE /w)
+    # Silence the vendored amalgamation's warnings (/w) and turn off
+    # warning-as-error (/WX-) for this third-party translation unit, so the SDK's
+    # /WX does not promote any amalgamation warning that survives /w to an error.
+    target_compile_options(sqlite3_bundled PRIVATE /w /WX-)
   elseif(MATSDK_MINIMAL_SQLITE)
     # -w disables all warnings for this vendored translation unit so the SDK's
     # -Werror does not fire on amalgamation code (the OMIT_* options leave some
