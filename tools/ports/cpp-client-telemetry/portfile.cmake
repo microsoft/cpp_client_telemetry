@@ -5,6 +5,11 @@
 # usual, so the published port behavior is unchanged.
 if(DEFINED ENV{MATSDK_VCPKG_SOURCE_DIR})
     set(SOURCE_PATH "$ENV{MATSDK_VCPKG_SOURCE_DIR}")
+    if(NOT EXISTS "${SOURCE_PATH}/CMakeLists.txt")
+        message(FATAL_ERROR
+            "MATSDK_VCPKG_SOURCE_DIR is set to '${SOURCE_PATH}', but no CMakeLists.txt "
+            "was found there. It must point to a cpp_client_telemetry source checkout.")
+    endif()
     message(STATUS "cpp-client-telemetry: building local source $ENV{MATSDK_VCPKG_SOURCE_DIR} (MATSDK_VCPKG_SOURCE_DIR is set)")
 else()
     vcpkg_from_github(

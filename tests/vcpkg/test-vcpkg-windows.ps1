@@ -22,7 +22,11 @@ $env:MATSDK_VCPKG_SOURCE_DIR = $RepoRoot
 # not see MATSDK_VCPKG_SOURCE_DIR and silently builds the pinned release instead
 # of the working tree (POSIX vcpkg passes the variable through, so the Linux/
 # macOS scripts do not need this).
-$env:VCPKG_KEEP_ENV_VARS = "MATSDK_VCPKG_SOURCE_DIR"
+if ($env:VCPKG_KEEP_ENV_VARS) {
+    $env:VCPKG_KEEP_ENV_VARS = "$($env:VCPKG_KEEP_ENV_VARS);MATSDK_VCPKG_SOURCE_DIR"
+} else {
+    $env:VCPKG_KEEP_ENV_VARS = "MATSDK_VCPKG_SOURCE_DIR"
+}
 
 Write-Host "=== MSTelemetry vcpkg port test (Windows) ===" -ForegroundColor Cyan
 
