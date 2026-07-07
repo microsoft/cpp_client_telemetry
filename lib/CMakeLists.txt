@@ -352,7 +352,13 @@ endif()
 # BUILD_INTERFACE is used during the SDK build; INSTALL_INTERFACE is used
 # by consumers after cmake --install.
 target_include_directories(mat
-  PUBLIC
+  SYSTEM PUBLIC
+    # SYSTEM marks the public headers as system includes for consumers, so a
+    # consumer building with -Wall -Wextra -Werror is not broken by warnings
+    # originating inside the SDK's headers (e.g. -Wpedantic variadic-macro or
+    # -Wconversion diagnostics). find_package consumers already treat an imported
+    # target's includes as system; SYSTEM extends the same courtesy to
+    # add_subdirectory/FetchContent consumers.
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/public>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/mat>
   PRIVATE
