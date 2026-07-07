@@ -442,8 +442,11 @@ set(MATSDK_SQLITE_MINIMAL_DEFS
 # existing (unstripped) bundled SQLite behavior.
 set(MATSDK_BUNDLE_SQLITE OFF)
 if(MATSDK_MINIMAL_SQLITE AND NOT APPLE)
-  # On Apple the SDK links the system libsqlite3 (smaller than any bundled copy),
-  # so MATSDK_MINIMAL_SQLITE has no effect there.
+  # MATSDK_MINIMAL_SQLITE does not by itself force bundling on Apple: macOS (vcpkg
+  # or native legacy) and iOS-vcpkg link the smaller system libsqlite3, so the
+  # feature is a no-op there. iOS *legacy* (MATSDK_USE_VCPKG_DEPS=OFF) is the
+  # exception -- it bundles the amalgamation via the branch below, and when
+  # MATSDK_MINIMAL_SQLITE is ON its strip definitions are applied to that copy.
   set(MATSDK_BUNDLE_SQLITE ON)
 elseif(NOT MATSDK_USE_VCPKG_DEPS AND (CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "iOS"))
   # Android NDK has no system SQLite; iOS shares this path because a cross-compile
