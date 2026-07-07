@@ -445,7 +445,10 @@ if(MATSDK_MINIMAL_SQLITE AND NOT APPLE)
   # On Apple the SDK links the system libsqlite3 (smaller than any bundled copy),
   # so MATSDK_MINIMAL_SQLITE has no effect there.
   set(MATSDK_BUNDLE_SQLITE ON)
-elseif(NOT MATSDK_USE_VCPKG_DEPS AND CMAKE_SYSTEM_NAME STREQUAL "Android")
+elseif(NOT MATSDK_USE_VCPKG_DEPS AND (CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "iOS"))
+  # Android NDK has no system SQLite; iOS shares this path because a cross-compile
+  # cannot reliably discover a system libsqlite3 via find_package. Both build the
+  # vendored amalgamation instead.
   set(MATSDK_BUNDLE_SQLITE ON)
 endif()
 
@@ -517,10 +520,13 @@ if(MATSDK_USE_VCPKG_DEPS)
   endif()
 else()
   # Legacy mode: use vendored or system-installed deps
-  if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    # Build zlib from bundled source (Android NDK has no system zlib). SQLite is
-    # provided by sqlite3_bundled, created above (MATSDK_BUNDLE_SQLITE is ON for
-    # the Android NDK path).
+  if(CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    # Build zlib from bundled source. Android NDK has no system zlib. iOS shares
+    # this path: the vendored zlib headers rename their exports to act_z_* (via
+    # zlib/names.h), so a system libz cannot satisfy those symbols, and a
+    # cross-compile cannot reliably discover system zlib/sqlite3 via find_package.
+    # SQLite is provided by sqlite3_bundled, created above (MATSDK_BUNDLE_SQLITE is
+    # ON for these platforms in legacy mode).
     add_library(zlib_bundled STATIC
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/adler32.c"
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/compress.c"
@@ -541,9 +547,9 @@ else()
     target_include_directories(zlib_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../zlib")
     set_target_properties(zlib_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
     # Bundled zlib compiles the pristine sources without zlib's configure step,
-    # so tell it <unistd.h> is available (Android is POSIX). This gives gz*.c the
-    # real POSIX declarations for read/write/lseek/close instead of relying on
-    # implicit (int-returning) declarations.
+    # so tell it <unistd.h> is available (Android and iOS are POSIX). This gives
+    # gz*.c the real POSIX declarations for read/write/lseek/close instead of
+    # relying on implicit (int-returning) declarations.
     target_compile_definitions(zlib_bundled PRIVATE Z_HAVE_UNISTD_H)
 
     target_link_libraries(mat PRIVATE sqlite3_bundled zlib_bundled ${LIBS})

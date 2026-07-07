@@ -455,8 +455,11 @@ if(MATSDK_USE_VCPKG_DEPS)
     endif()
   endif()
 else()
-  # Include repo root to allow includes of vendored sqlite, zlib, and nlohmann
-  include_directories(${CMAKE_SOURCE_DIR})
+  # Include repo root to allow includes of vendored sqlite, zlib, and nlohmann.
+  # Use CMAKE_CURRENT_SOURCE_DIR (this repo's root) rather than CMAKE_SOURCE_DIR
+  # so the vendored headers still resolve when the SDK is consumed as a subproject
+  # (add_subdirectory/FetchContent), where CMAKE_SOURCE_DIR is the consumer's root.
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
   message(STATUS "Using vendored sqlite3, zlib, nlohmann-json")
 endif()
 
