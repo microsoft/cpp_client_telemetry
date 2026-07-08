@@ -578,8 +578,15 @@ TEST_F(BasicFuncTests, teardownDuringInFlightUpload_ShutsDownCleanly)
     // Point Initialize() at the (slow) endpoint so uploads stay in flight.
     std::string savedAddress = serverAddress;
     size_t pos = serverAddress.rfind("/simple/");
-    if (pos != std::string::npos)
-        serverAddress.replace(pos, std::string("/simple/").size(), "/slow/");
+    // Assert the rewrite actually happens: if the base URL format ever changes and
+    // no longer contains "/simple/", uploads would hit the normal endpoint and the
+    // in-flight teardown scenario would not be exercised, yet the test would still
+    // pass. Fail loudly instead so the regression coverage can't silently lapse.
+    ASSERT_NE(pos, std::string::npos)
+        << "serverAddress '" << serverAddress << "' does not contain '/simple/'; "
+        << "the /slow/ rewrite would be a no-op and this test would not exercise "
+        << "teardown during an in-flight upload.";
+    serverAddress.replace(pos, std::string("/simple/").size(), "/slow/");
     Initialize();
     serverAddress = savedAddress;
 
