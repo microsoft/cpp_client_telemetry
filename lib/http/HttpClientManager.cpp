@@ -137,6 +137,8 @@ namespace MAT_NS_BEGIN {
 
             LOG_TRACE("HTTP remove callback=%p", callback);
             m_httpCallbacks.remove(callback);
+            // Wake cancelAllRequests() waiting for the list to drain.
+            m_httpCallbacksCV.notify_all();
         }
 
         delete callback;
@@ -152,19 +154,24 @@ namespace MAT_NS_BEGIN {
     {
         cancelAllRequestsAsync();
 
-        // Wait for callbacks to drain before shutdown can destroy state that
-        // those callbacks still use. Keep the list check synchronized and sleep
-        // between polls so a slow adapter does not burn CPU while draining.
-        for (;;)
+        // Wait for in-flight callbacks to drain before the caller proceeds (e.g. to
+        // shutdown, which destroys state these callbacks still reference). Use a
+        // condition variable signaled from onHttpResponse rather than a poll loop,
+        // and cap the wait so a stalled dispatcher or HTTP stack can never make this
+        // spin or block forever -- the failure reported in issue #1437, where this
+        // burned 100% CPU while holding the LogManager lock. Callbacks are NOT
+        // force-cleared on timeout: the HTTP client still owns them and will invoke
+        // them later, so deleting them here would use-after-free. The bounded wait
+        // is a last-resort safety valve; the common case drains in microseconds via
+        // the CV.
+        std::unique_lock<std::recursive_mutex> lock(m_httpCallbacksMtx);
+        if (!m_httpCallbacksCV.wait_for(lock, m_cancelDrainTimeout,
+                [this] { return m_httpCallbacks.empty(); }))
         {
-            {
-                LOCKGUARD(m_httpCallbacksMtx);
-                if (m_httpCallbacks.empty())
-                {
-                    return;
-                }
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            LOG_ERROR("cancelAllRequests: %zu HTTP callback(s) did not drain within %lld ms; "
+                      "proceeding to avoid blocking indefinitely",
+                      m_httpCallbacks.size(),
+                      static_cast<long long>(m_cancelDrainTimeout.count()));
         }
     }
 

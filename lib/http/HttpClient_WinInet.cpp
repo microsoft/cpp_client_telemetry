@@ -489,6 +489,8 @@ void HttpClient_WinInet::erase(std::string const& id)
     if (it != m_requests.end()) {
         auto req = it->second;
         m_requests.erase(it);
+        // Wake CancelAllRequests() waiting for the map to drain.
+        m_requestsCV.notify_all();
         // delete WinInetRequestWrapper
         delete req;
     }
@@ -534,21 +536,19 @@ void HttpClient_WinInet::CancelAllRequests()
     for (const auto &id : ids)
         CancelRequestAsync(id);
 
-    // wait for all destructors to run. Read m_requests under the lock each
-    // iteration; erase() runs on the WinInet callback thread under the same lock.
-    bool done;
+    // Wait for all request destructors to run (erase() removes them on the WinInet
+    // callback thread). Use a condition variable signaled from erase() rather than a
+    // poll loop, capped by a timeout so a stalled WinInet callback can never make
+    // this spin or block forever (issue #1437). Requests are not force-removed on
+    // timeout: WinInet still owns them and will invoke their callbacks later.
+    std::unique_lock<std::recursive_mutex> lock(m_requestsMutex);
+    if (!m_requestsCV.wait_for(lock, m_cancelDrainTimeout,
+            [this] { return m_requests.empty(); }))
     {
-        LOCKGUARD(m_requestsMutex);
-        done = m_requests.empty();
-    }
-    while (!done)
-    {
-        PAL::sleep(100);
-        std::this_thread::yield();
-        {
-            LOCKGUARD(m_requestsMutex);
-            done = m_requests.empty();
-        }
+        LOG_ERROR("CancelAllRequests: %zu request(s) did not drain within %lld ms; "
+                  "proceeding to avoid blocking indefinitely",
+                  m_requests.size(),
+                  static_cast<long long>(m_cancelDrainTimeout.count()));
     }
 }
 

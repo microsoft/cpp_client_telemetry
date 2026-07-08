@@ -12,6 +12,10 @@
 
 #include "ILogManager.hpp"
 
+#include <condition_variable>
+#include <chrono>
+#include <mutex>
+
 namespace MAT_NS_BEGIN {
 
 #ifndef _WININET_
@@ -43,6 +47,11 @@ class HttpClient_WinInet : public IHttpClient {
     HINTERNET                                                        m_hInternet;
     std::recursive_mutex                                             m_requestsMutex;
     std::map<std::string, WinInetRequestWrapper*>                    m_requests;
+    // Signaled from erase() when a request is removed, so CancelAllRequests can
+    // drain via a condition variable instead of a poll loop, capped by a timeout
+    // so a stalled callback can never make the drain spin/hang forever (issue #1437).
+    std::condition_variable_any                                      m_requestsCV;
+    std::chrono::milliseconds                                        m_cancelDrainTimeout{std::chrono::seconds(30)};
     static unsigned                                                  s_nextRequestId;
     bool                                                             m_msRootCheck;
     friend class WinInetRequestWrapper;
