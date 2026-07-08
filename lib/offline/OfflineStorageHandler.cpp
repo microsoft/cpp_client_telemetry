@@ -163,6 +163,14 @@ namespace MAT_NS_BEGIN {
     void OfflineStorageHandler::Flush()
     {
         if (!m_logManager.StartActivity()) {
+            // The LogManager is shutting down, so the flush cannot run. Still
+            // signal completion and clear the pending flag so a concurrent
+            // WaitForFlush() (e.g. during teardown) does not block forever
+            // waiting for m_flushComplete.
+            LOCKGUARD(m_flushLock);
+            m_flushHandle.Cancel();
+            m_flushComplete.post();
+            m_flushPending = false;
             return;
         }
         // Flush could be executed from context of worker thread, as well as from TPM and
