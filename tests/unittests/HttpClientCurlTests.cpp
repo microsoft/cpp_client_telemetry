@@ -12,6 +12,10 @@
 #include "http/HttpClient_Curl.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
+#include <future>
+#include <chrono>
+#include <memory>
+
 using namespace testing;
 using namespace MAT;
 
@@ -124,6 +128,43 @@ TEST_F(HttpClientCurlTests, SetSslVerification_ConcurrentCallsNoRace)
         f.get();
     }
     SUCCEED();
+}
+
+// --- Regression: issue #1481 (EDEADLK self-join in ~CurlHttpOperation) ---
+
+// When the async callback drops the last *external* reference to the operation,
+// ~CurlHttpOperation runs on the worker thread. The old std::async design joined
+// its own future there (self-join) and aborted the process with
+// std::system_error("Resource deadlock avoided"). The worker now holds a
+// shared_ptr keepalive and there is no future, so destruction on the worker thread
+// is trivial and safe. This test aborts the process on the old code and passes on
+// the fix.
+TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
+{
+    std::promise<void> callbackDone;
+    auto done = callbackDone.get_future();
+
+    // Closed local port -> Send() fails fast (connection refused), no network wait.
+    auto op = std::make_shared<CurlHttpOperation>(
+        "GET", "http://127.0.0.1:9/", nullptr, m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+
+    // Move the only external reference into a heap box the callback will delete,
+    // then release our own reference. After SendAsync the live references are the
+    // box and the worker's keepalive.
+    auto* box = new std::shared_ptr<CurlHttpOperation>(std::move(op));
+
+    (*box)->SendAsync([box, &callbackDone](CurlHttpOperation&) {
+        // Runs on the worker thread. Drop the last external reference here. On the
+        // old code this destroyed the operation on this thread and self-joined its
+        // own future -> abort. With the keepalive fix the worker still holds a
+        // reference, so this is safe and the operation is destroyed once the worker
+        // returns.
+        delete box;
+        callbackDone.set_value();
+    });
+
+    ASSERT_EQ(done.wait_for(std::chrono::seconds(15)), std::future_status::ready);
 }
 
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT
