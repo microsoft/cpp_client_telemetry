@@ -86,10 +86,10 @@ namespace MAT_NS_BEGIN {
 
         // The async Send() runs on a detached worker that holds its own shared_ptr
         // to curlOperation (see CurlHttpOperation::SendAsync), so the operation --
-        // and its curl handle, response buffer and by-reference request body -- stay
-        // alive until Send() and the callback below have finished, regardless of
-        // when the owning CurlHttpRequest is released. If the callback leads to that
-        // request being destroyed on the worker thread (OnHttpResponse ->
+        // and its curl handle, response buffer and owned copy of the request body --
+        // stay alive until Send() and the callback below have finished, regardless
+        // of when the owning CurlHttpRequest is released. If the callback leads to
+        // that request being destroyed on the worker thread (OnHttpResponse ->
         // EventsUploadContext::clear()), the operation is simply destroyed there
         // once the worker returns; there is no future to join.
         curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {

@@ -149,10 +149,10 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
         "GET", "http://127.0.0.1:9/", nullptr, m_headers, m_body,
         false, 1 /*connTimeout*/, false /*sslVerify*/, "");
 
-    // Move the only external reference into a heap box the callback will delete,
-    // then release our own reference. After SendAsync the live references are the
-    // box and the worker's keepalive.
-    auto* box = new std::shared_ptr<CurlHttpOperation>(std::move(op));
+    // A shared box holds the only external reference. The callback resets the
+    // contained shared_ptr (on the worker thread) to drop the last external
+    // reference -- the exact #1481 trigger -- without raw new/delete.
+    auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
 
     (*box)->SendAsync([box, &callbackDone](CurlHttpOperation&) {
         // Runs on the worker thread. Drop the last external reference here. On the
@@ -160,7 +160,7 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
         // own future -> abort. With the keepalive fix the worker still holds a
         // reference, so this is safe and the operation is destroyed once the worker
         // returns.
-        delete box;
+        box->reset();
         callbackDone.set_value();
     });
 

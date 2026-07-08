@@ -23,6 +23,7 @@
 #include <atomic>
 #include <thread>
 #include <memory>
+#include <exception>
 
 #include <poll.h>
 #include <curl/curl.h>
@@ -95,11 +96,13 @@ public:
             std::string method,
             std::string url,
             IHttpResponseCallback* callback,
-            // requestHeaders is copied into the curl_slist during construction
-            // and need not outlive this operation. requestBody is stored by
-            // reference and read by Send(), so it must outlive this operation.
+            // requestHeaders is copied into the curl_slist during construction and
+            // need not outlive this operation. requestBody is taken by value and
+            // owned by this operation: the detached worker in SendAsync can outlive
+            // the caller's request, so a reference into it could dangle during
+            // Send() (issue #1481).
             const std::map<std::string, std::string>& requestHeaders,
-            const std::vector<uint8_t>& requestBody,
+            std::vector<uint8_t> requestBody,
             // Default connectivity and response size options
             bool rawResponse                                         = false,
             size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
@@ -117,7 +120,7 @@ public:
             m_sslCaInfo(sslCaInfo),
 
             // Local vars
-            requestBody(requestBody)
+            requestBody(std::move(requestBody))
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
@@ -332,9 +335,24 @@ cleanup:
         // trivially on whichever thread drops it.
         auto self = shared_from_this();
         std::thread([self, callback]() {
-            self->Send();
-            if (callback != nullptr)
-                callback(*self);
+            // The worker is detached, so an escaping exception would call
+            // std::terminate. std::async previously captured exceptions in the
+            // (never-get()) future, i.e. swallowed them; preserve that by
+            // catching here so a throwing Send()/callback cannot crash the process.
+            try
+            {
+                self->Send();
+                if (callback != nullptr)
+                    callback(*self);
+            }
+            catch (const std::exception& e)
+            {
+                TRACE("CurlHttpOperation worker terminated by exception: %s\n", e.what());
+            }
+            catch (...)
+            {
+                TRACE("CurlHttpOperation worker terminated by unknown exception\n");
+            }
         }).detach();
     }
 
@@ -455,11 +473,10 @@ protected:
     std::string m_method;
     std::string m_url;
     std::string m_sslCaInfo;
-    // The SDK upload path keeps the owning IHttpRequest alive through the
-    // callback context until Send() completes; copying this body would duplicate
-    // every upload payload. Unlike CURLOPT_CAINFO, the body pointer is set and
-    // consumed during Send(), not retained from construction.
-    const std::vector<uint8_t>& requestBody;
+    // Owned copy of the request body, read by Send(). Owned (not a reference into
+    // the caller's IHttpRequest) because the detached worker in SendAsync can
+    // outlive that request, so a reference could dangle mid-send (issue #1481).
+    std::vector<uint8_t> requestBody;
     struct curl_slist *m_headersChunk = nullptr;
 
     // Processed response headers and body
