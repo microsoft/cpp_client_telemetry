@@ -538,18 +538,14 @@ void HttpClient_WinInet::CancelAllRequests()
 
     // Wait for all request destructors to run (erase() removes them on the WinInet
     // callback thread). Use a condition variable signaled from erase() rather than a
-    // poll loop, capped by a timeout so a stalled WinInet callback can never make
-    // this spin or block forever (issue #1437). Requests are not force-removed on
-    // timeout: WinInet still owns them and will invoke their callbacks later.
+    // poll loop so this never spins at 100% CPU while draining (issue #1437). This is
+    // a full drain barrier: the destructor calls CancelAllRequests(), and returning
+    // early with requests still in flight would let a late WinInet callback invoke
+    // WinInetRequestWrapper::OnHttpResponse -> m_parent.erase() on a destroyed
+    // client. WinInet delivers the cancellation callbacks on its own threads, so the
+    // wait completes without depending on the SDK task dispatcher.
     std::unique_lock<std::recursive_mutex> lock(m_requestsMutex);
-    if (!m_requestsCV.wait_for(lock, m_cancelDrainTimeout,
-            [this] { return m_requests.empty(); }))
-    {
-        LOG_ERROR("CancelAllRequests: %zu request(s) did not drain within %lld ms; "
-                  "proceeding to avoid blocking indefinitely",
-                  m_requests.size(),
-                  static_cast<long long>(m_cancelDrainTimeout.count()));
-    }
+    m_requestsCV.wait(lock, [this] { return m_requests.empty(); });
 }
 
 /// <summary>

@@ -141,7 +141,10 @@ namespace MAT_NS_BEGIN {
         {
             bool result = true;
             result &= tpm.pause();
-            hcm.cancelAllRequests();
+            // Best-effort: pause runs under the LogManager lock and must not block
+            // indefinitely if a callback is slow to drain (issue #1437). The system
+            // is not being torn down, so outstanding callbacks stay valid.
+            hcm.cancelAllRequests(/* bestEffort */ true);
             return result;
         };
 

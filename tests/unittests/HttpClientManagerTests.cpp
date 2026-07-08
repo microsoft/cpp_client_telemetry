@@ -102,11 +102,11 @@ TEST_F(HttpClientManagerTests, CancelAllRequests_TimesOutInsteadOfHanging)
     ASSERT_THAT(callback, NotNull());
 
     // The response never arrives, so the callback never drains from m_httpCallbacks.
-    // cancelAllRequests() must still return, bounded by the drain timeout, rather
-    // than block forever (MockIHttpClient does not mock CancelAllRequests, so the
-    // base no-op runs and nothing completes the request).
+    // The best-effort (pause) drain must still return, bounded by the drain timeout,
+    // rather than block forever (MockIHttpClient does not mock CancelAllRequests, so
+    // the base no-op runs and nothing completes the request).
     auto start = std::chrono::steady_clock::now();
-    hcm.cancelAllRequests();
+    hcm.cancelAllRequests(/* bestEffort */ true);
     auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - start).count();
     EXPECT_THAT(elapsedMs, Ge(140));    // waited ~ the timeout

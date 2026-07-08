@@ -150,28 +150,35 @@ namespace MAT_NS_BEGIN {
         return true;
     }
 
-    void HttpClientManager::cancelAllRequests()
+    void HttpClientManager::cancelAllRequests(bool bestEffort)
     {
         cancelAllRequestsAsync();
 
-        // Wait for in-flight callbacks to drain before the caller proceeds (e.g. to
-        // shutdown, which destroys state these callbacks still reference). Use a
-        // condition variable signaled from onHttpResponse rather than a poll loop,
-        // and cap the wait so a stalled dispatcher or HTTP stack can never make this
-        // spin or block forever -- the failure reported in issue #1437, where this
-        // burned 100% CPU while holding the LogManager lock. Callbacks are NOT
-        // force-cleared on timeout: the HTTP client still owns them and will invoke
-        // them later, so deleting them here would use-after-free. The bounded wait
-        // is a last-resort safety valve; the common case drains in microseconds via
-        // the CV.
+        // Drain in-flight callbacks via a condition variable signaled from
+        // onHttpResponse -- never a busy/poll loop, which burned 100% CPU while
+        // holding the LogManager lock (issue #1437).
         std::unique_lock<std::recursive_mutex> lock(m_httpCallbacksMtx);
-        if (!m_httpCallbacksCV.wait_for(lock, m_cancelDrainTimeout,
-                [this] { return m_httpCallbacks.empty(); }))
+        if (bestEffort)
         {
-            LOG_ERROR("cancelAllRequests: %zu HTTP callback(s) did not drain within %lld ms; "
-                      "proceeding to avoid blocking indefinitely",
-                      m_httpCallbacks.size(),
-                      static_cast<long long>(m_cancelDrainTimeout.count()));
+            // Pause (and similar) must not block indefinitely -- the caller may hold
+            // the LogManager lock (the #1437 spindump was PauseTransmission). The
+            // manager is NOT being destroyed here, so outstanding callbacks remain
+            // valid and drain later; cap the wait as a safety valve.
+            if (!m_httpCallbacksCV.wait_for(lock, m_cancelDrainTimeout,
+                    [this] { return m_httpCallbacks.empty(); }))
+            {
+                LOG_WARN("cancelAllRequests: %zu callback(s) still draining after %lld ms (best-effort)",
+                         m_httpCallbacks.size(), static_cast<long long>(m_cancelDrainTimeout.count()));
+            }
+        }
+        else
+        {
+            // Shutdown/cleanup: this is the lifetime barrier before state the
+            // callbacks reference is destroyed, so drain fully. The CV keeps it
+            // efficient (no CPU spin) and it returns as soon as the last callback is
+            // handled -- a stalled drain here indicates the caller stopped the task
+            // dispatcher before cancelling, which it must not do.
+            m_httpCallbacksCV.wait(lock, [this] { return m_httpCallbacks.empty(); });
         }
     }
 
