@@ -6,6 +6,8 @@
 #define EVENTPROPERTIESDECORATOR_HPP
 
 #include "IDecorator.hpp"
+#include "ILogManager.hpp"
+#include "RecordFlagConstants.hpp"
 #include "EventProperties.hpp"
 #include "CorrelationVector.hpp"
 #include "utils/Utils.hpp"
@@ -13,17 +15,9 @@
 #include <algorithm>
 #include <map>
 #include <string>
+#include <utility>
 
 namespace MAT_NS_BEGIN {
-
-// Bit remapping has to happen on bits passed via API surface.
-// Ref CS2.1+ : https://osgwiki.com/wiki/CommonSchema/flags
-// #define MICROSOFT_EVENTTAG_MARK_PII 0x08000000
-#define RECORD_FLAGS_EVENTTAG_MARK_PII 0x00080000
-// #define MICROSOFT_EVENTTAG_HASH_PII 0x04000000
-#define RECORD_FLAGS_EVENTTAG_HASH_PII 0x00100000
-// #define MICROSOFT_EVENTTAG_DROP_PII 0x02000000
-#define RECORD_FLAGS_EVENTTAG_DROP_PII 0x00200000
 
     class EventPropertiesDecorator : public IDecorator
     {
@@ -125,6 +119,14 @@ namespace MAT_NS_BEGIN {
             int64_t tags = eventProperties.GetPolicyBitFlags();
             int64_t flags = 0;
 
+            // Scrub/obfuscate the client IP address at the collector by default.
+            // Hosts that require the client IP (e.g. for geo-location enrichment)
+            // can opt out by setting CFG_BOOL_ENABLE_IP_SCRUBBING = false.
+            ILogConfiguration& config = m_owner.GetLogConfiguration();
+            if (!config.HasConfig(CFG_BOOL_ENABLE_IP_SCRUBBING) || config[CFG_BOOL_ENABLE_IP_SCRUBBING])
+            {
+                flags |= RECORD_FLAGS_EVENTTAG_SCRUB_IP;
+            }
             // We must remap from one bitfield set to another, no way to bit-shift :(
             // At the moment 1DS SDK in direct upload mode supports DROP and MARK tags only:
             flags |= (tags & MICROSOFT_EVENTTAG_MARK_PII) ? RECORD_FLAGS_EVENTTAG_MARK_PII : 0;
@@ -187,11 +189,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
 
                     }
@@ -209,11 +211,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
 #if 0 /* v2 code */
                         if (v.piiKind != PiiKind_None)
@@ -251,11 +253,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -266,11 +268,11 @@ namespace MAT_NS_BEGIN {
                         temp.longValue = v.as_int64;
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -281,11 +283,11 @@ namespace MAT_NS_BEGIN {
                         temp.doubleValue = v.as_double;
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -296,11 +298,11 @@ namespace MAT_NS_BEGIN {
                         temp.longValue = v.as_time_ticks.ticks;
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -311,11 +313,11 @@ namespace MAT_NS_BEGIN {
                         temp.longValue = v.as_bool;
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -345,11 +347,11 @@ namespace MAT_NS_BEGIN {
                         temp.longArray.push_back(*v.as_longArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -360,11 +362,11 @@ namespace MAT_NS_BEGIN {
                         temp.doubleArray.push_back(*v.as_doubleArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -375,11 +377,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringArray.push_back(*v.as_stringArray);
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -398,11 +400,11 @@ namespace MAT_NS_BEGIN {
                         temp.guidArray.push_back(values);
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                         break;
                     }
@@ -413,11 +415,11 @@ namespace MAT_NS_BEGIN {
                         temp.stringValue = v.to_string();
                         if (v.dataCategory == DataCategory_PartB)
                         {
-                            extPartB[k] = temp;
+                            extPartB[k] = std::move(temp);
                         }
                         else
                         {
-                            ext[k] = temp;
+                            ext[k] = std::move(temp);
                         }
                     }
                     }
@@ -427,8 +429,8 @@ namespace MAT_NS_BEGIN {
             if (extPartB.size() > 0)
             {
                 ::CsProtocol::Data partBdata;
-                partBdata.properties = extPartB;
-                record.baseData.push_back(partBdata);
+                partBdata.properties = std::move(extPartB);
+                record.baseData.push_back(std::move(partBdata));
             }
 
             // special case of CorrelationVector value

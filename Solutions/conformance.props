@@ -1,0 +1,23 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    MSVC conformance mode (/permissive-) for the native SDK library projects
+    that import this file (win32-lib, win32-dll, win32-mini-lib, win32-mini-dll,
+    net40), so non-standard constructs are caught at build time. See issue #255.
+
+    This is imported explicitly per-project rather than from the shared
+    Solutions/build.props, because build.props is also pulled in by vendored
+    sqlite/zlib, the test projects (gtest/gmock/UnitTests/FuncTests), and the
+    samples - none of which we want to force into conformance mode. UWP /
+    Windows Store SDK projects (win10-*) intentionally do not import this file
+    because /permissive- is incompatible with C++/CX (/ZW); their shared SDK
+    sources are still conformance-checked through the win32 library builds.
+
+    Imported late (after the project's own ItemDefinitionGroups) so this
+    ConformanceMode setting wins.
+  -->
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>

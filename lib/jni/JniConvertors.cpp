@@ -159,8 +159,17 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
         const jobjectArray& jEventPropertyStringKeyArray, const jobjectArray& jEventPropertyValueArray) {
     EventProperties eventProperties;
     eventProperties.SetName(JStringToStdString(env, jstrEventName));
-    if (jstrEventType != NULL)
-        eventProperties.SetType(JStringToStdString(env, jstrEventType));
+    if (jstrEventType != NULL) {
+        // An empty type means "unset" (the native default). Before #1329 the
+        // Java getType() returned null for a default EventProperties, so this
+        // branch was skipped. getType() now returns "" to fix a Java-side NPE;
+        // forwarding SetType("") here would fail native event-name validation
+        // and broadcast a spurious EVT_REJECTED for every typeless event, so
+        // only set a non-empty type.
+        std::string eventType = JStringToStdString(env, jstrEventType);
+        if (!eventType.empty())
+            eventProperties.SetType(eventType);
+    }
     eventProperties.SetLatency(static_cast<EventLatency>(jEventLatency));
     eventProperties.SetPersistence(static_cast<EventPersistence>(jEventPersistence));
     eventProperties.SetPopsample(static_cast<double>(jEventPopSample));
