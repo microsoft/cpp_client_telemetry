@@ -144,9 +144,11 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
     std::promise<void> callbackDone;
     auto done = callbackDone.get_future();
 
-    // Closed local port -> Send() fails fast (connection refused), no network wait.
+    // Host under the RFC 6761 reserved .invalid TLD never resolves, so Send() fails
+    // fast and deterministically (name resolution error) on any environment --
+    // unlike a fixed port, which could happen to be open. connTimeout=1 bounds it.
     auto op = std::make_shared<CurlHttpOperation>(
-        "GET", "http://127.0.0.1:9/", nullptr, m_headers, m_body,
+        "GET", "http://selfjoin.regression.invalid/", nullptr, m_headers, m_body,
         false, 1 /*connTimeout*/, false /*sslVerify*/, "");
 
     // A shared box holds the only external reference. The callback resets the

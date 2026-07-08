@@ -81,7 +81,12 @@ namespace MAT_NS_BEGIN {
             sslCaInfo = m_sslCaInfo;
         }
 
-        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body, false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
+        // Move the request body into the operation (it is taken by value there):
+        // curlRequest->m_body is a per-send copy of the EventsUploadContext body
+        // (the retry source of truth), so moving it avoids duplicating large upload
+        // payloads while still giving the operation an owned buffer for its detached
+        // worker (issue #1481).
+        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, std::move(curlRequest->m_body), false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
         curlRequest->SetOperation(curlOperation);
 
         // The async Send() runs on a detached worker that holds its own shared_ptr

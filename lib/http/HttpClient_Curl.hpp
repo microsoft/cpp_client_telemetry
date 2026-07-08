@@ -180,7 +180,7 @@ public:
         // The async Send() runs on a detached worker that holds a shared_ptr to
         // this operation (see SendAsync), so this destructor runs only after that
         // worker has finished and released its reference. The curl handle, response
-        // buffer and by-reference request body are therefore no longer in use.
+        // buffer and owned request body are therefore no longer in use.
         // There is no future to join, so destruction is safe on any thread --
         // including the worker thread itself, which is where it happens when the
         // callback drops the last other reference (issue #1481).
