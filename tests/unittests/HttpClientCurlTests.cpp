@@ -141,8 +141,11 @@ TEST_F(HttpClientCurlTests, SetSslVerification_ConcurrentCallsNoRace)
 // the fix.
 TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
 {
-    std::promise<void> callbackDone;
-    auto done = callbackDone.get_future();
+    // Heap-owned promise so a captured copy keeps it alive: if the ASSERT below
+    // fails and the test returns early, the still-detached worker can safely call
+    // set_value() on it instead of touching a destroyed stack promise.
+    auto callbackDone = std::make_shared<std::promise<void>>();
+    auto done = callbackDone->get_future();
 
     // Host under the RFC 6761 reserved .invalid TLD never resolves, so Send() fails
     // fast and deterministically (name resolution error) on any environment --
@@ -156,14 +159,14 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
     // reference -- the exact #1481 trigger -- without raw new/delete.
     auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
 
-    (*box)->SendAsync([box, &callbackDone](CurlHttpOperation&) {
+    (*box)->SendAsync([box, callbackDone](CurlHttpOperation&) {
         // Runs on the worker thread. Drop the last external reference here. On the
         // old code this destroyed the operation on this thread and self-joined its
         // own future -> abort. With the keepalive fix the worker still holds a
         // reference, so this is safe and the operation is destroyed once the worker
         // returns.
         box->reset();
-        callbackDone.set_value();
+        callbackDone->set_value();
     });
 
     ASSERT_EQ(done.wait_for(std::chrono::seconds(15)), std::future_status::ready);

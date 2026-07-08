@@ -334,7 +334,7 @@ cleanup:
         // exits, releasing the last reference, and ~CurlHttpOperation runs
         // trivially on whichever thread drops it.
         auto self = shared_from_this();
-        std::thread([self, callback]() {
+        auto worker = [self, callback]() {
             // The worker is detached, so an escaping exception would call
             // std::terminate. std::async previously captured exceptions in the
             // (never-get()) future, i.e. swallowed them; preserve that by
@@ -353,7 +353,19 @@ cleanup:
             {
                 TRACE("CurlHttpOperation worker terminated by unknown exception\n");
             }
-        }).detach();
+        };
+        try
+        {
+            std::thread(worker).detach();
+        }
+        catch (const std::system_error& e)
+        {
+            // Starting the worker thread failed (e.g. resource exhaustion). Run the
+            // operation synchronously as a fallback so the IHttpClient callback is
+            // still always invoked and the exception does not escape SendAsync().
+            TRACE("CurlHttpOperation could not start worker thread: %s; running synchronously\n", e.what());
+            worker();
+        }
     }
 
     /**
