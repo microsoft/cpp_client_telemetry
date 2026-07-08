@@ -1,3 +1,2 @@
 @echo off
-cd ..
-build-all.bat %CD%\Solutions\build.compact-exp.props
+call "%~dp0..\build-all-windows.bat" "%~dp0..\Solutions\build.compact-exp.props"
