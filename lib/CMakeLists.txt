@@ -571,9 +571,9 @@ else()
     # sysroot, so no explicit include dir or find_package is needed.
     target_link_libraries(mat PRIVATE sqlite3 z ${LIBS})
   else()
-    # Linux legacy: system zlib + system (or private minimal) sqlite3.
+    # Linux legacy: system zlib + system (or private minimal) sqlite3. ZLIB::ZLIB
+    # and SQLite::SQLite3 are imported targets that carry their own include dirs.
     find_package(ZLIB REQUIRED)
-    target_include_directories(mat PRIVATE ${ZLIB_INCLUDE_DIRS})
     if(MATSDK_BUNDLE_SQLITE)
       target_link_libraries(mat PRIVATE sqlite3_bundled ZLIB::ZLIB ${LIBS})
     else()
