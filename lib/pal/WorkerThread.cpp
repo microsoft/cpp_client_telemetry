@@ -269,6 +269,19 @@ namespace PAL_NS_BEGIN {
                 if (item->Type == MAT::Task::Shutdown) {
                     item.reset();
                     self->m_itemInProgress = nullptr;
+                    // Drop any tasks still queued behind the shutdown sentinel
+                    // (e.g. future-dated timers) before exiting. The owning thread
+                    // deletes these in Join() only after a successful join(); on the
+                    // self-Join path it detaches and skips that cleanup, so draining
+                    // here prevents leaking those tasks. This matches the join()-path
+                    // behavior of dropping un-run work at shutdown.
+                    {
+                        LOCKGUARD(self->m_lock);
+                        for (auto task : self->m_queue) { delete task; }
+                        self->m_queue.clear();
+                        for (auto task : self->m_timerQueue) { delete task; }
+                        self->m_timerQueue.clear();
+                    }
                     break;
                 }
 
