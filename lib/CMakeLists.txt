@@ -6,8 +6,10 @@ cmake_policy(SET CMP0063 NEW)
 # to downstream consumers via find_package() (see target_include_directories below).
 include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer )
 
-# Legacy builds may need system-installed deps from /usr/local/include
-if(NOT MATSDK_USE_VCPKG_DEPS)
+# Legacy builds may need system-installed deps from /usr/local/include. Excluded on
+# iOS: /usr/local/include is a host (macOS) path, and injecting it into an iOS
+# cross-compile's search path can shadow the iOS SDK's own headers.
+if(NOT MATSDK_USE_VCPKG_DEPS AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
   include_directories(/usr/local/include)
 endif()
 
@@ -442,16 +444,11 @@ set(MATSDK_SQLITE_MINIMAL_DEFS
 # existing (unstripped) bundled SQLite behavior.
 set(MATSDK_BUNDLE_SQLITE OFF)
 if(MATSDK_MINIMAL_SQLITE AND NOT APPLE)
-  # MATSDK_MINIMAL_SQLITE does not by itself force bundling on Apple: macOS (vcpkg
-  # or native legacy) and iOS-vcpkg link the smaller system libsqlite3, so the
-  # feature is a no-op there. iOS *legacy* (MATSDK_USE_VCPKG_DEPS=OFF) is the
-  # exception -- it bundles the amalgamation via the branch below, and when
-  # MATSDK_MINIMAL_SQLITE is ON its strip definitions are applied to that copy.
+  # On Apple the SDK links the system libsqlite3/libz (see the Apple branch below),
+  # so MATSDK_MINIMAL_SQLITE has no effect there.
   set(MATSDK_BUNDLE_SQLITE ON)
-elseif(NOT MATSDK_USE_VCPKG_DEPS AND (CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "iOS"))
-  # Android NDK has no system SQLite; iOS shares this path because a cross-compile
-  # cannot reliably discover a system libsqlite3 via find_package. Both build the
-  # vendored amalgamation instead.
+elseif(NOT MATSDK_USE_VCPKG_DEPS AND CMAKE_SYSTEM_NAME STREQUAL "Android")
+  # Android NDK ships no system SQLite, so the vendored amalgamation is always bundled.
   set(MATSDK_BUNDLE_SQLITE ON)
 endif()
 
@@ -524,13 +521,11 @@ if(MATSDK_USE_VCPKG_DEPS)
   endif()
 else()
   # Legacy mode: use vendored or system-installed deps
-  if(CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
-    # Build zlib from bundled source. Android NDK has no system zlib. iOS shares
-    # this path: the vendored zlib headers rename their exports to act_z_* (via
-    # zlib/names.h), so a system libz cannot satisfy those symbols, and a
-    # cross-compile cannot reliably discover system zlib/sqlite3 via find_package.
-    # SQLite is provided by sqlite3_bundled, created above (MATSDK_BUNDLE_SQLITE is
-    # ON for these platforms in legacy mode).
+  if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    # Build zlib from bundled source: the Android NDK ships no system zlib, and the
+    # vendored zlib renames its exports to act_z_* (via zlib/names.h). SQLite is
+    # provided by sqlite3_bundled, created above (MATSDK_BUNDLE_SQLITE is ON for
+    # the Android NDK path).
     add_library(zlib_bundled STATIC
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/adler32.c"
       "${CMAKE_CURRENT_SOURCE_DIR}/../zlib/compress.c"
@@ -551,9 +546,9 @@ else()
     target_include_directories(zlib_bundled PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../zlib")
     set_target_properties(zlib_bundled PROPERTIES POSITION_INDEPENDENT_CODE ON)
     # Bundled zlib compiles the pristine sources without zlib's configure step,
-    # so tell it <unistd.h> is available (Android and iOS are POSIX). This gives
-    # gz*.c the real POSIX declarations for read/write/lseek/close instead of
-    # relying on implicit (int-returning) declarations.
+    # so tell it <unistd.h> is available (Android is POSIX). This gives gz*.c the
+    # real POSIX declarations for read/write/lseek/close instead of relying on
+    # implicit (int-returning) declarations.
     target_compile_definitions(zlib_bundled PRIVATE Z_HAVE_UNISTD_H)
 
     target_link_libraries(mat PRIVATE sqlite3_bundled zlib_bundled ${LIBS})
@@ -567,26 +562,25 @@ else()
     else()
       target_link_libraries(mat PRIVATE ${LIBS})
     endif()
+  elseif(APPLE)
+    # macOS and iOS both ship system libsqlite3 and libz. Link them by portable
+    # names -- matching the SDK's own iOS Xcode projects (libsqlite3.tbd + libz.tbd
+    # from the SDKROOT), Package.swift (.linkedLibrary sqlite3/z), and the vcpkg
+    # Apple path -- so nothing is bundled and exported static packages stay
+    # relocatable. On Apple, #include <zlib.h>/<sqlite3.h> resolve from the SDK
+    # sysroot, so no explicit include dir or find_package is needed.
+    target_link_libraries(mat PRIVATE sqlite3 z ${LIBS})
   else()
-    # Linux/macOS legacy: link system-installed (or private minimal) sqlite3 and system zlib
+    # Linux legacy: system zlib + system (or private minimal) sqlite3.
     find_package(ZLIB REQUIRED)
     target_include_directories(mat PRIVATE ${ZLIB_INCLUDE_DIRS})
     if(MATSDK_BUNDLE_SQLITE)
       target_link_libraries(mat PRIVATE sqlite3_bundled ZLIB::ZLIB ${LIBS})
     else()
-      if(EXISTS "/usr/local/lib/libsqlite3.a")
-        set(MATSDK_SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
-      elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
-        set(MATSDK_SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
-      elseif(EXISTS "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
-        set(MATSDK_SQLITE3_LIB "/opt/homebrew/opt/sqlite/lib/libsqlite3.a")
-      else()
-        # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
-        # SQLite::SQLite3 is an imported target carrying its own include dirs.
-        find_package(SQLite3 REQUIRED)
-        set(MATSDK_SQLITE3_LIB SQLite::SQLite3)
-      endif()
-      target_link_libraries(mat PRIVATE ${MATSDK_SQLITE3_LIB} ZLIB::ZLIB ${LIBS})
+      # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
+      # SQLite::SQLite3 is an imported target carrying its own include dirs.
+      find_package(SQLite3 REQUIRED)
+      target_link_libraries(mat PRIVATE SQLite::SQLite3 ZLIB::ZLIB ${LIBS})
     endif()
   endif()
 endif()
