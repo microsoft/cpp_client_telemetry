@@ -567,7 +567,7 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
 
 TEST_F(BasicFuncTests, teardownDuringInFlightUpload_ShutsDownCleanly)
 {
-    // Smoke test for teardown while an upload is in flight (motivated by #1391).
+    // Smoke test for teardown while an upload is in flight.
     // Uploads target the /slow/ endpoint with large payloads and MAX_TEARDOWN_TIME
     // is 0, so FlushAndTeardown() returns while an upload is still outstanding.
     // Teardown must complete cleanly without touching freed SDK state; run under a
