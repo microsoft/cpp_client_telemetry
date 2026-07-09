@@ -19,7 +19,7 @@ namespace testing {
     class MockIRuntimeConfig : public MAT::RuntimeConfig_Default /* MAT::IRuntimeConfig */ {
 
     protected:
-        std::unique_ptr<ILogConfiguration>& GetStaticConfig()
+        std::unique_ptr<ILogConfiguration>& GetStaticConfig() noexcept
         {
             static std::unique_ptr<ILogConfiguration> staticConfig;
             return staticConfig;

@@ -31,7 +31,7 @@ namespace MAT_NS_BEGIN
         }
     }
 
-    bool StringUtils::AreAllCharactersAllowlisted(const string& stringToTest, const string& allowlist)
+    bool StringUtils::AreAllCharactersAllowlisted(const string& stringToTest, const string& allowlist) noexcept
     {
         return (stringToTest.find_first_not_of(allowlist) == string::npos);
     }
@@ -132,7 +132,7 @@ namespace MAT_NS_BEGIN
     {
         std::string result = str;
         std::transform(str.begin(), str.end(), result.begin(),
-                       [](unsigned char c) { return (char)::tolower(c); });
+                       [](unsigned char c) noexcept { return (char)::tolower(c); });
         return result;
     }
 
@@ -140,7 +140,7 @@ namespace MAT_NS_BEGIN
     {
         std::string result = str;
         std::transform(str.begin(), str.end(), result.begin(),
-                       [](unsigned char c) { return (char)::toupper(c); });
+                       [](unsigned char c) noexcept { return (char)::toupper(c); });
         return result;
     }
 
@@ -158,7 +158,7 @@ namespace MAT_NS_BEGIN
         return str;
     }
 
-    const char* priorityToStr(EventPriority priority)
+    const char* priorityToStr(EventPriority priority) noexcept
     {
         switch (priority)
         {
@@ -185,7 +185,7 @@ namespace MAT_NS_BEGIN
         }
     }
 
-    const char* latencyToStr(EventLatency latency)
+    const char* latencyToStr(EventLatency latency) noexcept
     {
         switch (latency)
         {

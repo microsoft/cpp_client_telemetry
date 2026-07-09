@@ -61,6 +61,18 @@ namespace MAT_NS_BEGIN
         EventProperties& operator=(EventProperties const& copy);
 
         /// <summary>
+        /// The EventProperties move constructor. Transfers ownership of the
+        /// underlying storage (O(1)); the moved-from object is left empty and is
+        /// only valid to destroy or reassign.
+        /// </summary>
+        EventProperties(EventProperties&& move) noexcept;
+
+        /// <summary>
+        /// The EventProperties move-assignment operator.
+        /// </summary>
+        EventProperties& operator=(EventProperties&& move) noexcept;
+
+        /// <summary>
         /// Constructs an EventProperties object from a map of string to EventProperty.<br>
         /// You must supply a non-empty name whenever you supply any custom properties for the event via <b>EventProperties</b>.
         /// </summary>
