@@ -323,25 +323,43 @@ cleanup:
         return res;
     }
 
-    // Runs the blocking Send() and then the callback, swallowing any exception.
-    // A detached worker must not let an exception escape (that would call
-    // std::terminate), and std::async previously captured exceptions in its
-    // never-observed future; this preserves that. Shared by the detached worker
-    // and the synchronous fallbacks in SendAsync().
+    // Runs the blocking Send() and then the callback, guaranteeing the callback is
+    // invoked exactly once and that no exception escapes (a detached worker must not
+    // let one escape -> std::terminate; std::async previously captured exceptions in
+    // its never-observed future). Shared by the detached worker and the synchronous
+    // fallbacks in SendAsync().
     void RunSendAndCallback(const std::function<void(CurlHttpOperation &)>& callback) {
         try
         {
             Send();
-            if (callback != nullptr)
-                callback(*this);
         }
         catch (const std::exception& e)
         {
-            TRACE("CurlHttpOperation worker terminated by exception: %s\n", e.what());
+            TRACE("CurlHttpOperation Send() failed by exception: %s\n", e.what());
+            res = CURLE_FAILED_INIT;   // report a failure result to the callback
         }
         catch (...)
         {
-            TRACE("CurlHttpOperation worker terminated by unknown exception\n");
+            TRACE("CurlHttpOperation Send() failed by unknown exception\n");
+            res = CURLE_FAILED_INIT;
+        }
+        // Invoke the callback even if Send() threw, so the operation is always
+        // completed (with the failure result set above) and the request is never
+        // left outstanding. Guard it so a throwing callback cannot escape either.
+        if (callback != nullptr)
+        {
+            try
+            {
+                callback(*this);
+            }
+            catch (const std::exception& e)
+            {
+                TRACE("CurlHttpOperation callback threw: %s\n", e.what());
+            }
+            catch (...)
+            {
+                TRACE("CurlHttpOperation callback threw unknown exception\n");
+            }
         }
     }
 
