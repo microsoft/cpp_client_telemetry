@@ -75,7 +75,7 @@ class HttpClientManager
         std::condition_variable_any m_httpCallbacksCV;
         // Upper bound on how long cancelAllRequests waits for callbacks to drain. A
         // last-resort safety valve so a stalled dispatcher/HTTP stack can never make
-        // the drain spin or block forever (issue #1437). Adjustable so tests can
+        // the drain spin or block forever. Adjustable so tests can
         // exercise the timeout path without a long wait.
         std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::seconds(30)};
 };

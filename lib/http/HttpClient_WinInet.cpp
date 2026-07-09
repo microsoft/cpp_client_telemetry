@@ -538,7 +538,7 @@ void HttpClient_WinInet::CancelAllRequests()
 
     // Wait for all request destructors to run (erase() removes them on the WinInet
     // callback thread). Use a condition variable signaled from erase() rather than a
-    // poll loop so this never spins at 100% CPU while draining (issue #1437). This is
+    // poll loop so this never spins at 100% CPU while draining. This is
     // a full drain barrier: the destructor calls CancelAllRequests(), and returning
     // early with requests still in flight would let a late WinInet callback invoke
     // WinInetRequestWrapper::OnHttpResponse -> m_parent.erase() on a destroyed

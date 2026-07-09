@@ -47,7 +47,7 @@ class HttpClient_WinInet : public IHttpClient {
     std::recursive_mutex                                             m_requestsMutex;
     std::map<std::string, WinInetRequestWrapper*>                    m_requests;
     // Signaled from erase() when a request is removed, so CancelAllRequests can drain
-    // via a condition variable instead of a poll loop (no 100% CPU spin, issue #1437).
+    // via a condition variable instead of a poll loop (no 100% CPU spin).
     std::condition_variable_any                                      m_requestsCV;
     static unsigned                                                  s_nextRequestId;
     bool                                                             m_msRootCheck;

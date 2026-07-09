@@ -80,7 +80,7 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
     EXPECT_THAT(ctx->durationMs, Gt(199));
 }
 
-// Regression test for issue #1437: cancelAllRequests() must not spin/hang forever
+// Regression test: cancelAllRequests() must not spin/hang forever
 // when an in-flight callback never drains (e.g. the dispatcher or HTTP stack is
 // stalled). It waits for the drain via a condition variable, bounded by a timeout.
 TEST_F(HttpClientManagerTests, CancelAllRequests_TimesOutInsteadOfHanging)

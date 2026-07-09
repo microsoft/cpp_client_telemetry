@@ -156,12 +156,12 @@ namespace MAT_NS_BEGIN {
 
         // Drain in-flight callbacks via a condition variable signaled from
         // onHttpResponse -- never a busy/poll loop, which burned 100% CPU while
-        // holding the LogManager lock (issue #1437).
+        // holding the LogManager lock.
         std::unique_lock<std::recursive_mutex> lock(m_httpCallbacksMtx);
         if (bestEffort)
         {
             // Pause (and similar) must not block indefinitely -- the caller may hold
-            // the LogManager lock (the #1437 spindump was PauseTransmission). The
+            // the LogManager lock (the observed spindump was PauseTransmission). The
             // manager is NOT being destroyed here, so outstanding callbacks remain
             // valid and drain later; cap the wait as a safety valve.
             if (!m_httpCallbacksCV.wait_for(lock, m_cancelDrainTimeout,
