@@ -81,11 +81,14 @@ namespace MAT_NS_BEGIN {
             sslCaInfo = m_sslCaInfo;
         }
 
-        // Move the request body into the operation (it is taken by value there):
-        // curlRequest->m_body is a per-send copy of the EventsUploadContext body
-        // (the retry source of truth), so moving it avoids duplicating large upload
-        // payloads while still giving the operation an owned buffer for its detached
-        // worker (issue #1481).
+        // The operation takes the request body by value, so move it in rather than
+        // copy. curlRequest->m_body already holds the sole copy of the encoded payload:
+        // the encoder moves ctx->body into it (SimpleHttpRequest::SetBody does
+        // m_body = std::move(body)) and clears the source (HttpRequestEncoder.cpp:165-167).
+        // The request is used for a single send and is then released with the
+        // EventsUploadContext (see the AddRequest note above), so m_body is not read
+        // again after this point -- moving it avoids duplicating a potentially large
+        // upload buffer while giving the detached worker an owned buffer (issue #1481).
         auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, std::move(curlRequest->m_body), false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
         curlRequest->SetOperation(curlOperation);
 
