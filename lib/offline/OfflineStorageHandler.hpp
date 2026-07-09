@@ -23,7 +23,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
+    class OfflineStorageHandler final : public IOfflineStorage, public IOfflineStorageObserver
     {
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
@@ -64,7 +64,7 @@ namespace MAT_NS_BEGIN {
         virtual void OnStorageRecordsSaved(size_t numRecords) override;
 
     protected:
-        virtual void DeleteRecordsByKeys(const std::list<std::string> & keys);
+        void DeleteRecordsByKeys(const std::list<std::string> & keys);
 
         IOfflineStorageObserver   * m_observer;
         ILogManager &               m_logManager;
@@ -75,7 +75,7 @@ namespace MAT_NS_BEGIN {
         KillSwitchManager           m_killSwitchManager;
         ClockSkewManager            m_clockSkewManager;
 
-        virtual bool isKilled(StorageRecord const& record);
+        bool isKilled(StorageRecord const& record);
 
         std::mutex                             m_flushLock;
         bool                                   m_flushPending;

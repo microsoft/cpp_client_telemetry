@@ -49,7 +49,7 @@ capi_client * MAT::capi_get_client(evt_handle_t handle)
 /// <summary>
 /// Remove C API handle from active client tracking struct.
 /// </summary>
-void remove_client(evt_handle_t handle)
+static void remove_client(evt_handle_t handle)
 {
     LOCKGUARD(mtx);
     clients.erase(handle);
@@ -66,7 +66,7 @@ void remove_client(evt_handle_t handle)
         return ENOENT;                                          \
     };
 
-evt_status_t mat_open_core(
+static evt_status_t mat_open_core(
     evt_context_t *ctx,
     const char* config,
     http_send_fn_t httpSendFn,
@@ -175,7 +175,7 @@ evt_status_t mat_open_core(
     return ctx->result;
 }
 
-evt_status_t mat_open(evt_context_t *ctx)
+static evt_status_t mat_open(evt_context_t *ctx)
 {
     if (ctx == nullptr)
     {
@@ -186,7 +186,7 @@ evt_status_t mat_open(evt_context_t *ctx)
     return mat_open_core(ctx, config, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
-evt_status_t mat_open_with_params(evt_context_t *ctx)
+static evt_status_t mat_open_with_params(evt_context_t *ctx)
 {
     if (ctx == nullptr)
     {
@@ -231,9 +231,9 @@ evt_status_t mat_open_with_params(evt_context_t *ctx)
 }
 
 /**
- * Marashal C struct to C++ API
+ * Marshal C struct to C++ API
  */
-evt_status_t mat_log(evt_context_t *ctx)
+static evt_status_t mat_log(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
 
@@ -285,7 +285,7 @@ evt_status_t mat_log(evt_context_t *ctx)
     return ctx->result;
 }
 
-evt_status_t mat_close(evt_context_t *ctx)
+static evt_status_t mat_close(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(LogManagerProvider::Release(client->logmanager->GetLogConfiguration()));
@@ -305,7 +305,7 @@ evt_status_t mat_close(evt_context_t *ctx)
     return result;
 }
 
-evt_status_t mat_pause(evt_context_t *ctx)
+static evt_status_t mat_pause(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(client->logmanager->PauseTransmission());
@@ -313,7 +313,7 @@ evt_status_t mat_pause(evt_context_t *ctx)
     return result;
 }
 
-evt_status_t mat_resume(evt_context_t *ctx)
+static evt_status_t mat_resume(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(client->logmanager->ResumeTransmission());
@@ -321,7 +321,7 @@ evt_status_t mat_resume(evt_context_t *ctx)
     return result;
 }
 
-evt_status_t mat_upload(evt_context_t *ctx)
+static evt_status_t mat_upload(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     const auto result = static_cast<evt_status_t>(client->logmanager->UploadNow());
@@ -329,7 +329,7 @@ evt_status_t mat_upload(evt_context_t *ctx)
     return result;
 }
 
-evt_status_t mat_flushAndTeardown(evt_context_t *ctx)
+static evt_status_t mat_flushAndTeardown(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
     client->logmanager->FlushAndTeardown();
