@@ -351,10 +351,21 @@ endif()
 # PUBLIC propagates to consumers; PRIVATE is SDK-internal only.
 # BUILD_INTERFACE is used during the SDK build; INSTALL_INTERFACE is used
 # by consumers after cmake --install.
+#
+# The public headers are added in a separate SYSTEM call: SYSTEM marks them as
+# system includes for consumers, so a consumer building with -Wall -Wextra
+# -Werror is not broken by warnings originating inside the SDK's headers (e.g.
+# -Wpedantic variadic-macro or -Wconversion diagnostics). find_package consumers
+# already treat an imported target's includes as system; SYSTEM extends the same
+# courtesy to add_subdirectory/FetchContent consumers. The PRIVATE internal
+# include dirs are deliberately kept out of this SYSTEM call so the SDK's own
+# -Werror build still diagnoses warnings in its internal headers.
 target_include_directories(mat
-  PUBLIC
+  SYSTEM PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/public>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/mat>
+)
+target_include_directories(mat
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
