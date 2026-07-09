@@ -154,6 +154,11 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
         "GET", "http://selfjoin.regression.invalid/", nullptr, m_headers, m_body,
         false, 1 /*connTimeout*/, false /*sslVerify*/, "");
 
+    // Non-owning handle, used only to cancel the worker on the timeout path below.
+    // It must not keep the operation alive, or the callback's box->reset() would no
+    // longer drop the last external reference (the exact scenario under test).
+    std::weak_ptr<CurlHttpOperation> weakOp = op;
+
     // A shared box holds the only external reference. The callback resets the
     // contained shared_ptr (on the worker thread) to drop the last external
     // reference -- the exact #1481 trigger -- without raw new/delete.
@@ -169,7 +174,18 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
         callbackDone->set_value();
     });
 
-    ASSERT_EQ(done.wait_for(std::chrono::seconds(15)), std::future_status::ready);
+    if (done.wait_for(std::chrono::seconds(15)) != std::future_status::ready)
+    {
+        // The detached worker is unexpectedly still running (Send() against the
+        // non-resolving host should fail within milliseconds). Best-effort: signal
+        // it to abort and give it a moment to finish so it does not outlive fixture
+        // teardown, which destroys m_client (curl_global_cleanup) and the
+        // m_headers/m_body it may still be reading. Then fail.
+        if (auto liveOp = weakOp.lock())
+            liveOp->Abort();
+        done.wait_for(std::chrono::seconds(5));
+        FAIL() << "SendAsync did not complete within 15s";
+    }
 }
 
 // A stack-constructed operation is not owned by a shared_ptr, so shared_from_this()
