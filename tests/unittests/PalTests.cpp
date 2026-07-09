@@ -5,9 +5,13 @@
 
 #include "common/Common.hpp"
 #include "pal/PseudoRandomGenerator.hpp"
+#include "pal/TaskDispatcher.hpp"
+#include "pal/WorkerThread.hpp"
 #include "Version.hpp"
 
+#include <atomic>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <set>
 
@@ -194,6 +198,43 @@ TEST_F(PalTests, SdkVersion)
     EXPECT_THAT(v, EndsWith(BUILD_VERSION_STR));
 
     EXPECT_THAT(PAL::getSdkVersion(), Eq(v));
+}
+
+namespace
+{
+    class ThrowingTaskHelper
+    {
+    public:
+        void ThrowStdException() { throw std::runtime_error("worker task boom"); }
+        void ThrowNonStdException() { throw 123; }
+        void Signal(std::atomic<bool>* ran) { ran->store(true); }
+    };
+}
+
+// A task throwing an exception must be contained by the worker thread loop;
+// otherwise the exception unwinds out of the thread entry function and calls
+// std::terminate, killing the host process.
+TEST_F(PalTests, WorkerThreadContainsThrowingTask)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    ThrowingTaskHelper helper;
+    std::atomic<bool> ranAfterStdThrow(false);
+    std::atomic<bool> ranAfterNonStdThrow(false);
+
+    PAL::dispatchTask(dispatcher.get(), &helper, &ThrowingTaskHelper::ThrowStdException);
+    PAL::dispatchTask(dispatcher.get(), &helper, &ThrowingTaskHelper::Signal, &ranAfterStdThrow);
+
+    PAL::dispatchTask(dispatcher.get(), &helper, &ThrowingTaskHelper::ThrowNonStdException);
+    PAL::dispatchTask(dispatcher.get(), &helper, &ThrowingTaskHelper::Signal, &ranAfterNonStdThrow);
+
+    // Wait for the follow-up tasks to run, proving the thread survived each throw.
+    for (int i = 0; i < 500 && !(ranAfterStdThrow.load() && ranAfterNonStdThrow.load()); ++i)
+        PAL::sleep(10);
+
+    EXPECT_TRUE(ranAfterStdThrow.load());
+    EXPECT_TRUE(ranAfterNonStdThrow.load());
+
+    dispatcher->Join();
 }
 
 #ifdef HAVE_MAT_LOGGING

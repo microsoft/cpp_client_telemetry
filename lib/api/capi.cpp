@@ -77,7 +77,11 @@ static evt_status_t mat_open_core(
 {
     if ((config == nullptr) || (config[0] == 0))
     {
-        // Invalid configuration
+        // Invalid configuration. ctx is guaranteed non-null by the callers
+        // (mat_open / mat_open_with_params); set result and a known-invalid
+        // handle so callers don't observe a stale ctx->handle on error.
+        ctx->result = static_cast<evt_status_t>(EFAULT);
+        ctx->handle = 0;
         return EFAULT;
     }
 
@@ -91,7 +95,12 @@ static evt_status_t mat_open_core(
         {
             if (client->ctx_data == config)
             {
-                // Guest instance with the same config is already open
+                // Guest instance with the same config is already open.
+                // Return its handle so the caller still gets a usable handle
+                // (rather than leaving ctx->handle uninitialized), and set
+                // ctx->result to match the returned status like the other paths.
+                ctx->handle = code;
+                ctx->result = static_cast<evt_status_t>(EALREADY);
                 return EALREADY;
             }
             // hash code is assigned to another client, increment and retry
@@ -143,6 +152,11 @@ static evt_status_t mat_open_core(
         }
         catch (...)
         {
+            // Roll back the partially-populated client so a later open with the
+            // same config does not find stale half-initialized state.
+            remove_client(code);
+            ctx->result = static_cast<evt_status_t>(EFAULT);
+            ctx->handle = 0;
             return EFAULT;
         }
     }
@@ -158,6 +172,11 @@ static evt_status_t mat_open_core(
         }
         catch (...)
         {
+            // Roll back the partially-populated client so a later open with the
+            // same config does not find stale half-initialized state.
+            remove_client(code);
+            ctx->result = static_cast<evt_status_t>(EFAULT);
+            ctx->handle = 0;
             return EFAULT;
         }
     }
