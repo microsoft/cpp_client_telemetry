@@ -209,7 +209,7 @@ public:
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
         configuration[CFG_MAP_TPM][CFG_STR_TPM_BACKOFF] = "E,500,5000,2,1"; // faster retry for localhost tests
         configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 30 * 60;   // 30 mins
-        configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;            // opt in to stats (disabled by default since #1420)
+        configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;            // opt in to stats (disabled by default)
 
         configuration["name"] = __FILE__;
         configuration["version"] = "1.0.0";
@@ -1201,7 +1201,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
     configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
     configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
-    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default since #1420)
+    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default)
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
@@ -1285,7 +1285,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
     configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
     configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
-    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default since #1420)
+    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default)
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
