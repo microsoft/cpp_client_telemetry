@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <limits>
 #include <atomic>
 #include <thread>
 #include <memory>
@@ -358,11 +359,13 @@ cleanup:
         {
             std::thread(worker).detach();
         }
-        catch (const std::system_error& e)
+        catch (const std::exception& e)
         {
-            // Starting the worker thread failed (e.g. resource exhaustion). Run the
-            // operation synchronously as a fallback so the IHttpClient callback is
-            // still always invoked and the exception does not escape SendAsync().
+            // Starting the worker thread failed -- std::thread construction can throw
+            // std::system_error (e.g. resource exhaustion) or std::bad_alloc while
+            // allocating the callable. Run the operation synchronously as a fallback
+            // so the IHttpClient callback is still always invoked and the exception
+            // does not escape SendAsync().
             TRACE("CurlHttpOperation could not start worker thread: %s; running synchronously\n", e.what());
             worker();
         }

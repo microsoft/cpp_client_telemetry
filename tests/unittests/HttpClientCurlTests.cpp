@@ -149,7 +149,7 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
 
     // Host under the RFC 6761 reserved .invalid TLD never resolves, so Send() fails
     // fast and deterministically (name resolution error) on any environment --
-    // unlike a fixed port, which could happen to be open. connTimeout=1 bounds it.
+    // unlike a fixed port, which could happen to be open.
     auto op = std::make_shared<CurlHttpOperation>(
         "GET", "http://selfjoin.regression.invalid/", nullptr, m_headers, m_body,
         false, 1 /*connTimeout*/, false /*sslVerify*/, "");
