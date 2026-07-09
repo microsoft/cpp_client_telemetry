@@ -13,6 +13,7 @@
 #include "ILogManager.hpp"
 
 #include <condition_variable>
+#include <mutex>
 
 namespace MAT_NS_BEGIN {
 
