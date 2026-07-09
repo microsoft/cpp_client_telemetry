@@ -172,4 +172,22 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
     ASSERT_EQ(done.wait_for(std::chrono::seconds(15)), std::future_status::ready);
 }
 
+// A stack-constructed operation is not owned by a shared_ptr, so shared_from_this()
+// throws std::bad_weak_ptr. SendAsync() must not let that escape: it falls back to a
+// synchronous run and still invokes the callback (issue #1481 review round 6).
+TEST_F(HttpClientCurlTests, SendAsync_NotSharedOwned_RunsSynchronouslyNoThrow)
+{
+    CurlHttpOperation op(
+        "GET", "http://selfjoin.regression.invalid/", nullptr, m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+
+    bool callbackRan = false;
+    // No shared owner -> the fallback runs Send()+callback synchronously on this
+    // thread, so SendAsync() returns only after the callback has run. Capturing
+    // callbackRan by reference is therefore safe.
+    op.SendAsync([&callbackRan](CurlHttpOperation&) { callbackRan = true; });
+
+    EXPECT_TRUE(callbackRan);
+}
+
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT

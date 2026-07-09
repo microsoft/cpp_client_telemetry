@@ -323,6 +323,28 @@ cleanup:
         return res;
     }
 
+    // Runs the blocking Send() and then the callback, swallowing any exception.
+    // A detached worker must not let an exception escape (that would call
+    // std::terminate), and std::async previously captured exceptions in its
+    // never-observed future; this preserves that. Shared by the detached worker
+    // and the synchronous fallbacks in SendAsync().
+    void RunSendAndCallback(const std::function<void(CurlHttpOperation &)>& callback) {
+        try
+        {
+            Send();
+            if (callback != nullptr)
+                callback(*this);
+        }
+        catch (const std::exception& e)
+        {
+            TRACE("CurlHttpOperation worker terminated by exception: %s\n", e.what());
+        }
+        catch (...)
+        {
+            TRACE("CurlHttpOperation worker terminated by unknown exception\n");
+        }
+    }
+
     void SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
         // Run the blocking Send() on a detached worker that keeps this operation
         // alive for the duration by holding a shared_ptr to itself. This replaces
@@ -334,27 +356,24 @@ cleanup:
         // the self-keepalive there is no future and no join: the worker simply
         // exits, releasing the last reference, and ~CurlHttpOperation runs
         // trivially on whichever thread drops it.
-        auto self = shared_from_this();
-        auto worker = [self, callback]() {
-            // The worker is detached, so an escaping exception would call
-            // std::terminate. std::async previously captured exceptions in the
-            // (never-get()) future, i.e. swallowed them; preserve that by
-            // catching here so a throwing Send()/callback cannot crash the process.
-            try
-            {
-                self->Send();
-                if (callback != nullptr)
-                    callback(*self);
-            }
-            catch (const std::exception& e)
-            {
-                TRACE("CurlHttpOperation worker terminated by exception: %s\n", e.what());
-            }
-            catch (...)
-            {
-                TRACE("CurlHttpOperation worker terminated by unknown exception\n");
-            }
-        };
+        std::shared_ptr<CurlHttpOperation> self;
+        try
+        {
+            self = shared_from_this();
+        }
+        catch (const std::bad_weak_ptr&)
+        {
+            // The detached-worker self-keepalive requires this operation to be owned
+            // by a std::shared_ptr (it always is in practice -- created via
+            // make_shared in HttpClient_Curl.cpp). If a future caller ever constructs
+            // one outside a shared_ptr (stack / unique_ptr), shared_from_this() throws;
+            // fall back to a synchronous run on the caller's thread rather than letting
+            // std::bad_weak_ptr escape SendAsync(). The caller owns the object for the
+            // duration and the callback is still invoked.
+            RunSendAndCallback(callback);
+            return;
+        }
+        auto worker = [self, callback]() { self->RunSendAndCallback(callback); };
         try
         {
             std::thread(worker).detach();
