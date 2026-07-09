@@ -116,7 +116,7 @@ namespace MAT_NS_BEGIN {
             if (delay.count() < 0 || m_timerdelay.count() < 0)
             {
                 LOG_TRACE("Negative delay(%lld) or m_timerdelay(%lld), no upload",
-                    delay.count(), m_timerdelay.count());
+                    static_cast<long long>(delay.count()), static_cast<long long>(m_timerdelay.count()));
                 return true;
             }
             if (m_scheduledUploadAborted)
@@ -199,7 +199,7 @@ namespace MAT_NS_BEGIN {
             m_isUploadScheduled = true;
             m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delay.count();
             m_runningLatency = latency;
-            LOG_TRACE("SCHED upload %lld ms for lat=%d", delay.count(), m_runningLatency);
+            LOG_TRACE("SCHED upload %lld ms for lat=%d", static_cast<long long>(delay.count()), m_runningLatency);
             m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, static_cast<unsigned>(delay.count()), this, &TransmissionPolicyManager::uploadAsync, latency);
         }
     }
@@ -263,7 +263,7 @@ namespace MAT_NS_BEGIN {
         // Rescheduling upload
         if (nextUpload.count() >= 0)
         {
-            LOG_TRACE("Scheduling upload in %lld ms", nextUpload.count());
+            LOG_TRACE("Scheduling upload in %lld ms", static_cast<long long>(nextUpload.count()));
             EventLatency proposed = calculateNewPriority();
             scheduleUpload(nextUpload, proposed); // reschedule uploadAsync again
         }
