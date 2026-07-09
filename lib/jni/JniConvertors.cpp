@@ -167,7 +167,7 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
     EventProperties eventProperties;
     eventProperties.SetName(JStringToStdString(env, jstrEventName));
     if (jstrEventType != NULL) {
-        // An empty type means "unset" (the native default). Before #1329 the
+        // An empty type means "unset" (the native default). Previously the
         // Java getType() returned null for a default EventProperties, so this
         // branch was skipped. getType() now returns "" to fix a Java-side NPE;
         // forwarding SetType("") here would fail native event-name validation
