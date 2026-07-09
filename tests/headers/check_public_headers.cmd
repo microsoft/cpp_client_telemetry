@@ -41,14 +41,14 @@ set "FAIL=0"
 set "OKC=0"
 
 echo == cl (c++17, /W4 /WX) ==
-for %%h in ("%PUB%\*.hpp") do (
+for %%h in ("%PUB%\*.hpp" "%PUB%\*.h") do (
   set "NAME=%%~nxh"
   REM Skip implementation-fragment headers not meant to be included standalone
   REM (VariantType.hpp is included by Variant.hpp, which defines VariantMap/VariantArray first).
   if /I not "!NAME!"=="VariantType.hpp" (
     > "%WORK%\tu.cpp" echo #include "!NAME!"
     >> "%WORK%\tu.cpp" echo int main^(^){return 0;}
-    cl %FLAGS% /I "%PUB%" /Zs "%WORK%\tu.cpp" > "%WORK%\err.txt" 2>&1
+    cl %FLAGS% /I "%PUB%" /I "%REPO_ROOT%\lib\include" /Zs "%WORK%\tu.cpp" > "%WORK%\err.txt" 2>&1
     if errorlevel 1 (
       echo   FAIL: !NAME!
       type "%WORK%\err.txt"

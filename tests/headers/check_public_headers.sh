@@ -16,6 +16,7 @@
 # Exits non-zero if any header fails to compile or emits a warning.
 
 set -uo pipefail
+shopt -s nullglob
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PUB="$REPO_ROOT/lib/include/public"
@@ -28,8 +29,11 @@ EXCLUDES=(
 )
 
 INCLUDES="-I$PUB -I$REPO_ROOT/lib/include"
-# Mirrors this repo's own warning flags and what ORT applies to its C++ TUs.
-BASE_FLAGS="-std=c++17 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-but-set-variable"
+# Mirror this repo's own pipeline warning flags plus what ORT applies to its C++
+# translation units. -Wno-unused-parameter matches this repo's WARN_FLAGS (and
+# ORT's Clang build); intentional unused parameters in the public headers use the
+# UNREFERENCED_PARAMETER macro.
+BASE_FLAGS="-std=c++17 -Wall -Wextra -Werror -Wno-unused-parameter"
 
 is_excluded() {
   local n="$1" e
@@ -45,7 +49,7 @@ run_compiler() {
   local cc="$1" extra="$2" label="$3"
   local n_ok=0 n_fail=0 h name tu out
   echo "== $label =="
-  for h in "$PUB"/*.hpp; do
+  for h in "$PUB"/*.hpp "$PUB"/*.h; do
     name="$(basename "$h")"
     is_excluded "$name" && continue
     tu="$tmp/tu_${name%.hpp}.cpp"
