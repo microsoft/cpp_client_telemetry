@@ -30,8 +30,11 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
     }
     const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
     if (signalItemJson == nullptr) {
-        // GetStringUTFChars returned null (e.g. OOM, with a pending exception);
-        // there is nothing valid to log.
+        // GetStringUTFChars returned null (e.g. OOM), which leaves a pending Java
+        // exception. Clear it so the caller observes a clean `false` return instead
+        // of the exception being thrown at the Java call site. ExceptionClear is one
+        // of the few JNI calls that is safe to make with an exception in flight.
+        env->ExceptionClear();
         return false;
     }
 
@@ -65,8 +68,12 @@ Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jcl
     if (base_url != nullptr) {
         const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
         if (convertedValue == nullptr) {
-            // GetStringUTFChars failed (e.g. OOM) and left a pending exception;
-            // do not continue making JNI calls with an exception in flight.
+            // GetStringUTFChars failed (e.g. OOM), leaving a pending Java exception.
+            // Clear it so the caller observes a clean `false` instead of the
+            // exception being thrown at the Java call site. ExceptionClear is safe
+            // to call with an exception in flight, and we make no other JNI calls
+            // before returning.
+            env->ExceptionClear();
             return false;
         }
         if (strlen(convertedValue) > 0) {
