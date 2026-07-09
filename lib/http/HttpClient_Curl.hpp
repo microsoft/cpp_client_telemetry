@@ -373,20 +373,22 @@ cleanup:
             RunSendAndCallback(callback);
             return;
         }
-        auto worker = [self, callback]() { self->RunSendAndCallback(callback); };
         try
         {
-            std::thread(worker).detach();
+            // Constructing the worker lambda copies `callback` (a std::function,
+            // which can throw std::bad_alloc), and std::thread construction can throw
+            // std::system_error / std::bad_alloc -- both are inside this try. The
+            // worker holds `self`, keeping this operation alive for the detached run.
+            std::thread([self, callback]() { self->RunSendAndCallback(callback); }).detach();
         }
         catch (const std::exception& e)
         {
-            // Starting the worker thread failed -- std::thread construction can throw
-            // std::system_error (e.g. resource exhaustion) or std::bad_alloc while
-            // allocating the callable. Run the operation synchronously as a fallback
-            // so the IHttpClient callback is still always invoked and the exception
-            // does not escape SendAsync().
+            // Building the callable or starting the worker thread failed. Run the
+            // operation synchronously as a fallback so the IHttpClient callback is
+            // still always invoked and the exception does not escape SendAsync().
+            // `self` keeps this operation alive for the duration of the run.
             TRACE("CurlHttpOperation could not start worker thread: %s; running synchronously\n", e.what());
-            worker();
+            RunSendAndCallback(callback);
         }
     }
 
