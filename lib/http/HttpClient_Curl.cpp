@@ -88,7 +88,7 @@ namespace MAT_NS_BEGIN {
         // The request is used for a single send and is then released with the
         // EventsUploadContext (see the AddRequest note above), so m_body is not read
         // again after this point -- moving it avoids duplicating a potentially large
-        // upload buffer while giving the detached worker an owned buffer (issue #1481).
+        // upload buffer while giving the detached worker an owned buffer.
         auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, std::move(curlRequest->m_body), false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
         curlRequest->SetOperation(curlOperation);
 

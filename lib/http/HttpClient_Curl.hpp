@@ -101,7 +101,7 @@ public:
             // need not outlive this operation. requestBody is taken by value and
             // owned by this operation: the detached worker in SendAsync can outlive
             // the caller's request, so a reference into it could dangle during
-            // Send() (issue #1481).
+            // Send().
             const std::map<std::string, std::string>& requestHeaders,
             std::vector<uint8_t> requestBody,
             // Default connectivity and response size options
@@ -184,7 +184,7 @@ public:
         // buffer and owned request body are therefore no longer in use.
         // There is no future to join, so destruction is safe on any thread --
         // including the worker thread itself, which is where it happens when the
-        // callback drops the last other reference (issue #1481).
+        // callback drops the last other reference.
         DispatchEvent(OnDestroy);
         res = CURLE_OK;
         curl_easy_cleanup(curl);
@@ -352,7 +352,7 @@ cleanup:
         // when the callback below caused this operation to be destroyed on the
         // async thread (OnHttpResponse -> EventsUploadContext::clear()), that join
         // was a self-join and raised std::system_error("Resource deadlock avoided")
-        // out of the noexcept destructor, aborting the process (issue #1481). With
+        // out of the noexcept destructor, aborting the process. With
         // the self-keepalive there is no future and no join: the worker simply
         // exits, releasing the last reference, and ~CurlHttpOperation runs
         // trivially on whichever thread drops it.
@@ -511,7 +511,7 @@ protected:
     std::string m_sslCaInfo;
     // Owned copy of the request body, read by Send(). Owned (not a reference into
     // the caller's IHttpRequest) because the detached worker in SendAsync can
-    // outlive that request, so a reference could dangle mid-send (issue #1481).
+    // outlive that request, so a reference could dangle mid-send.
     std::vector<uint8_t> requestBody;
     struct curl_slist *m_headersChunk = nullptr;
 

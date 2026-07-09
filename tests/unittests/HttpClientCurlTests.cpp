@@ -130,7 +130,7 @@ TEST_F(HttpClientCurlTests, SetSslVerification_ConcurrentCallsNoRace)
     SUCCEED();
 }
 
-// --- Regression: issue #1481 (EDEADLK self-join in ~CurlHttpOperation) ---
+// --- Regression: EDEADLK self-join in ~CurlHttpOperation ---
 
 // When the async callback drops the last *external* reference to the operation,
 // ~CurlHttpOperation runs on the worker thread. The old std::async design joined
@@ -161,7 +161,7 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
 
     // A shared box holds the only external reference. The callback resets the
     // contained shared_ptr (on the worker thread) to drop the last external
-    // reference -- the exact #1481 trigger -- without raw new/delete.
+    // reference -- the exact trigger -- without raw new/delete.
     auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
 
     (*box)->SendAsync([box, callbackDone](CurlHttpOperation&) {
@@ -190,7 +190,7 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
 
 // A stack-constructed operation is not owned by a shared_ptr, so shared_from_this()
 // throws std::bad_weak_ptr. SendAsync() must not let that escape: it falls back to a
-// synchronous run and still invokes the callback (issue #1481 review round 6).
+// synchronous run and still invokes the callback.
 TEST_F(HttpClientCurlTests, SendAsync_NotSharedOwned_RunsSynchronouslyNoThrow)
 {
     CurlHttpOperation op(
