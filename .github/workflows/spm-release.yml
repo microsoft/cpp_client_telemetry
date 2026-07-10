@@ -79,6 +79,18 @@ jobs:
           # port (the optional modules are excluded there too).
           submodules: false
 
+      - name: Skip if this SPM version is already published
+        id: pub
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null 2>&1; then
+            echo "::notice::SPM tag ${{ steps.ver.outputs.spm_version }} already exists; leaving its published artifact and checksum untouched (re-uploading a differently-hashed zip would break consumers pinned to the existing checksum)."
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build MATTelemetry.xcframework
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
@@ -115,20 +127,20 @@ jobs:
 
       - name: Compute SPM checksum
         id: sum
-        if: ${{ steps.ver.outputs.skip != 'true' }}
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
         run: |
           set -euo pipefail
           checksum="$(swift package compute-checksum "build/apple/$ARTIFACT")"
           echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
 
       - name: Upload xcframework to the release
-        if: ${{ steps.ver.outputs.skip != 'true' }}
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ steps.ver.outputs.tag }}" "build/apple/$ARTIFACT" --clobber
 
       - name: Point Package.swift at the released artifact
-        if: ${{ steps.ver.outputs.skip != 'true' }}
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
         env:
           ASSET_URL: https://github.com/${{ github.repository }}/releases/download/${{ steps.ver.outputs.tag }}/MATTelemetry.xcframework.zip
           CHECKSUM: ${{ steps.sum.outputs.checksum }}
@@ -153,7 +165,7 @@ jobs:
           PY
 
       - name: Commit manifest and push the 3-component SPM tag
-        if: ${{ steps.ver.outputs.skip != 'true' }}
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
         run: |
           set -euo pipefail
           if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null; then

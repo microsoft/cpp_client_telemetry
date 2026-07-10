@@ -101,18 +101,18 @@ if [ -f /usr/bin/clang ]; then
 fi
 
 mkdir -p out
-cd out
+cd out || { echo "ERROR: cannot enter build directory 'out'" 1>&2; exit 1; }
 
 CMAKE_PACKAGE_TYPE=tgz
 
 cmake_cmd="cmake -DCMAKE_OSX_SYSROOT=$IOS_SYSROOT -DCMAKE_SYSTEM_NAME=$SYS_NAME -DCMAKE_IOS_ARCH_ABI=$IOS_ARCH -DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET -DBUILD_IOS=YES -DIOS_ARCH=$IOS_ARCH -DIOS_PLAT=$IOS_PLAT -DIOS_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DFORCE_RESET_DEPLOYMENT_TARGET=$FORCE_RESET_DEPLOYMENT_TARGET $CMAKE_OPTS .."
 echo "${cmake_cmd}"
-eval $cmake_cmd
+eval $cmake_cmd || { echo "ERROR: cmake configuration failed for $IOS_PLAT/$IOS_ARCH" 1>&2; exit 1; }
 
-make
+make || { echo "ERROR: make failed for $IOS_PLAT/$IOS_ARCH" 1>&2; exit 1; }
 
 if [ "${MATTELEMETRY_SKIP_PACKAGE:-}" = "1" ]; then
   echo "MATTELEMETRY_SKIP_PACKAGE=1: skipping package creation"
 else
-  make package
+  make package || { echo "ERROR: make package failed for $IOS_PLAT/$IOS_ARCH" 1>&2; exit 1; }
 fi
