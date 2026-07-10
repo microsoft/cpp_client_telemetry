@@ -9,6 +9,8 @@
 #include "pal/typename.hpp"
 #include "mat.h"
 
+#include <stdexcept>
+
 using namespace testing;
 using namespace MAT;
 using namespace PAL;
@@ -268,5 +270,24 @@ TEST(TaskDispatcherCAPITests, ScheduleTaskReturnsNoOpHandleWhenTaskDropped)
     EXPECT_EQ(handle.m_task, nullptr);
     EXPECT_TRUE(handle.Cancel());
     EXPECT_FALSE(dispatcher.cancelCalled);
+}
+
+TEST(TaskDispatcherCAPITests, ExecuteCallbackThatThrowsIsContained)
+{
+    TaskDispatcher_CAPI taskDispatcher(&OnTaskDispatcherQueue, &OnTaskDispatcherCancel, &OnTaskDispatcherJoin);
+
+    AutoTestHelper testHelper;
+    testHelper->SetShouldExecute(true);
+
+    bool wasExecuted = false;
+    testHelper->SetCallbackValidation([&wasExecuted](int /*param1*/, int /*param2*/) {
+        wasExecuted = true;
+        throw std::runtime_error("task threw");
+    });
+
+    // The dispatcher must contain the exception so it never escapes back into
+    // the host's dispatcher thread (which would terminate the process).
+    EXPECT_NO_THROW(dispatchTask(&taskDispatcher, testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/));
+    EXPECT_EQ(wasExecuted, true);
 }
 
