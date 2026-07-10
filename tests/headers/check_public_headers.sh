@@ -21,6 +21,14 @@ shopt -s nullglob
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PUB="$REPO_ROOT/lib/include/public"
 
+# Fail fast if the public header directory is missing or miscomputed. With
+# nullglob on, a bad PUB would make the header globs below expand to nothing and
+# the gate would silently "pass" without compiling anything -- a false negative.
+if [ ! -d "$PUB" ]; then
+  echo "error: public header directory not found: $PUB" >&2
+  exit 2
+fi
+
 # Implementation-fragment headers: intentionally included by another public
 # header (which supplies their dependencies first) and not meant to be included
 # standalone. They are exercised through their public entry point instead.
@@ -64,6 +72,10 @@ run_compiler() {
       echo "$out" | grep -E 'error:|warning:' | head -4 | sed 's/^/      /'
     fi
   done
+  if [ $((n_ok + n_fail)) -eq 0 ]; then
+    echo "  ERROR: no public headers found under $PUB"
+    fail=1
+  fi
   echo "  $label: $n_ok passed, $n_fail failed"
 }
 

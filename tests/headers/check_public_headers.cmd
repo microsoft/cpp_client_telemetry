@@ -13,6 +13,14 @@ set "SCRIPT_DIR=%~dp0"
 set "REPO_ROOT=%SCRIPT_DIR%..\.."
 set "PUB=%REPO_ROOT%\lib\include\public"
 
+REM Fail fast if the public header directory is missing or miscomputed, otherwise
+REM the header loop below would run zero times and the gate would silently "pass"
+REM without compiling anything -- a false negative.
+if not exist "%PUB%" (
+  echo error: public header directory not found: %PUB% 1>&2
+  exit /b 2
+)
+
 REM Enter the MSVC x64 developer environment via vswhere (portable across runners).
 set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 if not exist "%VSWHERE%" (
@@ -31,9 +39,15 @@ if errorlevel 1 (
   exit /b 2
 )
 
-set "WORK=%TEMP%\pubhdrgate"
+REM Unique work directory so concurrent invocations on the same machine (local dev
+REM or a reused runner) do not clobber each other's temporary translation unit.
+set "WORK=%TEMP%\pubhdrgate_%RANDOM%_%RANDOM%"
 if exist "%WORK%" rmdir /s /q "%WORK%"
 mkdir "%WORK%"
+if errorlevel 1 (
+  echo error: failed to create work directory %WORK% 1>&2
+  exit /b 2
+)
 
 REM /W4 /WX matches ORT; /external:W0 suppresses STL warnings so only our headers gate.
 set "FLAGS=/nologo /std:c++17 /permissive- /W4 /WX /EHsc /experimental:external /external:anglebrackets /external:W0"
@@ -58,6 +72,15 @@ for %%h in ("%PUB%\*.hpp" "%PUB%\*.h") do (
     )
   )
 )
+
+REM No headers compiled means PUB matched nothing -- treat it as a failure rather
+REM than a silent pass.
+if "!OKC!"=="0" if "%FAIL%"=="0" (
+  echo error: no public headers found under %PUB% 1>&2
+  set "FAIL=1"
+)
+
+rmdir /s /q "%WORK%" 2>nul
 
 if "%FAIL%"=="1" (
   echo Public header gate FAILED.
