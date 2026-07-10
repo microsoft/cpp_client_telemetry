@@ -156,6 +156,7 @@ namespace MAT_NS_BEGIN {
         // CancelAllRequests() is where cancellation actually blocks, so pass the
         // best-effort deadline down to bound it; the manager-level drain below is the
         // bound for the async-handler platforms. A zero timeout means "drain fully".
+        const auto cancelStart = std::chrono::steady_clock::now();
         cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
 
         // Drain in-flight callbacks via a condition variable signaled from
@@ -176,7 +177,15 @@ namespace MAT_NS_BEGIN {
             // already satisfied; the real blocking there is the transport-level wait
             // (WinInet condition-variable wait, WinRt poll), which is bounded by the
             // same best-effort deadline passed into CancelAllRequests above.
-            if (!m_httpCallbacksCV.wait_for(lock, m_cancelDrainTimeout,
+            //
+            // Treat m_cancelDrainTimeout as the total budget for the pause: subtract the
+            // time already spent in the transport cancel so the whole path holds the
+            // LogManager lock for at most ~m_cancelDrainTimeout, not up to 2x it.
+            const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - cancelStart);
+            const auto remaining = (elapsed < m_cancelDrainTimeout)
+                ? (m_cancelDrainTimeout - elapsed) : std::chrono::milliseconds::zero();
+            if (!m_httpCallbacksCV.wait_for(lock, remaining,
                     [this] { return m_httpCallbacks.empty(); }))
             {
                 LOG_WARN("cancelAllRequests: %zu callback(s) still draining after %lld ms (best-effort)",

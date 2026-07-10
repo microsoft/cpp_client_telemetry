@@ -364,9 +364,22 @@ namespace MAT_NS_BEGIN {
         }
         while (!done)
         {
-            if (bounded && std::chrono::steady_clock::now() >= deadline)
-                break;
-            PAL::sleep(100);
+            if (bounded)
+            {
+                const auto now = std::chrono::steady_clock::now();
+                if (now >= deadline)
+                    break;
+                // Sleep no longer than the remaining budget so the bounded wait does not
+                // overshoot bestEffortTimeout by up to a full poll interval.
+                long long remainingMs = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now).count();
+                if (remainingMs < 1) remainingMs = 1;
+                if (remainingMs > 100) remainingMs = 100;
+                PAL::sleep(static_cast<unsigned>(remainingMs));
+            }
+            else
+            {
+                PAL::sleep(100);
+            }
             std::this_thread::yield();
             {
                 std::lock_guard<std::mutex> lock(m_requestsMutex);

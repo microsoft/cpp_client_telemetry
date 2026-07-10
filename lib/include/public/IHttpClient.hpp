@@ -545,13 +545,22 @@ namespace MAT_NS_BEGIN
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
         /// <summary>
-        /// Cancels all pending requests. bestEffortTimeout bounds how long the client
-        /// may block waiting for in-flight requests to drain before returning: the
-        /// default of zero drains fully (the caller requires all in-flight requests to
-        /// finish, e.g. at shutdown), while a positive value is a best-effort cap for
-        /// callers that must not block indefinitely (e.g. pause).
+        /// Cancels all pending requests, draining fully before returning. Overriding
+        /// this method remains supported for backward compatibility: the SDK invokes the
+        /// timed overload below, whose default implementation forwards here, so existing
+        /// IHttpClient implementations that only override CancelAllRequests() keep working.
         /// </summary>
-        virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero()) { (void)bestEffortTimeout; }
+        virtual void CancelAllRequests() {}
+
+        /// <summary>
+        /// Cancels all pending requests, bounding how long the client may block waiting
+        /// for in-flight requests to drain. A zero timeout drains fully (the caller
+        /// requires all in-flight requests to finish, e.g. at shutdown); a positive value
+        /// is a best-effort cap for callers that must not block indefinitely (e.g. pause).
+        /// The default implementation ignores the timeout and forwards to
+        /// CancelAllRequests().
+        /// </summary>
+        virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) { (void)bestEffortTimeout; CancelAllRequests(); }
 
         /// <summary>
         /// Apply HTTP settings from the log configuration.

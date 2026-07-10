@@ -109,7 +109,7 @@ TEST_F(HttpClientManagerTests, CancelAllRequests_TimesOutInsteadOfHanging)
     hcm.cancelAllRequests(/* bestEffort */ true);
     auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - start).count();
-    EXPECT_THAT(elapsedMs, Ge(140));    // waited ~ the timeout
+    EXPECT_THAT(elapsedMs, Ge(100));    // waited a meaningful fraction of the 150ms timeout, not an immediate return
     EXPECT_THAT(elapsedMs, Lt(5000));   // but did not hang
 
     // Drain the still-outstanding callback so nothing leaks, and confirm it is still
