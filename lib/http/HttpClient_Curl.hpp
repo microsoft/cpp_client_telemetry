@@ -209,15 +209,15 @@ public:
         // future to join in any case, so destruction is safe on any thread -- including
         // the worker thread itself, which is where it happens when the callback drops
         // the last other reference.
-        // OnDestroy is dispatched only when this operation is destroyed before its
-        // send completed -- i.e. it was never sent, or construction failed. Every
-        // SendAsync path (normal, abort, and the synchronous fallbacks) runs the
-        // completion callback and sets m_completed first, and once that callback has
-        // run m_callback may already be freed: synchronous-handler builds delete the
-        // IHttpResponseCallback inside onHttpResponse, called from the completion
-        // callback. Dispatching through it then would be a use-after-free, so it is
-        // suppressed. (Consequently the curl client does not emit OnDestroy for a
-        // request that was actually sent.)
+        // OnDestroy is dispatched only when this operation is destroyed without its send
+        // ever having run -- i.e. SendAsync was never called. Once RunSendAndCallback
+        // runs it sets m_completed regardless of the result (even when Send() fails
+        // immediately, e.g. curl_easy_init returns an error), and once the completion
+        // callback has run m_callback may already be freed: synchronous-handler builds
+        // delete the IHttpResponseCallback inside onHttpResponse, called from the
+        // completion callback. Dispatching through it then would be a use-after-free, so
+        // it is suppressed. (Consequently the curl client does not emit OnDestroy for a
+        // request whose send was attempted.)
         if (!m_completed.load(std::memory_order_acquire))
         {
             DispatchEvent(OnDestroy);
