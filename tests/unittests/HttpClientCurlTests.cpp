@@ -17,6 +17,7 @@
 #include <memory>
 #include <atomic>
 #include <thread>
+#include <cstdlib>
 
 using namespace testing;
 using namespace MAT;
@@ -30,11 +31,14 @@ protected:
     const std::vector<uint8_t> m_body;
 };
 
-// Ensure a detached async operation is fully destroyed before the test returns, so the
-// worker's curl_easy_cleanup cannot race fixture teardown (m_client -> curl_global_cleanup).
-// The .invalid host fails DNS in milliseconds, so this normally completes immediately; a
-// stuck worker is aborted as a fallback. Returns whether the operation was destroyed.
-static bool DrainOperation(const std::weak_ptr<CurlHttpOperation>& weakOp)
+// Wait for a detached async operation to be fully destroyed before the test returns, so
+// the worker's curl_easy_cleanup cannot race fixture teardown (m_client ->
+// curl_global_cleanup). These operations are not tracked by HttpClient_Curl::m_activeOps,
+// so nothing else bounds that race. The .invalid host fails DNS in milliseconds, so this
+// normally completes immediately; a stuck worker is aborted as a fallback. If the
+// operation is STILL alive after that (a genuine keepalive/abort regression), hard-stop
+// the process rather than proceed into curl_global_cleanup with an in-flight curl worker.
+static void DrainOperationOrDie(const std::weak_ptr<CurlHttpOperation>& weakOp)
 {
     for (int i = 0; i < 500 && !weakOp.expired(); ++i)
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -45,7 +49,12 @@ static bool DrainOperation(const std::weak_ptr<CurlHttpOperation>& weakOp)
         for (int i = 0; i < 500 && !weakOp.expired(); ++i)
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    return weakOp.expired();
+    if (!weakOp.expired())
+    {
+        ADD_FAILURE() << "detached curl worker did not terminate after abort; hard-stopping "
+                         "so curl_global_cleanup cannot run concurrently with an in-flight worker";
+        std::abort();
+    }
 }
 
 // --- SetSslVerification wiring ---
@@ -200,8 +209,7 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
     // whether the send completed: the callback sets the promise while the detached
     // worker still holds its self-reference, so the worker (and its curl_easy_cleanup)
     // can outlive this frame and race fixture teardown (m_client -> curl_global_cleanup).
-    // Drain (with an abort fallback) so the operation is gone first.
-    ASSERT_TRUE(DrainOperation(weakOp)) << "operation still alive after abort; worker may outlive teardown";
+    DrainOperationOrDie(weakOp);
     EXPECT_TRUE(completed) << "SendAsync did not complete within 15s";
 }
 
@@ -271,8 +279,8 @@ TEST_F(HttpClientCurlTests, SendAsync_NoOnDestroyDispatchAfterCompletion)
 
     // Ensure the operation is destroyed before this test returns so the worker cannot
     // outlive fixture teardown (m_client -> curl_global_cleanup); cb is heap-owned and
-    // captured by the worker, so it stays alive on its own. Abort a stuck worker.
-    ASSERT_TRUE(DrainOperation(weakOp)) << "operation still alive after abort; worker may outlive teardown";
+    // captured by the worker, so it stays alive on its own.
+    DrainOperationOrDie(weakOp);
     ASSERT_TRUE(completed) << "SendAsync did not complete within 15s";
     // Let the destructor body finish so a missing OnDestroy guard (which would increment
     // the counter inside ~CurlHttpOperation) is observed rather than raced past.
