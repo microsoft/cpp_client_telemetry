@@ -545,10 +545,13 @@ namespace MAT_NS_BEGIN
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
         /// <summary>
-        /// Cancels all pending requests, draining fully before returning. Overriding
-        /// this method remains supported for backward compatibility: the SDK invokes the
-        /// timed overload below, whose default implementation forwards here, so existing
-        /// IHttpClient implementations that only override CancelAllRequests() keep working.
+        /// Cancels all pending requests, draining fully before returning. Overriding this
+        /// method remains source-compatible: the SDK invokes the timed overload below,
+        /// whose default implementation forwards here, so existing IHttpClient
+        /// implementations that only override CancelAllRequests() keep compiling and are
+        /// still invoked. Adding the overload changes the vtable, so IHttpClient
+        /// implementations shipped as binaries must be recompiled -- consistent with the
+        /// SDK's C++ classes not being ABI-stable (only the flat C API in mat.h is).
         /// </summary>
         virtual void CancelAllRequests() {}
 
