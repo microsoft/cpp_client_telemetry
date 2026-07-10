@@ -59,15 +59,25 @@ namespace MAT_NS_BEGIN {
         // tracking, so waiting only on that tracking is not enough. Wait (bounded)
         // for all in-flight operations to finish their easy-handle cleanup before
         // curl_global_cleanup, which must not run concurrently with it.
+        bool drained;
         {
             std::unique_lock<std::mutex> lock(m_activeOps->mtx);
-            if (!m_activeOps->cv.wait_for(lock, std::chrono::seconds(5),
-                    [this] { return m_activeOps->inFlight == 0; }))
+            drained = m_activeOps->cv.wait_for(lock, std::chrono::seconds(5),
+                    [this] { return m_activeOps->inFlight == 0; });
+            if (!drained)
             {
-                TRACE("~HttpClient_Curl: %d operation(s) still in flight after 5s\n", m_activeOps->inFlight);
+                TRACE("~HttpClient_Curl: %d operation(s) still in flight after 5s; skipping curl_global_cleanup\n", m_activeOps->inFlight);
             }
         }
-        curl_global_cleanup();
+        // curl_global_cleanup must not run concurrently with any other libcurl use,
+        // including the curl_easy_cleanup that in-flight CurlHttpOperation destructors
+        // run on their detached workers. If the drain timed out, skip it: leaking
+        // libcurl's global state once at shutdown is safer than the crash/UB of tearing
+        // it down while an easy handle is still live on another thread.
+        if (drained)
+        {
+            curl_global_cleanup();
+        }
         TRACE("Destroyed HttpClient_Curl.\n");
     };
 

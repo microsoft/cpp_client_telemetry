@@ -418,11 +418,13 @@ cleanup:
             {
                 TRACE("CurlHttpOperation callback threw unknown exception\n");
             }
-            // The completion callback may have destroyed the IHttpResponseCallback
-            // (synchronous-handler builds run onHttpResponse, which deletes it), so
-            // m_callback must not be dispatched to after this point.
-            m_completed.store(true, std::memory_order_release);
         }
+        // The send has completed. The completion callback (if any) may have destroyed
+        // the IHttpResponseCallback -- synchronous-handler builds run onHttpResponse,
+        // which deletes it -- so m_callback must not be dispatched to after this point.
+        // Set completion regardless of whether a callback was provided: a request that
+        // was actually sent must never emit OnDestroy from the destructor.
+        m_completed.store(true, std::memory_order_release);
     }
 
     void SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
