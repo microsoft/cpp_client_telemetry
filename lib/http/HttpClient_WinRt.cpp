@@ -337,7 +337,7 @@ namespace MAT_NS_BEGIN {
         }
     }
 
-    void HttpClient_WinRt::CancelAllRequests()
+    void HttpClient_WinRt::CancelAllRequests(std::chrono::milliseconds bestEffortTimeout)
     {
         // vector of all request IDs
         std::vector<std::string> ids;
@@ -353,6 +353,10 @@ namespace MAT_NS_BEGIN {
 
         // wait for all destructors to run. Read m_requests under the lock each
         // iteration; erase() runs on the PPL continuation thread under the same lock.
+        // A zero timeout drains fully (shutdown); a positive timeout is a best-effort
+        // cap so callers such as pause do not block indefinitely.
+        const bool bounded = bestEffortTimeout > std::chrono::milliseconds::zero();
+        const auto deadline = std::chrono::steady_clock::now() + bestEffortTimeout;
         bool done;
         {
             std::lock_guard<std::mutex> lock(m_requestsMutex);
@@ -360,6 +364,8 @@ namespace MAT_NS_BEGIN {
         }
         while (!done)
         {
+            if (bounded && std::chrono::steady_clock::now() >= deadline)
+                break;
             PAL::sleep(100);
             std::this_thread::yield();
             {

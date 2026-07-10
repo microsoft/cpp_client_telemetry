@@ -14,6 +14,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <chrono>
 
 ///@cond INTERNAL_DOCS
 namespace MAT_NS_BEGIN
@@ -543,7 +544,14 @@ namespace MAT_NS_BEGIN
         /// <param name="id">A string that contains the ID of the request to cancel.</param>
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
-        virtual void CancelAllRequests() {}
+        /// <summary>
+        /// Cancels all pending requests. bestEffortTimeout bounds how long the client
+        /// may block waiting for in-flight requests to drain before returning: the
+        /// default of zero drains fully (the caller requires all in-flight requests to
+        /// finish, e.g. at shutdown), while a positive value is a best-effort cap for
+        /// callers that must not block indefinitely (e.g. pause).
+        /// </summary>
+        virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero()) { (void)bestEffortTimeout; }
 
         /// <summary>
         /// Apply HTTP settings from the log configuration.

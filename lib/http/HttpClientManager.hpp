@@ -63,7 +63,7 @@ class HttpClientManager
         void handleSendRequest(EventsUploadContextPtr const& ctx);
         virtual void scheduleOnHttpResponse(HttpCallback* callback);
         void onHttpResponse(HttpCallback* callback);
-        bool cancelAllRequestsAsync();
+        bool cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());
 
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;

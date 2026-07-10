@@ -20,7 +20,7 @@ namespace MAT_NS_BEGIN {
         virtual IHttpRequest* CreateRequest() override;
         virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
         virtual void CancelRequestAsync(std::string const& id) override;
-        virtual void CancelAllRequests() override;
+        virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) override;
 
     private:
         http_send_fn_t    m_sendFn;

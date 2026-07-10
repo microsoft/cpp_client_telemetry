@@ -192,7 +192,7 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
     testHelper->SetShouldSend(true);
 
     // Cancel all requests (none pending)
-    httpClient.CancelAllRequests();
+    httpClient.CancelAllRequests(std::chrono::milliseconds::zero());
 
     // Build request
     auto request = httpClient.CreateRequest();

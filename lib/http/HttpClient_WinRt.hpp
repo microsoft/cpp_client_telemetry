@@ -35,7 +35,7 @@ class HttpClient_WinRt : public IHttpClient {
     virtual IHttpRequest* CreateRequest() override;
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
-    virtual void CancelAllRequests() override;
+    virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) override;
     HttpClient^ getHttpClient() { return m_httpClient; }
 
   protected:

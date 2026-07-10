@@ -178,7 +178,7 @@ namespace MAT_NS_BEGIN
         IHttpRequest* CreateRequest() override;
         void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
         void CancelRequestAsync(std::string const& id) override;
-        void CancelAllRequests() override;
+        void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) override;
         void SetClient(JNIEnv* env, jobject c);
         void EraseRequest(HttpRequest*);
         HttpRequest* GetAndRemoveRequest(std::string id);

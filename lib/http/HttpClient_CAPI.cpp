@@ -203,7 +203,7 @@ namespace MAT_NS_BEGIN {
         }
     }
 
-    void HttpClient_CAPI::CancelAllRequests()
+    void HttpClient_CAPI::CancelAllRequests(std::chrono::milliseconds /*bestEffortTimeout*/)
     {
         LOG_TRACE("Cancelling all CAPI HTTP requests");
         std::vector<std::shared_ptr<HttpClient_Operation>> operations;

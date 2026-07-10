@@ -144,15 +144,19 @@ namespace MAT_NS_BEGIN {
         delete callback;
     }
 
-    bool HttpClientManager::cancelAllRequestsAsync()
+    bool HttpClientManager::cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout)
     {
-        m_httpClient.CancelAllRequests();
+        m_httpClient.CancelAllRequests(bestEffortTimeout);
         return true;
     }
 
     void HttpClientManager::cancelAllRequests(bool bestEffort)
     {
-        cancelAllRequestsAsync();
+        // On the synchronous-response-handler platforms (Windows), the transport's
+        // CancelAllRequests() is where cancellation actually blocks, so pass the
+        // best-effort deadline down to bound it; the manager-level drain below is the
+        // bound for the async-handler platforms. A zero timeout means "drain fully".
+        cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
 
         // Drain in-flight callbacks via a condition variable signaled from
         // onHttpResponse -- never a busy/poll loop, which burned 100% CPU while
@@ -169,10 +173,9 @@ namespace MAT_NS_BEGIN {
             // the async-handler platforms. On Windows (USE_SYNC_HTTPRESPONSE_HANDLER)
             // onHttpResponse drains m_httpCallbacks synchronously inside the
             // m_httpClient.CancelAllRequests() call above, so this wait is usually
-            // already satisfied and the real blocking is the transport-level wait there
-            // (WinInet condition-variable wait, WinRt poll), which is not yet bounded.
-            // Fully bounding pause on Windows requires plumbing the deadline down into
-            // IHttpClient::CancelAllRequests.
+            // already satisfied; the real blocking there is the transport-level wait
+            // (WinInet condition-variable wait, WinRt poll), which is bounded by the
+            // same best-effort deadline passed into CancelAllRequests above.
             if (!m_httpCallbacksCV.wait_for(lock, m_cancelDrainTimeout,
                     [this] { return m_httpCallbacks.empty(); }))
             {
