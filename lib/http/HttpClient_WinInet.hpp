@@ -32,6 +32,7 @@ class HttpClient_WinInet : public IHttpClient {
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) final;
     virtual void CancelRequestAsync(std::string const& id) final;
     virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) final;
+    void CancelAllRequests() final { CancelAllRequests(std::chrono::milliseconds::zero()); }
 
     virtual void ApplySettings(ILogConfiguration& config) override;
 
