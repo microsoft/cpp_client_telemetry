@@ -248,13 +248,27 @@ TEST_F(HttpClientCurlTests, SendAsync_NoOnDestroyDispatchAfterCompletion)
         callbackDone->set_value();
     });
 
-    ASSERT_EQ(done.wait_for(std::chrono::seconds(15)), std::future_status::ready);
+    if (done.wait_for(std::chrono::seconds(15)) != std::future_status::ready)
+    {
+        // The detached worker is unexpectedly still running (Send() against the
+        // non-resolving host should fail within milliseconds). Abort it and wait so
+        // it does not outlive this stack frame, which owns cb / m_headers / m_body
+        // that the worker may still read. Then fail.
+        if (auto liveOp = weakOp.lock())
+            liveOp->Abort();
+        for (int i = 0; i < 500 && !weakOp.expired(); ++i)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        FAIL() << "SendAsync did not complete within 15s";
+    }
 
     // The operation is destroyed once the worker returns and releases its
-    // self-reference; wait for that so the destructor has run.
+    // self-reference; wait for that, then let the destructor body finish so a
+    // missing guard (which would increment the counter inside ~CurlHttpOperation)
+    // is observed rather than raced past.
     for (int i = 0; i < 500 && !weakOp.expired(); ++i)
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ASSERT_TRUE(weakOp.expired());
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     EXPECT_EQ(cb.onDestroyAfterComplete.load(), 0);
 }
