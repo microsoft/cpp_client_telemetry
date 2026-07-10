@@ -44,8 +44,11 @@ function generateVersionHpp() {
 
   // Read version tag
   var ver1      = readAll("..\\Solutions\\version.txt");
-  // Remove end-of-line
-  ver1 = ver1.trim();
+  // Remove leading/trailing whitespace. Use a regex rather than String.trim() so this
+  // runs under the Windows Script Host JScript engine (cscript), which does not
+  // implement String.prototype.trim(); the global anchored pattern also fully strips
+  // trailing newlines (the CodeQL incomplete-sanitization concern).
+  ver1 = ver1.replace(/^\s+|\s+$/g, "");
   ver1 = updateYearAndDay(ver1);
   // console.log("version.txt => " + ver1 + "\n");
   var ver2 = ver1.split(".").join(",");
