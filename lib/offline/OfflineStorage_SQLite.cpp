@@ -24,6 +24,7 @@ namespace MAT_NS_BEGIN {
     class DbTransaction {
         SqliteDB* m_db;
         bool m_rollback = false;
+        bool m_finished = false;
     public:
         bool locked;
 
@@ -41,9 +42,28 @@ namespace MAT_NS_BEGIN {
             m_rollback = true;
         }
 
+        // Commit the transaction now and report whether COMMIT succeeded. On a
+        // COMMIT failure the transaction is rolled back so it is never left open,
+        // and false is returned so the caller does not treat undurable writes as
+        // stored. After this call the destructor performs no further COMMIT/ROLLBACK.
+        bool commit()
+        {
+            if (!locked || m_finished)
+            {
+                return false;
+            }
+            m_finished = true;
+            if (m_db->unlock())
+            {
+                return true;
+            }
+            m_db->rollback();
+            return false;
+        }
+
         ~DbTransaction()
         {
-            if (locked)
+            if (locked && !m_finished)
             {
                 if (m_rollback)
                 {
@@ -244,8 +264,24 @@ namespace MAT_NS_BEGIN {
                 m_observer->OnStorageFailed("Database error");
                 return false;
             }
-#endif
+            if (insertRecordUnsafe(record))
+            {
+                // Verify the COMMIT: a COMMIT that fails must not be reported as a
+                // successful store, or the caller treats an undurable write as saved.
+                stored = transaction.commit();
+                if (!stored)
+                {
+                    m_DbSizeEstimate -= std::min(m_DbSizeEstimate.load(),
+                        record.id.size() + record.tenantToken.size() + record.blob.size());
+                }
+            }
+            else
+            {
+                transaction.markForRollback();
+            }
+#else
             stored = insertRecordUnsafe(record);
+#endif
         }
 
         if (!stored) {
@@ -268,23 +304,19 @@ namespace MAT_NS_BEGIN {
             return 0;
         }
 
-        // Validate (and report rejects) up front -- before the DB-open check and
-        // the transaction -- so no observer callback runs while BEGIN EXCLUSIVE is
-        // held. The batch is all-or-nothing: if ANY record is invalid we store
-        // nothing and return 0, so a caller that re-queues the whole batch on a
-        // short return (e.g. Flush) can never duplicate records that would
-        // otherwise have been partially committed.
-        size_t validCount = 0;
-        for (auto const& i : records) {
-            if (isValidRecord(i)) {
-                ++validCount;
-            }
-        }
+        // Drop invalid records up front (each is reported by isValidRecord) so a
+        // permanently-invalid record is discarded rather than failing the whole
+        // batch. Removing them from the vector means a caller that re-queues on a
+        // short return (e.g. Flush) never re-queues a poison record -- which would
+        // be re-drained and re-rejected on every flush, blocking every valid record
+        // behind it -- while the valid remainder stays all-or-nothing.
+        records.erase(
+            std::remove_if(records.begin(), records.end(),
+                [this](StorageRecord const& record) { return !isValidRecord(record); }),
+            records.end());
 
-        if (validCount == 0) {
-            // Every record was invalid (already reported above). Match the single
-            // StoreRecord(), which returns after validation without checking
-            // DB-open.
+        if (records.empty()) {
+            // Every record was invalid (already reported).
             return 0;
         }
 
@@ -294,20 +326,16 @@ namespace MAT_NS_BEGIN {
             return 0;
         }
 
-        if (validCount != records.size()) {
-            // At least one record was invalid (already reported). Store nothing so
-            // the batch stays all-or-nothing for the caller.
-            return 0;
-        }
-
         size_t addedSize = 0;
-        bool allStored = true;
+        bool committed = false;
         {
             // Batch all inserts into a single transaction: one BEGIN EXCLUSIVE /
             // COMMIT (one fsync) for the whole flush instead of one per record.
-            // All-or-nothing: if any insert fails the transaction is rolled back,
-            // so callers (e.g. Flush) can re-queue the whole batch without risking
-            // duplicate rows (the events table has no unique record_id constraint).
+            // All-or-nothing: if any insert OR the COMMIT fails the transaction is
+            // rolled back, so callers (e.g. Flush) can re-queue the whole batch
+            // without risking duplicate rows (the events table has no unique
+            // record_id constraint).
+            bool allInserted = true;
 #ifdef ENABLE_LOCKING
             LOCKGUARD(m_lock);
             DbTransaction transaction(m_db.get());
@@ -323,22 +351,35 @@ namespace MAT_NS_BEGIN {
                     addedSize += r.id.size() + r.tenantToken.size() + r.blob.size();
                 }
                 else {
-                    allStored = false;
+                    allInserted = false;
                     break;
                 }
             }
 
-            if (!allStored) {
 #ifdef ENABLE_LOCKING
+            if (allInserted) {
+                // Verify the COMMIT: a COMMIT that fails (e.g. SQLITE_FULL/IOERR)
+                // must not be reported as success, or Flush would drop the records
+                // it already drained from memory.
+                committed = transaction.commit();
+            }
+            else {
                 transaction.markForRollback();
+            }
+#else
+            committed = allInserted;
 #endif
-                // Undo the size-estimate added by the rolled-back inserts.
+
+            if (!committed) {
+                // Nothing durably stored; undo the size estimate added by the
+                // (rolled-back) inserts.
                 m_DbSizeEstimate -= std::min(m_DbSizeEstimate.load(), addedSize);
             }
         }
 
-        if (!allStored) {
-            // The whole batch was rolled back after a write failure; report once.
+        if (!committed) {
+            // The whole batch was rolled back after an insert or COMMIT failure;
+            // report once.
             m_observer->OnStorageFailed("Database write failed");
         }
 
@@ -346,7 +387,7 @@ namespace MAT_NS_BEGIN {
         // matching the original per-record path (which ran it on every insert).
         checkStorageSizeLimits();
 
-        return allStored ? records.size() : 0;
+        return committed ? records.size() : 0;
     }
 
     // Debug routine to print record count in the DB

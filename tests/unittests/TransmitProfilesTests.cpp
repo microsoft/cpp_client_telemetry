@@ -378,7 +378,7 @@ R"([{
 TEST_F(TransmitProfilesTests, load_Json_RuleWithLowBatteryPowerState_MapsToPowerSourceLowBattery)
 {
     // A rule using the "low_battery" powerState must map to PowerSource_LowBattery
-    // rather than silently falling back to the default PowerSource_Any (#312).
+    // rather than silently falling back to the default PowerSource_Any.
     const std::string profile =
 R"([{
          "name": "LowBatteryProfile",
