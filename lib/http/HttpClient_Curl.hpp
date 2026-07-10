@@ -26,6 +26,9 @@
 #include <memory>
 #include <utility>
 #include <exception>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
 
 #include <poll.h>
 #include <curl/curl.h>
@@ -47,6 +50,15 @@
 #define TRACE(...)	// printf
 
 namespace MAT_NS_BEGIN {
+
+// Tracks the number of in-flight CurlHttpOperations so ~HttpClient_Curl can wait for
+// their detached-worker curl_easy_cleanup to finish before it runs
+// curl_global_cleanup (the two must not run concurrently).
+struct CurlOperationTracker {
+    std::mutex mtx;
+    std::condition_variable cv;
+    int inFlight = 0;
+};
 
 /**
  * Curl-based HTTP client
@@ -71,6 +83,10 @@ private:
     std::map<std::string, IHttpRequest*> m_requests;
     std::atomic<bool> m_sslVerify { true };
     std::string m_sslCaInfo;
+
+    // Tracks in-flight CurlHttpOperations so the destructor can wait for their
+    // curl_easy_cleanup to complete before curl_global_cleanup.
+    std::shared_ptr<CurlOperationTracker> m_activeOps { std::make_shared<CurlOperationTracker>() };
 };
 
 class CurlHttpOperation : public std::enable_shared_from_this<CurlHttpOperation> {
@@ -208,6 +224,30 @@ public:
         curl_easy_cleanup(curl);
         curl_slist_free_all(m_headersChunk);
         ReleaseResponse();
+
+        // Signal HttpClient_Curl that this operation's curl_easy_cleanup is done, so
+        // its destructor can safely run curl_global_cleanup once all operations end.
+        if (m_tracker)
+        {
+            std::lock_guard<std::mutex> lock(m_tracker->mtx);
+            if (--m_tracker->inFlight == 0)
+            {
+                m_tracker->cv.notify_all();
+            }
+        }
+    }
+
+    // Associate this operation with HttpClient_Curl's in-flight tracker so its
+    // lifetime (through the curl_easy_cleanup in the destructor above) is awaited
+    // before curl_global_cleanup. Called once, before the async send starts.
+    void trackWith(std::shared_ptr<CurlOperationTracker> tracker)
+    {
+        m_tracker = std::move(tracker);
+        if (m_tracker)
+        {
+            std::lock_guard<std::mutex> lock(m_tracker->mtx);
+            ++m_tracker->inFlight;
+        }
     }
 
     /**
@@ -544,6 +584,9 @@ protected:
     CURLcode res = CURLE_OK;        // Curl result OR HTTP status code if successful
 
     IHttpResponseCallback* m_callback = nullptr;
+
+    // In-flight tracker shared with HttpClient_Curl; decremented in the destructor.
+    std::shared_ptr<CurlOperationTracker> m_tracker;
 
     // Request values
     std::string m_method;

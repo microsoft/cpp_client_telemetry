@@ -54,6 +54,19 @@ namespace MAT_NS_BEGIN {
 
     HttpClient_Curl::~HttpClient_Curl()
     {
+        // Detached worker threads run curl_easy_cleanup in ~CurlHttpOperation after
+        // the request callback has already been removed from HttpClientManager's
+        // tracking, so waiting only on that tracking is not enough. Wait (bounded)
+        // for all in-flight operations to finish their easy-handle cleanup before
+        // curl_global_cleanup, which must not run concurrently with it.
+        {
+            std::unique_lock<std::mutex> lock(m_activeOps->mtx);
+            if (!m_activeOps->cv.wait_for(lock, std::chrono::seconds(5),
+                    [this] { return m_activeOps->inFlight == 0; }))
+            {
+                TRACE("~HttpClient_Curl: %d operation(s) still in flight after 5s\n", m_activeOps->inFlight);
+            }
+        }
         curl_global_cleanup();
         TRACE("Destroyed HttpClient_Curl.\n");
     };
@@ -81,15 +94,18 @@ namespace MAT_NS_BEGIN {
             sslCaInfo = m_sslCaInfo;
         }
 
-        // The operation takes the request body by value, so move it in rather than
-        // copy. curlRequest->m_body already holds the sole copy of the encoded payload:
-        // the encoder moves ctx->body into it (SimpleHttpRequest::SetBody does
-        // m_body = std::move(body)) and clears the source (HttpRequestEncoder.cpp:165-167).
-        // The request is used for a single send and is then released with the
-        // EventsUploadContext (see the AddRequest note above), so m_body is not read
-        // again after this point -- moving it avoids duplicating a potentially large
-        // upload buffer while giving the detached worker an owned buffer.
-        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, std::move(curlRequest->m_body), false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
+        // Copy the request body into the operation instead of moving it out. The
+        // detached send needs an owned buffer (the request can be released -- e.g. by
+        // cancellation -- while the worker is still sending), but the request's
+        // m_body is also read again after the send: HttpResponseDecoder emits the
+        // request payload on EVT_HTTP_OK / EVT_HTTP_ERROR when requestDone runs the
+        // decode chain, before the request is released. Moving it out would leave
+        // those debug events with an empty payload -- a curl-only regression versus
+        // the WinInet and NSURLSession clients, which leave the request intact.
+        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body, false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
+        // Count this operation before the async send starts so ~HttpClient_Curl waits
+        // for its curl_easy_cleanup to complete before curl_global_cleanup.
+        curlOperation->trackWith(m_activeOps);
         curlRequest->SetOperation(curlOperation);
 
         // The async Send() runs on a detached worker that holds its own shared_ptr
