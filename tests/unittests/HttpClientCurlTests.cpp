@@ -179,13 +179,15 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
     if (done.wait_for(std::chrono::seconds(15)) != std::future_status::ready)
     {
         // The detached worker is unexpectedly still running (Send() against the
-        // non-resolving host should fail within milliseconds). Best-effort: signal
-        // it to abort and give it a moment to finish so it does not outlive fixture
-        // teardown, which destroys m_client (curl_global_cleanup) and the
+        // non-resolving host should fail within milliseconds). Signal it to abort, then
+        // wait for the operation to actually be destroyed (weakOp expires once the
+        // worker releases its self-reference) so the worker does not outlive this stack
+        // frame / fixture teardown, which destroys m_client (curl_global_cleanup) and the
         // m_headers/m_body it may still be reading. Then fail.
         if (auto liveOp = weakOp.lock())
             liveOp->Abort();
-        done.wait_for(std::chrono::seconds(5));
+        for (int i = 0; i < 500 && !weakOp.expired(); ++i)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         FAIL() << "SendAsync did not complete within 15s";
     }
 }
