@@ -160,10 +160,19 @@ namespace MAT_NS_BEGIN {
         std::unique_lock<std::recursive_mutex> lock(m_httpCallbacksMtx);
         if (bestEffort)
         {
-            // Pause (and similar) must not block indefinitely -- the caller may hold
-            // the LogManager lock (the observed spindump was PauseTransmission). The
-            // manager is NOT being destroyed here, so outstanding callbacks remain
+            // Pause (and similar) must not block the caller indefinitely -- it may
+            // hold the LogManager lock (the observed spindump was PauseTransmission).
+            // The manager is NOT being destroyed here, so outstanding callbacks remain
             // valid and drain later; cap the wait as a safety valve.
+            //
+            // This bounds the drain of m_httpCallbacks, which is the blocking region on
+            // the async-handler platforms. On Windows (USE_SYNC_HTTPRESPONSE_HANDLER)
+            // onHttpResponse drains m_httpCallbacks synchronously inside the
+            // m_httpClient.CancelAllRequests() call above, so this wait is usually
+            // already satisfied and the real blocking is the transport-level wait there
+            // (WinInet condition-variable wait, WinRt poll), which is not yet bounded.
+            // Fully bounding pause on Windows requires plumbing the deadline down into
+            // IHttpClient::CancelAllRequests.
             if (!m_httpCallbacksCV.wait_for(lock, m_cancelDrainTimeout,
                     [this] { return m_httpCallbacks.empty(); }))
             {
