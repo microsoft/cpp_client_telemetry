@@ -185,16 +185,16 @@ namespace MAT_NS_BEGIN {
             // persist to disk.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
 
-            // Persist the whole batch to disk in a single transaction. The disk
-            // StoreRecords() is all-or-nothing on both backends: it returns the
-            // full count on success, or 0 if nothing was committed (SQLite rolls
-            // the transaction back; Room returns 0 on a failed JNI batch). So a
-            // zero result means nothing was persisted -- return every record to
-            // the in-memory queue for retry. No events are lost, and there are no
-            // duplicates because a failed batch leaves nothing on disk.
-            // (We key off == 0 rather than < size so that a non-zero-but-capped
-            // count -- only possible for batches larger than the RAM queue can
-            // ever hold -- is not mistaken for a failure.)
+            // Persist the drained batch to disk in a single transaction.
+            // StoreRecords() commits as many records as it durably can and
+            // returns that count. Records it can never store (e.g. ones failing
+            // validation, reported separately) are dropped from the batch rather
+            // than counted, so a return of 0 with records still queued means a
+            // transient failure committed nothing -- return those records to the
+            // in-memory queue for retry. No events are lost, and a rolled-back
+            // batch leaves nothing on disk, so re-queuing cannot create duplicates
+            // (the events table has no unique record_id constraint). A non-zero
+            // count means those records are durably stored; do not re-queue.
             size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
             if (totalSaved == 0 && !records.empty())
             {

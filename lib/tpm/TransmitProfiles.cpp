@@ -107,7 +107,7 @@ namespace MAT_NS_BEGIN {
                 // Custom profiles may supply fewer than three timers, so read
                 // out-of-range slots as 0 instead of indexing past the vector.
                 auto timerOrZero = [&rule](size_t idx) { return idx < rule.timers.size() ? rule.timers[idx] : 0; };
-                LOG_TRACE("[%d] netCost=%2d, powState=%2d, timers=[%3d,%3d,%3d]",
+                LOG_TRACE("[%zu] netCost=%2d, powState=%2d, timers=[%3d,%3d,%3d]",
                     i, rule.netCost, rule.powerState,
                     timerOrZero(0),
                     timerOrZero(1),
