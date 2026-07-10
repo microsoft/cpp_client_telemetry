@@ -8,6 +8,7 @@
 
 #include <exception>
 #include <system_error>
+#include <atomic>
 
 #if defined(MATSDK_PAL_CPP11) || defined(MATSDK_PAL_WIN32)
 
@@ -39,6 +40,10 @@ namespace PAL_NS_BEGIN {
         Event                 m_event;
         MAT::Task*            m_itemInProgress;
         bool                  m_shuttingDown = false;
+        // Set when the last reference is released by a task running on this worker
+        // thread, so threadFunc performs the final delete after its loop breaks
+        // (see onLastReferenceReleased() and WorkerThreadFactory::Create()).
+        std::atomic<bool>     m_disposeFromThread { false };
 
     public:
 
@@ -104,6 +109,42 @@ namespace PAL_NS_BEGIN {
                 for (auto task : m_timerQueue) { delete task; }
                 m_timerQueue.clear();
             }
+        }
+
+        // Invoked by the shared_ptr deleter when the last reference is released.
+        // Returns true if the caller should delete the object, false if deletion was
+        // deferred to the worker thread. The worker is shared process-wide, so the
+        // last reference can be dropped by a task running on the worker thread itself
+        // (e.g. a task that tears down its LogManager/PAL). In that case threadFunc is
+        // still on the stack below the task and keeps touching members after the task
+        // returns, so freeing the object here would be a use-after-free: instead
+        // detach, signal shutdown, mark the thread to delete itself once its loop
+        // breaks, and leave the object alive. On any other thread it is safe to delete
+        // immediately (~WorkerThread joins the worker first).
+        bool onLastReferenceReleased()
+        {
+            if (m_hThread.get_id() == std::this_thread::get_id())
+            {
+                {
+                    LOCKGUARD(m_lock);
+                    if (!m_shuttingDown) {
+                        m_shuttingDown = true;
+                        m_queue.push_back(new WorkerThreadShutdownItem());
+                        m_event.post();
+                    }
+                }
+                m_disposeFromThread.store(true, std::memory_order_release);
+                try {
+                    if (m_hThread.joinable()) {
+                        m_hThread.detach();
+                    }
+                }
+                catch (const std::exception& e) {
+                    LOG_ERROR("Worker self-detach failed: %s", e.what());
+                }
+                return false;
+            }
+            return true;
         }
 
         void Queue(MAT::Task* item) final
@@ -314,13 +355,28 @@ namespace PAL_NS_BEGIN {
                     }
                 }
             }
+
+            // The loop has broken on a Shutdown item. If the last reference was
+            // released by a task on this worker thread, onLastReferenceReleased()
+            // detached and deferred deletion to us; perform it now, after all member
+            // access is done, so the object outlives threadFunc rather than being
+            // freed underneath it.
+            if (self->m_disposeFromThread.load(std::memory_order_acquire)) {
+                delete self;
+            }
         }
     };
 
     namespace WorkerThreadFactory {
         std::shared_ptr<ITaskDispatcher> Create()
         {
-            return std::make_shared<WorkerThread>();
+            // Custom deleter so that a last-reference release happening on the worker
+            // thread itself defers destruction to the thread (see
+            // onLastReferenceReleased) instead of freeing the object underneath a
+            // still-running threadFunc.
+            return std::shared_ptr<WorkerThread>(
+                new WorkerThread(),
+                [](WorkerThread* self) { if (self->onLastReferenceReleased()) delete self; });
         }
     }
 
