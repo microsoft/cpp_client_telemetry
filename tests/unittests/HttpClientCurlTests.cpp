@@ -190,6 +190,14 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         FAIL() << "SendAsync did not complete within 15s";
     }
+
+    // Success path: the callback set the promise, but the detached worker still holds
+    // its self-reference until RunSendAndCallback returns. Wait (bounded) for the
+    // operation to be destroyed so its curl_easy_cleanup cannot race with fixture
+    // teardown (m_client -> curl_global_cleanup).
+    for (int i = 0; i < 500 && !weakOp.expired(); ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    EXPECT_TRUE(weakOp.expired());
 }
 
 // A stack-constructed operation is not owned by a shared_ptr, so shared_from_this()
