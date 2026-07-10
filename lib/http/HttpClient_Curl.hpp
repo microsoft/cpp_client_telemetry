@@ -200,13 +200,15 @@ public:
      */
     virtual ~CurlHttpOperation()
     {
-        // The async Send() runs on a detached worker that holds a shared_ptr to
-        // this operation (see SendAsync), so this destructor runs only after that
-        // worker has finished and released its reference. The curl handle, response
-        // buffer and owned request body are therefore no longer in use.
-        // There is no future to join, so destruction is safe on any thread --
-        // including the worker thread itself, which is where it happens when the
-        // callback drops the last other reference.
+        // When Send() ran asynchronously, it was on a detached worker that held a
+        // shared_ptr to this operation (see SendAsync), so this destructor runs only
+        // after that worker finished and released its reference; the curl handle,
+        // response buffer and owned request body are then no longer in use. It can also
+        // run without any async worker: for an operation that was never sent, or when
+        // SendAsync fell back to a synchronous run on the caller's thread. There is no
+        // future to join in any case, so destruction is safe on any thread -- including
+        // the worker thread itself, which is where it happens when the callback drops
+        // the last other reference.
         // OnDestroy is dispatched only when this operation is destroyed before its
         // send completed -- i.e. it was never sent, or construction failed. Every
         // SendAsync path (normal, abort, and the synchronous fallbacks) runs the
