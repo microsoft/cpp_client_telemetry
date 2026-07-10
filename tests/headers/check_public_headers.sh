@@ -29,11 +29,13 @@ EXCLUDES=(
 )
 
 INCLUDES="-I$PUB -I$REPO_ROOT/lib/include"
-# Mirror this repo's own pipeline warning flags plus what ORT applies to its C++
-# translation units. -Wno-unused-parameter matches this repo's WARN_FLAGS (and
-# ORT's Clang build); intentional unused parameters in the public headers use the
-# UNREFERENCED_PARAMETER macro.
-BASE_FLAGS="-std=c++17 -Wall -Wextra -Werror -Wno-unused-parameter"
+# Mirror the strict warning flags third-party consumers build with
+# (-Wall -Wextra -Werror, matching this repo's pipeline and ORT). Unused
+# parameters are deliberately NOT suppressed: intentional ones use the
+# UNREFERENCED_PARAMETER macro, which expands to (void)(...) on GCC/Clang, so the
+# headers stay warning-clean without a blanket -Wno-unused-parameter that would
+# hide a real consumer break (e.g. an override that leaves a parameter unused).
+BASE_FLAGS="-std=c++17 -Wall -Wextra -Werror"
 
 is_excluded() {
   local n="$1" e
