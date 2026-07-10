@@ -84,11 +84,20 @@ jobs:
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
-          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null 2>&1; then
+          # Distinguish "tag exists" (0) from "connected, no such tag" (2) from a
+          # transport/auth error (other). Fail closed: on an indeterminate result
+          # do NOT proceed to the --clobber upload, which could overwrite an
+          # already-published asset out from under its pinned checksum.
+          rc=0
+          git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null 2>&1 || rc=$?
+          if [ "$rc" -eq 0 ]; then
             echo "::notice::SPM tag ${{ steps.ver.outputs.spm_version }} already exists; leaving its published artifact and checksum untouched (re-uploading a differently-hashed zip would break consumers pinned to the existing checksum)."
             echo "published=true" >> "$GITHUB_OUTPUT"
-          else
+          elif [ "$rc" -eq 2 ]; then
             echo "published=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Could not determine whether SPM tag ${{ steps.ver.outputs.spm_version }} is already published (git ls-remote exit $rc); refusing to risk clobbering a published asset." 1>&2
+            exit 1
           fi
 
       - name: Build MATTelemetry.xcframework
