@@ -228,22 +228,26 @@ TEST_F(HttpClientCurlTests, SendAsync_NoOnDestroyDispatchAfterCompletion)
                 onDestroyAfterComplete++;
         }
     };
-    TrackingCallback cb;
+    // Heap-own the callback and tie its lifetime to the detached worker (the completion
+    // lambda below captures the shared_ptr by value). In the timeout/FAIL path the worker
+    // may still be running when this test returns, so a stack callback captured by
+    // reference could be read after it is destroyed -- a use-after-free.
+    auto cb = std::make_shared<TrackingCallback>();
 
     auto callbackDone = std::make_shared<std::promise<void>>();
     auto done = callbackDone->get_future();
 
     auto op = std::make_shared<CurlHttpOperation>(
-        "GET", "http://selfjoin.regression.invalid/", &cb, m_headers, m_body,
+        "GET", "http://selfjoin.regression.invalid/", cb.get(), m_headers, m_body,
         false, 1 /*connTimeout*/, false /*sslVerify*/, "");
     std::weak_ptr<CurlHttpOperation> weakOp = op;
     auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
 
-    (*box)->SendAsync([box, callbackDone, &cb](CurlHttpOperation&) {
+    (*box)->SendAsync([box, callbackDone, cb](CurlHttpOperation&) {
         // Mark completion, then drop the last external reference on the worker
         // thread -- mirroring onHttpResponse deleting the callback and releasing
         // the request while the worker still holds its self-reference.
-        cb.completed.store(true);
+        cb->completed.store(true);
         box->reset();
         callbackDone->set_value();
     });
@@ -252,8 +256,9 @@ TEST_F(HttpClientCurlTests, SendAsync_NoOnDestroyDispatchAfterCompletion)
     {
         // The detached worker is unexpectedly still running (Send() against the
         // non-resolving host should fail within milliseconds). Abort it and wait so
-        // it does not outlive this stack frame, which owns cb / m_headers / m_body
-        // that the worker may still read. Then fail.
+        // it does not outlive this stack frame, which owns the m_headers / m_body the
+        // worker may still read. (cb is heap-owned and captured by the worker, so it
+        // stays alive on its own.) Then fail.
         if (auto liveOp = weakOp.lock())
             liveOp->Abort();
         for (int i = 0; i < 500 && !weakOp.expired(); ++i)
@@ -270,7 +275,7 @@ TEST_F(HttpClientCurlTests, SendAsync_NoOnDestroyDispatchAfterCompletion)
     ASSERT_TRUE(weakOp.expired());
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    EXPECT_EQ(cb.onDestroyAfterComplete.load(), 0);
+    EXPECT_EQ(cb->onDestroyAfterComplete.load(), 0);
 }
 
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT
