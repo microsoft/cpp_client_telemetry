@@ -15,6 +15,8 @@
 #include <future>
 #include <chrono>
 #include <memory>
+#include <atomic>
+#include <thread>
 
 using namespace testing;
 using namespace MAT;
@@ -204,6 +206,57 @@ TEST_F(HttpClientCurlTests, SendAsync_NotSharedOwned_RunsSynchronouslyNoThrow)
     op.SendAsync([&callbackRan](CurlHttpOperation&) { callbackRan = true; });
 
     EXPECT_TRUE(callbackRan);
+}
+
+// Regression test for the completion-path use-after-free: in synchronous-handler
+// builds the IHttpResponseCallback is deleted inside the completion callback
+// (HttpClientManager::onHttpResponse), while the operation is kept alive slightly
+// longer by the detached worker's self-reference. The destructor must therefore
+// NOT dispatch OnDestroy through m_callback once the completion callback has run,
+// or it would touch a freed callback. Here the callback is kept alive so the
+// dispatch is observable: it must not happen after completion.
+TEST_F(HttpClientCurlTests, SendAsync_NoOnDestroyDispatchAfterCompletion)
+{
+    struct TrackingCallback : public IHttpResponseCallback
+    {
+        std::atomic<bool> completed { false };
+        std::atomic<int> onDestroyAfterComplete { 0 };
+        void OnHttpResponse(IHttpResponse* response) override { delete response; }
+        void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
+        {
+            if (state == OnDestroy && completed.load())
+                onDestroyAfterComplete++;
+        }
+    };
+    TrackingCallback cb;
+
+    auto callbackDone = std::make_shared<std::promise<void>>();
+    auto done = callbackDone->get_future();
+
+    auto op = std::make_shared<CurlHttpOperation>(
+        "GET", "http://selfjoin.regression.invalid/", &cb, m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+    std::weak_ptr<CurlHttpOperation> weakOp = op;
+    auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
+
+    (*box)->SendAsync([box, callbackDone, &cb](CurlHttpOperation&) {
+        // Mark completion, then drop the last external reference on the worker
+        // thread -- mirroring onHttpResponse deleting the callback and releasing
+        // the request while the worker still holds its self-reference.
+        cb.completed.store(true);
+        box->reset();
+        callbackDone->set_value();
+    });
+
+    ASSERT_EQ(done.wait_for(std::chrono::seconds(15)), std::future_status::ready);
+
+    // The operation is destroyed once the worker returns and releases its
+    // self-reference; wait for that so the destructor has run.
+    for (int i = 0; i < 500 && !weakOp.expired(); ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ASSERT_TRUE(weakOp.expired());
+
+    EXPECT_EQ(cb.onDestroyAfterComplete.load(), 0);
 }
 
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT

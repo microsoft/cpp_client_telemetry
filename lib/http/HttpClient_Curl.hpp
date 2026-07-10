@@ -85,6 +85,11 @@ public:
 
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
 
+    // Set once the completion callback has run. After that point the externally
+    // owned IHttpResponseCallback (m_callback) may already be destroyed, so it must
+    // not be dispatched to again (see ~CurlHttpOperation).
+    std::atomic<bool> m_completed { false };
+
     /**
      * Create local CURL instance for url and body
      *
@@ -185,7 +190,16 @@ public:
         // There is no future to join, so destruction is safe on any thread --
         // including the worker thread itself, which is where it happens when the
         // callback drops the last other reference.
-        DispatchEvent(OnDestroy);
+        // Only notify OnDestroy when the operation is destroyed before its
+        // completion callback ran (e.g. aborted, or a construction/dispatch
+        // failure). Once the callback has run, m_callback may already be freed --
+        // synchronous-handler builds run onHttpResponse, which deletes the
+        // IHttpResponseCallback, inside the completion callback -- so dispatching
+        // through it here would be a use-after-free.
+        if (!m_completed.load(std::memory_order_acquire))
+        {
+            DispatchEvent(OnDestroy);
+        }
         res = CURLE_OK;
         curl_easy_cleanup(curl);
         curl_slist_free_all(m_headersChunk);
@@ -360,6 +374,10 @@ cleanup:
             {
                 TRACE("CurlHttpOperation callback threw unknown exception\n");
             }
+            // The completion callback may have destroyed the IHttpResponseCallback
+            // (synchronous-handler builds run onHttpResponse, which deletes it), so
+            // m_callback must not be dispatched to after this point.
+            m_completed.store(true, std::memory_order_release);
         }
     }
 
