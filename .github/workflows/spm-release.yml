@@ -7,6 +7,9 @@ name: SPM release (xcframework)
 # Why a separate tag: the SDK's own release tags are 4-component (vX.Y.Z.W),
 # which is NOT valid SemVer, so Swift Package Manager ignores them. This derives
 # a 3-component tag (X.Y.Z) from the same release that SPM can resolve.
+# Only one build per 3-component version can publish: a later vX.Y.Z.W hotfix
+# with the same X.Y.Z maps to the existing SPM tag and is skipped/unsupported
+# unless this mapping changes.
 #
 # Prerequisites:
 #   * The root Package.swift (the SPM manifest) must exist at the release tag

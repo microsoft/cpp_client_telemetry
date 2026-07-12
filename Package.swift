@@ -25,7 +25,9 @@
 //   .github/workflows/spm-release.yml builds and uploads the xcframework,
 //   computes the checksum, rewrites the local `.binaryTarget(... path:)` below
 //   to `url:`+`checksum:`, and pushes the 3-component SemVer tag that SPM can
-//   resolve.
+//   resolve. Because vX.Y.Z.W release tags map to one X.Y.Z SPM tag, only one
+//   build per three-component version can publish; later fourth-component
+//   hotfixes for the same X.Y.Z are skipped unless the mapping changes.
 
 import PackageDescription
 import Foundation
