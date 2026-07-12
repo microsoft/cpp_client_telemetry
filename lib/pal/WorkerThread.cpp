@@ -31,12 +31,14 @@ namespace PAL_NS_BEGIN {
     {
     protected:
         std::thread           m_hThread;
-        // The worker thread's own id, captured once threadFunc starts. onLastReferenceReleased()
-        // uses this (rather than m_hThread.get_id()) to detect "am I running on my own worker
-        // thread?", because m_hThread.get_id() returns the default not-a-thread id after a
-        // detach() -- so this keeps self-dispose detection correct even if the thread was
-        // detached first.
-        std::atomic<std::thread::id> m_workerId { std::thread::id() };
+        // The worker thread's own id, captured under m_lock once threadFunc starts.
+        // onLastReferenceReleased() reads it (under m_lock) rather than m_hThread.get_id()
+        // to detect "am I running on my own worker thread?", because m_hThread.get_id()
+        // returns the default not-a-thread id after a detach() -- so this keeps
+        // self-dispose detection correct even if the thread was detached first. A plain
+        // std::thread::id guarded by m_lock is used rather than std::atomic<std::thread::id>,
+        // which is not portable (std::thread::id is not guaranteed trivially copyable).
+        std::thread::id       m_workerId;
 
         std::recursive_mutex  m_lock;
         std::timed_mutex      m_execution_mutex;
@@ -57,7 +59,7 @@ namespace PAL_NS_BEGIN {
         {
             m_itemInProgress = nullptr;
             m_hThread = std::thread(WorkerThread::threadFunc, static_cast<void*>(this));
-            LOG_INFO("Started new thread %u", m_hThread.get_id());
+            LOG_INFO("Started new thread %zu", std::hash<std::thread::id>{}(m_hThread.get_id()));
         }
 
         ~WorkerThread()
@@ -129,15 +131,13 @@ namespace PAL_NS_BEGIN {
         // immediately (~WorkerThread joins the worker first).
         bool onLastReferenceReleased()
         {
-            if (m_workerId.load(std::memory_order_acquire) == std::this_thread::get_id())
+            LOCKGUARD(m_lock);
+            if (m_workerId == std::this_thread::get_id())
             {
-                {
-                    LOCKGUARD(m_lock);
-                    if (!m_shuttingDown) {
-                        m_shuttingDown = true;
-                        m_queue.push_back(new WorkerThreadShutdownItem());
-                        m_event.post();
-                    }
+                if (!m_shuttingDown) {
+                    m_shuttingDown = true;
+                    m_queue.push_back(new WorkerThreadShutdownItem());
+                    m_event.post();
                 }
                 m_disposeFromThread.store(true, std::memory_order_release);
                 try {
@@ -267,8 +267,11 @@ namespace PAL_NS_BEGIN {
             uint64_t wakeupCount = 0;
 
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
-            self->m_workerId.store(std::this_thread::get_id(), std::memory_order_release);
-            LOG_INFO("Running thread %u", std::this_thread::get_id());
+            {
+                LOCKGUARD(self->m_lock);
+                self->m_workerId = std::this_thread::get_id();
+            }
+            LOG_INFO("Running thread %zu", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 
             for (;;) {
                 std::unique_ptr<MAT::Task> item = nullptr;
