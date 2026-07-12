@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-import ObjCModule
+import MATTelemetryObjC
 
 /// Wrapper class around ObjC Logger class `ODWLogger` used to events.
 public final class Logger {

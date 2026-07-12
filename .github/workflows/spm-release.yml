@@ -1,0 +1,196 @@
+name: SPM release (xcframework)
+
+# On a published SDK release, build MATTelemetry.xcframework, upload it to the
+# GitHub Release, and publish a 3-component SemVer tag for Swift Package Manager
+# whose Package.swift binaryTarget points at the uploaded artifact + checksum.
+#
+# Why a separate tag: the SDK's own release tags are 4-component (vX.Y.Z.W),
+# which is NOT valid SemVer, so Swift Package Manager ignores them. This derives
+# a 3-component tag (X.Y.Z) from the same release that SPM can resolve.
+# Only one build per 3-component version can publish: a later vX.Y.Z.W hotfix
+# with the same X.Y.Z maps to the existing SPM tag and is skipped/unsupported
+# unless this mapping changes.
+#
+# Prerequisites:
+#   * The root Package.swift (the SPM manifest) must exist at the release tag
+#     (i.e. this prototype merged to main before the release is cut).
+#   * Uses the default GITHUB_TOKEN (needs contents: write). No extra secrets.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "4-component release tag to publish for SPM (e.g. v3.10.161.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: spm-release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  spm:
+    name: Publish SPM xcframework + tag
+    # Skip drafts/pre-releases; always allow manual dispatch.
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          (github.event.release.draft == false && github.event.release.prerelease == false) }}
+    runs-on: macos-15   # provides Xcode with Apple platform SDKs (xcodebuild, swift)
+    env:
+      ARTIFACT: MATTelemetry.xcframework.zip
+    steps:
+      - name: Resolve tag and derive SPM version
+        id: ver
+        env:
+          # Pass untrusted tag values through the environment rather than
+          # interpolating ${{ ... }} into the script body.
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG:-$INPUT_TAG}"
+          if [ -z "$TAG" ]; then echo "::error::No release tag could be resolved."; exit 1; fi
+          # Only act on 4-component version tags vX.Y.Z.W.
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::Tag '$TAG' is not a 4-component version tag (expected vX.Y.Z.W)."
+              exit 1
+            fi
+            echo "::notice::Tag '$TAG' is not a 4-component version tag; nothing to publish."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          VERSION="${TAG#v}"            # X.Y.Z.W
+          SPM_VERSION="${VERSION%.*}"   # X.Y.Z  (drop the trailing build component)
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "spm_version=$SPM_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Release $TAG -> SPM tag $SPM_VERSION"
+
+      - name: Checkout the release tag
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.ver.outputs.tag }}
+          fetch-depth: 0
+          # The private lib/modules submodule is intentionally NOT fetched; the
+          # xcframework ships the core SDK + Obj-C wrappers, matching the vcpkg
+          # port (the optional modules are excluded there too).
+          submodules: false
+
+      - name: Skip if this SPM version is already published
+        id: pub
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          # Distinguish "tag exists" (0) from "connected, no such tag" (2) from a
+          # transport/auth error (other). Fail closed: on an indeterminate result
+          # do NOT proceed to the --clobber upload, which could overwrite an
+          # already-published asset out from under its pinned checksum.
+          rc=0
+          git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null 2>&1 || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            echo "::notice::SPM tag ${{ steps.ver.outputs.spm_version }} already exists; leaving its published artifact and checksum untouched (re-uploading a differently-hashed zip would break consumers pinned to the existing checksum)."
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          elif [ "$rc" -eq 2 ]; then
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Could not determine whether SPM tag ${{ steps.ver.outputs.spm_version }} is already published (git ls-remote exit $rc); refusing to risk clobbering a published asset." 1>&2
+            exit 1
+          fi
+
+      - name: Build MATTelemetry.xcframework
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          chmod +x tools/apple/build-xcframework.sh
+          tools/apple/build-xcframework.sh release
+          test -f "build/apple/$ARTIFACT"
+
+      - name: Validate SwiftPM package consumption
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          swift package dump-package > package.json
+          python3 - <<'PY'
+          import json
+          expected = {
+              "ios": "12.0",
+              "maccatalyst": "14.0",
+              "macos": "10.15",
+              "visionos": "1.0",
+          }
+          with open("package.json", encoding="utf-8") as f:
+              platforms = {
+                  item["platformName"]: item["version"]
+                  for item in json.load(f)["platforms"]
+              }
+          if platforms != expected:
+              raise SystemExit(f"Unexpected Package.swift platforms: {platforms}")
+          PY
+          swift build
+          xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme OneDSSwift -destination 'platform=macOS,variant=Mac Catalyst' build
+          xcodebuild -scheme OneDSSwift -destination 'generic/platform=visionOS Simulator' build
+
+      - name: Compute SPM checksum
+        id: sum
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        run: |
+          set -euo pipefail
+          checksum="$(swift package compute-checksum "build/apple/$ARTIFACT")"
+          echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
+
+      - name: Upload xcframework to the release
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ steps.ver.outputs.tag }}" "build/apple/$ARTIFACT" --clobber
+
+      - name: Point Package.swift at the released artifact
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        env:
+          ASSET_URL: https://github.com/${{ github.repository }}/releases/download/${{ steps.ver.outputs.tag }}/MATTelemetry.xcframework.zip
+          CHECKSUM: ${{ steps.sum.outputs.checksum }}
+        run: |
+          set -euo pipefail
+          python3 - "$ASSET_URL" "$CHECKSUM" <<'PY'
+          import re, sys
+          url, checksum = sys.argv[1], sys.argv[2]
+          path = "Package.swift"
+          src = open(path).read()
+          repl = (
+              '.binaryTarget(\n'
+              '            name: "MATTelemetry",\n'
+              f'            url: "{url}",\n'
+              f'            checksum: "{checksum}")'
+          )
+          out = re.sub(
+              r'\.binaryTarget\(\s*name:\s*"MATTelemetry",\s*path:\s*"[^"]*"\s*\)',
+              repl, src, count=1)
+          assert out != src, "binaryTarget(path:) block not found in Package.swift"
+          open(path, "w").write(out)
+          PY
+
+      - name: Commit manifest and push the 3-component SPM tag
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null; then
+            echo "::notice::SPM tag ${{ steps.ver.outputs.spm_version }} already exists; skipping tag publish."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Package.swift tools/apple/MATTelemetryAvailability.json
+          git commit -m "[spm] ${{ steps.ver.outputs.spm_version }}: pin xcframework url + checksum"
+          # The SPM tag points at this commit (release source + resolved
+          # binaryTarget). It is published as a tag only, not merged to a branch.
+          git tag -a "${{ steps.ver.outputs.spm_version }}" \
+            -m "Swift Package Manager release ${{ steps.ver.outputs.spm_version }} (from ${{ steps.ver.outputs.tag }})"
+          git push origin "refs/tags/${{ steps.ver.outputs.spm_version }}"
+          echo "Published SPM tag ${{ steps.ver.outputs.spm_version }}"

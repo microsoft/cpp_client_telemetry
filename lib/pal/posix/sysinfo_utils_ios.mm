@@ -5,8 +5,21 @@
 
 #include "sysinfo_utils_apple.hpp"
 #import <Foundation/Foundation.h>
+#include <TargetConditionals.h>
 #import <sys/utsname.h>
 #import <UIKit/UIKit.h>
+
+#if defined(TARGET_OS_VISION) && TARGET_OS_VISION
+#define MATSDK_TARGET_OS_VISION 1
+#else
+#define MATSDK_TARGET_OS_VISION 0
+#endif
+
+#if defined(__VISION_OS_VERSION_MAX_ALLOWED) || (defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && (__IPHONE_OS_VERSION_MAX_ALLOWED >= 170000))
+#define MATSDK_HAS_UI_USER_INTERFACE_IDIOM_VISION 1
+#else
+#define MATSDK_HAS_UI_USER_INTERFACE_IDIOM_VISION 0
+#endif
 
 std::string GetDeviceModel()
 {
@@ -34,7 +47,11 @@ std::string GetDeviceModel()
 
 std::string GetDeviceOsName()
 {
+#if MATSDK_TARGET_OS_VISION
+    return std::string("visionOS");
+#else
     return std::string("iOS");
+#endif
 }
 
 std::string GetDeviceId()
@@ -69,7 +86,13 @@ std::string GetDeviceOsRelease()
 }
 
 std::string GetDeviceClass() {
-#if TARGET_IPHONE_SIMULATOR
+#if MATSDK_TARGET_OS_VISION
+#if defined(TARGET_OS_SIMULATOR) && TARGET_OS_SIMULATOR
+    return "visionOS.Emulator";
+#else
+    return "visionOS.Vision";
+#endif
+#elif defined(TARGET_IPHONE_SIMULATOR) && TARGET_IPHONE_SIMULATOR
     return "iOS.Emulator";
 #else
     switch (UIDevice.currentDevice.userInterfaceIdiom) {
@@ -79,6 +102,10 @@ std::string GetDeviceClass() {
             return "iOS.Tablet";
         case UIUserInterfaceIdiomTV:
             return "iOS.AppleTV";
+#if MATSDK_HAS_UI_USER_INTERFACE_IDIOM_VISION
+        case UIUserInterfaceIdiomVision:
+            return "visionOS.Vision";
+#endif
         default:
             return {};
     }

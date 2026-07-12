@@ -4,7 +4,7 @@
 #    build-ios.sh [clean] [release|debug] ${ARCH} ${PLATFORM}
 #  where
 #    ARCH = arm64|arm64e|x86_64
-#    PLATFORM = iphoneos|iphonesimulator|xros|xrsimulator
+#    PLATFORM = iphoneos|iphonesimulator|maccatalyst|xros|xrsimulator
 
 if [ "$1" == "clean" ]; then
   echo "build-ios.sh: cleaning previous build artifacts"
@@ -37,7 +37,7 @@ elif [ "$1" == "x86_64" ]; then
   shift
 fi
 
-# the last param is expected to specify the platform name: iphoneos|iphonesimulator|xros|xrsimulator
+# the last param is expected to specify the platform name: iphoneos|iphonesimulator|maccatalyst|xros|xrsimulator
 # so if it is non-empty and it is not "device", we take it as a valid platform name
 # otherwise we fall back to old iOS logic which only supported iphoneos|iphonesimulator
 IOS_PLAT="iphonesimulator"
@@ -54,18 +54,31 @@ DEPLOYMENT_TARGET=""
 
 if [ "$IOS_PLAT" == "iphoneos" ] || [ "$IOS_PLAT" == "iphonesimulator" ]; then
   SYS_NAME="iOS"
+  IOS_SYSROOT="$IOS_PLAT"
   DEPLOYMENT_TARGET="$IOS_DEPLOYMENT_TARGET"
   if [ -z "$DEPLOYMENT_TARGET" ]; then
     DEPLOYMENT_TARGET="12.0"
     FORCE_RESET_DEPLOYMENT_TARGET=YES
   fi
+elif [ "$IOS_PLAT" == "maccatalyst" ]; then
+  SYS_NAME="iOS"
+  IOS_SYSROOT="macosx"
+  DEPLOYMENT_TARGET="$MACCATALYST_DEPLOYMENT_TARGET"
+  if [ -z "$DEPLOYMENT_TARGET" ]; then
+    DEPLOYMENT_TARGET="14.0"
+    FORCE_RESET_DEPLOYMENT_TARGET=YES
+  fi
 elif [ "$IOS_PLAT" == "xros" ] || [ "$IOS_PLAT" == "xrsimulator" ]; then
   SYS_NAME="visionOS"
+  IOS_SYSROOT="$IOS_PLAT"
   DEPLOYMENT_TARGET="$XROS_DEPLOYMENT_TARGET"
   if [ -z "$DEPLOYMENT_TARGET" ]; then
     DEPLOYMENT_TARGET="1.0"
     FORCE_RESET_DEPLOYMENT_TARGET=YES
   fi
+else
+  echo "ERROR: unsupported Apple platform '$IOS_PLAT'. Expected iphoneos, iphonesimulator, maccatalyst, xros, or xrsimulator." 1>&2
+  exit 1
 fi
 
 echo "deployment target = $DEPLOYMENT_TARGET"
@@ -88,14 +101,18 @@ if [ -f /usr/bin/clang ]; then
 fi
 
 mkdir -p out
-cd out
+cd out || { echo "ERROR: cannot enter build directory 'out'" 1>&2; exit 1; }
 
 CMAKE_PACKAGE_TYPE=tgz
 
-cmake_cmd="cmake -DCMAKE_OSX_SYSROOT=$IOS_PLAT -DCMAKE_SYSTEM_NAME=$SYS_NAME -DCMAKE_IOS_ARCH_ABI=$IOS_ARCH -DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET -DBUILD_IOS=YES -DIOS_ARCH=$IOS_ARCH -DIOS_PLAT=$IOS_PLAT -DIOS_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DFORCE_RESET_DEPLOYMENT_TARGET=$FORCE_RESET_DEPLOYMENT_TARGET $CMAKE_OPTS .."
+cmake_cmd="cmake -DCMAKE_OSX_SYSROOT=$IOS_SYSROOT -DCMAKE_SYSTEM_NAME=$SYS_NAME -DCMAKE_IOS_ARCH_ABI=$IOS_ARCH -DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET -DBUILD_IOS=YES -DIOS_ARCH=$IOS_ARCH -DIOS_PLAT=$IOS_PLAT -DIOS_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DFORCE_RESET_DEPLOYMENT_TARGET=$FORCE_RESET_DEPLOYMENT_TARGET $CMAKE_OPTS .."
 echo "${cmake_cmd}"
-eval $cmake_cmd
+eval $cmake_cmd || { echo "ERROR: cmake configuration failed for $IOS_PLAT/$IOS_ARCH" 1>&2; exit 1; }
 
-make
+make || { echo "ERROR: make failed for $IOS_PLAT/$IOS_ARCH" 1>&2; exit 1; }
 
-make package
+if [ "${MATTELEMETRY_SKIP_PACKAGE:-}" = "1" ]; then
+  echo "MATTELEMETRY_SKIP_PACKAGE=1: skipping package creation"
+else
+  make package || { echo "ERROR: make package failed for $IOS_PLAT/$IOS_ARCH" 1>&2; exit 1; }
+fi

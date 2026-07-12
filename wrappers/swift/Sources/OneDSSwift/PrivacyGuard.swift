@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-import ObjCModule
+import MATTelemetryObjC
 
 /// Wrapper to `ODWPrivacyGuard` representing Privacy Guard Hook.
 public final class PrivacyGuard {
