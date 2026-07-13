@@ -337,6 +337,11 @@ namespace MAT_NS_BEGIN {
         }
     }
 
+    void HttpClient_WinRt::CancelAllRequests()
+    {
+        CancelAllRequests(std::chrono::milliseconds::zero());
+    }
+
     void HttpClient_WinRt::CancelAllRequests(std::chrono::milliseconds bestEffortTimeout)
     {
         // vector of all request IDs

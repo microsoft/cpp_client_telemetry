@@ -64,6 +64,7 @@ class HttpClientManager
         virtual void scheduleOnHttpResponse(HttpCallback* callback);
         void onHttpResponse(HttpCallback* callback);
         bool cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());
+        void cancelTrackedRequestsAsync();
 
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;
@@ -81,4 +82,3 @@ class HttpClientManager
 };
 
 } MAT_NS_END
-

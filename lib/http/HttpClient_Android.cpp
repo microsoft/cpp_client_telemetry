@@ -330,7 +330,7 @@ namespace MAT_NS_BEGIN
         }
     }
 
-    void HttpClient_Android::CancelAllRequests(std::chrono::milliseconds /*bestEffortTimeout*/)
+    void HttpClient_Android::CancelAllRequests()
     {
         JNIEnv* env;
         if (s_java_vm->AttachCurrentThread(&env, nullptr) != JNI_OK)

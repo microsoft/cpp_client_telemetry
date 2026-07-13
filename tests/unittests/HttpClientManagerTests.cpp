@@ -2,6 +2,7 @@
 
 #include "common/Common.hpp"
 #include "common/MockIHttpClient.hpp"
+#include "http/IBoundedHttpClientCancel.hpp"
 #include "http/HttpClientManager.hpp"
 
 #include "NullObjects.hpp"
@@ -45,6 +46,12 @@ class HttpClientManagerTests : public StrictMock<Test> {
     }
 
     MOCK_METHOD1(resultRequestDone, void(EventsUploadContextPtr const &));
+};
+
+class MockBoundedIHttpClient : public MockIHttpClient, public IBoundedHttpClientCancel {
+  public:
+    using MockIHttpClient::CancelAllRequests;
+    MOCK_METHOD1(CancelAllRequests, void(std::chrono::milliseconds));
 };
 
 
@@ -103,8 +110,10 @@ TEST_F(HttpClientManagerTests, CancelAllRequests_TimesOutInsteadOfHanging)
 
     // The response never arrives, so the callback never drains from m_httpCallbacks.
     // The best-effort (pause) drain must still return, bounded by the drain timeout,
-    // rather than block forever (MockIHttpClient does not mock CancelAllRequests, so
-    // the base no-op runs and nothing completes the request).
+    // rather than block forever. MockIHttpClient does not implement the bounded
+    // cancel capability, so HttpClientManager falls back to per-request async cancel
+    // and then abandons the drain when the callback remains outstanding.
+    EXPECT_CALL(httpClientMock, CancelRequestAsync(ctx->httpRequestId)).WillOnce(Return());
     auto start = std::chrono::steady_clock::now();
     hcm.cancelAllRequests(/* bestEffort */ true);
     auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -116,4 +125,34 @@ TEST_F(HttpClientManagerTests, CancelAllRequests_TimesOutInsteadOfHanging)
     // safe to complete after cancelAllRequests abandoned the drain.
     EXPECT_CALL(*this, resultRequestDone(ctx)).WillOnce(Return());
     callback->OnHttpResponse(new SimpleHttpResponse("stall"));
+}
+
+TEST_F(HttpClientManagerTests, CancelAllRequests_UsesBoundedCancelCapability)
+{
+    MockBoundedIHttpClient boundedClient;
+    HttpClientManager4Test boundedHcm(boundedClient);
+    boundedHcm.setCancelDrainTimeout(std::chrono::milliseconds(150));
+    boundedHcm.requestDone >> requestDone;
+
+    SimpleHttpRequest* req = new SimpleHttpRequest("bounded");
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequestId = req->GetId();
+    ctx->httpRequest = req;
+    ctx->recordIdsAndTenantIds["r1"] = "t1";
+    ctx->latency = EventLatency_Normal;
+    ctx->packageIds["tenant1-token"] = 0;
+
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(boundedClient, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    boundedHcm.sendRequest(ctx);
+    ASSERT_THAT(callback, NotNull());
+
+    EXPECT_CALL(boundedClient, CancelAllRequests(std::chrono::milliseconds(150))).WillOnce(Return());
+    EXPECT_CALL(boundedClient, CancelRequestAsync(_)).Times(0);
+
+    boundedHcm.cancelAllRequests(/* bestEffort */ true);
+
+    EXPECT_CALL(*this, resultRequestDone(ctx)).WillOnce(Return());
+    callback->OnHttpResponse(new SimpleHttpResponse("bounded"));
 }

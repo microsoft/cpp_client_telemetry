@@ -184,7 +184,7 @@ void HttpClient_Apple::CancelRequestAsync(const std::string& id)
     }
 }
 
-void HttpClient_Apple::CancelAllRequests(std::chrono::milliseconds /*bestEffortTimeout*/)
+void HttpClient_Apple::CancelAllRequests()
 {
     std::vector<std::string> ids;
     {

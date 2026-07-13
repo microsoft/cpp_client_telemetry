@@ -14,7 +14,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <chrono>
 
 ///@cond INTERNAL_DOCS
 namespace MAT_NS_BEGIN
@@ -545,25 +544,10 @@ namespace MAT_NS_BEGIN
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
         /// <summary>
-        /// Cancels all pending requests, draining fully before returning. Overriding this
-        /// method remains source-compatible: the SDK invokes the timed overload below,
-        /// whose default implementation forwards here, so existing IHttpClient
-        /// implementations that only override CancelAllRequests() keep compiling and are
-        /// still invoked. Adding the overload changes the vtable, so IHttpClient
-        /// implementations shipped as binaries must be recompiled -- consistent with the
-        /// SDK's C++ classes not being ABI-stable (only the flat C API in mat.h is).
+        /// Cancels all pending requests, draining fully before returning when the
+        /// implementation owns a synchronous drain.
         /// </summary>
         virtual void CancelAllRequests() {}
-
-        /// <summary>
-        /// Cancels all pending requests, bounding how long the client may block waiting
-        /// for in-flight requests to drain. A zero timeout drains fully (the caller
-        /// requires all in-flight requests to finish, e.g. at shutdown); a positive value
-        /// is a best-effort cap for callers that must not block indefinitely (e.g. pause).
-        /// The default implementation ignores the timeout and forwards to
-        /// CancelAllRequests().
-        /// </summary>
-        virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) { (void)bestEffortTimeout; CancelAllRequests(); }
 
         /// <summary>
         /// Apply HTTP settings from the log configuration.
@@ -579,4 +563,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
-

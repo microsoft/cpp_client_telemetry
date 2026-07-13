@@ -474,7 +474,7 @@ HttpClient_WinInet::HttpClient_WinInet() :
 
 HttpClient_WinInet::~HttpClient_WinInet()
 {
-    CancelAllRequests(std::chrono::milliseconds::zero());
+    CancelAllRequests();
     ::InternetCloseHandle(m_hInternet);
 }
 
@@ -521,6 +521,11 @@ void HttpClient_WinInet::CancelRequestAsync(std::string const& id)
     }
 }
 
+
+void HttpClient_WinInet::CancelAllRequests()
+{
+    CancelAllRequests(std::chrono::milliseconds::zero());
+}
 
 void HttpClient_WinInet::CancelAllRequests(std::chrono::milliseconds bestEffortTimeout)
 {

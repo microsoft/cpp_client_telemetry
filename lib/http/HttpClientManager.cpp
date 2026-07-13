@@ -4,6 +4,7 @@
 //
 
 #include "HttpClientManager.hpp"
+#include "IBoundedHttpClientCancel.hpp"
 #include "utils/StringUtils.hpp"
 #include "pal/TaskDispatcher.hpp"
 
@@ -11,6 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#include <vector>
 
 #ifdef linux
 #include <unistd.h>
@@ -146,16 +148,61 @@ namespace MAT_NS_BEGIN {
 
     bool HttpClientManager::cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout)
     {
-        m_httpClient.CancelAllRequests(bestEffortTimeout);
+        if (bestEffortTimeout > std::chrono::milliseconds::zero())
+        {
+            auto boundedCancel = dynamic_cast<IBoundedHttpClientCancel*>(&m_httpClient);
+            if (boundedCancel != nullptr)
+            {
+                boundedCancel->CancelAllRequests(bestEffortTimeout);
+                return true;
+            }
+
+            cancelTrackedRequestsAsync();
+            return false;
+        }
+
+        m_httpClient.CancelAllRequests();
         return true;
+    }
+
+    void HttpClientManager::cancelTrackedRequestsAsync()
+    {
+        std::vector<std::string> requestIds;
+        {
+            LOCKGUARD(m_httpCallbacksMtx);
+            for (const auto& callback : m_httpCallbacks)
+            {
+                if (callback == nullptr || callback->m_ctx == nullptr)
+                {
+                    continue;
+                }
+
+                std::string id = callback->m_ctx->httpRequestId;
+                if (id.empty() && callback->m_ctx->httpRequest != nullptr)
+                {
+                    id = callback->m_ctx->httpRequest->GetId();
+                }
+                if (!id.empty())
+                {
+                    requestIds.push_back(id);
+                }
+            }
+        }
+
+        for (const auto& id : requestIds)
+        {
+            m_httpClient.CancelRequestAsync(id);
+        }
     }
 
     void HttpClientManager::cancelAllRequests(bool bestEffort)
     {
-        // On the synchronous-response-handler platforms (Windows), the transport's
-        // CancelAllRequests() is where cancellation actually blocks, so pass the
-        // best-effort deadline down to bound it; the manager-level drain below is the
-        // bound for the async-handler platforms. A zero timeout means "drain fully".
+        // On clients that opt into bounded cancellation (notably synchronous-response
+        // Windows transports), the transport's CancelAllRequests() is where
+        // cancellation actually blocks, so pass the best-effort deadline down to
+        // bound it. Older clients fall back to per-request async cancel; the
+        // manager-level drain below is the bound for those async-handler paths. A
+        // zero timeout means "drain fully".
         const auto cancelStart = std::chrono::steady_clock::now();
         cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
 
@@ -171,12 +218,12 @@ namespace MAT_NS_BEGIN {
             // valid and drain later; cap the wait as a safety valve.
             //
             // This bounds the drain of m_httpCallbacks, which is the blocking region on
-            // the async-handler platforms. On Windows (USE_SYNC_HTTPRESPONSE_HANDLER)
-            // onHttpResponse drains m_httpCallbacks synchronously inside the
-            // m_httpClient.CancelAllRequests() call above, so this wait is usually
-            // already satisfied; the real blocking there is the transport-level wait
-            // (WinInet condition-variable wait, WinRt poll), which is bounded by the
-            // same best-effort deadline passed into CancelAllRequests above.
+            // the async-handler and old-style-client fallback paths. On Windows
+            // (USE_SYNC_HTTPRESPONSE_HANDLER), bounded-capability clients drain
+            // m_httpCallbacks synchronously inside the transport cancel call above, so
+            // this wait is usually already satisfied; the real blocking there is the
+            // transport-level wait (WinInet condition-variable wait, WinRt poll), which
+            // is bounded by the same best-effort deadline passed into the capability.
             //
             // Treat m_cancelDrainTimeout as the total budget for the pause: subtract the
             // time already spent in the transport cancel so the whole path holds the
