@@ -9,6 +9,7 @@
 #include "NullObjects.hpp"
 
 #include <cstdio>
+#include <memory>
 #include <sstream>
 
 using namespace testing;
@@ -214,6 +215,108 @@ namespace
     };
 }
 
+namespace MAT_NS_BEGIN {
+
+    class OfflineStorageHandlerTestPeer
+    {
+    public:
+        static void SetObserver(OfflineStorageHandler& handler, IOfflineStorageObserver& observer)
+        {
+            handler.m_observer = &observer;
+        }
+
+        static void SetMemoryStorage(OfflineStorageHandler& handler, IOfflineStorage* storage)
+        {
+            handler.m_offlineStorageMemory.reset(storage);
+        }
+
+        static void SetDiskStorage(OfflineStorageHandler& handler, std::shared_ptr<IOfflineStorage> storage)
+        {
+            handler.m_offlineStorageDisk = storage;
+        }
+
+        static size_t ReturnRecordsToMemory(OfflineStorageHandler& handler, std::vector<StorageRecord> const& records)
+        {
+            return handler.ReturnRecordsToMemory(records);
+        }
+    };
+
+} MAT_NS_END
+
+TEST(OfflineStorageHandlerFlushTests, FailedMemoryRequeueIsReportedAndDropped)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+
+    OfflineStorageHandler handler(logManager, config, dispatcher);
+    OfflineStorageHandlerTestPeer::SetObserver(handler, observer);
+
+    auto* memory = new StrictMock<MockIOfflineStorage>();
+    OfflineStorageHandlerTestPeer::SetMemoryStorage(handler, memory);
+
+    std::vector<StorageRecord> records;
+    records.push_back(StorageRecord("retry-ok", "tenant-one-token",
+        EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
+        std::vector<uint8_t>{ 'x' }));
+    records.push_back(StorageRecord("retry-drop", "tenant-two-token",
+        EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
+        std::vector<uint8_t>{ 'y' }));
+
+    EXPECT_CALL(*memory, StoreRecord(_))
+        .WillOnce(Return(true))
+        .WillOnce(Return(false));
+    EXPECT_CALL(observer, OnStorageRecordsDropped(_))
+        .WillOnce(Invoke([](std::map<std::string, size_t> const& dropped) {
+            auto found = dropped.find("tenant-two-token");
+            ASSERT_NE(found, dropped.end());
+            EXPECT_EQ(found->second, static_cast<size_t>(1));
+        }));
+
+    EXPECT_EQ(OfflineStorageHandlerTestPeer::ReturnRecordsToMemory(handler, records),
+        static_cast<size_t>(1));
+}
+
+TEST(OfflineStorageHandlerFlushTests, BatchingOptOutUsesPerRecordDiskStores)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = false;
+
+    OfflineStorageHandler handler(logManager, config, dispatcher);
+    OfflineStorageHandlerTestPeer::SetObserver(handler, observer);
+
+    auto* memory = new StrictMock<MockIOfflineStorage>();
+    std::shared_ptr<StrictMock<MockIOfflineStorage>> disk(new StrictMock<MockIOfflineStorage>());
+    OfflineStorageHandlerTestPeer::SetMemoryStorage(handler, memory);
+    OfflineStorageHandlerTestPeer::SetDiskStorage(handler, disk);
+
+    std::vector<StorageRecord> records;
+    records.push_back(StorageRecord("per-record-1", "tenant-one-token",
+        EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
+        std::vector<uint8_t>{ 'x' }));
+    records.push_back(StorageRecord("per-record-2", "tenant-two-token",
+        EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
+        std::vector<uint8_t>{ 'y' }));
+
+    EXPECT_CALL(*memory, GetSize())
+        .WillOnce(Return(static_cast<size_t>(records.size())))
+        .WillOnce(Return(static_cast<size_t>(0)));
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 0))
+        .WillOnce(Return(records));
+    EXPECT_CALL(*disk, StoreRecords(_)).Times(0);
+    EXPECT_CALL(*disk, StoreRecord(_))
+        .Times(static_cast<int>(records.size()))
+        .WillRepeatedly(Return(true));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(records.size()));
+
+    handler.Flush();
+}
+
 // Regression test: when valid records drained from the in-memory queue fail to
 // be persisted by the disk backend during Flush() (a transient failure -- here
 // an unopenable database), they must be returned to the queue rather than lost.
@@ -297,6 +400,44 @@ TEST(OfflineStorageHandlerFlushTests, FlushDropsInvalidRecordsInsteadOfWedging)
 
     // The invalid records are dropped, not returned to the queue, so the queue
     // drains and is not wedged.
+    EXPECT_EQ(handler.GetRecordCount(), static_cast<size_t>(0));
+
+    handler.Shutdown();
+    RemoveDbFiles(dbPath.str());
+}
+
+TEST(OfflineStorageHandlerFlushTests, FlushOptOutDropsInvalidRecordsInsteadOfWedging)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    NiceMock<MockIOfflineStorageObserver> observer;
+
+    ON_CALL(config, GetOfflineStorageMaximumSizeBytes()).WillByDefault(Return(32 * 4096));
+    ON_CALL(config, GetMaximumRetryCount()).WillByDefault(Return(5));
+
+    std::ostringstream dbPath;
+    dbPath << GetTempDirectory() << "FlushOptOutDropInvalid-" << PAL::getUtcSystemTimeMs() << ".db";
+    RemoveDbFiles(dbPath.str());
+    config[CFG_STR_CACHE_FILE_PATH] = dbPath.str();
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = false;
+
+    OfflineStorageHandler handler(logManager, config, dispatcher);
+    handler.Initialize(observer);
+
+    const size_t kCount = 3;
+    for (size_t i = 0; i < kCount; i++)
+    {
+        StorageRecord r("bad-opt-out-id-" + std::to_string(i), "tenant-token",
+            EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 0,
+            std::vector<uint8_t>{ 'x' });
+        handler.StoreRecord(r);
+    }
+    EXPECT_EQ(handler.GetRecordCount(), kCount);
+
+    handler.Flush();
+
     EXPECT_EQ(handler.GetRecordCount(), static_cast<size_t>(0));
 
     handler.Shutdown();
