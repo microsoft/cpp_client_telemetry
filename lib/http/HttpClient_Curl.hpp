@@ -17,6 +17,7 @@
 #include <sstream>
 #include <vector>
 #include <iterator>
+#include <map>
 
 #include <algorithm>
 #include <numeric>
@@ -53,11 +54,28 @@ namespace MAT_NS_BEGIN {
 
 // Tracks the number of in-flight CurlHttpOperations so ~HttpClient_Curl can wait for
 // their detached-worker curl_easy_cleanup to finish before it runs
-// curl_global_cleanup (the two must not run concurrently).
+// curl_global_cleanup (the two must not run concurrently). If shutdown times
+// out, abandonCallbacks tells late workers to skip callback/log dispatch.
 struct CurlOperationTracker {
     std::mutex mtx;
     std::condition_variable cv;
     int inFlight = 0;
+    std::atomic<bool> abandonCallbacks { false };
+};
+
+// State shared with detached curl worker callbacks. A worker can outlive
+// HttpClient_Curl if shutdown's bounded drain times out, so callbacks must only
+// touch this shared state and never capture/dereference the parent client.
+struct CurlClientSharedState {
+    CurlClientSharedState() :
+        activeOps(std::make_shared<CurlOperationTracker>())
+    {
+    }
+
+    std::mutex requestsMtx;
+    std::map<std::string, IHttpRequest*> requests;
+    std::string sslCaInfo;
+    std::shared_ptr<CurlOperationTracker> activeOps;
 };
 
 /**
@@ -76,17 +94,10 @@ public:
     void SetSslVerification(bool sslVerify, const std::string& caInfo = "");
 
 private:
-    void EraseRequest(std::string const& id);
     void AddRequest(IHttpRequest* request);
 
-    std::mutex m_requestsMtx;
-    std::map<std::string, IHttpRequest*> m_requests;
+    std::shared_ptr<CurlClientSharedState> m_state { std::make_shared<CurlClientSharedState>() };
     std::atomic<bool> m_sslVerify { true };
-    std::string m_sslCaInfo;
-
-    // Tracks in-flight CurlHttpOperations so the destructor can wait for their
-    // curl_easy_cleanup to complete before curl_global_cleanup.
-    std::shared_ptr<CurlOperationTracker> m_activeOps { std::make_shared<CurlOperationTracker>() };
 };
 
 class CurlHttpOperation : public std::enable_shared_from_this<CurlHttpOperation> {
@@ -94,6 +105,10 @@ public:
 
     void DispatchEvent(HttpStateEvent type)
     {
+        if (m_tracker && m_tracker->abandonCallbacks.load(std::memory_order_acquire))
+        {
+            return;
+        }
         if (m_callback != nullptr)
         {
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
