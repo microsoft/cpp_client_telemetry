@@ -232,18 +232,13 @@ TEST(TaskDispatcherCAPITests, Join)
 namespace
 {
     // Dispatcher that always drops (and deletes) the task, modeling the
-    // shutdown-drop path where QueueWithResult() reports failure.
+    // shutdown-drop path where Queue() cannot report failure.
     class DroppingTaskDispatcher : public ITaskDispatcher
     {
     public:
         bool cancelCalled = false;
         void Join() override {}
         void Queue(MAT::Task* task) override { delete task; }
-        bool QueueWithResult(MAT::Task* task) override
-        {
-            delete task;
-            return false;
-        }
         bool Cancel(MAT::Task* /*task*/, uint64_t /*waitTime*/ = 0) override
         {
             cancelCalled = true;
@@ -290,4 +285,3 @@ TEST(TaskDispatcherCAPITests, ExecuteCallbackThatThrowsIsContained)
     EXPECT_NO_THROW(dispatchTask(&taskDispatcher, testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/));
     EXPECT_EQ(wasExecuted, true);
 }
-

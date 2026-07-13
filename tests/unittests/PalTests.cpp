@@ -211,6 +211,12 @@ namespace
         void ThrowNonStdException() { throw 123; }
         void Signal(std::atomic<bool>* ran) { ran->store(true); }
     };
+
+    class WorkerThreadScheduleTarget
+    {
+    public:
+        void Callback() {}
+    };
 }
 
 // A task throwing an exception must be contained by the worker thread loop;
@@ -237,6 +243,18 @@ TEST_F(PalTests, WorkerThreadContainsThrowingTask)
     EXPECT_TRUE(ranAfterNonStdThrow.load());
 
     dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskAfterWorkerThreadJoinReturnsNoOpHandle)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    dispatcher->Join();
+    WorkerThreadScheduleTarget target;
+
+    auto handle = PAL::scheduleTask(dispatcher.get(), 100, &target, &WorkerThreadScheduleTarget::Callback);
+
+    EXPECT_EQ(handle.m_task, nullptr);
+    EXPECT_TRUE(handle.Cancel());
 }
 
 namespace

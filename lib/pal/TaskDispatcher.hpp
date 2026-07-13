@@ -16,6 +16,7 @@
 #include <climits>
 #include <algorithm>
 #include <atomic>
+#include <memory>
 #include <utility>
 
 #include "ITaskDispatcher.hpp"
@@ -24,6 +25,15 @@
 namespace PAL_NS_BEGIN {
 
     namespace detail {
+
+        struct TaskLifetimeState
+        {
+            TaskLifetimeState() :
+                task(nullptr)
+            {}
+
+            std::atomic<MAT::Task*> task;
+        };
 
         template<typename TCall>
         class TaskCall : public Task
@@ -48,14 +58,35 @@ namespace PAL_NS_BEGIN {
                 this->TargetTime = targetTime;
             }
 
+            TaskCall(TCall& call, int64_t targetTime, std::shared_ptr<TaskLifetimeState> lifetimeState) :
+                Task(),
+                m_call(call),
+                m_lifetimeState(std::move(lifetimeState))
+            {
+                this->TypeName = TYPENAME(call);
+                this->Type = Task::TimedCall;
+                this->TargetTime = targetTime;
+                if (m_lifetimeState) {
+                    m_lifetimeState->task.store(this, std::memory_order_release);
+                }
+            }
+
             virtual void operator()() override
             {
                 m_call();
             }
 
-            virtual ~TaskCall() noexcept = default;
+            virtual ~TaskCall() noexcept
+            {
+                if (m_lifetimeState) {
+                    m_lifetimeState->task.store(nullptr, std::memory_order_release);
+                }
+            }
 
             const TCall m_call;
+
+        private:
+            std::shared_ptr<TaskLifetimeState> m_lifetimeState;
         };
 
     } // namespace detail
@@ -121,16 +152,17 @@ namespace PAL_NS_BEGIN {
     DeferredCallbackHandle scheduleTask(MAT::ITaskDispatcher* taskDispatcher, unsigned delayMs, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
     {
         auto bound = std::bind(std::mem_fn(func), obj, std::forward<TPassedArgs>(args)...);
-        auto task = new detail::TaskCall<decltype(bound)>(bound, getMonotonicTimeMs() + (int64_t)delayMs);
-        if (!taskDispatcher->QueueWithResult(task))
+        auto taskLifetime = std::make_shared<detail::TaskLifetimeState>();
+        auto task = new detail::TaskCall<decltype(bound)>(bound, getMonotonicTimeMs() + (int64_t)delayMs, taskLifetime);
+        taskDispatcher->Queue(task);
+        // Queue() is void; an SDK dispatcher that rejects by deleting the task
+        // synchronously clears this state before Queue() returns.
+        auto queuedTask = taskLifetime->task.load(std::memory_order_acquire);
+        if (queuedTask == nullptr)
         {
-            // The dispatcher could not queue the task (for example during
-            // shutdown) and has already destroyed it. Return a no-op handle so the
-            // caller never holds a pointer to a freed task and Cancel() is a safe
-            // no-op.
             return DeferredCallbackHandle();
         }
-        return DeferredCallbackHandle(task, taskDispatcher);
+        return DeferredCallbackHandle(queuedTask, taskDispatcher);
     }
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
@@ -142,4 +174,3 @@ namespace PAL_NS_BEGIN {
 } PAL_NS_END
 
 #endif
-

@@ -155,17 +155,12 @@ namespace PAL_NS_BEGIN {
 
         void Queue(MAT::Task* item) final
         {
-            QueueWithResult(item);
-        }
-
-        bool QueueWithResult(MAT::Task* item) override
-        {
             LOG_INFO("queue item=%p", static_cast<void*>(item));
             LOCKGUARD(m_lock);
             if (m_shuttingDown) {
                 LOG_WARN("Dropping queued task %p during shutdown", static_cast<void*>(item));
                 delete item;
-                return false;
+                return;
             }
             if (item->Type == MAT::Task::TimedCall) {
                 auto it = m_timerQueue.begin();
@@ -178,7 +173,6 @@ namespace PAL_NS_BEGIN {
                 m_queue.push_back(item);
             }
             m_event.post();
-            return true;
         }
 
         // Cancel a task or wait for task completion for up to waitTime ms:
