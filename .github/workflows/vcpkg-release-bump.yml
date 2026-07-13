@@ -147,6 +147,31 @@ jobs:
           mv "${MANIFEST}.tmp" "${MANIFEST}"
           ./vcpkg format-manifest "${MANIFEST}"
 
+      - name: Validate updated production port
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          cd vcpkg
+          MANIFEST="ports/${PORT}/vcpkg.json"
+
+          # Exercise the real production path: MATSDK_VCPKG_SOURCE_DIR must be
+          # unset so the port downloads the just-updated REF/SHA512 instead of
+          # accidentally validating this workflow's working tree. This catches
+          # manifest/portfile changes that require source changes not present in
+          # the release tag.
+          unset MATSDK_VCPKG_SOURCE_DIR
+
+          PORT_SPEC="${PORT}"
+          if jq -e '(.features["minimal-sqlite"] != null) and (.features["curl-openssl"] != null)' "${MANIFEST}" >/dev/null; then
+            # Use an opt-in feature set when available so release validation covers
+            # feature wiring as well as the default graph. The default graph is
+            # still covered by regular vcpkg CI and by consumers.
+            PORT_SPEC="${PORT}[core,minimal-sqlite,curl-openssl]"
+          fi
+
+          echo "Validating production port: ${PORT_SPEC}"
+          ./vcpkg install "${PORT_SPEC}" --triplet x64-linux --clean-after-build
+
       - name: Detect change
         id: diff
         if: ${{ steps.ver.outputs.skip != 'true' }}
