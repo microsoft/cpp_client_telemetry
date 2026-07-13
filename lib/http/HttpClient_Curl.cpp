@@ -54,7 +54,44 @@ namespace MAT_NS_BEGIN {
 
     HttpClient_Curl::~HttpClient_Curl()
     {
-        curl_global_cleanup();
+        auto state = m_state;
+        auto activeOps = state->activeOps;
+
+        // Detached worker threads run curl_easy_cleanup in ~CurlHttpOperation after
+        // the request callback has already been removed from HttpClientManager's
+        // tracking, so waiting only on that tracking is not enough. Wait (bounded)
+        // for all in-flight operations to finish their easy-handle cleanup before
+        // curl_global_cleanup, which must not run concurrently with it.
+        bool drained;
+        {
+            std::unique_lock<std::mutex> lock(activeOps->mtx);
+            drained = activeOps->cv.wait_for(lock, std::chrono::seconds(5),
+                    [activeOps] { return activeOps->inFlight == 0; });
+            if (!drained)
+            {
+                TRACE("~HttpClient_Curl: %d operation(s) still in flight after 5s; skipping curl_global_cleanup\n", activeOps->inFlight);
+            }
+        }
+        if (!drained)
+        {
+            activeOps->abandonCallbacks.store(true, std::memory_order_release);
+            std::lock_guard<std::mutex> lock(state->requestsMtx);
+            // Detached workers capture this shared state, not HttpClient_Curl. If the
+            // bounded drain times out, the client object is about to be destroyed; do
+            // not retain raw request pointers or dispatch late response/logging
+            // callbacks that may refer to shutdown-owned state. The worker will erase
+            // no-op and drop the response instead of dereferencing the destroyed client.
+            state->requests.clear();
+        }
+        // curl_global_cleanup must not run concurrently with any other libcurl use,
+        // including the curl_easy_cleanup that in-flight CurlHttpOperation destructors
+        // run on their detached workers. If the drain timed out, skip it: leaking
+        // libcurl's global state once at shutdown is safer than the crash/UB of tearing
+        // it down while an easy handle is still live on another thread.
+        if (drained)
+        {
+            curl_global_cleanup();
+        }
         TRACE("Destroyed HttpClient_Curl.\n");
     };
 
@@ -65,6 +102,8 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_Curl::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
+        auto state = m_state;
+
         // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
         AddRequest(request);
         auto curlRequest = static_cast<CurlHttpRequest*>(request);
@@ -77,16 +116,43 @@ namespace MAT_NS_BEGIN {
 
         std::string sslCaInfo;
         {
-            std::lock_guard<std::mutex> lock(m_requestsMtx);
-            sslCaInfo = m_sslCaInfo;
+            std::lock_guard<std::mutex> lock(state->requestsMtx);
+            sslCaInfo = state->sslCaInfo;
         }
 
+        // Copy the request body into the operation instead of moving it out. The
+        // detached send needs an owned buffer (the request can be released -- e.g. by
+        // cancellation -- while the worker is still sending), but the request's
+        // m_body is also read again after the send: HttpResponseDecoder emits the
+        // request payload on EVT_HTTP_OK / EVT_HTTP_ERROR when requestDone runs the
+        // decode chain, before the request is released. Moving it out would leave
+        // those debug events with an empty payload -- a curl-only regression versus
+        // the WinInet and NSURLSession clients, which leave the request intact.
         auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body, false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
+        // Count this operation before the async send starts so ~HttpClient_Curl waits
+        // for its curl_easy_cleanup to complete before curl_global_cleanup.
+        curlOperation->trackWith(state->activeOps);
         curlRequest->SetOperation(curlOperation);
-        
-        // The lifetime of curlOperation is guarnteed by the call to result.wait() in the d'tor.  
-        curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {
-            this->EraseRequest(requestId);
+
+        // The async Send() runs on a detached worker that holds its own shared_ptr
+        // to curlOperation (see CurlHttpOperation::SendAsync), so the operation --
+        // and its curl handle, response buffer and owned copy of the request body --
+        // stay alive until Send() and the callback below have finished, regardless
+        // of when the owning CurlHttpRequest is released. If the callback leads to
+        // that request being destroyed on the worker thread (OnHttpResponse ->
+        // EventsUploadContext::clear()), the operation is simply destroyed there
+        // once the worker returns; there is no future to join.
+        curlOperation->SendAsync([state, callback, requestId](CurlHttpOperation& operation) {
+            const bool abandonCallback = state->activeOps->abandonCallbacks.load(std::memory_order_acquire);
+            {
+                std::lock_guard<std::mutex> lock(state->requestsMtx);
+                state->requests.erase(requestId);
+            }
+            if (abandonCallback)
+            {
+                TRACE("HttpClient_Curl shutdown abandoned response callback for %s\n", requestId.c_str());
+                return;
+            }
 
             auto response = std::unique_ptr<SimpleHttpResponse>(new SimpleHttpResponse(requestId));
             response->m_result = HttpResult_OK;
@@ -116,14 +182,16 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_Curl::CancelRequestAsync(std::string const& id)
     {
+        auto state = m_state;
         CurlHttpRequest* request = nullptr;
         {
             // Hold the lock only while iterating over the list of requests
-            std::lock_guard<std::mutex> lock(m_requestsMtx);
-            if (m_requests.find(id) != m_requests.cend()) {
-                request = static_cast<CurlHttpRequest*>(m_requests[id]);
+            std::lock_guard<std::mutex> lock(state->requestsMtx);
+            auto requestIt = state->requests.find(id);
+            if (requestIt != state->requests.cend()) {
+                request = static_cast<CurlHttpRequest*>(requestIt->second);
                 LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
-                m_requests.erase(id);
+                state->requests.erase(requestIt);
             }
         }
 
@@ -142,23 +210,18 @@ namespace MAT_NS_BEGIN {
     void HttpClient_Curl::SetSslVerification(bool sslVerify, const std::string& caInfo)
     {
         m_sslVerify = sslVerify;
-        std::lock_guard<std::mutex> lock(m_requestsMtx);
-        m_sslCaInfo = caInfo;
-    }
-
-    void HttpClient_Curl::EraseRequest(std::string const& id)
-    {
-        std::lock_guard<std::mutex> lock(m_requestsMtx);
-        m_requests.erase(id);
+        auto state = m_state;
+        std::lock_guard<std::mutex> lock(state->requestsMtx);
+        state->sslCaInfo = caInfo;
     }
 
     void HttpClient_Curl::AddRequest(IHttpRequest* request)
     {
-        std::lock_guard<std::mutex> lock(m_requestsMtx);
-        m_requests[request->GetId()] = request;
+        auto state = m_state;
+        std::lock_guard<std::mutex> lock(state->requestsMtx);
+        state->requests[request->GetId()] = request;
     }
 
 } MAT_NS_END
 
 #endif
-

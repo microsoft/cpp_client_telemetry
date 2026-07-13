@@ -12,6 +12,13 @@
 #include "http/HttpClient_Curl.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
+#include <future>
+#include <chrono>
+#include <memory>
+#include <atomic>
+#include <thread>
+#include <cstdlib>
+
 using namespace testing;
 using namespace MAT;
 
@@ -23,6 +30,32 @@ protected:
     const std::map<std::string, std::string> m_headers;
     const std::vector<uint8_t> m_body;
 };
+
+// Wait for a detached async operation to be fully destroyed before the test returns, so
+// the worker's curl_easy_cleanup cannot race fixture teardown (m_client ->
+// curl_global_cleanup). These operations are not tracked by HttpClient_Curl::m_activeOps,
+// so nothing else bounds that race. The .invalid host fails DNS in milliseconds, so this
+// normally completes immediately; a stuck worker is aborted as a fallback. If the
+// operation is STILL alive after that (a genuine keepalive/abort regression), hard-stop
+// the process rather than proceed into curl_global_cleanup with an in-flight curl worker.
+static void DrainOperationOrDie(const std::weak_ptr<CurlHttpOperation>& weakOp)
+{
+    for (int i = 0; i < 500 && !weakOp.expired(); ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    if (!weakOp.expired())
+    {
+        if (auto liveOp = weakOp.lock())
+            liveOp->Abort();
+        for (int i = 0; i < 500 && !weakOp.expired(); ++i)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    if (!weakOp.expired())
+    {
+        ADD_FAILURE() << "detached curl worker did not terminate after abort; hard-stopping "
+                         "so curl_global_cleanup cannot run concurrently with an in-flight worker";
+        std::abort();
+    }
+}
 
 // --- SetSslVerification wiring ---
 
@@ -124,6 +157,136 @@ TEST_F(HttpClientCurlTests, SetSslVerification_ConcurrentCallsNoRace)
         f.get();
     }
     SUCCEED();
+}
+
+// --- Regression: EDEADLK self-join in ~CurlHttpOperation ---
+
+// When the async callback drops the last *external* reference to the operation,
+// ~CurlHttpOperation runs on the worker thread. The old std::async design joined
+// its own future there (self-join) and aborted the process with
+// std::system_error("Resource deadlock avoided"). The worker now holds a
+// shared_ptr keepalive and there is no future, so destruction on the worker thread
+// is trivial and safe. This test aborts the process on the old code and passes on
+// the fix.
+TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
+{
+    // Heap-owned promise so a captured copy keeps it alive: if the ASSERT below
+    // fails and the test returns early, the still-detached worker can safely call
+    // set_value() on it instead of touching a destroyed stack promise.
+    auto callbackDone = std::make_shared<std::promise<void>>();
+    auto done = callbackDone->get_future();
+
+    // Host under the RFC 6761 reserved .invalid TLD never resolves, so Send() fails
+    // fast and deterministically (name resolution error) on any environment --
+    // unlike a fixed port, which could happen to be open.
+    auto op = std::make_shared<CurlHttpOperation>(
+        "GET", "http://selfjoin.regression.invalid/", nullptr, m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+
+    // Non-owning handle, used only to cancel the worker on the timeout path below.
+    // It must not keep the operation alive, or the callback's box->reset() would no
+    // longer drop the last external reference (the exact scenario under test).
+    std::weak_ptr<CurlHttpOperation> weakOp = op;
+
+    // A shared box holds the only external reference. The callback resets the
+    // contained shared_ptr (on the worker thread) to drop the last external
+    // reference -- the exact trigger -- without raw new/delete.
+    auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
+
+    (*box)->SendAsync([box, callbackDone](CurlHttpOperation&) {
+        // Runs on the worker thread. Drop the last external reference here. On the
+        // old code this destroyed the operation on this thread and self-joined its
+        // own future -> abort. With the keepalive fix the worker still holds a
+        // reference, so this is safe and the operation is destroyed once the worker
+        // returns.
+        box->reset();
+        callbackDone->set_value();
+    });
+
+    const bool completed = (done.wait_for(std::chrono::seconds(15)) == std::future_status::ready);
+
+    // Make sure the operation is destroyed before this test returns, regardless of
+    // whether the send completed: the callback sets the promise while the detached
+    // worker still holds its self-reference, so the worker (and its curl_easy_cleanup)
+    // can outlive this frame and race fixture teardown (m_client -> curl_global_cleanup).
+    DrainOperationOrDie(weakOp);
+    EXPECT_TRUE(completed) << "SendAsync did not complete within 15s";
+}
+
+// A stack-constructed operation is not owned by a shared_ptr, so shared_from_this()
+// throws std::bad_weak_ptr. SendAsync() must not let that escape: it falls back to a
+// synchronous run and still invokes the callback.
+TEST_F(HttpClientCurlTests, SendAsync_NotSharedOwned_RunsSynchronouslyNoThrow)
+{
+    CurlHttpOperation op(
+        "GET", "http://selfjoin.regression.invalid/", nullptr, m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+
+    bool callbackRan = false;
+    // No shared owner -> the fallback runs Send()+callback synchronously on this
+    // thread, so SendAsync() returns only after the callback has run. Capturing
+    // callbackRan by reference is therefore safe.
+    op.SendAsync([&callbackRan](CurlHttpOperation&) { callbackRan = true; });
+
+    EXPECT_TRUE(callbackRan);
+}
+
+// Regression test for the completion-path use-after-free: in synchronous-handler
+// builds the IHttpResponseCallback is deleted inside the completion callback
+// (HttpClientManager::onHttpResponse), while the operation is kept alive slightly
+// longer by the detached worker's self-reference. The destructor must therefore
+// NOT dispatch OnDestroy through m_callback once the completion callback has run,
+// or it would touch a freed callback. Here the callback is kept alive so the
+// dispatch is observable: it must not happen after completion.
+TEST_F(HttpClientCurlTests, SendAsync_NoOnDestroyDispatchAfterCompletion)
+{
+    struct TrackingCallback : public IHttpResponseCallback
+    {
+        std::atomic<bool> completed { false };
+        std::atomic<int> onDestroyAfterComplete { 0 };
+        void OnHttpResponse(IHttpResponse* response) override { delete response; }
+        void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
+        {
+            if (state == OnDestroy && completed.load())
+                onDestroyAfterComplete++;
+        }
+    };
+    // Heap-own the callback and tie its lifetime to the detached worker (the completion
+    // lambda below captures the shared_ptr by value). In the timeout/FAIL path the worker
+    // may still be running when this test returns, so a stack callback captured by
+    // reference could be read after it is destroyed -- a use-after-free.
+    auto cb = std::make_shared<TrackingCallback>();
+
+    auto callbackDone = std::make_shared<std::promise<void>>();
+    auto done = callbackDone->get_future();
+
+    auto op = std::make_shared<CurlHttpOperation>(
+        "GET", "http://selfjoin.regression.invalid/", cb.get(), m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+    std::weak_ptr<CurlHttpOperation> weakOp = op;
+    auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
+
+    (*box)->SendAsync([box, callbackDone, cb](CurlHttpOperation&) {
+        // Mark completion, then drop the last external reference on the worker
+        // thread -- mirroring onHttpResponse deleting the callback and releasing
+        // the request while the worker still holds its self-reference.
+        cb->completed.store(true);
+        box->reset();
+        callbackDone->set_value();
+    });
+
+    const bool completed = (done.wait_for(std::chrono::seconds(15)) == std::future_status::ready);
+
+    // Ensure the operation is destroyed before this test returns so the worker cannot
+    // outlive fixture teardown (m_client -> curl_global_cleanup); cb is heap-owned and
+    // captured by the worker, so it stays alive on its own.
+    DrainOperationOrDie(weakOp);
+    ASSERT_TRUE(completed) << "SendAsync did not complete within 15s";
+    // Let the destructor body finish so a missing OnDestroy guard (which would increment
+    // the counter inside ~CurlHttpOperation) is observed rather than raced past.
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    EXPECT_EQ(cb->onDestroyAfterComplete.load(), 0);
 }
 
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT
