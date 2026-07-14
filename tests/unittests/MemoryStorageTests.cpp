@@ -213,6 +213,24 @@ TEST_F(MemoryStorageTests, DeleteAllRecords)
     EXPECT_THAT(storage.GetReservedCount(), 0);
 }
 
+TEST_F(MemoryStorageTests, DeleteRecordsWithEmptyFilterDoesNotDeleteAll)
+{
+    MemoryStorage storage(testLogManager, *testConfig);
+
+    // Add some events to storage
+    auto total_db_size = addEvents(storage);
+    EXPECT_THAT(storage.GetSize(), total_db_size);
+    auto count_before = storage.GetRecordCount();
+    EXPECT_GT(count_before, static_cast<size_t>(0));
+
+    // An empty where-filter matches every record; it must NOT wipe the queue.
+    // Intentional full clears go through DeleteAllRecords().
+    storage.DeleteRecords(std::map<std::string, std::string>{});
+
+    EXPECT_THAT(storage.GetRecordCount(), count_before);
+    EXPECT_THAT(storage.GetSize(), total_db_size);
+}
+
 
 TEST_F(MemoryStorageTests, ReleaseRecords)
 {

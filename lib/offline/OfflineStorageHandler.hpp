@@ -25,6 +25,8 @@ namespace MAT_NS_BEGIN {
 
     class OfflineStorageHandler final : public IOfflineStorage, public IOfflineStorageObserver
     {
+        friend class OfflineStorageHandlerTestPeer;
+
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
         virtual ~OfflineStorageHandler() override;
@@ -85,8 +87,8 @@ namespace MAT_NS_BEGIN {
         std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
         std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
-        bool                                   m_readFromMemory;
-        unsigned                               m_lastReadCount;
+        std::atomic<bool>                      m_readFromMemory;
+        std::atomic<unsigned>                  m_lastReadCount;
 
         bool                                   m_shutdownStarted;
         unsigned                               m_memoryDbSize;
@@ -100,6 +102,11 @@ namespace MAT_NS_BEGIN {
 
     private:
         void WaitForFlush();
+        bool IsBatchedStorageFlushEnabled();
+        bool IsValidDiskRecord(StorageRecord const& record);
+        void ReportInvalidDiskRecord(StorageRecord const& record);
+        size_t StoreRecordsIndividually(std::vector<StorageRecord> const& records);
+        size_t ReturnRecordsToMemory(std::vector<StorageRecord> const& records);
 
     };
 

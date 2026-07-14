@@ -23,6 +23,8 @@ namespace MAT_NS_BEGIN {
 
     class DbTransaction {
         SqliteDB* m_db;
+        bool m_rollback = false;
+        bool m_finished = false;
     public:
         bool locked;
 
@@ -34,11 +36,43 @@ namespace MAT_NS_BEGIN {
             }
         }
 
+        // Discard the transaction (ROLLBACK) instead of committing it on destruction.
+        void markForRollback()
+        {
+            m_rollback = true;
+        }
+
+        // Commit the transaction now and report whether COMMIT succeeded. On a
+        // COMMIT failure the transaction is rolled back so it is never left open,
+        // and false is returned so the caller does not treat undurable writes as
+        // stored. After this call the destructor performs no further COMMIT/ROLLBACK.
+        bool commit()
+        {
+            if (!locked || m_finished)
+            {
+                return false;
+            }
+            m_finished = true;
+            if (m_db->unlock())
+            {
+                return true;
+            }
+            m_db->rollback();
+            return false;
+        }
+
         ~DbTransaction()
         {
-            if (locked)
+            if (locked && !m_finished)
             {
-                m_db->unlock();
+                if (m_rollback)
+                {
+                    m_db->rollback();
+                }
+                else
+                {
+                    m_db->unlock();
+                }
             }
         }
     };
@@ -147,40 +181,31 @@ namespace MAT_NS_BEGIN {
             m_db->execute(command.c_str());
     }
 
-    bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
+    bool OfflineStorage_SQLite::isValidRecord(StorageRecord const& record) const
     {
-        // TODO: [MG] - this works, but may not play nicely with several LogManager instances
-        // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
-
         if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
             m_observer->OnStorageFailed("Invalid parameters");
             return false;
         }
+        return true;
+    }
 
-        if (!m_db) {
-            LOG_ERROR("Failed to store event %s:%s: Database is not open",
+    bool OfflineStorage_SQLite::insertRecordUnsafe(StorageRecord const& record)
+    {
+        if (!SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob))
+        {
+            LOG_ERROR("Failed to store event %s:%s: database write failed",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-            m_observer->OnStorageOpenFailed("Database is not open");
             return false;
         }
+        m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
+        return true;
+    }
 
-        {
-#ifdef ENABLE_LOCKING
-            LOCKGUARD(m_lock);
-            DbTransaction transaction(m_db.get());
-            if (!transaction.locked)
-            {
-                LOG_ERROR("Failed to store event %s:%s: Database error", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-                m_observer->OnStorageFailed("Database error");
-                return false;
-            }
-#endif
-            SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
-            m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
-        }
-
+    void OfflineStorage_SQLite::checkStorageSizeLimits()
+    {
         if ((m_DbSizeNotificationLimit != 0) && (m_DbSizeEstimate>m_DbSizeNotificationLimit))
         {
             auto now = PAL::getMonotonicTimeMs();
@@ -210,20 +235,159 @@ namespace MAT_NS_BEGIN {
                 m_resizing = false;
             }
         }
+    }
 
-        return true;
+    bool OfflineStorage_SQLite::StoreRecord(StorageRecord const& record)
+    {
+        // TODO: [MG] - this works, but may not play nicely with several LogManager instances
+        // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
+
+        if (!isValidRecord(record)) {
+            return false;
+        }
+
+        if (!m_db) {
+            LOG_ERROR("Failed to store event %s:%s: Database is not open",
+                tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+            m_observer->OnStorageOpenFailed("Database is not open");
+            return false;
+        }
+
+        bool stored = false;
+        {
+#ifdef ENABLE_LOCKING
+            LOCKGUARD(m_lock);
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to store event %s:%s: Database error", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                m_observer->OnStorageFailed("Database error");
+                return false;
+            }
+            if (insertRecordUnsafe(record))
+            {
+                // Verify the COMMIT: a COMMIT that fails must not be reported as a
+                // successful store, or the caller treats an undurable write as saved.
+                stored = transaction.commit();
+                if (!stored)
+                {
+                    m_DbSizeEstimate -= std::min(m_DbSizeEstimate.load(),
+                        record.id.size() + record.tenantToken.size() + record.blob.size());
+                }
+            }
+            else
+            {
+                transaction.markForRollback();
+            }
+#else
+            stored = insertRecordUnsafe(record);
+#endif
+        }
+
+        if (!stored) {
+            // Report the write failure after the transaction has closed, so the
+            // observer callback never runs while BEGIN EXCLUSIVE is held.
+            m_observer->OnStorageFailed("Database write failed");
+        }
+
+        // Run the size-limit check after the transaction, matching the original
+        // per-record path (which ran it on every StoreRecord call).
+        checkStorageSizeLimits();
+
+        return stored;
 
     }
 
     size_t OfflineStorage_SQLite::StoreRecords(std::vector<StorageRecord> & records)
     {
-        size_t stored = 0;
-        for (auto & i : records) {
-            if (StoreRecord(i)) {
-                ++stored;
+        if (records.empty()) {
+            return 0;
+        }
+
+        // Drop invalid records up front (each is reported by isValidRecord) so a
+        // permanently-invalid record is discarded rather than failing the whole
+        // batch. Removing them from the vector means a caller that re-queues on a
+        // short return (e.g. Flush) never re-queues a poison record -- which would
+        // be re-drained and re-rejected on every flush, blocking every valid record
+        // behind it -- while the valid remainder stays all-or-nothing.
+        records.erase(
+            std::remove_if(records.begin(), records.end(),
+                [this](StorageRecord const& record) { return !isValidRecord(record); }),
+            records.end());
+
+        if (records.empty()) {
+            // Every record was invalid (already reported).
+            return 0;
+        }
+
+        if (!m_db) {
+            LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
+            m_observer->OnStorageOpenFailed("Database is not open");
+            return 0;
+        }
+
+        size_t addedSize = 0;
+        bool committed = false;
+        {
+            // Batch all inserts into a single transaction: one BEGIN EXCLUSIVE /
+            // COMMIT (one fsync) for the whole flush instead of one per record.
+            // All-or-nothing: if any insert OR the COMMIT fails the transaction is
+            // rolled back, so callers (e.g. Flush) can re-queue the whole batch
+            // without risking duplicate rows (the events table has no unique
+            // record_id constraint).
+            bool allInserted = true;
+#ifdef ENABLE_LOCKING
+            LOCKGUARD(m_lock);
+            DbTransaction transaction(m_db.get());
+            if (!transaction.locked)
+            {
+                LOG_ERROR("Failed to store %zu events: Database error", records.size());
+                m_observer->OnStorageFailed("Database error");
+                return 0;
+            }
+#endif
+            for (auto const& r : records) {
+                if (insertRecordUnsafe(r)) {
+                    addedSize += r.id.size() + r.tenantToken.size() + r.blob.size();
+                }
+                else {
+                    allInserted = false;
+                    break;
+                }
+            }
+
+#ifdef ENABLE_LOCKING
+            if (allInserted) {
+                // Verify the COMMIT: a COMMIT that fails (e.g. SQLITE_FULL/IOERR)
+                // must not be reported as success, or Flush would drop the records
+                // it already drained from memory.
+                committed = transaction.commit();
+            }
+            else {
+                transaction.markForRollback();
+            }
+#else
+            committed = allInserted;
+#endif
+
+            if (!committed) {
+                // Nothing durably stored; undo the size estimate added by the
+                // (rolled-back) inserts.
+                m_DbSizeEstimate -= std::min(m_DbSizeEstimate.load(), addedSize);
             }
         }
-        return stored;
+
+        if (!committed) {
+            // The whole batch was rolled back after an insert or COMMIT failure;
+            // report once.
+            m_observer->OnStorageFailed("Database write failed");
+        }
+
+        // Run the size-full notification / resize check once after the batch,
+        // matching the original per-record path (which ran it on every insert).
+        checkStorageSizeLimits();
+
+        return committed ? records.size() : 0;
     }
 
     // Debug routine to print record count in the DB

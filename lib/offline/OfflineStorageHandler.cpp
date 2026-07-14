@@ -9,6 +9,7 @@
 #include "offline/MemoryStorage.hpp"
 
 #include "ILogManager.hpp"
+#include "utils/Utils.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>
@@ -178,25 +179,39 @@ namespace MAT_NS_BEGIN {
         size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
-            // This will block on and then take a lock for the duration of this move, and
-            // StoreRecord() will then block until the move completes.
+            // Drain the in-memory queue into a local batch. Records are removed
+            // from memory here; any that fail to persist below are re-inserted, so
+            // a disk write failure does not silently lose events. Draining (rather
+            // than reserving) keeps only a single copy of each record in flight and
+            // avoids stamping a reservation lease that the Room backend would
+            // persist to disk.
             auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-            std::vector<StorageRecordId> ids;
 
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("BEGIN");
-
-            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
-
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("END");
-
-            // Delete records from reserved on flush
-            HttpHeaders dummy;
-            bool fromMemory = true;
-            m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
+            size_t totalSaved = 0;
+            if (IsBatchedStorageFlushEnabled())
+            {
+                // Persist the drained batch to disk in a single transaction.
+                // StoreRecords() commits as many records as it durably can and
+                // returns that count. Records it can never store (e.g. ones failing
+                // validation, reported separately) are dropped from the batch rather
+                // than counted, so a return of 0 with records still queued means a
+                // transient failure committed nothing -- return those records to the
+                // in-memory queue for retry. No events are lost, and a rolled-back
+                // batch leaves nothing on disk, so re-queuing cannot create duplicates
+                // (the events table has no unique record_id constraint). A non-zero
+                // count means those records are durably stored; do not re-queue.
+                totalSaved = m_offlineStorageDisk->StoreRecords(records);
+                if (totalSaved == 0 && !records.empty())
+                {
+                    LOG_WARN("Flush: disk store failed for the batch of %zu records; returning to the queue for retry",
+                        records.size());
+                    ReturnRecordsToMemory(records);
+                }
+            }
+            else
+            {
+                totalSaved = StoreRecordsIndividually(records);
+            }
 
             // Notify event listener about the records cached
             OnStorageRecordsSaved(totalSaved);
@@ -211,7 +226,7 @@ namespace MAT_NS_BEGIN {
         }
 
         // Checkpoint DB
-        if (m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH]) 
+        if (m_offlineStorageDisk && m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH])
         {
             m_offlineStorageDisk->Flush();
         }
@@ -247,7 +262,12 @@ namespace MAT_NS_BEGIN {
                 // are selected and removed from the cache (but will
                 // not block for the subsequent handoff to persistent
                 // storage)
-                m_offlineStorageMemory->StoreRecord(record);
+                if (!m_offlineStorageMemory->StoreRecord(record))
+                {
+                    LOG_ERROR("Failed to store event %s:%s in memory queue",
+                        tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                    return false;
+                }
             }
 
             // Perform periodic flush to disk
@@ -272,12 +292,103 @@ namespace MAT_NS_BEGIN {
             {
                 if (record.persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
                 {
-                    m_offlineStorageDisk->StoreRecord(record);
+                    // Propagate a synchronous disk write failure to the caller so a
+                    // failed store is not counted as successfully persisted.
+                    return m_offlineStorageDisk->StoreRecord(record);
                 }
             }
         }
 
         return true;
+    }
+
+    bool OfflineStorageHandler::IsBatchedStorageFlushEnabled()
+    {
+        return !m_config.HasConfig(CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH) ||
+            m_config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH];
+    }
+
+    bool OfflineStorageHandler::IsValidDiskRecord(StorageRecord const& record)
+    {
+        return !(record.id.empty() || record.tenantToken.empty() ||
+            static_cast<int>(record.latency) < 0 || record.timestamp <= 0);
+    }
+
+    void OfflineStorageHandler::ReportInvalidDiskRecord(StorageRecord const& record)
+    {
+        LOG_ERROR("Flush: dropping event %s:%s: Invalid parameters",
+            tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+        OnStorageFailed("Invalid parameters");
+    }
+
+    size_t OfflineStorageHandler::StoreRecordsIndividually(std::vector<StorageRecord> const& records)
+    {
+        size_t totalSaved = 0;
+        std::vector<StorageRecord> recordsToRetry;
+
+        for (auto it = records.begin(); it != records.end(); ++it)
+        {
+            if (!IsValidDiskRecord(*it))
+            {
+                ReportInvalidDiskRecord(*it);
+                continue;
+            }
+
+            if (m_offlineStorageDisk->StoreRecord(*it))
+            {
+                ++totalSaved;
+                continue;
+            }
+
+            for (auto retryIt = it; retryIt != records.end(); ++retryIt)
+            {
+                if (IsValidDiskRecord(*retryIt))
+                {
+                    recordsToRetry.push_back(*retryIt);
+                }
+                else
+                {
+                    ReportInvalidDiskRecord(*retryIt);
+                }
+            }
+            break;
+        }
+
+        if (!recordsToRetry.empty())
+        {
+            LOG_WARN("Flush: per-record disk store failed after saving %zu of %zu records; returning %zu records to the queue for retry",
+                totalSaved, records.size(), recordsToRetry.size());
+            ReturnRecordsToMemory(recordsToRetry);
+        }
+
+        return totalSaved;
+    }
+
+    size_t OfflineStorageHandler::ReturnRecordsToMemory(std::vector<StorageRecord> const& records)
+    {
+        size_t returned = 0;
+        DroppedMap dropped;
+
+        for (auto const& record : records)
+        {
+            if (m_offlineStorageMemory && m_offlineStorageMemory->StoreRecord(record))
+            {
+                ++returned;
+            }
+            else
+            {
+                LOG_ERROR("Flush: failed to return event %s:%s to memory queue after disk store failure; dropping record",
+                    tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                dropped[record.tenantToken]++;
+            }
+        }
+
+        if (!dropped.empty())
+        {
+            OnStorageRecordsDropped(dropped);
+        }
+
+        return returned;
     }
 
     size_t OfflineStorageHandler::StoreRecords(std::vector<StorageRecord>& records)

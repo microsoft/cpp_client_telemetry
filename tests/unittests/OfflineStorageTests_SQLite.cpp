@@ -153,6 +153,59 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReservedReturnsStoredRecord)
     EXPECT_THAT(consumer.records[0].reservedUntil, 0);
 }
 
+TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchStoresAllRecords)
+{
+    initializeStorage();
+    std::vector<StorageRecord> batch;
+    const size_t kCount = 8;
+    for (size_t i = 0; i < kCount; i++)
+    {
+        batch.push_back({ "g" + std::to_string(i), "token", EventLatency_Normal,
+            EventPersistence_Normal, static_cast<int64_t>(i + 1), { static_cast<uint8_t>(i) } });
+    }
+
+    // Every record in the batch is stored and individually retrievable. (The
+    // single-transaction batching is a performance optimization verified by
+    // benchmarking; this test covers the batch's storage correctness.)
+    EXPECT_THAT(offlineStorage->StoreRecords(batch), kCount);
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), kCount);
+    for (size_t i = 0; i < kCount; i++)
+    {
+        std::string expectedId = "g" + std::to_string(i);
+        bool found = false;
+        for (auto const& r : consumer.records)
+        {
+            if (r.id == expectedId) { found = true; break; }
+        }
+        EXPECT_TRUE(found) << "record " << expectedId << " was not retrieved";
+    }
+}
+
+TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchDropsInvalidAndStoresValid)
+{
+    initializeStorage();
+    std::vector<StorageRecord> batch = {
+        { "g1", "token", EventLatency_Normal, EventPersistence_Normal, 1, { 1 } }, // valid
+        { "g2", "token", EventLatency_Normal, EventPersistence_Normal, 0, { 2 } }, // invalid: timestamp <= 0
+    };
+
+    // The invalid record is reported once during validation.
+    EXPECT_CALL(observerMock, OnStorageFailed("Invalid parameters"));
+
+    // A permanently-invalid record is dropped (reported once) and the valid
+    // remainder is still stored. One bad record can never wedge the batch or, via
+    // a caller that re-queues on a short return (e.g. Flush), block the queue.
+    EXPECT_THAT(offlineStorage->StoreRecords(batch), static_cast<size_t>(1));
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), static_cast<size_t>(1));
+    EXPECT_THAT(consumer.records[0].id, "g1");
+}
+
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordIsNotReturned)
 {
     initializeStorage();
