@@ -145,10 +145,24 @@ The vcpkg port automatically resolves the following dependencies:
 
 | Dependency     | vcpkg Package   | CMake Target                      | Platforms          |
 | -------------- | --------------- | --------------------------------- | ------------------ |
-| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | All                |
-| zlib           | `zlib`          | `ZLIB::ZLIB`                      | All                |
+| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | Non-Apple (default; see `minimal-sqlite`). **macOS/iOS link the system `libsqlite3`** (`SQLite::SQLite3`) |
+| zlib           | `zlib`          | `ZLIB::ZLIB`                      | Non-Apple. **macOS/iOS link the system `libz`** |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
-| libcurl        | `curl[openssl]` | `CURL::libcurl`                   | Non-Windows, non-Apple |
+| libcurl        | `curl[openssl]` or `curl[mbedtls]` | `CURL::libcurl`          | Non-Windows, non-Apple (required; TLS backend selectable: OpenSSL default or mbedTLS) |
+
+On **macOS/iOS** the SDK links the OS-provided `libsqlite3` and `libz` (the same
+system libraries the SDK's Swift Package links), so the vcpkg `sqlite3` and `zlib`
+packages are not pulled there — those binaries carry no bundled SQLite/zlib.
+(`minimal-sqlite` therefore has no effect on Apple.)
+
+The external `sqlite3` package is provided by the default `system-sqlite`
+feature. The `minimal-sqlite` feature replaces it with a private, feature-stripped
+SQLite built from the SDK's vendored amalgamation — see
+[Build a private minimal SQLite](#build-a-private-minimal-sqlite-minimal-sqlite-feature).
+
+libcurl is provided by the default `curl-openssl` feature; `curl-mbedtls` swaps in
+the mbedTLS backend — see
+[Choose the HTTP client / TLS backend](#choose-the-http-client--tls-backend-largest-lever-on-linux).
 
 Windows and macOS/iOS use platform-native HTTP clients (WinInet and
 NSURLSession respectively). Android vcpkg consumers use native libcurl because
@@ -230,6 +244,54 @@ the stripping happens at your link. Keep the SDK a static dependency linked
 *into* your binary: if you re-export its API across your own DLL boundary, the
 export table pins its symbols and defeats `/OPT:REF`.
 
+### Choose the HTTP client / TLS backend (largest lever on Linux)
+
+On Linux/Android the built-in HTTP client is libcurl, and curl's TLS backend
+dominates the SDK's footprint. (Windows uses WinInet and Apple uses NSURLSession,
+so this section does not apply there.) The port exposes the TLS backend as two
+mutually-exclusive features; pick the one that matches what your application
+already has:
+
+| Feature | Transport | Approx. stripped size¹ | Use when |
+| ------- | --------- | ---------------------- | -------- |
+| `curl-openssl` (default) | libcurl + OpenSSL | ~10.6 MB | your app already links OpenSSL (share it) |
+| `curl-mbedtls` | libcurl + mbedTLS | ~4.4 MB | your app has no HTTP/TLS stack of its own |
+
+¹ Rough sizes of a minimal Linux consumer **without** consumer-side dead-stripping
+(worst case); enabling `-Wl,--gc-sections` at your link reduces them. Your numbers
+depend on triplet, dead-stripping, and what else shares those libraries.
+
+To select **mbedTLS**, two things are required in *your top-level* manifest:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": [ "minimal-sqlite", "curl-mbedtls" ]
+    },
+    { "name": "curl", "default-features": false, "features": [ "mbedtls" ] }
+  ]
+}
+```
+
+1. `"default-features": false` (the `[core,...]` form) drops **all** of the SDK's
+   default features -- both `curl-openssl` *and* `system-sqlite` -- so the SDK no
+   longer *requests* OpenSSL. Because it also drops `system-sqlite`, you must
+   re-select a SQLite backend (`minimal-sqlite` above, or `system-sqlite`);
+   otherwise the SDK configure step fails with no SQLite feature selected.
+2. The explicit top-level `curl` entry is also needed because vcpkg honors curl's
+   own `"default-features": false` **only for top-level dependencies** — curl's
+   default `ssl` feature (which pulls OpenSSL on Linux) and `non-http` are
+   installed transitively otherwise. With both, curl resolves to `curl[core,mbedtls]`
+   and OpenSSL is not built; with only the feature, you get
+   `curl[mbedtls,ssl,openssl,non-http]` (mbedTLS *and* OpenSSL). This recipe is
+   verified with `vcpkg install --dry-run`.
+
+The default install (no features specified) keeps `curl-openssl` and works out of
+the box.
+
 ### Drop unused SQLite features (json1)
 
 The SDK uses SQLite only for offline event storage — plain tables and indexes,
@@ -255,6 +317,65 @@ static `x64-windows-static` Release build):
 If any package in your build (or your own code) needs SQLite's JSON functions,
 request `sqlite3[json1]` instead and the extension is restored for the whole
 graph.
+
+### Build a private minimal SQLite (`minimal-sqlite` feature)
+
+For a larger, self-contained reduction, the port can compile a private,
+feature-stripped SQLite directly from the SDK's vendored amalgamation instead of
+linking the external `sqlite3` package at all. The SDK uses SQLite only for its
+offline event-storage cache (plain tables and indexes, transactions, WAL,
+autovacuum/`VACUUM`, a few PRAGMAs, and one custom UTF-8 SQL function), so this
+build omits the unused SQLite subsystems — `SQLITE_OMIT_JSON` plus load-extension,
+shared-cache, deprecated APIs, authorization, EXPLAIN, introspection pragmas,
+deserialize, and more. The result is **~10% smaller SQLite code** (`.text`) and
+**~13% smaller** as a stripped object, and it drops the external `sqlite3`
+dependency from your graph entirely.
+
+Enable it through the vcpkg feature:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": [ "minimal-sqlite", "curl-openssl" ]
+    }
+  ]
+}
+```
+
+Use the `[core,minimal-sqlite]` form (here, `"default-features": false` is the
+`[core]` part) so the default `system-sqlite` feature — and its `sqlite3`
+dependency — is dropped. Because `[core]` drops **all** defaults, the example
+also re-selects `curl-openssl`: on Linux/Android the built-in curl client
+requires a TLS backend, so omitting it would fail to configure (swap in
+`curl-mbedtls` for the smaller mbedTLS backend). Requesting `minimal-sqlite`
+*without* `[core]` still pulls in the default `system-sqlite`; that is harmless
+(the external `sqlite3` is installed but unused) but does not save the dependency.
+
+For a plain (non-vcpkg) CMake build, pass the option directly:
+
+```bash
+cmake -DMATSDK_MINIMAL_SQLITE=ON ..
+```
+
+The strip is **amalgamation-safe**: it changes no SQLite grammar/parser, so no
+code generation is required. All offline storage features the SDK relies on (WAL,
+autovacuum, `VACUUM`, PRAGMAs, the custom UTF-8 function, blobs, 64-bit integers,
+transactions) are retained, and the SDK's offline-storage unit tests pass
+unchanged against the minimal build.
+
+> **Caveat — symbol visibility when linking statically.** The private SQLite keeps
+> SQLite's default `sqlite3_*` symbol names. For a **shared** `mat`
+> (`mat.dll` / `libmat.so` / `libmat.dylib`), those symbols are hidden by the
+> SDK's `-fvisibility=hidden`, so there is no conflict. For a **static** `mat`,
+> the minimal SQLite is installed and exported as a separate
+> `MSTelemetry::sqlite3_bundled` archive that links into your binary; if **any**
+> part of the final static link — your own code *or another dependency* — also
+> pulls in SQLite, the duplicate `sqlite3_*` symbols will collide at link time. In
+> that case, prefer the default `system-sqlite` feature so the whole graph shares a
+> single SQLite.
 
 ## How It Works: MATSDK_USE_VCPKG_DEPS
 

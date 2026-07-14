@@ -9,6 +9,10 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${SCRIPT_DIR}/build-linux"
 OVERLAY_PORTS="${REPO_ROOT}/tools/ports"
 
+# Build the working tree under review (not a pinned release) so this test
+# validates the actual SDK source together with the port manifest/portfile.
+export MATSDK_VCPKG_SOURCE_DIR="${REPO_ROOT}"
+
 echo "=== MSTelemetry vcpkg port test (Linux) ==="
 echo "Repository root: ${REPO_ROOT}"
 
