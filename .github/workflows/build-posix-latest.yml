@@ -47,3 +47,14 @@ jobs:
       continue-on-error: true
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       run: ./build-tests.sh ${{ matrix.config }}
+
+  public-headers:
+    name: Public header gate (GCC/Clang)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install clang
+      run: sudo apt-get update && sudo apt-get install -y clang
+    - name: Compile each public header standalone under strict flags
+      run: bash tests/headers/check_public_headers.sh
