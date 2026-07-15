@@ -92,6 +92,12 @@ struct OfflineStorageTests_SQLite : public Test
             EXPECT_THAT(fileExists(storageFilename), true);
             ::remove(storageFilename.c_str());
             EXPECT_THAT(fileExists(storageFilename), false);
+            // WAL mode can leave -wal/-shm/-journal companions behind; remove them too
+            // so they don't leak into other tests that reuse the same storage filename.
+            for (const char* suffix : { "-wal", "-shm", "-journal" })
+            {
+                ::remove((storageFilename + suffix).c_str());
+            }
         }
     }
 
@@ -903,16 +909,6 @@ TEST_F(OfflineStorageTests_SQLite, ExistingFilesAreTightenedOnOpen)
         EXPECT_EQ(0, static_cast<int>(wst.st_mode & (S_IRWXG | S_IRWXO)))
             << "pre-existing -wal companion must be tightened to 0600";
     }
-
-    // Clean up the database and any companion files (the planted -wal in particular)
-    // so they don't leak into other tests that reuse the same storage filename.
-    offlineStorage->Shutdown();
-    storageInitialized = false;
-    for (const char* suffix : { "-wal", "-shm", "-journal" })
-    {
-        ::remove((storageFilename + suffix).c_str());
-    }
-    ::remove(storageFilename.c_str());
 }
 #endif
 #endif
