@@ -903,6 +903,16 @@ TEST_F(OfflineStorageTests_SQLite, ExistingFilesAreTightenedOnOpen)
         EXPECT_EQ(0, static_cast<int>(wst.st_mode & (S_IRWXG | S_IRWXO)))
             << "pre-existing -wal companion must be tightened to 0600";
     }
+
+    // Clean up the database and any companion files (the planted -wal in particular)
+    // so they don't leak into other tests that reuse the same storage filename.
+    offlineStorage->Shutdown();
+    storageInitialized = false;
+    for (const char* suffix : { "-wal", "-shm", "-journal" })
+    {
+        ::remove((storageFilename + suffix).c_str());
+    }
+    ::remove(storageFilename.c_str());
 }
 #endif
 #endif

@@ -314,11 +314,12 @@ namespace MAT_NS_BEGIN {
             // 0600. A cache created by an older SDK (before this fix) may already have
             // companion files on disk with the old 0644 mode, so tighten any pre-existing
             // ones too. POSIX only -- on Windows the Unix mode bits are meaningless (access
-            // is governed by NTFS ACLs). Best-effort: a failure (e.g. an in-memory
-            // ":memory:" database, or a filesystem that ignores chmod) must not fail the
-            // open; a missing companion (ENOENT) is expected and ignored.
+            // is governed by NTFS ACLs). Best-effort: a failure (e.g. a filesystem that
+            // ignores chmod) must not fail the open, and a missing file -- ENOENT, e.g. an
+            // in-memory ":memory:" database, which has no file to secure -- is expected and
+            // silently ignored.
 #if !defined(_WIN32)
-            if (::chmod(filename.c_str(), S_IRUSR | S_IWUSR) != 0) {
+            if (::chmod(filename.c_str(), S_IRUSR | S_IWUSR) != 0 && errno != ENOENT) {
                 LOG_WARN("Could not restrict database file permissions to 0600 (errno %d)", errno);
             }
             for (const char* suffix : { "-wal", "-shm", "-journal" }) {
