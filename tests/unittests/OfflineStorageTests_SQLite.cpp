@@ -12,6 +12,9 @@
 #include "offline/OfflineStorage_SQLite.hpp"
 #include <stdio.h>
 #include <fstream>
+#if !defined(_WIN32)
+#include <sys/stat.h>
+#endif
 
 #include "NullObjects.hpp"
 
@@ -89,6 +92,12 @@ struct OfflineStorageTests_SQLite : public Test
             EXPECT_THAT(fileExists(storageFilename), true);
             ::remove(storageFilename.c_str());
             EXPECT_THAT(fileExists(storageFilename), false);
+            // WAL mode can leave -wal/-shm/-journal companions behind; remove them too
+            // so they don't leak into other tests that reuse the same storage filename.
+            for (const char* suffix : { "-wal", "-shm", "-journal" })
+            {
+                ::remove((storageFilename + suffix).c_str());
+            }
         }
     }
 
@@ -839,4 +848,67 @@ TEST_F(OfflineStorageTests_SQLite, SqliteDbInstancesAreCounted)
     shutdownAndRemoveFile();
     EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 0);
 }
+
+#if !defined(_WIN32)
+// SECURITY: the offline cache buffers pending telemetry/audit events, so it must
+// not be world-readable. SQLite creates the file 0644 by default; SQLiteWrapper
+// tightens it to 0600 after open, and the -wal/-journal companions inherit that
+// mode from the main database file. POSIX-only (mode bits are meaningless on
+// Windows, where access is governed by NTFS ACLs).
+TEST_F(OfflineStorageTests_SQLite, CacheFileCreatedOwnerReadWriteOnly)
+{
+    initializeStorage();
+
+    struct stat st;
+    ASSERT_EQ(0, ::stat(storageFilename.c_str(), &st)) << "cache database file was not created";
+    EXPECT_EQ(static_cast<mode_t>(S_IRUSR | S_IWUSR), static_cast<mode_t>(st.st_mode & 0777))
+        << "offline cache database must be created 0600, not world-readable";
+
+    // Any WAL/journal/shm companion that exists must not grant group or other access
+    // (SQLite derives their permissions from the main database file's mode).
+    for (const char* suffix : { "-wal", "-journal", "-shm" })
+    {
+        struct stat cst;
+        const std::string companion = storageFilename + suffix;
+        if (::stat(companion.c_str(), &cst) == 0)
+        {
+            EXPECT_EQ(0, static_cast<int>(cst.st_mode & (S_IRWXG | S_IRWXO)))
+                << "companion file " << suffix << " must not be group/world accessible";
+        }
+    }
+}
+
+// A cache written by an older SDK (or left behind after a crash) can have the
+// database and companion files already on disk with the old world-readable 0644
+// mode; SQLite only derives 0600 for companions it creates itself. Opening the
+// storage must re-tighten both the database and any pre-existing companion.
+TEST_F(OfflineStorageTests_SQLite, ExistingFilesAreTightenedOnOpen)
+{
+    initializeStorage();
+    offlineStorage->Shutdown();
+    storageInitialized = false;
+
+    // Simulate an old cache: loosen the database and plant a leftover -wal at 0644.
+    const mode_t loose = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; // 0644
+    ASSERT_EQ(0, ::chmod(storageFilename.c_str(), loose));
+    const std::string wal = storageFilename + "-wal";
+    std::ofstream(wal, std::ios::binary);          // empty leftover companion
+    ASSERT_EQ(0, ::chmod(wal.c_str(), loose));
+
+    // Reopen -- the open path must re-tighten both files.
+    initializeStorage();
+
+    struct stat st;
+    ASSERT_EQ(0, ::stat(storageFilename.c_str(), &st));
+    EXPECT_EQ(0, static_cast<int>(st.st_mode & (S_IRWXG | S_IRWXO)))
+        << "reopened database must be tightened to 0600";
+
+    struct stat wst;
+    if (::stat(wal.c_str(), &wst) == 0)
+    {
+        EXPECT_EQ(0, static_cast<int>(wst.st_mode & (S_IRWXG | S_IRWXO)))
+            << "pre-existing -wal companion must be tightened to 0600";
+    }
+}
+#endif
 #endif
