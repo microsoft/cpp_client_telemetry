@@ -98,7 +98,7 @@ didCompleteWithError:(NSError*)error
         overCap = [_overCap containsObject:key];
         [_handlers removeObjectForKey:key];
         [_buffers removeObjectForKey:key];
-        [_overCap removeObjectForKey:key];
+        [_overCap removeObject:key];
     }
     if (handler == nil)
     {
