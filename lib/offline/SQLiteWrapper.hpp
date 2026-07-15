@@ -16,6 +16,11 @@
 #include <vector>
 #include <string>
 
+#if !defined(_WIN32)
+#include <sys/stat.h>
+#include <cerrno>
+#endif
+
 namespace MAT_NS_BEGIN {
 
     using SQLRecord = std::vector<std::string>;
@@ -299,6 +304,21 @@ namespace MAT_NS_BEGIN {
             }
 
             g_sqlite3Proxy->sqlite3_extended_result_codes(m_db, 1);
+
+            // SECURITY: the offline cache buffers pending telemetry/audit events
+            // (tenant ids, user identifiers, serialized event payloads). SQLite creates
+            // the database file with SQLITE_DEFAULT_FILE_PERMISSIONS -- 0644, i.e.
+            // world-readable -- so restrict it to owner read/write only (0600). This runs
+            // before WAL is enabled: SQLite derives the -wal/-journal permissions from the
+            // main database file (findCreateFileMode), so those companions inherit 0600.
+            // POSIX only -- on Windows the Unix mode bits are meaningless (access is
+            // governed by NTFS ACLs). Best-effort: a failure (e.g. an in-memory ":memory:"
+            // database, or a filesystem that ignores chmod) must not fail the open.
+#if !defined(_WIN32)
+            if (::chmod(filename.c_str(), S_IRUSR | S_IWUSR) != 0) {
+                LOG_WARN("Could not restrict database file permissions to 0600 (errno %d)", errno);
+            }
+#endif
 
             if (!registerTokenizeFunction()) {
                 shutdown();
