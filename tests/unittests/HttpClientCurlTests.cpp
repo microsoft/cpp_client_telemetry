@@ -171,8 +171,13 @@ protected:
     // HttpServer::Callback -- returns a body of m_responseBodySize bytes.
     int onHttpRequest(HttpServer::Request const& /*request*/, HttpServer::Response& response) override
     {
+        size_t bodySize;
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            bodySize = m_responseBodySize;
+        }
         response.headers["Content-Type"] = "application/octet-stream";
-        response.content = std::string(m_responseBodySize, 'A');
+        response.content = std::string(bodySize, 'A');
         return 200;
     }
 
@@ -201,8 +206,8 @@ protected:
             m_result = HttpResult{};
             m_statusCode = 0;
             m_bodySize = 0;
+            m_responseBodySize = bodySize; // read under the same lock by onHttpRequest
         }
-        m_responseBodySize = bodySize;
         m_request.reset(m_client.CreateRequest());
         m_request->SetUrl("http://" + m_hostname + "/huge/");
         m_client.SendRequestAsync(m_request.get(), this);
