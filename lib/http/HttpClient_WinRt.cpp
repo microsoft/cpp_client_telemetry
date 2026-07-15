@@ -221,56 +221,69 @@ namespace MAT_NS_BEGIN {
                 // the framework does not pre-buffer the whole body; reading it here in
                 // chunks ensures an oversized response is never fully materialized in
                 // memory (a hostile/MITM'd collector cannot exhaust process memory).
-                IInputStream^ inputStream = nullptr;
+                // task::wait()/get() rethrow if a read faults, so guard the whole stream.
+                try
                 {
-                    auto streamOp = m_httpResponseMessage->Content->ReadAsInputStreamAsync();
-                    auto streamTask = create_task(streamOp, m_cancellationTokenSource.get_token());
-                    if (streamTask.wait() == task_status::completed)
+                    IInputStream^ inputStream = nullptr;
                     {
-                        inputStream = streamTask.get();
+                        auto streamOp = m_httpResponseMessage->Content->ReadAsInputStreamAsync();
+                        auto streamTask = create_task(streamOp, m_cancellationTokenSource.get_token());
+                        if (streamTask.wait() == task_status::completed)
+                        {
+                            inputStream = streamTask.get();
+                        }
+                    }
+
+                    if (inputStream == nullptr)
+                    {
+                        response->m_result = HttpResult_NetworkFailure;
+                    }
+                    else
+                    {
+                        const unsigned int chunkSize = 64 * 1024;
+                        for (;;)
+                        {
+                            Buffer^ chunk = ref new Buffer(chunkSize);
+                            auto readOp = inputStream->ReadAsync(chunk, chunkSize, InputStreamOptions::Partial);
+                            auto readTask = create_task(readOp, m_cancellationTokenSource.get_token());
+                            if (readTask.wait() != task_status::completed)
+                            {
+                                response->m_result = HttpResult_NetworkFailure;
+                                break;
+                            }
+
+                            IBuffer^ readBuffer = readTask.get();
+                            unsigned int readLength = (readBuffer != nullptr) ? readBuffer->Length : 0;
+                            if (readLength == 0)
+                            {
+                                break; // end of stream
+                            }
+
+                            if (response->m_body.size() + readLength > MAX_HTTP_RESPONSE_SIZE)
+                            {
+                                LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
+                                response->m_result = HttpResult_NetworkFailure;
+                                break;
+                            }
+
+                            const size_t oldSize = response->m_body.size();
+                            response->m_body.resize(oldSize + readLength);
+                            DataReader^ dataReader = DataReader::FromBuffer(readBuffer);
+                            dataReader->ReadBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(response->m_body.data() + oldSize), readLength)));
+                            dataReader->DetachBuffer();
+                            delete dataReader;
+                        }
+                        delete inputStream;
                     }
                 }
-
-                if (inputStream == nullptr)
+                catch (Platform::Exception^ ex)
                 {
+                    LOG_WARN("Reading HTTP response body failed: 0x%08x", ex->HResult);
                     response->m_result = HttpResult_NetworkFailure;
                 }
-                else
+                catch (...)
                 {
-                    const unsigned int chunkSize = 64 * 1024;
-                    for (;;)
-                    {
-                        Buffer^ chunk = ref new Buffer(chunkSize);
-                        auto readOp = inputStream->ReadAsync(chunk, chunkSize, InputStreamOptions::Partial);
-                        auto readTask = create_task(readOp, m_cancellationTokenSource.get_token());
-                        if (readTask.wait() != task_status::completed)
-                        {
-                            response->m_result = HttpResult_NetworkFailure;
-                            break;
-                        }
-
-                        IBuffer^ readBuffer = readTask.get();
-                        unsigned int readLength = (readBuffer != nullptr) ? readBuffer->Length : 0;
-                        if (readLength == 0)
-                        {
-                            break; // end of stream
-                        }
-
-                        if (response->m_body.size() + readLength > MAX_HTTP_RESPONSE_SIZE)
-                        {
-                            LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
-                            response->m_result = HttpResult_NetworkFailure;
-                            break;
-                        }
-
-                        const size_t oldSize = response->m_body.size();
-                        response->m_body.resize(oldSize + readLength);
-                        DataReader^ dataReader = DataReader::FromBuffer(readBuffer);
-                        dataReader->ReadBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(response->m_body.data() + oldSize), readLength)));
-                        dataReader->DetachBuffer();
-                        delete dataReader;
-                    }
-                    delete inputStream;
+                    response->m_result = HttpResult_NetworkFailure;
                 }
             }
             else

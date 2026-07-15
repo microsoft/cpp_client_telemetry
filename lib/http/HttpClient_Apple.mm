@@ -93,7 +93,7 @@ didCompleteWithError:(NSError*)error
     BOOL overCap = NO;
     @synchronized(self)
     {
-        handler = _handlers[key];
+        handler = (void (^)(NSData*, NSURLResponse*, NSError*))_handlers[key];
         body = _buffers[key];
         overCap = [_overCap containsObject:key];
         [_handlers removeObjectForKey:key];
