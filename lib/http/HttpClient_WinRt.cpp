@@ -228,17 +228,19 @@ namespace MAT_NS_BEGIN {
                     {
                         auto streamOp = m_httpResponseMessage->Content->ReadAsInputStreamAsync();
                         auto streamTask = create_task(streamOp, m_cancellationTokenSource.get_token());
-                        if (streamTask.wait() == task_status::completed)
+                        auto status = streamTask.wait();
+                        if (status == task_status::completed)
                         {
                             inputStream = streamTask.get();
                         }
+                        else
+                        {
+                            // Caller-initiated cancel maps to Aborted; anything else is a failure.
+                            response->m_result = (status == task_status::canceled) ? HttpResult_Aborted : HttpResult_NetworkFailure;
+                        }
                     }
 
-                    if (inputStream == nullptr)
-                    {
-                        response->m_result = HttpResult_NetworkFailure;
-                    }
-                    else
+                    if (inputStream != nullptr)
                     {
                         const unsigned int chunkSize = 64 * 1024;
                         for (;;)
@@ -246,9 +248,12 @@ namespace MAT_NS_BEGIN {
                             Buffer^ chunk = ref new Buffer(chunkSize);
                             auto readOp = inputStream->ReadAsync(chunk, chunkSize, InputStreamOptions::Partial);
                             auto readTask = create_task(readOp, m_cancellationTokenSource.get_token());
-                            if (readTask.wait() != task_status::completed)
+                            auto status = readTask.wait();
+                            if (status != task_status::completed)
                             {
-                                response->m_result = HttpResult_NetworkFailure;
+                                // Drop any partial body; caller cancel -> Aborted, else failure.
+                                response->m_result = (status == task_status::canceled) ? HttpResult_Aborted : HttpResult_NetworkFailure;
+                                response->m_body.clear();
                                 break;
                             }
 
@@ -263,6 +268,7 @@ namespace MAT_NS_BEGIN {
                             {
                                 LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
                                 response->m_result = HttpResult_NetworkFailure;
+                                response->m_body.clear();
                                 break;
                             }
 
@@ -278,12 +284,15 @@ namespace MAT_NS_BEGIN {
                 }
                 catch (Platform::Exception^ ex)
                 {
+                    // A faulted read rethrows here; drop any partial body and fail the request.
                     LOG_WARN("Reading HTTP response body failed: 0x%08x", ex->HResult);
                     response->m_result = HttpResult_NetworkFailure;
+                    response->m_body.clear();
                 }
                 catch (...)
                 {
                     response->m_result = HttpResult_NetworkFailure;
+                    response->m_body.clear();
                 }
             }
             else
