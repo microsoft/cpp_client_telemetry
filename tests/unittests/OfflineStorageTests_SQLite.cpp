@@ -871,5 +871,38 @@ TEST_F(OfflineStorageTests_SQLite, CacheFileCreatedOwnerReadWriteOnly)
         }
     }
 }
+
+// A cache written by an older SDK (or left behind after a crash) can have the
+// database and companion files already on disk with the old world-readable 0644
+// mode; SQLite only derives 0600 for companions it creates itself. Opening the
+// storage must re-tighten both the database and any pre-existing companion.
+TEST_F(OfflineStorageTests_SQLite, ExistingFilesAreTightenedOnOpen)
+{
+    initializeStorage();
+    offlineStorage->Shutdown();
+    storageInitialized = false;
+
+    // Simulate an old cache: loosen the database and plant a leftover -wal at 0644.
+    const mode_t loose = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; // 0644
+    ASSERT_EQ(0, ::chmod(storageFilename.c_str(), loose));
+    const std::string wal = storageFilename + "-wal";
+    std::ofstream(wal, std::ios::binary);          // empty leftover companion
+    ASSERT_EQ(0, ::chmod(wal.c_str(), loose));
+
+    // Reopen -- the open path must re-tighten both files.
+    initializeStorage();
+
+    struct stat st;
+    ASSERT_EQ(0, ::stat(storageFilename.c_str(), &st));
+    EXPECT_EQ(0, static_cast<int>(st.st_mode & (S_IRWXG | S_IRWXO)))
+        << "reopened database must be tightened to 0600";
+
+    struct stat wst;
+    if (::stat(wal.c_str(), &wst) == 0)
+    {
+        EXPECT_EQ(0, static_cast<int>(wst.st_mode & (S_IRWXG | S_IRWXO)))
+            << "pre-existing -wal companion must be tightened to 0600";
+    }
+}
 #endif
 #endif

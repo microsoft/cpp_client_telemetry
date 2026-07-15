@@ -310,13 +310,22 @@ namespace MAT_NS_BEGIN {
             // the database file with SQLITE_DEFAULT_FILE_PERMISSIONS -- 0644, i.e.
             // world-readable -- so restrict it to owner read/write only (0600). This runs
             // before WAL is enabled: SQLite derives the -wal/-journal permissions from the
-            // main database file (findCreateFileMode), so those companions inherit 0600.
-            // POSIX only -- on Windows the Unix mode bits are meaningless (access is
-            // governed by NTFS ACLs). Best-effort: a failure (e.g. an in-memory ":memory:"
-            // database, or a filesystem that ignores chmod) must not fail the open.
+            // main database file (findCreateFileMode), so companions it creates inherit
+            // 0600. A cache created by an older SDK (before this fix) may already have
+            // companion files on disk with the old 0644 mode, so tighten any pre-existing
+            // ones too. POSIX only -- on Windows the Unix mode bits are meaningless (access
+            // is governed by NTFS ACLs). Best-effort: a failure (e.g. an in-memory
+            // ":memory:" database, or a filesystem that ignores chmod) must not fail the
+            // open; a missing companion (ENOENT) is expected and ignored.
 #if !defined(_WIN32)
             if (::chmod(filename.c_str(), S_IRUSR | S_IWUSR) != 0) {
                 LOG_WARN("Could not restrict database file permissions to 0600 (errno %d)", errno);
+            }
+            for (const char* suffix : { "-wal", "-shm", "-journal" }) {
+                std::string companion = filename + suffix;
+                if (::chmod(companion.c_str(), S_IRUSR | S_IWUSR) != 0 && errno != ENOENT) {
+                    LOG_WARN("Could not restrict %s file permissions to 0600 (errno %d)", suffix, errno);
+                }
             }
 #endif
 
