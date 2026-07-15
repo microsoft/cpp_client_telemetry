@@ -509,6 +509,10 @@ protected:
      */
     static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
     {
+        // Guard the size * nmemb product against size_t overflow before using it.
+        if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
+            return 0;
+        }
         size_t realsize = size * nmemb;
         struct MemoryStruct *mem = (struct MemoryStruct *)userp;
 
@@ -549,6 +553,10 @@ protected:
      */
     static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
     {
+        // Guard the size * nmemb product against size_t overflow before using it.
+        if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
+            return 0;
+        }
         if (data != nullptr) {
             size_t realsize = size * nmemb;
             // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare

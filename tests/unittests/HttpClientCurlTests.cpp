@@ -136,6 +136,12 @@ class HttpClientCurlResponseCapTests : public ::testing::Test,
 protected:
     HttpServer      m_server;
     HttpClient_Curl m_client;
+    // The client never takes ownership of the request (it only stores a raw pointer
+    // and erases it); the fixture owns it and frees it in TearDown -- on the main
+    // thread, after the transfer has completed. Freeing it inside OnHttpResponse
+    // would destroy the CurlHttpOperation from within its own async task, whose
+    // destructor waits on that task (a self-join deadlock).
+    std::unique_ptr<IHttpRequest> m_request;
     std::string     m_hostname;
     size_t          m_responseBodySize {0};
 
@@ -159,6 +165,7 @@ protected:
     void TearDown() override
     {
         m_server.stop();
+        m_request.reset();
     }
 
     // HttpServer::Callback -- returns a body of m_responseBodySize bytes.
@@ -188,10 +195,17 @@ protected:
 
     void sendAndWait(size_t bodySize)
     {
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_received = false;
+            m_result = HttpResult{};
+            m_statusCode = 0;
+            m_bodySize = 0;
+        }
         m_responseBodySize = bodySize;
-        IHttpRequest* request = m_client.CreateRequest();
-        request->SetUrl("http://" + m_hostname + "/huge/");
-        m_client.SendRequestAsync(request, this);
+        m_request.reset(m_client.CreateRequest());
+        m_request->SetUrl("http://" + m_hostname + "/huge/");
+        m_client.SendRequestAsync(m_request.get(), this);
         for (int i = 0; i < 300 && !responseReceived(); i++)
             PAL::sleep(100);
     }
