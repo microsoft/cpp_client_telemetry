@@ -120,10 +120,21 @@ public:
             }
             else
             {
-                simpleResponse->m_result = HttpResult_OK;
-                auto body = static_cast<const uint8_t*>([data bytes]);
-                simpleResponse->m_body.reserve(data.length);
-                std::copy(body, body + data.length, std::back_inserter(simpleResponse->m_body));
+                // SECURITY: refuse an over-large response instead of buffering it (see
+                // MAX_HTTP_RESPONSE_SIZE), so a hostile/MITM'd collector cannot exhaust
+                // process memory. Reported as a network failure (retried).
+                if (data.length > MAX_HTTP_RESPONSE_SIZE)
+                {
+                    LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
+                    simpleResponse->m_result = HttpResult_NetworkFailure;
+                }
+                else
+                {
+                    simpleResponse->m_result = HttpResult_OK;
+                    auto body = static_cast<const uint8_t*>([data bytes]);
+                    simpleResponse->m_body.reserve(data.length);
+                    std::copy(body, body + data.length, std::back_inserter(simpleResponse->m_body));
+                }
             }
             m_callback->OnHttpResponse(simpleResponse);
         }

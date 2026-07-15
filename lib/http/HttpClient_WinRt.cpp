@@ -223,7 +223,15 @@ namespace MAT_NS_BEGIN {
                     auto buffer = task.get();
                     size_t length = buffer->Length;
 
-                    if (length > 0)
+                    // SECURITY: refuse an over-large response instead of buffering it (see
+                    // MAX_HTTP_RESPONSE_SIZE), so a hostile/MITM'd collector cannot exhaust
+                    // process memory. The request is reported as a network failure (retried).
+                    if (length > MAX_HTTP_RESPONSE_SIZE)
+                    {
+                        LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
+                        response->m_result = HttpResult_NetworkFailure;
+                    }
+                    else if (length > 0)
                     {
                         response->m_body.reserve(length);
                         response->m_body.resize(length);

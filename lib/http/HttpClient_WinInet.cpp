@@ -326,6 +326,14 @@ class WinInetRequestWrapper
 
             m_bodyBuffer.insert(m_bodyBuffer.end(), m_buffer, m_buffer + m_bufferUsed);
             while (!m_readingData || m_bufferUsed != 0) {
+                // SECURITY: refuse an over-large response instead of buffering it (see
+                // MAX_HTTP_RESPONSE_SIZE). Each chunk is small, so checking here bounds
+                // the buffer to within one chunk of the cap.
+                if (m_bodyBuffer.size() > MAX_HTTP_RESPONSE_SIZE) {
+                    LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
+                    dwError = ERROR_NOT_ENOUGH_MEMORY;
+                    break;
+                }
                 BOOL bResult = ::InternetReadFile(m_hWinInetRequest, m_buffer, sizeof(m_buffer), &m_bufferUsed);
                 m_readingData = true;
                 if (!bResult) {
