@@ -144,7 +144,7 @@ namespace MAT_NS_BEGIN {
 
         void SendHttpAsyncRequest(HttpRequestMessage ^req)
         {
-            IAsyncOperationWithProgress<HttpResponseMessage^, HttpProgress>^ operation = m_parent.getHttpClient()->SendRequestAsync(req, HttpCompletionOption::ResponseContentRead);
+            IAsyncOperationWithProgress<HttpResponseMessage^, HttpProgress>^ operation = m_parent.getHttpClient()->SendRequestAsync(req, HttpCompletionOption::ResponseHeadersRead);
             m_cancellationTokenSource = cancellation_token_source();
 
             create_task(operation, m_cancellationTokenSource.get_token()).
@@ -202,36 +202,97 @@ namespace MAT_NS_BEGIN {
                     index++;
                 }
 
-                auto operation = m_httpResponseMessage->Content->ReadAsBufferAsync();
-                auto task = create_task(operation);
-                if (task.wait() == task_status::completed)
+                // Read content headers before streaming the body.
+                IMapView<String^, String^>^ contentHeadersView = m_httpResponseMessage->Content->Headers->GetView();
+                auto contentHeadersiterator = contentHeadersView->First();
+                unsigned int  contentHeadersIndex = 0;
+                while (contentHeadersIndex < contentHeadersView->Size)
                 {
-                    IMapView<String^, String^>^ contentHeadersView = m_httpResponseMessage->Content->Headers->GetView();
+                    String^ Key = contentHeadersiterator->Current->Key;
+                    String^ Value = contentHeadersiterator->Current->Value;
 
-                    auto contentHeadersiterator = contentHeadersView->First();
-                    unsigned int  contentHeadersIndex = 0;
-                    while (contentHeadersIndex < contentHeadersView->Size)
+                    response->m_headers.add(from_platform_string(Key), from_platform_string(Value));
+                    contentHeadersiterator->MoveNext();
+                    contentHeadersIndex++;
+                }
+
+                // SECURITY: stream the body in bounded chunks and enforce
+                // MAX_HTTP_RESPONSE_SIZE. SendRequestAsync uses ResponseHeadersRead, so
+                // the framework does not pre-buffer the whole body; reading it here in
+                // chunks ensures an oversized response is never fully materialized in
+                // memory (a hostile/MITM'd collector cannot exhaust process memory).
+                // task::wait()/get() rethrow if a read faults, so guard the whole stream.
+                try
+                {
+                    IInputStream^ inputStream = nullptr;
                     {
-                        String^ Key = contentHeadersiterator->Current->Key;
-                        String^ Value = contentHeadersiterator->Current->Value;
-
-                        response->m_headers.add(from_platform_string(Key), from_platform_string(Value));
-                        contentHeadersiterator->MoveNext();
-                        contentHeadersIndex++;
+                        auto streamOp = m_httpResponseMessage->Content->ReadAsInputStreamAsync();
+                        auto streamTask = create_task(streamOp, m_cancellationTokenSource.get_token());
+                        auto status = streamTask.wait();
+                        if (status == task_status::completed)
+                        {
+                            inputStream = streamTask.get();
+                        }
+                        else
+                        {
+                            // Caller-initiated cancel maps to Aborted; anything else is a failure.
+                            response->m_result = (status == task_status::canceled) ? HttpResult_Aborted : HttpResult_NetworkFailure;
+                        }
                     }
 
-                    auto buffer = task.get();
-                    size_t length = buffer->Length;
-
-                    if (length > 0)
+                    if (inputStream != nullptr)
                     {
-                        response->m_body.reserve(length);
-                        response->m_body.resize(length);
-                        DataReader^ dataReader = DataReader::FromBuffer(buffer);
-                        dataReader->ReadBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(response->m_body.data()), (DWORD)length)));
-                        dataReader->DetachBuffer();
-                        delete dataReader;
+                        const unsigned int chunkSize = 64 * 1024;
+                        for (;;)
+                        {
+                            Buffer^ chunk = ref new Buffer(chunkSize);
+                            auto readOp = inputStream->ReadAsync(chunk, chunkSize, InputStreamOptions::Partial);
+                            auto readTask = create_task(readOp, m_cancellationTokenSource.get_token());
+                            auto status = readTask.wait();
+                            if (status != task_status::completed)
+                            {
+                                // Drop any partial body; caller cancel -> Aborted, else failure.
+                                response->m_result = (status == task_status::canceled) ? HttpResult_Aborted : HttpResult_NetworkFailure;
+                                response->m_body.clear();
+                                break;
+                            }
+
+                            IBuffer^ readBuffer = readTask.get();
+                            unsigned int readLength = (readBuffer != nullptr) ? readBuffer->Length : 0;
+                            if (readLength == 0)
+                            {
+                                break; // end of stream
+                            }
+
+                            if (response->m_body.size() + readLength > MAX_HTTP_RESPONSE_SIZE)
+                            {
+                                LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
+                                response->m_result = HttpResult_NetworkFailure;
+                                response->m_body.clear();
+                                break;
+                            }
+
+                            const size_t oldSize = response->m_body.size();
+                            response->m_body.resize(oldSize + readLength);
+                            DataReader^ dataReader = DataReader::FromBuffer(readBuffer);
+                            dataReader->ReadBytes((Platform::ArrayReference<unsigned char>(reinterpret_cast<unsigned char*>(response->m_body.data() + oldSize), readLength)));
+                            dataReader->DetachBuffer();
+                            delete dataReader;
+                        }
+                        delete inputStream;
                     }
+                }
+                catch (Platform::Exception^ ex)
+                {
+                    // A faulted read rethrows here; drop any partial body and fail the request.
+                    LOG_WARN("Reading HTTP response body failed: 0x%08x", ex->HResult);
+                    response->m_result = HttpResult_NetworkFailure;
+                    response->m_body.clear();
+                }
+                catch (...)
+                {
+                    response->m_result = HttpResult_NetworkFailure;
+                    response->m_body.clear();
                 }
             }
             else

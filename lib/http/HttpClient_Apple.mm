@@ -15,6 +15,111 @@
 #include "utils/StringUtils.hpp"
 #include "utils/Utils.hpp"
 
+// Streams the response body in bounded chunks and enforces MAX_HTTP_RESPONSE_SIZE.
+// The completionHandler-based NSURLSession APIs fully materialize the response body
+// as an NSData before handing it over, so an attacker-controlled collector could force
+// a large allocation. This delegate instead accumulates data incrementally in
+// didReceiveData: and cancels the transfer as soon as the cap would be exceeded, so no
+// more than the cap is ever buffered. Delegate callbacks may arrive on the session's
+// delegate queue while a request thread registers a task, so shared state is guarded.
+@interface MATStreamingSessionDelegate : NSObject <NSURLSessionDataDelegate>
+- (void)registerTask:(NSURLSessionTask*)task
+             handler:(void (^)(NSData* data, NSURLResponse* response, NSError* error))handler;
+@end
+
+@implementation MATStreamingSessionDelegate {
+    NSMutableDictionary<NSNumber*, NSMutableData*>* _buffers;
+    NSMutableDictionary<NSNumber*, id>*             _handlers;
+    NSMutableSet<NSNumber*>*                        _overCap;
+}
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self)
+    {
+        _buffers = [NSMutableDictionary new];
+        _handlers = [NSMutableDictionary new];
+        _overCap = [NSMutableSet new];
+    }
+    return self;
+}
+
+- (void)registerTask:(NSURLSessionTask*)task
+             handler:(void (^)(NSData*, NSURLResponse*, NSError*))handler
+{
+    NSNumber* key = @(task.taskIdentifier);
+    @synchronized(self)
+    {
+        _buffers[key] = [NSMutableData new];
+        _handlers[key] = [handler copy];
+    }
+}
+
+- (void)URLSession:(NSURLSession*)session
+          dataTask:(NSURLSessionDataTask*)dataTask
+    didReceiveData:(NSData*)data
+{
+    NSNumber* key = @(dataTask.taskIdentifier);
+    @synchronized(self)
+    {
+        if ([_overCap containsObject:key])
+        {
+            return;
+        }
+        NSMutableData* buffer = _buffers[key];
+        if (buffer == nil)
+        {
+            return;
+        }
+        if (buffer.length + data.length > MAT::MAX_HTTP_RESPONSE_SIZE)
+        {
+            // Refuse the over-large response: stop buffering and cancel the transfer.
+            [_overCap addObject:key];
+            [dataTask cancel];
+            return;
+        }
+        [buffer appendData:data];
+    }
+}
+
+- (void)URLSession:(NSURLSession*)session
+              task:(NSURLSessionTask*)task
+didCompleteWithError:(NSError*)error
+{
+    NSNumber* key = @(task.taskIdentifier);
+    void (^handler)(NSData*, NSURLResponse*, NSError*) = nil;
+    NSData* body = nil;
+    BOOL overCap = NO;
+    @synchronized(self)
+    {
+        handler = (void (^)(NSData*, NSURLResponse*, NSError*))_handlers[key];
+        body = _buffers[key];
+        overCap = [_overCap containsObject:key];
+        [_handlers removeObjectForKey:key];
+        [_buffers removeObjectForKey:key];
+        [_overCap removeObject:key];
+    }
+    if (handler == nil)
+    {
+        return;
+    }
+    if (overCap)
+    {
+        // Surface a non-cancellation error so the request maps to NetworkFailure
+        // (retried), not Aborted (which is reserved for caller-initiated cancels).
+        NSError* capError = [NSError errorWithDomain:@"MATResponseCap"
+                                                code:-1
+                                            userInfo:@{ NSLocalizedDescriptionKey : @"HTTP response exceeds max buffered size" }];
+        handler(nil, task.response, capError);
+    }
+    else
+    {
+        handler(body, task.response, error);
+    }
+}
+@end
+
 namespace MAT_NS_BEGIN {
 
 static std::string NextReqId()
@@ -31,6 +136,7 @@ static std::string NextRespId()
 
 static dispatch_once_t once;
 static NSURLSession* session;
+static MATStreamingSessionDelegate* sessionDelegate;
 
 class HttpRequestApple : public SimpleHttpRequest
 {
@@ -42,7 +148,10 @@ public:
         m_parent->Add(static_cast<IHttpRequest*>(this));
         dispatch_once(&once, ^{
             NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
-            session = [NSURLSession sessionWithConfiguration:sessionConfig];
+            sessionDelegate = [MATStreamingSessionDelegate new];
+            session = [NSURLSession sessionWithConfiguration:sessionConfig
+                                                    delegate:sessionDelegate
+                                               delegateQueue:nil];
         });
     }
 
@@ -75,15 +184,18 @@ public:
             if(equalsIgnoreCase(m_method, "get"))
             {
                 [m_urlRequest setHTTPMethod:@"GET"];
-                m_dataTask = [session dataTaskWithRequest:m_urlRequest completionHandler:m_completionMethod];
+                m_dataTask = [session dataTaskWithRequest:m_urlRequest];
             }
             else
             {
                 [m_urlRequest setHTTPMethod:@"POST"];
                 NSData* postData = [NSData dataWithBytes:m_body.data() length:m_body.size()];
-                m_dataTask = [session uploadTaskWithRequest:m_urlRequest fromData:postData completionHandler:m_completionMethod];
+                m_dataTask = [session uploadTaskWithRequest:m_urlRequest fromData:postData];
             }
 
+            // Register before resume so the streaming delegate has the buffer and
+            // completion handler in place before any response data arrives.
+            [sessionDelegate registerTask:m_dataTask handler:m_completionMethod];
             [m_dataTask resume];
         }
     }
@@ -120,10 +232,18 @@ public:
             }
             else
             {
+                // The streaming delegate has already enforced MAX_HTTP_RESPONSE_SIZE
+                // (an over-cap response arrives here as a cap error, handled above), so
+                // data is bounded. Guard against a nil/empty body to avoid pointer
+                // arithmetic on a null [data bytes].
                 simpleResponse->m_result = HttpResult_OK;
-                auto body = static_cast<const uint8_t*>([data bytes]);
-                simpleResponse->m_body.reserve(data.length);
-                std::copy(body, body + data.length, std::back_inserter(simpleResponse->m_body));
+                const size_t length = static_cast<size_t>(data.length);
+                if (length > 0)
+                {
+                    auto body = static_cast<const uint8_t*>([data bytes]);
+                    simpleResponse->m_body.reserve(length);
+                    std::copy(body, body + length, std::back_inserter(simpleResponse->m_body));
+                }
             }
             m_callback->OnHttpResponse(simpleResponse);
         }

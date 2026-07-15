@@ -324,27 +324,41 @@ class WinInetRequestWrapper
             // It might potentially be another async operation which will
             // trigger INTERNET_STATUS_REQUEST_COMPLETE again.
 
-            m_bodyBuffer.insert(m_bodyBuffer.end(), m_buffer, m_buffer + m_bufferUsed);
-            while (!m_readingData || m_bufferUsed != 0) {
-                BOOL bResult = ::InternetReadFile(m_hWinInetRequest, m_buffer, sizeof(m_buffer), &m_bufferUsed);
-                m_readingData = true;
-                if (!bResult) {
-                    dwError = GetLastError();
-                    if (dwError == ERROR_IO_PENDING) {
-                        // Do not touch anything from this thread anymore.
-                        // The buffer passed to InternetReadFile() and the
-                        // read count will be filled asynchronously, so they
-                        // must stay valid and writable until the next
-                        // INTERNET_STATUS_REQUEST_COMPLETE callback comes
-                        // (that's why those are member variables).
-                        LOG_TRACE("InternetReadFile() failed: ERROR_IO_PENDING. Waiting for INTERNET_STATUS_REQUEST_COMPLETE to be called again");
-                        return;
-                    }
-                    LOG_WARN("InternetReadFile() failed: %d", dwError);
-                    break;
-                }
-
+            // SECURITY: refuse an over-large response instead of buffering it (see
+            // MAX_HTTP_RESPONSE_SIZE) so a hostile/MITM'd collector cannot exhaust
+            // process memory. Checked before every append so the buffer never exceeds
+            // the cap; reported as an invalid server response -> NetworkFailure (retried).
+            if (m_bodyBuffer.size() + m_bufferUsed > MAX_HTTP_RESPONSE_SIZE) {
+                LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
+                dwError = ERROR_HTTP_INVALID_SERVER_RESPONSE;
+            } else {
                 m_bodyBuffer.insert(m_bodyBuffer.end(), m_buffer, m_buffer + m_bufferUsed);
+                while (!m_readingData || m_bufferUsed != 0) {
+                    BOOL bResult = ::InternetReadFile(m_hWinInetRequest, m_buffer, sizeof(m_buffer), &m_bufferUsed);
+                    m_readingData = true;
+                    if (!bResult) {
+                        dwError = GetLastError();
+                        if (dwError == ERROR_IO_PENDING) {
+                            // Do not touch anything from this thread anymore.
+                            // The buffer passed to InternetReadFile() and the
+                            // read count will be filled asynchronously, so they
+                            // must stay valid and writable until the next
+                            // INTERNET_STATUS_REQUEST_COMPLETE callback comes
+                            // (that's why those are member variables).
+                            LOG_TRACE("InternetReadFile() failed: ERROR_IO_PENDING. Waiting for INTERNET_STATUS_REQUEST_COMPLETE to be called again");
+                            return;
+                        }
+                        LOG_WARN("InternetReadFile() failed: %d", dwError);
+                        break;
+                    }
+
+                    if (m_bodyBuffer.size() + m_bufferUsed > MAX_HTTP_RESPONSE_SIZE) {
+                        LOG_WARN("HTTP response exceeds max buffered size (%zu bytes); aborting", MAX_HTTP_RESPONSE_SIZE);
+                        dwError = ERROR_HTTP_INVALID_SERVER_RESPONSE;
+                        break;
+                    }
+                    m_bodyBuffer.insert(m_bodyBuffer.end(), m_buffer, m_buffer + m_bufferUsed);
+                }
             }
         }
 
