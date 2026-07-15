@@ -131,9 +131,13 @@ public:
                 else
                 {
                     simpleResponse->m_result = HttpResult_OK;
-                    auto body = static_cast<const uint8_t*>([data bytes]);
-                    simpleResponse->m_body.reserve(data.length);
-                    std::copy(body, body + data.length, std::back_inserter(simpleResponse->m_body));
+                    const size_t length = static_cast<size_t>(data.length);
+                    if (length > 0)
+                    {
+                        auto body = static_cast<const uint8_t*>([data bytes]);
+                        simpleResponse->m_body.reserve(length);
+                        std::copy(body, body + length, std::back_inserter(simpleResponse->m_body));
+                    }
                 }
             }
             m_callback->OnHttpResponse(simpleResponse);
