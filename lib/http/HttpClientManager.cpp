@@ -4,6 +4,7 @@
 //
 
 #include "HttpClientManager.hpp"
+#include "IBoundedHttpClientCancel.hpp"
 #include "utils/StringUtils.hpp"
 #include "pal/TaskDispatcher.hpp"
 
@@ -11,6 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#include <vector>
 
 #ifdef linux
 #include <unistd.h>
@@ -137,34 +139,114 @@ namespace MAT_NS_BEGIN {
 
             LOG_TRACE("HTTP remove callback=%p", callback);
             m_httpCallbacks.remove(callback);
+            // Wake cancelAllRequests() waiting for the list to drain.
+            m_httpCallbacksCV.notify_all();
         }
 
         delete callback;
     }
 
-    bool HttpClientManager::cancelAllRequestsAsync()
+    bool HttpClientManager::cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout)
     {
+        if (bestEffortTimeout > std::chrono::milliseconds::zero())
+        {
+            auto boundedCancel = dynamic_cast<IBoundedHttpClientCancel*>(&m_httpClient);
+            if (boundedCancel != nullptr)
+            {
+                boundedCancel->CancelAllRequests(bestEffortTimeout);
+                return true;
+            }
+
+            cancelTrackedRequestsAsync();
+            return false;
+        }
+
         m_httpClient.CancelAllRequests();
         return true;
     }
 
-    void HttpClientManager::cancelAllRequests()
+    void HttpClientManager::cancelTrackedRequestsAsync()
     {
-        cancelAllRequestsAsync();
-
-        // Wait for callbacks to drain before shutdown can destroy state that
-        // those callbacks still use. Keep the list check synchronized and sleep
-        // between polls so a slow adapter does not burn CPU while draining.
-        for (;;)
+        std::vector<std::string> requestIds;
         {
+            LOCKGUARD(m_httpCallbacksMtx);
+            for (const auto& callback : m_httpCallbacks)
             {
-                LOCKGUARD(m_httpCallbacksMtx);
-                if (m_httpCallbacks.empty())
+                if (callback == nullptr || callback->m_ctx == nullptr)
                 {
-                    return;
+                    continue;
+                }
+
+                std::string id = callback->m_ctx->httpRequestId;
+                if (id.empty() && callback->m_ctx->httpRequest != nullptr)
+                {
+                    id = callback->m_ctx->httpRequest->GetId();
+                }
+                if (!id.empty())
+                {
+                    requestIds.push_back(id);
                 }
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+
+        for (const auto& id : requestIds)
+        {
+            m_httpClient.CancelRequestAsync(id);
+        }
+    }
+
+    void HttpClientManager::cancelAllRequests(bool bestEffort)
+    {
+        // On clients that opt into bounded cancellation (notably synchronous-response
+        // Windows transports), the transport's CancelAllRequests() is where
+        // cancellation actually blocks, so pass the best-effort deadline down to
+        // bound it. Older clients fall back to per-request async cancel; the
+        // manager-level drain below is the bound for those async-handler paths. A
+        // zero timeout means "drain fully".
+        const auto cancelStart = std::chrono::steady_clock::now();
+        cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
+
+        // Drain in-flight callbacks via a condition variable signaled from
+        // onHttpResponse -- never a busy/poll loop, which burned 100% CPU while
+        // holding the LogManager lock.
+        std::unique_lock<std::recursive_mutex> lock(m_httpCallbacksMtx);
+        if (bestEffort)
+        {
+            // Pause (and similar) must not block the caller indefinitely -- it may
+            // hold the LogManager lock (the observed spindump was PauseTransmission).
+            // The manager is NOT being destroyed here, so outstanding callbacks remain
+            // valid and drain later; cap the wait as a safety valve.
+            //
+            // This bounds the drain of m_httpCallbacks, which is the blocking region on
+            // the async-handler and old-style-client fallback paths. On Windows
+            // (USE_SYNC_HTTPRESPONSE_HANDLER), bounded-capability clients drain
+            // m_httpCallbacks synchronously inside the transport cancel call above, so
+            // this wait is usually already satisfied; the real blocking there is the
+            // transport-level wait (WinInet condition-variable wait, WinRt poll), which
+            // is bounded by the same best-effort deadline passed into the capability.
+            //
+            // Treat m_cancelDrainTimeout as the total budget for the pause: subtract the
+            // time already spent in the transport cancel so the whole path holds the
+            // LogManager lock for at most ~m_cancelDrainTimeout, not up to 2x it.
+            const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - cancelStart);
+            const auto remaining = (elapsed < m_cancelDrainTimeout)
+                ? (m_cancelDrainTimeout - elapsed) : std::chrono::milliseconds::zero();
+            if (!m_httpCallbacksCV.wait_for(lock, remaining,
+                    [this] { return m_httpCallbacks.empty(); }))
+            {
+                LOG_WARN("cancelAllRequests: %zu callback(s) still draining after %lld ms (best-effort)",
+                         m_httpCallbacks.size(), static_cast<long long>(m_cancelDrainTimeout.count()));
+            }
+        }
+        else
+        {
+            // Shutdown/cleanup: this is the lifetime barrier before state the
+            // callbacks reference is destroyed, so drain fully. The CV keeps it
+            // efficient (no CPU spin) and it returns as soon as the last callback is
+            // handled -- a stalled drain here indicates the caller stopped the task
+            // dispatcher before cancelling, which it must not do.
+            m_httpCallbacksCV.wait(lock, [this] { return m_httpCallbacks.empty(); });
         }
     }
 

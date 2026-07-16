@@ -489,6 +489,8 @@ void HttpClient_WinInet::erase(std::string const& id)
     if (it != m_requests.end()) {
         auto req = it->second;
         m_requests.erase(it);
+        // Wake CancelAllRequests() waiting for the map to drain.
+        m_requestsCV.notify_all();
         // delete WinInetRequestWrapper
         delete req;
     }
@@ -522,6 +524,11 @@ void HttpClient_WinInet::CancelRequestAsync(std::string const& id)
 
 void HttpClient_WinInet::CancelAllRequests()
 {
+    CancelAllRequests(std::chrono::milliseconds::zero());
+}
+
+void HttpClient_WinInet::CancelAllRequests(std::chrono::milliseconds bestEffortTimeout)
+{
     // vector of all request IDs
     std::vector<std::string> ids;
     {
@@ -534,11 +541,26 @@ void HttpClient_WinInet::CancelAllRequests()
     for (const auto &id : ids)
         CancelRequestAsync(id);
 
-    // wait for all destructors to run
-    while (!m_requests.empty())
+    // Wait for all request destructors to run (erase() removes them on the WinInet
+    // callback thread). Use a condition variable signaled from erase() rather than a
+    // poll loop so this never spins at 100% CPU while draining. WinInet delivers the
+    // cancellation callbacks on its own threads, so the wait completes without
+    // depending on the SDK task dispatcher.
+    std::unique_lock<std::recursive_mutex> lock(m_requestsMutex);
+    if (bestEffortTimeout > std::chrono::milliseconds::zero())
     {
-        PAL::sleep(100);
-        std::this_thread::yield();
+        // Best-effort (e.g. pause): the caller must not block indefinitely. The client
+        // is NOT being destroyed here, so a late callback that arrives after this
+        // returns still runs erase() on a live client -- returning early is safe.
+        m_requestsCV.wait_for(lock, bestEffortTimeout, [this] { return m_requests.empty(); });
+    }
+    else
+    {
+        // Full drain barrier (the destructor calls this): returning early with
+        // requests still in flight would let a late WinInet callback invoke
+        // WinInetRequestWrapper::OnHttpResponse -> m_parent.erase() on a destroyed
+        // client, so wait for every request to drain.
+        m_requestsCV.wait(lock, [this] { return m_requests.empty(); });
     }
 }
 

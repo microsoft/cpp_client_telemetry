@@ -25,11 +25,22 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
                                                           jlong nativeLoggerPtr,
                                                           jstring signal_item_json) {
     jboolean isCopy = true;
+    if (signal_item_json == nullptr) {
+        return false;
+    }
     const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
-    env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
+    if (signalItemJson == nullptr) {
+        // GetStringUTFChars returned null (e.g. OOM), which leaves a pending Java
+        // exception. Clear it so the caller observes a clean `false` return instead
+        // of the exception being thrown at the Java call site. ExceptionClear is one
+        // of the few JNI calls that is safe to make with an exception in flight.
+        env->ExceptionClear();
+        return false;
+    }
 
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
     EventProperties eventProperties = Signals::CreateEventProperties(signalItemJson);
+    env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
     logger->LogEvent(eventProperties);
     return true;
 }
@@ -54,11 +65,22 @@ Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jcl
     SubstrateSignalsConfiguration config;
 
     jboolean isCopy = true;
-    const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
-    if (strlen(convertedValue) > 0) {
-        config.ServiceRequestConfig.BaseUrl = convertedValue;
+    if (base_url != nullptr) {
+        const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
+        if (convertedValue == nullptr) {
+            // GetStringUTFChars failed (e.g. OOM), leaving a pending Java exception.
+            // Clear it so the caller observes a clean `false` instead of the
+            // exception being thrown at the Java call site. ExceptionClear is safe
+            // to call with an exception in flight, and we make no other JNI calls
+            // before returning.
+            env->ExceptionClear();
+            return false;
+        }
+        if (strlen(convertedValue) > 0) {
+            config.ServiceRequestConfig.BaseUrl = convertedValue;
+        }
+        env->ReleaseStringUTFChars(base_url, convertedValue);
     }
-    env->ReleaseStringUTFChars(base_url, convertedValue);
 
     config.ServiceRequestConfig.TimeoutMs = reinterpret_cast<int>(timeout_ms);
     config.ServiceRequestConfig.RetryTimes = reinterpret_cast<int>(retry_times);

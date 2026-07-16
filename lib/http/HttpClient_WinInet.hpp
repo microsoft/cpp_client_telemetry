@@ -8,9 +8,13 @@
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #include "IHttpClient.hpp"
+#include "IBoundedHttpClientCancel.hpp"
 #include "pal/PAL.hpp"
 
 #include "ILogManager.hpp"
+
+#include <condition_variable>
+#include <mutex>
 
 namespace MAT_NS_BEGIN {
 
@@ -20,7 +24,7 @@ typedef void* HINTERNET;
 
 class WinInetRequestWrapper;
 
-class HttpClient_WinInet : public IHttpClient {
+class HttpClient_WinInet : public IHttpClient, public IBoundedHttpClientCancel {
   public:
     // Common IHttpClient methods
     HttpClient_WinInet();
@@ -29,6 +33,7 @@ class HttpClient_WinInet : public IHttpClient {
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) final;
     virtual void CancelRequestAsync(std::string const& id) final;
     virtual void CancelAllRequests() final;
+    virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) final;
 
     virtual void ApplySettings(ILogConfiguration& config) override;
 
@@ -43,6 +48,9 @@ class HttpClient_WinInet : public IHttpClient {
     HINTERNET                                                        m_hInternet;
     std::recursive_mutex                                             m_requestsMutex;
     std::map<std::string, WinInetRequestWrapper*>                    m_requests;
+    // Signaled from erase() when a request is removed, so CancelAllRequests can drain
+    // via a condition variable instead of a poll loop (no 100% CPU spin).
+    std::condition_variable_any                                      m_requestsCV;
     static unsigned                                                  s_nextRequestId;
     bool                                                             m_msRootCheck;
     friend class WinInetRequestWrapper;
@@ -53,4 +61,3 @@ class HttpClient_WinInet : public IHttpClient {
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENT_WININET_HPP
-

@@ -339,6 +339,11 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_WinRt::CancelAllRequests()
     {
+        CancelAllRequests(std::chrono::milliseconds::zero());
+    }
+
+    void HttpClient_WinRt::CancelAllRequests(std::chrono::milliseconds bestEffortTimeout)
+    {
         // vector of all request IDs
         std::vector<std::string> ids;
         {
@@ -351,11 +356,40 @@ namespace MAT_NS_BEGIN {
         for (const auto &id : ids)
             CancelRequestAsync(id);
 
-        // wait for all destructors to run
-        while (!m_requests.empty())
+        // wait for all destructors to run. Read m_requests under the lock each
+        // iteration; erase() runs on the PPL continuation thread under the same lock.
+        // A zero timeout drains fully (shutdown); a positive timeout is a best-effort
+        // cap so callers such as pause do not block indefinitely.
+        const bool bounded = bestEffortTimeout > std::chrono::milliseconds::zero();
+        const auto deadline = std::chrono::steady_clock::now() + bestEffortTimeout;
+        bool done;
         {
-            PAL::sleep(100);
+            std::lock_guard<std::mutex> lock(m_requestsMutex);
+            done = m_requests.empty();
+        }
+        while (!done)
+        {
+            if (bounded)
+            {
+                const auto now = std::chrono::steady_clock::now();
+                if (now >= deadline)
+                    break;
+                // Sleep no longer than the remaining budget so the bounded wait does not
+                // overshoot bestEffortTimeout by up to a full poll interval.
+                long long remainingMs = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now).count();
+                if (remainingMs < 1) remainingMs = 1;
+                if (remainingMs > 100) remainingMs = 100;
+                PAL::sleep(static_cast<unsigned>(remainingMs));
+            }
+            else
+            {
+                PAL::sleep(100);
+            }
             std::this_thread::yield();
+            {
+                std::lock_guard<std::mutex> lock(m_requestsMutex);
+                done = m_requests.empty();
+            }
         }
     };
 

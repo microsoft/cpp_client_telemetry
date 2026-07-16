@@ -13,6 +13,7 @@
 #include <Windows.h>
 
 #include "IHttpClient.hpp"
+#include "IBoundedHttpClientCancel.hpp"
 #include "pal/PAL.hpp"
 
 #include <ppltasks.h>
@@ -28,7 +29,7 @@ namespace MAT_NS_BEGIN {
 
 class WinRtRequestWrapper;
 
-class HttpClient_WinRt : public IHttpClient {
+class HttpClient_WinRt : public IHttpClient, public IBoundedHttpClientCancel {
   public:
     HttpClient_WinRt();
     virtual ~HttpClient_WinRt();
@@ -36,6 +37,7 @@ class HttpClient_WinRt : public IHttpClient {
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
     virtual void CancelAllRequests() override;
+    virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) override;
     HttpClient^ getHttpClient() { return m_httpClient; }
 
   protected:
@@ -55,4 +57,3 @@ class HttpClient_WinRt : public IHttpClient {
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENT_WINRT_HPP
-

@@ -543,6 +543,10 @@ namespace MAT_NS_BEGIN
         /// <param name="id">A string that contains the ID of the request to cancel.</param>
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
+        /// <summary>
+        /// Cancels all pending requests, draining fully before returning when the
+        /// implementation owns a synchronous drain.
+        /// </summary>
         virtual void CancelAllRequests() {}
 
         /// <summary>
@@ -559,4 +563,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
-
