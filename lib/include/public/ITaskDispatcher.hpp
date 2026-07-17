@@ -121,6 +121,7 @@ namespace MAT_NS_BEGIN
         /// <param name="waitTime">Amount of time to wait for if the task is currently executing</param>
         /// <returns>True if successfully cancelled, else false</returns>
         virtual bool Cancel(Task* task, uint64_t waitTime = 0) = 0;
+
     };
 
     /// @endcond
@@ -128,4 +129,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif // ITASKDISPATCHER_HPP
-

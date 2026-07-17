@@ -209,7 +209,7 @@ public:
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
         configuration[CFG_MAP_TPM][CFG_STR_TPM_BACKOFF] = "E,500,5000,2,1"; // faster retry for localhost tests
         configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 30 * 60;   // 30 mins
-        configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;            // opt in to stats (disabled by default since #1420)
+        configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;            // opt in to stats (disabled by default)
 
         configuration["name"] = __FILE__;
         configuration["version"] = "1.0.0";
@@ -563,6 +563,47 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     PAL::sleep(500); // for a certain value of immediately
     FlushAndTeardown();
     EXPECT_GE(receivedRequests.size(), (size_t)1); // at least 1 HTTP request with customer payload and stats
+}
+
+TEST_F(BasicFuncTests, teardownDuringInFlightUpload_ShutsDownCleanly)
+{
+    // Smoke test for teardown while an upload is in flight.
+    // Uploads target the /slow/ endpoint with large payloads and MAX_TEARDOWN_TIME
+    // is 0, so FlushAndTeardown() returns while an upload is still outstanding.
+    // Teardown must complete cleanly without touching freed SDK state; run under a
+    // sanitizer (ASan/TSan) this guards the teardown-vs-upload path.
+    CleanStorage();
+    static int64_t const ONE_EVENT_SIZE = 256 * 1024;
+
+    // Point Initialize() at the (slow) endpoint so uploads stay in flight.
+    std::string savedAddress = serverAddress;
+    size_t pos = serverAddress.rfind("/simple/");
+    // Assert the rewrite actually happens: if the base URL format ever changes and
+    // no longer contains "/simple/", uploads would hit the normal endpoint and the
+    // in-flight teardown scenario would not be exercised, yet the test would still
+    // pass. Fail loudly instead so the regression coverage can't silently lapse.
+    ASSERT_NE(pos, std::string::npos)
+        << "serverAddress '" << serverAddress << "' does not contain '/simple/'; "
+        << "the /slow/ rewrite would be a no-op and this test would not exercise "
+        << "teardown during an in-flight upload.";
+    serverAddress.replace(pos, std::string("/simple/").size(), "/slow/");
+    Initialize();
+    serverAddress = savedAddress;
+
+    LogManager::GetLogConfiguration()[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+
+    for (int i = 0; i < 20; ++i)
+    {
+        EventProperties event("teardown_event");
+        event.SetPriority(EventPriority_Normal);
+        event.SetProperty("big_data", std::string(static_cast<size_t>(ONE_EVENT_SIZE), 'x'));
+        logger->LogEvent(event);
+    }
+    LogManager::UploadNow();
+    PAL::sleep(300); // let the upload reach the slow server so it is in flight
+    // Teardown with timeout 0 returns while the upload is still outstanding.
+    LogManager::FlushAndTeardown();
+    SUCCEED();
 }
 
 TEST_F(BasicFuncTests, sendNoPriorityEvents)
@@ -1160,7 +1201,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
     configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
     configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
-    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default since #1420)
+    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default)
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
@@ -1244,7 +1285,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
     configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
     configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
-    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default since #1420)
+    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default)
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";

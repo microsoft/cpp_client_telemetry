@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <string>
 #include <set>
+#include <functional>
+#include <memory>
 
 #ifdef HAVE_MAT_LOGGING
 #include "pal/PAL.hpp"
@@ -209,6 +211,12 @@ namespace
         void ThrowNonStdException() { throw 123; }
         void Signal(std::atomic<bool>* ran) { ran->store(true); }
     };
+
+    class WorkerThreadScheduleTarget
+    {
+    public:
+        void Callback() {}
+    };
 }
 
 // A task throwing an exception must be contained by the worker thread loop;
@@ -235,6 +243,66 @@ TEST_F(PalTests, WorkerThreadContainsThrowingTask)
     EXPECT_TRUE(ranAfterNonStdThrow.load());
 
     dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskAfterWorkerThreadJoinReturnsNoOpHandle)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    dispatcher->Join();
+    WorkerThreadScheduleTarget target;
+
+    auto handle = PAL::scheduleTask(dispatcher.get(), 100, &target, &WorkerThreadScheduleTarget::Callback);
+
+    EXPECT_EQ(handle.m_task, nullptr);
+    EXPECT_TRUE(handle.Cancel());
+}
+
+namespace
+{
+    // Runs on the worker thread and releases the last reference to the dispatcher
+    // that owns this very thread, exercising the self-dispose path.
+    class SelfDisposeHelper
+    {
+    public:
+        std::function<void()> releaseLastRef;
+        std::atomic<bool>* done = nullptr;
+        void Run()
+        {
+            releaseLastRef();      // drops the last dispatcher reference on its own thread
+            done->store(true);
+        }
+    };
+}
+
+// The process-wide worker is shared by reference count, and a task can drop the last
+// reference from within itself (e.g. by tearing down its LogManager/PAL) while running
+// ON the worker thread. The worker must not be freed underneath its own still-running
+// threadFunc: it detaches and defers destruction to the thread. This exercises that
+// path and must not use-after-free (caught by ASAN).
+TEST_F(PalTests, WorkerThreadSelfDisposeOnOwnThreadIsSafe)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    auto* raw = dispatcher.get();
+    // 'box' holds the only remaining reference; the task releases it on the worker
+    // thread. Keep it in a shared box so a copy captured by the task's callable can
+    // reset it without naming the dispatcher's concrete type.
+    auto box = std::make_shared<decltype(dispatcher)>(std::move(dispatcher));
+
+    std::atomic<bool> done(false);
+    SelfDisposeHelper helper;
+    helper.releaseLastRef = [box]() { box->reset(); };
+    helper.done = &done;
+
+    PAL::dispatchTask(raw, &helper, &SelfDisposeHelper::Run);
+
+    for (int i = 0; i < 500 && !done.load(); ++i)
+        PAL::sleep(10);
+    ASSERT_TRUE(done.load());
+
+    // Give the worker time to break its loop and delete itself after the task
+    // returns. Reaching here without a crash / ASAN report means the object was not
+    // freed underneath its own threadFunc.
+    PAL::sleep(200);
 }
 
 #ifdef HAVE_MAT_LOGGING
