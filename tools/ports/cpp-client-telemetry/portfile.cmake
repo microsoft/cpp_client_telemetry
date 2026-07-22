@@ -1,8 +1,7 @@
-# In-repo port validation (tests/vcpkg/*) sets MATSDK_VCPKG_SOURCE_DIR so the port
-# builds the working tree under review instead of a pinned release -- this is what
-# lets the port tests actually exercise the SDK source + manifest together. When
-# the variable is unset (production installs), the pinned release is downloaded as
-# usual, so the published port behavior is unchanged.
+# In-repo overlay-port use should build the working tree under review instead of
+# a pinned release -- this is what lets local port installs and tests exercise
+# the SDK source + manifest together. The registry copy of this port is not under
+# the SDK checkout, so it falls back to the pinned release below.
 if(DEFINED ENV{MATSDK_VCPKG_SOURCE_DIR})
     set(SOURCE_PATH "$ENV{MATSDK_VCPKG_SOURCE_DIR}")
     if(NOT EXISTS "${SOURCE_PATH}/CMakeLists.txt")
@@ -11,6 +10,9 @@ if(DEFINED ENV{MATSDK_VCPKG_SOURCE_DIR})
             "was found there. It must point to a cpp_client_telemetry source checkout.")
     endif()
     message(STATUS "cpp-client-telemetry: building local source $ENV{MATSDK_VCPKG_SOURCE_DIR} (MATSDK_VCPKG_SOURCE_DIR is set)")
+elseif(EXISTS "${CURRENT_PORT_DIR}/../../../CMakeLists.txt")
+    get_filename_component(SOURCE_PATH "${CURRENT_PORT_DIR}/../../.." ABSOLUTE)
+    message(STATUS "cpp-client-telemetry: building in-repo overlay source ${SOURCE_PATH}")
 else()
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
@@ -36,57 +38,61 @@ if(VCPKG_TARGET_IS_IOS)
 endif()
 
 set(MATSDK_ANDROID_HTTP_CLIENT AUTO)
-if(VCPKG_TARGET_IS_ANDROID AND "android-java-http" IN_LIST FEATURES)
-  set(MATSDK_ANDROID_HTTP_CLIENT JAVA)
+if(VCPKG_TARGET_IS_ANDROID)
   file(READ "${SOURCE_PATH}/CMakeLists.txt" _matsdk_root_cmake)
   if(NOT _matsdk_root_cmake MATCHES "MATSDK_ANDROID_HTTP_CLIENT")
     message(FATAL_ERROR
-      "The android-java-http feature requires a cpp-client-telemetry source "
-      "revision that supports MATSDK_ANDROID_HTTP_CLIENT. Update this port's "
-      "REF/SHA512 to a newer SDK release, or set MATSDK_VCPKG_SOURCE_DIR to a "
-      "local checkout that contains the Android Java transport selector.")
+      "Android vcpkg builds require a cpp-client-telemetry source revision that "
+      "supports MATSDK_ANDROID_HTTP_CLIENT. Update this port's REF/SHA512 to a "
+      "newer SDK release, or set MATSDK_VCPKG_SOURCE_DIR to a local checkout "
+      "that contains the Android Java transport selector.")
+  endif()
+  if("android-curl-openssl" IN_LIST FEATURES OR "android-curl-mbedtls" IN_LIST FEATURES)
+    set(MATSDK_ANDROID_HTTP_CLIENT CURL)
   endif()
 endif()
 
-# curl-openssl (default) and curl-mbedtls choose the TLS backend for the built-in
-# HTTP client and are mutually exclusive. They only matter on Linux/Android: the
-# curl dependency is platform-filtered to those triplets, so on Windows/macOS/iOS
-# both features may be present (curl-openssl is a default) yet pull no curl, and
-# the SDK uses WinInet / Apple HTTP there. vcpkg cannot express mutual exclusivity
-# or "exactly one of", so validate it here -- but only where curl is actually used,
-# to avoid failing legitimate cross-platform manifests on Windows/Apple.
+# curl-openssl/curl-mbedtls choose the Linux TLS backend. Android defaults to
+# Java/JNI HTTP and uses separate explicit android-curl-* features for its curl
+# escape hatch. vcpkg cannot express mutual exclusivity or "exactly one of", so
+# validate it here -- but only where curl is actually used, to avoid failing
+# legitimate cross-platform manifests on Windows/Apple.
 set(_matsdk_http_features "")
-foreach(_matsdk_http_feature curl-openssl curl-mbedtls)
+if(VCPKG_TARGET_IS_ANDROID)
+  set(_matsdk_http_feature_candidates android-curl-openssl android-curl-mbedtls)
+else()
+  set(_matsdk_http_feature_candidates curl-openssl curl-mbedtls)
+endif()
+foreach(_matsdk_http_feature ${_matsdk_http_feature_candidates})
   if(_matsdk_http_feature IN_LIST FEATURES)
     list(APPEND _matsdk_http_features ${_matsdk_http_feature})
   endif()
 endforeach()
 list(LENGTH _matsdk_http_features _matsdk_http_feature_count)
-if(VCPKG_TARGET_IS_LINUX OR (VCPKG_TARGET_IS_ANDROID AND NOT MATSDK_ANDROID_HTTP_CLIENT STREQUAL "JAVA"))
+if(VCPKG_TARGET_IS_LINUX OR MATSDK_ANDROID_HTTP_CLIENT STREQUAL "CURL")
   if(_matsdk_http_feature_count GREATER 1)
     message(FATAL_ERROR
-      "curl-openssl (default) and curl-mbedtls are mutually exclusive but both were "
-      "selected. To use mbedTLS, drop the defaults with the [core,...] form and "
-      "re-select a SQLite backend (the [core,...] form also drops the default "
-      "system-sqlite feature), e.g. "
-      "cpp-client-telemetry[core,curl-mbedtls,system-sqlite] "
-      "(or minimal-sqlite in place of system-sqlite).")
-  elseif(_matsdk_http_feature_count EQUAL 0)
+      "The curl HTTP backend features are mutually exclusive but multiple were "
+      "selected. On Linux, use exactly one of curl-openssl/curl-mbedtls. On "
+      "Android, use exactly one of android-curl-openssl/android-curl-mbedtls.")
+  elseif(_matsdk_http_feature_count EQUAL 0 AND VCPKG_TARGET_IS_LINUX)
     # The built-in curl HTTP client requires exactly one TLS backend. The [core,...]
     # form drops the default curl-openssl, so fail fast (with a complete example)
     # rather than letting the SDK CMake fail later on a missing libcurl.
     message(FATAL_ERROR
-      "On Linux/Android the built-in curl HTTP client requires exactly one TLS "
-      "backend feature, but none was selected. The [core,...] form drops the "
-      "default curl-openssl feature, so re-add a curl backend together with a "
-      "SQLite backend, e.g. cpp-client-telemetry[core,curl-openssl,system-sqlite] "
-      "(or curl-mbedtls / minimal-sqlite in place of those).")
+      "On Linux the built-in curl HTTP client requires exactly one TLS backend "
+      "feature, but none was selected. The [core,...] form drops the default "
+      "curl-openssl feature, so re-add a curl backend together with a SQLite "
+      "backend, e.g. "
+      "cpp-client-telemetry[core,curl-mbedtls,system-sqlite] "
+      "(or minimal-sqlite in place of system-sqlite).")
+  elseif(_matsdk_http_feature_count EQUAL 0)
+    message(FATAL_ERROR
+      "On Android, MATSDK_ANDROID_HTTP_CLIENT=CURL requires exactly one explicit "
+      "Android curl backend feature. Use android-curl-openssl or "
+      "android-curl-mbedtls together with a SQLite backend, e.g. "
+      "cpp-client-telemetry[core,android-curl-openssl,system-sqlite].")
   endif()
-elseif(VCPKG_TARGET_IS_ANDROID AND _matsdk_http_feature_count GREATER 0)
-  message(STATUS
-    "cpp-client-telemetry: android-java-http selected; curl backend features are "
-    "not used by the SDK build. Use the [core,android-java-http,...] form if you "
-    "also want to avoid installing curl dependencies.")
 endif()
 
 # minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).

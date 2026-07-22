@@ -25,12 +25,9 @@
     "system-sqlite"
   ],
   "features": {
-    "android-java-http": {
-      "description": "On Android, build the SDK native library against the Java/JNI HttpClient_Android bridge instead of libcurl. Use the [core,android-java-http,system-sqlite] or [core,android-java-http,minimal-sqlite] form to avoid pulling the default curl feature.",
-      "supports": "android"
-    },
-    "curl-mbedtls": {
-      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux/Android only. Use [core,curl-mbedtls,system-sqlite] to drop the default OpenSSL curl; the [core,...] form drops all defaults (including system-sqlite), so also re-select system-sqlite or minimal-sqlite.",
+    "android-curl-mbedtls": {
+      "description": "On Android, explicitly build the native libcurl HTTP client with the mbedTLS backend instead of the default Java/JNI HttpClient_Android bridge.",
+      "supports": "android",
       "dependencies": [
         {
           "name": "curl",
@@ -38,12 +35,13 @@
           "features": [
             "mbedtls"
           ],
-          "platform": "linux | android"
+          "platform": "android"
         }
       ]
     },
-    "curl-openssl": {
-      "description": "Built-in libcurl HTTP client with the OpenSSL TLS backend (default). Affects Linux/Android only; Windows uses WinInet and Apple uses NSURLSession regardless.",
+    "android-curl-openssl": {
+      "description": "On Android, explicitly build the native libcurl HTTP client with the OpenSSL backend instead of the default Java/JNI HttpClient_Android bridge.",
+      "supports": "android",
       "dependencies": [
         {
           "name": "curl",
@@ -51,7 +49,33 @@
           "features": [
             "openssl"
           ],
-          "platform": "linux | android"
+          "platform": "android"
+        }
+      ]
+    },
+    "curl-mbedtls": {
+      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux only. Use [core,curl-mbedtls,system-sqlite] to drop the default OpenSSL curl; the [core,...] form drops all defaults (including system-sqlite), so also re-select system-sqlite or minimal-sqlite.",
+      "dependencies": [
+        {
+          "name": "curl",
+          "default-features": false,
+          "features": [
+            "mbedtls"
+          ],
+          "platform": "linux"
+        }
+      ]
+    },
+    "curl-openssl": {
+      "description": "Built-in libcurl HTTP client with the OpenSSL TLS backend (default). Affects Linux only; Android uses the Java/JNI bridge unless an android-curl-* feature is selected, Windows uses WinInet, and Apple uses NSURLSession.",
+      "dependencies": [
+        {
+          "name": "curl",
+          "default-features": false,
+          "features": [
+            "openssl"
+          ],
+          "platform": "linux"
         }
       ]
     },
