@@ -35,6 +35,19 @@ if(VCPKG_TARGET_IS_IOS)
   set(MATSDK_BUILD_IOS ON)
 endif()
 
+set(MATSDK_ANDROID_HTTP_CLIENT AUTO)
+if(VCPKG_TARGET_IS_ANDROID AND "android-java-http" IN_LIST FEATURES)
+  set(MATSDK_ANDROID_HTTP_CLIENT JAVA)
+  file(READ "${SOURCE_PATH}/CMakeLists.txt" _matsdk_root_cmake)
+  if(NOT _matsdk_root_cmake MATCHES "MATSDK_ANDROID_HTTP_CLIENT")
+    message(FATAL_ERROR
+      "The android-java-http feature requires a cpp-client-telemetry source "
+      "revision that supports MATSDK_ANDROID_HTTP_CLIENT. Update this port's "
+      "REF/SHA512 to a newer SDK release, or set MATSDK_VCPKG_SOURCE_DIR to a "
+      "local checkout that contains the Android Java transport selector.")
+  endif()
+endif()
+
 # curl-openssl (default) and curl-mbedtls choose the TLS backend for the built-in
 # HTTP client and are mutually exclusive. They only matter on Linux/Android: the
 # curl dependency is platform-filtered to those triplets, so on Windows/macOS/iOS
@@ -49,7 +62,7 @@ foreach(_matsdk_http_feature curl-openssl curl-mbedtls)
   endif()
 endforeach()
 list(LENGTH _matsdk_http_features _matsdk_http_feature_count)
-if(VCPKG_TARGET_IS_LINUX OR VCPKG_TARGET_IS_ANDROID)
+if(VCPKG_TARGET_IS_LINUX OR (VCPKG_TARGET_IS_ANDROID AND NOT MATSDK_ANDROID_HTTP_CLIENT STREQUAL "JAVA"))
   if(_matsdk_http_feature_count GREATER 1)
     message(FATAL_ERROR
       "curl-openssl (default) and curl-mbedtls are mutually exclusive but both were "
@@ -69,6 +82,11 @@ if(VCPKG_TARGET_IS_LINUX OR VCPKG_TARGET_IS_ANDROID)
       "SQLite backend, e.g. cpp-client-telemetry[core,curl-openssl,system-sqlite] "
       "(or curl-mbedtls / minimal-sqlite in place of those).")
   endif()
+elseif(VCPKG_TARGET_IS_ANDROID AND _matsdk_http_feature_count GREATER 0)
+  message(STATUS
+    "cpp-client-telemetry: android-java-http selected; curl backend features are "
+    "not used by the SDK build. Use the [core,android-java-http,...] form if you "
+    "also want to avoid installing curl dependencies.")
 endif()
 
 # minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).
@@ -83,6 +101,7 @@ vcpkg_cmake_configure(
     OPTIONS
         ${FEATURE_OPTIONS}
         -DMATSDK_USE_VCPKG_DEPS=ON
+        -DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}
         -DBUILD_HEADERS=ON
         -DBUILD_LIBRARY=ON
         -DBUILD_TEST_TOOL=OFF

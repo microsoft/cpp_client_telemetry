@@ -52,8 +52,8 @@ namespace PAL_NS_BEGIN {
 
     ///// IDeviceInformation API
     DeviceInformationImpl::DeviceInformationImpl(IRuntimeConfig& configuration) :
-        m_info_helper(),
-        m_powerSource(PowerSource_Battery)
+        m_powerSource(PowerSource_Battery),
+        m_info_helper()
     {}
 
     std::string DeviceInformationImpl::GetDeviceTicket() const
@@ -260,4 +260,3 @@ Java_com_microsoft_applications_events_HttpClient_onPowerChange(JNIEnv* env,
         PAL::AndroidDeviceInformationConnector::setModel(std::string(start, end));
         env->ReleaseStringUTFChars(model, start);
     }
-

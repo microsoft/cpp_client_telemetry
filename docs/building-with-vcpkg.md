@@ -139,6 +139,47 @@ scaffolding and not part of the published package.)
 Supported triplets: `arm64-android`, `arm-neon-android`, `x64-android`,
 `x86-android`.
 
+#### Android HTTP transport
+
+The CMake option `MATSDK_ANDROID_HTTP_CLIENT` selects the Android HTTP transport:
+
+| Value | Behavior |
+| ----- | -------- |
+| `AUTO` | Default. Uses `CURL` in vcpkg dependency mode and `JAVA` in the legacy Android Gradle/AAR build. |
+| `CURL` | Builds the native libcurl transport. This is the vcpkg default and requires one curl TLS feature. |
+| `JAVA` | Builds `HttpClient_Android`, which calls the Android Java bridge via JNI. |
+
+For vcpkg, select Java transport with the Android-only `android-java-http`
+feature. Use the `[core,...]` form if you also want to avoid pulling the default
+curl dependency:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": ["android-java-http", "system-sqlite"]
+    }
+  ]
+}
+```
+
+When Java transport is selected, the package installs the bridge sources under:
+
+```text
+share/cpp-client-telemetry/android/java/com/microsoft/applications/events/
+```
+
+The installed bridge contains `HttpClient.java` and `HttpClientRequest.java`.
+Consumers are responsible for compiling those Java sources into their Android
+application/AAR and constructing `com.microsoft.applications.events.HttpClient`
+so it initializes the native `HttpClient_Android` singleton before telemetry is
+uploaded. The bridge imports AndroidX annotations (`@Keep`, `@NonNull`,
+`@Nullable`, `@RequiresApi`), so ensure `androidx.annotation:annotation` is on
+the Java compile classpath, for example as a Gradle `compileOnly` or
+`implementation` dependency.
+
 ## Dependencies
 
 The vcpkg port automatically resolves the following dependencies:
@@ -165,9 +206,9 @@ the mbedTLS backend — see
 [Choose the HTTP client / TLS backend](#choose-the-http-client--tls-backend-largest-lever-on-linux).
 
 Windows and macOS/iOS use platform-native HTTP clients (WinInet and
-NSURLSession respectively). Android vcpkg consumers use native libcurl because
-the Java-backed `HttpClient_Android` singleton is initialized by the repo's
-Android Gradle/AAR flow, not by standalone native vcpkg consumers.
+NSURLSession respectively). Android defaults to native libcurl in vcpkg mode for
+backward compatibility, but consumers that package the SDK with the Android Java
+bridge can select the Java/JNI transport with the `android-java-http` feature.
 
 > **Note (Windows):** The port targets the MSVC/`WIN32` PAL on Windows, which
 > uses WinInet, so `curl` is declared for `linux | android` only. A MinGW /
@@ -382,7 +423,8 @@ unchanged against the minimal build.
 When the SDK detects it is being built via vcpkg (by checking for
 `VCPKG_TOOLCHAIN` or `VCPKG_TARGET_TRIPLET`), it automatically sets
 `MATSDK_USE_VCPKG_DEPS=ON`. This switches dependency resolution from
-vendored sources to vcpkg-provided packages via `find_package()`.
+vendored sources to vcpkg-provided packages via `find_package()`. Android HTTP
+transport selection is controlled separately by `MATSDK_ANDROID_HTTP_CLIENT`.
 
 You can also set this explicitly for custom CMake workflows:
 

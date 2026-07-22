@@ -21,22 +21,26 @@
     }
   ],
   "default-features": [
-    "system-sqlite",
-    "curl-openssl"
+    "curl-openssl",
+    "system-sqlite"
   ],
   "features": {
-    "system-sqlite": {
-      "description": "Link the external vcpkg sqlite3 package for the offline storage cache (default). On macOS/iOS the SDK links the system libsqlite3 instead, so this dependency is not pulled there.",
+    "android-java-http": {
+      "description": "On Android, build the SDK native library against the Java/JNI HttpClient_Android bridge instead of libcurl. Use the [core,android-java-http,system-sqlite] or [core,android-java-http,minimal-sqlite] form to avoid pulling the default curl feature.",
+      "supports": "android"
+    },
+    "curl-mbedtls": {
+      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux/Android only. Use [core,curl-mbedtls,system-sqlite] to drop the default OpenSSL curl; the [core,...] form drops all defaults (including system-sqlite), so also re-select system-sqlite or minimal-sqlite.",
       "dependencies": [
         {
-          "name": "sqlite3",
+          "name": "curl",
           "default-features": false,
-          "platform": "!osx & !ios"
+          "features": [
+            "mbedtls"
+          ],
+          "platform": "linux | android"
         }
       ]
-    },
-    "minimal-sqlite": {
-      "description": "Build a private, feature-stripped SQLite compiled from the SDK's vendored amalgamation instead of linking the external sqlite3 package. Smaller footprint; combine with [core,minimal-sqlite] to also drop the sqlite3 dependency."
     },
     "curl-openssl": {
       "description": "Built-in libcurl HTTP client with the OpenSSL TLS backend (default). Affects Linux/Android only; Windows uses WinInet and Apple uses NSURLSession regardless.",
@@ -51,16 +55,16 @@
         }
       ]
     },
-    "curl-mbedtls": {
-      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux/Android only. Use [core,curl-mbedtls,system-sqlite] to drop the default OpenSSL curl; the [core,...] form drops all defaults (including system-sqlite), so also re-select system-sqlite or minimal-sqlite.",
+    "minimal-sqlite": {
+      "description": "Build a private, feature-stripped SQLite compiled from the SDK's vendored amalgamation instead of linking the external sqlite3 package. Smaller footprint; combine with [core,minimal-sqlite] to also drop the sqlite3 dependency."
+    },
+    "system-sqlite": {
+      "description": "Link the external vcpkg sqlite3 package for the offline storage cache (default). On macOS/iOS the SDK links the system libsqlite3 instead, so this dependency is not pulled there.",
       "dependencies": [
         {
-          "name": "curl",
+          "name": "sqlite3",
           "default-features": false,
-          "features": [
-            "mbedtls"
-          ],
-          "platform": "linux | android"
+          "platform": "!osx & !ios"
         }
       ]
     }
