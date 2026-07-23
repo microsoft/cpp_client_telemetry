@@ -52,6 +52,7 @@ namespace PAL_NS_BEGIN {
 
     ///// IDeviceInformation API
     DeviceInformationImpl::DeviceInformationImpl(IRuntimeConfig& configuration) :
+        m_os_architecture(OsArchitectureType_Unknown),
         m_powerSource(PowerSource_Battery),
         m_info_helper(),
         m_registeredCount(0)

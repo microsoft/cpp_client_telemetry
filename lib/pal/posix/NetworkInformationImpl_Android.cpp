@@ -42,6 +42,7 @@ namespace PAL_NS_BEGIN {
     NetworkCost AndroidNetcostConnector::s_cost = NetworkCost_Unknown;
 
     NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
+        m_type(NetworkType_Unknown),
         m_cost(NetworkCost_Unknown),
         m_info_helper(),
         m_registeredCount(0),

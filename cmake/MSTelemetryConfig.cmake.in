@@ -29,8 +29,12 @@ if(@MATSDK_NEEDS_CURL@)
 endif()
 
 set(MSTelemetry_ANDROID_HTTP_CLIENT "@MATSDK_ANDROID_HTTP_CLIENT_RESOLVED@")
-set(MSTelemetry_ANDROID_JAVA_SOURCE_DIR
-  "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_DATADIR@/cpp-client-telemetry/android/java")
+if(MSTelemetry_ANDROID_HTTP_CLIENT STREQUAL "JAVA")
+  set(MSTelemetry_ANDROID_JAVA_SOURCE_DIR
+    "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_DATADIR@/cpp-client-telemetry/android/java")
+else()
+  set(MSTelemetry_ANDROID_JAVA_SOURCE_DIR "")
+endif()
 
 # Pthreads are needed on Linux and Android (POSIX threading)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")

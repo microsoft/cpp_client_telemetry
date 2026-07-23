@@ -10,10 +10,19 @@ if(DEFINED ENV{MATSDK_VCPKG_SOURCE_DIR})
             "was found there. It must point to a cpp_client_telemetry source checkout.")
     endif()
     message(STATUS "cpp-client-telemetry: building local source $ENV{MATSDK_VCPKG_SOURCE_DIR} (MATSDK_VCPKG_SOURCE_DIR is set)")
-elseif(EXISTS "${CURRENT_PORT_DIR}/../../../CMakeLists.txt")
-    get_filename_component(SOURCE_PATH "${CURRENT_PORT_DIR}/../../.." ABSOLUTE)
-    message(STATUS "cpp-client-telemetry: building in-repo overlay source ${SOURCE_PATH}")
 else()
+    get_filename_component(_matsdk_overlay_source "${CURRENT_PORT_DIR}/../../.." ABSOLUTE)
+endif()
+
+if(NOT DEFINED SOURCE_PATH
+   AND EXISTS "${_matsdk_overlay_source}/CMakeLists.txt"
+   AND EXISTS "${_matsdk_overlay_source}/lib/CMakeLists.txt"
+   AND EXISTS "${_matsdk_overlay_source}/tools/ports/cpp-client-telemetry/portfile.cmake")
+    set(SOURCE_PATH "${_matsdk_overlay_source}")
+    message(STATUS "cpp-client-telemetry: building in-repo overlay source ${SOURCE_PATH}")
+endif()
+
+if(NOT DEFINED SOURCE_PATH)
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO microsoft/cpp_client_telemetry
