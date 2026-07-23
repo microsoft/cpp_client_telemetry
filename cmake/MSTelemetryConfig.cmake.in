@@ -14,8 +14,9 @@ find_dependency(ZLIB)
 find_dependency(nlohmann_json CONFIG)
 
 # Curl is re-found only when the SDK was built with the curl HTTP client
-# (Linux, Android via vcpkg, and macOS built without Apple HTTP).
-# Windows (WinInet), iOS, and macOS-with-Apple-HTTP do not link curl.
+# (Linux, explicit Android curl builds, and macOS built without Apple HTTP).
+# Windows (WinInet), default Android Java/JNI HTTP, iOS, and
+# macOS-with-Apple-HTTP do not link curl.
 # We bake the build-time decision into a boolean rather than re-deriving it,
 # because the macOS BUILD_APPLE_HTTP choice can't be inferred from
 # CMAKE_SYSTEM_NAME alone.

@@ -53,7 +53,8 @@ namespace PAL_NS_BEGIN {
     ///// IDeviceInformation API
     DeviceInformationImpl::DeviceInformationImpl(IRuntimeConfig& configuration) :
         m_powerSource(PowerSource_Battery),
-        m_info_helper()
+        m_info_helper(),
+        m_registeredCount(0)
     {}
 
     std::string DeviceInformationImpl::GetDeviceTicket() const
