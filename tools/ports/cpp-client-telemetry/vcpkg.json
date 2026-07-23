@@ -21,38 +21,13 @@
     }
   ],
   "default-features": [
-    "system-sqlite",
-    "curl-openssl"
+    "curl-openssl",
+    "system-sqlite"
   ],
   "features": {
-    "system-sqlite": {
-      "description": "Link the external vcpkg sqlite3 package for the offline storage cache (default). On macOS/iOS the SDK links the system libsqlite3 instead, so this dependency is not pulled there.",
-      "dependencies": [
-        {
-          "name": "sqlite3",
-          "default-features": false,
-          "platform": "!osx & !ios"
-        }
-      ]
-    },
-    "minimal-sqlite": {
-      "description": "Build a private, feature-stripped SQLite compiled from the SDK's vendored amalgamation instead of linking the external sqlite3 package. Smaller footprint; combine with [core,minimal-sqlite] to also drop the sqlite3 dependency."
-    },
-    "curl-openssl": {
-      "description": "Built-in libcurl HTTP client with the OpenSSL TLS backend (default). Affects Linux/Android only; Windows uses WinInet and Apple uses NSURLSession regardless.",
-      "dependencies": [
-        {
-          "name": "curl",
-          "default-features": false,
-          "features": [
-            "openssl"
-          ],
-          "platform": "linux | android"
-        }
-      ]
-    },
-    "curl-mbedtls": {
-      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux/Android only. Use [core,curl-mbedtls,system-sqlite] to drop the default OpenSSL curl; the [core,...] form drops all defaults (including system-sqlite), so also re-select system-sqlite or minimal-sqlite.",
+    "android-curl-mbedtls": {
+      "description": "On Android, explicitly build the native libcurl HTTP client with the mbedTLS backend instead of the default Java/JNI HttpClient_Android bridge.",
+      "supports": "android",
       "dependencies": [
         {
           "name": "curl",
@@ -60,7 +35,60 @@
           "features": [
             "mbedtls"
           ],
-          "platform": "linux | android"
+          "platform": "android"
+        }
+      ]
+    },
+    "android-curl-openssl": {
+      "description": "On Android, explicitly build the native libcurl HTTP client with the OpenSSL backend instead of the default Java/JNI HttpClient_Android bridge.",
+      "supports": "android",
+      "dependencies": [
+        {
+          "name": "curl",
+          "default-features": false,
+          "features": [
+            "openssl"
+          ],
+          "platform": "android"
+        }
+      ]
+    },
+    "curl-mbedtls": {
+      "description": "Built-in libcurl HTTP client with the mbedTLS backend instead of OpenSSL (smaller footprint). Affects Linux only. Use [core,curl-mbedtls,system-sqlite] to drop the default OpenSSL curl; the [core,...] form drops all defaults (including system-sqlite), so also re-select system-sqlite or minimal-sqlite.",
+      "dependencies": [
+        {
+          "name": "curl",
+          "default-features": false,
+          "features": [
+            "mbedtls"
+          ],
+          "platform": "linux"
+        }
+      ]
+    },
+    "curl-openssl": {
+      "description": "Built-in libcurl HTTP client with the OpenSSL TLS backend (default). Affects Linux only; Android uses the Java/JNI bridge unless an android-curl-* feature is selected, Windows uses WinInet, and Apple uses NSURLSession.",
+      "dependencies": [
+        {
+          "name": "curl",
+          "default-features": false,
+          "features": [
+            "openssl"
+          ],
+          "platform": "linux"
+        }
+      ]
+    },
+    "minimal-sqlite": {
+      "description": "Build a private, feature-stripped SQLite compiled from the SDK's vendored amalgamation instead of linking the external sqlite3 package. Smaller footprint; combine with [core,minimal-sqlite] to also drop the sqlite3 dependency."
+    },
+    "system-sqlite": {
+      "description": "Link the external vcpkg sqlite3 package for the offline storage cache (default). On macOS/iOS the SDK links the system libsqlite3 instead, so this dependency is not pulled there.",
+      "dependencies": [
+        {
+          "name": "sqlite3",
+          "default-features": false,
+          "platform": "!osx & !ios"
         }
       ]
     }

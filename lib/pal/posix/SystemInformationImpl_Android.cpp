@@ -163,8 +163,8 @@ namespace PAL_NS_BEGIN {
     std::string AndroidSystemInformationConnector::s_device_class;
 
     SystemInformationImpl::SystemInformationImpl(IRuntimeConfig& configuration) :
-        m_info_helper(),
-        m_os_name("Android")
+        m_os_name("Android"),
+        m_info_helper()
     {
         if (configuration.HasConfig(CFG_PTR_ANDROID_JVM) && configuration.HasConfig(CFG_JOBJECT_ANDROID_ACTIVITY))
         {
@@ -245,4 +245,3 @@ extern "C" JNIEXPORT void JNICALL Java_com_microsoft_applications_events_HttpCli
         PAL::AndroidSystemInformationConnector::s_device_class,
         deviceClass);
 }
-
