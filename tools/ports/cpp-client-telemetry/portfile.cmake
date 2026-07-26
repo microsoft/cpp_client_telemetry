@@ -83,7 +83,9 @@ if(VCPKG_TARGET_IS_LINUX OR MATSDK_ANDROID_HTTP_CLIENT STREQUAL "CURL")
     message(FATAL_ERROR
       "The curl HTTP backend features are mutually exclusive but multiple were "
       "selected. On Linux, use exactly one of curl-openssl/curl-mbedtls. On "
-      "Android, use exactly one of android-curl-openssl/android-curl-mbedtls.")
+      "Android, use exactly one of android-curl-openssl/android-curl-mbedtls. "
+      "If you added a non-default backend, use the [core,...] form "
+      "(default-features=false) so the default curl-openssl feature is dropped.")
   elseif(_matsdk_http_feature_count EQUAL 0 AND VCPKG_TARGET_IS_LINUX)
     # The built-in curl HTTP client requires exactly one TLS backend. The [core,...]
     # form drops the default curl-openssl, so fail fast (with a complete example)
