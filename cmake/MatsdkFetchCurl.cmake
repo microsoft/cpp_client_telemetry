@@ -72,9 +72,6 @@ function(matsdk_fetch_curl out_target)
     set(${option} ON)
   endforeach()
 
-  set(CURL_CA_BUNDLE none)
-  set(CURL_CA_PATH none)
-
   if(MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS")
     set(USE_STATIC_MBEDTLS_LIBRARY ON)
     set(CURL_USE_MBEDTLS ON)
@@ -85,7 +82,7 @@ function(matsdk_fetch_curl out_target)
     FetchContent_Declare(
       matsdk_mbedtls
       URL ${MATSDK_MBEDTLS_URL}
-      URL_HASH SHA1=${MATSDK_MBEDTLS_SHA1})
+      URL_HASH SHA256=${MATSDK_MBEDTLS_SHA256})
     FetchContent_MakeAvailable(matsdk_mbedtls)
 
     foreach(target mbedtls mbedx509 mbedcrypto)
@@ -112,7 +109,7 @@ function(matsdk_fetch_curl out_target)
   FetchContent_Declare(
     matsdk_curl
     URL ${MATSDK_CURL_URL}
-    URL_HASH SHA1=${MATSDK_CURL_SHA1})
+    URL_HASH SHA256=${MATSDK_CURL_SHA256})
   FetchContent_MakeAvailable(matsdk_curl)
 
   if(NOT TARGET CURL::libcurl OR NOT TARGET libcurl_static)
