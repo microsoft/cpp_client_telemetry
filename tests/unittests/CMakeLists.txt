@@ -60,7 +60,7 @@ if (EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/azmon/AIJsonSerializer.hpp")
 endif()
 
 if (APPLE)
-  if (BUILD_IOS)
+  if (MATSDK_BUILD_IOS)
     list(APPEND SRCS SysInfoUtilsTests_iOS.cpp)
   else()
     list(APPEND SRCS SysInfoUtilsTests_Mac.cpp)
@@ -75,7 +75,7 @@ if (EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests")
         )
 endif()
         
-if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/" AND MATSDK_BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
   "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/tests/unittests/InitializationConfigurationTests.cpp"
@@ -86,7 +86,7 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUA
   )
 endif()
 
-if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/" AND BUILD_SANITIZER)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/" AND MATSDK_BUILD_SANITIZER)
   list(APPEND SRCS
   "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerJwtTests.cpp"
   "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/tests/unittests/SanitizerProviderTests.cpp"
@@ -108,7 +108,7 @@ endif()
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
-if(BUILD_IOS)
+if(MATSDK_BUILD_IOS)
   add_library(UnitTests STATIC ${SRCS} ${TESTS_COMMON_SRCS})
 else()
   add_executable(UnitTests ${SRCS} ${TESTS_COMMON_SRCS})
@@ -121,15 +121,25 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/gmock")
   message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/zlib")
   message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/sqlite")
-  # link_directories(${PROJECT_BINARY_DIR}/gtest/ ${PROJECT_BINARY_DIR}/gmock/ ${PROJECT_BINARY_DIR}/zlib/ ${PROJECT_BINARY_DIR}/sqlite/)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
+  if(TARGET zlib_bundled)
+    set(MATSDK_TEST_ZLIB zlib_bundled)
+  else()
+    set(MATSDK_TEST_ZLIB ${PROJECT_BINARY_DIR}/zlib/zlib.lib)
+    target_compile_definitions(UnitTests PRIVATE ZLIB_WINAPI)
+  endif()
+  if(TARGET sqlite3_bundled)
+    set(SQLITE3_LIB sqlite3_bundled)
+  else()
+    set(SQLITE3_LIB ${PROJECT_BINARY_DIR}/sqlite/sqlite.lib)
+  endif()
   target_link_libraries(UnitTests
-        mat
-	wininet.lib
-	${PROJECT_BINARY_DIR}/gtest/gtest.lib
-	${PROJECT_BINARY_DIR}/gmock/gmock.lib
-	${PROJECT_BINARY_DIR}/zlib/zlib.lib
-	${PROJECT_BINARY_DIR}/sqlite/sqlite.lib
+    mat
+    wininet.lib
+    ${PROJECT_BINARY_DIR}/gtest/gtest.lib
+    ${PROJECT_BINARY_DIR}/gmock/gmock.lib
+    ${MATSDK_TEST_ZLIB}
+    ${SQLITE3_LIB}
   )
 else()
 
@@ -162,7 +172,7 @@ else()
   # Add flags for obtaining system UUID via IOKit
   if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set (PLATFORM_LIBS "-framework CoreFoundation -framework IOKit -framework SystemConfiguration -framework Foundation -framework Network")
-    if(BUILD_IOS)
+    if(MATSDK_BUILD_IOS)
       set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit")
     endif()
   endif()
@@ -218,6 +228,10 @@ else()
     endif()
   endif()
 
+endif()
+
+if(TARGET nlohmann_json::nlohmann_json)
+  target_link_libraries(UnitTests PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
 add_test(UnitTests UnitTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/UnitTests.xml")

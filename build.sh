@@ -98,7 +98,7 @@ fi
 
 # Evaluate switches
 LINK_TYPE=
-CMAKE_OPTS="${CMAKE_OPTS:--DBUILD_SHARED_LIBS=OFF}"
+CMAKE_OPTS="${CMAKE_OPTS:--DMATSDK_LIBRARY_TYPE=STATIC}"
 while getopts "h?vl:D:" opt; do
     case "$opt" in
     h|\?) usage
@@ -133,7 +133,7 @@ fi
 echo "CMAKE_OPTS from caller: $CMAKE_OPTS"
 
 if [ "$LINK_TYPE" == "shared" ]; then
-  CMAKE_OPTS="${CMAKE_OPTS} -DBUILD_SHARED_LIBS=ON"
+  CMAKE_OPTS="${CMAKE_OPTS} -DMATSDK_LIBRARY_TYPE=SHARED"
 fi
 
 # Set target MacOS minver
@@ -185,8 +185,15 @@ fi
 # Fail on error
 set -e
 
-# TODO: should this be improved to verify if the platform is Apple? Right now we unconditionally pass -DMAC_ARCH even if building for Windows or Linux.
-cmake_cmd="cmake -DMAC_ARCH=$MAC_ARCH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="${CUSTOM_CMAKE_CXX_FLAG}" $CMAKE_OPTS .."
+APPLE_CMAKE_OPTS=""
+if [[ "$OS_NAME" == *Darwin* ]]; then
+  if [[ "$MAC_ARCH" == "universal" ]]; then
+    APPLE_CMAKE_OPTS='-DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"'
+  else
+    APPLE_CMAKE_OPTS="-DCMAKE_OSX_ARCHITECTURES=$MAC_ARCH"
+  fi
+fi
+cmake_cmd="cmake $APPLE_CMAKE_OPTS -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="${CUSTOM_CMAKE_CXX_FLAG}" $CMAKE_OPTS .."
 echo $cmake_cmd
 eval $cmake_cmd
 

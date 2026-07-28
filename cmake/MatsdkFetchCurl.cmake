@@ -122,5 +122,11 @@ function(matsdk_fetch_curl out_target)
   target_compile_options(libcurl_static PRIVATE
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang>:-ffunction-sections;-fdata-sections>)
 
+  set(_matsdk_fetched_curl_targets libcurl_static)
+  if(MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS")
+    list(APPEND _matsdk_fetched_curl_targets mbedtls mbedx509 mbedcrypto)
+  endif()
+  set(MATSDK_FETCHED_CURL_TARGETS
+    "${_matsdk_fetched_curl_targets}" PARENT_SCOPE)
   set(${out_target} CURL::libcurl PARENT_SCOPE)
 endfunction()

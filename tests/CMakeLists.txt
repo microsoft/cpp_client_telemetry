@@ -14,11 +14,11 @@ set(TESTS_COMMON_SRCS
   ../../lib/decoder/PayloadDecoder.cpp
 )
 
-if(BUILD_FUNC_TESTS)
+if(MATSDK_BUILD_FUNC_TESTS)
   add_subdirectory(functests)
 endif()
 
-if(BUILD_UNIT_TESTS)
+if(MATSDK_BUILD_UNIT_TESTS)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/unittests)
   add_subdirectory(unittests)
 endif()

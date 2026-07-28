@@ -211,7 +211,7 @@ will automatically use the optimized zlib-ng build.
 This section applies when the SDK is linked **statically** into your binary
 (the default for the `*-static` vcpkg triplets) — most footprint control then
 lives on *your* side of the link. If you instead consume a **dynamic** `mat`
-(e.g. the default `x64-windows` triplet, or `BUILD_SHARED_LIBS=ON`), the runtime
+(e.g. the default `x64-windows` triplet, or `MATSDK_LIBRARY_TYPE=SHARED`), the runtime
 ships as its own `mat.dll` / `libmat.so` / `libmat.dylib`; the SDK's own
 `-fvisibility=hidden` and `/Gy /Gw` already trim its exported symbol table, and
 the consumer-side linker options below are specific to the static-link case.
@@ -357,7 +357,7 @@ requires a TLS backend, so omitting it would fail to configure (swap in
 For a plain (non-vcpkg) CMake build, pass the option directly:
 
 ```bash
-cmake -DMATSDK_MINIMAL_SQLITE=ON ..
+cmake -DMATSDK_SQLITE_PROVIDER=MINIMAL ..
 ```
 
 The strip is **amalgamation-safe**: it changes no SQLite grammar/parser, so no

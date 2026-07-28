@@ -8,14 +8,14 @@ set(SRCS
   MultipleLogManagersTests.cpp
 )
 
-if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/" AND BUILD_PRIVACYGUARD)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/" AND MATSDK_BUILD_PRIVACYGUARD)
   add_definitions(-DHAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
     "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/tests/functests/PrivacyGuardFuncTests.cpp"
   )
 endif()
 
-if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/" AND BUILD_SANITIZER)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/" AND MATSDK_BUILD_SANITIZER)
   list(APPEND SRCS
     "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/tests/functests/SanitizerFuncTests.cpp"
   )
@@ -27,7 +27,7 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/dataviewer/")
   )
 endif()
 
-if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/liveeventinspector/" AND BUILD_LIVEEVENTINSPECTOR)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/liveeventinspector/" AND MATSDK_BUILD_LIVEEVENTINSPECTOR)
   add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
   list(APPEND SRCS
     "${PROJECT_SOURCE_DIR}/lib/modules/liveeventinspector/tests/functests/LiveEventInspectorFuncTests.cpp"
@@ -48,7 +48,7 @@ endif()
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
-if(BUILD_IOS)
+if(MATSDK_BUILD_IOS)
   add_library(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
 else()
   add_executable(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
@@ -61,15 +61,25 @@ if(PAL_IMPLEMENTATION STREQUAL "WIN32")
   message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/gmock")
   message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/zlib")
   message(STATUS "WIN32: ... ${PROJECT_BINARY_DIR}/sqlite")
-  # link_directories(${PROJECT_BINARY_DIR}/gtest/ ${PROJECT_BINARY_DIR}/gmock/ ${PROJECT_BINARY_DIR}/zlib/ ${PROJECT_BINARY_DIR}/sqlite/)
   include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
+  if(TARGET zlib_bundled)
+    set(MATSDK_TEST_ZLIB zlib_bundled)
+  else()
+    set(MATSDK_TEST_ZLIB ${PROJECT_BINARY_DIR}/zlib/zlib.lib)
+    target_compile_definitions(FuncTests PRIVATE ZLIB_WINAPI)
+  endif()
+  if(TARGET sqlite3_bundled)
+    set(SQLITE3_LIB sqlite3_bundled)
+  else()
+    set(SQLITE3_LIB ${PROJECT_BINARY_DIR}/sqlite/sqlite.lib)
+  endif()
   target_link_libraries(FuncTests
-  	mat
-	wininet.lib
-	${PROJECT_BINARY_DIR}/gtest/gtest.lib
-	${PROJECT_BINARY_DIR}/gmock/gmock.lib
-	${PROJECT_BINARY_DIR}/zlib/zlib.lib
-	${PROJECT_BINARY_DIR}/sqlite/sqlite.lib
+    mat
+    wininet.lib
+    ${PROJECT_BINARY_DIR}/gtest/gtest.lib
+    ${PROJECT_BINARY_DIR}/gmock/gmock.lib
+    ${MATSDK_TEST_ZLIB}
+    ${SQLITE3_LIB}
   )
 else()
 
@@ -99,7 +109,7 @@ else()
   # Add flags for obtaining system UUID via IOKit
   if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set (PLATFORM_LIBS "-framework CoreFoundation -framework Foundation")
-    if(BUILD_IOS)
+    if(MATSDK_BUILD_IOS)
       set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit -framework Network -framework SystemConfiguration")
     else()
       set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework IOKit -framework Network -framework SystemConfiguration")
@@ -152,6 +162,10 @@ else()
     endif()
   endif()
 
+endif()
+
+if(TARGET nlohmann_json::nlohmann_json)
+  target_link_libraries(FuncTests PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
 add_test(FuncTests FuncTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/FuncTests.xml")

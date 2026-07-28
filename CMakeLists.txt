@@ -1,4 +1,32 @@
 cmake_minimum_required(VERSION 3.15...3.31)
+
+# Backward-compatible translation for legacy Apple build scripts. Standard
+# CMAKE_OSX_* variables are the canonical interface and must be initialized
+# before project() so CMake's compiler/platform detection sees them.
+if(NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+  if(DEFINED IOS_ARCH AND NOT IOS_ARCH STREQUAL "")
+    set(CMAKE_OSX_ARCHITECTURES "${IOS_ARCH}" CACHE STRING
+      "Apple target architectures" FORCE)
+  elseif(DEFINED MAC_ARCH AND NOT MAC_ARCH STREQUAL "")
+    if(MAC_ARCH STREQUAL "universal")
+      set(_matsdk_legacy_apple_architectures "arm64;x86_64")
+    else()
+      set(_matsdk_legacy_apple_architectures "${MAC_ARCH}")
+    endif()
+    set(CMAKE_OSX_ARCHITECTURES "${_matsdk_legacy_apple_architectures}" CACHE STRING
+      "Apple target architectures" FORCE)
+  endif()
+endif()
+if(NOT DEFINED CMAKE_OSX_SYSROOT AND DEFINED IOS_PLAT AND NOT IOS_PLAT STREQUAL "")
+  set(CMAKE_OSX_SYSROOT "${IOS_PLAT}" CACHE STRING "Apple SDK sysroot" FORCE)
+endif()
+if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET
+   AND DEFINED IOS_DEPLOYMENT_TARGET
+   AND NOT IOS_DEPLOYMENT_TARGET STREQUAL "")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "${IOS_DEPLOYMENT_TARGET}" CACHE STRING
+    "Apple deployment target" FORCE)
+endif()
+
 project(MSTelemetry LANGUAGES C CXX)
 
 ################################################################################################
@@ -11,15 +39,12 @@ else()
 endif()
 message(STATUS "MATSDK_USE_VCPKG_DEPS: ${MATSDK_USE_VCPKG_DEPS}")
 
-# Build a private, feature-stripped copy of the vendored SQLite amalgamation
-# instead of linking an external SQLite. The SDK uses SQLite only for its offline
-# event-storage cache, so the minimal build (see lib/CMakeLists.txt
-# MATSDK_SQLITE_MINIMAL_DEFS) omits every optional SQLite subsystem the SDK does
-# not use, shrinking the SQLite code ~10% and removing the external sqlite3
-# dependency. Off by default to preserve the existing external/system-SQLite
-# behavior; the Android NDK path always bundles SQLite regardless.
-option(MATSDK_MINIMAL_SQLITE "Build a feature-stripped vendored SQLite instead of an external one" OFF)
-message(STATUS "MATSDK_MINIMAL_SQLITE: ${MATSDK_MINIMAL_SQLITE}")
+set(MATSDK_SQLITE_TARGET "" CACHE STRING
+  "Optional existing CMake target to use for SQLite in non-vcpkg builds, instead of find_package(SQLite3)")
+set(MATSDK_ZLIB_TARGET "" CACHE STRING
+  "Optional existing CMake target to use for zlib in non-vcpkg builds, instead of find_package(ZLIB)")
+
+include(cmake/MatsdkOptions.cmake)
 
 # Begin Uncomment for i386 build
 #set(CMAKE_SYSTEM_PROCESSOR i386)
@@ -34,104 +59,20 @@ if (NOT TARGET_ARCH)
   set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
-# Enable ARC for obj-c on Apple
-# Initialize platform options before conditional blocks (needed for config templates)
-if(NOT DEFINED BUILD_IOS)
-  set(BUILD_IOS OFF)
-endif()
-if(NOT APPLE AND NOT DEFINED BUILD_APPLE_HTTP)
-  set(BUILD_APPLE_HTTP OFF)
-endif()
-
 if(APPLE)
-  message(STATUS "BUILD_IOS:              ${BUILD_IOS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc")
-
-  # iOS build options
-  option(BUILD_IOS           "Build for iOS"               NO)
-  option(FORCE_RESET_OSX_DEPLOYMENT_TARGET "Clear the OSX Deployment Target Set" YES)
-  if (DEFINED FORCE_RESET_DEPLOYMENT_TARGET)
-    set(FORCE_RESET_OSX_DEPLOYMENT_TARGET ${FORCE_RESET_DEPLOYMENT_TARGET})
+  if(MATSDK_BUILD_IOS
+     OR CMAKE_SYSTEM_NAME STREQUAL "iOS"
+     OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+    set(MATSDK_BUILD_IOS ON)
+    set(TARGET_ARCH "APPLE")
+    set(IOS TRUE)
+  elseif(CMAKE_OSX_ARCHITECTURES)
+    set(TARGET_ARCH "${CMAKE_OSX_ARCHITECTURES}")
   endif()
-
-  # When building via vcpkg, the toolchain file handles architecture, sysroot,
-  # deployment target, and platform flags. Skip manual flag configuration.
-  if(NOT MATSDK_USE_VCPKG_DEPS)
-    if(BUILD_IOS)
-      set(TARGET_ARCH "APPLE")
-      set(IOS True)
-      set(APPLE True)
-
-      if(FORCE_RESET_OSX_DEPLOYMENT_TARGET)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Force unset of the deployment target for iOS" FORCE)
-        if (${IOS_PLAT} STREQUAL "iphonesimulator")
-          set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
-          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mios-simulator-version-min=${IOS_DEPLOYMENT_TARGET}")
-        else()
-          set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -miphoneos-version-min=${IOS_DEPLOYMENT_TARGET}")
-        endif()
-      endif()
-
-      if((${IOS_PLAT} STREQUAL "iphoneos") OR (${IOS_PLAT} STREQUAL "iphonesimulator") OR (${IOS_PLAT} STREQUAL "xros") OR (${IOS_PLAT} STREQUAL "xrsimulator"))
-        set(IOS_PLATFORM "${IOS_PLAT}")
-      else()
-        message(FATAL_ERROR "Unrecognized iOS platform '${IOS_PLAT}'")
-      endif()
-
-      if(${IOS_ARCH} STREQUAL "x86_64")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
-        set(CMAKE_SYSTEM_PROCESSOR x86_64)
-      elseif(${IOS_ARCH} STREQUAL "arm64")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
-        set(CMAKE_SYSTEM_PROCESSOR arm64)
-      elseif(${IOS_ARCH} STREQUAL "arm64e")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64e")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64e")
-        set(CMAKE_SYSTEM_PROCESSOR arm64e)
-      else()
-        message(FATAL_ERROR "Unrecognized iOS architecture '${IOS_ARCH}'")
-      endif()
-
-      execute_process(COMMAND xcodebuild -version -sdk ${IOS_PLATFORM} ONLY_ACTIVE_ARCH=NO Path
-        OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
-        ERROR_QUIET
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
-      message(STATUS "CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
-      message(STATUS "ARCHITECTURE:           ${CMAKE_SYSTEM_PROCESSOR}")
-      message(STATUS "PLATFORM:               ${IOS_PLATFORM}")
-    else()
-      if("${MAC_ARCH}" STREQUAL "x86_64")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
-        set(CMAKE_SYSTEM_PROCESSOR x86_64)
-        set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
-        set(CMAKE_OSX_ARCHITECTURES ${MAC_ARCH})
-        set(APPLE True)
-      elseif("${MAC_ARCH}" STREQUAL "arm64")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
-        set(CMAKE_SYSTEM_PROCESSOR arm64)
-        set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
-        set(CMAKE_OSX_ARCHITECTURES ${MAC_ARCH})
-        set(APPLE True)
-      else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
-      endif()
-      message(STATUS "MAC_ARCH:               ${MAC_ARCH}")
-    endif()
-  else()
-    # vcpkg mode: just set internal flags from what the toolchain provides
-    if(BUILD_IOS OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
-      set(BUILD_IOS ON)
-      set(TARGET_ARCH "APPLE")
-      set(IOS True)
-    endif()
-    message(STATUS "vcpkg toolchain managing architecture and platform flags")
-  endif()
+  message(STATUS "MATSDK_BUILD_IOS:       ${MATSDK_BUILD_IOS}")
+  message(STATUS "CMAKE_OSX_ARCHITECTURES: ${CMAKE_OSX_ARCHITECTURES}")
+  message(STATUS "CMAKE_OSX_SYSROOT:       ${CMAKE_OSX_SYSROOT}")
+  message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
 endif()
 
 message(STATUS "CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")
@@ -144,126 +85,41 @@ message(STATUS "CMAKE_CXX_COMPILER_ID:  ${CMAKE_CXX_COMPILER_ID}")
 
 include(tools/ParseOsRelease.cmake)
 
-# When building via vcpkg, let the toolchain manage compiler flags.
-# Only apply project-specific flags for non-vcpkg (legacy) builds.
-if(NOT MATSDK_USE_VCPKG_DEPS)
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set(WARN_FLAGS "/W4 /WX")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # -Wno-unknown-warning-option is Clang-only, omitted here
-  set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-but-set-variable")
-else()
-  # Clang / AppleClang
-  set(WARN_FLAGS "-Wall -Werror -Wextra -Wno-unused-parameter -Wno-unknown-warning-option -Wno-unused-but-set-variable")
-endif()
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # Using GCC with -s and -Wl linker flags. -ffunction-sections/-fdata-sections
-  # are set once for all dep modes by the global block further below.
-  set(REL_FLAGS "-s -Wl,--gc-sections -Os ${WARN_FLAGS} -fmerge-all-constants")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set(REL_FLAGS "${WARN_FLAGS}")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants")
-else()
-  # Using clang - strip unsupported GCC options (-ffunction-sections is set by
-  # the global block further below).
-  set(REL_FLAGS "-Os ${WARN_FLAGS} -fmerge-all-constants")
-endif()
-
-## Uncomment this to reduce the volume of note warnings on RPi4 w/gcc-8 Ref. https://gcc.gnu.org/ml/gcc/2017-05/msg00073.html
-#if (CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
-#  set(WARN_FLAGS "${WARN_FLAGS} -Wno-psabi"
-#endif()
-
-# Use libtcmalloc for Debug builds memory leaks detection
-set(DBG_FLAGS "-ggdb -gdwarf-2 -O0  ${WARN_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
-
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  #TODO: -fno-rtti
-  message(STATUS "Building Release ...")
-  set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${REL_FLAGS}")
-  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${REL_FLAGS}")
-else()
-  set(USE_TCMALLOC 1)
-  message(STATUS "Building Debug ...")
-  include(tools/FindTcmalloc.cmake)
-  set(CMAKE_C_FLAGS   "$ENV{CFLAGS} ${CMAKE_C_FLAGS} -std=c11 ${DBG_FLAGS}")
-  set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${CMAKE_CXX_FLAGS} -std=c++11 ${DBG_FLAGS}")
-endif()
-
-#Remove /Zi for Win32 debug compiler issue
+# SDK-owned compiler policy. This interface target is linked PRIVATE by SDK
+# targets, so add_subdirectory()/FetchContent consumers and vendored dependency
+# targets never inherit the SDK's warning-as-error or optimization policy.
+add_library(matsdk_build_options INTERFACE)
 if(MSVC)
-  string( TOLOWER "${CMAKE_VS_PLATFORM_NAME}" PLATFORM_NAME_LOWER )
-  if (PLATFORM_NAME_LOWER STREQUAL "win32")
-    string(REGEX REPLACE "/Z[iI7]" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-    string(REGEX REPLACE "/Z[iI7]" "" CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG}")
-  endif()
-endif()
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # using Clang
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # using GCC
-  # Prefer to generate position-independent code
-  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  # using Intel C++
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  # using Visual Studio C++
-endif()
-
-endif() # NOT MATSDK_USE_VCPKG_DEPS (compiler flags)
-
-# --- Dead-strip enablement (applies in BOTH vendored and vcpkg modes) ---------
-# Deliberate exception to the "let the toolchain manage compiler flags" note
-# above (the NOT MATSDK_USE_VCPKG_DEPS block): these flags are NOT optimization
-# or dependency choices the vcpkg toolchain owns -- they only split functions and
-# data into separate COMDATs/sections so a *consumer's* linker can drop
-# unreferenced SDK code (MSVC /OPT:REF + /OPT:ICF, GNU/Clang --gc-sections, Apple
-# ld -dead_strip). The toolchain does not set them, and the vcpkg-packaged
-# library (and every MSVC build, which never gets /Gy from the block above) would
-# otherwise link whole .obj files instead of individual functions. Applying them
-# here in both modes closes that gap and matches the MSBuild Release projects,
-# which already enable FunctionLevelLinking + OptimizeReferences + COMDATFolding.
-if(MSVC)
-  # /Gy (function-level linking) is supported by both cl.exe and clang-cl.
-  add_compile_options(/Gy)
-  # /Gw (whole-program global data) is cl.exe-only; the ClangCL toolset (for
-  # which MSVC is also true) does not support it.
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/Gw)
-  endif()
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  # On Mach-O, clang emits .subsections_via_symbols, so ld64's -dead_strip
-  # already removes unreferenced code at per-symbol (function) granularity
-  # without -ffunction-sections; we add it only for cross-toolchain
-  # consistency. -fdata-sections is omitted because it historically conflicted
-  # with bitcode on AppleClang.
-  add_compile_options(-ffunction-sections)
+  target_compile_options(matsdk_build_options INTERFACE
+    /W4
+    $<$<BOOL:${MATSDK_WARNINGS_AS_ERRORS}>:/WX>
+    /Gy
+    $<$<CXX_COMPILER_ID:MSVC>:/Gw>)
 else()
-  # GCC / Clang (Linux, Android, MinGW)
-  add_compile_options(-ffunction-sections -fdata-sections)
-endif()
-
-# Hidden symbol visibility (non-Windows): export only the MATSDK_LIBABI-decorated
-# public API (classes + the C API), hiding SDK internals and the bundled
-# sqlite3/zlib. This shrinks the dynamic symbol table (faster dynamic
-# linking/loading, smaller binaries) and enables more inlining + dead-code
-# elimination -- the non-Windows analog of what /Gy plus the consumer's /OPT:REF
-# achieve on MSVC. All Windows toolchains (MSVC, MinGW, ClangCL) restrict exports
-# via __declspec(dllexport) on MATSDK_LIBABI (lib/include/public/ctmacros.hpp),
-# so this is gated on NOT WIN32 (not NOT MSVC, which would also catch MinGW/
-# Clang-GNU Windows builds and apply ELF-style visibility that does not belong on
-# a PE/COFF target).
-if(NOT WIN32)
-  # -fvisibility=hidden applies to C and C++; -fvisibility-inlines-hidden is a
-  # C++-only option, so scope it to CXX. (Applying it to C sources -- e.g. the
-  # bundled sqlite3/zlib on the legacy Android path -- makes Clang emit an
-  # "unused argument" warning that becomes an error under the project's -Werror.)
-  add_compile_options(-fvisibility=hidden $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
+  target_compile_options(matsdk_build_options INTERFACE
+    -Wall
+    -Wextra
+    -Wno-unused-parameter
+    -Wno-unused-but-set-variable
+    $<$<BOOL:${MATSDK_WARNINGS_AS_ERRORS}>:-Werror>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:-Wno-unknown-warning-option>
+    $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:-Wno-unknown-warning-option>
+    $<$<CONFIG:Debug>:-ggdb>
+    $<$<CONFIG:Debug>:-gdwarf-2>
+    $<$<CONFIG:Debug>:-O0>
+    $<$<CONFIG:Debug>:-fno-builtin-malloc>
+    $<$<CONFIG:Debug>:-fno-builtin-calloc>
+    $<$<CONFIG:Debug>:-fno-builtin-realloc>
+    $<$<CONFIG:Debug>:-fno-builtin-free>
+    $<$<NOT:$<CONFIG:Debug>>:-Os>
+    $<$<NOT:$<CONFIG:Debug>>:-fmerge-all-constants>
+    -ffunction-sections
+    $<$<NOT:$<CXX_COMPILER_ID:AppleClang>>:-fdata-sections>)
+  if(NOT WIN32)
+    target_compile_options(matsdk_build_options INTERFACE
+      -fvisibility=hidden
+      $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
+  endif()
 endif()
 
 include(tools/Utils.cmake)
@@ -300,10 +156,6 @@ if(USE_ONEDS_SECURE_MEM_FUNCTIONS)
   add_definitions(-DUSE_ONEDS_SECURE_MEM_FUNCTIONS)
 endif()
 
-if(PAL_IMPLEMENTATION STREQUAL "WIN32" AND NOT MATSDK_USE_VCPKG_DEPS)
-  add_definitions(-DZLIB_WINAPI)
-endif()
-
 add_definitions(-DNOMINMAX)
 
 ################################################################################################
@@ -332,35 +184,8 @@ endif()
 message(STATUS "SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 
 ################################################################################################
-# User options (must be before HTTP stack section for BUILD_APPLE_HTTP)
+# Embedding/dependency options
 ################################################################################################
-option(BUILD_HEADERS      "Build API headers"       YES)
-option(BUILD_LIBRARY      "Build library"           YES)
-option(BUILD_TEST_TOOL    "Build console test tool" YES)
-# Default the test suites ON only when this repository is the top-level project
-# (developer/CI build), and OFF when it is consumed via add_subdirectory()/
-# FetchContent, so downstream projects don't build the tests or require the
-# third_party/googletest submodule. PROJECT_IS_TOP_LEVEL exists on CMake >= 3.21;
-# fall back to comparing the source dirs on older CMake (floor is 3.15).
-if(DEFINED PROJECT_IS_TOP_LEVEL)
-  set(MATSDK_TESTS_DEFAULT ${PROJECT_IS_TOP_LEVEL})
-elseif(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  set(MATSDK_TESTS_DEFAULT ON)
-else()
-  set(MATSDK_TESTS_DEFAULT OFF)
-endif()
-option(BUILD_UNIT_TESTS   "Build unit tests"        ${MATSDK_TESTS_DEFAULT})
-option(BUILD_FUNC_TESTS   "Build functional tests"  ${MATSDK_TESTS_DEFAULT})
-option(BUILD_JNI_WRAPPER  "Build JNI wrapper"       NO)
-option(BUILD_OBJC_WRAPPER "Build Obj-C wrapper"     YES)
-option(BUILD_SWIFT_WRAPPER "Build Swift Wrappers"   YES)
-option(BUILD_PACKAGE      "Build package"           YES)
-option(BUILD_PRIVACYGUARD "Build Privacy Guard"     YES)
-option(BUILD_CDS          "Build CDS - Common Diagnostic Stack"     YES)
-option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
-option(BUILD_SIGNALS      "Build Signals"           YES)
-option(BUILD_SANITIZER    "Build Sanitizer"         YES)
-option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 set(MATSDK_CURL_TARGET "" CACHE STRING
   "Optional existing CMake target to use for libcurl in non-vcpkg builds, instead of find_package(CURL)")
 set(MATSDK_CURL_PROVIDER "PACKAGE" CACHE STRING
@@ -377,10 +202,6 @@ set(MATSDK_MBEDTLS_URL "https://github.com/Mbed-TLS/mbedtls/releases/download/mb
   "URL for the mbedTLS dependency used by MATSDK_CURL_PROVIDER=FETCH and MATSDK_CURL_TLS_BACKEND=MBEDTLS")
 set(MATSDK_MBEDTLS_SHA256 "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6" CACHE STRING
   "SHA256 for MATSDK_MBEDTLS_URL")
-set(MATSDK_SQLITE_TARGET "" CACHE STRING
-  "Optional existing CMake target to use for SQLite in non-vcpkg builds, instead of find_package(SQLite3)")
-set(MATSDK_ZLIB_TARGET "" CACHE STRING
-  "Optional existing CMake target to use for zlib in non-vcpkg builds, instead of find_package(ZLIB)")
 string(TOUPPER "${MATSDK_CURL_PROVIDER}" MATSDK_CURL_PROVIDER_UPPER)
 if(NOT MATSDK_CURL_PROVIDER_UPPER STREQUAL "PACKAGE" AND NOT MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
   message(FATAL_ERROR "MATSDK_CURL_PROVIDER must be PACKAGE or FETCH; got '${MATSDK_CURL_PROVIDER}'.")
@@ -388,6 +209,15 @@ endif()
 string(TOUPPER "${MATSDK_CURL_TLS_BACKEND}" MATSDK_CURL_TLS_BACKEND_UPPER)
 if(NOT MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS" AND NOT MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "OPENSSL")
   message(FATAL_ERROR "MATSDK_CURL_TLS_BACKEND must be MBEDTLS or OPENSSL; got '${MATSDK_CURL_TLS_BACKEND}'.")
+endif()
+if(MATSDK_USE_VCPKG_DEPS AND MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
+  message(FATAL_ERROR
+    "MATSDK_CURL_PROVIDER=FETCH is a non-vcpkg dependency mode. "
+    "Use the vcpkg curl-openssl/curl-mbedtls feature instead.")
+endif()
+if(MATSDK_CURL_TARGET AND MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
+  message(FATAL_ERROR
+    "MATSDK_CURL_TARGET and MATSDK_CURL_PROVIDER=FETCH are mutually exclusive.")
 endif()
 foreach(_matsdk_dependency_target_var MATSDK_CURL_TARGET MATSDK_SQLITE_TARGET MATSDK_ZLIB_TARGET)
   if(${_matsdk_dependency_target_var} AND NOT TARGET "${${_matsdk_dependency_target_var}}")
@@ -398,23 +228,7 @@ foreach(_matsdk_dependency_target_var MATSDK_CURL_TARGET MATSDK_SQLITE_TARGET MA
       "use the SDK's default dependency discovery.")
   endif()
 endforeach()
-if(MATSDK_ZLIB_TARGET AND PAL_IMPLEMENTATION STREQUAL "WIN32" AND NOT MATSDK_USE_VCPKG_DEPS)
-  message(FATAL_ERROR
-    "MATSDK_ZLIB_TARGET is not supported for non-vcpkg WIN32 builds because "
-    "the legacy WIN32 include path uses the SDK's vendored zlib headers, which "
-    "rename zlib symbols to act_z_*. Use vcpkg mode, omit MATSDK_ZLIB_TARGET "
-    "and rely on the legacy .vcxproj dependency, or add a dedicated bundled-zlib "
-    "CMake path first.")
-endif()
-
-# Enable Azure Monitor / Application Insights end-point support
-option(BUILD_AZMON        "Build for Azure Monitor" YES)
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  option(BUILD_APPLE_HTTP "Build Apple HTTP client" YES)
-endif()
-
-if(BUILD_APPLE_HTTP)
+if(MATSDK_BUILD_APPLE_HTTP)
   add_definitions(-DAPPLE_HTTP=1)
 endif()
 
@@ -425,9 +239,9 @@ endif()
 # Only use custom curl if compiling with CPP11 PAL
 set(MATSDK_NEEDS_CURL OFF)
 if(PAL_IMPLEMENTATION STREQUAL "CPP11"
-   AND NOT BUILD_IOS
+   AND NOT MATSDK_BUILD_IOS
    AND (NOT CMAKE_SYSTEM_NAME STREQUAL "Android" OR MATSDK_USE_VCPKG_DEPS)
-   AND NOT BUILD_APPLE_HTTP)
+   AND NOT MATSDK_BUILD_APPLE_HTTP)
   set(MATSDK_NEEDS_CURL ON)
   add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
   if(MATSDK_USE_VCPKG_DEPS)
@@ -473,50 +287,35 @@ endif()
 # Dependency resolution (vcpkg mode vs vendored)
 ################################################################################################
 if(MATSDK_USE_VCPKG_DEPS)
-  if(APPLE)
-    # macOS/iOS ship libsqlite3 and libz as system libraries (the SDK's SPM
-    # distribution links them the same way), so the vcpkg sqlite3/zlib packages are
-    # not pulled there -- find the system ones via CMake's standard find modules.
-    find_package(SQLite3 REQUIRED)
-    find_package(ZLIB REQUIRED)
-    find_package(nlohmann_json CONFIG REQUIRED)
-    set(MATSDK_APPLE_SYSTEM_DEPS ON)
-    message(STATUS "Apple: using system SQLite3 + zlib; vcpkg-provided nlohmann-json")
-  else()
-    set(MATSDK_APPLE_SYSTEM_DEPS OFF)
-    # SQLite is provided by the private minimal build when MATSDK_MINIMAL_SQLITE is
-    # ON, so only require the external vcpkg sqlite3 package otherwise.
-    if(NOT MATSDK_MINIMAL_SQLITE)
+  if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT MATSDK_SQLITE_TARGET)
+    if(APPLE)
+      find_package(SQLite3 REQUIRED)
+    else()
       find_package(unofficial-sqlite3 CONFIG QUIET)
       if(NOT unofficial-sqlite3_FOUND)
         message(FATAL_ERROR
-          "SQLite was not found and the minimal SQLite is not enabled. The vcpkg "
-          "port provides SQLite through one of two features: 'system-sqlite' "
-          "(default, links the external sqlite3 package) or 'minimal-sqlite' "
-          "(builds a private feature-stripped SQLite). Install "
-          "cpp-client-telemetry with its default features, or with "
-          "[core,system-sqlite] or [core,minimal-sqlite]. For a direct CMake build, pass "
-          "-DMATSDK_MINIMAL_SQLITE=ON or ensure unofficial-sqlite3 is discoverable.")
+          "MATSDK_SQLITE_PROVIDER=SYSTEM requires the vcpkg sqlite3 package. "
+          "Install the system-sqlite feature, choose "
+          "MATSDK_SQLITE_PROVIDER=MINIMAL/VENDORED, or provide MATSDK_SQLITE_TARGET.")
       endif()
     endif()
-    find_package(ZLIB REQUIRED)
-    find_package(nlohmann_json CONFIG REQUIRED)
-    if(MATSDK_MINIMAL_SQLITE)
-      message(STATUS "Using vcpkg-provided zlib, nlohmann-json; private minimal SQLite")
-    else()
-      message(STATUS "Using vcpkg-provided sqlite3, zlib, nlohmann-json")
-    endif()
   endif()
+  if(MATSDK_ZLIB_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT MATSDK_ZLIB_TARGET)
+    find_package(ZLIB REQUIRED)
+  endif()
+  find_package(nlohmann_json CONFIG REQUIRED)
+  message(STATUS
+    "Using vcpkg dependency mode with SQLite=${MATSDK_SQLITE_PROVIDER_RESOLVED}, "
+    "zlib=${MATSDK_ZLIB_PROVIDER_RESOLVED}")
 else()
-  # Include repo root to allow includes of vendored sqlite, zlib, and nlohmann.
-  # Use CMAKE_CURRENT_SOURCE_DIR (this repo's root) rather than CMAKE_SOURCE_DIR
-  # so the vendored headers still resolve when the SDK is consumed as a subproject
-  # (add_subdirectory/FetchContent), where CMAKE_SOURCE_DIR is the consumer's root.
+  # nlohmann JSON remains header-only and vendored for source embedding.
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-  message(STATUS "Using vendored sqlite3, zlib, nlohmann-json")
+  message(STATUS
+    "Using source dependency mode with SQLite=${MATSDK_SQLITE_PROVIDER_RESOLVED}, "
+    "zlib=${MATSDK_ZLIB_PROVIDER_RESOLVED}, vendored nlohmann-json")
 endif()
 
-if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
+if(MATSDK_BUILD_UNIT_TESTS OR MATSDK_BUILD_FUNC_TESTS)
     message(STATUS "Adding gtest")
     add_library(gtest STATIC IMPORTED GLOBAL)
     message(STATUS "Adding gmock")
@@ -533,16 +332,16 @@ include_directories(lib/pal)
 #  enable_testing()
 #  add_subdirectory(bondlite/tests)
 #endif()
-if(BUILD_HEADERS)
+if(MATSDK_BUILD_HEADERS)
   add_subdirectory(lib/include)
 endif()
 include_directories(lib/include)
 
-if(BUILD_LIBRARY)
+if(MATSDK_BUILD_LIBRARY)
   add_subdirectory(lib)
 endif()
 
-if(BUILD_UNIT_TESTS OR BUILD_FUNC_TESTS)
+if(MATSDK_BUILD_UNIT_TESTS OR MATSDK_BUILD_FUNC_TESTS)
   message(STATUS "Building tests")
   enable_testing()
   add_subdirectory(tests)
@@ -552,7 +351,7 @@ endif()
 # Packaging
 ################################################################################################
 
-if (BUILD_PACKAGE)
+if(MATSDK_BUILD_PACKAGE)
   if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "deb")
     include(tools/MakeDeb.cmake)
   endif()

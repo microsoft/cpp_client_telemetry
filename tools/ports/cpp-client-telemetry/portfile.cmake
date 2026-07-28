@@ -22,7 +22,7 @@ else()
 endif()
 
 # Determine if Apple HTTP should be used (no curl needed).
-# Note: BUILD_APPLE_HTTP must remain ON for macOS/iOS because the vcpkg.json
+# Note: MATSDK_BUILD_APPLE_HTTP must remain ON for macOS/iOS because the vcpkg.json
 # curl dependency is excluded on these platforms.
 set(MATSDK_BUILD_APPLE_HTTP OFF)
 if(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
@@ -78,11 +78,35 @@ vcpkg_check_features(
         minimal-sqlite MATSDK_MINIMAL_SQLITE
 )
 
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+  set(MATSDK_VCPKG_LIBRARY_TYPE SHARED)
+  set(MATSDK_VCPKG_BUILD_SHARED_LIBS ON)
+else()
+  set(MATSDK_VCPKG_LIBRARY_TYPE STATIC)
+  set(MATSDK_VCPKG_BUILD_SHARED_LIBS OFF)
+endif()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         ${FEATURE_OPTIONS}
         -DMATSDK_USE_VCPKG_DEPS=ON
+        -DMATSDK_LIBRARY_TYPE=${MATSDK_VCPKG_LIBRARY_TYPE}
+        -DMATSDK_BUILD_HEADERS=ON
+        -DMATSDK_BUILD_LIBRARY=ON
+        -DMATSDK_BUILD_TEST_TOOL=OFF
+        -DMATSDK_BUILD_UNIT_TESTS=OFF
+        -DMATSDK_BUILD_FUNC_TESTS=OFF
+        -DMATSDK_BUILD_JNI_WRAPPER=OFF
+        -DMATSDK_BUILD_OBJC_WRAPPER=OFF
+        -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
+        -DMATSDK_BUILD_PACKAGE=OFF
+        -DBUILD_VERSION=${VERSION}
+        -DMATSDK_BUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
+        -DMATSDK_BUILD_IOS=${MATSDK_BUILD_IOS}
+        # Legacy aliases keep the pinned release fallback buildable until the
+        # next release contains the canonical MATSDK_* options.
+        -DBUILD_SHARED_LIBS=${MATSDK_VCPKG_BUILD_SHARED_LIBS}
         -DBUILD_HEADERS=ON
         -DBUILD_LIBRARY=ON
         -DBUILD_TEST_TOOL=OFF
@@ -92,7 +116,6 @@ vcpkg_cmake_configure(
         -DBUILD_OBJC_WRAPPER=OFF
         -DBUILD_SWIFT_WRAPPER=OFF
         -DBUILD_PACKAGE=OFF
-        -DBUILD_VERSION=${VERSION}
         -DBUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
         -DBUILD_IOS=${MATSDK_BUILD_IOS}
 )
