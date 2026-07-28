@@ -16,8 +16,9 @@ if ERRORLEVEL 0 (
   vswhere -property installationPath
 )
 
-REM Install tools needed to build SDK with either Visual Studio or CMake
-choco install -y cmake svn git llvm zip
+REM Install baseline tools needed to build SDK with either Visual Studio or CMake
+REM LLVM is optional and handled below when INSTALL_LLVM is defined.
+choco install -y cmake svn git zip
 
 REM Try to autodetect Visual Studio
 call "%~dp0\vcvars.cmd"
@@ -37,10 +38,10 @@ if NOT exist "%VSINSTALLER%" (
 echo Visual Studio installer:
 echo %VSINSTALLER%
 
-REM Install optional components required for ARM build - vs2017-BuildTools
+REM Install optional components required for supported Windows build targets.
 if exist "%VSINSTALLDIR%" (
   echo Running Visual Studio installer..
-  "%VSINSTALLER%" modify --installPath "%VSINSTALLDIR%" --config "%~dp0\.vsconfig.%VSVERSION%" --force --quiet --norestart
+  "%VSINSTALLER%" modify --installPath "%VSINSTALLDIR%" --config "%~dp0\.vsconfig.vs%VSVERSION%" --force --quiet --norestart
 )
 
 where /Q vcpkg.exe

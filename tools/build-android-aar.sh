@@ -14,7 +14,7 @@ set -euo pipefail
 # - Requires ANDROID_SDK_ROOT (or ANDROID_HOME) when installing NDK.
 
 ANDROID_NDK_VERSION_DEFAULT="27.0.12077973"
-CMAKE_VERSION_DEFAULT="3.10.2.4988404"
+CMAKE_VERSION_DEFAULT="3.22.1"
 
 INSTALL_NDK=0
 CLEAN=0
@@ -29,7 +29,7 @@ Build MAESDK Android AAR locally.
 Options:
   --install-ndk              Install the pinned NDK + CMake via sdkmanager.
   --ndk-version <version>    Override NDK version (default: 27.0.12077973).
-  --cmake-version <version>  Override CMake version (default: 3.10.2.4988404).
+  --cmake-version <version>  Override CMake version (default: 3.22.1).
   --output-dir <path>        Output directory (default: <repo>/dist/android-aar).
   --clean                    Run a clean build (gradle clean).
   -h, --help                 Show help.

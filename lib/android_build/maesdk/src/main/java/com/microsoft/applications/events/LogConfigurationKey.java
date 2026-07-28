@@ -29,6 +29,9 @@ public enum LogConfigurationKey {
   /** Enable network detector. */
   CFG_BOOL_ENABLE_NET_DETECT("enableNetworkDetector", Boolean.class),
 
+  /** Scrub (obfuscate) the client IP address at the collector. Applied unless explicitly set to false (on by default; not present in the default configuration). */
+  CFG_BOOL_ENABLE_IP_SCRUBBING("enableIpScrubbing", Boolean.class),
+
   CFG_BOOL_TPM_CLOCK_SKEW_ENABLED("clockSkewEnabled", Boolean.class),
 
   /** Parameter that allows to check if the SDK is running on UTC mode */

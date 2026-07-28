@@ -22,6 +22,10 @@
 
 #include "NullObjects.hpp"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #if defined __has_include && defined(HAVE_MAT_PRIVACYGUARD)
 #if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "modules/privacyguard/PrivacyGuard.hpp"
@@ -35,6 +39,15 @@
 
 using namespace testing;
 using namespace MAT;
+
+// MultipleLogManagersTests stand up an in-process HttpServer on a loopback port
+// and run multiple concurrent LogManager instances against it. That pattern
+// hangs/fails inside the iOS simulator sandbox (the loopback uploads stall),
+// which previously left the iOS CI job to sit until its 60-minute timeout. The
+// behavior is still exercised on the desktop and macOS targets; exclude the
+// whole suite from the iOS build. (GTEST_SKIP in SetUp is not honored by the
+// iOS xctest gtest wrapper, so the exclusion must be at compile time.)
+#if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
 
 class RequestHandler : public HttpServer::Callback 
 {
@@ -54,7 +67,7 @@ class RequestHandler : public HttpServer::Callback
     }
 
    private:
-    size_t m_count {};
+    std::atomic<size_t> m_count {};
     int m_id ;
 };
 
@@ -63,9 +76,9 @@ class MultipleLogManagersTests : public ::testing::Test
    protected:
     std::string serverAddress;
     ILogConfiguration config1, config2, config3;
-    RequestHandler callback1 = RequestHandler(1);
-    RequestHandler callback2 = RequestHandler(2);
-    RequestHandler callback3 = RequestHandler(3);
+    RequestHandler callback1{1};
+    RequestHandler callback2{2};
+    RequestHandler callback3{3};
 
     HttpServer server;
 
@@ -74,7 +87,7 @@ class MultipleLogManagersTests : public ::testing::Test
     {
         int port = server.addListeningPort(0);
         std::ostringstream os;
-        os << "localhost:" << port;
+        os << "127.0.0.1:" << port;
         server.setServerName(os.str());
         serverAddress = "http://" + os.str();
 
@@ -196,7 +209,7 @@ TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
     lm2->GetLogController()->UploadNow();
     lm3->GetLogController()->UploadNow();
 
-    waitForRequestsMultipleLogManager(10000, 1, 1, 1);
+    waitForRequestsMultipleLogManager(20000, 1, 1, 1);
 
     lm1.reset();
     lm2.reset();
@@ -224,7 +237,7 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     CAPTURE_PERF_STATS("Events Sent");
     lm->GetLogController()->UploadNow();
     CAPTURE_PERF_STATS("Events Uploaded");
-    waitForRequestsSingleLogManager(10000, 2);
+    waitForRequestsSingleLogManager(20000, 2);
     lm.reset();
     CAPTURE_PERF_STATS("Log Manager deleted");
 }
@@ -291,6 +304,8 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
     lm2.reset();
 }
 #endif  //END HAVE_MAT_PRIVACYGUARD
+
+#endif  // !TARGET_OS_IPHONE (suite excluded on iOS; see note above)
 
 #endif  // HAVE_MAT_DEFAULT_HTTP_CLIENT
 

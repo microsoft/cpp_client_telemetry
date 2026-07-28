@@ -42,7 +42,7 @@ Please:
 - Describe the focus area: transmission controls, offline storage, backend routing controls, reliability, performance, etc.
 - Add any other additional context.
 
-We will review your question during our weekly community meeting or sooner.
+We will review your question as soon as possible.
 
 ---
 

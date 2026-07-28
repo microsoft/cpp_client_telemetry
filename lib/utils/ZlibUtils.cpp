@@ -48,7 +48,7 @@ namespace MAT_NS_BEGIN
         } while (ret == Z_OK);
         if (ret != Z_STREAM_END)
         {
-            LOG_WARN("Inflate failed, error=%u/%u (%s)", 2, ret, zs.msg);
+            LOG_WARN("Inflate failed, error=%d/%d (%s)", 2, ret, (zs.msg ? zs.msg : "(null)"));
             result = false;
         }
         inflateEnd(&zs);

@@ -94,6 +94,9 @@ Other resources to learn how to setup the build system:
 * **Supported** - these platforms are known to work well with the SDK in
     production.
 * **Covered by CI** - these platforms are tested as part of CI.
+* For iOS simulator, CI covers representative supported simulator
+  configurations on the current macOS runner images rather than every
+  supported iOS 12+ runtime.
 
 ## Test
 

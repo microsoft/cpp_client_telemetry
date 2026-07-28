@@ -21,6 +21,7 @@ class EventPropertiesStorage {
 
     EventPropertiesStorage() {
         eventName = "";
+        eventType = "";
         eventLatency = EventLatency.Normal;
         eventPersistence = EventPersistence.Normal;
         eventPopSample = 100;

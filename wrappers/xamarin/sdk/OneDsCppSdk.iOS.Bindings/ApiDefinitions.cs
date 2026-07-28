@@ -281,6 +281,14 @@ namespace Microsoft.Applications.Events
         [Export ("setDeviceId:")]
         void SetDeviceId (string deviceId);
 
+        // -(void)setOsVersion:(NSString * _Nonnull)osVersion;
+        [Export ("setOsVersion:")]
+        void SetOsVersion (string osVersion);
+
+        // -(void)setOsBuild:(NSString * _Nonnull)osBuild;
+        [Export ("setOsBuild:")]
+        void SetOsBuild (string osBuild);
+
         // -(void)setUserTimeZone:(NSString * _Nonnull)userTimeZone;
         [Export ("setUserTimeZone:")]
         void SetUserTimeZone (string userTimeZone);

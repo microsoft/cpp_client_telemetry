@@ -22,11 +22,15 @@ public:
     virtual void SetUserId(const std::string& userId, PiiKind) override { m_userId = userId; }
     virtual void SetUserAdvertisingId(const std::string& userAdvertisingId) override { m_userAdvertisingId = userAdvertisingId; }
     virtual void SetAppExperimentETag(const std::string& eTag) override { m_eTag = eTag; }
+    virtual void SetOsVersion(const std::string& osVersion) override { m_osVersion = osVersion; }
+    virtual void SetOsBuild(const std::string& osBuild) override { m_osBuild = osBuild; }
 
     std::string m_appId {};
     std::string m_userId {};
     std::string m_userAdvertisingId {};
     std::string m_eTag {};
+    std::string m_osVersion {};
+    std::string m_osBuild {};
 };
 
 @interface ODWSemanticContextTests : XCTestCase
@@ -61,6 +65,20 @@ public:
     ODWSemanticContext* context = [[ODWSemanticContext alloc] initWithISemanticContext:&nativeContext];
     [context setAppExperimentETag:@"myETag"];
     XCTAssertEqual(nativeContext.m_eTag, "myETag");
+}
+
+- (void)testSetOsVersion {
+    TestSemanticContext nativeContext;
+    ODWSemanticContext* context = [[ODWSemanticContext alloc] initWithISemanticContext:&nativeContext];
+    [context setOsVersion:@"10.0.19041"];
+    XCTAssertEqual(nativeContext.m_osVersion, "10.0.19041");
+}
+
+- (void)testSetOsBuild {
+    TestSemanticContext nativeContext;
+    ODWSemanticContext* context = [[ODWSemanticContext alloc] initWithISemanticContext:&nativeContext];
+    [context setOsBuild:@"19041.1234"];
+    XCTAssertEqual(nativeContext.m_osBuild, "19041.1234");
 }
 
 @end

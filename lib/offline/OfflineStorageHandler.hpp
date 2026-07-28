@@ -23,7 +23,7 @@
 
 namespace MAT_NS_BEGIN {
 
-    class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
+    class OfflineStorageHandler final : public IOfflineStorage, public IOfflineStorageObserver
     {
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
@@ -50,6 +50,8 @@ namespace MAT_NS_BEGIN {
         virtual size_t GetSize() override;
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;
 
+        virtual size_t GetRemainingRecordCountForShutdown() const override;
+
         virtual std::vector<StorageRecord> GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
         virtual bool ResizeDb() override;
 
@@ -62,7 +64,7 @@ namespace MAT_NS_BEGIN {
         virtual void OnStorageRecordsSaved(size_t numRecords) override;
 
     protected:
-        virtual void DeleteRecordsByKeys(const std::list<std::string> & keys);
+        void DeleteRecordsByKeys(const std::list<std::string> & keys);
 
         IOfflineStorageObserver   * m_observer;
         ILogManager &               m_logManager;
@@ -73,7 +75,7 @@ namespace MAT_NS_BEGIN {
         KillSwitchManager           m_killSwitchManager;
         ClockSkewManager            m_clockSkewManager;
 
-        virtual bool isKilled(StorageRecord const& record);
+        bool isKilled(StorageRecord const& record);
 
         std::mutex                             m_flushLock;
         bool                                   m_flushPending;
@@ -90,6 +92,7 @@ namespace MAT_NS_BEGIN {
         unsigned                               m_memoryDbSize;
         unsigned                               m_memoryDbSizeNotificationLimit;
         unsigned                               m_queryDbSize;
+        uint32_t                               m_cacheMemorySizeLimitInBytes;
         bool                                   m_isStorageFullNotificationSend;
 
     protected:

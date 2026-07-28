@@ -19,6 +19,17 @@ on:
   schedule:
   - cron: 0 2 * * 1-5
 
+
+# Least-privilege GITHUB_TOKEN scope: this workflow only checks out source
+# and runs the Ubuntu 22.04 build. Explicit block satisfies CodeQL rule
+# actions/missing-workflow-permissions if Actions analysis is enabled.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
 
@@ -32,7 +43,7 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
       continue-on-error: true
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       run: ./build-tests.sh ${{ matrix.config }}

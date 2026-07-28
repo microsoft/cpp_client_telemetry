@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.2)
+cmake_minimum_required(VERSION 3.15...3.31)
 
 PROJECT(ObjC_Wrapper)
 

@@ -53,7 +53,7 @@ class HttpClientTests : public ::testing::Test,
     {
         _port = _server.addListeningPort(0);
         std::ostringstream os;
-        os << "localhost:" << _port;
+        os << "127.0.0.1:" << _port;
         _hostname = os.str();
         _server.setServerName(_hostname);
         _server.addHandler("/simple/", *this);

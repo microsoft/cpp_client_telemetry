@@ -183,6 +183,120 @@ TEST_F(OfflineStorageTests_SQLite, DeletedRecordsAreNotReturned)
     EXPECT_THAT(consumer.records[0].id, StrEq("guid2"));
 }
 
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsRejectsTenantTokenSqlInjection)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // A malicious tenant_token value attempting stacked SQL (OR 1=1 / DROP TABLE).
+    // It must be treated as a literal tenant_token value that matches nothing.
+    const std::string malicious = "x\" OR 1=1; DROP TABLE events; --";
+    offlineStorage->DeleteRecords({{"tenant_token", malicious}});
+
+    // The events table must still exist and no rows should have been deleted.
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsEmptyFilterDeletesNothing)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // An empty filter has no predicate; it must fail closed (delete nothing)
+    // rather than erase the entire table.
+    offlineStorage->DeleteRecords({});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsInvalidNumericFilterDeletesNothing)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // A non-numeric value for an integer column (here an injection attempt) must
+    // be rejected as an invalid filter, not coerced to 0 and used to match rows.
+    // Both stored records have retry_count = 0, so a coerced "0" would wrongly
+    // delete them; fail-closed behavior leaves both intact.
+    offlineStorage->DeleteRecords({{"retry_count", "0 OR 1=1"}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsByNumericColumnDeletesOnlyMatching)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_RealTime, EventPersistence_Normal, 1, {}}), true);
+
+    // A well-typed numeric filter is bound as int64 and must delete only matching
+    // rows -- this exercises the positive integer-bind path (not just rejection).
+    offlineStorage->DeleteRecords({{"latency", std::to_string(static_cast<int>(EventLatency_Normal))}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 1);
+    EXPECT_THAT(consumer.records[0].id, StrEq("guid2"));
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsMultiColumnFilterDeletesOnlyRowsMatchingAll)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenA", EventLatency_RealTime, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid3", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // Multiple whitelisted columns are combined with AND. Only the row matching
+    // BOTH tenant_token=tokenA AND latency=Normal (guid1) must be deleted; guid2
+    // (tokenA but RealTime) and guid3 (Normal but tokenB) must survive.
+    offlineStorage->DeleteRecords({{"tenant_token", "tokenA"},
+                                   {"latency", std::to_string(static_cast<int>(EventLatency_Normal))}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsByTenantTokenDeletesOnlyMatching)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    offlineStorage->DeleteRecords({{"tenant_token", "tokenA"}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 1);
+    EXPECT_THAT(consumer.records[0].id, StrEq("guid2"));
+}
+
+TEST_F(OfflineStorageTests_SQLite, DeleteRecordsFailsClosedOnUnrecognizedColumn)
+{
+    initializeStorage();
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "tokenA", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+    ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "tokenB", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+
+    // An unrecognized column cannot be honored. Like MemoryStorage's matcher,
+    // the delete must fail closed (remove nothing) rather than drop the column
+    // and run a looser predicate.
+    offlineStorage->DeleteRecords({{"not_a_column", "x"}});
+    offlineStorage->DeleteRecords({{"tenant_token", "tokenA"}, {"not_a_column", "x"}});
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 2);
+}
+
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
 {
     initializeStorage();
@@ -201,7 +315,18 @@ TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
     ASSERT_THAT(consumer.records.size(), 1);
     consumer.records.clear();
 
-    PAL::sleep(2000);
+    auto records = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
+    ASSERT_THAT(records.size(), 2);
+    int64_t waitUntilMs = 0;
+    for (auto const& record : records)
+    {
+        waitUntilMs = std::max(waitUntilMs, record.reservedUntil);
+    }
+
+    while (PAL::getUtcSystemTimeMs() <= waitUntilMs + 250)
+    {
+        PAL::sleep(50);
+    }
 
     // Both records are timed out
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 1000), true);

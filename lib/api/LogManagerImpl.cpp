@@ -289,13 +289,7 @@ namespace MAT_NS_BEGIN
         if (m_httpClient == nullptr)
         {
             m_httpClient = HttpClientFactory::Create();
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-            HttpClient_WinInet* client = static_cast<HttpClient_WinInet*>(m_httpClient.get());
-            if (client != nullptr)
-            {
-                client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
-            }
-#endif
+            m_httpClient->ApplySettings(m_logConfiguration);
         }
         else
         {
@@ -366,14 +360,10 @@ namespace MAT_NS_BEGIN
     /// </summary>
     void LogManagerImpl::Configure()
     {
-        // TODO: [maxgolov] - add other config params.
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-        HttpClient_WinInet* client = static_cast<HttpClient_WinInet*>(m_httpClient.get());
-        if (client != nullptr)
+        if (m_httpClient != nullptr)
         {
-            client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
+            m_httpClient->ApplySettings(m_logConfiguration);
         }
-#endif
     }
 
     LogManagerImpl::~LogManagerImpl() noexcept
@@ -849,7 +839,7 @@ namespace MAT_NS_BEGIN
             return;
         }
 
-        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector)
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector) noexcept
         {
             return strcmp(dataInspector->GetName(), currentInspector->GetName()) == 0;
         });
@@ -872,7 +862,7 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::RemoveDataInspector(const std::string& name)
     {
         LOCKGUARD(m_dataInspectorGuard);
-        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector) noexcept {
             return strcmp(inspector->GetName(), name.c_str()) == 0;
         });
 
@@ -885,7 +875,7 @@ namespace MAT_NS_BEGIN
     std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& name) noexcept
     {
         LOCKGUARD(m_dataInspectorGuard);
-        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector) noexcept{
             return strcmp(inspector->GetName(), name.c_str()) == 0;
         });
 
@@ -954,7 +944,7 @@ namespace MAT_NS_BEGIN
         if (m_pause_state != PauseState::Pausing) {
             return;
         }
-        m_pause_cv.wait(lock, [this]() -> bool {
+        m_pause_cv.wait(lock, [this]() noexcept -> bool {
             return m_pause_state != PauseState::Pausing;
         });
     }

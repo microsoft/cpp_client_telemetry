@@ -46,6 +46,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="TestApp.pfx" />
   </ItemGroup>
 </Project>

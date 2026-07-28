@@ -1,3 +1,4 @@
+sphinx<10
 breathe
 exhale
 furo

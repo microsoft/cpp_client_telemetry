@@ -405,3 +405,6 @@ build/.cmake/api/v1/query/client-vscode/query.json
 
 #Test files generated locally.
 *.ses
+
+# vcpkg test build directories
+tests/vcpkg/build-*/

@@ -33,6 +33,9 @@ namespace MAT_NS_BEGIN
          {/* Parameter that allows to split stats events by tenant */
           {"split", false},
           {"interval", 1800},
+          /* Stats are disabled by default for the built-in shared token
+             to reduce OneCollector load (see #1420). Set to true to opt in. */
+          {"enabled", false},
           {"tokenProd", STATS_TOKEN_PROD},
           {"tokenInt", STATS_TOKEN_INT}}},
         {"utc",
@@ -57,7 +60,11 @@ namespace MAT_NS_BEGIN
              ,
              {"contentEncoding", "deflate"},
              /* Optional parameter to require Microsoft Root CA */
-             {CFG_BOOL_HTTP_MS_ROOT_CHECK, false}}},
+             {CFG_BOOL_HTTP_MS_ROOT_CHECK, false},
+             /* Optional parameter for SSL certificate verification (curl) */
+             {CFG_BOOL_HTTP_SSL_VERIFY, true},
+             /* Optional CA bundle path for OpenSSL-backed curl */
+             {CFG_STR_HTTP_SSL_CAINFO, ""}}},
         {CFG_MAP_TPM,
          {
              {CFG_INT_TPM_MAX_BLOB_BYTES, 2097152},

@@ -330,6 +330,18 @@ namespace MAT_NS_BEGIN {
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const = 0;
 
         /// <summary>
+        /// Returns the total number of records that should be considered as
+        /// "still pending" at shutdown for teardown-timeout reporting.
+        /// </summary>
+        /// <remarks>
+        /// Default implementation returns GetRecordCount(), which is correct for
+        /// persistent storages (e.g. SQLite, Room) where in-flight records are
+        /// still counted in the on-disk total. Volatile storages (e.g. memory)
+        /// must override to also include their in-flight / reserved records.
+        /// </remarks>
+        virtual size_t GetRemainingRecordCountForShutdown() const { return GetRecordCount(); }
+
+        /// <summary>
         /// Get Vector of records from DB
         /// </summary>
         /// <remarks>

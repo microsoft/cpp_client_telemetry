@@ -61,13 +61,13 @@
 		430102FD235E67C900836D50 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		43010305235E682400836D50 /* libFuncTests.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libFuncTests.a; path = ../../../out/tests/functests/libFuncTests.a; sourceTree = "<group>"; };
 		43010307235E699400836D50 /* libmat.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libmat.a; path = ../../../out/lib/libmat.a; sourceTree = "<group>"; };
-		4301030A235E6A8300836D50 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
-		4301030C235E6A8B00836D50 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
-		4301030E235E6AA800836D50 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
+		4301030A235E6A8300836D50 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		4301030C235E6A8B00836D50 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		4301030E235E6AA800836D50 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		43010310235E6AB000836D50 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		43010312235E6AE200836D50 /* libgmock.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgmock.a; path = ../../../third_party/googletest/build/lib/libgmock.a; sourceTree = "<group>"; };
 		43010314235E6B1600836D50 /* libgtest.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.objfile"; name = libgtest.a; path = ../../../third_party/googletest/build/lib/libgtest.a; sourceTree = "<group>"; };
-		FE51D93E243ED8D200E54890 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
+		FE51D93E243ED8D200E54890 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

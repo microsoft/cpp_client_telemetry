@@ -7,6 +7,8 @@
 #include "utils/Utils.hpp"
 #include "EventProperties.hpp"
 
+#include <set>
+
 using namespace testing;
 using namespace MAT;
 
@@ -84,4 +86,23 @@ TEST(GuidTests, MoveAssignment_ValidInput_MovesCorrectly)
     GUID_t second{"BEE391C8-72B0-464F-93C3-1B27879AD103"};
     second = std::move(first);
     ASSERT_EQ("9D016D64-372E-4DCE-9FA3-0D0772217C54", second.to_string());
+}
+TEST(GuidTests, OperatorLess_IsStrictWeakOrdering)
+{
+    // a and b differ in Data1/Data2 such that a non-lexicographic chained-|| operator
+    // reported BOTH a < b and b < a (antisymmetry violation).
+    GUID_t a{ "00000001-0005-0000-0000-000000000000" };
+    GUID_t b{ "00000002-0003-0000-0000-000000000000" };
+    EXPECT_TRUE(a < b);
+    EXPECT_FALSE(b < a);
+
+    // c and d differ ONLY in Data3; a '==' in that position made them compare equivalent.
+    GUID_t c{ "00000001-0001-0001-0000-000000000000" };
+    GUID_t d{ "00000001-0001-0002-0000-000000000000" };
+    EXPECT_TRUE(c < d);
+    EXPECT_FALSE(d < c);
+
+    // A std::set keyed on operator< must keep four distinct GUIDs distinct.
+    std::set<GUID_t> s{ a, b, c, d };
+    EXPECT_EQ(static_cast<size_t>(4), s.size());
 }

@@ -56,7 +56,7 @@ if [ "$IOS_PLAT" == "iphoneos" ] || [ "$IOS_PLAT" == "iphonesimulator" ]; then
   SYS_NAME="iOS"
   DEPLOYMENT_TARGET="$IOS_DEPLOYMENT_TARGET"
   if [ -z "$DEPLOYMENT_TARGET" ]; then
-    DEPLOYMENT_TARGET="10.0"
+    DEPLOYMENT_TARGET="12.0"
     FORCE_RESET_DEPLOYMENT_TARGET=YES
   fi
 elif [ "$IOS_PLAT" == "xros" ] || [ "$IOS_PLAT" == "xrsimulator" ]; then

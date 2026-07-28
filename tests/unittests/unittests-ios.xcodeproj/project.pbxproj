@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		16CC10702D4D58DA00C03295 /* ODWReachabilityTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 16CC106F2D4D58DA00C03295 /* ODWReachabilityTests.mm */; };
 		430102E5235E660F00836D50 /* iOSWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 430102E4235E660F00836D50 /* iOSWrapper.mm */; };
 		431EFE50233EBE54002FCC18 /* HttpClientTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */; };
 		431EFE51233EBE54002FCC18 /* LoggerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE2B233EBE53002FCC18 /* LoggerTests.cpp */; };
@@ -34,6 +33,7 @@
 		431EFE6A233EBE54002FCC18 /* EventFilterCollectionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE44233EBE53002FCC18 /* EventFilterCollectionTests.cpp */; };
 		431EFE6B233EBE54002FCC18 /* OacrTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE45233EBE53002FCC18 /* OacrTests.cpp */; };
 		431EFE6C233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE46233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp */; };
+		DEADBEEF0000000000000002 /* KillSwitchManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DEADBEEF0000000000000001 /* KillSwitchManagerTests.cpp */; };
 		431EFE6E233EBE54002FCC18 /* EventPropertiesStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE48233EBE54002FCC18 /* EventPropertiesStorageTests.cpp */; };
 		431EFE6F233EBE54002FCC18 /* HttpClientManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE49233EBE54002FCC18 /* HttpClientManagerTests.cpp */; };
 		431EFE70233EBE54002FCC18 /* OfflineStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4A233EBE54002FCC18 /* OfflineStorageTests.cpp */; };
@@ -68,6 +68,7 @@
 		431EFEB0233EC590002FCC18 /* MetaStatsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4E233EBE54002FCC18 /* MetaStatsTests.cpp */; };
 		431EFEB1233EC590002FCC18 /* OacrTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE45233EBE53002FCC18 /* OacrTests.cpp */; };
 		431EFEB2233EC590002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE46233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp */; };
+		DEADBEEF0000000000000003 /* KillSwitchManagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DEADBEEF0000000000000001 /* KillSwitchManagerTests.cpp */; };
 		431EFEB3233EC590002FCC18 /* OfflineStorageTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4A233EBE54002FCC18 /* OfflineStorageTests.cpp */; };
 		431EFEB4233EC590002FCC18 /* PackagerTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE4D233EBE54002FCC18 /* PackagerTests.cpp */; };
 		431EFEB5233EC590002FCC18 /* PalTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431EFE32233EBE53002FCC18 /* PalTests.cpp */; };
@@ -117,7 +118,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		16CC106F2D4D58DA00C03295 /* ODWReachabilityTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ODWReachabilityTests.mm; path = "obj-c/ODWReachabilityTests.mm"; sourceTree = "<group>"; };
 		430102E4235E660F00836D50 /* iOSWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iOSWrapper.mm; path = ../../common/iOSWrapper.mm; sourceTree = "<group>"; };
 		431EFE1E233EBDF2002FCC18 /* libunittests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libunittests.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		431EFE2A233EBE53002FCC18 /* HttpClientTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpClientTests.cpp; sourceTree = "<group>"; };
@@ -145,6 +145,7 @@
 		431EFE44233EBE53002FCC18 /* EventFilterCollectionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventFilterCollectionTests.cpp; sourceTree = "<group>"; };
 		431EFE45233EBE53002FCC18 /* OacrTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OacrTests.cpp; sourceTree = "<group>"; };
 		431EFE46233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OfflineStorageTests_SQLite.cpp; sourceTree = "<group>"; };
+		DEADBEEF0000000000000001 /* KillSwitchManagerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KillSwitchManagerTests.cpp; sourceTree = "<group>"; };
 		431EFE48233EBE54002FCC18 /* EventPropertiesStorageTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventPropertiesStorageTests.cpp; sourceTree = "<group>"; };
 		431EFE49233EBE54002FCC18 /* HttpClientManagerTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpClientManagerTests.cpp; sourceTree = "<group>"; };
 		431EFE4A233EBE54002FCC18 /* OfflineStorageTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OfflineStorageTests.cpp; sourceTree = "<group>"; };
@@ -203,7 +204,6 @@
 		431EFE15233EBDF2002FCC18 = {
 			isa = PBXGroup;
 			children = (
-				16CC106F2D4D58DA00C03295 /* ODWReachabilityTests.mm */,
 				43BD496F26B8B0C300EC3C0C /* EventPropertiesDecoratorTests.cpp */,
 				437C72F024D2286F0046F545 /* ODWLogConfigurationTests.mm */,
 				437C72EE24D21ACE0046F545 /* ODWSemanticContextTests.mm */,
@@ -234,6 +234,7 @@
 				431EFE4E233EBE54002FCC18 /* MetaStatsTests.cpp */,
 				431EFE45233EBE53002FCC18 /* OacrTests.cpp */,
 				431EFE46233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp */,
+				DEADBEEF0000000000000001 /* KillSwitchManagerTests.cpp */,
 				431EFE4A233EBE54002FCC18 /* OfflineStorageTests.cpp */,
 				431EFE4D233EBE54002FCC18 /* PackagerTests.cpp */,
 				431EFE32233EBE53002FCC18 /* PalTests.cpp */,
@@ -381,6 +382,7 @@
 				431EFE50233EBE54002FCC18 /* HttpClientTests.cpp in Sources */,
 				431EFE5F233EBE54002FCC18 /* UtilsTests.cpp in Sources */,
 				431EFE6C233EBE54002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */,
+				DEADBEEF0000000000000002 /* KillSwitchManagerTests.cpp in Sources */,
 				431EFE75233EBE54002FCC18 /* HttpResponseDecoderTests.cpp in Sources */,
 				431EFE59233EBE54002FCC18 /* HttpRequestEncoderTests.cpp in Sources */,
 				431EFE6A233EBE54002FCC18 /* EventFilterCollectionTests.cpp in Sources */,
@@ -419,6 +421,7 @@
 				431EFE95233EC590002FCC18 /* BackoffTests_ExponentialWithJitter.cpp in Sources */,
 				431EFEBA233EC590002FCC18 /* UtilsTests.cpp in Sources */,
 				431EFEB2233EC590002FCC18 /* OfflineStorageTests_SQLite.cpp in Sources */,
+				DEADBEEF0000000000000003 /* KillSwitchManagerTests.cpp in Sources */,
 				430102E5235E660F00836D50 /* iOSWrapper.mm in Sources */,
 				431EFE99233EC590002FCC18 /* ContextFieldsProviderTests.cpp in Sources */,
 				43BD497126B8B0C300EC3C0C /* EventPropertiesDecoratorTests.cpp in Sources */,
@@ -436,7 +439,6 @@
 				431EFEA7233EC590002FCC18 /* HttpDeflateCompressionTests.cpp in Sources */,
 				431EFEB3233EC590002FCC18 /* OfflineStorageTests.cpp in Sources */,
 				431EFEB8233EC590002FCC18 /* TaskDispatcherCAPITests.cpp in Sources */,
-				16CC10712D4D58DA00C03295 /* ODWReachabilityTests.mm in Sources */,
 				437C72ED24D0C5D70046F545 /* ODWEventPropertiesTests.mm in Sources */,
 				431EFEB6233EC590002FCC18 /* RouteTests.cpp in Sources */,
 				431EFEA8233EC590002FCC18 /* HttpRequestEncoderTests.cpp in Sources */,

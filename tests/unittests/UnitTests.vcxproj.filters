@@ -4,6 +4,7 @@
     <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
     <ClCompile Include="$(ProjectDir)\BondSplicerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ClockSkewManagerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\KillSwitchManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />

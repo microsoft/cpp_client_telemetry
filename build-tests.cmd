@@ -1,7 +1,36 @@
 @echo off
 cd %~dp0
-call tools\gen-version.cmd
 @setlocal ENABLEEXTENSIONS
+
+set CUSTOM_PROPS=
+if not "%~3"=="" (
+  if not exist "%~f3" (
+    goto custom_props_missing
+  )
+  if /I not "%~x3"==".props" (
+    if /I not "%~x3"==".targets" (
+      goto custom_props_invalid_type
+    )
+  )
+  set CUSTOM_PROPS="/p:ForceImportBeforeCppTargets=%~f3"
+  echo Using custom properties file for the build:
+  echo %CUSTOM_PROPS%
+)
+
+goto after_custom_props_validation
+
+:custom_props_missing
+echo ERROR: Custom build input not found: %~3
+echo        Pass an existing MSBuild .props or .targets file to ForceImportBeforeCppTargets.
+exit /b 1
+
+:custom_props_invalid_type
+echo ERROR: Custom build input must be an MSBuild .props or .targets file: %~3
+echo        Pass the MSBuild import file, not the CONFIG_CUSTOM_H header.
+exit /b 1
+
+:after_custom_props_validation
+call tools\gen-version.cmd
 
 if DEFINED GIT_PULL_TOKEN (
   rd /s /q lib\modules
@@ -19,13 +48,6 @@ REM Possible platforms: Win32|x64
 set PLAT=%1
 REM Possible configurations: Release|Debug
 set CONFIGURATION=%2
-
-set CUSTOM_PROPS=
-if ("%3"=="") goto skip
-set CUSTOM_PROPS="/p:ForceImportBeforeCppTargets=%3"
-echo Using custom properties file for the build:
-echo %CUSTOM_PROPS%
-:skip
 
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set SOLUTION=Solutions\MSTelemetrySDK.sln

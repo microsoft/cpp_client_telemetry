@@ -11,6 +11,19 @@
 namespace
 {
     static constexpr bool s_throwExceptions = true;
+
+    // RAII guard that deletes a JNI global class reference on all exit paths,
+    // including std::logic_error (ThrowLogic) and std::runtime_error (ThrowRuntime).
+    struct GlobalRefGuard {
+        JNIEnv* jni;
+        jclass* ref_ptr;
+        ~GlobalRefGuard() noexcept {
+            if (ref_ptr && *ref_ptr) {
+                jni->DeleteGlobalRef(*ref_ptr);
+                *ref_ptr = nullptr;
+            }
+        }
+    };
 }
 
 namespace MAT_NS_BEGIN
@@ -227,6 +240,14 @@ namespace MAT_NS_BEGIN
             MATSDK_THROW(std::logic_error("whereFilter not implemented"));
         }
 
+        if (!env)
+        {
+            return;
+        }
+        if (!m_room)
+        {
+            return;
+        }
         auto room_class = env->GetObjectClass(m_room);
         auto deleteByToken = env->GetMethodID(room_class,
                                               "deleteByToken",
@@ -258,6 +279,10 @@ namespace MAT_NS_BEGIN
             }
             ConnectedEnv env(s_vm);
             if (!env)
+            {
+                return;
+            }
+            if (!m_room)
             {
                 return;
             }
@@ -364,6 +389,10 @@ namespace MAT_NS_BEGIN
             {
                 return false;
             }
+            if (!m_room)
+            {
+                return false;
+            }
             auto room_class = env->GetObjectClass(m_room);
             auto reserve = env->GetMethodID(room_class, "getAndReserve",
                                             "(IJJJ)[Lcom/microsoft/applications/events/StorageRecord;");
@@ -387,17 +416,23 @@ namespace MAT_NS_BEGIN
                 {
                     break;  // out of r > c loop; no more records
                 }
-                // we don't collect these here because GetObjectClass is
-                // less fragile than FindClass
-                jclass record_class = nullptr;
-                jfieldID id_id;
-                jfieldID tenantToken_id;
-                jfieldID latency_id;
-                jfieldID persistence_id;
-                jfieldID timestamp_id;
-                jfieldID retryCount_id;
-                jfieldID reservedUntil_id;
-                jfieldID blob_id;
+                // Field IDs are looked up once from the first record's class and reused.
+                // record_class is stored as a global reference so it remains valid across
+                // pushLocalFrame/popLocalFrame boundaries (local refs are freed on popLocalFrame,
+                // causing a JNI abort on ART if reused in subsequent iterations).
+                jclass record_class      = nullptr;
+                jfieldID id_id           = nullptr;
+                jfieldID tenantToken_id  = nullptr;
+                jfieldID latency_id      = nullptr;
+                jfieldID persistence_id  = nullptr;
+                jfieldID timestamp_id    = nullptr;
+                jfieldID retryCount_id   = nullptr;
+                jfieldID reservedUntil_id = nullptr;
+                jfieldID blob_id         = nullptr;
+                // RAII guard: deletes record_class global ref on all exit paths,
+                // including std::logic_error (ThrowLogic) and std::runtime_error
+                // (ThrowRuntime) which the catch block below would not otherwise clean up.
+                GlobalRefGuard record_class_guard{env.getInner(), &record_class};
 
                 // Set limits for conversion from int to enum
                 int latency_lb = static_cast<int>(EventLatency_Off);
@@ -405,14 +440,36 @@ namespace MAT_NS_BEGIN
                 int persist_lb = static_cast<int>(EventPersistence_Normal);
                 int persist_ub = static_cast<int>(EventPersistence_DoNotStoreOnDisk);
 
+                // Set if a null array element is hit below, so the early-release
+                // path skips releaseUnconsumed (which would index into the null).
+                bool sawNullElement = false;
                 for (index = 0; index < limit; ++index)
                 {
                     env.pushLocalFrame(32);
                     auto record = env->GetObjectArrayElement(selected, index);
                     ThrowLogic(env, "getAndReserve element");
+                    if (!record)
+                    {
+                        // Null array element (observed with some androidx.room
+                        // versions): pop this frame and stop rather than
+                        // dereferencing null in GetObjectClass. We cannot safely
+                        // release the tail here (it contains this null and Java
+                        // releaseUnconsumed indexes from 0), so leave the
+                        // remaining reservations to expire and be retried.
+                        sawNullElement = true;
+                        env.popLocalFrame();
+                        break;
+                    }
                     if (!record_class)
                     {
-                        record_class = env->GetObjectClass(record);
+                        // Promote to a global ref so it survives popLocalFrame on
+                        // subsequent iterations. Freed by record_class_guard on exit.
+                        jclass local_class = env->GetObjectClass(record);
+                        record_class = static_cast<jclass>(env->NewGlobalRef(local_class));
+                        if (!record_class)
+                        {
+                            MATSDK_THROW(std::runtime_error("NewGlobalRef failed"));
+                        }
                         id_id = env->GetFieldID(record_class, "id", "J");
                         ThrowLogic(env, "gar id");
                         tenantToken_id = env->GetFieldID(record_class, "tenantToken",
@@ -492,11 +549,14 @@ namespace MAT_NS_BEGIN
                 if (index < limit)
                 {
                     // we did not consume all these events
-                    auto release = env->GetMethodID(room_class, "releaseUnconsumed",
-                                                    "([Lcom/microsoft/applications/events/StorageRecord;I)V");
-                    ThrowLogic(env, "releaseUnconsumed");
-                    env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
-                    ThrowRuntime(env, "call ru");
+                    if (!sawNullElement)
+                    {
+                        auto release = env->GetMethodID(room_class, "releaseUnconsumed",
+                                                        "([Lcom/microsoft/applications/events/StorageRecord;I)V");
+                        ThrowLogic(env, "releaseUnconsumed");
+                        env->CallVoidMethod(m_room, release, selected, static_cast<int>(index));
+                        ThrowRuntime(env, "call ru");
+                    }
                     break;  // break out of the request > collected loop--end early by request
                 }
             }
@@ -607,6 +667,14 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return;
+            }
+            if (!m_room)
+            {
+                return;
+            }
             auto room_class = env->GetObjectClass(m_room);
             ThrowLogic(env, "GetObjectClass for m_room");
             auto release = env->GetMethodID(room_class,
@@ -663,17 +731,33 @@ namespace MAT_NS_BEGIN
             if (tokens > 0)
             {
                 DroppedMap dropped;
-                jclass bt_class = nullptr;
-                jfieldID token_id;
-                jfieldID count_id;
+                // bt_class stored as a global ref to survive popLocalFrame across iterations.
+                jclass bt_class    = nullptr;
+                jfieldID token_id  = nullptr;
+                jfieldID count_id  = nullptr;
+                // RAII guard: frees bt_class on all exit paths including exceptions.
+                GlobalRefGuard bt_class_guard{env.getInner(), &bt_class};
                 for (size_t index = 0; index < tokens; ++index)
                 {
                     env.pushLocalFrame(8);
                     auto byTenant = env->GetObjectArrayElement(results, index);
                     ThrowRuntime(env, "Exception fetching element from results");
+                    if (!byTenant)
+                    {
+                        // Skip a null array element rather than dereference null.
+                        env.popLocalFrame();
+                        continue;
+                    }
                     if (!bt_class)
                     {
-                        bt_class = env->GetObjectClass(byTenant);
+                        // Promote to a global ref so it survives popLocalFrame.
+                        // Freed by bt_class_guard on exit.
+                        jclass local_class = env->GetObjectClass(byTenant);
+                        bt_class = static_cast<jclass>(env->NewGlobalRef(local_class));
+                        if (!bt_class)
+                        {
+                            MATSDK_THROW(std::runtime_error("NewGlobalRef failed"));
+                        }
                         token_id = env->GetFieldID(bt_class, "tenantToken",
                                                    "Ljava/lang/String;");
                         ThrowLogic(env, "Error fetching tenantToken field id");
@@ -758,6 +842,10 @@ namespace MAT_NS_BEGIN
 
             static constexpr char newRecordSignature[] =
                 "(JIIJIJ[B)Lcom/microsoft/applications/events/StorageRecord;";
+            if (!m_room)
+            {
+                return 0;
+            }
             auto room_class = env->GetObjectClass(m_room);
 
             size_t count = std::min<size_t>(records.size(), INT32_MAX);
@@ -888,6 +976,14 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return false;
+            }
+            if (!m_room)
+            {
+                return false;
+            }
             auto room_class = env->GetObjectClass(m_room);
             auto delete_method = env->GetMethodID(room_class, "deleteSetting",
                                                   "(Ljava/lang/String;)V");
@@ -928,6 +1024,14 @@ namespace MAT_NS_BEGIN
         try
         {
             ConnectedEnv env(s_vm);
+            if (!env)
+            {
+                return false;
+            }
+            if (!m_room)
+            {
+                return false;
+            }
             auto room_class = env->GetObjectClass(m_room);
             jmethodID store_setting = env->GetMethodID(
                 room_class,
@@ -1045,6 +1149,10 @@ namespace MAT_NS_BEGIN
 
     size_t OfflineStorage_Room::GetSizeInternal(ConnectedEnv& env) const
     {
+        if (!m_room)
+        {
+            return 0;
+        }
         auto room_class = env->GetObjectClass(m_room);
         auto method = env->GetMethodID(room_class, "totalSize", "()J");
         if (!method)
@@ -1068,6 +1176,10 @@ namespace MAT_NS_BEGIN
         {
             ConnectedEnv env(s_vm);
             if (!env)
+            {
+                return 0;
+            }
+            if (!m_room)
             {
                 return 0;
             }
@@ -1126,6 +1238,10 @@ namespace MAT_NS_BEGIN
         {
             return false;
         }
+        if (!m_room)
+        {
+            return false;
+        }
         auto room_class = env->GetObjectClass(m_room);
         auto trim_id = env->GetMethodID(room_class, "trim", "(J)J");
         ThrowLogic(env, "trim");
@@ -1133,6 +1249,7 @@ namespace MAT_NS_BEGIN
 
         DebugEvent evt(DebugEventType::EVT_DROPPED);
         evt.param1 = dropped;
+        evt.param2 = static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW);
         evt.size = dropped;
         m_manager.DispatchEvent(evt);
 
@@ -1155,20 +1272,31 @@ namespace MAT_NS_BEGIN
         {
             ConnectedEnv env(s_vm);
 
+            if (!env)
+            {
+                return records;
+            }
+            if (!m_room)
+            {
+                return records;
+            }
             auto room_class = env->GetObjectClass(m_room);
             auto method = env->GetMethodID(room_class, "getRecords",
                                            "(ZIJ)[Lcom/microsoft/applications/events/StorageRecord;");
             ThrowLogic(env, "getRecords method");
 
-            jclass record_class = nullptr;
-            jfieldID id_id = nullptr;
-            jfieldID tenantToken_id;
-            jfieldID latency_id;
-            jfieldID persistence_id;
-            jfieldID timestamp_id;
-            jfieldID retryCount_id;
-            jfieldID reservedUntil_id;
-            jfieldID blob_id;
+            // record_class stored as a global ref to survive popLocalFrame across iterations.
+            jclass record_class       = nullptr;
+            jfieldID id_id            = nullptr;
+            jfieldID tenantToken_id   = nullptr;
+            jfieldID latency_id       = nullptr;
+            jfieldID persistence_id   = nullptr;
+            jfieldID timestamp_id     = nullptr;
+            jfieldID retryCount_id    = nullptr;
+            jfieldID reservedUntil_id = nullptr;
+            jfieldID blob_id          = nullptr;
+            // RAII guard: frees record_class on all exit paths including exceptions.
+            GlobalRefGuard record_class_guard{env.getInner(), &record_class};
 
             auto java_records = static_cast<jobjectArray>(env->CallObjectMethod(m_room,
                                                                                 method,
@@ -1185,7 +1313,14 @@ namespace MAT_NS_BEGIN
                 ThrowLogic(env, "access result element");
                 if (!record_class)
                 {
-                    record_class = env->GetObjectClass(record);
+                    // Promote to a global ref so it survives popLocalFrame.
+                    // Freed by record_class_guard on exit.
+                    jclass local_class = env->GetObjectClass(record);
+                    record_class = static_cast<jclass>(env->NewGlobalRef(local_class));
+                    if (!record_class)
+                    {
+                        MATSDK_THROW(std::runtime_error("NewGlobalRef failed"));
+                    }
                     id_id = env->GetFieldID(record_class, "id", "J");
                     ThrowLogic(env, "id field");
                     tenantToken_id = env->GetFieldID(record_class, "tenantToken",

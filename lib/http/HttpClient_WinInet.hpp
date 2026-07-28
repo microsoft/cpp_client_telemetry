@@ -30,6 +30,8 @@ class HttpClient_WinInet : public IHttpClient {
     virtual void CancelRequestAsync(std::string const& id) final;
     virtual void CancelAllRequests() final;
 
+    virtual void ApplySettings(ILogConfiguration& config) override;
+
     // Methods unique to WinInet implementation.
     void SetMsRootCheck(bool enforceMsRoot);
     bool IsMsRootCheckRequired();

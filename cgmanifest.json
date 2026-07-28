@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/component-detection-manifest.json",
+  "Registrations": [
+    {
+      "Component": {
+        "Type": "git",
+        "git": {
+          "RepositoryUrl": "https://github.com/nlohmann/json",
+          "CommitHash": "55f93686c01528224f448c19128836e7df245f72"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "git",
+        "git": {
+          "RepositoryUrl": "https://github.com/sqlite/sqlite",
+          "CommitHash": "ccd445d76a9362c63add000354fac84ba9022176"
+        }
+      },
+      "DevelopmentDependency": false
+    },
+    {
+      "Component": {
+        "Type": "git",
+        "git": {
+          "RepositoryUrl": "https://github.com/madler/zlib",
+          "CommitHash": "da607da739fa6047df13e66a2af6b8bec7c2a498"
+        }
+      },
+      "DevelopmentDependency": false
+    }
+  ]
+}

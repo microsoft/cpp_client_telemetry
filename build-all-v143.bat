@@ -2,4 +2,5 @@
 
 set VSTOOLS_VERSION=vs2022
 set PlatformToolset=v143
-call build-all.bat
+set SKIP_NET40_BUILD=1
+call "%~dp0build-all-windows.bat" %*

@@ -3,7 +3,7 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.15...3.31)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -45,6 +45,7 @@ set(SRCS
         ${SDK_ROOT}/lib/bond/BondSerializer.cpp
         ${SDK_ROOT}/lib/callbacks/DebugSource.cpp
         ${SDK_ROOT}/lib/compression/HttpDeflateCompression.cpp
+        ${SDK_ROOT}/lib/decoder/PayloadDecoder.cpp
         ${SDK_ROOT}/lib/decorators/BaseDecorator.cpp
         ${SDK_ROOT}/lib/filter/EventFilterCollection.cpp
         ${SDK_ROOT}/lib/http/HttpClientFactory.cpp

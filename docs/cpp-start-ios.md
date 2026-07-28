@@ -16,12 +16,38 @@ Run `build-ios.sh [clean] [release|debug]` script in the root folder of the sour
 
 Run `build-ios.sh [clean] [release|debug] [arm64|arm64e]`.
 
+### Run iOS tests
+
+Run `./build-tests-ios.sh [release|debug] "<simulator name>"`.
+
+The script requires `python3` on `PATH` to parse `simctl --json` when resolving the simulator name.
+
+Example:
+
+```sh
+./build-tests-ios.sh release "iPhone 17"
+```
+
+Use a simulator name returned by `xcrun simctl list devices available`.
+The script resolves an exact device name from `simctl --json`, prefers the
+newest installed iOS runtime for that device name, and fails if that newest
+runtime still contains multiple matches.
+
+If Xcode reports that the requested simulator runtime is missing, install it
+from Xcode > Settings > Components or run
+`xcodebuild -downloadPlatform iOS -architectureVariant arm64`.
+
 ## 3. Integrate the SDK into your C++ project
 
-SDK package contains headers and library installed at the following locations:
+SDK package contains headers and library installed at the following locations
+by default:
 
 * Headers: /usr/local/include/mat
-* Library: /usr/local/lib/${arch}/libmat.a
+* Library: /usr/local/lib/libmat.a
+
+If you set a custom install prefix via
+`CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/path/to/install"`, the SDK is installed
+under `<prefix>/include/mat` and `<prefix>/lib/libmat.a`.
 
 1DS SDK is built using cmake, but you can explore building it with any other build system of your choice.
 

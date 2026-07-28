@@ -45,7 +45,7 @@ function generateVersionHpp() {
   // Read version tag
   var ver1      = readAll("..\\Solutions\\version.txt");
   // Remove end-of-line
-  ver1 = ver1.replace("\n", "");
+  ver1 = ver1.trim();
   ver1 = updateYearAndDay(ver1);
   // console.log("version.txt => " + ver1 + "\n");
   var ver2 = ver1.split(".").join(",");

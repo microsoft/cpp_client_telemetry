@@ -91,6 +91,7 @@ namespace MAT_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_OK;
                 evt.param1 = response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 evt.data = static_cast<void *>(request.GetBody().data());
                 evt.size = request.GetBody().size();
                 DispatchEvent(evt);
@@ -112,6 +113,7 @@ namespace MAT_NS_BEGIN {
                 // This is to be addressed with ETW trace API that can send
                 // a detailed error context to ETW provider.
                 evt.param1 = response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 evt.data = static_cast<void *>(request.GetBody().data());
                 evt.size = request.GetBody().size();
                 DispatchEvent(evt);
@@ -127,6 +129,7 @@ namespace MAT_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
                 evt.param1 = 0; // response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 DispatchEvent(evt);
             }
             ctx->httpResponse = nullptr;
@@ -144,6 +147,7 @@ namespace MAT_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
                 evt.param1 = response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 DispatchEvent(evt);
             }
             temporaryServerFailure(ctx);
@@ -157,6 +161,7 @@ namespace MAT_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
                 evt.param1 = response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 DispatchEvent(evt);
             }
             temporaryNetworkFailure(ctx);
@@ -253,4 +258,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

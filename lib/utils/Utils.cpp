@@ -58,7 +58,7 @@ namespace MAT_NS_BEGIN {
         strings = backtrace_symbols(array, size);
         printf("XXXXXXXXXXXXXXXXXXXX Obtained %zd stack frames:\n", size);
         for (i = 0; i < size; i++)
-            printf("[%2lu] %s\n", i, demangle(strings[i]).c_str());
+            printf("[%2lu] %s\n", i, mat_demangle(strings[i]).c_str());
         printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
         free(strings);
 #endif
@@ -74,7 +74,7 @@ namespace MAT_NS_BEGIN {
 #endif
     }
 
-    bool IsRunningInApp()
+    bool IsRunningInApp() noexcept
     {
 #ifdef _WINRT_DLL  // Win 10 UWP
         typedef LONG (*LPFN_GPFN)(UINT32*, PWSTR);
