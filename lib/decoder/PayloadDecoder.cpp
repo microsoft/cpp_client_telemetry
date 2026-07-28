@@ -563,7 +563,13 @@ namespace MAT_NS_BEGIN {
 
             if (result)
             {
-                out = j.dump(2);
+                // Use error_handler_t::replace so that malformed UTF-8 in the
+                // decoded telemetry payload is replaced with U+FFFD instead of
+                // throwing nlohmann::json::type_error (id 316). Telemetry event
+                // strings can legitimately contain non-UTF-8 bytes; without this
+                // the unhandled C++ exception terminates the hosting process.
+                // Mirrors AIJsonSerializer::handleSerialize.
+                out = j.dump(2, ' ', false, json::error_handler_t::replace);
             }
 
             return result;
@@ -580,7 +586,9 @@ namespace MAT_NS_BEGIN {
 
             nlohmann::json j;
             to_json(j, in);
-            std::string s = j.dump(4);
+            // See DecodeRequest above: replace malformed UTF-8 rather than
+            // throwing so a bad record cannot terminate the process.
+            std::string s = j.dump(4, ' ', false, json::error_handler_t::replace);
             out.assign(s.begin(), s.end());
 
             return true;
