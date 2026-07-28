@@ -36,15 +36,20 @@ namespace
 // A telemetry event field can legitimately contain bytes that are not valid
 // UTF-8. nlohmann::json::dump() defaults to error_handler_t::strict, which
 // throws type_error.316 on such input. Because DecodeRecord/DecodeRequest run
-// on the Diagnostic Data Viewer path inside the hosting process, an unhandled
-// throw terminates that process (Watson crash). These tests lock in the
-// error_handler_t::replace behavior: no throw, and the malformed byte is
-// emitted as the U+FFFD replacement character (EF BF BD).
+// on the decode path inside the hosting process, an unhandled throw terminates
+// that process. These tests lock in the error_handler_t::replace behavior: no
+// throw, and the malformed byte is emitted as the U+FFFD replacement character
+// (EF BF BD).
 TEST(PayloadDecoderTests, DecodeRecord_InvalidUtf8_DoesNotThrow)
 {
     CsProtocol::Record record = MakeMinimalRecord();
-    // 0xFF is never a valid UTF-8 byte.
-    record.name = std::string("Bad\xFFName");
+    // Build the field with an explicit 0xFF byte (never valid UTF-8). A string
+    // literal escape ("...\xFF...") would rely on implementation-defined char
+    // conversion and can trip -Werror constant-conversion on some toolchains.
+    std::string name = "Bad";
+    name.push_back(static_cast<char>(0xFF));
+    name += "Name";
+    record.name = name;
 
     std::string out;
     bool decoded = false;
@@ -58,7 +63,7 @@ TEST(PayloadDecoderTests, DecodeRecord_InvalidUtf8_DoesNotThrow)
     {
         EXPECT_NE(out.find("\xEF\xBF\xBD"), std::string::npos)
             << "Malformed UTF-8 should be replaced with U+FFFD";
-        EXPECT_EQ(out.find('\xFF'), std::string::npos)
+        EXPECT_EQ(out.find(static_cast<char>(0xFF)), std::string::npos)
             << "Raw invalid byte must not survive in the output";
     }
 }
