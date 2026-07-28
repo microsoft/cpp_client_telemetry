@@ -568,7 +568,6 @@ namespace MAT_NS_BEGIN {
                 // throwing nlohmann::json::type_error (id 316). Telemetry event
                 // strings can legitimately contain non-UTF-8 bytes; without this
                 // the unhandled C++ exception terminates the hosting process.
-                // Mirrors AIJsonSerializer::handleSerialize.
                 out = j.dump(2, ' ', false, json::error_handler_t::replace);
             }
 
