@@ -304,16 +304,18 @@ public:
         if (rawResponse)
         {
             if (!SetOption(CURLOPT_HEADER, 1L)
-                || !SetOption(CURLOPT_WRITEFUNCTION, (void *)&WriteMemoryCallback)
-                || !SetOption(CURLOPT_WRITEDATA, (void *)&response))
+                || !SetOption(CURLOPT_WRITEFUNCTION,
+                    static_cast<curl_write_callback>(&WriteMemoryCallback))
+                || !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&response)))
             {
                 DispatchEvent(OnSendFailed);
                 goto cleanup;
             }
         }
-        else if (!SetOption(CURLOPT_WRITEFUNCTION, (void *)&WriteVectorCallback)
-            || !SetOption(CURLOPT_HEADERDATA, (void *)&respHeaders)
-            || !SetOption(CURLOPT_WRITEDATA, (void *)&respBody))
+        else if (!SetOption(CURLOPT_WRITEFUNCTION,
+                static_cast<curl_write_callback>(&WriteVectorCallback))
+            || !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders))
+            || !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&respBody)))
         {
             DispatchEvent(OnSendFailed);
             goto cleanup;
@@ -592,7 +594,7 @@ protected:
      * @param userp
      * @return
      */
-    static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+    static size_t WriteMemoryCallback(char *contents, size_t size, size_t nmemb, void *userp)
     {
         size_t realsize = size * nmemb;
         struct MemoryStruct *mem = (struct MemoryStruct *)userp;
@@ -624,10 +626,11 @@ protected:
      * @param data
      * @return
      */
-    static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
+    static size_t WriteVectorCallback(char *ptr, size_t size, size_t nmemb, void* userp)
     {
+        auto* data = static_cast<std::vector<uint8_t>*>(userp);
         if (data != nullptr) {
-            const auto* begin = static_cast<const uint8_t*>(ptr);
+            const auto* begin = reinterpret_cast<const uint8_t*>(ptr);
             const auto* end   = begin + size * nmemb;
             data->insert( data->end(), begin, end);
         }
