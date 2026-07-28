@@ -21,8 +21,23 @@ SDK's internal dependencies directly.
 
 When the CPP11 PAL uses the curl HTTP transport outside vcpkg, the SDK normally
 calls `find_package(CURL)` and links `CURL::libcurl` when that imported target is
-available. Non-vcpkg Linux builds similarly use `find_package()` for zlib and
-SQLite unless the minimal bundled SQLite option is enabled.
+available. On Linux, set `MATSDK_CURL_PROVIDER=FETCH` to let the SDK download and
+build a pinned static curl dependency instead:
+
+```cmake
+set(MATSDK_CURL_PROVIDER FETCH CACHE STRING "" FORCE)
+set(MATSDK_CURL_TLS_BACKEND MBEDTLS CACHE STRING "" FORCE) # or OPENSSL
+add_subdirectory(cpp_client_telemetry)
+
+target_link_libraries(your_target PRIVATE MSTelemetry::mat)
+```
+
+The default fetched backend is mbedTLS and is fully self-contained. Selecting
+`OPENSSL` builds curl from source but still requires the parent build environment
+to provide OpenSSL through `find_package(OpenSSL)`.
+
+Non-vcpkg Linux builds similarly use `find_package()` for zlib and SQLite unless
+the minimal bundled SQLite option is enabled.
 
 To make a superbuild choose the dependency implementation (for example, libcurl
 built with OpenSSL vs. mbedTLS) without changing the leaf consumer target, define

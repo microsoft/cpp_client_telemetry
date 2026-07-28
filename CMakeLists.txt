@@ -363,10 +363,32 @@ option(BUILD_SANITIZER    "Build Sanitizer"         YES)
 option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
 set(MATSDK_CURL_TARGET "" CACHE STRING
   "Optional existing CMake target to use for libcurl in non-vcpkg builds, instead of find_package(CURL)")
+set(MATSDK_CURL_PROVIDER "PACKAGE" CACHE STRING
+  "How non-vcpkg builds resolve libcurl: PACKAGE (find_package) or FETCH (FetchContent static curl)")
+set_property(CACHE MATSDK_CURL_PROVIDER PROPERTY STRINGS PACKAGE FETCH)
+set(MATSDK_CURL_TLS_BACKEND "MBEDTLS" CACHE STRING
+  "TLS backend for MATSDK_CURL_PROVIDER=FETCH: MBEDTLS or OPENSSL")
+set_property(CACHE MATSDK_CURL_TLS_BACKEND PROPERTY STRINGS MBEDTLS OPENSSL)
+set(MATSDK_CURL_URL "https://github.com/curl/curl/releases/download/curl-8_21_0/curl-8.21.0.tar.xz" CACHE STRING
+  "URL for MATSDK_CURL_PROVIDER=FETCH")
+set(MATSDK_CURL_SHA1 "c3b4712175609f1e1662e716efd4fd48901e863d" CACHE STRING
+  "SHA1 for MATSDK_CURL_URL")
+set(MATSDK_MBEDTLS_URL "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.7/mbedtls-3.6.7.tar.bz2" CACHE STRING
+  "URL for the mbedTLS dependency used by MATSDK_CURL_PROVIDER=FETCH and MATSDK_CURL_TLS_BACKEND=MBEDTLS")
+set(MATSDK_MBEDTLS_SHA1 "e892e98cff90cf7e0736c525bf357626a2513c4c" CACHE STRING
+  "SHA1 for MATSDK_MBEDTLS_URL")
 set(MATSDK_SQLITE_TARGET "" CACHE STRING
   "Optional existing CMake target to use for SQLite in non-vcpkg builds, instead of find_package(SQLite3)")
 set(MATSDK_ZLIB_TARGET "" CACHE STRING
   "Optional existing CMake target to use for zlib in non-vcpkg builds, instead of find_package(ZLIB)")
+string(TOUPPER "${MATSDK_CURL_PROVIDER}" MATSDK_CURL_PROVIDER_UPPER)
+if(NOT MATSDK_CURL_PROVIDER_UPPER STREQUAL "PACKAGE" AND NOT MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
+  message(FATAL_ERROR "MATSDK_CURL_PROVIDER must be PACKAGE or FETCH; got '${MATSDK_CURL_PROVIDER}'.")
+endif()
+string(TOUPPER "${MATSDK_CURL_TLS_BACKEND}" MATSDK_CURL_TLS_BACKEND_UPPER)
+if(NOT MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS" AND NOT MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "OPENSSL")
+  message(FATAL_ERROR "MATSDK_CURL_TLS_BACKEND must be MBEDTLS or OPENSSL; got '${MATSDK_CURL_TLS_BACKEND}'.")
+endif()
 foreach(_matsdk_dependency_target_var MATSDK_CURL_TARGET MATSDK_SQLITE_TARGET MATSDK_ZLIB_TARGET)
   if(${_matsdk_dependency_target_var} AND NOT TARGET "${${_matsdk_dependency_target_var}}")
     message(FATAL_ERROR
@@ -428,6 +450,10 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
   else()
     if(MATSDK_CURL_TARGET)
       list(APPEND LIBS "${MATSDK_CURL_TARGET}")
+    elseif(MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
+      include(cmake/MatsdkFetchCurl.cmake)
+      matsdk_fetch_curl(_matsdk_curl_target)
+      list(APPEND LIBS "${_matsdk_curl_target}")
     else()
       find_package(CURL REQUIRED)
       # Prefer the imported target, which carries curl's include dirs and link
