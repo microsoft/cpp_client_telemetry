@@ -325,6 +325,9 @@ else()
   message(STATUS "Building static SDK library")
   add_library(mat STATIC ${SRCS})
 endif()
+if(NOT TARGET MSTelemetry::mat)
+  add_library(MSTelemetry::mat ALIAS mat)
+endif()
 
 # Public-API export decoration (MATSDK_LIBABI in lib/include/public/ctmacros.hpp).
 # The SDK has no .def file, so __declspec(dllexport)/(dllimport) on Windows and
@@ -565,14 +568,18 @@ else()
     target_link_libraries(mat PRIVATE sqlite3_bundled zlib_bundled ${LIBS})
   elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
     # Windows legacy: vendored sqlite/zlib headers are included via
-    # include_directories in the PAL section above; link only ${LIBS}
-    # (e.g. CURL if needed — sqlite/zlib come from .vcxproj references), plus the
-    # private minimal SQLite when MATSDK_MINIMAL_SQLITE is enabled.
+    # include_directories in the PAL section above; link only explicit CMake deps
+    # (e.g. CURL if needed, or a parent-provided SQLite target). Parent-provided
+    # zlib is rejected in the root CMakeLists because the vendored zlib headers
+    # rename zlib symbols to act_z_* on this path. If no MATSDK_*_TARGET is
+    # supplied, legacy .vcxproj builds provide sqlite/zlib.
+    set(_matsdk_win32_deps ${LIBS})
     if(MATSDK_BUNDLE_SQLITE)
-      target_link_libraries(mat PRIVATE sqlite3_bundled ${LIBS})
-    else()
-      target_link_libraries(mat PRIVATE ${LIBS})
+      list(APPEND _matsdk_win32_deps sqlite3_bundled)
+    elseif(MATSDK_SQLITE_TARGET)
+      list(APPEND _matsdk_win32_deps "${MATSDK_SQLITE_TARGET}")
     endif()
+    target_link_libraries(mat PRIVATE ${_matsdk_win32_deps})
   elseif(APPLE)
     # macOS and iOS both ship system libsqlite3 and libz. Link them by portable
     # names -- matching the SDK's own iOS Xcode projects (libsqlite3.tbd + libz.tbd
@@ -584,14 +591,24 @@ else()
   else()
     # Linux legacy: system zlib + system (or private minimal) sqlite3. ZLIB::ZLIB
     # and SQLite::SQLite3 are imported targets that carry their own include dirs.
-    find_package(ZLIB REQUIRED)
-    if(MATSDK_BUNDLE_SQLITE)
-      target_link_libraries(mat PRIVATE sqlite3_bundled ZLIB::ZLIB ${LIBS})
+    if(MATSDK_ZLIB_TARGET)
+      set(_matsdk_zlib_target "${MATSDK_ZLIB_TARGET}")
     else()
-      # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
-      # SQLite::SQLite3 is an imported target carrying its own include dirs.
-      find_package(SQLite3 REQUIRED)
-      target_link_libraries(mat PRIVATE SQLite::SQLite3 ZLIB::ZLIB ${LIBS})
+      find_package(ZLIB REQUIRED)
+      set(_matsdk_zlib_target ZLIB::ZLIB)
+    endif()
+    if(MATSDK_BUNDLE_SQLITE)
+      target_link_libraries(mat PRIVATE sqlite3_bundled ${_matsdk_zlib_target} ${LIBS})
+    else()
+      if(MATSDK_SQLITE_TARGET)
+        set(_matsdk_sqlite_target "${MATSDK_SQLITE_TARGET}")
+      else()
+        # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
+        # SQLite::SQLite3 is an imported target carrying its own include dirs.
+        find_package(SQLite3 REQUIRED)
+        set(_matsdk_sqlite_target SQLite::SQLite3)
+      endif()
+      target_link_libraries(mat PRIVATE ${_matsdk_sqlite_target} ${_matsdk_zlib_target} ${LIBS})
     endif()
   endif()
 endif()

@@ -361,6 +361,29 @@ option(BUILD_LIVEEVENTINSPECTOR   "Build Live Event Inspector"      YES)
 option(BUILD_SIGNALS      "Build Signals"           YES)
 option(BUILD_SANITIZER    "Build Sanitizer"         YES)
 option(LINK_STATIC_DEPENDS "Link dependencies for static build"     YES)
+set(MATSDK_CURL_TARGET "" CACHE STRING
+  "Optional existing CMake target to use for libcurl in non-vcpkg builds, instead of find_package(CURL)")
+set(MATSDK_SQLITE_TARGET "" CACHE STRING
+  "Optional existing CMake target to use for SQLite in non-vcpkg builds, instead of find_package(SQLite3)")
+set(MATSDK_ZLIB_TARGET "" CACHE STRING
+  "Optional existing CMake target to use for zlib in non-vcpkg builds, instead of find_package(ZLIB)")
+foreach(_matsdk_dependency_target_var MATSDK_CURL_TARGET MATSDK_SQLITE_TARGET MATSDK_ZLIB_TARGET)
+  if(${_matsdk_dependency_target_var} AND NOT TARGET "${${_matsdk_dependency_target_var}}")
+    message(FATAL_ERROR
+      "${_matsdk_dependency_target_var} was set to '${${_matsdk_dependency_target_var}}', "
+      "but no such CMake target exists. Define the target before adding "
+      "cpp_client_telemetry, or leave ${_matsdk_dependency_target_var} empty to "
+      "use the SDK's default dependency discovery.")
+  endif()
+endforeach()
+if(MATSDK_ZLIB_TARGET AND PAL_IMPLEMENTATION STREQUAL "WIN32" AND NOT MATSDK_USE_VCPKG_DEPS)
+  message(FATAL_ERROR
+    "MATSDK_ZLIB_TARGET is not supported for non-vcpkg WIN32 builds because "
+    "the legacy WIN32 include path uses the SDK's vendored zlib headers, which "
+    "rename zlib symbols to act_z_*. Use vcpkg mode, omit MATSDK_ZLIB_TARGET "
+    "and rely on the legacy .vcxproj dependency, or add a dedicated bundled-zlib "
+    "CMake path first.")
+endif()
 
 # Enable Azure Monitor / Application Insights end-point support
 option(BUILD_AZMON        "Build for Azure Monitor" YES)
@@ -403,15 +426,19 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
     endif()
     list(APPEND LIBS CURL::libcurl)
   else()
-    find_package(CURL REQUIRED)
-    # Prefer the imported target, which carries curl's include dirs and link
-    # flags. Fall back to the find-module variables on CMake < 3.12, where
-    # find_package(CURL) does not define CURL::libcurl.
-    if(TARGET CURL::libcurl)
-      list(APPEND LIBS CURL::libcurl)
+    if(MATSDK_CURL_TARGET)
+      list(APPEND LIBS "${MATSDK_CURL_TARGET}")
     else()
-      include_directories(${CURL_INCLUDE_DIRS})
-      list(APPEND LIBS "${CURL_LIBRARIES}")
+      find_package(CURL REQUIRED)
+      # Prefer the imported target, which carries curl's include dirs and link
+      # flags. Fall back to the find-module variables on CMake < 3.12, where
+      # find_package(CURL) does not define CURL::libcurl.
+      if(TARGET CURL::libcurl)
+        list(APPEND LIBS CURL::libcurl)
+      else()
+        include_directories(${CURL_INCLUDE_DIRS})
+        list(APPEND LIBS "${CURL_LIBRARIES}")
+      endif()
     endif()
   endif()
 endif()
