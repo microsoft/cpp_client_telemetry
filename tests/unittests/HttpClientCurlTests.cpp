@@ -56,6 +56,15 @@ TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithCaInfo)
     ASSERT_NE(op.GetHandle(), nullptr);
 }
 
+TEST(HttpClientCurlOperationTests, SelectsHttp2OnlyWhenRuntimeSupportsIt)
+{
+    const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+    const long expected = (versionInfo != nullptr && (versionInfo->features & CURL_VERSION_HTTP2) != 0)
+        ? CURL_HTTP_VERSION_2_0
+        : CURL_HTTP_VERSION_1_1;
+    EXPECT_EQ(CurlHttpOperation::GetPreferredHttpVersion(), expected);
+}
+
 // --- ILogConfiguration integration ---
 
 TEST(HttpClientCurlConfigTests, LogConfiguration_SslVerify_DefaultIsTrue)
