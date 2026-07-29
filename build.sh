@@ -70,7 +70,7 @@ while [[ $# -gt 0 ]]; do
           echo "MAC_ARCH = $MAC_ARCH"
           ;;
         CUSTOM_BUILD_FLAGS*)
-          CUSTOM_CMAKE_CXX_FLAG="\"${ARG:19:999}\""
+          CUSTOM_CMAKE_CXX_FLAG="${ARG:19:999}"
           echo "custom compiler flags = $CUSTOM_CMAKE_CXX_FLAG"
           ;;
         *)
@@ -185,17 +185,30 @@ fi
 # Fail on error
 set -e
 
-APPLE_CMAKE_OPTS=""
+cmake_args=(cmake)
 if [[ "$OS_NAME" == *Darwin* ]]; then
   if [[ "$MAC_ARCH" == "universal" ]]; then
-    APPLE_CMAKE_OPTS='-DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"'
+    cmake_args+=("-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64")
   else
-    APPLE_CMAKE_OPTS="-DCMAKE_OSX_ARCHITECTURES=$MAC_ARCH"
+    cmake_args+=("-DCMAKE_OSX_ARCHITECTURES=$MAC_ARCH")
   fi
 fi
-cmake_cmd="cmake $APPLE_CMAKE_OPTS -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="${CUSTOM_CMAKE_CXX_FLAG}" $CMAKE_OPTS .."
-echo $cmake_cmd
-eval $cmake_cmd
+cmake_args+=(
+  "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
+  "-DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE"
+)
+if [[ -n "$CUSTOM_CMAKE_CXX_FLAG" ]]; then
+  cmake_args+=("-DCMAKE_CXX_FLAGS=$CUSTOM_CMAKE_CXX_FLAG")
+fi
+if [[ -n "$CMAKE_OPTS" ]]; then
+  # Preserve existing support for callers passing multiple quoted -D arguments.
+  eval "extra_cmake_args=($CMAKE_OPTS)"
+  cmake_args+=("${extra_cmake_args[@]}")
+fi
+cmake_args+=(..)
+printf ' %q' "${cmake_args[@]}"
+printf '\n'
+"${cmake_args[@]}"
 
 # TODO: strip symbols to minimize (release-only)
 

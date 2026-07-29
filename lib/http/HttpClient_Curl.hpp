@@ -230,6 +230,7 @@ public:
         // Request buffer
         const void *request  = requestBody.empty() ? nullptr : requestBody.data();
         const size_t reqSize = requestBody.size();
+        int socketWaitResult = 0;
 
         if(!curl || !m_isConfigured)
         {
@@ -274,18 +275,20 @@ public:
                 sockextr = static_cast<curl_socket_t>(lastSocket);
             }
 #endif
-            if(CURLE_OK != infoResult)
+            if(CURLE_OK != infoResult || sockextr == CURL_SOCKET_BAD)
             {
-                res = static_cast<long>(infoResult);
+                res = static_cast<long>(
+                    infoResult != CURLE_OK ? infoResult : CURLE_COULDNT_CONNECT);
                 DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
-                TRACE("Error #2: %s\n", curl_easy_strerror(infoResult));
+                TRACE("Error #2: %s\n", curl_easy_strerror(static_cast<CURLcode>(res)));
                 goto cleanup;
             }
         }
 
         /* wait for the socket to become ready for sending */
         sockfd = sockextr;
-        if( !WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) || isAborted)
+        socketWaitResult = WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L);
+        if(socketWaitResult <= 0 || isAborted)
         {
             TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
             res = CURLE_OPERATION_TIMEDOUT;
@@ -313,6 +316,8 @@ public:
             }
         }
         else if (!SetOption(CURLOPT_WRITEFUNCTION,
+                static_cast<curl_write_callback>(&WriteVectorCallback))
+            || !SetOption(CURLOPT_HEADERFUNCTION,
                 static_cast<curl_write_callback>(&WriteVectorCallback))
             || !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders))
             || !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&respBody)))
