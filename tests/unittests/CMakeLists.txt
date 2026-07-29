@@ -40,6 +40,7 @@ set(SRCS
   OfflineStorageTests_Room.cpp
   OfflineStorageTests_SQLite.cpp
   PackagerTests.cpp
+  PayloadDecoderTests.cpp
   PalTests.cpp
   RouteTests.cpp
   StringUtilsTests.cpp
