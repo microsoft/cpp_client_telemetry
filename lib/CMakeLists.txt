@@ -485,6 +485,14 @@ if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
     # Feature-stripped build: apply the minimal definitions.
     target_compile_definitions(sqlite3_bundled PRIVATE ${MATSDK_SQLITE_MINIMAL_DEFS})
   endif()
+  if(APPLE AND (MATSDK_BUILD_IOS
+      OR CMAKE_SYSTEM_NAME STREQUAL "iOS"
+      OR CMAKE_SYSTEM_NAME STREQUAL "visionOS"))
+    # SQLite already resolves this to false on Apple mobile platforms. Define it
+    # explicitly so the amalgamation does not emit its gethostuuid warning under
+    # consumer-provided warnings-as-errors.
+    target_compile_definitions(sqlite3_bundled PRIVATE HAVE_GETHOSTUUID=0)
+  endif()
   if(MSVC)
     # Silence the vendored amalgamation's warnings (/w) and turn off
     # warning-as-error (/WX-) for this third-party translation unit, so the SDK's

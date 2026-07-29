@@ -28,12 +28,15 @@ jobs:
         - dependencies: system
           library-type: STATIC
           fetchcontent: OFF
+          preload-curl: ON
         - dependencies: system
           library-type: SHARED
           fetchcontent: ON
+          preload-curl: OFF
         - dependencies: self-contained
           library-type: STATIC
           fetchcontent: ON
+          preload-curl: OFF
     steps:
     - uses: actions/checkout@v4
     - name: Install system dependencies
@@ -48,6 +51,7 @@ jobs:
           -B build-embedding
           -DCMAKE_BUILD_TYPE=Release
           -DMATSDK_EMBEDDING_USE_FETCHCONTENT=${{ matrix.fetchcontent }}
+          -DMATSDK_EMBEDDING_PRELOAD_CURL=${{ matrix.preload-curl }}
           -DMATSDK_LIBRARY_TYPE=${{ matrix.library-type }}
         )
         if [[ "${{ matrix.dependencies }}" == "self-contained" ]]; then
@@ -107,7 +111,13 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        sdk: [iphoneos, iphonesimulator]
+        include:
+        - sdk: iphoneos
+          sqlite-provider: SYSTEM
+          zlib-provider: SYSTEM
+        - sdk: iphonesimulator
+          sqlite-provider: VENDORED
+          zlib-provider: VENDORED
     steps:
     - uses: actions/checkout@v4
     - name: Configure
@@ -121,8 +131,8 @@ jobs:
         -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO
         -DMATSDK_BUILD_IOS=ON
         -DMATSDK_EMBEDDING_USE_FETCHCONTENT=ON
-        -DMATSDK_SQLITE_PROVIDER=SYSTEM
-        -DMATSDK_ZLIB_PROVIDER=SYSTEM
+        -DMATSDK_SQLITE_PROVIDER=${{ matrix.sqlite-provider }}
+        -DMATSDK_ZLIB_PROVIDER=${{ matrix.zlib-provider }}
     - name: Build
       run: cmake --build build-embedding --config Release --target embedding_test --parallel 4
 

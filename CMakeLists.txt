@@ -26,6 +26,13 @@ if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET
   set(CMAKE_OSX_DEPLOYMENT_TARGET "${IOS_DEPLOYMENT_TARGET}" CACHE STRING
     "Apple deployment target" FORCE)
 endif()
+if((DEFINED FORCE_RESET_OSX_DEPLOYMENT_TARGET AND FORCE_RESET_OSX_DEPLOYMENT_TARGET)
+   OR (DEFINED FORCE_RESET_DEPLOYMENT_TARGET AND FORCE_RESET_DEPLOYMENT_TARGET))
+  message(DEPRECATION
+    "FORCE_RESET_OSX_DEPLOYMENT_TARGET/FORCE_RESET_DEPLOYMENT_TARGET are no "
+    "longer needed. CMAKE_OSX_DEPLOYMENT_TARGET (or legacy "
+    "IOS_DEPLOYMENT_TARGET) is honored directly without mutating global flags.")
+endif()
 
 project(MSTelemetry LANGUAGES C CXX)
 if(APPLE)
@@ -273,6 +280,9 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
       include(cmake/MatsdkFetchCurl.cmake)
       matsdk_fetch_curl(_matsdk_curl_target)
       list(APPEND LIBS "${_matsdk_curl_target}")
+    elseif(TARGET CURL::libcurl)
+      # Parent superbuilds may create the canonical target before adding 1DS.
+      list(APPEND LIBS CURL::libcurl)
     else()
       find_package(CURL REQUIRED)
       # Prefer the imported target, which carries curl's include dirs and link

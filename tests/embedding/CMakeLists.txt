@@ -16,6 +16,15 @@ set(MATSDK_BUILD_OBJC_WRAPPER OFF CACHE BOOL "" FORCE)
 set(MATSDK_BUILD_SWIFT_WRAPPER OFF CACHE BOOL "" FORCE)
 set(MATSDK_WARNINGS_AS_ERRORS ON CACHE BOOL "" FORCE)
 
+option(MATSDK_EMBEDDING_PRELOAD_CURL
+  "Pre-create CURL::libcurl and disable subsequent package discovery" OFF)
+if(MATSDK_EMBEDDING_PRELOAD_CURL)
+  find_package(CURL REQUIRED)
+  # A later find_package(CURL REQUIRED) fails when this switch is enabled, so
+  # this configuration proves the SDK consumes the pre-created target directly.
+  set(CMAKE_DISABLE_FIND_PACKAGE_CURL ON CACHE BOOL "" FORCE)
+endif()
+
 option(MATSDK_EMBEDDING_USE_FETCHCONTENT
   "Exercise local-source FetchContent instead of add_subdirectory" OFF)
 if(MATSDK_EMBEDDING_USE_FETCHCONTENT)
