@@ -28,6 +28,11 @@ if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET
 endif()
 
 project(MSTelemetry LANGUAGES C CXX)
+if(APPLE)
+  set(MATSDK_BUILD_PLATFORM_APPLE TRUE)
+else()
+  set(MATSDK_BUILD_PLATFORM_APPLE FALSE)
+endif()
 
 ################################################################################################
 # Vcpkg dependency mode: detect early so it can guard platform-specific flag logic

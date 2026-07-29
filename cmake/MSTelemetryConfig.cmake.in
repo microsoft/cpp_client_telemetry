@@ -4,7 +4,7 @@ include(CMakeFindDependencyMacro)
 
 # Re-find only dependencies that were external to the SDK package.
 if(NOT @MATSDK_BUNDLE_SQLITE@)
-  if(@APPLE@)
+  if(@MATSDK_BUILD_PLATFORM_APPLE@)
     find_dependency(SQLite3)
   else()
     find_dependency(unofficial-sqlite3 CONFIG)
