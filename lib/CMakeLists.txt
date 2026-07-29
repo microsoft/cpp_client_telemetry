@@ -197,7 +197,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       list(APPEND SRCS
         pal/posix/NetworkInformationImpl_Android.cpp
       )
-      if(MATSDK_USE_VCPKG_DEPS)
+      if(MATSDK_ANDROID_USES_CURL)
         list(APPEND SRCS
           http/HttpClient_Curl.cpp
           http/HttpClient_Curl.hpp
@@ -680,6 +680,14 @@ if(MATSDK_USE_VCPKG_DEPS)
     "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
   )
+
+  if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND MATSDK_ANDROID_USES_JAVA_HTTP)
+    install(FILES
+      "${CMAKE_CURRENT_SOURCE_DIR}/android_build/maesdk/src/main/java/com/microsoft/applications/events/HttpClient.java"
+      "${CMAKE_CURRENT_SOURCE_DIR}/android_build/maesdk/src/main/java/com/microsoft/applications/events/HttpClientRequest.java"
+      DESTINATION "${CMAKE_INSTALL_DATADIR}/cpp-client-telemetry/android/java/com/microsoft/applications/events"
+    )
+  endif()
 else()
   # Legacy install: just put the library and headers in standard locations
   install(TARGETS mat
