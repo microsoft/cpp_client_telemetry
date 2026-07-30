@@ -484,6 +484,14 @@ protected:
         return poll(&pfd, 1, static_cast<int>(timeout));
     }
 
+    // SECURITY: upper bound on the collector response the client will buffer. The
+    // OneCollector protocol responses (status, kill-switch tokens, retry-after, small
+    // config) are tiny, so this generous cap never rejects a legitimate response but
+    // stops a hostile or MITM'd collector from driving unbounded memory growth by
+    // returning an oversized body (a memory-amplification DoS of the embedding process).
+    // Exceeding it aborts the transfer, so the upload is treated as failed and retried.
+    static constexpr size_t kMaxResponseBytes = 16 * 1024 * 1024; // 16 MB
+
     // Raw response buffer
     struct MemoryStruct {
       char *memory;
@@ -501,8 +509,20 @@ protected:
      */
     static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
     {
+        // Guard the size * nmemb product against size_t overflow before using it.
+        if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
+            return 0;
+        }
         size_t realsize = size * nmemb;
         struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+
+        // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
+        // overflow-safely (mem->size is always <= kMaxResponseBytes here). Returning a
+        // short count aborts the transfer with CURLE_WRITE_ERROR.
+        if (realsize > kMaxResponseBytes - mem->size) {
+            TRACE("Response exceeds max buffered size (%zu bytes); aborting transfer\n", kMaxResponseBytes);
+            return 0;
+        }
 
         auto* memory = static_cast<char*>(realloc(mem->memory, mem->size + realsize + 1));
         if(memory == nullptr) {
@@ -533,9 +553,21 @@ protected:
      */
     static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
     {
+        // Guard the size * nmemb product against size_t overflow before using it.
+        if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
+            return 0;
+        }
         if (data != nullptr) {
+            size_t realsize = size * nmemb;
+            // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
+            // overflow-safely (data->size() is always <= kMaxResponseBytes here).
+            // Returning a short count aborts the transfer with CURLE_WRITE_ERROR.
+            if (realsize > kMaxResponseBytes - data->size()) {
+                TRACE("Response exceeds max buffered size (%zu bytes); aborting transfer\n", kMaxResponseBytes);
+                return 0;
+            }
             const auto* begin = static_cast<const uint8_t*>(ptr);
-            const auto* end   = begin + size * nmemb;
+            const auto* end   = begin + realsize;
             data->insert( data->end(), begin, end);
         }
         return size * nmemb;
