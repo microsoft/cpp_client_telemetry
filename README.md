@@ -57,6 +57,11 @@ Platform specific build instructions:
 * [Android](docs/cpp-start-android.md)
 * [CMake source embedding / FetchContent](docs/embedding-with-cmake.md)
 
+Standard configure/build presets are listed with `cmake --list-presets`.
+`build.sh`, `build-ios.sh`, and `build-cmake.ps1` are thin compatibility
+wrappers around those presets. Presets require CMake 3.21+; direct CMake builds
+retain the project's CMake 3.15 floor.
+
 Other resources to learn how to setup the build system:
 
 * Review how our cross-platform build system is implemented using [GitHub Actions](.github/workflows) infrastructure.

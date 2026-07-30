@@ -1,17 +1,6 @@
 # Honor visibility properties for all target types
 cmake_policy(SET CMP0063 NEW)
 
-# Legacy (non-target) include paths that apply globally within this directory and
-# are used by build.sh / MSBuild / standalone CMake workflows. They do NOT propagate
-# to downstream consumers via find_package() (see target_include_directories below).
-include_directories( . ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/public ${CMAKE_CURRENT_SOURCE_DIR}/include/mat ${CMAKE_CURRENT_SOURCE_DIR}/pal ${CMAKE_CURRENT_SOURCE_DIR}/utils ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer )
-
-# Legacy native builds may need system-installed deps from /usr/local/include.
-# Never inject this host path into iOS, Android, or other cross-compiles.
-if(NOT MATSDK_USE_VCPKG_DEPS AND NOT CMAKE_CROSSCOMPILING)
-  include_directories(/usr/local/include)
-endif()
-
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
   packager/Packager.cpp
@@ -54,7 +43,6 @@ set(SRCS decorators/BaseDecorator.cpp
   offline/StorageObserver.cpp
   offline/OfflineStorageFactory.cpp
   offline/MemoryStorage.cpp
-  offline/OfflineStorage_SQLite.cpp
   offline/OfflineStorageHandler.cpp
   offline/LogSessionDataProvider.cpp
   backoff/IBackoff.cpp
@@ -63,6 +51,36 @@ set(SRCS decorators/BaseDecorator.cpp
   pal/WorkerThread.cpp
   decoder/PayloadDecoder.cpp
 )
+
+if(MATSDK_ANDROID_USE_ROOM)
+  list(APPEND SRCS offline/OfflineStorage_Room.cpp)
+else()
+  list(APPEND SRCS offline/OfflineStorage_SQLite.cpp)
+endif()
+
+if(MATSDK_BUILD_JNI_WRAPPER)
+  list(APPEND SRCS
+    jni/JniConvertors.cpp
+    jni/LogManager_jni.cpp
+    jni/Logger_jni.cpp
+    jni/SemanticContext_jni.cpp
+    jni/Utils_jni.cpp)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer/")
+    list(APPEND SRCS jni/LogManagerDDVController_jni.cpp)
+  endif()
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/"
+      AND MATSDK_BUILD_PRIVACYGUARD)
+    list(APPEND SRCS jni/PrivacyGuard_jni.cpp)
+  endif()
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/signals/"
+      AND MATSDK_BUILD_SIGNALS)
+    list(APPEND SRCS jni/Signals_jni.cpp)
+  endif()
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer/"
+      AND MATSDK_BUILD_SANITIZER)
+    list(APPEND SRCS jni/Sanitizer_jni.cpp)
+  endif()
+endif()
 
 # Support for Azure Monitor / Application Insights
 if(MATSDK_BUILD_AZMON)
@@ -106,7 +124,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/" AND MATSDK_B
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/cds/" AND MATSDK_BUILD_CDS)
-  add_definitions(-DHAVE_MAT_CDS)
+  target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_CDS)
   list(APPEND SRCS
     modules/cds/CdsFactory.hpp
     modules/cds/CdsFactory.cpp
@@ -152,7 +170,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
     list(APPEND SRCS
       pal/posix/sysinfo_utils_apple.cpp
     )
-    if(MATSDK_BUILD_IOS)
+    if(MATSDK_PLATFORM_IOS)
       list(APPEND SRCS
         pal/posix/sysinfo_utils_ios.mm
       )
@@ -177,7 +195,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
   endif()
 
   if(APPLE)
-    if(MATSDK_BUILD_APPLE_HTTP OR MATSDK_BUILD_IOS)
+    if(MATSDK_BUILD_APPLE_HTTP OR MATSDK_PLATFORM_IOS)
       list(APPEND SRCS
         http/HttpClient_Apple.mm
       )
@@ -196,7 +214,7 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
       list(APPEND SRCS
         pal/posix/NetworkInformationImpl_Android.cpp
       )
-      if(MATSDK_USE_VCPKG_DEPS)
+      if(MATSDK_USING_VCPKG)
         list(APPEND SRCS
           http/HttpClient_Curl.cpp
           http/HttpClient_Curl.hpp
@@ -270,8 +288,17 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11")
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
 # Win32 Desktop for now.
 # TODO: define a separate PAL for Win10 cmake build
-add_definitions(-D_UNICODE -DUNICODE -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
-remove_definitions(-D_MBCS)
+target_compile_definitions(matsdk_internal_config INTERFACE
+  _UNICODE
+  UNICODE
+  WIN32
+  MATSDK_PLATFORM_WINDOWS=1
+  _UTC_SDK
+  USE_BOND
+  _WINDOWS
+  _USRDLL
+  WINVER=_WIN32_WINNT_WIN7)
+target_compile_options(matsdk_internal_config INTERFACE /U_MBCS)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
@@ -323,16 +350,18 @@ endif()
 ################################################################################################
 # Build the library
 ################################################################################################
-if(MATSDK_LIBRARY_TYPE STREQUAL "SHARED")
+if(BUILD_SHARED_LIBS)
   message(STATUS "Building shared SDK library")
   add_library(mat SHARED ${SRCS})
 else()
   message(STATUS "Building static SDK library")
   add_library(mat STATIC ${SRCS})
 endif()
-target_link_libraries(mat PRIVATE $<BUILD_INTERFACE:matsdk_build_options>)
+target_link_libraries(mat PRIVATE
+  $<BUILD_INTERFACE:matsdk_build_options>
+  $<BUILD_INTERFACE:matsdk_internal_config>)
 set_target_properties(mat PROPERTIES POSITION_INDEPENDENT_CODE ON)
-if(MATSDK_LIBRARY_TYPE STREQUAL "SHARED")
+if(BUILD_SHARED_LIBS)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_options(mat PRIVATE
       $<$<NOT:$<CONFIG:Debug>>:-s>
@@ -364,7 +393,7 @@ endif()
 #    a consumer DLL/.so that statically absorbs this library. Windows needs an
 #    explicit (empty) MATSDK_STATIC_LIB; elsewhere the empty MATSDK_LIBABI default
 #    plus -fvisibility=hidden (root CMakeLists.txt) already hides them.
-if(MATSDK_LIBRARY_TYPE STREQUAL "SHARED")
+if(BUILD_SHARED_LIBS)
   target_compile_definitions(mat PRIVATE MATSDK_SHARED_LIB=1)
   if(WIN32)
     target_compile_definitions(mat INTERFACE MATSDK_IMPORT_LIB=1)
@@ -393,14 +422,26 @@ target_include_directories(mat
 )
 target_include_directories(mat
   PRIVATE
+    ${PROJECT_SOURCE_DIR}/bondlite/include
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mat
     ${CMAKE_CURRENT_SOURCE_DIR}/pal
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/exp
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/dataviewer
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/cds
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/signals
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/sanitizer
 )
+if(NOT MATSDK_USES_NLOHMANN_TARGET)
+  target_include_directories(mat PRIVATE ${PROJECT_SOURCE_DIR})
+endif()
 
 if(APPLE AND MATSDK_BUILD_OBJC_WRAPPER)
-  if(MATSDK_LIBRARY_TYPE STREQUAL "SHARED" AND OBJC_WRAPPER_SRCS)
+  if(BUILD_SHARED_LIBS AND OBJC_WRAPPER_SRCS)
     # The root CMakeLists.txt applies -fvisibility=hidden globally to shrink the
     # exported symbol table of the core C++ SDK. For Objective-C that also hides
     # the wrapper class symbols (_OBJC_CLASS_$_ODW*), which are public API on
@@ -485,9 +526,11 @@ if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
     # Feature-stripped build: apply the minimal definitions.
     target_compile_definitions(sqlite3_bundled PRIVATE ${MATSDK_SQLITE_MINIMAL_DEFS})
   endif()
-  if(APPLE AND (MATSDK_BUILD_IOS
-      OR CMAKE_SYSTEM_NAME STREQUAL "iOS"
-      OR CMAKE_SYSTEM_NAME STREQUAL "visionOS"))
+  if(USE_ONEDS_SECURE_MEM_FUNCTIONS)
+    target_compile_definitions(sqlite3_bundled PRIVATE
+      USE_ONEDS_SECURE_MEM_FUNCTIONS)
+  endif()
+  if(APPLE AND MATSDK_PLATFORM_IOS)
     # SQLite already resolves this to false on Apple mobile platforms. Define it
     # explicitly so the amalgamation does not emit its gethostuuid warning under
     # consumer-provided warnings-as-errors.
@@ -516,6 +559,9 @@ if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
       -fno-finite-math-only -Wno-unused-function -ffunction-sections
       $<$<NOT:$<C_COMPILER_ID:AppleClang>>:-fdata-sections>)
   endif()
+endif()
+if(MATSDK_BUNDLE_SQLITE AND NOT TARGET SQLite::SQLite3)
+  add_library(SQLite::SQLite3 ALIAS sqlite3_bundled)
 endif()
 
 if(MATSDK_BUNDLE_ZLIB AND NOT TARGET zlib_bundled)
@@ -558,43 +604,56 @@ if(MATSDK_BUNDLE_ZLIB AND NOT TARGET zlib_bundled)
       $<$<NOT:$<C_COMPILER_ID:AppleClang>>:-fdata-sections>)
   endif()
 endif()
-
-if(MATSDK_BUNDLE_SQLITE)
-  set(_matsdk_sqlite_target sqlite3_bundled)
-elseif(MATSDK_SQLITE_TARGET)
-  set(_matsdk_sqlite_target "${MATSDK_SQLITE_TARGET}")
-elseif(MATSDK_USE_VCPKG_DEPS AND NOT APPLE)
-  set(_matsdk_sqlite_target unofficial::sqlite3::sqlite3)
-elseif(APPLE AND NOT MATSDK_USE_VCPKG_DEPS)
-  # Resolve from the selected Apple SDK, not host Homebrew/pkg-config paths.
-  set(_matsdk_sqlite_target sqlite3)
-else()
-  if(NOT TARGET SQLite::SQLite3)
-    find_package(SQLite3 REQUIRED)
-  endif()
-  set(_matsdk_sqlite_target SQLite::SQLite3)
+if(MATSDK_BUNDLE_ZLIB AND NOT TARGET ZLIB::ZLIB)
+  add_library(ZLIB::ZLIB ALIAS zlib_bundled)
 endif()
 
+if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE"
+   AND NOT TARGET SQLite::SQLite3)
+  message(FATAL_ERROR
+    "SQLite::SQLite3 was not resolved for provider ${MATSDK_SQLITE_PROVIDER_RESOLVED}.")
+endif()
+if(NOT TARGET ZLIB::ZLIB)
+  message(FATAL_ERROR
+    "ZLIB::ZLIB was not resolved for provider ${MATSDK_ZLIB_PROVIDER_RESOLVED}.")
+endif()
+
+if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
+  # Room provides Android offline storage; no SQLite dependency is needed.
+elseif(MATSDK_BUNDLE_SQLITE)
+  target_link_libraries(mat PRIVATE sqlite3_bundled)
+else()
+  add_library(matsdk_sqlite_dependency INTERFACE IMPORTED GLOBAL)
+  set_property(TARGET matsdk_sqlite_dependency PROPERTY
+    INTERFACE_LINK_LIBRARIES SQLite::SQLite3)
+  target_link_libraries(mat PRIVATE
+    "$<BUILD_INTERFACE:matsdk_sqlite_dependency>"
+    "$<INSTALL_INTERFACE:MSTelemetry::sqlite_dependency>")
+endif()
 if(MATSDK_BUNDLE_ZLIB)
-  set(_matsdk_zlib_target zlib_bundled)
-elseif(MATSDK_ZLIB_TARGET)
-  set(_matsdk_zlib_target "${MATSDK_ZLIB_TARGET}")
-elseif(APPLE AND NOT MATSDK_USE_VCPKG_DEPS)
-  # Resolve from the selected Apple SDK, not host Homebrew/pkg-config paths.
-  set(_matsdk_zlib_target z)
+  target_link_libraries(mat PRIVATE zlib_bundled)
 else()
-  if(NOT TARGET ZLIB::ZLIB)
-    find_package(ZLIB REQUIRED)
-  endif()
-  set(_matsdk_zlib_target ZLIB::ZLIB)
+  add_library(matsdk_zlib_dependency INTERFACE IMPORTED GLOBAL)
+  set_property(TARGET matsdk_zlib_dependency PROPERTY
+    INTERFACE_LINK_LIBRARIES ZLIB::ZLIB)
+  target_link_libraries(mat PRIVATE
+    "$<BUILD_INTERFACE:matsdk_zlib_dependency>"
+    "$<INSTALL_INTERFACE:MSTelemetry::zlib_dependency>")
 endif()
-
-target_link_libraries(mat PRIVATE
-  ${_matsdk_sqlite_target}
-  ${_matsdk_zlib_target}
-  ${LIBS})
-if(MATSDK_USE_VCPKG_DEPS)
-  target_link_libraries(mat PRIVATE nlohmann_json::nlohmann_json)
+if(MATSDK_CURL_LINK_TARGET)
+  add_library(matsdk_curl_dependency INTERFACE IMPORTED GLOBAL)
+  set_property(TARGET matsdk_curl_dependency PROPERTY
+    INTERFACE_LINK_LIBRARIES ${MATSDK_CURL_LINK_TARGET})
+  target_link_libraries(mat PRIVATE
+    "$<BUILD_INTERFACE:matsdk_curl_dependency>"
+    "$<INSTALL_INTERFACE:MSTelemetry::curl_dependency>")
+endif()
+if(MATSDK_USES_NLOHMANN_TARGET)
+  add_library(matsdk_nlohmann_dependency INTERFACE IMPORTED GLOBAL)
+  set_property(TARGET matsdk_nlohmann_dependency PROPERTY
+    INTERFACE_LINK_LIBRARIES nlohmann_json::nlohmann_json)
+  target_link_libraries(mat PRIVATE
+    "$<BUILD_INTERFACE:matsdk_nlohmann_dependency>")
 endif()
 
 # TODO: allow adding "${Tcmalloc_LIBRARIES}" to target_link_libraries for memory leak debugging
@@ -604,6 +663,9 @@ endif()
 # Platform-specific link dependencies
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
   target_link_libraries(mat PUBLIC Threads::Threads "${CMAKE_DL_LIBS}")
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
+    target_link_libraries(mat PUBLIC atomic)
+  endif()
   if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     target_link_libraries(mat PUBLIC log)
   endif()
@@ -617,7 +679,7 @@ elseif(APPLE)
     "-framework Network"
     "-framework SystemConfiguration"
   )
-  if(MATSDK_BUILD_IOS OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  if(MATSDK_PLATFORM_IOS)
     target_link_libraries(mat PUBLIC "-framework UIKit")
   else()
     target_link_libraries(mat PUBLIC "-framework IOKit")
@@ -629,68 +691,69 @@ endif()
 ################################################################################################
 # A static libmat propagates its private static dependencies at the final link,
 # so install bundled archives beside it in both source and vcpkg workflows.
-set(MATSDK_INSTALL_TARGETS mat)
+set(MATSDK_EXPORT_TARGETS mat)
+set(MATSDK_AUX_INSTALL_TARGETS)
 get_target_property(_mat_type mat TYPE)
 if(_mat_type STREQUAL "STATIC_LIBRARY")
   if(MATSDK_BUNDLE_SQLITE AND TARGET sqlite3_bundled)
-    list(APPEND MATSDK_INSTALL_TARGETS sqlite3_bundled)
+    list(APPEND MATSDK_EXPORT_TARGETS sqlite3_bundled)
   endif()
   if(MATSDK_BUNDLE_ZLIB AND TARGET zlib_bundled)
-    list(APPEND MATSDK_INSTALL_TARGETS zlib_bundled)
+    list(APPEND MATSDK_EXPORT_TARGETS zlib_bundled)
   endif()
   foreach(_matsdk_fetched_target IN LISTS MATSDK_FETCHED_CURL_TARGETS)
     if(TARGET ${_matsdk_fetched_target})
-      list(APPEND MATSDK_INSTALL_TARGETS ${_matsdk_fetched_target})
+      list(APPEND MATSDK_AUX_INSTALL_TARGETS ${_matsdk_fetched_target})
     endif()
   endforeach()
 endif()
 
-if(MATSDK_USE_VCPKG_DEPS)
-  install(TARGETS ${MATSDK_INSTALL_TARGETS}
-    EXPORT MSTelemetryTargets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  )
-else()
-  install(TARGETS ${MATSDK_INSTALL_TARGETS}
+set(MATSDK_CONFIG_STATIC_PACKAGE FALSE)
+if(_mat_type STREQUAL "STATIC_LIBRARY")
+  set(MATSDK_CONFIG_STATIC_PACKAGE TRUE)
+endif()
+
+install(TARGETS ${MATSDK_EXPORT_TARGETS}
+  EXPORT MSTelemetryTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+if(MATSDK_AUX_INSTALL_TARGETS)
+  install(TARGETS ${MATSDK_AUX_INSTALL_TARGETS}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
 endif()
 
-if(MATSDK_USE_VCPKG_DEPS)
-  message(STATUS "Library will be installed to ${CMAKE_INSTALL_LIBDIR}")
+message(STATUS "Library will be installed to ${CMAKE_INSTALL_LIBDIR}")
 
-  # Generate and install CMake package config files
-  install(EXPORT MSTelemetryTargets
-    FILE MSTelemetryTargets.cmake
-    NAMESPACE MSTelemetry::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
-  )
+# Generate and install CMake package config files for every CMake build.
+install(EXPORT MSTelemetryTargets
+  FILE MSTelemetryTargets.cmake
+  NAMESPACE MSTelemetry::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
+)
 
-  configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MSTelemetryConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfig.cmake"
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
-  )
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MSTelemetryConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfig.cmake"
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
+)
 
-  if(NOT DEFINED MATSDK_BUILD_VERSION OR MATSDK_BUILD_VERSION STREQUAL "")
-    message(FATAL_ERROR "MATSDK_BUILD_VERSION is not set. Cannot generate package version file.")
-  endif()
-
-  write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
-    VERSION ${MATSDK_BUILD_VERSION}
-    COMPATIBILITY AnyNewerVersion
-  )
-
-  install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
-  )
-else()
-  message(STATUS "Library will be installed to ${CMAKE_INSTALL_LIBDIR}")
+if(NOT DEFINED MATSDK_BUILD_VERSION OR MATSDK_BUILD_VERSION STREQUAL "")
+  message(FATAL_ERROR "MATSDK_BUILD_VERSION is not set. Cannot generate package version file.")
 endif()
+
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
+  VERSION ${MATSDK_BUILD_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
+)

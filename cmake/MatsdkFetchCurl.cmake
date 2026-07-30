@@ -4,13 +4,12 @@ function(matsdk_fetch_curl out_target)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR
       "MATSDK_CURL_PROVIDER=FETCH is currently supported only on Linux. "
-      "Use MATSDK_CURL_PROVIDER=PACKAGE or provide MATSDK_CURL_TARGET for this platform.")
+      "Use MATSDK_CURL_PROVIDER=SYSTEM for this platform.")
   endif()
   if(TARGET CURL::libcurl)
     message(FATAL_ERROR
       "MATSDK_CURL_PROVIDER=FETCH requires owning the CURL::libcurl target, "
-      "but a target with that name already exists. Use MATSDK_CURL_PROVIDER=PACKAGE "
-      "or provide MATSDK_CURL_TARGET instead.")
+      "but a target with that name already exists. Use MATSDK_CURL_PROVIDER=SYSTEM.")
   endif()
 
   set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
@@ -125,6 +124,12 @@ function(matsdk_fetch_curl out_target)
   set(_matsdk_fetched_curl_targets libcurl_static)
   if(MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS")
     list(APPEND _matsdk_fetched_curl_targets mbedtls mbedx509 mbedcrypto)
+    foreach(_matsdk_mbedtls_support_target everest p256m)
+      if(TARGET ${_matsdk_mbedtls_support_target})
+        list(APPEND _matsdk_fetched_curl_targets
+          ${_matsdk_mbedtls_support_target})
+      endif()
+    endforeach()
   endif()
   set(MATSDK_FETCHED_CURL_TARGETS
     "${_matsdk_fetched_curl_targets}" PARENT_SCOPE)

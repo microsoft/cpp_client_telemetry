@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$DIR"
 
 #  The expected iOS build invocation is:
 #    build-ios.sh [clean] [release|debug] ${ARCH} ${PLATFORM}
@@ -83,15 +88,31 @@ if [ -f /usr/bin/clang ]; then
   echo "clang version: `clang --version`"
 fi
 
-mkdir -p out
-cd out
+cmake -P "$DIR/cmake/MatsdkRequirePresetSupport.cmake"
 
-CMAKE_PACKAGE_TYPE=tgz
+CPACK_GENERATOR=TGZ
+case "$IOS_PLAT" in
+  *simulator) PLATFORM_PRESET="matsdk-ios-simulator" ;;
+  *)         PLATFORM_PRESET="matsdk-ios-device" ;;
+esac
+PRESET="${PLATFORM_PRESET}-$(echo "$BUILD_TYPE" | tr '[:upper:]' '[:lower:]')"
 
-cmake_cmd="cmake -DCMAKE_OSX_SYSROOT=$IOS_PLAT -DCMAKE_SYSTEM_NAME=$SYS_NAME -DCMAKE_OSX_ARCHITECTURES=$IOS_ARCH -DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET -DMATSDK_BUILD_IOS=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE $CMAKE_OPTS .."
-echo "${cmake_cmd}"
-eval $cmake_cmd
+cmake_args=(
+  cmake --preset "$PRESET"
+  "-DCMAKE_SYSTEM_NAME=$SYS_NAME"
+  "-DCMAKE_OSX_SYSROOT=$IOS_PLAT"
+  "-DCMAKE_OSX_ARCHITECTURES=$IOS_ARCH"
+  "-DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET"
+  "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
+  "-DCPACK_GENERATOR=$CPACK_GENERATOR"
+)
+if [ -n "$CMAKE_OPTS" ]; then
+  eval "extra_cmake_args=($CMAKE_OPTS)"
+  cmake_args+=("${extra_cmake_args[@]}")
+fi
+printf ' %q' "${cmake_args[@]}"
+printf '\n'
+"${cmake_args[@]}"
 
-make
-
-make package
+cmake --build --preset "$PRESET"
+cmake --build --preset "$PRESET" --target package

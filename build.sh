@@ -98,7 +98,7 @@ fi
 
 # Evaluate switches
 LINK_TYPE=
-CMAKE_OPTS="${CMAKE_OPTS:--DMATSDK_LIBRARY_TYPE=STATIC}"
+CMAKE_OPTS="${CMAKE_OPTS:--DBUILD_SHARED_LIBS=OFF}"
 while getopts "h?vl:D:" opt; do
     case "$opt" in
     h|\?) usage
@@ -133,7 +133,7 @@ fi
 echo "CMAKE_OPTS from caller: $CMAKE_OPTS"
 
 if [ "$LINK_TYPE" == "shared" ]; then
-  CMAKE_OPTS="${CMAKE_OPTS} -DMATSDK_LIBRARY_TYPE=SHARED"
+  CMAKE_OPTS="${CMAKE_OPTS} -DBUILD_SHARED_LIBS=ON"
 fi
 
 # Set target MacOS minver
@@ -164,28 +164,27 @@ if [ -f /usr/bin/clang ]; then
   echo "clang version: `clang --version`"
 fi
 
+cmake -P "$DIR/cmake/MatsdkRequirePresetSupport.cmake"
+
 # Skip Version.hpp changes
 # git update-index --skip-worktree lib/include/public/Version.hpp
 
-#rm -rf out
-mkdir -p out
-cd out
-
 # .tgz package
-CMAKE_PACKAGE_TYPE=tgz
+CPACK_GENERATOR=TGZ
 
 if [ -f /usr/bin/dpkg ]; then
   # .deb package
-  export CMAKE_PACKAGE_TYPE=deb
+  export CPACK_GENERATOR=DEB
 elif [ -f /usr/bin/rpmbuild ]; then
   # .rpm package
-  export CMAKE_PACKAGE_TYPE=rpm
+  export CPACK_GENERATOR=RPM
 fi
 
 # Fail on error
 set -e
 
-cmake_args=(cmake)
+PRESET="matsdk-$(echo "$BUILD_TYPE" | tr '[:upper:]' '[:lower:]')"
+cmake_args=(cmake --preset "$PRESET")
 if [[ "$OS_NAME" == *Darwin* ]]; then
   if [[ "$MAC_ARCH" == "universal" ]]; then
     cmake_args+=("-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64")
@@ -194,8 +193,7 @@ if [[ "$OS_NAME" == *Darwin* ]]; then
   fi
 fi
 cmake_args+=(
-  "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
-  "-DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE"
+  "-DCPACK_GENERATOR=$CPACK_GENERATOR"
 )
 if [[ -n "$CUSTOM_CMAKE_CXX_FLAG" ]]; then
   cmake_args+=("-DCMAKE_CXX_FLAGS=$CUSTOM_CMAKE_CXX_FLAG")
@@ -205,26 +203,15 @@ if [[ -n "$CMAKE_OPTS" ]]; then
   eval "extra_cmake_args=($CMAKE_OPTS)"
   cmake_args+=("${extra_cmake_args[@]}")
 fi
-cmake_args+=(..)
 printf ' %q' "${cmake_args[@]}"
 printf '\n'
 "${cmake_args[@]}"
 
-# TODO: strip symbols to minimize (release-only)
+cmake --build --preset "$PRESET"
 
-# Build all
-# TODO: what are the pros and cons of using 'make' vs 'cmake --build' ?
-#make
-cmake --build .
-
-# No fail on error
-set +e
-
-# Remove old package
-rm -f *.deb *.rpm
-
-# Build new package
-make package
+rm -f out/*.deb out/*.rpm
+cmake --build --preset "$PRESET" --target package
+cd out
 
 # Install newly generated package
 if [ -f /usr/bin/dpkg ]; then
@@ -241,7 +228,7 @@ fi
 ## strip --strip-unneeded out/lib/libmat.so
 ## strip -S --strip-unneeded --remove-section=.note.gnu.gold-version --remove-section=.comment --remove-section=.note --remove-section=.note.gnu.build-id --remove-section=.note.ABI-tag out/lib/libmat.so
 
-if [ "$CMAKE_PACKAGE_TYPE" == "tgz" ]; then
+if [ "$CPACK_GENERATOR" == "TGZ" ]; then
   cd ..
   MATSDK_INSTALL_DIR="${MATSDK_INSTALL_DIR:-/usr/local}"
   echo "+-----------------------------------------------------------------------------------+"

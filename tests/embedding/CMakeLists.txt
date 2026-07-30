@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(MATSDK_LIBRARY_TYPE STATIC CACHE STRING "")
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "")
 set(MATSDK_BUILD_HEADERS ON CACHE BOOL "" FORCE)
 set(MATSDK_BUILD_LIBRARY ON CACHE BOOL "" FORCE)
 set(MATSDK_BUILD_TEST_TOOL OFF CACHE BOOL "" FORCE)
@@ -19,10 +19,45 @@ set(MATSDK_WARNINGS_AS_ERRORS ON CACHE BOOL "" FORCE)
 option(MATSDK_EMBEDDING_PRELOAD_CURL
   "Pre-create CURL::libcurl and disable subsequent package discovery" OFF)
 if(MATSDK_EMBEDDING_PRELOAD_CURL)
-  find_package(CURL REQUIRED)
-  # A later find_package(CURL REQUIRED) fails when this switch is enabled, so
-  # this configuration proves the SDK consumes the pre-created target directly.
+  find_path(MATSDK_TEST_CURL_INCLUDE_DIR curl/curl.h)
+  find_library(MATSDK_TEST_CURL_LIBRARY NAMES curl)
+  if(NOT MATSDK_TEST_CURL_INCLUDE_DIR OR NOT MATSDK_TEST_CURL_LIBRARY)
+    message(FATAL_ERROR "System curl headers/library were not found.")
+  endif()
+  add_library(matsdk_test_curl INTERFACE)
+  target_include_directories(matsdk_test_curl INTERFACE
+    "${MATSDK_TEST_CURL_INCLUDE_DIR}")
+  target_link_libraries(matsdk_test_curl INTERFACE
+    "${MATSDK_TEST_CURL_LIBRARY}")
+  add_library(CURL::libcurl ALIAS matsdk_test_curl)
   set(CMAKE_DISABLE_FIND_PACKAGE_CURL ON CACHE BOOL "" FORCE)
+endif()
+
+option(MATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS
+  "Pre-create SQLite::SQLite3/ZLIB::ZLIB and disable later discovery" OFF)
+if(MATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS)
+  find_path(MATSDK_TEST_SQLITE_INCLUDE_DIR sqlite3.h)
+  find_library(MATSDK_TEST_SQLITE_LIBRARY NAMES sqlite3)
+  find_path(MATSDK_TEST_ZLIB_INCLUDE_DIR zlib.h)
+  find_library(MATSDK_TEST_ZLIB_LIBRARY NAMES z zlib)
+  if(NOT MATSDK_TEST_SQLITE_INCLUDE_DIR OR NOT MATSDK_TEST_SQLITE_LIBRARY
+     OR NOT MATSDK_TEST_ZLIB_INCLUDE_DIR OR NOT MATSDK_TEST_ZLIB_LIBRARY)
+    message(FATAL_ERROR "System SQLite/zlib headers or libraries were not found.")
+  endif()
+  add_library(matsdk_test_sqlite INTERFACE)
+  target_include_directories(matsdk_test_sqlite INTERFACE
+    "${MATSDK_TEST_SQLITE_INCLUDE_DIR}")
+  target_link_libraries(matsdk_test_sqlite INTERFACE
+    "${MATSDK_TEST_SQLITE_LIBRARY}")
+  add_library(SQLite::SQLite3 ALIAS matsdk_test_sqlite)
+  add_library(matsdk_test_zlib INTERFACE)
+  target_include_directories(matsdk_test_zlib INTERFACE
+    "${MATSDK_TEST_ZLIB_INCLUDE_DIR}")
+  target_link_libraries(matsdk_test_zlib INTERFACE
+    "${MATSDK_TEST_ZLIB_LIBRARY}")
+  add_library(ZLIB::ZLIB ALIAS matsdk_test_zlib)
+  set(CMAKE_DISABLE_FIND_PACKAGE_SQLite3 ON CACHE BOOL "" FORCE)
+  set(CMAKE_DISABLE_FIND_PACKAGE_ZLIB ON CACHE BOOL "" FORCE)
 endif()
 
 option(MATSDK_EMBEDDING_USE_FETCHCONTENT

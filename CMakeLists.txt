@@ -42,19 +42,13 @@ else()
 endif()
 
 ################################################################################################
-# Vcpkg dependency mode: detect early so it can guard platform-specific flag logic
+# Package-manager detection (internal; dependency selection is target/provider based)
 ################################################################################################
+set(MATSDK_USING_VCPKG OFF)
 if(DEFINED VCPKG_TOOLCHAIN OR DEFINED VCPKG_TARGET_TRIPLET)
-  option(MATSDK_USE_VCPKG_DEPS "Use vcpkg-provided dependencies via find_package()" ON)
-else()
-  option(MATSDK_USE_VCPKG_DEPS "Use vcpkg-provided dependencies via find_package()" OFF)
+  set(MATSDK_USING_VCPKG ON)
 endif()
-message(STATUS "MATSDK_USE_VCPKG_DEPS: ${MATSDK_USE_VCPKG_DEPS}")
-
-set(MATSDK_SQLITE_TARGET "" CACHE STRING
-  "Optional existing CMake target to use for SQLite in non-vcpkg builds, instead of find_package(SQLite3)")
-set(MATSDK_ZLIB_TARGET "" CACHE STRING
-  "Optional existing CMake target to use for zlib in non-vcpkg builds, instead of find_package(ZLIB)")
+message(STATUS "MATSDK_USING_VCPKG: ${MATSDK_USING_VCPKG}")
 
 include(cmake/MatsdkOptions.cmake)
 
@@ -72,16 +66,13 @@ if (NOT TARGET_ARCH)
 endif()
 
 if(APPLE)
-  if(MATSDK_BUILD_IOS
-     OR CMAKE_SYSTEM_NAME STREQUAL "iOS"
-     OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
-    set(MATSDK_BUILD_IOS ON)
+  if(MATSDK_PLATFORM_IOS)
     set(TARGET_ARCH "APPLE")
     set(IOS TRUE)
   elseif(CMAKE_OSX_ARCHITECTURES)
     set(TARGET_ARCH "${CMAKE_OSX_ARCHITECTURES}")
   endif()
-  message(STATUS "MATSDK_BUILD_IOS:       ${MATSDK_BUILD_IOS}")
+  message(STATUS "MATSDK_PLATFORM_IOS:    ${MATSDK_PLATFORM_IOS}")
   message(STATUS "CMAKE_OSX_ARCHITECTURES: ${CMAKE_OSX_ARCHITECTURES}")
   message(STATUS "CMAKE_OSX_SYSROOT:       ${CMAKE_OSX_SYSROOT}")
   message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
@@ -151,31 +142,38 @@ set(PAL_IMPLEMENTATION ${DEFAULT_PAL_IMPLEMENTATION})
 
 message(STATUS "PAL implementation: ${PAL_IMPLEMENTATION}")
 string(TOUPPER ${PAL_IMPLEMENTATION} PAL_IMPLEMENTATION_UPPER)
-add_definitions(-DMATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1)
+add_library(matsdk_internal_config INTERFACE)
+target_compile_definitions(matsdk_internal_config INTERFACE
+  MATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1
+  NOMINMAX)
 
 option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
 if(GCC5_CXX11_ABI_WORKAROUND)
-  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+  target_compile_definitions(matsdk_internal_config INTERFACE
+    _GLIBCXX_USE_CXX11_ABI=0)
 endif()
 
 option(USE_ONEDS_BOUNDCHECK_METHODS "Use bound check methods for C99 functions" OFF)
 if (USE_ONEDS_BOUNDCHECK_METHODS)
-  add_definitions(-DHAVE_ONEDS_BOUNDCHECK_METHODS)
+  target_compile_definitions(matsdk_internal_config INTERFACE
+    HAVE_ONEDS_BOUNDCHECK_METHODS)
 endif()
 
 option(USE_ONEDS_SECURE_MEM_FUNCTIONS "Use secure memory functions for sqlite" OFF)
-if(USE_ONEDS_SECURE_MEM_FUNCTIONS)
-  add_definitions(-DUSE_ONEDS_SECURE_MEM_FUNCTIONS)
-endif()
-
-add_definitions(-DNOMINMAX)
-
 ################################################################################################
 # Build prefix and version
 ################################################################################################
 
 set(SDK_VERSION_PREFIX "EVT")
-add_definitions("-DMATSDK_VERSION_PREFIX=\"${SDK_VERSION_PREFIX}\"")
+target_compile_definitions(matsdk_internal_config INTERFACE
+  "MATSDK_VERSION_PREFIX=\"${SDK_VERSION_PREFIX}\"")
+if(MATSDK_ANDROID_USE_ROOM)
+  target_compile_definitions(matsdk_internal_config INTERFACE USE_ROOM)
+endif()
+if(MATSDK_ENABLE_CAPI_HTTP_CLIENT)
+  target_compile_definitions(matsdk_internal_config INTERFACE
+    ENABLE_CAPI_HTTP_CLIENT)
+endif()
 
 set(MATSDK_API_VERSION "3.10")
 string(TIMESTAMP DAYNUMBER "%j")
@@ -198,11 +196,9 @@ message(STATUS "SDK version: ${SDK_VERSION_PREFIX}-${MATSDK_BUILD_VERSION}")
 ################################################################################################
 # Embedding/dependency options
 ################################################################################################
-set(MATSDK_CURL_TARGET "" CACHE STRING
-  "Optional existing CMake target to use for libcurl in non-vcpkg builds, instead of find_package(CURL)")
-set(MATSDK_CURL_PROVIDER "PACKAGE" CACHE STRING
-  "How non-vcpkg builds resolve libcurl: PACKAGE (find_package) or FETCH (FetchContent static curl)")
-set_property(CACHE MATSDK_CURL_PROVIDER PROPERTY STRINGS PACKAGE FETCH)
+set(MATSDK_CURL_PROVIDER "SYSTEM" CACHE STRING
+  "How builds resolve libcurl: SYSTEM (canonical target/find_package) or FETCH")
+set_property(CACHE MATSDK_CURL_PROVIDER PROPERTY STRINGS SYSTEM FETCH)
 set(MATSDK_CURL_TLS_BACKEND "MBEDTLS" CACHE STRING
   "TLS backend for MATSDK_CURL_PROVIDER=FETCH: MBEDTLS or OPENSSL")
 set_property(CACHE MATSDK_CURL_TLS_BACKEND PROPERTY STRINGS MBEDTLS OPENSSL)
@@ -215,33 +211,20 @@ set(MATSDK_MBEDTLS_URL "https://github.com/Mbed-TLS/mbedtls/releases/download/mb
 set(MATSDK_MBEDTLS_SHA256 "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6" CACHE STRING
   "SHA256 for MATSDK_MBEDTLS_URL")
 string(TOUPPER "${MATSDK_CURL_PROVIDER}" MATSDK_CURL_PROVIDER_UPPER)
-if(NOT MATSDK_CURL_PROVIDER_UPPER STREQUAL "PACKAGE" AND NOT MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
-  message(FATAL_ERROR "MATSDK_CURL_PROVIDER must be PACKAGE or FETCH; got '${MATSDK_CURL_PROVIDER}'.")
+if(NOT MATSDK_CURL_PROVIDER_UPPER STREQUAL "SYSTEM" AND NOT MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
+  message(FATAL_ERROR "MATSDK_CURL_PROVIDER must be SYSTEM or FETCH; got '${MATSDK_CURL_PROVIDER}'.")
 endif()
 string(TOUPPER "${MATSDK_CURL_TLS_BACKEND}" MATSDK_CURL_TLS_BACKEND_UPPER)
 if(NOT MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS" AND NOT MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "OPENSSL")
   message(FATAL_ERROR "MATSDK_CURL_TLS_BACKEND must be MBEDTLS or OPENSSL; got '${MATSDK_CURL_TLS_BACKEND}'.")
 endif()
-if(MATSDK_USE_VCPKG_DEPS AND MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
+if(MATSDK_USING_VCPKG AND MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
   message(FATAL_ERROR
     "MATSDK_CURL_PROVIDER=FETCH is a non-vcpkg dependency mode. "
     "Use the vcpkg curl-openssl/curl-mbedtls feature instead.")
 endif()
-if(MATSDK_CURL_TARGET AND MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
-  message(FATAL_ERROR
-    "MATSDK_CURL_TARGET and MATSDK_CURL_PROVIDER=FETCH are mutually exclusive.")
-endif()
-foreach(_matsdk_dependency_target_var MATSDK_CURL_TARGET MATSDK_SQLITE_TARGET MATSDK_ZLIB_TARGET)
-  if(${_matsdk_dependency_target_var} AND NOT TARGET "${${_matsdk_dependency_target_var}}")
-    message(FATAL_ERROR
-      "${_matsdk_dependency_target_var} was set to '${${_matsdk_dependency_target_var}}', "
-      "but no such CMake target exists. Define the target before adding "
-      "cpp_client_telemetry, or leave ${_matsdk_dependency_target_var} empty to "
-      "use the SDK's default dependency discovery.")
-  endif()
-endforeach()
 if(MATSDK_BUILD_APPLE_HTTP)
-  add_definitions(-DAPPLE_HTTP=1)
+  target_compile_definitions(matsdk_internal_config INTERFACE APPLE_HTTP=1)
 endif()
 
 ################################################################################################
@@ -250,97 +233,110 @@ endif()
 
 # Only use custom curl if compiling with CPP11 PAL
 set(MATSDK_NEEDS_CURL OFF)
+set(MATSDK_CURL_FETCHED OFF)
+set(MATSDK_CURL_LINK_TARGET "")
 if(PAL_IMPLEMENTATION STREQUAL "CPP11"
-   AND NOT MATSDK_BUILD_IOS
-   AND (NOT CMAKE_SYSTEM_NAME STREQUAL "Android" OR MATSDK_USE_VCPKG_DEPS)
+   AND NOT MATSDK_PLATFORM_IOS
+   AND (NOT CMAKE_SYSTEM_NAME STREQUAL "Android" OR MATSDK_USING_VCPKG)
    AND NOT MATSDK_BUILD_APPLE_HTTP)
   set(MATSDK_NEEDS_CURL ON)
-  add_definitions(-DHAVE_MAT_CURL_HTTP_CLIENT)
-  if(MATSDK_USE_VCPKG_DEPS)
-    # The TLS backend (OpenSSL/mbedTLS) is selected by the vcpkg port's
-    # curl-openssl (default) / curl-mbedtls features; the SDK just links libcurl.
-    # Force CONFIG mode so the vcpkg-provided CURLConfig (which defines the
-    # CURL::libcurl imported target) is used rather than the module FindCURL,
-    # which on some CMake versions does not define that target.
-    find_package(CURL CONFIG QUIET)
+  target_compile_definitions(matsdk_internal_config INTERFACE
+    HAVE_MAT_CURL_HTTP_CLIENT)
+  if(TARGET CURL::libcurl)
+    set(MATSDK_CURL_LINK_TARGET CURL::libcurl)
+  elseif(MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
+    include(cmake/MatsdkFetchCurl.cmake)
+    matsdk_fetch_curl(_matsdk_curl_target)
+    set(MATSDK_CURL_LINK_TARGET "${_matsdk_curl_target}")
+    set(MATSDK_CURL_FETCHED ON)
+  else()
+    find_package(CURL REQUIRED)
     if(NOT TARGET CURL::libcurl)
       message(FATAL_ERROR
-        "libcurl was not found. The vcpkg port provides the curl HTTP client "
-        "through the curl-openssl (default) or curl-mbedtls feature. Install "
-        "cpp-client-telemetry with its default features, or, under the [core,...] "
-        "form (which drops the default curl-openssl and system-sqlite features), "
-        "re-select a curl backend and a SQLite backend together, e.g. "
-        "[core,curl-openssl,system-sqlite] or [core,curl-mbedtls,minimal-sqlite].")
+        "find_package(CURL) did not create the required CURL::libcurl target.")
     endif()
-    list(APPEND LIBS CURL::libcurl)
-  else()
-    if(MATSDK_CURL_TARGET)
-      list(APPEND LIBS "${MATSDK_CURL_TARGET}")
-    elseif(MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
-      include(cmake/MatsdkFetchCurl.cmake)
-      matsdk_fetch_curl(_matsdk_curl_target)
-      list(APPEND LIBS "${_matsdk_curl_target}")
-    elseif(TARGET CURL::libcurl)
-      # Parent superbuilds may create the canonical target before adding 1DS.
-      list(APPEND LIBS CURL::libcurl)
-    else()
-      find_package(CURL REQUIRED)
-      # Prefer the imported target, which carries curl's include dirs and link
-      # flags. Fall back to the find-module variables on CMake < 3.12, where
-      # find_package(CURL) does not define CURL::libcurl.
-      if(TARGET CURL::libcurl)
-        list(APPEND LIBS CURL::libcurl)
-      else()
-        include_directories(${CURL_INCLUDE_DIRS})
-        list(APPEND LIBS "${CURL_LIBRARIES}")
-      endif()
-    endif()
+    set(MATSDK_CURL_LINK_TARGET CURL::libcurl)
   endif()
 endif()
 
 ################################################################################################
-# Dependency resolution (vcpkg mode vs vendored)
+# Canonical dependency targets
 ################################################################################################
-if(MATSDK_USE_VCPKG_DEPS)
-  if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT MATSDK_SQLITE_TARGET)
-    if(APPLE)
-      find_package(SQLite3 REQUIRED)
-    else()
-      find_package(unofficial-sqlite3 CONFIG QUIET)
-      if(NOT unofficial-sqlite3_FOUND)
-        message(FATAL_ERROR
-          "MATSDK_SQLITE_PROVIDER=SYSTEM requires the vcpkg sqlite3 package. "
-          "Install the system-sqlite feature, choose "
-          "MATSDK_SQLITE_PROVIDER=MINIMAL/VENDORED, or provide MATSDK_SQLITE_TARGET.")
-      endif()
+if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite::SQLite3)
+  if(APPLE AND NOT MATSDK_USING_VCPKG)
+    add_library(SQLite::SQLite3 INTERFACE IMPORTED GLOBAL)
+    set_property(TARGET SQLite::SQLite3 PROPERTY INTERFACE_LINK_LIBRARIES sqlite3)
+  else()
+    find_package(SQLite3 QUIET)
+    if(NOT TARGET SQLite::SQLite3 AND MATSDK_USING_VCPKG)
+      find_package(unofficial-sqlite3 CONFIG REQUIRED)
+      add_library(SQLite::SQLite3 INTERFACE IMPORTED GLOBAL)
+      set_property(TARGET SQLite::SQLite3 PROPERTY
+        INTERFACE_LINK_LIBRARIES unofficial::sqlite3::sqlite3)
+    endif()
+    if(NOT TARGET SQLite::SQLite3)
+      message(FATAL_ERROR
+        "MATSDK_SQLITE_PROVIDER=SYSTEM requires SQLite::SQLite3. Install SQLite, "
+        "define the canonical target before adding 1DS, or choose MINIMAL/VENDORED.")
     endif()
   endif()
-  if(MATSDK_ZLIB_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT MATSDK_ZLIB_TARGET)
+endif()
+
+if(MATSDK_ZLIB_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET ZLIB::ZLIB)
+  if(APPLE AND NOT MATSDK_USING_VCPKG)
+    add_library(ZLIB::ZLIB INTERFACE IMPORTED GLOBAL)
+    set_property(TARGET ZLIB::ZLIB PROPERTY INTERFACE_LINK_LIBRARIES z)
+  else()
     find_package(ZLIB REQUIRED)
   endif()
+endif()
+
+set(MATSDK_USES_NLOHMANN_TARGET OFF)
+if(TARGET nlohmann_json::nlohmann_json)
+  set(MATSDK_USES_NLOHMANN_TARGET ON)
+elseif(MATSDK_USING_VCPKG)
   find_package(nlohmann_json CONFIG REQUIRED)
-  message(STATUS
-    "Using vcpkg dependency mode with SQLite=${MATSDK_SQLITE_PROVIDER_RESOLVED}, "
-    "zlib=${MATSDK_ZLIB_PROVIDER_RESOLVED}")
+  set(MATSDK_USES_NLOHMANN_TARGET ON)
 else()
   # nlohmann JSON remains header-only and vendored for source embedding.
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-  message(STATUS
-    "Using source dependency mode with SQLite=${MATSDK_SQLITE_PROVIDER_RESOLVED}, "
-    "zlib=${MATSDK_ZLIB_PROVIDER_RESOLVED}, vendored nlohmann-json")
+  set(MATSDK_USES_VENDORED_NLOHMANN ON)
 endif()
+message(STATUS
+  "Dependencies: SQLite=${MATSDK_SQLITE_PROVIDER_RESOLVED}, "
+  "zlib=${MATSDK_ZLIB_PROVIDER_RESOLVED}, "
+  "nlohmann-target=${MATSDK_USES_NLOHMANN_TARGET}")
 
 if(MATSDK_BUILD_UNIT_TESTS OR MATSDK_BUILD_FUNC_TESTS)
-    message(STATUS "Adding gtest")
-    add_library(gtest STATIC IMPORTED GLOBAL)
-    message(STATUS "Adding gmock")
-    add_library(gmock STATIC IMPORTED GLOBAL)
+  if(NOT TARGET gtest OR NOT TARGET gmock)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/CMakeLists.txt")
+      set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+      set(BUILD_GMOCK ON CACHE BOOL "" FORCE)
+      if(MSVC)
+        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+      endif()
+      set(_matsdk_saved_build_shared_libs "${BUILD_SHARED_LIBS}")
+      set(BUILD_SHARED_LIBS OFF)
+      add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
+      set(BUILD_SHARED_LIBS "${_matsdk_saved_build_shared_libs}")
+      # Checked-in iOS test projects consume these archive paths directly.
+      set(_matsdk_gtest_archive_dir
+        "${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/build/lib")
+      foreach(_matsdk_gtest_target IN ITEMS gtest gmock)
+        set_target_properties(${_matsdk_gtest_target} PROPERTIES
+          ARCHIVE_OUTPUT_DIRECTORY "${_matsdk_gtest_archive_dir}")
+        foreach(_matsdk_gtest_config IN ITEMS DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+          set_target_properties(${_matsdk_gtest_target} PROPERTIES
+            "ARCHIVE_OUTPUT_DIRECTORY_${_matsdk_gtest_config}"
+              "${_matsdk_gtest_archive_dir}")
+        endforeach()
+      endforeach()
+    else()
+      message(FATAL_ERROR
+        "Tests require the third_party/googletest submodule. "
+        "Run git submodule update --init third_party/googletest.")
+    endif()
+  endif()
 endif()
-
-# Bond Lite subdirectories
-include_directories(bondlite/include)
-
-include_directories(lib/pal)
 
 #if(BUILD_UNIT_TESTS)
 #  message("Adding bondlite tests")
@@ -350,7 +346,6 @@ include_directories(lib/pal)
 if(MATSDK_BUILD_HEADERS)
   add_subdirectory(lib/include)
 endif()
-include_directories(lib/include)
 
 if(MATSDK_BUILD_LIBRARY)
   add_subdirectory(lib)
@@ -366,14 +361,19 @@ endif()
 # Packaging
 ################################################################################################
 
+if(DEFINED CMAKE_PACKAGE_TYPE AND NOT DEFINED CPACK_GENERATOR)
+  string(TOUPPER "${CMAKE_PACKAGE_TYPE}" CPACK_GENERATOR)
+  message(DEPRECATION
+    "CMAKE_PACKAGE_TYPE is deprecated; use standard CPACK_GENERATOR.")
+endif()
 if(MATSDK_BUILD_PACKAGE)
-  if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "deb")
+  if("DEB" IN_LIST CPACK_GENERATOR)
     include(tools/MakeDeb.cmake)
   endif()
-  if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "rpm")
+  if("RPM" IN_LIST CPACK_GENERATOR)
     include(tools/MakeRpm.cmake)
   endif()
-  if ("${CMAKE_PACKAGE_TYPE}" STREQUAL "tgz")
+  if("TGZ" IN_LIST CPACK_GENERATOR)
     # TODO: [MG] - fix path... should we simply use /usr/local/lib without CPU?
     # TODO: [MG] - Windows path is not ideal -- C:/Program Files (x86)/MSTelemetry/* - what should we use instead?
     include(tools/MakeTgz.cmake)

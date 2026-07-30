@@ -86,7 +86,7 @@ else()
 endif()
 ```
 
-The port honors `VCPKG_LIBRARY_LINKAGE` / `MATSDK_LIBRARY_TYPE` and emits the
+The port honors `VCPKG_LIBRARY_LINKAGE` / `BUILD_SHARED_LIBS` and emits the
 shared `mat` plus its import lib and the `MSTelemetry` CMake config package.
 
 ### Pin one version across all modules

@@ -11,22 +11,24 @@ set(MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
   PATTERN "*.template" EXCLUDE
 )
 
-if(MATSDK_USE_VCPKG_DEPS)
-  # GitHub source archives used by the public vcpkg port do not include the
-  # private lib/modules submodule, so do not install public headers whose
-  # exported factories/functions are implemented only by those modules.
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/filter")
   list(APPEND MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
-    PATTERN "CompliantByDefaultFilterApi.hpp" EXCLUDE
+    PATTERN "CompliantByDefaultFilterApi.hpp" EXCLUDE)
+endif()
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/exp")
+  list(APPEND MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
     PATTERN "IAFDClient.hpp" EXCLUDE
-    PATTERN "ICdsFactory.hpp" EXCLUDE
-    PATTERN "IECSClient.hpp" EXCLUDE
-  )
+    PATTERN "IECSClient.hpp" EXCLUDE)
+endif()
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/cds")
+  list(APPEND MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
+    PATTERN "ICdsFactory.hpp" EXCLUDE)
 endif()
 
 install(
   DIRECTORY
     public/
   DESTINATION
-    include/mat
+    ${CMAKE_INSTALL_INCLUDEDIR}/mat
   ${MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES}
 )

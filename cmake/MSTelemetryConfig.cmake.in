@@ -2,36 +2,106 @@
 
 include(CMakeFindDependencyMacro)
 
-# Re-find only dependencies that were external to the SDK package.
-if(NOT @MATSDK_BUNDLE_SQLITE@)
-  if(@MATSDK_BUILD_PLATFORM_APPLE@)
-    find_dependency(SQLite3)
-  else()
-    find_dependency(unofficial-sqlite3 CONFIG)
+# Recreate dependencies only when a static package needs them at the final link.
+if(@MATSDK_CONFIG_STATIC_PACKAGE@)
+  if("@MATSDK_SQLITE_PROVIDER_RESOLVED@" STREQUAL "SYSTEM")
+    if(@MATSDK_BUILD_PLATFORM_APPLE@)
+      if(NOT TARGET SQLite::SQLite3)
+        add_library(SQLite::SQLite3 INTERFACE IMPORTED)
+        set_property(TARGET SQLite::SQLite3 PROPERTY INTERFACE_LINK_LIBRARIES sqlite3)
+      endif()
+    else()
+      if(NOT TARGET SQLite::SQLite3)
+        find_dependency(SQLite3)
+      endif()
+    endif()
+    if(NOT TARGET MSTelemetry::sqlite_dependency)
+      add_library(MSTelemetry::sqlite_dependency INTERFACE IMPORTED GLOBAL)
+      set_property(TARGET MSTelemetry::sqlite_dependency PROPERTY
+        INTERFACE_LINK_LIBRARIES SQLite::SQLite3)
+    endif()
+  endif()
+  if("@MATSDK_ZLIB_PROVIDER_RESOLVED@" STREQUAL "SYSTEM")
+    if(@MATSDK_BUILD_PLATFORM_APPLE@)
+      if(NOT TARGET ZLIB::ZLIB)
+        add_library(ZLIB::ZLIB INTERFACE IMPORTED)
+        set_property(TARGET ZLIB::ZLIB PROPERTY INTERFACE_LINK_LIBRARIES z)
+      endif()
+    else()
+      if(NOT TARGET ZLIB::ZLIB)
+        find_dependency(ZLIB)
+      endif()
+    endif()
+    if(NOT TARGET MSTelemetry::zlib_dependency)
+      add_library(MSTelemetry::zlib_dependency INTERFACE IMPORTED GLOBAL)
+      set_property(TARGET MSTelemetry::zlib_dependency PROPERTY
+        INTERFACE_LINK_LIBRARIES ZLIB::ZLIB)
+    endif()
   endif()
 endif()
-if(NOT @MATSDK_BUNDLE_ZLIB@)
-  find_dependency(ZLIB)
-endif()
-find_dependency(nlohmann_json CONFIG)
 
-# Curl is re-found only when the SDK was built with the curl HTTP client
-# (Linux, Android via vcpkg, and macOS built without Apple HTTP).
-# Windows (WinInet), iOS, and macOS-with-Apple-HTTP do not link curl.
-# We bake the build-time decision into a boolean rather than re-deriving it,
-# because the macOS BUILD_APPLE_HTTP choice can't be inferred from
-# CMAKE_SYSTEM_NAME alone.
-if(@MATSDK_NEEDS_CURL@)
-  # Force CONFIG mode so the vcpkg-provided CURLConfig (which defines the
-  # CURL::libcurl imported target referenced by MSTelemetryTargets.cmake) is
-  # used, rather than module-mode FindCURL, which on some CMake versions does
-  # not define that target.
-  find_dependency(CURL CONFIG)
-endif()
-
-# Pthreads are needed on Linux and Android (POSIX threading)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
   find_dependency(Threads)
+endif()
+
+if(@MATSDK_CONFIG_STATIC_PACKAGE@ AND @MATSDK_NEEDS_CURL@)
+  if(@MATSDK_CURL_FETCHED@)
+    function(_matsdk_import_static target_name archive_name)
+      if(NOT TARGET "${target_name}")
+        add_library("${target_name}" STATIC IMPORTED GLOBAL)
+        set_target_properties("${target_name}" PROPERTIES
+          IMPORTED_LOCATION
+            "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/${archive_name}")
+      endif()
+    endfunction()
+
+    if("@MATSDK_CURL_TLS_BACKEND_UPPER@" STREQUAL "MBEDTLS")
+      set(_matsdk_mbedcrypto_support)
+      foreach(_matsdk_support_archive IN ITEMS everest p256m)
+        if(EXISTS
+            "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/lib${_matsdk_support_archive}.a")
+          _matsdk_import_static(
+            "MSTelemetry::${_matsdk_support_archive}"
+            "lib${_matsdk_support_archive}.a")
+          list(APPEND _matsdk_mbedcrypto_support
+            "MSTelemetry::${_matsdk_support_archive}")
+        endif()
+      endforeach()
+      _matsdk_import_static(MSTelemetry::mbedcrypto libmbedcrypto.a)
+      _matsdk_import_static(MSTelemetry::mbedx509 libmbedx509.a)
+      _matsdk_import_static(MSTelemetry::mbedtls libmbedtls.a)
+      set_property(TARGET MSTelemetry::mbedcrypto PROPERTY
+        INTERFACE_LINK_LIBRARIES "${_matsdk_mbedcrypto_support}")
+      set_property(TARGET MSTelemetry::mbedx509 PROPERTY
+        INTERFACE_LINK_LIBRARIES MSTelemetry::mbedcrypto)
+      set_property(TARGET MSTelemetry::mbedtls PROPERTY
+        INTERFACE_LINK_LIBRARIES
+          "MSTelemetry::mbedx509;MSTelemetry::mbedcrypto")
+      set(_matsdk_curl_tls_targets
+        "MSTelemetry::mbedtls;MSTelemetry::mbedx509;MSTelemetry::mbedcrypto")
+    else()
+      find_dependency(OpenSSL)
+      set(_matsdk_curl_tls_targets "OpenSSL::SSL;OpenSSL::Crypto")
+    endif()
+
+    _matsdk_import_static(MSTelemetry::curl_archive libcurl.a)
+    set_property(TARGET MSTelemetry::curl_archive PROPERTY
+      INTERFACE_LINK_LIBRARIES "${_matsdk_curl_tls_targets}")
+  else()
+    if(NOT TARGET CURL::libcurl)
+      find_dependency(CURL)
+    endif()
+  endif()
+  if(NOT TARGET MSTelemetry::curl_dependency)
+    add_library(MSTelemetry::curl_dependency INTERFACE IMPORTED GLOBAL)
+    if(@MATSDK_CURL_FETCHED@)
+      set(_matsdk_curl_dependency_target MSTelemetry::curl_archive)
+    else()
+      set(_matsdk_curl_dependency_target CURL::libcurl)
+    endif()
+    set_property(TARGET MSTelemetry::curl_dependency PROPERTY
+      INTERFACE_LINK_LIBRARIES "${_matsdk_curl_dependency_target}")
+  endif()
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/MSTelemetryTargets.cmake")

@@ -211,7 +211,7 @@ will automatically use the optimized zlib-ng build.
 This section applies when the SDK is linked **statically** into your binary
 (the default for the `*-static` vcpkg triplets) — most footprint control then
 lives on *your* side of the link. If you instead consume a **dynamic** `mat`
-(e.g. the default `x64-windows` triplet, or `MATSDK_LIBRARY_TYPE=SHARED`), the runtime
+(e.g. the default `x64-windows` triplet, or `BUILD_SHARED_LIBS=ON`), the runtime
 ships as its own `mat.dll` / `libmat.so` / `libmat.dylib`; the SDK's own
 `-fvisibility=hidden` and `/Gy /Gw` already trim its exported symbol table, and
 the consumer-side linker options below are specific to the static-link case.
@@ -377,20 +377,11 @@ unchanged against the minimal build.
 > that case, prefer the default `system-sqlite` feature so the whole graph shares a
 > single SQLite.
 
-## How It Works: MATSDK_USE_VCPKG_DEPS
+## How It Works
 
-When the SDK detects it is being built via vcpkg (by checking for
-`VCPKG_TOOLCHAIN` or `VCPKG_TARGET_TRIPLET`), it automatically sets
-`MATSDK_USE_VCPKG_DEPS=ON`. This switches dependency resolution from
-vendored sources to vcpkg-provided packages via `find_package()`.
-
-You can also set this explicitly for custom CMake workflows:
-
-```bash
-cmake -DMATSDK_USE_VCPKG_DEPS=ON \
-      -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
-      ..
-```
+The SDK consumes canonical CMake dependency targets. The vcpkg toolchain
+provides those targets through normal `find_package()` discovery; no separate
+SDK-specific vcpkg mode switch is required.
 
 ## Migrating from the older overlay port
 

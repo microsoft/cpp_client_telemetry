@@ -4,7 +4,7 @@ Consumers that build the SDK from source with `add_subdirectory()` or
 `FetchContent` can link the same target name used by installed/vcpkg builds:
 
 ```cmake
-set(MATSDK_LIBRARY_TYPE STATIC CACHE STRING "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(MATSDK_BUILD_TEST_TOOL OFF CACHE BOOL "" FORCE)
 set(MATSDK_BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(MATSDK_BUILD_FUNC_TESTS OFF CACHE BOOL "" FORCE)
@@ -18,10 +18,8 @@ For a static SDK build, CMake carries the SDK's link dependencies through the
 `MSTelemetry::mat` target, so the consuming target should not need to name the
 SDK's internal dependencies directly.
 
-`MATSDK_LIBRARY_TYPE` explicitly selects `STATIC` or `SHARED` without changing
-the parent project's global `BUILD_SHARED_LIBS` value. Legacy `BUILD_*` inputs
-remain accepted for compatibility, but new integrations should use the
-namespaced `MATSDK_*` options.
+Use standard `BUILD_SHARED_LIBS=OFF|ON` to select static or shared output.
+SDK-specific behavior continues to use namespaced `MATSDK_*` options.
 
 `MATSDK_WARNINGS_AS_ERRORS` defaults to `ON` for standalone SDK builds and
 `OFF` when the SDK is embedded. Its warning policy is private to SDK-owned
@@ -38,10 +36,10 @@ set(MATSDK_ZLIB_PROVIDER VENDORED CACHE STRING "" FORCE)  # SYSTEM or VENDORED
 ```
 
 `MINIMAL` builds the feature-stripped SQLite amalgamation. `VENDORED` builds the
-unstripped vendored dependency. `SYSTEM` uses `find_package()` unless a matching
-`MATSDK_SQLITE_TARGET` or `MATSDK_ZLIB_TARGET` is supplied. `AUTO` preserves
-platform defaults: system dependencies on desktop/Apple source builds and
-vendored dependencies on Windows/Android source builds.
+unstripped vendored dependency. `SYSTEM` consumes the canonical
+`SQLite::SQLite3` / `ZLIB::ZLIB` targets or uses `find_package()`. `AUTO`
+preserves platform defaults: system dependencies on desktop/Apple source builds
+and vendored dependencies on Windows/Android source builds.
 
 ## Non-vcpkg dependency selection
 
@@ -65,27 +63,18 @@ to provide OpenSSL through `find_package(OpenSSL)`.
 Non-vcpkg Linux builds similarly use `find_package()` for zlib and SQLite unless
 an explicit vendored/minimal provider is selected.
 
-To make a superbuild choose the dependency implementation (for example, libcurl
-built with OpenSSL vs. mbedTLS) without changing the leaf consumer target, define
-the desired dependency targets before adding the SDK and point the matching
-`MATSDK_*_TARGET` cache variables at them:
+To make a superbuild choose dependency implementations without changing the
+leaf consumer target, define the standard CMake targets before adding the SDK:
 
 ```cmake
-# Created by your superbuild, package manager, or imported-target wrappers.
-add_library(my_curl_target STATIC IMPORTED GLOBAL)   # OpenSSL or mbedTLS curl
-add_library(my_zlib_target STATIC IMPORTED GLOBAL)
-add_library(my_sqlite_target STATIC IMPORTED GLOBAL)
-
-set(MATSDK_CURL_TARGET my_curl_target CACHE STRING "" FORCE)
-set(MATSDK_ZLIB_TARGET my_zlib_target CACHE STRING "" FORCE)
-set(MATSDK_SQLITE_TARGET my_sqlite_target CACHE STRING "" FORCE)
+# These may be real targets or aliases to targets owned by your superbuild.
+add_library(CURL::libcurl ALIAS my_curl_target)
+add_library(ZLIB::ZLIB ALIAS my_zlib_target)
+add_library(SQLite::SQLite3 ALIAS my_sqlite_target)
 add_subdirectory(cpp_client_telemetry)
 
 target_link_libraries(your_target PRIVATE MSTelemetry::mat)
 ```
-
-If a `MATSDK_*_TARGET` value is empty, the SDK falls back to its existing
-dependency discovery for that library.
 
 For a fully self-contained source build, use `MATSDK_SQLITE_PROVIDER=MINIMAL`
 and `MATSDK_ZLIB_PROVIDER=VENDORED`; the vendored targets are PIC, hidden, and
