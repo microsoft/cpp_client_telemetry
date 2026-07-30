@@ -7,6 +7,8 @@
 
 #include "pal/PAL.hpp"
 
+#include <functional>
+#include <limits>
 #include <list>
 #include <map>
 #include <mutex>
@@ -21,13 +23,20 @@ namespace MAT_NS_BEGIN {
     class KillSwitchManager
     {
     public:
+        using Clock = std::function<int64_t()>;
 
         bool isActive()
         {
             return !m_tokenTime.empty();
         }
 
-        KillSwitchManager() : m_isRetryAfterActive(false), m_retryAfterExpiryTime(0)
+        KillSwitchManager()
+            : KillSwitchManager([]() { return static_cast<int64_t>(PAL::getMonotonicTimeMs()); })
+        {
+        }
+
+        explicit KillSwitchManager(Clock clock)
+            : m_clock(clock), m_isRetryAfterActive(false), m_retryAfterExpiryTime(0)
         {
         }
 
@@ -46,7 +55,7 @@ namespace MAT_NS_BEGIN {
                 if (tryParseSeconds(timeStr, timeinSecs) && timeinSecs > 0)
                 {
                     std::lock_guard<std::mutex> guard(m_lock);
-                    m_retryAfterExpiryTime = PAL::getUtcSystemTime() + timeinSecs;
+                    m_retryAfterExpiryTime = expiryFromNow(timeinSecs);
                     m_isRetryAfterActive = true;
                 }
             }
@@ -104,17 +113,18 @@ namespace MAT_NS_BEGIN {
             std::lock_guard<std::mutex> guard(m_lock);
             if (timeInSeconds > 0)
             {
-                m_tokenTime[tokenId] = PAL::getUtcSystemTime() + timeInSeconds; //convert milisec to sec
+                m_tokenTime[tokenId] = expiryFromNow(timeInSeconds);
             }
         }
 
         bool isTokenBlocked(const std::string& tokenId)
         {
             std::lock_guard<std::mutex> guard(m_lock);
+            const int64_t now = m_clock();
 
             if (m_isRetryAfterActive)
             {
-                if (m_retryAfterExpiryTime > PAL::getUtcSystemTime())
+                if (m_retryAfterExpiryTime > now)
                 {
                     return true;//always return true for all tokens
                 }
@@ -129,7 +139,7 @@ namespace MAT_NS_BEGIN {
             {//found, check the time stamp
                 int64_t timeStamp = m_tokenTime[tokenId];
 
-                if (timeStamp > PAL::getUtcSystemTime())  //convert milisec to sec
+                if (timeStamp > now)
                 {
                     return true;
                 }
@@ -169,6 +179,19 @@ namespace MAT_NS_BEGIN {
         }
 
     private:
+        int64_t expiryFromNow(int64_t seconds) const
+        {
+            constexpr int64_t millisecondsPerSecond = 1000;
+            constexpr int64_t maxTime = std::numeric_limits<int64_t>::max();
+            const int64_t now = m_clock();
+            if (seconds > maxTime / millisecondsPerSecond)
+            {
+                return maxTime;
+            }
+            const int64_t durationMs = seconds * millisecondsPerSecond;
+            return now > maxTime - durationMs ? maxTime : now + durationMs;
+        }
+
         // Parse a count of seconds from a response-header value (Retry-After /
         // kill-duration). Returns false when the value is malformed or out of
         // range instead of letting std::stoll throw: the worker thread that drives
@@ -225,8 +248,8 @@ namespace MAT_NS_BEGIN {
                 // Either way the std::exception catch below ignores the value rather
                 // than crashing.
                 const long long parsed = std::stoll(value.substr(begin, end - begin));
-                // Clamp to a value that cannot overflow when later added to a current
-                // UTC timestamp (seconds) to compute an expiry time. No legitimate
+                // Clamp to a value that cannot overflow when later converted to
+                // milliseconds to compute an expiry time. No legitimate
                 // Retry-After / kill-duration approaches this; an absurd value is
                 // capped instead of wrapping the expiry into the past.
                 const int64_t kMaxSeconds = 100LL * 365 * 24 * 60 * 60; // ~100 years
@@ -272,6 +295,7 @@ namespace MAT_NS_BEGIN {
             return true;
         }
 
+        Clock           m_clock;
         std::map<std::string, int64_t> m_tokenTime;
         std::mutex      m_lock;
         bool            m_isRetryAfterActive;
@@ -280,4 +304,3 @@ namespace MAT_NS_BEGIN {
 
 } MAT_NS_END
 #endif
-
