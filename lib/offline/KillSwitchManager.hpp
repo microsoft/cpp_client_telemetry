@@ -14,6 +14,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <atomic>
@@ -36,7 +37,11 @@ namespace MAT_NS_BEGIN {
         }
 
         explicit KillSwitchManager(Clock clock)
-            : m_clock(clock), m_isRetryAfterActive(false), m_retryAfterExpiryTime(0)
+            : m_clock(clock
+                ? std::move(clock)
+                : Clock([]() { return static_cast<int64_t>(PAL::getMonotonicTimeMs()); })),
+              m_isRetryAfterActive(false),
+              m_retryAfterExpiryTime(0)
         {
         }
 
@@ -54,8 +59,9 @@ namespace MAT_NS_BEGIN {
                 int64_t timeinSecs = 0;
                 if (tryParseSeconds(timeStr, timeinSecs) && timeinSecs > 0)
                 {
+                    const int64_t expiryTime = expiryFromNow(timeinSecs);
                     std::lock_guard<std::mutex> guard(m_lock);
-                    m_retryAfterExpiryTime = expiryFromNow(timeinSecs);
+                    m_retryAfterExpiryTime = expiryTime;
                     m_isRetryAfterActive = true;
                 }
             }
@@ -110,17 +116,18 @@ namespace MAT_NS_BEGIN {
 
         void addToken(const std::string& tokenId, int64_t timeInSeconds)
         {
-            std::lock_guard<std::mutex> guard(m_lock);
             if (timeInSeconds > 0)
             {
-                m_tokenTime[tokenId] = expiryFromNow(timeInSeconds);
+                const int64_t expiryTime = expiryFromNow(timeInSeconds);
+                std::lock_guard<std::mutex> guard(m_lock);
+                m_tokenTime[tokenId] = expiryTime;
             }
         }
 
         bool isTokenBlocked(const std::string& tokenId)
         {
-            std::lock_guard<std::mutex> guard(m_lock);
             const int64_t now = m_clock();
+            std::lock_guard<std::mutex> guard(m_lock);
 
             if (m_isRetryAfterActive)
             {

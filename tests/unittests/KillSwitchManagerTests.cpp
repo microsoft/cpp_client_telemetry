@@ -16,6 +16,16 @@ TEST(KillSwitchManagerTests, handleResponse_ValidRetryAfter_ActivatesRetryAfter)
     ASSERT_TRUE(manager.isRetryAfterActive());
 }
 
+TEST(KillSwitchManagerTests, constructor_EmptyClockUsesMonotonicClock)
+{
+    KillSwitchManager manager(KillSwitchManager::Clock{});
+    HttpHeaders headers;
+    headers.add("Retry-After", "120");
+
+    ASSERT_NO_THROW(manager.handleResponse(headers));
+    EXPECT_TRUE(manager.isTokenBlocked("any-token"));
+}
+
 TEST(KillSwitchManagerTests, handleResponse_RetryAfterExpiresAtDeadline)
 {
     int64_t nowMs = 1000;

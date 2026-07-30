@@ -1290,8 +1290,8 @@ TEST_F(BasicFuncTests, killIsTemporary)
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::ResumeTransmission();
 
-    auto logger = LogManager::GetLogger(KILLED_TOKEN, "killed");
-    logger->LogEvent("activateKillSwitch");
+    auto killedLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+    killedLogger->LogEvent("activateKillSwitch");
     LogManager::UploadNow();
 
     EXPECT_TRUE(listener.waitForAtLeast(listener.numHttpOK, 1, 10000));
@@ -1303,7 +1303,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
     while (listener.numDropped.load() == droppedBeforeKill
         && PAL::getMonotonicTimeMs() < activeDeadline)
     {
-        logger->LogEvent("blockedWhileKillIsActive" + std::to_string(probe++));
+        killedLogger->LogEvent("blockedWhileKillIsActive" + std::to_string(probe++));
         PAL::sleep(20);
     }
     EXPECT_GT(listener.numDropped.load(), droppedBeforeKill);
@@ -1312,7 +1312,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
     while (!waitForEvent("acceptedAfterKillExpires", 100)
         && PAL::getMonotonicTimeMs() < expiryDeadline)
     {
-        logger->LogEvent("acceptedAfterKillExpires");
+        killedLogger->LogEvent("acceptedAfterKillExpires");
         LogManager::UploadNow();
     }
     EXPECT_TRUE(waitForEvent("acceptedAfterKillExpires", 100));
