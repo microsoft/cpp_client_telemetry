@@ -24,12 +24,8 @@
 #include <limits>
 #include <atomic>
 #include <thread>
-#include <memory>
-#include <utility>
-#include <exception>
 #include <mutex>
-#include <condition_variable>
-#include <chrono>
+#include <stdexcept>
 
 #include <poll.h>
 #include <curl/curl.h>
@@ -52,32 +48,6 @@
 
 namespace MAT_NS_BEGIN {
 
-// Tracks the number of in-flight CurlHttpOperations so ~HttpClient_Curl can wait for
-// their detached-worker curl_easy_cleanup to finish before it runs
-// curl_global_cleanup (the two must not run concurrently). If shutdown times
-// out, abandonCallbacks tells late workers to skip callback/log dispatch.
-struct CurlOperationTracker {
-    std::mutex mtx;
-    std::condition_variable cv;
-    int inFlight = 0;
-    std::atomic<bool> abandonCallbacks { false };
-};
-
-// State shared with detached curl worker callbacks. A worker can outlive
-// HttpClient_Curl if shutdown's bounded drain times out, so callbacks must only
-// touch this shared state and never capture/dereference the parent client.
-struct CurlClientSharedState {
-    CurlClientSharedState() :
-        activeOps(std::make_shared<CurlOperationTracker>())
-    {
-    }
-
-    std::mutex requestsMtx;
-    std::map<std::string, IHttpRequest*> requests;
-    std::string sslCaInfo;
-    std::shared_ptr<CurlOperationTracker> activeOps;
-};
-
 /**
  * Curl-based HTTP client
  */
@@ -94,21 +64,20 @@ public:
     void SetSslVerification(bool sslVerify, const std::string& caInfo = "");
 
 private:
+    void EraseRequest(std::string const& id);
     void AddRequest(IHttpRequest* request);
 
-    std::shared_ptr<CurlClientSharedState> m_state { std::make_shared<CurlClientSharedState>() };
+    std::mutex m_requestsMtx;
+    std::map<std::string, IHttpRequest*> m_requests;
     std::atomic<bool> m_sslVerify { true };
+    std::string m_sslCaInfo;
 };
 
-class CurlHttpOperation : public std::enable_shared_from_this<CurlHttpOperation> {
+class CurlHttpOperation {
 public:
 
     void DispatchEvent(HttpStateEvent type)
     {
-        if (m_tracker && m_tracker->abandonCallbacks.load(std::memory_order_acquire))
-        {
-            return;
-        }
         if (m_callback != nullptr)
         {
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
@@ -116,11 +85,6 @@ public:
     }
 
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
-
-    // Set once the completion callback has run. After that point the externally
-    // owned IHttpResponseCallback (m_callback) may already be destroyed, so it must
-    // not be dispatched to again (see ~CurlHttpOperation).
-    std::atomic<bool> m_completed { false };
 
     /**
      * Create local CURL instance for url and body
@@ -135,12 +99,11 @@ public:
             std::string url,
             IHttpResponseCallback* callback,
             // requestHeaders is copied into the curl_slist during construction and
-            // need not outlive this operation. requestBody is taken by value and
-            // owned by this operation: the detached worker in SendAsync can outlive
-            // the caller's request, so a reference into it could dangle during
-            // Send().
+            // need not outlive this operation. requestBody is stored by reference;
+            // CurlHttpRequest destroys this operation (which joins the worker) before
+            // destroying its inherited request-body storage.
             const std::map<std::string, std::string>& requestHeaders,
-            std::vector<uint8_t> requestBody,
+            const std::vector<uint8_t>& requestBody,
             // Default connectivity and response size options
             bool rawResponse                                         = false,
             size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
@@ -158,7 +121,7 @@ public:
             m_sslCaInfo(sslCaInfo),
 
             // Local vars
-            requestBody(std::move(requestBody))
+            requestBody(requestBody)
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
@@ -215,24 +178,23 @@ public:
      */
     virtual ~CurlHttpOperation()
     {
-        // When Send() ran asynchronously, it was on a detached worker that held a
-        // shared_ptr to this operation (see SendAsync), so this destructor runs only
-        // after that worker finished and released its reference; the curl handle,
-        // response buffer and owned request body are then no longer in use. It can also
-        // run without any async worker: for an operation that was never sent, or when
-        // SendAsync fell back to a synchronous run on the caller's thread. There is no
-        // future to join in any case, so destruction is safe on any thread -- including
-        // the worker thread itself, which is where it happens when the callback drops
-        // the last other reference.
-        // OnDestroy is dispatched only when this operation is destroyed without its send
-        // ever having run -- i.e. SendAsync was never called. Once RunSendAndCallback
-        // runs it sets m_completed regardless of the result (even when Send() fails
-        // immediately, e.g. curl_easy_init returns an error), and once the completion
-        // callback has run m_callback may already be freed: synchronous-handler builds
-        // delete the IHttpResponseCallback inside onHttpResponse, called from the
-        // completion callback. Dispatching through it then would be a use-after-free, so
-        // it is suppressed. (Consequently the curl client does not emit OnDestroy for a
-        // request whose send was attempted.)
+        if (m_worker.joinable())
+        {
+            if (m_worker.get_id() == std::this_thread::get_id())
+            {
+                // The completion callback can release the owning request on this
+                // worker. Detach rather than joining the current thread; Send() has
+                // finished and the worker does not touch this operation afterward.
+                m_worker.detach();
+            }
+            else
+            {
+                m_worker.join();
+            }
+        }
+
+        // The completion callback may destroy m_callback. SendAsync marks completion
+        // before invoking it, so do not dispatch through that pointer afterward.
         if (!m_completed.load(std::memory_order_acquire))
         {
             DispatchEvent(OnDestroy);
@@ -241,30 +203,6 @@ public:
         curl_easy_cleanup(curl);
         curl_slist_free_all(m_headersChunk);
         ReleaseResponse();
-
-        // Signal HttpClient_Curl that this operation's curl_easy_cleanup is done, so
-        // its destructor can safely run curl_global_cleanup once all operations end.
-        if (m_tracker)
-        {
-            std::lock_guard<std::mutex> lock(m_tracker->mtx);
-            if (--m_tracker->inFlight == 0)
-            {
-                m_tracker->cv.notify_all();
-            }
-        }
-    }
-
-    // Associate this operation with HttpClient_Curl's in-flight tracker so its
-    // lifetime (through the curl_easy_cleanup in the destructor above) is awaited
-    // before curl_global_cleanup. Called once, before the async send starts.
-    void trackWith(std::shared_ptr<CurlOperationTracker> tracker)
-    {
-        m_tracker = std::move(tracker);
-        if (m_tracker)
-        {
-            std::lock_guard<std::mutex> lock(m_tracker->mtx);
-            ++m_tracker->inFlight;
-        }
     }
 
     /**
@@ -398,97 +336,46 @@ cleanup:
         return res;
     }
 
-    // Runs the blocking Send() and then the callback, guaranteeing the callback is
-    // invoked exactly once and that no exception escapes (a detached worker must not
-    // let one escape -> std::terminate; std::async previously captured exceptions in
-    // its never-observed future). Shared by the detached worker and the synchronous
-    // fallbacks in SendAsync().
-    void RunSendAndCallback(const std::function<void(CurlHttpOperation &)>& callback) {
-        try
+    void SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
+        // A newly created std::thread may run before it is assigned to m_worker.
+        // Hold this gate until the assignment completes so a fast failure cannot
+        // destroy the operation from its callback while SendAsync still uses it.
+        std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
+        if (m_worker.joinable())
         {
-            Send();
+            throw std::logic_error("CurlHttpOperation is single-use");
         }
-        catch (const std::exception& e)
-        {
-            TRACE("CurlHttpOperation Send() failed by exception: %s\n", e.what());
-            res = CURLE_FAILED_INIT;   // report a failure result to the callback
-        }
-        catch (...)
-        {
-            TRACE("CurlHttpOperation Send() failed by unknown exception\n");
-            res = CURLE_FAILED_INIT;
-        }
-        // Invoke the callback even if Send() threw, so the operation is always
-        // completed (with the failure result set above) and the request is never
-        // left outstanding. Guard it so a throwing callback cannot escape either.
-        if (callback != nullptr)
-        {
+        m_completed.store(false, std::memory_order_release);
+        m_worker = std::thread([this, callback]() {
+            {
+                std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
+            }
             try
             {
-                callback(*this);
-            }
-            catch (const std::exception& e)
-            {
-                TRACE("CurlHttpOperation callback threw: %s\n", e.what());
+                Send();
             }
             catch (...)
             {
-                TRACE("CurlHttpOperation callback threw unknown exception\n");
+                // std::async stored worker exceptions in its unobserved future.
+                // A raw thread must contain them to avoid std::terminate.
+                res = CURLE_FAILED_INIT;
             }
-        }
-        // The send has completed. The completion callback (if any) may have destroyed
-        // the IHttpResponseCallback -- synchronous-handler builds run onHttpResponse,
-        // which deletes it -- so m_callback must not be dispatched to after this point.
-        // Set completion regardless of whether a callback was provided: a request that
-        // was actually sent must never emit OnDestroy from the destructor.
-        m_completed.store(true, std::memory_order_release);
-    }
 
-    void SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
-        // Run the blocking Send() on a detached worker that keeps this operation
-        // alive for the duration by holding a shared_ptr to itself. This replaces
-        // std::async, whose returned future joins its worker thread on destruction:
-        // when the callback below caused this operation to be destroyed on the
-        // async thread (OnHttpResponse -> EventsUploadContext::clear()), that join
-        // was a self-join and raised std::system_error("Resource deadlock avoided")
-        // out of the noexcept destructor, aborting the process. With
-        // the self-keepalive there is no future and no join: the worker simply
-        // exits, releasing the last reference, and ~CurlHttpOperation runs
-        // trivially on whichever thread drops it.
-        std::shared_ptr<CurlHttpOperation> self;
-        try
-        {
-            self = shared_from_this();
-        }
-        catch (const std::bad_weak_ptr&)
-        {
-            // The detached-worker self-keepalive requires this operation to be owned
-            // by a std::shared_ptr (it always is in practice -- created via
-            // make_shared in HttpClient_Curl.cpp). If a future caller ever constructs
-            // one outside a shared_ptr (stack / unique_ptr), shared_from_this() throws;
-            // fall back to a synchronous run on the caller's thread rather than letting
-            // std::bad_weak_ptr escape SendAsync(). The caller owns the object for the
-            // duration and the callback is still invoked.
-            RunSendAndCallback(callback);
-            return;
-        }
-        try
-        {
-            // Constructing the worker lambda copies `callback` (a std::function,
-            // which can throw std::bad_alloc), and std::thread construction can throw
-            // std::system_error / std::bad_alloc -- both are inside this try. The
-            // worker holds `self`, keeping this operation alive for the detached run.
-            std::thread([self, callback]() { self->RunSendAndCallback(callback); }).detach();
-        }
-        catch (const std::exception& e)
-        {
-            // Building the callable or starting the worker thread failed. Run the
-            // operation synchronously as a fallback so the IHttpClient callback is
-            // still always invoked and the exception does not escape SendAsync().
-            // `self` keeps this operation alive for the duration of the run.
-            TRACE("CurlHttpOperation could not start worker thread: %s; running synchronously\n", e.what());
-            RunSendAndCallback(callback);
-        }
+            // The callback can release the last owner and run this destructor on
+            // the worker, so this is the worker's final access to operation state.
+            m_completed.store(true, std::memory_order_release);
+            try
+            {
+                if (callback != nullptr)
+                {
+                    callback(*this);
+                }
+            }
+            catch (...)
+            {
+                // Match the old unobserved-future behavior at the thread boundary.
+            }
+        });
     }
 
     /**
@@ -604,17 +491,13 @@ protected:
 
     IHttpResponseCallback* m_callback = nullptr;
 
-    // In-flight tracker shared with HttpClient_Curl; decremented in the destructor.
-    std::shared_ptr<CurlOperationTracker> m_tracker;
-
     // Request values
     std::string m_method;
     std::string m_url;
     std::string m_sslCaInfo;
-    // Owned copy of the request body, read by Send(). Owned (not a reference into
-    // the caller's IHttpRequest) because the detached worker in SendAsync can
-    // outlive that request, so a reference could dangle mid-send.
-    std::vector<uint8_t> requestBody;
+    // The owning CurlHttpRequest destroys this operation before its inherited
+    // request-body storage, and cross-thread destruction joins the worker.
+    const std::vector<uint8_t>& requestBody;
     struct curl_slist *m_headersChunk = nullptr;
 
     // Processed response headers and body
@@ -629,6 +512,12 @@ protected:
     curl_off_t nread = 0;
     size_t sendlen   = 0;        // # bytes sent by client
     size_t acklen    = 0;        // # bytes ack by server
+
+    std::mutex m_workerStartMtx;
+    std::thread m_worker;
+    // Set before the completion callback, which may destroy m_callback and this
+    // operation. The destructor uses it to suppress a late OnDestroy dispatch.
+    std::atomic<bool> m_completed { false };
 
     /**
      * Helper routine to wait for data on socket
