@@ -2,19 +2,42 @@
 
 include(CMakeFindDependencyMacro)
 
-# Re-find dependencies that consumers need
-find_dependency(unofficial-sqlite3 CONFIG)
+# Re-find dependencies that consumers need.
+# On Apple the SDK links the system libsqlite3 (SQLite::SQLite3); elsewhere it uses
+# the vcpkg sqlite3 package unless a private minimal SQLite is bundled.
+if(@MATSDK_APPLE_SYSTEM_DEPS@)
+  find_dependency(SQLite3)
+elseif(NOT @MATSDK_BUNDLE_SQLITE@)
+  find_dependency(unofficial-sqlite3 CONFIG)
+endif()
 find_dependency(ZLIB)
 find_dependency(nlohmann_json CONFIG)
 
 # Curl is re-found only when the SDK was built with the curl HTTP client
-# (Linux, Android via vcpkg, and macOS built without Apple HTTP).
-# Windows (WinInet), iOS, and macOS-with-Apple-HTTP do not link curl.
+# (Linux, explicit Android curl builds, and macOS built without Apple HTTP).
+# Windows (WinInet), default Android Java/JNI HTTP, iOS, and
+# macOS-with-Apple-HTTP do not link curl.
 # We bake the build-time decision into a boolean rather than re-deriving it,
 # because the macOS BUILD_APPLE_HTTP choice can't be inferred from
 # CMAKE_SYSTEM_NAME alone.
 if(@MATSDK_NEEDS_CURL@)
-  find_dependency(CURL)
+  # Force CONFIG mode so the vcpkg-provided CURLConfig (which defines the
+  # CURL::libcurl imported target referenced by MSTelemetryTargets.cmake) is
+  # used, rather than module-mode FindCURL, which on some CMake versions does
+  # not define that target.
+  find_dependency(CURL CONFIG)
+endif()
+
+if("@MATSDK_ANDROID_HTTP_CLIENT_RESOLVED@" STREQUAL "")
+  set(MSTelemetry_ANDROID_HTTP_CLIENT "NONE")
+else()
+  set(MSTelemetry_ANDROID_HTTP_CLIENT "@MATSDK_ANDROID_HTTP_CLIENT_RESOLVED@")
+endif()
+if(MSTelemetry_ANDROID_HTTP_CLIENT STREQUAL "JAVA")
+  set(MSTelemetry_ANDROID_JAVA_SOURCE_DIR
+    "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_DATADIR@/cpp-client-telemetry/android/java")
+else()
+  set(MSTelemetry_ANDROID_JAVA_SOURCE_DIR "")
 endif()
 
 # Pthreads are needed on Linux and Android (POSIX threading)
