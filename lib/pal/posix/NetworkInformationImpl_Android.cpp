@@ -42,8 +42,10 @@ namespace PAL_NS_BEGIN {
     NetworkCost AndroidNetcostConnector::s_cost = NetworkCost_Unknown;
 
     NetworkInformationImpl::NetworkInformationImpl(IRuntimeConfig& configuration) :
-        m_info_helper(),
+        m_type(NetworkType_Unknown),
         m_cost(NetworkCost_Unknown),
+        m_info_helper(),
+        m_registeredCount(0),
         m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT]){};
 
     NetworkInformationImpl::~NetworkInformationImpl() {};
@@ -156,4 +158,3 @@ Java_com_microsoft_applications_events_HttpClient_onCostChange(JNIEnv* env,
 {
     PAL::AndroidNetcostConnector::UpdateCost(isMetered ? NetworkCost_Metered : NetworkCost_Unmetered);
 }
-
