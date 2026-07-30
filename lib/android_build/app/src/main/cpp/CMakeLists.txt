@@ -61,6 +61,9 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/UtilsTests.cpp
         )
 
+# The test app builds SQLite storage alongside the Room-backed SDK.
+set(MATSDK_SQLITE_PROVIDER VENDORED CACHE STRING "" FORCE)
+
 #Add maesdk as a dependency
 add_subdirectory(../../../../maesdk/src/main/cpp maesdk)
 
