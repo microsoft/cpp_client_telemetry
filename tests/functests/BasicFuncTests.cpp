@@ -541,6 +541,29 @@ public:
         }
         return result;
     }
+
+    bool waitForEvent(const std::string& name, unsigned timeoutMs)
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (PAL::getMonotonicTimeMs() < deadline)
+        {
+            {
+                LOCKGUARD(mtx_requests);
+                for (const auto& request : receivedRequests)
+                {
+                    for (const auto& record : decodeRequest(request, false))
+                    {
+                        if (record.name == name)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            PAL::sleep(10);
+        }
+        return false;
+    }
 };
 
 
@@ -1110,6 +1133,17 @@ public :
             break;
         };
     }
+
+    bool waitForAtLeast(const std::atomic<unsigned>& counter, unsigned expected, unsigned timeoutMs)
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (counter.load() < expected && PAL::getMonotonicTimeMs() < deadline)
+        {
+            PAL::sleep(10);
+        }
+        return counter.load() >= expected;
+    }
+
     void printStats(){
         std::cerr << "[          ] numLogged        = " << numLogged << std::endl;
         std::cerr << "[          ] numSent          = " << numSent << std::endl;
@@ -1224,6 +1258,66 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     LogManager::FlushAndTeardown();
 
     listener.printStats();
+    removeListeners(listener);
+    server.clearKilledTokens();
+}
+
+TEST_F(BasicFuncTests, killIsTemporary)
+{
+    CleanStorage();
+    auto configuration = LogManager::GetLogConfiguration();
+
+    configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
+    configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+    configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;
+    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
+    configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;
+    configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;
+    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;
+    configuration["name"] = __FILE__;
+    configuration["version"] = "1.0.0";
+    configuration["config"] = { { "host", __FILE__ } };
+
+    constexpr unsigned killDurationSec = 5;
+    server.setKilledToken(KILLED_TOKEN, killDurationSec);
+    KillSwitchListener listener;
+    addListeners(listener);
+
+    LogManager::Initialize(KILLED_TOKEN, configuration);
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
+    LogManager::ResumeTransmission();
+
+    auto logger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+    logger->LogEvent("activateKillSwitch");
+    LogManager::UploadNow();
+
+    EXPECT_TRUE(listener.waitForAtLeast(listener.numHttpOK, 1, 10000));
+    server.clearKilledTokens();
+
+    const unsigned droppedBeforeKill = listener.numDropped.load();
+    const auto activeDeadline = PAL::getMonotonicTimeMs() + 2000;
+    unsigned probe = 0;
+    while (listener.numDropped.load() == droppedBeforeKill
+        && PAL::getMonotonicTimeMs() < activeDeadline)
+    {
+        logger->LogEvent("blockedWhileKillIsActive" + std::to_string(probe++));
+        PAL::sleep(20);
+    }
+    EXPECT_GT(listener.numDropped.load(), droppedBeforeKill);
+
+    const auto expiryDeadline = PAL::getMonotonicTimeMs() + (killDurationSec + 5) * 1000;
+    while (!waitForEvent("acceptedAfterKillExpires", 100)
+        && PAL::getMonotonicTimeMs() < expiryDeadline)
+    {
+        logger->LogEvent("acceptedAfterKillExpires");
+        LogManager::UploadNow();
+    }
+    EXPECT_TRUE(waitForEvent("acceptedAfterKillExpires", 100));
+
+    LogManager::FlushAndTeardown();
     removeListeners(listener);
     server.clearKilledTokens();
 }
