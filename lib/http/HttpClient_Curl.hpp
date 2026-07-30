@@ -193,12 +193,7 @@ public:
             }
         }
 
-        // The completion callback may destroy m_callback. SendAsync marks completion
-        // before invoking it, so do not dispatch through that pointer afterward.
-        if (!m_completed.load(std::memory_order_acquire))
-        {
-            DispatchEvent(OnDestroy);
-        }
+        DispatchDestroyEvent();
         res = CURLE_OK;
         curl_easy_cleanup(curl);
         curl_slist_free_all(m_headersChunk);
@@ -340,42 +335,42 @@ cleanup:
         // A newly created std::thread may run before it is assigned to m_worker.
         // Hold this gate until the assignment completes so a fast failure cannot
         // destroy the operation from its callback while SendAsync still uses it.
-        std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
-        if (m_worker.joinable())
         {
-            throw std::logic_error("CurlHttpOperation is single-use");
-        }
-        m_completed.store(false, std::memory_order_release);
-        m_worker = std::thread([this, callback]() {
+            std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
+            if (m_sendAttempted)
             {
-                std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
+                throw std::logic_error("CurlHttpOperation is single-use");
             }
-            try
-            {
-                Send();
-            }
-            catch (...)
-            {
-                // std::async stored worker exceptions in its unobserved future.
-                // A raw thread must contain them to avoid std::terminate.
-                res = CURLE_FAILED_INIT;
-            }
+            m_sendAttempted = true;
 
-            // The callback can release the last owner and run this destructor on
-            // the worker, so this is the worker's final access to operation state.
-            m_completed.store(true, std::memory_order_release);
             try
             {
-                if (callback != nullptr)
-                {
-                    callback(*this);
-                }
+                m_worker = std::thread([this, callback]() {
+                    {
+                        std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
+                    }
+                    try
+                    {
+                        Send();
+                    }
+                    catch (...)
+                    {
+                        // std::async stored worker exceptions in its unobserved
+                        // future. A raw thread must contain them.
+                        res = CURLE_FAILED_INIT;
+                    }
+                    Complete(callback);
+                });
+                return;
             }
             catch (...)
             {
-                // Match the old unobserved-future behavior at the thread boundary.
+                // Callable allocation/copy or std::thread creation failed.
             }
-        });
+        }
+
+        res = CURLE_FAILED_INIT;
+        Complete(callback);
     }
 
     /**
@@ -514,10 +509,45 @@ protected:
     size_t acklen    = 0;        // # bytes ack by server
 
     std::mutex m_workerStartMtx;
+    bool m_sendAttempted = false;
     std::thread m_worker;
-    // Set before the completion callback, which may destroy m_callback and this
-    // operation. The destructor uses it to suppress a late OnDestroy dispatch.
-    std::atomic<bool> m_completed { false };
+    std::atomic<bool> m_destroyEventDispatched { false };
+
+    void DispatchDestroyEvent() noexcept
+    {
+        bool expected = false;
+        if (m_destroyEventDispatched.compare_exchange_strong(
+                expected, true, std::memory_order_acq_rel))
+        {
+            try
+            {
+                DispatchEvent(OnDestroy);
+            }
+            catch (...)
+            {
+                // State observers must not terminate the worker or destructor.
+            }
+        }
+    }
+
+    void Complete(const std::function<void(CurlHttpOperation &)>& callback) noexcept
+    {
+        // Preserve the documented state event while m_callback is still valid.
+        // The completion callback can release the last owner, so this must remain
+        // the worker's final access to the operation.
+        DispatchDestroyEvent();
+        try
+        {
+            if (callback != nullptr)
+            {
+                callback(*this);
+            }
+        }
+        catch (...)
+        {
+            // Match the old unobserved-future behavior at the thread boundary.
+        }
+    }
 
     /**
      * Helper routine to wait for data on socket

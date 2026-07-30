@@ -17,6 +17,8 @@
 #include <memory>
 #include <atomic>
 #include <cstdlib>
+#include <stdexcept>
+#include <utility>
 
 using namespace testing;
 using namespace MAT;
@@ -138,14 +140,13 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
 {
     struct TrackingCallback : public IHttpResponseCallback
     {
-        std::atomic<bool> completed { false };
-        std::atomic<int> onDestroyAfterComplete { 0 };
+        std::atomic<int> destroyEvents { 0 };
         void OnHttpResponse(IHttpResponse* response) override { delete response; }
         void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
         {
-            if (state == OnDestroy && completed.load())
+            if (state == OnDestroy)
             {
-                ++onDestroyAfterComplete;
+                ++destroyEvents;
             }
         }
     };
@@ -159,9 +160,7 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
         false, 1 /*connTimeout*/, false /*sslVerify*/, "");
 
     auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
-
     (*box)->SendAsync([box, callback, callbackDone](CurlHttpOperation&) {
-        callback->completed.store(true);
         box->reset();
         callbackDone->set_value();
     });
@@ -171,7 +170,30 @@ TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
         ADD_FAILURE() << "curl worker did not finish before fixture teardown";
         std::abort();
     }
-    EXPECT_EQ(callback->onDestroyAfterComplete.load(), 0);
+    EXPECT_EQ(callback->destroyEvents.load(), 1);
+}
+
+TEST_F(HttpClientCurlTests, SendAsync_CallbackCopyFailureStillCompletes)
+{
+    struct ThrowOnCopy
+    {
+        explicit ThrowOnCopy(bool& invoked) : invoked(&invoked) {}
+        ThrowOnCopy(ThrowOnCopy&&) = default;
+        ThrowOnCopy(const ThrowOnCopy&) { throw std::logic_error("copy failed"); }
+        void operator()(CurlHttpOperation&) const { *invoked = true; }
+        bool* invoked;
+    };
+
+    CurlHttpOperation op(
+        "GET", "://malformed", nullptr, m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+    bool callbackInvoked = false;
+    std::function<void(CurlHttpOperation&)> callback { ThrowOnCopy(callbackInvoked) };
+
+    EXPECT_NO_THROW(op.SendAsync(std::move(callback)));
+    EXPECT_TRUE(callbackInvoked);
+    EXPECT_EQ(op.GetResponseCode(), CURLE_FAILED_INIT);
+    EXPECT_THROW(op.SendAsync(), std::logic_error);
 }
 
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT
