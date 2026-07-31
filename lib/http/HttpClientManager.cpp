@@ -144,10 +144,9 @@ namespace MAT_NS_BEGIN {
         delete callback;
     }
 
-    bool HttpClientManager::cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout)
+    void HttpClientManager::cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout)
     {
         m_httpClient.CancelAllRequests(bestEffortTimeout);
-        return true;
     }
 
     void HttpClientManager::cancelAllRequests(bool bestEffort)

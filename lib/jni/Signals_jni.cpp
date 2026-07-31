@@ -25,6 +25,10 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
                                                           jlong nativeLoggerPtr,
                                                           jstring signal_item_json) {
     jboolean isCopy = true;
+    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    if (logger == nullptr) {
+        return false;
+    }
     if (signal_item_json == nullptr) {
         return false;
     }
@@ -38,7 +42,6 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
         return false;
     }
 
-    auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
     EventProperties eventProperties = Signals::CreateEventProperties(signalItemJson);
     env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
     logger->LogEvent(eventProperties);
