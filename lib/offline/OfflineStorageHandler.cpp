@@ -33,6 +33,7 @@ namespace MAT_NS_BEGIN {
         m_shutdownStarted(false),
         m_memoryDbSize(0),
         m_queryDbSize(0),
+        m_cacheMemorySizeLimitInBytes(0),
         m_isStorageFullNotificationSend(false)
     {
         // TODO: [MG] - OfflineStorage_SQLite.cpp is performing similar checks
@@ -83,7 +84,7 @@ namespace MAT_NS_BEGIN {
     void OfflineStorageHandler::Initialize(IOfflineStorageObserver& observer)
     {
         m_observer = &observer;
-        uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
+        m_cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
         m_offlineStorageDisk = OfflineStorageFactory::Create(m_logManager, m_config);
         if (m_offlineStorageDisk)
@@ -94,7 +95,7 @@ namespace MAT_NS_BEGIN {
         // TODO: [MG] - consider passing m_offlineStorageDisk to m_offlineStorageMemory,
         // so that the Flush() op on memory storage leads to saving unflushed events to
         // disk.
-        if (cacheMemorySizeLimitInBytes > 0)
+        if (m_cacheMemorySizeLimitInBytes > 0)
         {
             m_offlineStorageMemory.reset(new MemoryStorage(m_logManager, m_config));
             m_offlineStorageMemory->Initialize(*this);
@@ -174,7 +175,7 @@ namespace MAT_NS_BEGIN {
         // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
         m_flushHandle.Cancel();
 
-        size_t dbSizeBeforeFlush = m_offlineStorageMemory->GetSize();
+        size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
             // This will block on and then take a lock for the duration of this move, and
@@ -233,8 +234,10 @@ namespace MAT_NS_BEGIN {
             return false;
         }
 
-        // Check cache size only once at start
-        static uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
+        // Cache size limit is per-instance config computed once in Initialize();
+        // it must NOT be a function-local static, which would share the first
+        // LogManager's value with every other LogManager instance.
+        uint32_t cacheMemorySizeLimitInBytes = m_cacheMemorySizeLimitInBytes;
 
         if (nullptr != m_offlineStorageMemory && !m_shutdownStarted)
         {

@@ -139,24 +139,94 @@ scaffolding and not part of the published package.)
 Supported triplets: `arm64-android`, `arm-neon-android`, `x64-android`,
 `x86-android`.
 
+#### Android HTTP transport
+
+The CMake option `MATSDK_ANDROID_HTTP_CLIENT` selects the Android HTTP transport:
+
+| Value | Behavior |
+| ----- | -------- |
+| `AUTO` | Default. Uses the Android Java/JNI transport. |
+| `CURL` | Builds the native libcurl transport. This is an explicit escape hatch and requires one Android curl backend feature. |
+| `JAVA` | Builds `HttpClient_Android`, which calls the Android Java bridge via JNI. |
+
+For vcpkg, Android uses Java transport by default:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": ["system-sqlite"]
+    }
+  ]
+}
+```
+
+To opt into native curl on Android, select exactly one Android curl backend:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": ["android-curl-openssl", "system-sqlite"]
+    }
+  ]
+}
+```
+
+Use `android-curl-mbedtls` in place of `android-curl-openssl` for the mbedTLS
+backend.
+
+When Java transport is selected, the package installs the bridge sources under:
+
+```text
+share/cpp-client-telemetry/android/java/com/microsoft/applications/events/
+```
+
+The installed bridge contains `HttpClient.java` and `HttpClientRequest.java`.
+Consumers are responsible for compiling those Java sources into their Android
+application/AAR and constructing `com.microsoft.applications.events.HttpClient`
+so it initializes the native `HttpClient_Android` singleton before telemetry is
+uploaded. The bridge imports AndroidX annotations (`@Keep`, `@NonNull`,
+`@Nullable`, `@RequiresApi`), so ensure `androidx.annotation:annotation` is on
+the Java compile classpath, for example as a Gradle `compileOnly` or
+`implementation` dependency.
+
 ## Dependencies
 
 The vcpkg port automatically resolves the following dependencies:
 
 | Dependency     | vcpkg Package   | CMake Target                      | Platforms          |
 | -------------- | --------------- | --------------------------------- | ------------------ |
-| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | All                |
-| zlib           | `zlib`          | `ZLIB::ZLIB`                      | All                |
+| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | Non-Apple (default; see `minimal-sqlite`). **macOS/iOS link the system `libsqlite3`** (`SQLite::SQLite3`) |
+| zlib           | `zlib`          | `ZLIB::ZLIB`                      | Non-Apple. **macOS/iOS link the system `libz`** |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
-| libcurl        | `curl[openssl]` | `CURL::libcurl`                   | Non-Windows, non-Apple |
+| libcurl        | `curl[openssl]` or `curl[mbedtls]` | `CURL::libcurl`          | Linux by default; Android only when `android-curl-openssl` or `android-curl-mbedtls` is selected |
+
+On **macOS/iOS** the SDK links the OS-provided `libsqlite3` and `libz` (the same
+system libraries the SDK's Swift Package links), so the vcpkg `sqlite3` and `zlib`
+packages are not pulled there — those binaries carry no bundled SQLite/zlib.
+(`minimal-sqlite` therefore has no effect on Apple.)
+
+The external `sqlite3` package is provided by the default `system-sqlite`
+feature. The `minimal-sqlite` feature replaces it with a private, feature-stripped
+SQLite built from the SDK's vendored amalgamation — see
+[Build a private minimal SQLite](#build-a-private-minimal-sqlite-minimal-sqlite-feature).
+
+On Linux, libcurl is provided by the default `curl-openssl` feature;
+`curl-mbedtls` swaps in the mbedTLS backend — see
+[Choose the Linux HTTP client / TLS backend](#choose-the-linux-http-client--tls-backend-largest-lever-on-linux).
 
 Windows and macOS/iOS use platform-native HTTP clients (WinInet and
-NSURLSession respectively). Android vcpkg consumers use native libcurl because
-the Java-backed `HttpClient_Android` singleton is initialized by the repo's
-Android Gradle/AAR flow, not by standalone native vcpkg consumers.
+NSURLSession respectively). Android defaults to the platform Java/JNI HTTP
+bridge; native curl is available only through explicit `android-curl-*` features.
 
 > **Note (Windows):** The port targets the MSVC/`WIN32` PAL on Windows, which
-> uses WinInet, so `curl` is declared for `linux | android` only. A MinGW /
+> uses WinInet, so the default `curl` dependency is declared for Linux only
+> (Android has separate explicit `android-curl-*` features). A MinGW /
 > non-MSVC Windows triplet — or forcing `-DPAL_IMPLEMENTATION=CPP11` on Windows —
 > selects the curl HTTP client, which the port does not provision on Windows
 > (broadening `curl` to `windows` would pull an unused curl into every MSVC
@@ -230,6 +300,57 @@ the stripping happens at your link. Keep the SDK a static dependency linked
 *into* your binary: if you re-export its API across your own DLL boundary, the
 export table pins its symbols and defeats `/OPT:REF`.
 
+### Choose the Linux HTTP client / TLS backend (largest lever on Linux)
+
+On Linux the built-in HTTP client is libcurl, and curl's TLS backend dominates
+the SDK's footprint. (Windows uses WinInet, Apple uses NSURLSession, and Android
+uses the Java/JNI bridge by default, so this section does not apply there.) The
+port exposes the Linux TLS backend as two mutually-exclusive features; pick the
+one that matches what your application already has:
+
+| Feature | Transport | Approx. stripped size¹ | Use when |
+| ------- | --------- | ---------------------- | -------- |
+| `curl-openssl` (default) | libcurl + OpenSSL | ~10.6 MB | your app already links OpenSSL (share it) |
+| `curl-mbedtls` | libcurl + mbedTLS | ~4.4 MB | your app has no HTTP/TLS stack of its own |
+
+¹ Rough sizes of a minimal Linux consumer **without** consumer-side dead-stripping
+(worst case); enabling `-Wl,--gc-sections` at your link reduces them. Your numbers
+depend on triplet, dead-stripping, and what else shares those libraries.
+
+To select **mbedTLS on Linux**, two things are required in *your top-level*
+manifest:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": [ "minimal-sqlite", "curl-mbedtls" ]
+    },
+    { "name": "curl", "default-features": false, "features": [ "mbedtls" ] }
+  ]
+}
+```
+
+1. `"default-features": false` (the `[core,...]` form) drops **all** of the SDK's
+   default features -- both `curl-openssl` *and* `system-sqlite` -- so the SDK no
+   longer *requests* OpenSSL. Because it also drops `system-sqlite`, you must
+   re-select a SQLite backend (`minimal-sqlite` above, or `system-sqlite`);
+   otherwise the SDK configure step fails with no SQLite feature selected.
+2. The explicit top-level `curl` entry is also needed because vcpkg honors curl's
+   own `"default-features": false` **only for top-level dependencies** — curl's
+   default `ssl` feature (which pulls OpenSSL on Linux) and `non-http` are
+   installed transitively otherwise. With both, curl resolves to `curl[core,mbedtls]`
+   and OpenSSL is not built; with only the feature, you get
+   `curl[mbedtls,ssl,openssl,non-http]` (mbedTLS *and* OpenSSL). This recipe is
+   verified with `vcpkg install --dry-run`.
+
+The default install (no features specified) keeps `curl-openssl` and works out of
+the box on Linux. Android uses the Java/JNI HTTP bridge by default; use
+`android-curl-openssl` or `android-curl-mbedtls` only when you explicitly want
+the native curl Android escape hatch.
+
 ### Drop unused SQLite features (json1)
 
 The SDK uses SQLite only for offline event storage — plain tables and indexes,
@@ -256,12 +377,75 @@ If any package in your build (or your own code) needs SQLite's JSON functions,
 request `sqlite3[json1]` instead and the extension is restored for the whole
 graph.
 
+### Build a private minimal SQLite (`minimal-sqlite` feature)
+
+For a larger, self-contained reduction, the port can compile a private,
+feature-stripped SQLite directly from the SDK's vendored amalgamation instead of
+linking the external `sqlite3` package at all. The SDK uses SQLite only for its
+offline event-storage cache (plain tables and indexes, transactions, WAL,
+autovacuum/`VACUUM`, a few PRAGMAs, and one custom UTF-8 SQL function), so this
+build omits the unused SQLite subsystems — `SQLITE_OMIT_JSON` plus load-extension,
+shared-cache, deprecated APIs, authorization, EXPLAIN, introspection pragmas,
+deserialize, and more. The result is **~10% smaller SQLite code** (`.text`) and
+**~13% smaller** as a stripped object, and it drops the external `sqlite3`
+dependency from your graph entirely.
+
+Enable it through the vcpkg feature:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": [ "minimal-sqlite", "curl-openssl" ]
+    }
+  ]
+}
+```
+
+Use the `[core,minimal-sqlite]` form (here, `"default-features": false` is the
+`[core]` part) so the default `system-sqlite` feature — and its `sqlite3`
+dependency — is dropped. Because `[core]` drops **all** defaults, Linux examples
+also re-select `curl-openssl`; on Linux the built-in curl client requires a TLS
+backend, so omitting it would fail to configure (swap in `curl-mbedtls` for the
+smaller mbedTLS backend). Android does not need a curl feature unless you
+explicitly opt into `android-curl-openssl` or `android-curl-mbedtls`.
+Requesting `minimal-sqlite` *without* `[core]` still pulls in the default
+`system-sqlite`; that is harmless (the external `sqlite3` is installed but
+unused) but does not save the dependency.
+
+For a plain (non-vcpkg) CMake build, pass the option directly:
+
+```bash
+cmake -DMATSDK_MINIMAL_SQLITE=ON ..
+```
+
+The strip is **amalgamation-safe**: it changes no SQLite grammar/parser, so no
+code generation is required. All offline storage features the SDK relies on (WAL,
+autovacuum, `VACUUM`, PRAGMAs, the custom UTF-8 function, blobs, 64-bit integers,
+transactions) are retained, and the SDK's offline-storage unit tests pass
+unchanged against the minimal build.
+
+> **Caveat — symbol visibility when linking statically.** The private SQLite keeps
+> SQLite's default `sqlite3_*` symbol names. For a **shared** `mat`
+> (`mat.dll` / `libmat.so` / `libmat.dylib`), those symbols are hidden by the
+> SDK's `-fvisibility=hidden`, so there is no conflict. For a **static** `mat`,
+> the minimal SQLite is installed and exported as a separate
+> `MSTelemetry::sqlite3_bundled` archive that links into your binary; if **any**
+> part of the final static link — your own code *or another dependency* — also
+> pulls in SQLite, the duplicate `sqlite3_*` symbols will collide at link time. In
+> that case, prefer the default `system-sqlite` feature so the whole graph shares a
+> single SQLite.
+
 ## How It Works: MATSDK_USE_VCPKG_DEPS
 
 When the SDK detects it is being built via vcpkg (by checking for
 `VCPKG_TOOLCHAIN` or `VCPKG_TARGET_TRIPLET`), it automatically sets
 `MATSDK_USE_VCPKG_DEPS=ON`. This switches dependency resolution from
-vendored sources to vcpkg-provided packages via `find_package()`.
+vendored sources to vcpkg-provided packages via `find_package()`. Android HTTP
+transport selection is controlled separately by `MATSDK_ANDROID_HTTP_CLIENT`,
+which defaults to `JAVA` on Android.
 
 You can also set this explicitly for custom CMake workflows:
 

@@ -14,12 +14,24 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <chrono>
+#include <cstddef>
 
 ///@cond INTERNAL_DOCS
 namespace MAT_NS_BEGIN
 {
     class ILogConfiguration;
+
+    /// <summary>
+    /// SECURITY: upper bound (in bytes) on an HTTP response body that a transport
+    /// will buffer. OneCollector protocol responses are small (status, kill-switch
+    /// tokens, retry-after, small config), so this generous cap never rejects a
+    /// legitimate response, but it stops a hostile or MITM'd collector from driving
+    /// unbounded memory growth by returning an oversized body (a memory-amplification
+    /// DoS of the embedding process). A transport that would exceed it refuses the
+    /// response and reports the request as a network failure so it is retried.
+    /// </summary>
+    static constexpr std::size_t MAX_HTTP_RESPONSE_SIZE = 16u * 1024u * 1024u; // 16 MB
+
     /// <summary>
     /// The HttpHeaders class contains a set of HTTP headers.
     /// </summary>
@@ -545,25 +557,10 @@ namespace MAT_NS_BEGIN
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
         /// <summary>
-        /// Cancels all pending requests, draining fully before returning. Overriding this
-        /// method remains source-compatible: the SDK invokes the timed overload below,
-        /// whose default implementation forwards here, so existing IHttpClient
-        /// implementations that only override CancelAllRequests() keep compiling and are
-        /// still invoked. Adding the overload changes the vtable, so IHttpClient
-        /// implementations shipped as binaries must be recompiled -- consistent with the
-        /// SDK's C++ classes not being ABI-stable (only the flat C API in mat.h is).
+        /// Cancels all pending requests, draining fully before returning when the
+        /// implementation owns a synchronous drain.
         /// </summary>
         virtual void CancelAllRequests() {}
-
-        /// <summary>
-        /// Cancels all pending requests, bounding how long the client may block waiting
-        /// for in-flight requests to drain. A zero timeout drains fully (the caller
-        /// requires all in-flight requests to finish, e.g. at shutdown); a positive value
-        /// is a best-effort cap for callers that must not block indefinitely (e.g. pause).
-        /// The default implementation ignores the timeout and forwards to
-        /// CancelAllRequests().
-        /// </summary>
-        virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) { (void)bestEffortTimeout; CancelAllRequests(); }
 
         /// <summary>
         /// Apply HTTP settings from the log configuration.
@@ -579,4 +576,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
-
