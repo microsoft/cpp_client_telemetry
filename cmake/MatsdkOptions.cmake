@@ -67,9 +67,31 @@ matsdk_bool_option(MATSDK_BUILD_AZMON BUILD_AZMON
 matsdk_bool_option(MATSDK_BUILD_APPLE_HTTP BUILD_APPLE_HTTP
   "Build the Apple-native HTTP client" "${APPLE}")
 
+set(_matsdk_android_http_client_predefined OFF)
+if(DEFINED MATSDK_ANDROID_HTTP_CLIENT)
+  set(_matsdk_android_http_client_predefined ON)
+endif()
 set(MATSDK_ANDROID_HTTP_CLIENT "AUTO" CACHE STRING
   "Android HTTP client: AUTO, JAVA, or CURL")
 set_property(CACHE MATSDK_ANDROID_HTTP_CLIENT PROPERTY STRINGS AUTO JAVA CURL)
+
+# Legacy alias: USE_CURL=ON selected the native curl transport on Android
+# before MATSDK_ANDROID_HTTP_CLIENT existed. Translate it (once, unless the
+# canonical option was already set explicitly) rather than dropping it, since
+# it is a real behavioral switch for deliberate Android curl consumers, not
+# just a renamed knob.
+if(DEFINED USE_CURL AND USE_CURL)
+  if(_matsdk_android_http_client_predefined
+     AND NOT MATSDK_ANDROID_HTTP_CLIENT STREQUAL "CURL")
+    message(DEPRECATION
+      "USE_CURL is deprecated and conflicts with MATSDK_ANDROID_HTTP_CLIENT; "
+      "MATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT} takes precedence.")
+  elseif(NOT _matsdk_android_http_client_predefined)
+    set(MATSDK_ANDROID_HTTP_CLIENT "CURL" CACHE STRING
+      "Android HTTP client: AUTO, JAVA, or CURL" FORCE)
+  endif()
+endif()
+
 string(TOUPPER "${MATSDK_ANDROID_HTTP_CLIENT}" MATSDK_ANDROID_HTTP_CLIENT_UPPER)
 if(NOT MATSDK_ANDROID_HTTP_CLIENT_UPPER MATCHES "^(AUTO|JAVA|CURL)$")
   message(FATAL_ERROR
@@ -176,3 +198,21 @@ endif()
 message(STATUS "BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message(STATUS "MATSDK_SQLITE_PROVIDER: ${MATSDK_SQLITE_PROVIDER} -> ${MATSDK_SQLITE_PROVIDER_RESOLVED}")
 message(STATUS "MATSDK_ZLIB_PROVIDER: ${MATSDK_ZLIB_PROVIDER} -> ${MATSDK_ZLIB_PROVIDER_RESOLVED}")
+
+################################################################################################
+# Removed inputs
+################################################################################################
+# These predate canonical replacements by more than three months and have no
+# clean behavioral mapping onto the new provider/layout model, so they are not
+# translated -- only detected, so an old script gets an explicit message
+# instead of a silent layout/linkage change.
+if(DEFINED INSTALL_LIB_DIR)
+  message(DEPRECATION
+    "INSTALL_LIB_DIR no longer has any effect; installation layout is "
+    "controlled by GNUInstallDirs (CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_PREFIX).")
+endif()
+if(DEFINED BUILD_STATIC_SQLITE)
+  message(DEPRECATION
+    "BUILD_STATIC_SQLITE no longer has any effect; select the SQLite "
+    "dependency with MATSDK_SQLITE_PROVIDER=SYSTEM|MINIMAL|VENDORED instead.")
+endif()
