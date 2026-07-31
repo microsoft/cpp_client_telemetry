@@ -542,21 +542,27 @@ public:
         return result;
     }
 
-    bool waitForEvent(const std::string& name, unsigned timeoutMs)
+    bool waitForEvent(const std::string& name, unsigned timeoutMs, size_t& nextRequestIndex)
     {
         const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
         while (PAL::getMonotonicTimeMs() < deadline)
         {
+            std::vector<HttpServer::Request> newRequests;
             {
                 LOCKGUARD(mtx_requests);
-                for (const auto& request : receivedRequests)
+                while (nextRequestIndex < receivedRequests.size())
                 {
-                    for (const auto& record : decodeRequest(request, false))
+                    newRequests.push_back(receivedRequests[nextRequestIndex]);
+                    ++nextRequestIndex;
+                }
+            }
+            for (const auto& request : newRequests)
+            {
+                for (const auto& record : decodeRequest(request, false))
+                {
+                    if (record.name == name)
                     {
-                        if (record.name == name)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -1294,7 +1300,14 @@ TEST_F(BasicFuncTests, killIsTemporary)
     killedLogger->LogEvent("activateKillSwitch");
     LogManager::UploadNow();
 
-    EXPECT_TRUE(listener.waitForAtLeast(listener.numHttpOK, 1, 10000));
+    const bool killSwitchActivated = listener.waitForAtLeast(listener.numHttpOK, 1, 10000);
+    if (!killSwitchActivated)
+    {
+        LogManager::FlushAndTeardown();
+        removeListeners(listener);
+        server.clearKilledTokens();
+    }
+    ASSERT_TRUE(killSwitchActivated) << "Kill-switch response was not observed before timeout";
     server.clearKilledTokens();
 
     const unsigned droppedBeforeKill = listener.numDropped.load();
@@ -1309,13 +1322,19 @@ TEST_F(BasicFuncTests, killIsTemporary)
     EXPECT_GT(listener.numDropped.load(), droppedBeforeKill);
 
     const auto expiryDeadline = PAL::getMonotonicTimeMs() + (killDurationSec + 5) * 1000;
-    while (!waitForEvent("acceptedAfterKillExpires", 100)
-        && PAL::getMonotonicTimeMs() < expiryDeadline)
+    size_t nextRequestIndex = 0;
+    bool acceptedAfterKillExpires = waitForEvent("acceptedAfterKillExpires", 100, nextRequestIndex);
+    while (!acceptedAfterKillExpires && PAL::getMonotonicTimeMs() < expiryDeadline)
     {
         killedLogger->LogEvent("acceptedAfterKillExpires");
         LogManager::UploadNow();
+        acceptedAfterKillExpires = waitForEvent("acceptedAfterKillExpires", 100, nextRequestIndex);
     }
-    EXPECT_TRUE(waitForEvent("acceptedAfterKillExpires", 100));
+    if (!acceptedAfterKillExpires)
+    {
+        acceptedAfterKillExpires = waitForEvent("acceptedAfterKillExpires", 100, nextRequestIndex);
+    }
+    EXPECT_TRUE(acceptedAfterKillExpires);
 
     LogManager::FlushAndTeardown();
     removeListeners(listener);
