@@ -67,17 +67,32 @@ namespace PAL_NS_BEGIN {
             Join();
         }
 
+    private:
+        void enqueueShutdownItemLocked()
+        {
+            if (!m_shuttingDown) {
+                m_shuttingDown = true;
+                m_queue.push_back(new WorkerThreadShutdownItem());
+                m_event.post();
+            }
+        }
+
+        void drainPendingTasksLocked()
+        {
+            for (auto task : m_queue) { delete task; }
+            m_queue.clear();
+            for (auto task : m_timerQueue) { delete task; }
+            m_timerQueue.clear();
+        }
+
+    public:
         void Join() final
         {
             std::thread::id this_id = std::this_thread::get_id();
             bool joined = false;
             {
                 LOCKGUARD(m_lock);
-                if (!m_shuttingDown) {
-                    m_shuttingDown = true;
-                    m_queue.push_back(new WorkerThreadShutdownItem());
-                    m_event.post();
-                }
+                enqueueShutdownItemLocked();
             }
             try {
                 if (!m_hThread.joinable()) {
@@ -112,10 +127,7 @@ namespace PAL_NS_BEGIN {
             // After detach(), the thread still needs the shutdown item
             // and may still be accessing the queues.
             if (joined) {
-                for (auto task : m_queue) { delete task; }
-                m_queue.clear();
-                for (auto task : m_timerQueue) { delete task; }
-                m_timerQueue.clear();
+                drainPendingTasksLocked();
             }
         }
 
@@ -134,11 +146,7 @@ namespace PAL_NS_BEGIN {
             LOCKGUARD(m_lock);
             if (m_workerId == std::this_thread::get_id())
             {
-                if (!m_shuttingDown) {
-                    m_shuttingDown = true;
-                    m_queue.push_back(new WorkerThreadShutdownItem());
-                    m_event.post();
-                }
+                enqueueShutdownItemLocked();
                 m_disposeFromThread.store(true, std::memory_order_release);
                 try {
                     if (m_hThread.joinable()) {
@@ -323,10 +331,7 @@ namespace PAL_NS_BEGIN {
                     // behavior of dropping un-run work at shutdown.
                     {
                         LOCKGUARD(self->m_lock);
-                        for (auto task : self->m_queue) { delete task; }
-                        self->m_queue.clear();
-                        for (auto task : self->m_timerQueue) { delete task; }
-                        self->m_timerQueue.clear();
+                        self->drainPendingTasksLocked();
                     }
                     break;
                 }

@@ -64,7 +64,7 @@ namespace MAT_NS_BEGIN {
             if (!m_flushPending)
                 return;
         }
-        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task);
+        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.GetTask());
         m_flushComplete.wait();
     }
 
@@ -180,7 +180,7 @@ namespace MAT_NS_BEGIN {
 
         // If item isn't scheduled yet, it gets canceled, so that we don't do two flushes.
         // If we are running that item right now (our thread), then nothing happens other
-        // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
+        // than the handle reporting nullptr once that task finishes.
         m_flushHandle.Cancel();
 
         size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
@@ -268,7 +268,7 @@ namespace MAT_NS_BEGIN {
                         m_flushPending = true;
                         m_flushComplete.Reset();
                         m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
-                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task);
+                        LOG_INFO("Requested Flush (%p)", m_flushHandle.GetTask());
                     }
                     m_flushLock.unlock();
                 }

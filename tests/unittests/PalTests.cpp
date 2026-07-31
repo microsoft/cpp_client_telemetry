@@ -253,8 +253,35 @@ TEST_F(PalTests, ScheduleTaskAfterWorkerThreadJoinReturnsNoOpHandle)
 
     auto handle = PAL::scheduleTask(dispatcher.get(), 100, &target, &WorkerThreadScheduleTarget::Callback);
 
-    EXPECT_EQ(handle.m_task, nullptr);
+    EXPECT_EQ(handle.GetTask(), nullptr);
     EXPECT_TRUE(handle.Cancel());
+}
+
+TEST_F(PalTests, ScheduleTaskHandleClearsAfterWorkerThreadCallbackCompletes)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    std::atomic<bool> callbackRan(false);
+
+    class WorkerThreadCompletionTarget
+    {
+    public:
+        explicit WorkerThreadCompletionTarget(std::atomic<bool>& callbackRan) : m_callbackRan(callbackRan) {}
+        void Callback() { m_callbackRan.store(true); }
+
+    private:
+        std::atomic<bool>& m_callbackRan;
+    } target(callbackRan);
+
+    auto handle = PAL::scheduleTask(dispatcher.get(), 0, &target, &WorkerThreadCompletionTarget::Callback);
+
+    for (int i = 0; i < 500 && !callbackRan.load(); ++i)
+        PAL::sleep(10);
+
+    ASSERT_TRUE(callbackRan.load());
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+
+    dispatcher->Join();
 }
 
 namespace

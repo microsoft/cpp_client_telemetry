@@ -94,14 +94,11 @@ namespace PAL_NS_BEGIN {
     class DeferredCallbackHandle
     {
     public:
-        std::mutex m_mutex;
-        MAT::Task* m_task = nullptr;
-        MAT::ITaskDispatcher* m_taskDispatcher = nullptr;
-
-        DeferredCallbackHandle(MAT::Task* task, MAT::ITaskDispatcher* taskDispatcher) :
-            m_task(task),
+        DeferredCallbackHandle(std::shared_ptr<detail::TaskLifetimeState> taskLifetimeState, MAT::ITaskDispatcher* taskDispatcher) :
+            m_taskLifetimeState(std::move(taskLifetimeState)),
             m_taskDispatcher(taskDispatcher) { }
-        DeferredCallbackHandle() {}
+
+        DeferredCallbackHandle() = default;
         DeferredCallbackHandle(DeferredCallbackHandle&& h)
         {
             *this = std::move(h);
@@ -109,28 +106,44 @@ namespace PAL_NS_BEGIN {
 
         DeferredCallbackHandle& operator=(DeferredCallbackHandle&& other)
         {
+            if (this == &other) {
+                return *this;
+            }
+
             std::lock_guard<std::mutex> lock(m_mutex);
             std::lock_guard<std::mutex> otherLock(other.m_mutex);
-            m_task = other.m_task;
-            other.m_task = nullptr;
+            m_taskLifetimeState = std::move(other.m_taskLifetimeState);
             m_taskDispatcher = other.m_taskDispatcher;
+            other.m_taskDispatcher = nullptr;
 
             return *this;
+        }
+
+        MAT::Task* GetTask() const
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            return (m_taskLifetimeState != nullptr) ? m_taskLifetimeState->task.load(std::memory_order_acquire) : nullptr;
         }
 
         bool Cancel(uint64_t waitTime = 0)
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            if (m_task)
+            MAT::Task* task = (m_taskLifetimeState != nullptr) ? m_taskLifetimeState->task.load(std::memory_order_acquire) : nullptr;
+            if (task)
             {
-                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(m_task, waitTime));
-                return result;
+                bool result = (m_taskDispatcher != nullptr) && (m_taskDispatcher->Cancel(task, waitTime));
+                return result || ((m_taskLifetimeState != nullptr) && (m_taskLifetimeState->task.load(std::memory_order_acquire) == nullptr));
             }
             else {
                 // Canceled nothing successfully
                 return true;
             }
         }
+
+    private:
+        mutable std::mutex m_mutex;
+        std::shared_ptr<detail::TaskLifetimeState> m_taskLifetimeState;
+        MAT::ITaskDispatcher* m_taskDispatcher = nullptr;
     };
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
@@ -156,13 +169,14 @@ namespace PAL_NS_BEGIN {
         auto task = new detail::TaskCall<decltype(bound)>(bound, getMonotonicTimeMs() + (int64_t)delayMs, taskLifetime);
         taskDispatcher->Queue(task);
         // Queue() is void; an SDK dispatcher that rejects by deleting the task
-        // synchronously clears this state before Queue() returns.
-        auto queuedTask = taskLifetime->task.load(std::memory_order_acquire);
-        if (queuedTask == nullptr)
+        // synchronously clears this state before Queue() returns, and the task
+        // destructor also clears it after normal asynchronous completion so a
+        // later Cancel() never touches a stale Task*.
+        if (taskLifetime->task.load(std::memory_order_acquire) == nullptr)
         {
             return DeferredCallbackHandle();
         }
-        return DeferredCallbackHandle(queuedTask, taskDispatcher);
+        return DeferredCallbackHandle(taskLifetime, taskDispatcher);
     }
 
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>

@@ -262,9 +262,56 @@ TEST(TaskDispatcherCAPITests, ScheduleTaskReturnsNoOpHandleWhenTaskDropped)
 
     auto handle = scheduleTask(&dispatcher, 100 /*delayMs*/, &target, &NoopCallbackTarget::Callback, 1, 2);
 
-    EXPECT_EQ(handle.m_task, nullptr);
+    EXPECT_EQ(handle.GetTask(), nullptr);
     EXPECT_TRUE(handle.Cancel());
     EXPECT_FALSE(dispatcher.cancelCalled);
+}
+
+namespace
+{
+    struct DeferredExecutionState
+    {
+        std::string taskId;
+        task_callback_fn_t callback = nullptr;
+        bool cancelCalled = false;
+    };
+
+    static std::unique_ptr<DeferredExecutionState> s_deferredExecutionState;
+
+    void EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherQueue(evt_task_t* task, task_callback_fn_t callback)
+    {
+        s_deferredExecutionState->taskId = task->id;
+        s_deferredExecutionState->callback = callback;
+    }
+
+    bool EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherCancel(const char* taskId)
+    {
+        s_deferredExecutionState->cancelCalled = true;
+        return (s_deferredExecutionState->taskId == taskId);
+    }
+
+    void EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherJoin()
+    {}
+}
+
+TEST(TaskDispatcherCAPITests, ScheduleTaskHandleClearsAfterAsyncCallbackCompletes)
+{
+    TaskDispatcher_CAPI taskDispatcher(&OnDeferredTaskDispatcherQueue, &OnDeferredTaskDispatcherCancel, &OnDeferredTaskDispatcherJoin);
+    s_deferredExecutionState.reset(new DeferredExecutionState());
+
+    NoopCallbackTarget target;
+    auto handle = scheduleTask(&taskDispatcher, 100 /*delayMs*/, &target, &NoopCallbackTarget::Callback, 1, 2);
+
+    ASSERT_NE(handle.GetTask(), nullptr);
+    ASSERT_NE(s_deferredExecutionState->callback, nullptr);
+
+    s_deferredExecutionState->callback(s_deferredExecutionState->taskId.c_str());
+
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+    EXPECT_FALSE(s_deferredExecutionState->cancelCalled);
+
+    s_deferredExecutionState.reset();
 }
 
 TEST(TaskDispatcherCAPITests, ExecuteCallbackThatThrowsIsContained)
