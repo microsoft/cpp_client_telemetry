@@ -51,6 +51,7 @@ endif()
 message(STATUS "MATSDK_USING_VCPKG: ${MATSDK_USING_VCPKG}")
 
 include(cmake/MatsdkOptions.cmake)
+include(cmake/MatsdkAppleSystemDeps.cmake)
 
 # Begin Uncomment for i386 build
 #set(CMAKE_SYSTEM_PROCESSOR i386)
@@ -264,8 +265,7 @@ endif()
 ################################################################################################
 if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite::SQLite3)
   if(APPLE AND NOT MATSDK_USING_VCPKG)
-    add_library(SQLite::SQLite3 INTERFACE IMPORTED GLOBAL)
-    set_property(TARGET SQLite::SQLite3 PROPERTY INTERFACE_LINK_LIBRARIES sqlite3)
+    matsdk_add_apple_system_library(SQLite::SQLite3 sqlite3)
   else()
     find_package(SQLite3 QUIET)
     if(NOT TARGET SQLite::SQLite3 AND MATSDK_USING_VCPKG)
@@ -284,8 +284,7 @@ endif()
 
 if(MATSDK_ZLIB_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET ZLIB::ZLIB)
   if(APPLE AND NOT MATSDK_USING_VCPKG)
-    add_library(ZLIB::ZLIB INTERFACE IMPORTED GLOBAL)
-    set_property(TARGET ZLIB::ZLIB PROPERTY INTERFACE_LINK_LIBRARIES z)
+    matsdk_add_apple_system_library(ZLIB::ZLIB z)
   else()
     find_package(ZLIB REQUIRED)
   endif()
