@@ -21,12 +21,29 @@
 #define MATSDK_HAS_UI_USER_INTERFACE_IDIOM_VISION 0
 #endif
 
+#if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && (__IPHONE_OS_VERSION_MAX_ALLOWED >= 140000)
+#define MATSDK_HAS_UI_USER_INTERFACE_IDIOM_MAC 1
+#else
+#define MATSDK_HAS_UI_USER_INTERFACE_IDIOM_MAC 0
+#endif
+
 std::string GetDeviceModel()
 {
     @autoreleasepool {
 #if TARGET_IPHONE_SIMULATOR
         NSString* modelId = NSProcessInfo.processInfo.environment[@"SIMULATOR_MODEL_IDENTIFIER"];
-        return std::string([modelId UTF8String]);
+        if (modelId.length > 0)
+        {
+            return std::string([modelId UTF8String]);
+        }
+
+        NSString* fallbackModel = [[UIDevice currentDevice] model];
+        if (fallbackModel.length > 0)
+        {
+            return std::string([fallbackModel UTF8String]);
+        }
+
+        return {};
 #else
         std::string deviceModel { };
         struct utsname systemInfo;
@@ -102,6 +119,10 @@ std::string GetDeviceClass() {
             return "iOS.Tablet";
         case UIUserInterfaceIdiomTV:
             return "iOS.AppleTV";
+#if MATSDK_HAS_UI_USER_INTERFACE_IDIOM_MAC
+        case UIUserInterfaceIdiomMac:
+            return "iOS.Desktop";
+#endif
 #if MATSDK_HAS_UI_USER_INTERFACE_IDIOM_VISION
         case UIUserInterfaceIdiomVision:
             return "visionOS.Vision";
