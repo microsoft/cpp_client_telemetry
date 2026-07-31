@@ -102,7 +102,6 @@ namespace MAT_NS_BEGIN {
     private:
         void WaitForFlush();
         bool IsBatchedStorageFlushEnabled();
-        bool IsValidDiskRecord(StorageRecord const& record);
         void ReportInvalidDiskRecord(StorageRecord const& record);
         size_t StoreRecordsIndividually(std::vector<StorageRecord> const& records);
         size_t ReturnRecordsToMemory(std::vector<StorageRecord> const& records);

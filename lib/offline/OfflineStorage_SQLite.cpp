@@ -8,6 +8,7 @@
 #include "OfflineStorage_SQLite.hpp"
 #include "ILogManager.hpp"
 #include "SQLiteWrapper.hpp"
+#include "StorageRecordValidation.hpp"
 #include "utils/StringUtils.hpp"
 #include <algorithm>
 #include <numeric>
@@ -183,7 +184,7 @@ namespace MAT_NS_BEGIN {
 
     bool OfflineStorage_SQLite::isValidRecord(StorageRecord const& record) const
     {
-        if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
+        if (!IsValidDiskStorageRecord(record)) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
             m_observer->OnStorageFailed("Invalid parameters");
@@ -1228,4 +1229,3 @@ namespace MAT_NS_BEGIN {
     
 } MAT_NS_END
 #endif
-

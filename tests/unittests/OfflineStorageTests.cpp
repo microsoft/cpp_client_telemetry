@@ -361,6 +361,35 @@ TEST(OfflineStorageHandlerFlushTests, FailedDiskStoreDuringFlushReturnsRecordsTo
     handler.Shutdown();
 }
 
+TEST(OfflineStorageHandlerFlushTests, EventLatencyOffIsDroppedWithoutReportingStoreFailure)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    NiceMock<MockIOfflineStorageObserver> observer;
+
+    ON_CALL(config, GetOfflineStorageMaximumSizeBytes()).WillByDefault(Return(32 * 4096));
+
+    std::ostringstream dbPath;
+    dbPath << GetTempDirectory() << "LatencyOff-" << PAL::getUtcSystemTimeMs() << ".db";
+    RemoveDbFiles(dbPath.str());
+    config[CFG_STR_CACHE_FILE_PATH] = dbPath.str();
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;  // enable the in-memory queue
+
+    OfflineStorageHandler handler(logManager, config, dispatcher);
+    handler.Initialize(observer);
+
+    StorageRecord record("latency-off", "tenant-token",
+        EventLatency_Off, EventPersistence_Normal, /*timestamp*/ 1,
+        std::vector<uint8_t>{ 'x' });
+
+    EXPECT_TRUE(handler.StoreRecord(record));
+    EXPECT_EQ(handler.GetRecordCount(), static_cast<size_t>(0));
+
+    handler.Shutdown();
+    RemoveDbFiles(dbPath.str());
+}
+
 // Regression test: a permanently-invalid record (rejected by the disk backend's
 // validation) must be dropped on Flush(), not returned to the queue -- otherwise
 // one poison record would be re-drained and re-rejected on every flush, wedging

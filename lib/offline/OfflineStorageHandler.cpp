@@ -7,6 +7,7 @@
 #include "OfflineStorageFactory.hpp"
 
 #include "offline/MemoryStorage.hpp"
+#include "offline/StorageRecordValidation.hpp"
 
 #include "ILogManager.hpp"
 #include "utils/Utils.hpp"
@@ -261,6 +262,15 @@ namespace MAT_NS_BEGIN {
                 // storage)
                 if (!m_offlineStorageMemory->StoreRecord(record))
                 {
+                    if (record.latency == EventLatency_Off)
+                    {
+                        // MemoryStorage intentionally returns false for latency-off
+                        // records to mean "drop without storing", not "storage
+                        // failed". Keep the handler's false return reserved for
+                        // genuine storage failures so StorageObserver does not
+                        // misclassify this normal drop as a persistence error.
+                        return true;
+                    }
                     LOG_ERROR("Failed to store event %s:%s in memory queue",
                         tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
                     return false;
@@ -305,12 +315,6 @@ namespace MAT_NS_BEGIN {
             m_config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH];
     }
 
-    bool OfflineStorageHandler::IsValidDiskRecord(StorageRecord const& record)
-    {
-        return !(record.id.empty() || record.tenantToken.empty() ||
-            static_cast<int>(record.latency) < 0 || record.timestamp <= 0);
-    }
-
     void OfflineStorageHandler::ReportInvalidDiskRecord(StorageRecord const& record)
     {
         LOG_ERROR("Flush: dropping event %s:%s: Invalid parameters",
@@ -325,7 +329,7 @@ namespace MAT_NS_BEGIN {
 
         for (auto it = records.begin(); it != records.end(); ++it)
         {
-            if (!IsValidDiskRecord(*it))
+            if (!IsValidDiskStorageRecord(*it))
             {
                 ReportInvalidDiskRecord(*it);
                 continue;
@@ -339,7 +343,7 @@ namespace MAT_NS_BEGIN {
 
             for (auto retryIt = it; retryIt != records.end(); ++retryIt)
             {
-                if (IsValidDiskRecord(*retryIt))
+                if (IsValidDiskStorageRecord(*retryIt))
                 {
                     recordsToRetry.push_back(*retryIt);
                 }
