@@ -60,7 +60,18 @@ namespace PAL_NS_BEGIN {
 
     PlatformAbstractionLayer& GetPAL() noexcept
     {
-        static PlatformAbstractionLayer pal;
+        // Deliberately never destroyed. PAL::shutdown() (called from
+        // LogManagerImpl::FlushAndTeardown()) must find this object's members
+        // still alive, but PAL is constructed lazily on first use, so whether
+        // this function-local static is destroyed before or after that
+        // teardown call depends on runtime timing, not source order -- if it
+        // is destroyed first, shutdown() releases shared_ptr members of an
+        // already-destroyed object (a downstream consumer observed this as
+        // intermittent EXC_BAD_ACCESS in ~shared_ptr<ISystemInformation> at
+        // process exit). Leaking one fixed-size object avoids the ordering
+        // hazard entirely: shutdown() already performs the real resource
+        // teardown explicitly, and the OS reclaims the object at process exit.
+        static PlatformAbstractionLayer& pal = *new PlatformAbstractionLayer();
         return pal;
     }
 

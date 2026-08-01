@@ -67,7 +67,15 @@ namespace MAT_NS_BEGIN {
 
         //  C++11 Magic Statics (N2660)
         static LogManagerFactory& instance() {
-            static LogManagerFactory impl;
+            // Deliberately never destroyed. LogManagerProvider::Release() must be
+            // able to walk this factory's registries during process teardown, but
+            // a normal function-local static's destruction order relative to that
+            // teardown call is unspecified -- if this were destroyed first,
+            // Release() would walk already-freed std::map nodes (a downstream
+            // consumer observed this as EXC_BAD_ACCESS in release() at process
+            // exit). Leaking one small, fixed-size object avoids the ordering
+            // hazard entirely; the OS reclaims it when the process exits.
+            static LogManagerFactory& impl = *new LogManagerFactory();
             return impl;
         }
 
