@@ -276,9 +276,20 @@ if(NOT MATSDK_USE_VCPKG_DEPS)
 endif()
 add_definitions(-D_UNICODE -DUNICODE -DWIN32 -DMATSDK_PLATFORM_WINDOWS=1 -D_UTC_SDK -DUSE_BOND -D_WINDOWS -D_USRDLL -DWINVER=_WIN32_WINNT_WIN7)
 remove_definitions(-D_MBCS)
+  # WinHTTP is the default Win32 desktop HTTP transport (see
+  # HttpClientFactory.hpp): unlike WinInet it does not require a logged-on
+  # interactive user, so it works in services and other non-interactive
+  # processes. Set MATSDK_USE_WININET=ON to opt back into WinInet, e.g. for
+  # IE-integrated proxy/cookie behavior.
+  option(MATSDK_USE_WININET "Use WinInet instead of WinHTTP as the Win32 desktop HTTP client" OFF)
+  if(MATSDK_USE_WININET)
+    add_definitions(-DHAVE_MAT_WININET_HTTP_CLIENT)
+  endif()
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
+    http/HttpClient_WinHttp.cpp
+    http/HttpClient_WinHttp.hpp
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
@@ -606,7 +617,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     target_link_libraries(mat PUBLIC log)
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
-  target_link_libraries(mat PUBLIC wininet crypt32 ws2_32)
+  target_link_libraries(mat PUBLIC wininet winhttp crypt32 ws2_32)
 elseif(APPLE)
   target_link_libraries(mat PUBLIC
     "-framework CoreFoundation"
