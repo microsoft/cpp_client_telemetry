@@ -50,6 +50,44 @@ namespace MAT_NS_BEGIN {
         }
     }
 
+    /// <summary>
+    /// RAII guard around ILogManager::StartActivity()/EndActivity(). Flush()
+    /// used to pair these manually (StartActivity() at the top, EndActivity()
+    /// on the last line), so an exception thrown by disk I/O or by
+    /// IOfflineStorageObserver::OnStorageRecordsSaved() partway through would
+    /// skip EndActivity() and permanently leak the pause-activity count --
+    /// deadlocking every later FlushAndTeardown()'s WaitPause(). This guard
+    /// guarantees EndActivity() runs on every exit path, matching the existing
+    /// safe pattern used by PauseGuard (TransmissionPolicyManager.cpp) and
+    /// ActiveLoggerCall (Logger.cpp).
+    /// </summary>
+    class ActivityGuard
+    {
+       public:
+        explicit ActivityGuard(ILogManager& logManager) noexcept :
+            m_logManager(logManager),
+            m_active(logManager.StartActivity())
+        {
+        }
+
+        ~ActivityGuard() noexcept
+        {
+            if (m_active)
+            {
+                m_logManager.EndActivity();
+            }
+        }
+
+        ActivityGuard(ActivityGuard const&) = delete;
+        ActivityGuard& operator=(ActivityGuard const&) = delete;
+
+        bool IsActive() const noexcept { return m_active; }
+
+       private:
+        ILogManager& m_logManager;
+        bool m_active;
+    };
+
     bool OfflineStorageHandler::isKilled(StorageRecord const& record)
     {
         return (
@@ -163,7 +201,8 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorageHandler::Flush()
     {
-        if (!m_logManager.StartActivity()) {
+        ActivityGuard activityGuard(m_logManager);
+        if (!activityGuard.IsActive()) {
             // The LogManager is shutting down, so the flush cannot run. Still
             // signal completion and clear the pending flag so a concurrent
             // WaitForFlush() (e.g. during teardown) does not block forever
@@ -229,7 +268,9 @@ namespace MAT_NS_BEGIN {
         // Flush is done, notify the waiters
         m_flushComplete.post();
         m_flushPending = false;
-        m_logManager.EndActivity();
+        // activityGuard's destructor calls EndActivity() on every exit path
+        // above, including if StoreRecords()/checkpoint Flush()/
+        // OnStorageRecordsSaved() throws.
     }
 
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
