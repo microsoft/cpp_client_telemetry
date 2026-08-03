@@ -263,11 +263,11 @@ public:
     bool WaitForRequest(unsigned timeoutMs) const
     {
         const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
-        while (m_sent.load() == 0 && PAL::getMonotonicTimeMs() < deadline)
+        while (SentCount() == 0 && PAL::getMonotonicTimeMs() < deadline)
         {
             PAL::sleep(10);
         }
-        return m_sent.load() > 0;
+        return SentCount() > 0;
     }
 
     unsigned SentCount() const
