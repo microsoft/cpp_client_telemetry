@@ -433,12 +433,15 @@ namespace PAL_NS_BEGIN {
         // Resolve the precise API dynamically so the SDK retains its Windows 7
         // runtime compatibility and falls back when the API is unavailable.
         using GetSystemTimePreciseAsFileTimeProc = VOID (WINAPI*)(LPFILETIME);
-        HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
-        auto getSystemTimePreciseAsFileTime =
-            kernel32
-            ? reinterpret_cast<GetSystemTimePreciseAsFileTimeProc>(
-                ::GetProcAddress(kernel32, "GetSystemTimePreciseAsFileTime"))
-            : nullptr;
+        static const GetSystemTimePreciseAsFileTimeProc getSystemTimePreciseAsFileTime =
+            []() -> GetSystemTimePreciseAsFileTimeProc
+            {
+                HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
+                return kernel32
+                    ? reinterpret_cast<GetSystemTimePreciseAsFileTimeProc>(
+                        ::GetProcAddress(kernel32, "GetSystemTimePreciseAsFileTime"))
+                    : nullptr;
+            }();
         if (getSystemTimePreciseAsFileTime)
         {
             getSystemTimePreciseAsFileTime(&tocks);
