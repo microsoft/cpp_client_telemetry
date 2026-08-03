@@ -330,10 +330,14 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         switch (dwInternetStatus)
         {
             case WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING:
-                // HANDLE_CLOSING should always come after the terminal completion
-                // (REQUEST_ERROR or the zero-byte DATA_AVAILABLE). When (and if) it
-                // (ever) happens, self may point to an object that has already been
-                // destroyed. We do not perform any actions on it.
+                // HANDLE_CLOSING is usually a trailing callback, but on some
+                // cancellation paths it may be the only terminal signal we get.
+                // If the request has not already completed, finish it here so the
+                // parent map drains and CancelAllRequests() cannot wait forever.
+                if (!self->isCallbackCalled)
+                {
+                    self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
+                }
                 return;
 
             case WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE:
