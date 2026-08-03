@@ -1321,17 +1321,16 @@ TEST_F(BasicFuncTests, killIsTemporary)
     }
     EXPECT_GT(listener.numDropped.load(), droppedBeforeKill);
 
-    const auto expiryDeadline = PAL::getMonotonicTimeMs() + (killDurationSec + 5) * 1000;
+    // Poll until the kill-switch TTL expires and the SDK resumes sending.
+    // Budget: kill duration + 5 s headroom; the extra 100 ms absorbs any
+    // request that was dispatched just before the deadline fires.
+    const auto expiryDeadline = PAL::getMonotonicTimeMs() + (killDurationSec + 5) * 1000 + 100;
     size_t nextRequestIndex = 0;
-    bool acceptedAfterKillExpires = waitForEvent("acceptedAfterKillExpires", 100, nextRequestIndex);
+    bool acceptedAfterKillExpires = false;
     while (!acceptedAfterKillExpires && PAL::getMonotonicTimeMs() < expiryDeadline)
     {
         killedLogger->LogEvent("acceptedAfterKillExpires");
         LogManager::UploadNow();
-        acceptedAfterKillExpires = waitForEvent("acceptedAfterKillExpires", 100, nextRequestIndex);
-    }
-    if (!acceptedAfterKillExpires)
-    {
         acceptedAfterKillExpires = waitForEvent("acceptedAfterKillExpires", 100, nextRequestIndex);
     }
     EXPECT_TRUE(acceptedAfterKillExpires);

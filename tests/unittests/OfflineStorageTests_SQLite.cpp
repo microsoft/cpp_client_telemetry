@@ -312,12 +312,12 @@ TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
     ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     TestRecordConsumer consumer;
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 60000, EventLatency_Unspecified, 1), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 5000, EventLatency_Unspecified, 1), true);
     ASSERT_THAT(consumer.records.size(), 1);
     consumer.records.clear();
 
     // The first record remains reserved, so the second call returns the other record.
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 60000, EventLatency_Unspecified, 1), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 5000, EventLatency_Unspecified, 1), true);
     ASSERT_THAT(consumer.records.size(), 1);
     consumer.records.clear();
 

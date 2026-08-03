@@ -186,6 +186,11 @@ namespace MAT_NS_BEGIN {
         }
 
     private:
+        // Precondition: seconds > 0. All call sites enforce this (handleResponse
+        // and addToken both guard with `timeinSecs > 0` / `timeInSeconds > 0`).
+        // Passing a non-positive value is UB: a negative durationMs makes the
+        // overflow check `now > maxTime - durationMs` wrap (signed overflow), so
+        // the result is unpredictable — do not relax the call-site guards.
         int64_t expiryFromNow(int64_t seconds) const
         {
             constexpr int64_t millisecondsPerSecond = 1000;
