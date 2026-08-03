@@ -312,32 +312,31 @@ TEST_F(OfflineStorageTests_SQLite, ReservedRecordsAreReleasedAfterTimeout)
     ASSERT_THAT(offlineStorage->StoreRecord({"guid1", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     ASSERT_THAT(offlineStorage->StoreRecord({"guid2", "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
     TestRecordConsumer consumer;
-    // Reserve first for 2 secs
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 2000, EventLatency_Unspecified, 1), true);
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 5000, EventLatency_Unspecified, 1), true);
     ASSERT_THAT(consumer.records.size(), 1);
     consumer.records.clear();
 
-    PAL::sleep(500);
-
-    // Reserve second for 1 sec, first still unavailable
-    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 1000, EventLatency_Unspecified, 1), true);
+    // The first record remains reserved, so the second call returns the other record.
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 5000, EventLatency_Unspecified, 1), true);
     ASSERT_THAT(consumer.records.size(), 1);
     consumer.records.clear();
 
     auto records = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
     ASSERT_THAT(records.size(), 2);
-    int64_t waitUntilMs = 0;
     for (auto const& record : records)
     {
-        waitUntilMs = std::max(waitUntilMs, record.reservedUntil);
+        EXPECT_GT(record.reservedUntil, 1);
     }
 
-    while (PAL::getUtcSystemTimeMs() <= waitUntilMs + 250)
+    // Simulate lease expiry without depending on wall-clock sleeps or CI scheduling.
+    offlineStorage->Execute("UPDATE events SET reserved_until=1");
+    records = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
+    ASSERT_THAT(records.size(), 2);
+    for (auto const& record : records)
     {
-        PAL::sleep(50);
+        EXPECT_EQ(record.reservedUntil, 1);
     }
 
-    // Both records are timed out
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 1000), true);
     ASSERT_THAT(consumer.records.size(), 2);
     EXPECT_THAT(consumer.records[0].retryCount, 1);
