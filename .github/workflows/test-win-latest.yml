@@ -54,3 +54,13 @@ jobs:
     - name: Test ${{ matrix.arch }} ${{ matrix.build }}
       shell: cmd
       run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.build }}
+
+  public-headers:
+    name: Public header gate (MSVC)
+    runs-on: windows-2022
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Compile each public header standalone under /W4 /WX
+      shell: cmd
+      run: tests\headers\check_public_headers.cmd

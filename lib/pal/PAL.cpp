@@ -369,19 +369,32 @@ namespace PAL_NS_BEGIN {
 	std::transform(uuidStr.begin(), uuidStr.end(), uuidStr.begin(), ::tolower);
         return uuidStr;
 #else
-        static std::once_flag flag;
-        std::call_once(flag, [](){
-            auto now = std::chrono::high_resolution_clock::now();
-            auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
-            std::srand(static_cast<unsigned int>(std::time(0) ^ nanos));
-        });
+        // Use std::random_device -- a non-deterministic, CSPRNG-backed source on
+        // the platforms we target (glibc/bionic/libc++ draw from getrandom or
+        // /dev/urandom) -- instead of std::rand()/srand(time(0)), so the session
+        // and event identifiers built from it are not predictable. It is
+        // thread_local so the backing source is opened once per thread rather than
+        // on every call (generateUuidString is on the event logging hot path), and
+        // the 128 bits are drawn with four operator() calls instead of eleven
+        // (random_device::max() is guaranteed to span the full unsigned int range).
+        thread_local std::random_device rd;
 
         GUID_t uuid;
-        uuid.Data1 = (static_cast<uint16_t>(std::rand()) << 16) | static_cast<uint16_t>(std::rand());
-        uuid.Data2 = static_cast<uint16_t>(std::rand());
-        uuid.Data3 = static_cast<uint16_t>(std::rand());
-        for (size_t i = 0; i < sizeof(uuid.Data4); i++)
-            uuid.Data4[i] = static_cast<uint8_t>(std::rand());
+        const uint32_t r0 = rd();
+        const uint32_t r1 = rd();
+        const uint32_t r2 = rd();
+        const uint32_t r3 = rd();
+        uuid.Data1 = r0;
+        uuid.Data2 = static_cast<uint16_t>(r1);
+        uuid.Data3 = static_cast<uint16_t>(r1 >> 16);
+        uuid.Data4[0] = static_cast<uint8_t>(r2);
+        uuid.Data4[1] = static_cast<uint8_t>(r2 >> 8);
+        uuid.Data4[2] = static_cast<uint8_t>(r2 >> 16);
+        uuid.Data4[3] = static_cast<uint8_t>(r2 >> 24);
+        uuid.Data4[4] = static_cast<uint8_t>(r3);
+        uuid.Data4[5] = static_cast<uint8_t>(r3 >> 8);
+        uuid.Data4[6] = static_cast<uint8_t>(r3 >> 16);
+        uuid.Data4[7] = static_cast<uint8_t>(r3 >> 24);
 
         // TODO: [MG] - replace this sprintf by more robust GUID to string converter
         char buf[40] = { 0 };

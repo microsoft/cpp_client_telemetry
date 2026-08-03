@@ -14,11 +14,24 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <cstddef>
 
 ///@cond INTERNAL_DOCS
 namespace MAT_NS_BEGIN
 {
     class ILogConfiguration;
+
+    /// <summary>
+    /// SECURITY: upper bound (in bytes) on an HTTP response body that a transport
+    /// will buffer. OneCollector protocol responses are small (status, kill-switch
+    /// tokens, retry-after, small config), so this generous cap never rejects a
+    /// legitimate response, but it stops a hostile or MITM'd collector from driving
+    /// unbounded memory growth by returning an oversized body (a memory-amplification
+    /// DoS of the embedding process). A transport that would exceed it refuses the
+    /// response and reports the request as a network failure so it is retried.
+    /// </summary>
+    static constexpr std::size_t MAX_HTTP_RESPONSE_SIZE = 16u * 1024u * 1024u; // 16 MB
+
     /// <summary>
     /// The HttpHeaders class contains a set of HTTP headers.
     /// </summary>
