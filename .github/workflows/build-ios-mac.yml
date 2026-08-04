@@ -54,7 +54,7 @@ jobs:
     - name: Grant write permissions to /usr/local
       run: |
         sudo chown -R $USER:staff /usr/local
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         submodules: 'true'
       continue-on-error: true
