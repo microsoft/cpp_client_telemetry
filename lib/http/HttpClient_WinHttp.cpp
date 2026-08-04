@@ -89,7 +89,14 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         if (hRequestToClose != nullptr)
         {
             ::WinHttpCloseHandle(hRequestToClose);
-            // async request callback destroys the object
+            // WinHttpCloseHandle waits for any callback to finish. Some
+            // cancellation paths report only HANDLE_CLOSING, so complete the
+            // request here if no callback delivered the terminal result.
+            if (!isCallbackCalled)
+            {
+                m_hRequest = nullptr;
+                onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
+            }
         }
     }
 
@@ -330,14 +337,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         switch (dwInternetStatus)
         {
             case WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING:
-                // HANDLE_CLOSING is usually a trailing callback, but on some
-                // cancellation paths it may be the only terminal signal we get.
-                // If the request has not already completed, finish it here so the
-                // parent map drains and CancelAllRequests() cannot wait forever.
-                if (!self->isCallbackCalled)
-                {
-                    self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-                }
+                // HANDLE_CLOSING may arrive after the wrapper has been erased
+                // and destroyed, so it must not dereference the context.
                 return;
 
             case WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE:
@@ -495,7 +496,10 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             // Only one WinHTTP worker thread may invoke async callback for a given request at any given moment of
             // time. That ensures that isCallbackCalled does not require a lock around it. We unregister the callback
             // here to ensure that no more callbacks are coming for that m_hRequest.
-            ::WinHttpSetStatusCallback(m_hRequest, NULL, WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS, 0);
+            if (m_hRequest != nullptr)
+            {
+                ::WinHttpSetStatusCallback(m_hRequest, NULL, WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS, 0);
+            }
             isCallbackCalled = true;
             m_appCallback->OnHttpResponse(response.release());
             // HttpClient parent is destroying this HttpRequest object by id
