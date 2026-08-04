@@ -16,6 +16,11 @@
 #include <vector>
 #include <string>
 
+#if !defined(_WIN32)
+#include <sys/stat.h>
+#include <cerrno>
+#endif
+
 namespace MAT_NS_BEGIN {
 
     using SQLRecord = std::vector<std::string>;
@@ -299,6 +304,31 @@ namespace MAT_NS_BEGIN {
             }
 
             g_sqlite3Proxy->sqlite3_extended_result_codes(m_db, 1);
+
+            // SECURITY: the offline cache buffers pending telemetry/audit events
+            // (tenant ids, user identifiers, serialized event payloads). SQLite creates
+            // the database file with SQLITE_DEFAULT_FILE_PERMISSIONS -- 0644, i.e.
+            // world-readable -- so restrict it to owner read/write only (0600). This runs
+            // before WAL is enabled: SQLite derives the -wal/-journal permissions from the
+            // main database file (findCreateFileMode), so companions it creates inherit
+            // 0600. A cache created by an older SDK (before this fix) may already have
+            // companion files on disk with the old 0644 mode, so tighten any pre-existing
+            // ones too. POSIX only -- on Windows the Unix mode bits are meaningless (access
+            // is governed by NTFS ACLs). Best-effort: a failure (e.g. a filesystem that
+            // ignores chmod) must not fail the open, and a missing file -- ENOENT, e.g. an
+            // in-memory ":memory:" database, which has no file to secure -- is expected and
+            // silently ignored.
+#if !defined(_WIN32)
+            if (::chmod(filename.c_str(), S_IRUSR | S_IWUSR) != 0 && errno != ENOENT) {
+                LOG_WARN("Could not restrict database file permissions to 0600 (errno %d)", errno);
+            }
+            for (const char* suffix : { "-wal", "-shm", "-journal" }) {
+                std::string companion = filename + suffix;
+                if (::chmod(companion.c_str(), S_IRUSR | S_IWUSR) != 0 && errno != ENOENT) {
+                    LOG_WARN("Could not restrict %s file permissions to 0600 (errno %d)", suffix, errno);
+                }
+            }
+#endif
 
             if (!registerTokenizeFunction()) {
                 shutdown();
