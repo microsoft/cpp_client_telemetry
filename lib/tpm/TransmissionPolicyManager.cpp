@@ -532,7 +532,7 @@ namespace MAT_NS_BEGIN {
         return m_activeUploads.size();
     }
 
-    bool TransmissionPolicyManager::isUploadInProgress() const noexcept
+    bool TransmissionPolicyManager::isUploadInProgress() const
     {
         // unfinished uploads that haven't processed callbacks or pending upload task
         LOCKGUARD(m_scheduledUploadMutex);

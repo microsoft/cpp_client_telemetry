@@ -158,7 +158,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadFailed{ this, &TransmissionPolicyManager::handleEventsUploadFailed };
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadAborted{ this, &TransmissionPolicyManager::handleEventsUploadAborted };
 
-        virtual bool isUploadInProgress() const noexcept;
+        virtual bool isUploadInProgress() const;
 
         virtual bool isPaused() const noexcept;
     };

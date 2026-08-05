@@ -48,6 +48,7 @@ namespace PAL_NS_BEGIN {
         Event                 m_event;
         MAT::Task*            m_itemInProgress;
         bool                  m_shuttingDown = false;
+        std::mutex            m_joinLock;
         // Set when the last reference is released by a task running on this worker
         // thread, so threadFunc performs the final delete after its loop breaks
         // (see onLastReferenceReleased() and WorkerThreadFactory::Create()).
@@ -88,28 +89,35 @@ namespace PAL_NS_BEGIN {
     public:
         void Join() final
         {
+            LOCKGUARD(m_joinLock);
             std::thread::id this_id = std::this_thread::get_id();
+            std::thread threadToJoin;
             bool joined = false;
             {
                 LOCKGUARD(m_lock);
                 enqueueShutdownItemLocked();
-            }
-            try {
                 if (!m_hThread.joinable()) {
                     return;
                 }
-                if (m_hThread.get_id() != this_id) {
-                    m_hThread.join();
-                    joined = true;
-                } else {
+                if (m_hThread.get_id() == this_id) {
                     m_hThread.detach();
+                } else {
+                    threadToJoin = std::move(m_hThread);
+                }
+            }
+            try {
+                if (threadToJoin.joinable()) {
+                    threadToJoin.join();
+                    joined = true;
                 }
             }
             catch (const std::system_error& e) {
                 LOG_ERROR("Thread join/detach failed: [%d] %s", e.code().value(), e.what());
+                std::terminate();
             }
             catch (const std::exception& e) {
                 LOG_ERROR("Thread join/detach failed: %s", e.what());
+                std::terminate();
             }
 
             // Log pending work in both paths so operators can see if

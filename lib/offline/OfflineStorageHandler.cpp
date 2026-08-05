@@ -213,64 +213,68 @@ namespace MAT_NS_BEGIN {
             m_flushPending = false;
             return;
         }
-        // Flush could be executed from context of worker thread, as well as from TPM and
-        // after HTTP callback. Make sure it is atomic / thread-safe.
-        LOCKGUARD(m_flushLock);
-
-        // If item isn't scheduled yet, it gets canceled, so that we don't do two flushes.
-        // If we are running that item right now (our thread), then nothing happens other
-        // than the handle reporting nullptr once that task finishes.
-        m_flushHandle.Cancel();
-
-        size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
-        if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
+        try
         {
-            // This will block on and then take a lock for the duration of this move, and
-            // StoreRecord() will then block until the move completes.
-            auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-            std::vector<StorageRecordId> ids;
+            // Flush could be executed from context of worker thread, as well as from TPM and
+            // after HTTP callback. Make sure it is atomic / thread-safe.
+            LOCKGUARD(m_flushLock);
 
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("BEGIN");
+            // If item isn't scheduled yet, it gets canceled, so that we don't do two flushes.
+            // If we are running that item right now (our thread), then nothing happens other
+            // than the handle reporting nullptr once that task finishes.
+            m_flushHandle.Cancel();
 
-            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
-
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("END");
-
-            // Delete records from reserved on flush
-            HttpHeaders dummy;
-            bool fromMemory = true;
-            m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
-
-            // Notify event listener about the records cached
-            OnStorageRecordsSaved(totalSaved);
-
-            if (m_offlineStorageMemory->GetSize() > dbSizeBeforeFlush)
+            size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
+            if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
             {
-                // We managed to accumulate as much data as we had before the flush,
-                // means we cannot keep up flushing at the same speed as incoming
-                // obviously because the disk is slower than ram.
-                LOG_WARN("Data is arriving too fast!");
+                // This will block on and then take a lock for the duration of this move, and
+                // StoreRecord() will then block until the move completes.
+                auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
+                std::vector<StorageRecordId> ids;
+
+                // TODO: [MG] - consider running the batch in transaction
+                //            if (sqlite)
+                //                sqlite->Execute("BEGIN");
+
+                size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
+
+                // TODO: [MG] - consider running the batch in transaction
+                //            if (sqlite)
+                //                sqlite->Execute("END");
+
+                // Delete records from reserved on flush
+                HttpHeaders dummy;
+                bool fromMemory = true;
+                m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
+
+                // Notify event listener about the records cached
+                OnStorageRecordsSaved(totalSaved);
+
+                if (m_offlineStorageMemory->GetSize() > dbSizeBeforeFlush)
+                {
+                    // We managed to accumulate as much data as we had before the flush,
+                    // means we cannot keep up flushing at the same speed as incoming
+                    // obviously because the disk is slower than ram.
+                    LOG_WARN("Data is arriving too fast!");
+                }
             }
-        }
 
-        // Checkpoint DB
-        if (m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH]) 
+            // Checkpoint DB
+            if (m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH])
+            {
+                m_offlineStorageDisk->Flush();
+            }
+
+            m_isStorageFullNotificationSend = false;
+            m_flushComplete.post();
+            m_flushPending = false;
+        }
+        catch (...)
         {
-            m_offlineStorageDisk->Flush();
+            m_flushComplete.post();
+            m_flushPending = false;
+            throw;
         }
-
-        m_isStorageFullNotificationSend = false;
-
-        // Flush is done, notify the waiters
-        m_flushComplete.post();
-        m_flushPending = false;
-        // activityGuard's destructor calls EndActivity() on every exit path
-        // above, including if StoreRecords()/checkpoint Flush()/
-        // OnStorageRecordsSaved() throws.
     }
 
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
