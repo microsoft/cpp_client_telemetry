@@ -501,9 +501,14 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 ::WinHttpSetStatusCallback(m_hRequest, NULL, WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS, 0);
             }
             isCallbackCalled = true;
-            m_appCallback->OnHttpResponse(response.release());
-            // HttpClient parent is destroying this HttpRequest object by id
-            m_parent.erase(m_id);
+            auto callback = m_appCallback;
+            auto requestId = m_id;
+            auto keepAlive = shared_from_this();
+            // Remove the request before entering application code. The callback
+            // can synchronously tear down the client and destroy this wrapper.
+            m_parent.erase(requestId);
+            callback->OnHttpResponse(response.release());
+            keepAlive.reset();
         }
     }
 
