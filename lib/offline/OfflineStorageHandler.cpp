@@ -271,6 +271,7 @@ namespace MAT_NS_BEGIN {
         }
         catch (...)
         {
+            LOCKGUARD(m_flushLock);
             m_flushComplete.post();
             m_flushPending = false;
             throw;
