@@ -99,6 +99,10 @@ if(APPLE)
         OUTPUT_VARIABLE CMAKE_OSX_SYSROOT
         ERROR_QUIET
         OUTPUT_STRIP_TRAILING_WHITESPACE)
+      if(NOT CMAKE_OSX_SYSROOT)
+        message(FATAL_ERROR "Unable to resolve the Apple SDK sysroot for '${IOS_PLATFORM}'")
+      endif()
+      set(CMAKE_OSX_SYSROOT "${CMAKE_OSX_SYSROOT}" CACHE PATH "Apple SDK sysroot" FORCE)
       message(STATUS "CMAKE_OSX_SYSROOT       ${CMAKE_OSX_SYSROOT}")
       message(STATUS "ARCHITECTURE:           ${CMAKE_SYSTEM_PROCESSOR}")
       message(STATUS "PLATFORM:               ${IOS_PLATFORM}")
