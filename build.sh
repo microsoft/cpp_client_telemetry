@@ -32,6 +32,7 @@ export PATH=/usr/local/bin:$PATH
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
+. "$DIR/tools/build-common.sh"
 
 export NOROOT=$NOROOT
 
@@ -123,11 +124,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 if [[ "$CLEAN" == "true" ]]; then
-  echo "Cleaning previous build artifacts"
-  rm -f CMakeCache.txt *.cmake
-  rm -rf out
-  rm -rf .buildtools
-  # make clean
+  matsdk_clean_build_outputs "build.sh"
 fi
 
 echo "CMAKE_OPTS from caller: $CMAKE_OPTS"
@@ -142,29 +139,33 @@ default_mac_os_target=$([ "$MAC_ARCH" == "arm64" ] && echo "11.10" || echo "10.1
 echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 
 # Install build tools and recent sqlite3
-FILE=.buildtools
+BUILD_TOOLS_MARKER=.buildtools
 OS_NAME=`uname -a`
 
-if [ ! -f $FILE ]; then
+if [ ! -f "$BUILD_TOOLS_MARKER" ]; then
+  buildtools_cmd=()
   case "$OS_NAME" in
-    *Darwin*) CMD="tools/setup-buildtools-apple.sh $MAC_ARCH" ;;
-    *Linux*)  CMD="tools/setup-buildtools.sh" ;;
-    *)        CMD=""; echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." ;;
+    *Darwin*) buildtools_cmd=(tools/setup-buildtools-apple.sh "$MAC_ARCH") ;;
+    *Linux*)  buildtools_cmd=(tools/setup-buildtools.sh) ;;
+    *)        echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." ;;
   esac
 
-  [[ -n "$CMD" ]] && { [[ -z "$NOROOT" ]] && sudo $CMD || echo "No root: skipping build tools installation."; }
-  echo > $FILE
+  if [[ ${#buildtools_cmd[@]} -gt 0 ]]; then
+    if [[ -z "$NOROOT" ]]; then
+      matsdk_try_buildtools_once "$BUILD_TOOLS_MARKER" \
+        "No root: skipping build tools installation." \
+        sudo "${buildtools_cmd[@]}"
+    else
+      echo "No root: skipping build tools installation."
+      matsdk_mark_buildtools_checked "$BUILD_TOOLS_MARKER"
+    fi
+  else
+    matsdk_mark_buildtools_checked "$BUILD_TOOLS_MARKER"
+  fi
 fi
 
-if [ -f /usr/bin/gcc ]; then
-  echo "gcc   version: `gcc --version`"
-fi
-
-if [ -f /usr/bin/clang ]; then
-  echo "clang version: `clang --version`"
-fi
-
-cmake -P "$DIR/cmake/MatsdkRequirePresetSupport.cmake"
+matsdk_print_compiler_versions
+matsdk_require_cmake_preset_support
 
 # Skip Version.hpp changes
 # git update-index --skip-worktree lib/include/public/Version.hpp
@@ -198,19 +199,11 @@ cmake_args+=(
 if [[ -n "$CUSTOM_CMAKE_CXX_FLAG" ]]; then
   cmake_args+=("-DCMAKE_CXX_FLAGS=$CUSTOM_CMAKE_CXX_FLAG")
 fi
-if [[ -n "$CMAKE_OPTS" ]]; then
-  # Preserve existing support for callers passing multiple quoted -D arguments.
-  eval "extra_cmake_args=($CMAKE_OPTS)"
-  cmake_args+=("${extra_cmake_args[@]}")
-fi
-printf ' %q' "${cmake_args[@]}"
-printf '\n'
-"${cmake_args[@]}"
-
-cmake --build --preset "$PRESET"
+matsdk_append_cmake_opts_to_cmake_args
+matsdk_run_logged_command "${cmake_args[@]}"
 
 rm -f out/*.deb out/*.rpm
-cmake --build --preset "$PRESET" --target package
+matsdk_build_and_package_preset "$PRESET"
 cd out
 
 # Install newly generated package

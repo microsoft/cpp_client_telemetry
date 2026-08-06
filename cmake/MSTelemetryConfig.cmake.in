@@ -1,39 +1,29 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
+include("${CMAKE_CURRENT_LIST_DIR}/MatsdkDependencyTargets.cmake")
 
 # Recreate dependencies only when a static package needs them at the final link.
 if(@MATSDK_CONFIG_STATIC_PACKAGE@)
-  if("@MATSDK_SQLITE_PROVIDER_RESOLVED@" STREQUAL "SYSTEM")
-    if(@MATSDK_BUILD_PLATFORM_APPLE@)
-      include("${CMAKE_CURRENT_LIST_DIR}/MatsdkAppleSystemDeps.cmake")
-      matsdk_add_apple_system_library(SQLite::SQLite3 sqlite3)
-    else()
-      if(NOT TARGET SQLite::SQLite3)
-        find_dependency(SQLite3)
-      endif()
-    endif()
-    if(NOT TARGET MSTelemetry::sqlite_dependency)
-      add_library(MSTelemetry::sqlite_dependency INTERFACE IMPORTED GLOBAL)
-      set_property(TARGET MSTelemetry::sqlite_dependency PROPERTY
-        INTERFACE_LINK_LIBRARIES SQLite::SQLite3)
-    endif()
+  if(@MATSDK_BUILD_PLATFORM_APPLE@)
+    set(_matsdk_package_sqlite_args APPLE_SYSTEM APPLE_LIBRARY sqlite3)
+    set(_matsdk_package_zlib_args APPLE_SYSTEM APPLE_LIBRARY z)
+  else()
+    set(_matsdk_package_sqlite_args)
+    set(_matsdk_package_zlib_args)
   endif()
-  if("@MATSDK_ZLIB_PROVIDER_RESOLVED@" STREQUAL "SYSTEM")
-    if(@MATSDK_BUILD_PLATFORM_APPLE@)
-      include("${CMAKE_CURRENT_LIST_DIR}/MatsdkAppleSystemDeps.cmake")
-      matsdk_add_apple_system_library(ZLIB::ZLIB z)
-    else()
-      if(NOT TARGET ZLIB::ZLIB)
-        find_dependency(ZLIB)
-      endif()
-    endif()
-    if(NOT TARGET MSTelemetry::zlib_dependency)
-      add_library(MSTelemetry::zlib_dependency INTERFACE IMPORTED GLOBAL)
-      set_property(TARGET MSTelemetry::zlib_dependency PROPERTY
-        INTERFACE_LINK_LIBRARIES ZLIB::ZLIB)
-    endif()
-  endif()
+  matsdk_add_package_system_dependency(
+    MSTelemetry::sqlite_dependency
+    SQLite::SQLite3
+    "@MATSDK_SQLITE_PROVIDER_RESOLVED@"
+    SQLite3
+    ${_matsdk_package_sqlite_args})
+  matsdk_add_package_system_dependency(
+    MSTelemetry::zlib_dependency
+    ZLIB::ZLIB
+    "@MATSDK_ZLIB_PROVIDER_RESOLVED@"
+    ZLIB
+    ${_matsdk_package_zlib_args})
 endif()
 
 if("@MATSDK_ANDROID_HTTP_CLIENT_RESOLVED@" STREQUAL "")
@@ -101,16 +91,13 @@ if(@MATSDK_CONFIG_STATIC_PACKAGE@ AND @MATSDK_NEEDS_CURL@)
       find_dependency(CURL)
     endif()
   endif()
-  if(NOT TARGET MSTelemetry::curl_dependency)
-    add_library(MSTelemetry::curl_dependency INTERFACE IMPORTED GLOBAL)
-    if(@MATSDK_CURL_FETCHED@)
-      set(_matsdk_curl_dependency_target MSTelemetry::curl_archive)
-    else()
-      set(_matsdk_curl_dependency_target CURL::libcurl)
-    endif()
-    set_property(TARGET MSTelemetry::curl_dependency PROPERTY
-      INTERFACE_LINK_LIBRARIES "${_matsdk_curl_dependency_target}")
+  if(@MATSDK_CURL_FETCHED@)
+    set(_matsdk_curl_dependency_target MSTelemetry::curl_archive)
+  else()
+    set(_matsdk_curl_dependency_target CURL::libcurl)
   endif()
+  matsdk_add_interface_dependency(
+    MSTelemetry::curl_dependency "${_matsdk_curl_dependency_target}")
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/MSTelemetryTargets.cmake")

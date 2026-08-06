@@ -51,6 +51,9 @@ set(SRCS
   UtilsTests.cpp
   ZlibUtilsTests.cpp
 )
+if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
+  list(REMOVE_ITEM SRCS OfflineStorageTests_SQLite.cpp)
+endif()
 set(MATSDK_UNIT_TEST_DEFINITIONS)
 
 set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
@@ -122,10 +125,12 @@ endif()
 
 target_link_libraries(UnitTests PRIVATE
   mat
-  SQLite::SQLite3
   ZLIB::ZLIB
   gtest
   gmock)
+if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
+  target_link_libraries(UnitTests PRIVATE SQLite::SQLite3)
+endif()
 if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(UnitTests PRIVATE nlohmann_json::nlohmann_json)
 endif()

@@ -4,6 +4,7 @@ set -e
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
+. "$DIR/tools/build-common.sh"
 
 #  The expected iOS build invocation is:
 #    build-ios.sh [clean] [release|debug] ${ARCH} ${PLATFORM}
@@ -12,11 +13,7 @@ cd "$DIR"
 #    PLATFORM = iphoneos|iphonesimulator|xros|xrsimulator
 
 if [ "$1" == "clean" ]; then
-  echo "build-ios.sh: cleaning previous build artifacts"
-  rm -f CMakeCache.txt *.cmake
-  rm -rf out
-  rm -rf .buildtools
-#  make clean
+  matsdk_clean_build_outputs "build-ios.sh"
   shift
 fi
 
@@ -73,22 +70,11 @@ fi
 echo "deployment target = $DEPLOYMENT_TARGET"
 
 # Install build tools and recent sqlite3
-FILE=".buildtools"
-if [ ! -f $FILE ]; then
-  tools/setup-buildtools-apple.sh ios
-  # Assume that the build tools have been successfully installed
-  echo > $FILE
-fi
+BUILD_TOOLS_MARKER=".buildtools"
+matsdk_install_buildtools_once "$BUILD_TOOLS_MARKER" tools/setup-buildtools-apple.sh ios
 
-if [ -f /usr/bin/gcc ]; then
-  echo "gcc   version: `gcc --version`"
-fi
-
-if [ -f /usr/bin/clang ]; then
-  echo "clang version: `clang --version`"
-fi
-
-cmake -P "$DIR/cmake/MatsdkRequirePresetSupport.cmake"
+matsdk_print_compiler_versions
+matsdk_require_cmake_preset_support
 
 CPACK_GENERATOR=TGZ
 case "$IOS_PLAT" in
@@ -106,13 +92,7 @@ cmake_args=(
   "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
   "-DCPACK_GENERATOR=$CPACK_GENERATOR"
 )
-if [ -n "$CMAKE_OPTS" ]; then
-  eval "extra_cmake_args=($CMAKE_OPTS)"
-  cmake_args+=("${extra_cmake_args[@]}")
-fi
-printf ' %q' "${cmake_args[@]}"
-printf '\n'
-"${cmake_args[@]}"
+matsdk_append_cmake_opts_to_cmake_args
+matsdk_run_logged_command "${cmake_args[@]}"
 
-cmake --build --preset "$PRESET"
-cmake --build --preset "$PRESET" --target package
+matsdk_build_and_package_preset "$PRESET"

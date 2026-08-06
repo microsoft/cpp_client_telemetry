@@ -1,5 +1,16 @@
 include(FetchContent)
 
+function(matsdk_configure_fetched_static_target target_name)
+  if(NOT TARGET "${target_name}")
+    message(FATAL_ERROR "Fetched dependency target not found: ${target_name}")
+  endif()
+  set_target_properties("${target_name}" PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden)
+  target_compile_options("${target_name}" PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang>:-ffunction-sections;-fdata-sections>)
+endfunction()
+
 function(matsdk_fetch_curl out_target)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR
@@ -85,14 +96,7 @@ function(matsdk_fetch_curl out_target)
     FetchContent_MakeAvailable(matsdk_mbedtls)
 
     foreach(target mbedtls mbedx509 mbedcrypto)
-      if(NOT TARGET ${target})
-        message(FATAL_ERROR "Embedded mbedTLS dependency target not found: ${target}")
-      endif()
-      set_target_properties(${target} PROPERTIES
-        POSITION_INDEPENDENT_CODE ON
-        C_VISIBILITY_PRESET hidden)
-      target_compile_options(${target} PRIVATE
-        $<$<COMPILE_LANG_AND_ID:C,GNU,Clang>:-ffunction-sections;-fdata-sections>)
+      matsdk_configure_fetched_static_target("${target}")
     endforeach()
 
     set(MBEDTLS_INCLUDE_DIR "${matsdk_mbedtls_SOURCE_DIR}/include")
@@ -115,11 +119,7 @@ function(matsdk_fetch_curl out_target)
     message(FATAL_ERROR "The embedded static CURL::libcurl target was not created.")
   endif()
 
-  set_target_properties(libcurl_static PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    C_VISIBILITY_PRESET hidden)
-  target_compile_options(libcurl_static PRIVATE
-    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang>:-ffunction-sections;-fdata-sections>)
+  matsdk_configure_fetched_static_target(libcurl_static)
 
   set(_matsdk_fetched_curl_targets libcurl_static)
   if(MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS")

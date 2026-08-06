@@ -623,9 +623,8 @@ if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
 elseif(MATSDK_BUNDLE_SQLITE)
   target_link_libraries(mat PRIVATE sqlite3_bundled)
 else()
-  add_library(matsdk_sqlite_dependency INTERFACE IMPORTED GLOBAL)
-  set_property(TARGET matsdk_sqlite_dependency PROPERTY
-    INTERFACE_LINK_LIBRARIES SQLite::SQLite3)
+  matsdk_add_interface_dependency(
+    matsdk_sqlite_dependency SQLite::SQLite3)
   target_link_libraries(mat PRIVATE
     "$<BUILD_INTERFACE:matsdk_sqlite_dependency>"
     "$<INSTALL_INTERFACE:MSTelemetry::sqlite_dependency>")
@@ -633,25 +632,22 @@ endif()
 if(MATSDK_BUNDLE_ZLIB)
   target_link_libraries(mat PRIVATE zlib_bundled)
 else()
-  add_library(matsdk_zlib_dependency INTERFACE IMPORTED GLOBAL)
-  set_property(TARGET matsdk_zlib_dependency PROPERTY
-    INTERFACE_LINK_LIBRARIES ZLIB::ZLIB)
+  matsdk_add_interface_dependency(
+    matsdk_zlib_dependency ZLIB::ZLIB)
   target_link_libraries(mat PRIVATE
     "$<BUILD_INTERFACE:matsdk_zlib_dependency>"
     "$<INSTALL_INTERFACE:MSTelemetry::zlib_dependency>")
 endif()
 if(MATSDK_CURL_LINK_TARGET)
-  add_library(matsdk_curl_dependency INTERFACE IMPORTED GLOBAL)
-  set_property(TARGET matsdk_curl_dependency PROPERTY
-    INTERFACE_LINK_LIBRARIES ${MATSDK_CURL_LINK_TARGET})
+  matsdk_add_interface_dependency(
+    matsdk_curl_dependency ${MATSDK_CURL_LINK_TARGET})
   target_link_libraries(mat PRIVATE
     "$<BUILD_INTERFACE:matsdk_curl_dependency>"
     "$<INSTALL_INTERFACE:MSTelemetry::curl_dependency>")
 endif()
 if(MATSDK_USES_NLOHMANN_TARGET)
-  add_library(matsdk_nlohmann_dependency INTERFACE IMPORTED GLOBAL)
-  set_property(TARGET matsdk_nlohmann_dependency PROPERTY
-    INTERFACE_LINK_LIBRARIES nlohmann_json::nlohmann_json)
+  matsdk_add_interface_dependency(
+    matsdk_nlohmann_dependency nlohmann_json::nlohmann_json)
   target_link_libraries(mat PRIVATE
     "$<BUILD_INTERFACE:matsdk_nlohmann_dependency>")
 endif()
@@ -756,6 +752,7 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfig.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
   "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MatsdkAppleSystemDeps.cmake"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MatsdkDependencyTargets.cmake"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
 )
 
