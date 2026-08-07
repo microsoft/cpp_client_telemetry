@@ -10,7 +10,7 @@ function(matsdk_add_interface_dependency target_name)
   if(NOT TARGET "${target_name}")
     add_library("${target_name}" INTERFACE IMPORTED GLOBAL)
   endif()
-  set_property(TARGET "${target_name}" PROPERTY
+  set_property(TARGET "${target_name}" APPEND PROPERTY
     INTERFACE_LINK_LIBRARIES "${ARGN}")
 endfunction()
 
