@@ -87,7 +87,7 @@ else()
     $<$<NOT:$<CONFIG:Debug>>:-Os>
     $<$<NOT:$<CONFIG:Debug>>:-fmerge-all-constants>
     -ffunction-sections
-    $<$<NOT:$<CXX_COMPILER_ID:AppleClang>>:-fdata-sections>)
+    $<$<CXX_COMPILER_ID:GNU,Clang>:-fdata-sections>)
   if(NOT WIN32)
     target_compile_options(matsdk_build_options INTERFACE
       -fvisibility=hidden
