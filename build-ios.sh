@@ -57,7 +57,7 @@ if [ "$APPLE_PLATFORM" == "iphoneos" ] || [ "$APPLE_PLATFORM" == "iphonesimulato
   SYS_NAME="iOS"
   DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
   if [ -z "$DEPLOYMENT_TARGET" ]; then
-    DEPLOYMENT_TARGET="12.0"
+    DEPLOYMENT_TARGET="13.0"
   fi
 elif [ "$APPLE_PLATFORM" == "xros" ] || [ "$APPLE_PLATFORM" == "xrsimulator" ]; then
   SYS_NAME="visionOS"
