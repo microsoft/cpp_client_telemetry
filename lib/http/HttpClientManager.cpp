@@ -196,37 +196,16 @@ namespace MAT_NS_BEGIN {
 
     void HttpClientManager::cancelAllRequests(bool bestEffort)
     {
-        // On clients that opt into bounded cancellation (notably synchronous-response
-        // Windows transports), the transport's CancelAllRequests() is where
-        // cancellation actually blocks, so pass the best-effort deadline down to
-        // bound it. Older clients fall back to per-request async cancel; the
-        // manager-level drain below is the bound for those async-handler paths. A
-        // zero timeout means "drain fully".
+        // Use the transport-specific bounded path when available; older clients
+        // fall back to cancelling tracked requests individually.
         const auto cancelStart = std::chrono::steady_clock::now();
         cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
 
-        // Drain in-flight callbacks via a condition variable signaled from
-        // onHttpResponse -- never a busy/poll loop, which burned 100% CPU while
-        // holding the LogManager lock.
+        // Drain callbacks through the condition variable signaled by onHttpResponse.
         std::unique_lock<std::recursive_mutex> lock(m_httpCallbacksMtx);
         if (bestEffort)
         {
-            // Pause (and similar) must not block the caller indefinitely -- it may
-            // hold the LogManager lock (the observed spindump was PauseTransmission).
-            // The manager is NOT being destroyed here, so outstanding callbacks remain
-            // valid and drain later; cap the wait as a safety valve.
-            //
-            // This bounds the drain of m_httpCallbacks, which is the blocking region on
-            // the async-handler and old-style-client fallback paths. On Windows
-            // (USE_SYNC_HTTPRESPONSE_HANDLER), bounded-capability clients drain
-            // m_httpCallbacks synchronously inside the transport cancel call above, so
-            // this wait is usually already satisfied; the real blocking there is the
-            // transport-level wait (WinInet condition-variable wait, WinRt poll), which
-            // is bounded by the same best-effort deadline passed into the capability.
-            //
-            // Treat m_cancelDrainTimeout as the total budget for the pause: subtract the
-            // time already spent in the transport cancel so the whole path holds the
-            // LogManager lock for at most ~m_cancelDrainTimeout, not up to 2x it.
+            // Keep pause bounded, including time spent in the transport cancel.
             const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - cancelStart);
             const auto remaining = (elapsed < m_cancelDrainTimeout)
@@ -240,11 +219,7 @@ namespace MAT_NS_BEGIN {
         }
         else
         {
-            // Shutdown/cleanup: this is the lifetime barrier before state the
-            // callbacks reference is destroyed, so drain fully. The CV keeps it
-            // efficient (no CPU spin) and it returns as soon as the last callback is
-            // handled -- a stalled drain here indicates the caller stopped the task
-            // dispatcher before cancelling, which it must not do.
+            // Shutdown/cleanup is the lifetime barrier for callback state, so drain fully.
             m_httpCallbacksCV.wait(lock, [this] { return m_httpCallbacks.empty(); });
         }
     }

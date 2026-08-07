@@ -30,12 +30,8 @@ class HttpClientManager
 
         virtual ~HttpClientManager() noexcept;
 
-        // Cancel in-flight requests and drain their callbacks. bestEffort=false (the
-        // default, used by shutdown/cleanup) drains fully -- it is the lifetime
-        // barrier before state the callbacks reference is destroyed. bestEffort=true
-        // (used by pause) caps the wait so it cannot block a caller that holds the
-        // LogManager lock; the manager is not being destroyed, so outstanding
-        // callbacks stay valid and drain later.
+        // Cancel in-flight requests. Shutdown drains fully; pause uses a bounded,
+        // best-effort drain because it may run under the LogManager lock.
         void cancelAllRequests(bool bestEffort = false);
 
         size_t requestCount() const
