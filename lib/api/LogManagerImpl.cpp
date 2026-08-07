@@ -978,19 +978,30 @@ namespace MAT_NS_BEGIN
         return true;
     }
 
-    void LogManagerImpl::EndActivity()
+    void LogManagerImpl::EndActivity() noexcept
     {
-        std::unique_lock<std::mutex> lock(m_pause_mutex);
-        if (m_pause_active_count == 0) {
-            return;
+        try
+        {
+            std::unique_lock<std::mutex> lock(m_pause_mutex);
+            if (m_pause_active_count == 0) {
+                return;
+            }
+            m_pause_active_count -= 1;
+            if (m_pause_active_count > 0) {
+                return;
+            }
+            if (m_pause_state == PauseState::Pausing) {
+                m_pause_state = PauseState::Paused;
+                m_pause_cv.notify_all();
+            }
         }
-        m_pause_active_count -= 1;
-        if (m_pause_active_count > 0) {
-            return;
+        catch (const std::exception& e)
+        {
+            std::fprintf(stderr, "Failed to end telemetry activity: %s\n", e.what());
         }
-        if (m_pause_state == PauseState::Pausing) {
-            m_pause_state = PauseState::Paused;
-            m_pause_cv.notify_all();
+        catch (...)
+        {
+            std::fputs("Failed to end telemetry activity\n", stderr);
         }
     }
 }

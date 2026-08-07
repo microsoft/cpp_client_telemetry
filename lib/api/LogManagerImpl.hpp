@@ -306,7 +306,7 @@ namespace MAT_NS_BEGIN
         virtual void ResumeActivity() override;
         virtual void WaitPause() override;
         virtual bool StartActivity() override;
-        virtual void EndActivity() override;
+        virtual void EndActivity() noexcept override;
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();
