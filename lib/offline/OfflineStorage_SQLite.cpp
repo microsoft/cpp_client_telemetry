@@ -347,14 +347,27 @@ namespace MAT_NS_BEGIN {
                 return 0;
             }
 #endif
-            for (auto const& r : records) {
-                if (insertRecordUnsafe(r)) {
-                    addedSize += r.id.size() + r.tenantToken.size() + r.blob.size();
+            try
+            {
+                for (auto const& r : records) {
+                    if (insertRecordUnsafe(r)) {
+                        addedSize += r.id.size() + r.tenantToken.size() + r.blob.size();
+                    }
+                    else {
+                        allInserted = false;
+                        break;
+                    }
                 }
-                else {
-                    allInserted = false;
-                    break;
-                }
+            }
+            catch (...)
+            {
+#ifdef ENABLE_LOCKING
+                // DbTransaction commits on destruction by default for legacy
+                // callers. An exception during a batch must explicitly roll
+                // back so Flush can safely requeue the entire batch.
+                transaction.markForRollback();
+#endif
+                throw;
             }
 
 #ifdef ENABLE_LOCKING
