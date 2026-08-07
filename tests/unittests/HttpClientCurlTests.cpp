@@ -66,6 +66,54 @@ TEST(HttpClientCurlOperationTests, SelectsHttp2OnlyWhenRuntimeSupportsIt)
     EXPECT_EQ(CurlHttpOperation::GetPreferredHttpVersion(), expected);
 }
 
+class HttpClientCurlHeaderTests : public ::testing::Test,
+                                  public HttpServer::Callback
+{
+protected:
+    HttpServer m_server;
+    std::string m_url;
+
+    void SetUp() override
+    {
+        const int port = m_server.addListeningPort(0);
+        std::ostringstream address;
+        address << "127.0.0.1:" << port;
+        m_url = "http://" + address.str() + "/headers/";
+        m_server.setServerName(address.str());
+        m_server.addHandler("/headers/", *this);
+        m_server.start();
+    }
+
+    void TearDown() override
+    {
+        m_server.stop();
+    }
+
+    int onHttpRequest(HttpServer::Request const&, HttpServer::Response& response) override
+    {
+        response.headers["X-MAT-Test"] = "header-value";
+        response.content = "body-value";
+        return 200;
+    }
+};
+
+TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
+{
+    const std::map<std::string, std::string> requestHeaders;
+    const std::vector<uint8_t> requestBody;
+    const HttpClient_Curl client;
+    (void)client; // Initialize curl globally before constructing the operation.
+    CurlHttpOperation operation("GET", m_url, nullptr, requestHeaders, requestBody);
+
+    ASSERT_EQ(operation.Send(), 200L);
+    const auto responseHeaders = operation.GetResponseHeaders();
+    const auto responseBody = operation.GetResponseBody();
+
+    ASSERT_EQ(responseHeaders.count("X-MAT-Test"), 1u);
+    EXPECT_EQ(responseHeaders.at("X-MAT-Test"), "header-value");
+    EXPECT_EQ(std::string(responseBody.begin(), responseBody.end()), "body-value");
+}
+
 // --- ILogConfiguration integration ---
 
 TEST(HttpClientCurlConfigTests, LogConfiguration_SslVerify_DefaultIsTrue)

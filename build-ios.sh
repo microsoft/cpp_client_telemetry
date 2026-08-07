@@ -27,41 +27,41 @@ elif [ "$1" == "debug" ]; then
 fi
 
 # Set Architecture: arm64, arm64e or x86_64
-IOS_ARCH=$(/usr/bin/uname -m)
+APPLE_ARCH=$(/usr/bin/uname -m)
 if [ "$1" == "arm64" ]; then
-  IOS_ARCH="arm64"
+  APPLE_ARCH="arm64"
   shift
 elif [ "$1" == "arm64e" ]; then
-  IOS_ARCH="arm64e"
+  APPLE_ARCH="arm64e"
   shift
 elif [ "$1" == "x86_64" ]; then
-  IOS_ARCH="x86_64"
+  APPLE_ARCH="x86_64"
   shift
 fi
 
 # the last param is expected to specify the platform name: iphoneos|iphonesimulator|xros|xrsimulator
 # so if it is non-empty and it is not "device", we take it as a valid platform name
 # otherwise we fall back to old iOS logic which only supported iphoneos|iphonesimulator
-IOS_PLAT="iphonesimulator"
+APPLE_PLATFORM="iphonesimulator"
 if [ -n "$1" ] && [ "$1" != "device" ]; then
-  IOS_PLAT="$1"
+  APPLE_PLATFORM="$1"
 elif [ "$1" == "device" ]; then
-  IOS_PLAT="iphoneos"
+  APPLE_PLATFORM="iphoneos"
 fi
 
-echo "IOS_ARCH = $IOS_ARCH, IOS_PLAT = $IOS_PLAT, BUILD_TYPE = $BUILD_TYPE"
+echo "architecture = $APPLE_ARCH, platform = $APPLE_PLATFORM, build type = $BUILD_TYPE"
 
 DEPLOYMENT_TARGET=""
 
-if [ "$IOS_PLAT" == "iphoneos" ] || [ "$IOS_PLAT" == "iphonesimulator" ]; then
+if [ "$APPLE_PLATFORM" == "iphoneos" ] || [ "$APPLE_PLATFORM" == "iphonesimulator" ]; then
   SYS_NAME="iOS"
-  DEPLOYMENT_TARGET="$IOS_DEPLOYMENT_TARGET"
+  DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
   if [ -z "$DEPLOYMENT_TARGET" ]; then
     DEPLOYMENT_TARGET="12.0"
   fi
-elif [ "$IOS_PLAT" == "xros" ] || [ "$IOS_PLAT" == "xrsimulator" ]; then
+elif [ "$APPLE_PLATFORM" == "xros" ] || [ "$APPLE_PLATFORM" == "xrsimulator" ]; then
   SYS_NAME="visionOS"
-  DEPLOYMENT_TARGET="$XROS_DEPLOYMENT_TARGET"
+  DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
   if [ -z "$DEPLOYMENT_TARGET" ]; then
     DEPLOYMENT_TARGET="1.0"
   fi
@@ -77,7 +77,7 @@ matsdk_print_compiler_versions
 matsdk_require_cmake_preset_support
 
 CPACK_GENERATOR=TGZ
-case "$IOS_PLAT" in
+case "$APPLE_PLATFORM" in
   *simulator) PLATFORM_PRESET="matsdk-ios-simulator" ;;
   *)         PLATFORM_PRESET="matsdk-ios-device" ;;
 esac
@@ -86,8 +86,8 @@ PRESET="${PLATFORM_PRESET}-$(echo "$BUILD_TYPE" | tr '[:upper:]' '[:lower:]')"
 cmake_args=(
   cmake --preset "$PRESET"
   "-DCMAKE_SYSTEM_NAME=$SYS_NAME"
-  "-DCMAKE_OSX_SYSROOT=$IOS_PLAT"
-  "-DCMAKE_OSX_ARCHITECTURES=$IOS_ARCH"
+  "-DCMAKE_OSX_SYSROOT=$APPLE_PLATFORM"
+  "-DCMAKE_OSX_ARCHITECTURES=$APPLE_ARCH"
   "-DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET"
   "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
   "-DCPACK_GENERATOR=$CPACK_GENERATOR"
