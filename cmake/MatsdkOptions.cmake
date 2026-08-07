@@ -1,27 +1,3 @@
-function(matsdk_bool_option canonical legacy description default_value)
-  set(initial_value "${default_value}")
-  set(canonical_predefined OFF)
-  if(DEFINED ${canonical})
-    set(canonical_predefined ON)
-  endif()
-  set(legacy_defined OFF)
-  if(NOT "${legacy}" STREQUAL "")
-    if(DEFINED ${legacy})
-      set(legacy_defined ON)
-      if(NOT canonical_predefined)
-        set(initial_value "${${legacy}}")
-      endif()
-    endif()
-  endif()
-  option(${canonical} "${description}" "${initial_value}")
-  if(canonical_predefined AND legacy_defined
-     AND NOT "${${legacy}}" STREQUAL "${${canonical}}")
-    message(DEPRECATION
-      "${legacy} is deprecated and conflicts with ${canonical}; "
-      "${canonical}=${${canonical}} takes precedence.")
-  endif()
-endfunction()
-
 if(DEFINED PROJECT_IS_TOP_LEVEL)
   set(MATSDK_PROJECT_IS_TOP_LEVEL "${PROJECT_IS_TOP_LEVEL}")
 elseif(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -30,41 +6,41 @@ else()
   set(MATSDK_PROJECT_IS_TOP_LEVEL OFF)
 endif()
 
-matsdk_bool_option(MATSDK_BUILD_HEADERS BUILD_HEADERS
+option(MATSDK_BUILD_HEADERS
   "Build API headers" ON)
-matsdk_bool_option(MATSDK_BUILD_LIBRARY BUILD_LIBRARY
+option(MATSDK_BUILD_LIBRARY
   "Build the SDK library" ON)
-matsdk_bool_option(MATSDK_BUILD_TEST_TOOL BUILD_TEST_TOOL
+option(MATSDK_BUILD_TEST_TOOL
   "Build the console test tool" "${MATSDK_PROJECT_IS_TOP_LEVEL}")
-matsdk_bool_option(MATSDK_BUILD_UNIT_TESTS BUILD_UNIT_TESTS
+option(MATSDK_BUILD_UNIT_TESTS
   "Build unit tests" "${MATSDK_PROJECT_IS_TOP_LEVEL}")
-matsdk_bool_option(MATSDK_BUILD_FUNC_TESTS BUILD_FUNC_TESTS
+option(MATSDK_BUILD_FUNC_TESTS
   "Build functional tests" "${MATSDK_PROJECT_IS_TOP_LEVEL}")
-matsdk_bool_option(MATSDK_BUILD_JNI_WRAPPER BUILD_JNI_WRAPPER
+option(MATSDK_BUILD_JNI_WRAPPER
   "Build the JNI wrapper" OFF)
-matsdk_bool_option(MATSDK_ANDROID_USE_ROOM USE_ROOM
+option(MATSDK_ANDROID_USE_ROOM
   "Use Android Room for offline storage" OFF)
-matsdk_bool_option(MATSDK_ENABLE_CAPI_HTTP_CLIENT ENABLE_CAPI_HTTP_CLIENT
+option(MATSDK_ENABLE_CAPI_HTTP_CLIENT
   "Enable the C API HTTP client on Android" OFF)
-matsdk_bool_option(MATSDK_BUILD_OBJC_WRAPPER BUILD_OBJC_WRAPPER
+option(MATSDK_BUILD_OBJC_WRAPPER
   "Build the Objective-C wrapper" ON)
-matsdk_bool_option(MATSDK_BUILD_SWIFT_WRAPPER BUILD_SWIFT_WRAPPER
+option(MATSDK_BUILD_SWIFT_WRAPPER
   "Build Swift wrappers" ON)
-matsdk_bool_option(MATSDK_BUILD_PACKAGE BUILD_PACKAGE
+option(MATSDK_BUILD_PACKAGE
   "Build an SDK package" "${MATSDK_PROJECT_IS_TOP_LEVEL}")
-matsdk_bool_option(MATSDK_BUILD_PRIVACYGUARD BUILD_PRIVACYGUARD
+option(MATSDK_BUILD_PRIVACYGUARD
   "Build Privacy Guard" ON)
-matsdk_bool_option(MATSDK_BUILD_CDS BUILD_CDS
+option(MATSDK_BUILD_CDS
   "Build Common Diagnostic Stack" ON)
-matsdk_bool_option(MATSDK_BUILD_LIVEEVENTINSPECTOR BUILD_LIVEEVENTINSPECTOR
+option(MATSDK_BUILD_LIVEEVENTINSPECTOR
   "Build Live Event Inspector" ON)
-matsdk_bool_option(MATSDK_BUILD_SIGNALS BUILD_SIGNALS
+option(MATSDK_BUILD_SIGNALS
   "Build Signals" ON)
-matsdk_bool_option(MATSDK_BUILD_SANITIZER BUILD_SANITIZER
+option(MATSDK_BUILD_SANITIZER
   "Build Sanitizer" ON)
-matsdk_bool_option(MATSDK_BUILD_AZMON BUILD_AZMON
+option(MATSDK_BUILD_AZMON
   "Build Azure Monitor / Application Insights support" ON)
-matsdk_bool_option(MATSDK_BUILD_APPLE_HTTP BUILD_APPLE_HTTP
+option(MATSDK_BUILD_APPLE_HTTP
   "Build the Apple-native HTTP client" "${APPLE}")
 
 set(_matsdk_android_http_client_predefined OFF)
@@ -128,7 +104,7 @@ if(BUILD_IOS
   set(MATSDK_PLATFORM_IOS ON)
 endif()
 
-matsdk_bool_option(MATSDK_WARNINGS_AS_ERRORS ""
+option(MATSDK_WARNINGS_AS_ERRORS
   "Treat warnings in SDK-owned targets as errors" "${MATSDK_PROJECT_IS_TOP_LEVEL}")
 option(LINK_STATIC_DEPENDS
   "Deprecated no-op retained for compatibility with legacy build scripts" ON)
