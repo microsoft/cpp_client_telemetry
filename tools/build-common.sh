@@ -55,11 +55,62 @@ matsdk_require_cmake_preset_support() {
 }
 
 matsdk_append_cmake_opts_to_cmake_args() {
-  if [[ -n "${CMAKE_OPTS:-}" ]]; then
-    # Preserve existing support for callers passing multiple quoted -D arguments.
-    eval "extra_cmake_args=($CMAKE_OPTS)"
-    cmake_args+=("${extra_cmake_args[@]}")
+  local input="${CMAKE_OPTS:-}"
+  local token=""
+  local char=""
+  local escaped=false
+  local in_single_quote=false
+  local in_double_quote=false
+  local token_started=false
+  local index
+  local length=${#input}
+  local -a parsed_args=()
+
+  # Parse the existing shell-like CMAKE_OPTS format without evaluating it.
+  for ((index = 0; index < length; index++)); do
+    char="${input:index:1}"
+    if [[ "$escaped" == true ]]; then
+      token+="$char"
+      escaped=false
+      token_started=true
+    elif [[ "$char" == "\\" && "$in_single_quote" == false ]]; then
+      escaped=true
+      token_started=true
+    elif [[ "$char" == "'" && "$in_double_quote" == false ]]; then
+      if [[ "$in_single_quote" == true ]]; then
+        in_single_quote=false
+      else
+        in_single_quote=true
+      fi
+      token_started=true
+    elif [[ "$char" == '"' && "$in_single_quote" == false ]]; then
+      if [[ "$in_double_quote" == true ]]; then
+        in_double_quote=false
+      else
+        in_double_quote=true
+      fi
+      token_started=true
+    elif [[ "$char" =~ [[:space:]] && "$in_single_quote" == false && "$in_double_quote" == false ]]; then
+      if [[ "$token_started" == true ]]; then
+        parsed_args+=("$token")
+        token=""
+        token_started=false
+      fi
+    else
+      token+="$char"
+      token_started=true
+    fi
+  done
+
+  if [[ "$escaped" == true || "$in_single_quote" == true || "$in_double_quote" == true ]]; then
+    echo "Error: CMAKE_OPTS contains an unterminated escape or quote." >&2
+    return 1
   fi
+  if [[ "$token_started" == true ]]; then
+    parsed_args+=("$token")
+  fi
+
+  cmake_args+=("${parsed_args[@]}")
 }
 
 matsdk_run_logged_command() {
