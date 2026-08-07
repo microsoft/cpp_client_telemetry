@@ -8,9 +8,11 @@
 #include "offline/StorageObserver.hpp"
 #include "NullObjects.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <memory>
 #include <sstream>
+#include <vector>
 
 using namespace testing;
 using namespace MAT;
