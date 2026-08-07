@@ -122,6 +122,15 @@ namespace MAT_NS_BEGIN {
 
     private:
         size_t GetRecordCountUnsafe(EventLatency latency) const;
+
+        // Validate a record's required fields; reports OnStorageFailed on rejection.
+        bool isValidRecord(StorageRecord const& record) const;
+        // Insert one already-validated record. Caller must hold m_lock and have an
+        // active DbTransaction (when ENABLE_LOCKING). Updates m_DbSizeEstimate.
+        // Returns false (without updating the size estimate) if the insert fails.
+        bool insertRecordUnsafe(StorageRecord const& record);
+        // Run the DB-size-full notification and resize checks (after inserts).
+        void checkStorageSizeLimits();
     };
 
 

@@ -19,6 +19,7 @@ namespace MAT_NS_BEGIN {
         { CFG_BOOL_ENABLE_ANALYTICS,        false },
         { CFG_INT_CACHE_FILE_SIZE,          3145728 },
         { CFG_INT_RAM_QUEUE_SIZE,           524288 },
+        { CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH, true },
         { CFG_BOOL_ENABLE_MULTITENANT,      true },
         { CFG_BOOL_ENABLE_DB_DROP_IF_FULL,  false },
         { CFG_INT_MAX_TEARDOWN_TIME,        0 },
@@ -51,6 +52,7 @@ namespace MAT_NS_BEGIN {
             { CFG_BOOL_ENABLE_ANALYTICS,    src.enableLifecycleSession },
             { CFG_INT_CACHE_FILE_SIZE,      src.cacheFileSizeLimitInBytes },
             { CFG_INT_RAM_QUEUE_SIZE,       src.cacheMemorySizeLimitInBytes },
+            { CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH, true },
             { CFG_BOOL_ENABLE_MULTITENANT,  src.multiTenantEnabled },
             { CFG_INT_MAX_TEARDOWN_TIME,    src.maxTeardownUploadTimeInSec },
             { CFG_INT_MAX_PENDING_REQ,      src.maxPendingHTTPRequests },
@@ -128,4 +130,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-
