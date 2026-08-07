@@ -56,7 +56,10 @@ if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
 endif()
 set(MATSDK_UNIT_TEST_DEFINITIONS)
 
-set_source_files_properties(${SRCS} PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+if(NOT MSVC)
+  set_source_files_properties(${SRCS}
+    PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+endif()
 
 # Enable Azure Monitor unit tests when the module is present.
 # The AIJsonSerializer test sources are guarded by HAVE_MAT_AI.

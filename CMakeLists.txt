@@ -266,6 +266,9 @@ endif()
 ################################################################################################
 # Canonical dependency targets
 ################################################################################################
+if(TARGET SQLite3::SQLite3 AND NOT TARGET SQLite::SQLite3)
+  add_library(SQLite::SQLite3 ALIAS SQLite3::SQLite3)
+endif()
 if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite::SQLite3)
   if(APPLE AND NOT MATSDK_USING_VCPKG)
     matsdk_add_apple_system_library(SQLite::SQLite3 sqlite3)
@@ -282,6 +285,9 @@ if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite::SQLi
         "define the canonical target before adding 1DS, or choose MINIMAL/VENDORED.")
     endif()
   endif()
+endif()
+if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
+  add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
 endif()
 
 if(MATSDK_ZLIB_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET ZLIB::ZLIB)
