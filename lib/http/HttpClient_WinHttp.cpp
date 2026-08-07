@@ -13,7 +13,6 @@
 #include <winhttp.h>
 #include <wincrypt.h>
 
-#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <vector>

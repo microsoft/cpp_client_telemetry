@@ -617,7 +617,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     target_link_libraries(mat PUBLIC log)
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
-  target_link_libraries(mat PUBLIC wininet winhttp crypt32 ws2_32)
+  target_link_libraries(mat PRIVATE wininet winhttp crypt32)
 elseif(APPLE)
   target_link_libraries(mat PUBLIC
     "-framework CoreFoundation"
