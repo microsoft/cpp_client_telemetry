@@ -17,8 +17,10 @@ endif()
 message(STATUS "MATSDK_USING_VCPKG: ${MATSDK_USING_VCPKG}")
 
 include(cmake/MatsdkOptions.cmake)
-include(cmake/MatsdkAppleSystemDeps.cmake)
 include(cmake/MatsdkDependencyTargets.cmake)
+if(APPLE)
+  include(cmake/MatsdkAppleSystemDeps.cmake)
+endif()
 
 # Begin Uncomment for i386 build
 #set(CMAKE_SYSTEM_PROCESSOR i386)
