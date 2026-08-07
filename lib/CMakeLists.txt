@@ -490,7 +490,12 @@ if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
   else()
     # Unstripped vendored build (Android legacy): keep the existing narrower
     # warning suppression. -fno-finite-math-only guards the INFINITY macro.
-    target_compile_options(sqlite3_bundled PRIVATE -fno-finite-math-only -Wno-unused-function)
+    target_compile_options(sqlite3_bundled PRIVATE
+      -fno-finite-math-only
+      -Wno-unused-function
+      -Wno-shorten-64-to-32
+      -Wno-ambiguous-macro
+    )
   endif()
 endif()
 
@@ -561,6 +566,10 @@ else()
     # real POSIX declarations for read/write/lseek/close instead of relying on
     # implicit (int-returning) declarations.
     target_compile_definitions(zlib_bundled PRIVATE Z_HAVE_UNISTD_H)
+    target_compile_options(zlib_bundled PRIVATE
+      -Wno-shorten-64-to-32
+      -Wno-ambiguous-macro
+    )
 
     target_link_libraries(mat PRIVATE sqlite3_bundled zlib_bundled ${LIBS})
   elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")

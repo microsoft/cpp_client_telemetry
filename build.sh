@@ -61,13 +61,13 @@ while [[ $# -gt 0 ]]; do
           echo "BUILD_TYPE = $BUILD_TYPE"
           ;;
         arm64|x86_64|universal)
-          if [[ -n "$MAC_ARCH" ]]; then
-              echo "Error: MAC_ARCH is already set to '$MAC_ARCH'. Cannot overwrite with $ARG." 1>&2
+          if [[ -n "$APPLE_ARCH" ]]; then
+              echo "Error: APPLE_ARCH is already set to '$APPLE_ARCH'. Cannot overwrite with $ARG." 1>&2
               exit 1
           else
-              MAC_ARCH="$ARG"
+              APPLE_ARCH="$ARG"
           fi
-          echo "MAC_ARCH = $MAC_ARCH"
+          echo "APPLE_ARCH = $APPLE_ARCH"
           ;;
         CUSTOM_BUILD_FLAGS*)
           CUSTOM_CMAKE_CXX_FLAG="\"${ARG:19:999}\""
@@ -91,9 +91,9 @@ if [[ -z "$BUILD_TYPE" ]]; then
   echo "Assuming default BUILD_TYPE = Debug"
 fi
 
-if [[ -z "$MAC_ARCH" ]]; then
-  MAC_ARCH=$(/usr/bin/uname -m)
-  echo "Using current machine MAC_ARCH = $MAC_ARCH"
+if [[ -z "$APPLE_ARCH" ]]; then
+  APPLE_ARCH=$(/usr/bin/uname -m)
+  echo "Using current machine APPLE_ARCH = $APPLE_ARCH"
 fi
 
 # Evaluate switches
@@ -137,7 +137,7 @@ if [ "$LINK_TYPE" == "shared" ]; then
 fi
 
 # Set target MacOS minver
-default_mac_os_target=$([ "$MAC_ARCH" == "arm64" ] && echo "11.10" || echo "10.10")
+default_mac_os_target=$([ "$APPLE_ARCH" == "arm64" ] && echo "11.10" || echo "10.10")
 [ -z $MACOSX_DEPLOYMENT_TARGET ] && export MACOSX_DEPLOYMENT_TARGET=${default_mac_os_target}
 echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 
@@ -147,7 +147,7 @@ OS_NAME=`uname -a`
 
 if [ ! -f $FILE ]; then
   case "$OS_NAME" in
-    *Darwin*) CMD="tools/setup-buildtools-apple.sh $MAC_ARCH" ;;
+    *Darwin*) CMD="tools/setup-buildtools-apple.sh $APPLE_ARCH" ;;
     *Linux*)  CMD="tools/setup-buildtools.sh" ;;
     *)        CMD=""; echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." ;;
   esac
@@ -185,8 +185,7 @@ fi
 # Fail on error
 set -e
 
-# TODO: should this be improved to verify if the platform is Apple? Right now we unconditionally pass -DMAC_ARCH even if building for Windows or Linux.
-cmake_cmd="cmake -DMAC_ARCH=$MAC_ARCH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="${CUSTOM_CMAKE_CXX_FLAG}" $CMAKE_OPTS .."
+cmake_cmd="cmake -DCMAKE_OSX_ARCHITECTURES=$APPLE_ARCH -DCMAKE_OSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="${CUSTOM_CMAKE_CXX_FLAG}" $CMAKE_OPTS .."
 echo $cmake_cmd
 eval $cmake_cmd
 
