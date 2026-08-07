@@ -122,6 +122,22 @@ TEST_F(PalTests, SystemTime)
     EXPECT_THAT(t1, Lt(t0 + 1000));
 }
 
+#if !defined(_WIN32) && !defined(_WIN64)
+TEST_F(PalTests, SystemTimeInTicksPreservesSubMillisecondPrecision)
+{
+    constexpr int64_t TicksPerMillisecond = 10000;
+    bool observedSubMillisecondTick = false;
+
+    for (int i = 0; i < 1000 && !observedSubMillisecondTick; ++i)
+    {
+        observedSubMillisecondTick =
+            PAL::getUtcSystemTimeinTicks() % TicksPerMillisecond != 0;
+    }
+
+    EXPECT_TRUE(observedSubMillisecondTick);
+}
+#endif
+
 TEST_F(PalTests, FormatUtcTimestampMsAsISO8601)
 {
     EXPECT_THAT(PAL::formatUtcTimestampMsAsISO8601(0ll),             Eq("1970-01-01T00:00:00.000Z"));

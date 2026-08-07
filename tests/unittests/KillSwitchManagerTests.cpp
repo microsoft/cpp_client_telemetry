@@ -16,6 +16,34 @@ TEST(KillSwitchManagerTests, handleResponse_ValidRetryAfter_ActivatesRetryAfter)
     ASSERT_TRUE(manager.isRetryAfterActive());
 }
 
+TEST(KillSwitchManagerTests, constructor_EmptyClockUsesMonotonicClock)
+{
+    KillSwitchManager manager(KillSwitchManager::Clock{});
+    HttpHeaders headers;
+    headers.add("Retry-After", "120");
+
+    ASSERT_NO_THROW(manager.handleResponse(headers));
+    EXPECT_TRUE(manager.isTokenBlocked("any-token"));
+}
+
+TEST(KillSwitchManagerTests, handleResponse_RetryAfterExpiresAtDeadline)
+{
+    int64_t nowMs = 1000;
+    KillSwitchManager manager([&nowMs]() { return nowMs; });
+    HttpHeaders headers;
+    headers.add("Retry-After", "120");
+
+    manager.handleResponse(headers);
+    ASSERT_TRUE(manager.isTokenBlocked("any-token"));
+
+    nowMs += 119999;
+    EXPECT_TRUE(manager.isTokenBlocked("any-token"));
+
+    nowMs += 1;
+    EXPECT_FALSE(manager.isTokenBlocked("any-token"));
+    EXPECT_FALSE(manager.isRetryAfterActive());
+}
+
 TEST(KillSwitchManagerTests, handleResponse_NonNumericRetryAfter_DoesNotThrowAndIsIgnored)
 {
     KillSwitchManager manager;
@@ -118,6 +146,25 @@ TEST(KillSwitchManagerTests, handleResponse_ValidKillTokenAndDuration_BlocksToke
     headers.add("kill-duration", "300");
     ASSERT_TRUE(manager.handleResponse(headers));
     ASSERT_TRUE(manager.isTokenBlocked("tenant-token-1"));
+}
+
+TEST(KillSwitchManagerTests, handleResponse_KillDurationExpiresAtDeadline)
+{
+    int64_t nowMs = 1000;
+    KillSwitchManager manager([&nowMs]() { return nowMs; });
+    HttpHeaders headers;
+    headers.add("kill-tokens", "tenant-token-1");
+    headers.add("kill-duration", "10");
+
+    ASSERT_TRUE(manager.handleResponse(headers));
+    ASSERT_TRUE(manager.isTokenBlocked("tenant-token-1"));
+
+    nowMs += 9999;
+    EXPECT_TRUE(manager.isTokenBlocked("tenant-token-1"));
+
+    nowMs += 1;
+    EXPECT_FALSE(manager.isTokenBlocked("tenant-token-1"));
+    EXPECT_FALSE(manager.isActive());
 }
 
 TEST(KillSwitchManagerTests, handleResponse_NonNumericKillDuration_DoesNotThrowAndDoesNotBlock)

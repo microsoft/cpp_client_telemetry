@@ -26,7 +26,7 @@ jobs:
     runs-on: windows-latest
     name: Windows (x64-windows-static)
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
     - name: Bootstrap vcpkg
       run: |
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Linux (x64-linux)
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
     - name: Bootstrap vcpkg
       run: |
@@ -60,7 +60,7 @@ jobs:
     runs-on: macos-latest
     name: macOS (native)
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
     - name: Bootstrap vcpkg
       run: |
@@ -78,7 +78,7 @@ jobs:
     runs-on: macos-latest
     name: iOS (arm64-ios cross-compile)
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
     - name: Bootstrap vcpkg
       run: |
@@ -96,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Android (arm64-v8a API 23 cross-compile)
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
     - name: Bootstrap vcpkg
       run: |

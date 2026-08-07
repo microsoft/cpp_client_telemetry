@@ -43,9 +43,9 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
-    - name: Initialize googletest
-      run: git submodule update --init --depth=1 third_party/googletest
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      with:
+        submodules: 'true'
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       run: ./build-tests.sh ${{ matrix.config }}
 
@@ -54,7 +54,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      with:
+        submodules: 'true'
     - name: Install clang
       run: sudo apt-get update && sudo apt-get install -y clang
     - name: Compile each public header standalone under strict flags

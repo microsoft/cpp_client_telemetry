@@ -71,4 +71,6 @@ if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(FuncTests PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
+target_link_libraries(FuncTests matsdk_test_includes)
+
 add_test(FuncTests FuncTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/FuncTests.xml")

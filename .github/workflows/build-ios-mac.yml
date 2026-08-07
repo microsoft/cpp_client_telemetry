@@ -54,9 +54,9 @@ jobs:
     - name: Grant write permissions to /usr/local
       run: |
         sudo chown -R $USER:staff /usr/local
-    - uses: actions/checkout@v4
-    - name: Initialize googletest
-      run: git submodule update --init --depth=1 third_party/googletest
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      with:
+        submodules: 'true'
     - name: build
       run: |
         if [[ "${{ matrix.os }}" == "macos-14" ]]; then

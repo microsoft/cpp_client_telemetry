@@ -541,6 +541,35 @@ public:
         }
         return result;
     }
+
+    bool waitForEvent(const std::string& name, unsigned timeoutMs, size_t& nextRequestIndex)
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (PAL::getMonotonicTimeMs() < deadline)
+        {
+            std::vector<HttpServer::Request> newRequests;
+            {
+                LOCKGUARD(mtx_requests);
+                while (nextRequestIndex < receivedRequests.size())
+                {
+                    newRequests.push_back(receivedRequests[nextRequestIndex]);
+                    ++nextRequestIndex;
+                }
+            }
+            for (const auto& request : newRequests)
+            {
+                for (const auto& record : decodeRequest(request, false))
+                {
+                    if (record.name == name)
+                    {
+                        return true;
+                    }
+                }
+            }
+            PAL::sleep(10);
+        }
+        return false;
+    }
 };
 
 
@@ -1110,6 +1139,17 @@ public :
             break;
         };
     }
+
+    bool waitForAtLeast(const std::atomic<unsigned>& counter, unsigned expected, unsigned timeoutMs)
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (counter.load() < expected && PAL::getMonotonicTimeMs() < deadline)
+        {
+            PAL::sleep(10);
+        }
+        return counter.load() >= expected;
+    }
+
     void printStats(){
         std::cerr << "[          ] numLogged        = " << numLogged << std::endl;
         std::cerr << "[          ] numSent          = " << numSent << std::endl;
@@ -1231,84 +1271,71 @@ TEST_F(BasicFuncTests, killSwitchWorks)
 TEST_F(BasicFuncTests, killIsTemporary)
 {
     CleanStorage();
-    // Create the configuration to send to fake server
     auto configuration = LogManager::GetLogConfiguration();
 
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-
     configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-    configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
-    configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
-    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default since #1420)
-
+    configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;
+    configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;
+    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
-    configuration["config"] = { { "host", __FILE__ } }; // Host instance
+    configuration["config"] = { { "host", __FILE__ } };
 
-    // set the killed token on the server
-    server.setKilledToken(KILLED_TOKEN, 10);
+    constexpr unsigned killDurationSec = 5;
+    server.setKilledToken(KILLED_TOKEN, killDurationSec);
     KillSwitchListener listener;
     addListeners(listener);
-    // Log 100 events from valid and invalid 4 times
-    int repetitions = 4;
-    for (int i = 0; i < repetitions; i++) {
-        // Initialize the logger for the valid token and log 100 events
-        LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::ResumeTransmission();
-        auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
-        int numIterations = 100;
-        while (numIterations--) {
-            EventProperties event1("fooEvent");
-            event1.SetProperty("property", "value");
-            myLogger->LogEvent(event1);
-        }
-        // Initialize the logger for the killed token and log 100 events
-        LogManager::Initialize(KILLED_TOKEN, configuration);
-        LogManager::ResumeTransmission();
-        myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
-        numIterations = 100;
-        while (numIterations--) {
-            EventProperties event2("failEvent");
-            event2.SetProperty("property", "value");
-            myLogger->LogEvent(event2);
-        }
-    }
-    // Try and wait to upload
-    LogManager::UploadNow();
-    PAL::sleep(2000);
-    // Sleep for 11 seconds so the killed time has expired, clear the killed tokens on server
-    PAL::sleep(11000);
-    server.clearKilledTokens();
-    // Log 100 events with valid logger
-    LogManager::Initialize(TEST_TOKEN, configuration);
-    LogManager::ResumeTransmission();
-    auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
-    int numIterations = 100;
-    while (numIterations--) {
-        EventProperties event1("fooEvent");
-        event1.SetProperty("property", "value");
-        myLogger->LogEvent(event1);
-    }
 
     LogManager::Initialize(KILLED_TOKEN, configuration);
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::ResumeTransmission();
-    myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
-    numIterations = 100;
-    while (numIterations--) {
-        EventProperties event2("failEvent");
-        event2.SetProperty("property", "value");
-        myLogger->LogEvent(event2);
-    }
-    // Expect to 0 events to be dropped
-    EXPECT_EQ(uint32_t { 0 }, listener.numDropped);
-    LogManager::FlushAndTeardown();
 
-    listener.printStats();
+    auto killedLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+    killedLogger->LogEvent("activateKillSwitch");
+    LogManager::UploadNow();
+
+    const bool killSwitchActivated = listener.waitForAtLeast(listener.numHttpOK, 1, 10000);
+    if (!killSwitchActivated)
+    {
+        LogManager::FlushAndTeardown();
+        removeListeners(listener);
+        server.clearKilledTokens();
+    }
+    ASSERT_TRUE(killSwitchActivated) << "Kill-switch response was not observed before timeout";
+    server.clearKilledTokens();
+
+    const unsigned droppedBeforeKill = listener.numDropped.load();
+    const auto activeDeadline = PAL::getMonotonicTimeMs() + 2000;
+    unsigned probe = 0;
+    while (listener.numDropped.load() == droppedBeforeKill
+        && PAL::getMonotonicTimeMs() < activeDeadline)
+    {
+        killedLogger->LogEvent("blockedWhileKillIsActive" + std::to_string(probe++));
+        PAL::sleep(20);
+    }
+    EXPECT_GT(listener.numDropped.load(), droppedBeforeKill);
+
+    // Poll until the kill-switch TTL expires and the SDK resumes sending.
+    // Budget: kill duration + 5 s headroom; the extra 100 ms absorbs any
+    // request that was dispatched just before the deadline fires.
+    const auto expiryDeadline = PAL::getMonotonicTimeMs() + (killDurationSec + 5) * 1000 + 100;
+    size_t nextRequestIndex = 0;
+    bool acceptedAfterKillExpires = false;
+    while (!acceptedAfterKillExpires && PAL::getMonotonicTimeMs() < expiryDeadline)
+    {
+        killedLogger->LogEvent("acceptedAfterKillExpires");
+        LogManager::UploadNow();
+        acceptedAfterKillExpires = waitForEvent("acceptedAfterKillExpires", 100, nextRequestIndex);
+    }
+    EXPECT_TRUE(acceptedAfterKillExpires);
+
+    LogManager::FlushAndTeardown();
     removeListeners(listener);
     server.clearKilledTokens();
 }
