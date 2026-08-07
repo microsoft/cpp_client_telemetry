@@ -55,6 +55,9 @@ class WinInetRequestWrapper
         if (m_hWinInetRequest != nullptr)
         {
             ::InternetCloseHandle(m_hWinInetRequest);
+        }
+        if (m_hWinInetSession != nullptr)
+        {
             ::InternetCloseHandle(m_hWinInetSession);
         }
     }

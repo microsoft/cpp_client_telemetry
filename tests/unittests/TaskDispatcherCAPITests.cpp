@@ -229,6 +229,91 @@ TEST(TaskDispatcherCAPITests, Join)
     EXPECT_EQ(wasJoined, true);
 }
 
+namespace
+{
+    // Dispatcher that always drops (and deletes) the task, modeling the
+    // shutdown-drop path where Queue() cannot report failure.
+    class DroppingTaskDispatcher : public ITaskDispatcher
+    {
+    public:
+        bool cancelCalled = false;
+        void Join() override {}
+        void Queue(MAT::Task* task) override { delete task; }
+        bool Cancel(MAT::Task* /*task*/, uint64_t /*waitTime*/ = 0) override
+        {
+            cancelCalled = true;
+            return false;
+        }
+    };
+
+    struct NoopCallbackTarget
+    {
+        void Callback(int, int) {}
+    };
+}
+
+// When the dispatcher drops the task (for example during shutdown), scheduleTask
+// must return a no-op handle rather than one pointing at the freed task, so the
+// caller never holds a dangling pointer and Cancel() is a safe no-op.
+TEST(TaskDispatcherCAPITests, ScheduleTaskReturnsNoOpHandleWhenTaskDropped)
+{
+    DroppingTaskDispatcher dispatcher;
+    NoopCallbackTarget target;
+
+    auto handle = scheduleTask(&dispatcher, 100 /*delayMs*/, &target, &NoopCallbackTarget::Callback, 1, 2);
+
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+    EXPECT_FALSE(dispatcher.cancelCalled);
+}
+
+namespace
+{
+    struct DeferredExecutionState
+    {
+        std::string taskId;
+        task_callback_fn_t callback = nullptr;
+        bool cancelCalled = false;
+    };
+
+    static std::unique_ptr<DeferredExecutionState> s_deferredExecutionState;
+
+    void EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherQueue(evt_task_t* task, task_callback_fn_t callback)
+    {
+        s_deferredExecutionState->taskId = task->id;
+        s_deferredExecutionState->callback = callback;
+    }
+
+    bool EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherCancel(const char* taskId)
+    {
+        s_deferredExecutionState->cancelCalled = true;
+        return (s_deferredExecutionState->taskId == taskId);
+    }
+
+    void EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherJoin()
+    {}
+}
+
+TEST(TaskDispatcherCAPITests, ScheduleTaskHandleClearsAfterAsyncCallbackCompletes)
+{
+    TaskDispatcher_CAPI taskDispatcher(&OnDeferredTaskDispatcherQueue, &OnDeferredTaskDispatcherCancel, &OnDeferredTaskDispatcherJoin);
+    s_deferredExecutionState.reset(new DeferredExecutionState());
+
+    NoopCallbackTarget target;
+    auto handle = scheduleTask(&taskDispatcher, 100 /*delayMs*/, &target, &NoopCallbackTarget::Callback, 1, 2);
+
+    ASSERT_NE(handle.GetTask(), nullptr);
+    ASSERT_NE(s_deferredExecutionState->callback, nullptr);
+
+    s_deferredExecutionState->callback(s_deferredExecutionState->taskId.c_str());
+
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+    EXPECT_FALSE(s_deferredExecutionState->cancelCalled);
+
+    s_deferredExecutionState.reset();
+}
+
 TEST(TaskDispatcherCAPITests, ExecuteCallbackThatThrowsIsContained)
 {
     TaskDispatcher_CAPI taskDispatcher(&OnTaskDispatcherQueue, &OnTaskDispatcherCancel, &OnTaskDispatcherJoin);
@@ -247,4 +332,3 @@ TEST(TaskDispatcherCAPITests, ExecuteCallbackThatThrowsIsContained)
     EXPECT_NO_THROW(dispatchTask(&taskDispatcher, testHelper.get(), &TestHelper::Callback, 10 /*param1*/, 20 /*param2*/));
     EXPECT_EQ(wasExecuted, true);
 }
-

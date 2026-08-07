@@ -61,8 +61,8 @@ jobs:
     - name: build
       run: |
         if [[ "${{ matrix.os }}" == "macos-14" ]]; then
-          export IOS_DEPLOYMENT_TARGET=13.0;
+          export CMAKE_OSX_DEPLOYMENT_TARGET=13.0;
         elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
-          export IOS_DEPLOYMENT_TARGET=15.0;
+          export CMAKE_OSX_DEPLOYMENT_TARGET=15.0;
         fi
         ./build-tests-ios.sh ${{ matrix.config }} ${{ matrix.simulator }}

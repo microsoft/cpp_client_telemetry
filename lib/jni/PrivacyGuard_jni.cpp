@@ -62,16 +62,22 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     InitializationConfiguration config(
             reinterpret_cast<ILogger*>(iLoggerNativePtr),
             CommonDataContext{});
+    // InitializationConfiguration holds const char* pointers, so the backing
+    // std::string storage must outlive the PrivacyGuard construction below.
+    std::string notificationEventName, semanticContextEventName, summaryEventName;
     if (NotificationEventName != nullptr) {
-        config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
+        notificationEventName = JStringToStdString(env, NotificationEventName);
+        config.NotificationEventName = notificationEventName.c_str();
     }
 
     if (SemanticContextEventName != nullptr) {
-        config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
+        semanticContextEventName = JStringToStdString(env, SemanticContextEventName);
+        config.SemanticContextNotificationEventName = semanticContextEventName.c_str();
     }
 
     if (SummaryEventName != nullptr) {
-        config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
+        summaryEventName = JStringToStdString(env, SummaryEventName);
+        config.SummaryEventName = summaryEventName.c_str();
     }
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
@@ -119,16 +125,22 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                             machineIds,
                                             outOfScopeIdentifiers));
 
+    // InitializationConfiguration holds const char* pointers, so the backing
+    // std::string storage must outlive the PrivacyGuard construction below.
+    std::string notificationEventName, semanticContextEventName, summaryEventName;
     if (NotificationEventName != NULL) {
-        config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
+        notificationEventName = JStringToStdString(env, NotificationEventName);
+        config.NotificationEventName = notificationEventName.c_str();
     }
 
     if (SemanticContextEventName != NULL) {
-        config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
+        semanticContextEventName = JStringToStdString(env, SemanticContextEventName);
+        config.SemanticContextNotificationEventName = semanticContextEventName.c_str();
     }
 
     if (SummaryEventName != NULL) {
-        config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
+        summaryEventName = JStringToStdString(env, SummaryEventName);
+        config.SummaryEventName = summaryEventName.c_str();
     }
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);

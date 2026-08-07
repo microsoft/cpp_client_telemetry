@@ -39,9 +39,8 @@ if(BUILD_IOS)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "12.2" CACHE STRING "Force set of the deployment target for iOS" FORCE)
   set(CMAKE_C_FLAGS "\${CMAKE_C_FLAGS} -miphoneos-version-min=10.0")
   set(CMAKE_CXX_FLAGS "\${CMAKE_CXX_FLAGS} -miphoneos-version-min=10.0 -std=c++11")
-  set(IOS_PLATFORM "iphonesimulator")
   set(CMAKE_SYSTEM_PROCESSOR x86_64)
-  execute_process(COMMAND xcodebuild -version -sdk \${IOS_PLATFORM} Path
+  execute_process(COMMAND xcodebuild -version -sdk iphonesimulator Path
     OUTPUT_VARIABLE CMAKE_OSX_SYSROOT_OUT
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)

@@ -11,14 +11,24 @@
 #include "tpm/TransmissionPolicyManager.hpp"
 #include "TransmitProfiles.hpp"
 
+#include <algorithm>
+#include <condition_variable>
+#include <future>
+#include <vector>
+
 using namespace testing;
 using namespace MAT;
 
 
 class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
   public:
+    TransmissionPolicyManager4Test(ITelemetrySystem& system, ITaskDispatcher& taskDispatcher, IBandwidthController* bandwidthController)
+      : TransmissionPolicyManager(system, taskDispatcher, bandwidthController)
+    {
+    }
+
     TransmissionPolicyManager4Test(ITelemetrySystem& system, IBandwidthController* bandwidthController)
-      : TransmissionPolicyManager(system, *PAL::getDefaultTaskDispatcher(), bandwidthController)
+      : TransmissionPolicyManager4Test(system, *PAL::getDefaultTaskDispatcher(), bandwidthController)
     {
     }
 
@@ -67,6 +77,141 @@ class TransmissionPolicyManager4Test : public TransmissionPolicyManager {
     {
         TransmissionPolicyManager::scheduleUpload(delay, latency, force);
     }
+};
+
+class BlockingCancelTaskDispatcher : public ITaskDispatcher
+{
+public:
+    ~BlockingCancelTaskDispatcher() override
+    {
+        Join();
+    }
+
+    void Join() override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        for (auto* task : m_tasks)
+        {
+            delete task;
+        }
+        m_tasks.clear();
+    }
+
+    void Queue(Task* task) override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        m_tasks.push_back(task);
+    }
+
+    bool Cancel(Task* task, uint64_t waitTime = 0) override
+    {
+        UNREFERENCED_PARAMETER(waitTime);
+
+        {
+            std::lock_guard<std::mutex> lock(m_tasksMutex);
+            auto it = std::find(m_tasks.begin(), m_tasks.end(), task);
+            if (it == m_tasks.end())
+            {
+                return false;
+            }
+            delete *it;
+            m_tasks.erase(it);
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(m_cancelMutex);
+            m_cancelEntered = true;
+        }
+        m_cancelEnteredCv.notify_all();
+
+        std::unique_lock<std::mutex> lock(m_cancelMutex);
+        m_cancelReleasedCv.wait(lock, [this]() { return m_cancelReleased; });
+        return true;
+    }
+
+    bool WaitForCancel(const std::chrono::milliseconds timeout)
+    {
+        std::unique_lock<std::mutex> lock(m_cancelMutex);
+        return m_cancelEnteredCv.wait_for(lock, timeout, [this]() { return m_cancelEntered; });
+    }
+
+    void ReleaseCancel()
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_cancelMutex);
+            m_cancelReleased = true;
+        }
+        m_cancelReleasedCv.notify_all();
+    }
+
+private:
+    std::mutex m_tasksMutex;
+    std::vector<Task*> m_tasks;
+
+    std::mutex m_cancelMutex;
+    std::condition_variable m_cancelEnteredCv;
+    std::condition_variable m_cancelReleasedCv;
+    bool m_cancelEntered = false;
+    bool m_cancelReleased = false;
+};
+
+class RunningTaskDispatcher : public ITaskDispatcher
+{
+public:
+    ~RunningTaskDispatcher() override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        for (auto* task : m_tasks)
+        {
+            delete task;
+        }
+        m_tasks.clear();
+    }
+
+    void Join() override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        for (auto* task : m_tasks)
+        {
+            delete task;
+        }
+        m_tasks.clear();
+    }
+
+    void Queue(Task* task) override
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        m_tasks.push_back(task);
+    }
+
+    bool Cancel(Task* task, uint64_t waitTime = 0) override
+    {
+        UNREFERENCED_PARAMETER(task);
+        UNREFERENCED_PARAMETER(waitTime);
+        // Simulate a task that is currently executing on the worker:
+        // cancellation can never proceed without waiting for the run
+        // to complete, so a no-wait cancel must return false.
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        m_cancelCount++;
+        return false;
+    }
+
+    size_t QueuedCount() const
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        return m_tasks.size();
+    }
+
+    size_t CancelCount() const
+    {
+        std::lock_guard<std::mutex> lock(m_tasksMutex);
+        return m_cancelCount;
+    }
+
+private:
+    mutable std::mutex m_tasksMutex;
+    std::vector<Task*> m_tasks;
+    size_t m_cancelCount = 0;
 };
 
 class TransmissionPolicyManagerTests : public StrictMock<Test> {
@@ -606,6 +751,73 @@ TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_ScheduledUpload_IsUpload
     tpm.m_isUploadScheduled = true;
     tpm.cancelUploadTask();
     ASSERT_FALSE(tpm.m_isUploadScheduled);
+}
+
+TEST_F(TransmissionPolicyManagerTests, ForceScheduleRetainsImmediateUploadWhenCancelBlocks)
+{
+    BlockingCancelTaskDispatcher dispatcher;
+    TransmissionPolicyManager4Test blockingTpm(testing::getSystem(), dispatcher, &bandwidthControllerMock);
+    blockingTpm.paused(false);
+
+    blockingTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+    auto delayedUploadTime = blockingTpm.m_scheduledUploadTime;
+
+    auto forceSchedule = std::async(std::launch::async, [&blockingTpm]() {
+        blockingTpm.scheduleUploadParent(std::chrono::milliseconds{}, EventLatency_RealTime, true);
+    });
+
+    if (!dispatcher.WaitForCancel(std::chrono::milliseconds{ 250 }))
+    {
+        dispatcher.ReleaseCancel();
+        forceSchedule.get();
+        FAIL() << "Timed out waiting for cancel to block";
+    }
+
+    auto delayedSchedule = std::async(std::launch::async, [&blockingTpm]() {
+        blockingTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+    });
+
+    EXPECT_EQ(delayedSchedule.wait_for(std::chrono::milliseconds{ 100 }), std::future_status::timeout);
+
+    dispatcher.ReleaseCancel();
+
+    forceSchedule.get();
+    delayedSchedule.get();
+
+    ASSERT_TRUE(blockingTpm.m_isUploadScheduled);
+    EXPECT_LT(blockingTpm.m_scheduledUploadTime, delayedUploadTime);
+}
+
+TEST_F(TransmissionPolicyManagerTests, ForceScheduleAppliesLatencyWhenRunningCancelFails)
+{
+    RunningTaskDispatcher dispatcher;
+    TransmissionPolicyManager4Test runningTpm(testing::getSystem(), dispatcher, &bandwidthControllerMock);
+    runningTpm.paused(false);
+
+    // Queue an initial upload so m_scheduledUpload has a non-null task and
+    // m_isUploadScheduled is set; the dispatcher's Cancel will fail later
+    // (simulating the "task currently executing on worker" race).
+    runningTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+    ASSERT_TRUE(runningTpm.m_isUploadScheduled);
+    ASSERT_EQ(dispatcher.QueuedCount(), 1u);
+
+    auto scheduledTimeBefore = runningTpm.m_scheduledUploadTime;
+    // Reset m_runningLatency so we can observe the force path updating it
+    // (the initial schedule may have bumped it depending on the active
+    // profile's timers).
+    runningTpm.runningLatency(EventLatency_Normal);
+
+    // Force a higher-priority schedule. The dispatcher's no-wait cancel
+    // returns false, so the previous task remains in flight. The fix in
+    // scheduleUpload must propagate the new latency to m_runningLatency
+    // so the running task picks it up under the same mutex.
+    runningTpm.scheduleUploadParent(std::chrono::milliseconds{}, EventLatency_RealTime, true);
+
+    EXPECT_GE(dispatcher.CancelCount(), 1u);
+    EXPECT_EQ(dispatcher.QueuedCount(), 1u);
+    EXPECT_TRUE(runningTpm.m_isUploadScheduled);
+    EXPECT_EQ(runningTpm.m_runningLatency, EventLatency_RealTime);
+    EXPECT_EQ(runningTpm.m_scheduledUploadTime, scheduledTimeBefore);
 }
 
 TEST_F(TransmissionPolicyManagerTests, increaseBackoff_EmptyBackoffObject_ReturnZero)
