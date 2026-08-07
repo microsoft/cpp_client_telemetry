@@ -150,12 +150,14 @@ namespace MAT_NS_BEGIN {
     {
         if (bestEffortTimeout > std::chrono::milliseconds::zero())
         {
+#if defined(_CPPRTTI) || defined(__GXX_RTTI)
             auto boundedCancel = dynamic_cast<IBoundedHttpClientCancel*>(&m_httpClient);
             if (boundedCancel != nullptr)
             {
                 boundedCancel->CancelAllRequests(bestEffortTimeout);
                 return;
             }
+#endif
 
             cancelTrackedRequestsAsync();
             return;
