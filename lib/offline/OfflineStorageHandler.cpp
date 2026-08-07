@@ -10,6 +10,8 @@
 
 #include "ILogManager.hpp"
 #include <algorithm>
+#include <cstdio>
+#include <exception>
 #include <limits>
 #include <numeric>
 #include <set>
@@ -75,7 +77,18 @@ namespace MAT_NS_BEGIN {
         {
             if (m_active)
             {
-                m_logManager.EndActivity();
+                try
+                {
+                    m_logManager.EndActivity();
+                }
+                catch (const std::exception& e)
+                {
+                    std::fprintf(stderr, "Failed to end telemetry activity: %s\n", e.what());
+                }
+                catch (...)
+                {
+                    std::fputs("Failed to end telemetry activity\n", stderr);
+                }
             }
         }
 
@@ -296,16 +309,28 @@ namespace MAT_NS_BEGIN {
         }
         catch (...)
         {
-            if (m_offlineStorageMemory && !reservedIds.empty())
+            std::exception_ptr failure = std::current_exception();
+            try
             {
-                HttpHeaders dummy;
-                bool fromMemory = true;
-                m_offlineStorageMemory->ReleaseRecords(reservedIds, false, dummy, fromMemory);
+                if (m_offlineStorageMemory && !reservedIds.empty())
+                {
+                    HttpHeaders dummy;
+                    bool fromMemory = true;
+                    m_offlineStorageMemory->ReleaseRecords(reservedIds, false, dummy, fromMemory);
+                }
+            }
+            catch (const std::exception& e)
+            {
+                std::fprintf(stderr, "Failed to recover records after flush failure: %s\n", e.what());
+            }
+            catch (...)
+            {
+                std::fputs("Failed to recover records after flush failure\n", stderr);
             }
             LOCKGUARD(m_flushLock);
             m_flushComplete.post();
             m_flushPending = false;
-            throw;
+            std::rethrow_exception(failure);
         }
     }
 

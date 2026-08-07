@@ -46,7 +46,7 @@ namespace PAL_NS_BEGIN {
         std::list<MAT::Task*> m_queue;
         std::list<MAT::Task*> m_timerQueue;
         Event                 m_event;
-        MAT::Task*            m_itemInProgress;
+        std::atomic<MAT::Task*> m_itemInProgress;
         bool                  m_shuttingDown = false;
         std::mutex            m_joinLock;
         // Set when the last reference is released by a task running on this worker
@@ -58,7 +58,7 @@ namespace PAL_NS_BEGIN {
 
         WorkerThread()
         {
-            m_itemInProgress = nullptr;
+            m_itemInProgress.store(nullptr, std::memory_order_relaxed);
             m_hThread = std::thread(WorkerThread::threadFunc, static_cast<void*>(this));
             LOG_INFO("Started new thread %zu", std::hash<std::thread::id>{}(m_hThread.get_id()));
         }
@@ -224,14 +224,14 @@ namespace PAL_NS_BEGIN {
                 return false;
             }
 
-            if (m_itemInProgress == item)
+            if (m_itemInProgress.load(std::memory_order_acquire) == item)
             {
                 /* Can't recursively wait on completion of our own thread */
                 if (m_hThread.get_id() != std::this_thread::get_id())
                 {
                     if (waitTime > 0 && m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime)))
                     {
-                        m_itemInProgress = nullptr;
+                        m_itemInProgress.store(nullptr, std::memory_order_release);
                         m_execution_mutex.unlock();
                     }
                 }
@@ -246,7 +246,7 @@ namespace PAL_NS_BEGIN {
                  *  true    - if item in progress is different than item (other task)
                  *  false   - if item in progress is still the same (didn't wait long enough)
                  */
-                return (m_itemInProgress != item);
+                return (m_itemInProgress.load(std::memory_order_acquire) != item);
             }
 
             {
@@ -318,7 +318,7 @@ namespace PAL_NS_BEGIN {
                     }
 
                     if (item) {
-                        self->m_itemInProgress = item.get();
+                        self->m_itemInProgress.store(item.get(), std::memory_order_release);
                     }
                 }
 
@@ -330,7 +330,7 @@ namespace PAL_NS_BEGIN {
 
                 if (item->Type == MAT::Task::Shutdown) {
                     item.reset();
-                    self->m_itemInProgress = nullptr;
+                    self->m_itemInProgress.store(nullptr, std::memory_order_release);
                     // Drop any tasks still queued behind the shutdown sentinel
                     // (e.g. future-dated timers) before exiting. The owning thread
                     // deletes these in Join() only after a successful join(); on the
@@ -348,7 +348,7 @@ namespace PAL_NS_BEGIN {
                     std::lock_guard<std::timed_mutex> lock(self->m_execution_mutex);
 
                     // Item wasn't cancelled before it could be executed
-                    if (self->m_itemInProgress != nullptr) {
+                    if (self->m_itemInProgress.load(std::memory_order_acquire) != nullptr) {
                         LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
                         // A task can run arbitrary work (storage I/O, HTTP encode, and
                         // user DebugEventListener callbacks). An exception escaping here
@@ -363,7 +363,7 @@ namespace PAL_NS_BEGIN {
                         catch (...) {
                             LOG_ERROR("Unhandled non-standard exception in worker task");
                         }
-                        self->m_itemInProgress = nullptr;
+                        self->m_itemInProgress.store(nullptr, std::memory_order_release);
                     }
 
                     if (item) {
