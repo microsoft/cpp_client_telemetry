@@ -90,6 +90,10 @@ namespace PAL_NS_BEGIN {
         {
             versionDec = 0ull;
         }
+        catch (Platform::Exception^)
+        {
+            versionDec = 0ull;
+        }
         if (versionDec != 0ull)
         {
             m_os_major_version = std::to_string(versionDec >> 16 * 3) + "." + std::to_string(versionDec >> 16 * 2 & 0xFFFF);
@@ -138,4 +142,3 @@ namespace PAL_NS_BEGIN {
     }
 
 } PAL_NS_END
-

@@ -89,10 +89,17 @@ Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jcl
     config.ServiceRequestConfig.RetryTimes = reinterpret_cast<int>(retry_times);
     config.ServiceRequestConfig.RetryTimesToWait = reinterpret_cast<int>(retry_time_to_wait);
 
-    jsize size = env->GetArrayLength(retry_status_codes);
-    std::vector<int> retryStatusCodes(size);
-    env->GetIntArrayRegion(retry_status_codes, jsize{0}, size, &retryStatusCodes[0] );
-    config.ServiceRequestConfig.RetryStatusCodes = std::vector<int64_t>(retryStatusCodes.begin(), retryStatusCodes.end());
+    if (retry_status_codes != nullptr)
+    {
+        jsize size = env->GetArrayLength(retry_status_codes);
+        std::vector<int> retryStatusCodes(size);
+        if (size > 0)
+        {
+            env->GetIntArrayRegion(retry_status_codes, jsize{0}, size, retryStatusCodes.data());
+        }
+        config.ServiceRequestConfig.RetryStatusCodes =
+            std::vector<int64_t>(retryStatusCodes.begin(), retryStatusCodes.end());
+    }
 
     spDataInspector = Signals::CreateSignalsEventInspector(nullptr, config);
     return true;
