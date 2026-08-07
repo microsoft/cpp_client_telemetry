@@ -1,39 +1,5 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
-# Backward-compatible translation for legacy Apple build scripts. Standard
-# CMAKE_OSX_* variables are the canonical interface and must be initialized
-# before project() so CMake's compiler/platform detection sees them.
-if(NOT DEFINED CMAKE_OSX_ARCHITECTURES)
-  if(DEFINED IOS_ARCH AND NOT IOS_ARCH STREQUAL "")
-    set(CMAKE_OSX_ARCHITECTURES "${IOS_ARCH}" CACHE STRING
-      "Apple target architectures" FORCE)
-  elseif(DEFINED MAC_ARCH AND NOT MAC_ARCH STREQUAL "")
-    if(MAC_ARCH STREQUAL "universal")
-      set(_matsdk_legacy_apple_architectures "arm64;x86_64")
-    else()
-      set(_matsdk_legacy_apple_architectures "${MAC_ARCH}")
-    endif()
-    set(CMAKE_OSX_ARCHITECTURES "${_matsdk_legacy_apple_architectures}" CACHE STRING
-      "Apple target architectures" FORCE)
-  endif()
-endif()
-if(NOT DEFINED CMAKE_OSX_SYSROOT AND DEFINED IOS_PLAT AND NOT IOS_PLAT STREQUAL "")
-  set(CMAKE_OSX_SYSROOT "${IOS_PLAT}" CACHE STRING "Apple SDK sysroot" FORCE)
-endif()
-if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET
-   AND DEFINED IOS_DEPLOYMENT_TARGET
-   AND NOT IOS_DEPLOYMENT_TARGET STREQUAL "")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "${IOS_DEPLOYMENT_TARGET}" CACHE STRING
-    "Apple deployment target" FORCE)
-endif()
-if((DEFINED FORCE_RESET_OSX_DEPLOYMENT_TARGET AND FORCE_RESET_OSX_DEPLOYMENT_TARGET)
-   OR (DEFINED FORCE_RESET_DEPLOYMENT_TARGET AND FORCE_RESET_DEPLOYMENT_TARGET))
-  message(DEPRECATION
-    "FORCE_RESET_OSX_DEPLOYMENT_TARGET/FORCE_RESET_DEPLOYMENT_TARGET are no "
-    "longer needed. CMAKE_OSX_DEPLOYMENT_TARGET (or legacy "
-    "IOS_DEPLOYMENT_TARGET) is honored directly without mutating global flags.")
-endif()
-
 project(MSTelemetry LANGUAGES C CXX)
 if(APPLE)
   set(MATSDK_BUILD_PLATFORM_APPLE TRUE)
