@@ -7,6 +7,7 @@
 #pragma warning(disable : 4459)
 #endif
 #include "LogManagerImpl.hpp"
+#include <cstdio>
 #include "mat/config.h"
 
 #include "offline/LogSessionDataProvider.hpp"
@@ -368,9 +369,27 @@ namespace MAT_NS_BEGIN
 
     LogManagerImpl::~LogManagerImpl() noexcept
     {
-        FlushAndTeardown();
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        ILogManagerInternal::managers.erase(this);
+        try
+        {
+            FlushAndTeardown();
+        }
+        catch (const std::exception& e)
+        {
+            std::fprintf(stderr, "Log manager teardown failed: %s\n", e.what());
+        }
+        catch (...)
+        {
+            std::fputs("Log manager teardown failed with an unknown exception\n", stderr);
+        }
+        try
+        {
+            LOCKGUARD(ILogManagerInternal::managers_lock);
+            ILogManagerInternal::managers.erase(this);
+        }
+        catch (...)
+        {
+            std::fputs("Log manager registry cleanup failed\n", stderr);
+        }
     }
 
     size_t LogManagerImpl::GetDeadLoggerCount()

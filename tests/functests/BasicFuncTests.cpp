@@ -186,7 +186,7 @@ public:
         std::remove((fileName + "-journal").c_str());
     }
 
-    virtual void Initialize()
+    virtual void Initialize(int64_t maxTeardownUploadTimeInSec = 2)
     {
         receivedRequests.clear();
         auto configuration = LogManager::GetLogConfiguration();
@@ -202,7 +202,7 @@ public:
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration[CFG_INT_CACHE_FILE_SIZE] = 4096 * 1024;  // 4MB default
-        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = maxTeardownUploadTimeInSec;
         configuration[CFG_INT_STORAGE_FULL_PCT] = 75;   // default
         configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 5000; // default 5s
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
@@ -616,10 +616,8 @@ TEST_F(BasicFuncTests, teardownDuringInFlightUpload_ShutsDownCleanly)
         << "the /slow/ rewrite would be a no-op and this test would not exercise "
         << "teardown during an in-flight upload.";
     serverAddress.replace(pos, std::string("/simple/").size(), "/slow/");
-    Initialize();
+    Initialize(0);
     serverAddress = savedAddress;
-
-    LogManager::GetLogConfiguration()[CFG_INT_MAX_TEARDOWN_TIME] = 0;
 
     for (int i = 0; i < 20; ++i)
     {

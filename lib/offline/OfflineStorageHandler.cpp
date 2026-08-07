@@ -10,6 +10,7 @@
 
 #include "ILogManager.hpp"
 #include <algorithm>
+#include <limits>
 #include <numeric>
 #include <set>
 
@@ -64,7 +65,7 @@ namespace MAT_NS_BEGIN {
     class ActivityGuard
     {
        public:
-        explicit ActivityGuard(ILogManager& logManager) noexcept :
+        explicit ActivityGuard(ILogManager& logManager) :
             m_logManager(logManager),
             m_active(logManager.StartActivity())
         {
@@ -213,6 +214,7 @@ namespace MAT_NS_BEGIN {
             m_flushPending = false;
             return;
         }
+        std::vector<StorageRecordId> reservedIds;
         try
         {
             // Flush could be executed from context of worker thread, as well as from TPM and
@@ -229,14 +231,36 @@ namespace MAT_NS_BEGIN {
             {
                 // This will block on and then take a lock for the duration of this move, and
                 // StoreRecord() will then block until the move completes.
-                auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-                std::vector<StorageRecordId> ids;
+                std::vector<StorageRecord> records;
+                auto consumer = [&records, &reservedIds](StorageRecord&& record) -> bool {
+                    reservedIds.push_back(record.id);
+                    records.push_back(std::move(record));
+                    return true;
+                };
+                m_offlineStorageMemory->GetAndReserveRecords(
+                    consumer,
+                    std::numeric_limits<unsigned>::max(),
+                    EventLatency_Unspecified);
+                std::vector<StorageRecordId> failedIds;
+                std::vector<StorageRecordId> storedIds;
 
                 // TODO: [MG] - consider running the batch in transaction
                 //            if (sqlite)
                 //                sqlite->Execute("BEGIN");
 
-                size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
+                size_t totalSaved = 0;
+                for (auto const& record : records)
+                {
+                    if (m_offlineStorageDisk->StoreRecord(record))
+                    {
+                        storedIds.push_back(record.id);
+                        ++totalSaved;
+                    }
+                    else
+                    {
+                        failedIds.push_back(record.id);
+                    }
+                }
 
                 // TODO: [MG] - consider running the batch in transaction
                 //            if (sqlite)
@@ -245,7 +269,8 @@ namespace MAT_NS_BEGIN {
                 // Delete records from reserved on flush
                 HttpHeaders dummy;
                 bool fromMemory = true;
-                m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
+                m_offlineStorageMemory->DeleteRecords(storedIds, dummy, fromMemory);
+                m_offlineStorageMemory->ReleaseRecords(failedIds, false, dummy, fromMemory);
 
                 // Notify event listener about the records cached
                 OnStorageRecordsSaved(totalSaved);
@@ -271,6 +296,12 @@ namespace MAT_NS_BEGIN {
         }
         catch (...)
         {
+            if (m_offlineStorageMemory && !reservedIds.empty())
+            {
+                HttpHeaders dummy;
+                bool fromMemory = true;
+                m_offlineStorageMemory->ReleaseRecords(reservedIds, false, dummy, fromMemory);
+            }
             LOCKGUARD(m_flushLock);
             m_flushComplete.post();
             m_flushPending = false;
