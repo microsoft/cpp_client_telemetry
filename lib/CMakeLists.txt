@@ -748,11 +748,15 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
 )
 
-install(FILES
+set(_matsdk_package_config_files
   "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfig.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/MSTelemetryConfigVersion.cmake"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MatsdkAppleSystemDeps.cmake"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MatsdkDependencyTargets.cmake"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MatsdkDependencyTargets.cmake")
+if(APPLE)
+  list(APPEND _matsdk_package_config_files
+    "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MatsdkAppleSystemDeps.cmake")
+endif()
+install(FILES ${_matsdk_package_config_files}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MSTelemetry
 )
 

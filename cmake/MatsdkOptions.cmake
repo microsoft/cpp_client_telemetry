@@ -203,21 +203,3 @@ endif()
 message(STATUS "BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message(STATUS "MATSDK_SQLITE_PROVIDER: ${MATSDK_SQLITE_PROVIDER} -> ${MATSDK_SQLITE_PROVIDER_RESOLVED}")
 message(STATUS "MATSDK_ZLIB_PROVIDER: ${MATSDK_ZLIB_PROVIDER} -> ${MATSDK_ZLIB_PROVIDER_RESOLVED}")
-
-################################################################################################
-# Removed inputs
-################################################################################################
-# These predate canonical replacements by more than three months and have no
-# clean behavioral mapping onto the new provider/layout model, so they are not
-# translated -- only detected, so an old script gets an explicit message
-# instead of a silent layout/linkage change.
-if(DEFINED INSTALL_LIB_DIR)
-  message(DEPRECATION
-    "INSTALL_LIB_DIR no longer has any effect; installation layout is "
-    "controlled by GNUInstallDirs (CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_PREFIX).")
-endif()
-if(DEFINED BUILD_STATIC_SQLITE)
-  message(DEPRECATION
-    "BUILD_STATIC_SQLITE no longer has any effect; select the SQLite "
-    "dependency with MATSDK_SQLITE_PROVIDER=SYSTEM|MINIMAL|VENDORED instead.")
-endif()
