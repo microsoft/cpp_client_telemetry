@@ -84,7 +84,10 @@ else()
     set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
   else()
     find_package(SQLite3 REQUIRED)
-    set (SQLITE3_LIB SQLite::SQLite3)
+    if(NOT TARGET SQLite3::SQLite3)
+      add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
+    endif()
+    set (SQLITE3_LIB SQLite3::SQLite3)
   endif()
 
   if(TARGET zlib_bundled)
@@ -153,5 +156,7 @@ else()
   endif()
 
 endif()
+
+target_link_libraries(FuncTests matsdk_test_includes)
 
 add_test(FuncTests FuncTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/FuncTests.xml")
