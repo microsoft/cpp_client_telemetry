@@ -53,12 +53,10 @@ set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set SOLUTION=Solutions\MSTelemetrySDK.sln
 
 msbuild %SOLUTION% /target:sqlite:Rebuild,zlib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=%CONFIGURATION% /p:Platform=%PLAT% %CUSTOM_PROPS%
-if errorLevel 1 goto end
+if errorLevel 1 exit /b %errorLevel%
 Solutions\out\%CONFIGURATION%\%PLAT%\UnitTests\UnitTests.exe
-if errorLevel 1 goto end
+if errorLevel 1 exit /b %errorLevel%
 Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe
-:end
-if errorLevel 1 goto end
+if errorLevel 1 exit /b %errorLevel%
 start "" Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe --gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager
 start "" Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe --gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager
-:end
