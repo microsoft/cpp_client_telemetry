@@ -16,11 +16,24 @@
 #include <atomic>
 #include <memory>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 #pragma comment(lib, "winhttp.lib")
 
 namespace MAT_NS_BEGIN {
+
+class WinHttpRequestWrapper;
+
+struct WinHttpCallbackContext
+{
+    explicit WinHttpCallbackContext(std::shared_ptr<WinHttpRequestWrapper> request)
+      : request(std::move(request))
+    {
+    }
+
+    std::weak_ptr<WinHttpRequestWrapper> request;
+};
 
 class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequestWrapper>
 {
@@ -35,6 +48,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     std::vector<uint8_t>   m_readBuffer;
     std::atomic<bool>      isCallbackCalled {false};
     bool                   isAborted {false};
+    WinHttpCallbackContext* m_callbackContext {nullptr};
 
   public:
     WinHttpRequestWrapper(HttpClient_WinHttp& parent, SimpleHttpRequest* request)
@@ -298,12 +312,15 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         DispatchEvent(OnSending);
         void* data = m_request->m_body.empty() ? nullptr : static_cast<void*>(m_request->m_body.data());
         DWORD size = static_cast<DWORD>(m_request->m_body.size());
-        DWORD_PTR context = reinterpret_cast<DWORD_PTR>(this);
+        m_callbackContext = new WinHttpCallbackContext(shared_from_this());
+        DWORD_PTR context = reinterpret_cast<DWORD_PTR>(m_callbackContext);
         BOOL bResult = ::WinHttpSendRequest(
             m_hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, data, size, size, context);
         if (!bResult)
         {
             DWORD dwError = ::GetLastError();
+            delete m_callbackContext;
+            m_callbackContext = nullptr;
             LOG_WARN("WinHttpSendRequest() failed: %d", dwError);
             // Unable to send request
             DispatchEvent(OnSendFailed);
@@ -326,21 +343,30 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     {
         UNREFERENCED_PARAMETER(hInternet);
 
-        WinHttpRequestWrapper* self = reinterpret_cast<WinHttpRequestWrapper*>(dwContext);
+        WinHttpCallbackContext* context = reinterpret_cast<WinHttpCallbackContext*>(dwContext);
+        if (context == nullptr)
+        {
+            return;
+        }
+
+        if (dwInternetStatus == WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING)
+        {
+            // The callback context outlives the request wrapper and is released
+            // only by WinHTTP's final notification.
+            delete context;
+            return;
+        }
+
+        std::shared_ptr<WinHttpRequestWrapper> self = context->request.lock();
         if (self == nullptr)
         {
             return;
         }
 
-        LOG_TRACE("winHttpCallback: hInternet %p, self %p, dwInternetStatus %u", hInternet, self, dwInternetStatus);
+        LOG_TRACE("winHttpCallback: hInternet %p, self %p, dwInternetStatus %u", hInternet, self.get(), dwInternetStatus);
 
         switch (dwInternetStatus)
         {
-            case WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING:
-                // HANDLE_CLOSING may arrive after the wrapper has been erased
-                // and destroyed, so it must not dereference the context.
-                return;
-
             case WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE:
                 if (!::WinHttpReceiveResponse(self->m_hRequest, NULL))
                 {
@@ -496,10 +522,6 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         }
 
         {
-            if (m_hRequest != nullptr)
-            {
-                ::WinHttpSetStatusCallback(m_hRequest, NULL, WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS, 0);
-            }
             auto callback = m_appCallback;
             auto requestId = m_id;
             auto keepAlive = shared_from_this();
