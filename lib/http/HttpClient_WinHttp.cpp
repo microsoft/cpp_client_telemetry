@@ -13,6 +13,7 @@
 #include <winhttp.h>
 #include <wincrypt.h>
 
+#include <atomic>
 #include <memory>
 #include <sstream>
 #include <vector>
@@ -32,7 +33,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     SimpleHttpRequest*     m_request;
     std::vector<uint8_t>   m_bodyBuffer;
     std::vector<uint8_t>   m_readBuffer;
-    bool                   isCallbackCalled {false};
+    std::atomic<bool>      isCallbackCalled {false};
     bool                   isAborted {false};
 
   public:
@@ -410,6 +411,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
     void onRequestComplete(DWORD dwError)
     {
+        if (isCallbackCalled.exchange(true))
+        {
+            return;
+        }
+
         std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
 
         if (dwError == ERROR_SUCCESS) {
@@ -489,17 +495,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             }
         }
 
-        assert(isCallbackCalled == false);
-        if (!isCallbackCalled)
         {
-            // Only one WinHTTP worker thread may invoke async callback for a given request at any given moment of
-            // time. That ensures that isCallbackCalled does not require a lock around it. We unregister the callback
-            // here to ensure that no more callbacks are coming for that m_hRequest.
             if (m_hRequest != nullptr)
             {
                 ::WinHttpSetStatusCallback(m_hRequest, NULL, WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS, 0);
             }
-            isCallbackCalled = true;
             auto callback = m_appCallback;
             auto requestId = m_id;
             auto keepAlive = shared_from_this();
