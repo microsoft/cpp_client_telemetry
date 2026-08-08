@@ -1364,7 +1364,9 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
-        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        // Keep this teardown stress test deterministic; the in-flight
+        // cancellation behavior is covered by the local HTTP client test.
+        configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
