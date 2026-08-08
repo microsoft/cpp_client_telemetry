@@ -299,9 +299,16 @@ target_compile_definitions(matsdk_internal_config INTERFACE
   _USRDLL
   WINVER=_WIN32_WINNT_WIN7)
 target_compile_options(matsdk_internal_config INTERFACE /U_MBCS)
+option(MATSDK_USE_WININET
+  "Use WinInet instead of WinHTTP as the Win32 desktop HTTP client" OFF)
+if(MATSDK_USE_WININET)
+  target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_WININET_HTTP_CLIENT)
+endif()
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
+    http/HttpClient_WinHttp.cpp
+    http/HttpClient_WinHttp.hpp
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
@@ -666,7 +673,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     target_link_libraries(mat PUBLIC log)
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
-  target_link_libraries(mat PUBLIC wininet crypt32 ws2_32)
+  target_link_libraries(mat PRIVATE wininet winhttp crypt32)
 elseif(APPLE)
   target_link_libraries(mat PUBLIC
     "-framework CoreFoundation"

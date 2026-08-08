@@ -10,6 +10,8 @@
 #include "common/HttpServer.hpp"
 #include "http/HttpClientFactory.hpp"
 
+#include <condition_variable>
+
 using namespace testing;
 using namespace MAT;
 
@@ -29,6 +31,11 @@ class HttpClientTests : public ::testing::Test,
     enum RequestState { Planned, Sent, Processed, Done };
     std::vector<RequestState>            _countedRequests;
     std::mutex                           _lock;
+    std::condition_variable              _responseCv;
+    std::condition_variable              _blockedRequestCv;
+    std::mutex                           _blockedRequestLock;
+    bool                                  _blockedRequestReceived {false};
+    bool                                  _releaseBlockedRequest {false};
 
   public:
     HttpClientTests()
@@ -59,6 +66,7 @@ class HttpClientTests : public ::testing::Test,
         _server.addHandler("/simple/", *this);
         _server.addHandler("/echo/",   *this);
         _server.addHandler("/count/",  *this);
+        _server.addHandler("/block/",  *this);
         _server.start();
 
         Clear();
@@ -66,6 +74,11 @@ class HttpClientTests : public ::testing::Test,
 
     virtual void TearDown() override
     {
+        {
+            std::lock_guard<std::mutex> lock(_blockedRequestLock);
+            _releaseBlockedRequest = true;
+        }
+        _blockedRequestCv.notify_all();
         _server.stop();
         _client.reset();
         Clear();
@@ -84,6 +97,17 @@ class HttpClientTests : public ::testing::Test,
             auto it = request.headers.find("Content-Type");
             inResponse.headers["Content-Type"] = (it != request.headers.end()) ? it->second : "application/octet-stream";
             inResponse.content = request.content;
+            return 200;
+        }
+
+        if (request.uri == "/block/") {
+            {
+                std::lock_guard<std::mutex> lock(_blockedRequestLock);
+                _blockedRequestReceived = true;
+            }
+            _blockedRequestCv.notify_all();
+            std::unique_lock<std::mutex> lock(_blockedRequestLock);
+            _blockedRequestCv.wait(lock, [this]() { return _releaseBlockedRequest; });
             return 200;
         }
 
@@ -119,6 +143,7 @@ class HttpClientTests : public ::testing::Test,
     {
         std::lock_guard<std::mutex> lock(_lock);
         _responses.push_back(clone(inResponse));
+        _responseCv.notify_all();
     }
 
 };
@@ -126,6 +151,47 @@ class HttpClientTests : public ::testing::Test,
 std::vector<uint8_t> Binary(std::string const& str)
 {
     return std::vector<uint8_t>(str.data(), str.data() + str.size());
+}
+
+TEST_F(HttpClientTests, HandlesCancellationWhileResponseIsInFlight)
+{
+    Clear();
+    {
+        std::lock_guard<std::mutex> lock(_blockedRequestLock);
+        _blockedRequestReceived = false;
+        _releaseBlockedRequest = false;
+    }
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    std::string requestId = request->GetId();
+    request->SetUrl("http://" + _hostname + "/block/");
+    _client->SendRequestAsync(request.release(), this);
+
+    {
+        std::unique_lock<std::mutex> lock(_blockedRequestLock);
+        ASSERT_TRUE(_blockedRequestCv.wait_for(lock, std::chrono::seconds(10),
+            [this]() { return _blockedRequestReceived; }));
+    }
+
+    _client->CancelRequestAsync(requestId);
+    {
+        std::lock_guard<std::mutex> lock(_blockedRequestLock);
+        _releaseBlockedRequest = true;
+    }
+    _blockedRequestCv.notify_all();
+
+    std::unique_ptr<IHttpResponse> response;
+    {
+        std::unique_lock<std::mutex> lock(_lock);
+        ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(2),
+            [this]() { return !_responses.empty(); }));
+        ASSERT_EQ(_responses.size(), 1u);
+        response.reset(_responses[0]);
+        _responses.clear();
+    }
+
+    EXPECT_THAT(response->GetId(), requestId);
+    EXPECT_THAT(response->GetResult(), HttpResult_Aborted);
 }
 
 //---
@@ -346,4 +412,3 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
 
 }
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
-

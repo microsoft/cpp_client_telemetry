@@ -1364,7 +1364,9 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
-        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        // Use a closed local port so this teardown stress test does not depend
+        // on external networking or overflow the fixture server's socket set.
+        configuration[CFG_STR_COLLECTOR_URL] = "http://127.0.0.1:1/";
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;

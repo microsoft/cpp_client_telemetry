@@ -16,6 +16,8 @@
 #include <atomic>
 #include <cassert>
 #include <LogManager.hpp>
+#include <thread>
+#include <vector>
 
 #include "PayloadDecoder.hpp"
 
@@ -673,37 +675,31 @@ constexpr static unsigned MAX_THREADS = 25;
 /// <param name="config">The configuration.</param>
 void StressUploadLockMultiThreaded(ILogConfiguration& config)
 {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     TestDebugEventListener debugListener;
 
     addAllListeners(debugListener);
     size_t numIterations = MAX_ITERATIONS_MT;
 
-    std::mutex m_threads_mtx;
-    std::atomic<unsigned> threadCount(0);
-
     while (numIterations--)
     {
         ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
-        // Keep spawning UploadNow threads while the main thread is trying to perform
-        // Initialize and Teardown, but no more than MAX_THREADS at a time.
+        std::vector<std::thread> uploadThreads;
+        uploadThreads.reserve(MAX_THREADS);
         for (size_t i = 0; i < MAX_THREADS; i++)
         {
-            if (threadCount++ < MAX_THREADS)
+            uploadThreads.emplace_back([]()
             {
-                auto t = std::thread([&]()
-                {
-                    std::this_thread::yield();
-                    LogManager::UploadNow();
-                    const auto randTimeSub2ms = std::rand() % 2;
-                    PAL::sleep(randTimeSub2ms);
-                    threadCount--;
-                });
-                t.detach();
-            }
-        };
+                std::this_thread::yield();
+                LogManager::UploadNow();
+                PAL::sleep(0);
+            });
+        }
         EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
+        for (auto& uploadThread : uploadThreads)
+        {
+            uploadThread.join();
+        }
         LogManager::FlushAndTeardown();
     }
     removeAllListeners(debugListener);
