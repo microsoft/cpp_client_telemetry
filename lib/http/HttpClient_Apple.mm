@@ -207,7 +207,7 @@ public:
             NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
             auto simpleResponse = new SimpleHttpResponse { NextRespId() };
 
-            simpleResponse->m_statusCode = httpResp.statusCode;
+            simpleResponse->m_statusCode = static_cast<unsigned int>(httpResp.statusCode);
 
             NSDictionary *responseHeaders = [httpResp allHeaderFields];
             for (id key in responseHeaders)
