@@ -53,12 +53,10 @@ set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set SOLUTION=Solutions\MSTelemetrySDK.sln
 
 msbuild %SOLUTION% /target:sqlite:Rebuild,zlib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=%CONFIGURATION% /p:Platform=%PLAT% %CUSTOM_PROPS%
-if errorLevel 1 goto end
+if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
 Solutions\out\%CONFIGURATION%\%PLAT%\UnitTests\UnitTests.exe
-if errorLevel 1 goto end
+if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
 Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe
-:end
-if errorLevel 1 goto end
-start "" Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe --gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager
-start "" Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe --gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager
-:end
+if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$path = Join-Path (Get-Location) 'Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe'; $args = '--gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager'; $p1 = Start-Process -FilePath $path -ArgumentList $args -PassThru; $p2 = Start-Process -FilePath $path -ArgumentList $args -PassThru; $p1.WaitForExit(); $p2.WaitForExit(); if ($p1.ExitCode -ne 0 -or $p2.ExitCode -ne 0) { exit 1 }"
+if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%

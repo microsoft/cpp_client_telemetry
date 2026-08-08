@@ -495,7 +495,9 @@ namespace MAT_NS_BEGIN
                     auto tenantToken_java = static_cast<jstring>(env->GetObjectField(record,
                                                                                      tenantToken_id));
                     ThrowRuntime(env, "get tenant");
-                    auto token_utf = env->GetStringUTFChars(tenantToken_java, nullptr);
+                    auto token_utf = (tenantToken_java != nullptr)
+                                         ? env->GetStringUTFChars(tenantToken_java, nullptr)
+                                         : nullptr;
                     ThrowRuntime(env, "string tenant");
                     auto latency = static_cast<EventLatency>(std::max(latency_lb,
                                                                       std::min<int>(
@@ -529,14 +531,17 @@ namespace MAT_NS_BEGIN
                     uint8_t* end = start + env->GetArrayLength(blob_java);
                     StorageRecord dest(
                         std::to_string(id_java),
-                        token_utf,
+                        token_utf != nullptr ? token_utf : "",
                         latency,
                         persistence,
                         timestamp,
                         StorageBlob(start, end),
                         retryCount,
                         reservedUntil);
-                    env->ReleaseStringUTFChars(tenantToken_java, token_utf);
+                    if (token_utf != nullptr)
+                    {
+                        env->ReleaseStringUTFChars(tenantToken_java, token_utf);
+                    }
                     env->ReleaseByteArrayElements(blob_java,
                                                   reinterpret_cast<jbyte*>(start), 0);
                     env.popLocalFrame();
@@ -769,10 +774,17 @@ namespace MAT_NS_BEGIN
                     ThrowLogic(env, "Exception fetching token");
                     auto count = env->GetLongField(byTenant, count_id);
                     ThrowLogic(env, "Exception fetching count");
-                    auto utf = env->GetStringUTFChars(token, nullptr);
-                    std::string key(utf);
-                    env->ReleaseStringUTFChars(token, utf);
-                    dropped[key] = static_cast<size_t>(count);
+                    auto utf = (token != nullptr) ? env->GetStringUTFChars(token, nullptr)
+                                                  : nullptr;
+                    ThrowRuntime(env, "Exception fetching token string");
+                    // Skip rather than misattribute dropped records to an empty
+                    // tenant token when the string read fails.
+                    if (utf != nullptr)
+                    {
+                        std::string key(utf);
+                        env->ReleaseStringUTFChars(token, utf);
+                        dropped[key] = static_cast<size_t>(count);
+                    }
                     env.popLocalFrame();
                 }
                 m_observer->OnStorageRecordsDropped(dropped);
@@ -1098,8 +1110,11 @@ namespace MAT_NS_BEGIN
             {
                 auto utf = env->GetStringUTFChars(java_value, nullptr);
                 ThrowRuntime(env, "copy setting value");
-                result = utf;
-                env->ReleaseStringUTFChars(java_value, utf);
+                if (utf != nullptr)
+                {
+                    result = utf;
+                    env->ReleaseStringUTFChars(java_value, utf);
+                }
             }
             return result;
         }
@@ -1343,7 +1358,13 @@ namespace MAT_NS_BEGIN
                 auto id_j = env->GetLongField(record, id_id);
                 auto tenant_j = static_cast<jstring>(env->GetObjectField(record,
                                                                          tenantToken_id));
-                auto tenant_utf = env->GetStringUTFChars(tenant_j, nullptr);
+                const char* tenant_utf = (tenant_j != nullptr)
+                                             ? env->GetStringUTFChars(tenant_j, nullptr)
+                                             : nullptr;
+                // Clear/handle any pending exception from a failed string read
+                // (e.g. OOM) before making further JNI calls, consistent with the
+                // other read paths in this file.
+                ThrowRuntime(env, "string tenant");
                 auto latency = static_cast<EventLatency>(env->GetIntField(record,
                                                                           latency_id));
                 auto persistence = static_cast<EventPersistence>(env->GetIntField(record,
@@ -1359,14 +1380,17 @@ namespace MAT_NS_BEGIN
                 auto blob_end = blob_store + blob_length;
                 records.emplace_back(
                     std::to_string(id_j),
-                    tenant_utf,
+                    tenant_utf != nullptr ? tenant_utf : "",
                     latency,
                     persistence,
                     timestamp,
                     StorageBlob(blob_store, blob_end),
                     retryCount,
                     reservedUntil);
-                env->ReleaseStringUTFChars(tenant_j, tenant_utf);
+                if (tenant_utf != nullptr)
+                {
+                    env->ReleaseStringUTFChars(tenant_j, tenant_utf);
+                }
                 env->ReleaseByteArrayElements(blob_j, elements, 0);
                 env.popLocalFrame();
             }
