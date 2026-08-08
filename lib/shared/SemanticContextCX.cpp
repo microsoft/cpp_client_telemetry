@@ -117,6 +117,27 @@ namespace Microsoft {
                 {
                     m_semanticContextCore->SetUserTimeZone(FromPlatformString(userTimeZone));
                 }
+
+                void SemanticContextImpl::TraceId::set(String^ traceId)
+                {
+                    m_semanticContextCore->SetTraceId(FromPlatformString(traceId));
+                }
+
+                void SemanticContextImpl::SpanId::set(String ^ spanId)
+                {
+                    m_semanticContextCore->SetSpanId(FromPlatformString(spanId));
+                }
+
+                void SemanticContextImpl::ParentId::set(String ^ parentId)
+                {
+                    m_semanticContextCore->SetParentId(FromPlatformString(parentId));
+                }
+
+                void SemanticContextImpl::TraceFlags::set(unsigned char traceFlags)
+                {
+                    m_semanticContextCore->SetTraceFlags(static_cast<uint8_t>(traceFlags));
+                }
+
             }
         }
     }

@@ -100,6 +100,23 @@ namespace Microsoft {
                     }
 
                     virtual void SetUserId(String^ userId, PiiKind piiKind) = 0;
+
+                    property String^ TraceId {
+                        virtual void set(String^ traceId) = 0;
+                    }
+
+                    property String^ SpanId {
+                        virtual void set(String^ spanId) = 0;
+                    }
+
+                    property unsigned char TraceFlags
+                    {
+                        virtual void set(unsigned char traceFlags) = 0;
+                    }
+
+                    property String^ ParentId {
+                        virtual void set(String^ parentId) = 0;
+                    }
                 };
 
                 /// @cond INTERNAL_DOCS
@@ -206,8 +223,25 @@ namespace Microsoft {
                     {
                         virtual void set(String^ appExperimentIds);
                     }
-                                        
-                    virtual void SetEventExperimentIds(String^ eventName, String^ experimentIds);					
+
+                    virtual void SetEventExperimentIds(String^ eventName, String^ experimentIds);
+
+                    property String^ TraceId {
+                        virtual void set(String^ traceId);
+                    }
+
+                    property String^ SpanId {
+                        virtual void set(String ^ spanId);
+                    }
+
+                    property unsigned char TraceFlags
+                    {
+                        virtual void set(unsigned char traceFlags);
+                    }
+
+                    property String^ ParentId {
+                        virtual void set(String ^ parentId);
+                    }
 
                 internal:
                     SemanticContextImpl(MAT::ISemanticContext* semanticContextCore);
