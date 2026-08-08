@@ -408,6 +408,9 @@ if(MATSDK_USE_VCPKG_DEPS)
     # distribution links them the same way), so the vcpkg sqlite3/zlib packages are
     # not pulled there -- find the system ones via CMake's standard find modules.
     find_package(SQLite3 REQUIRED)
+    if(NOT TARGET SQLite3::SQLite3)
+      add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
+    endif()
     find_package(ZLIB REQUIRED)
     find_package(nlohmann_json CONFIG REQUIRED)
     set(MATSDK_APPLE_SYSTEM_DEPS ON)

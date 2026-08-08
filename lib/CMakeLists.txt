@@ -518,12 +518,12 @@ if(MATSDK_USE_VCPKG_DEPS)
   # These are PUBLIC so static-library consumers get the transitive link set
   # through the exported MSTelemetry::mat target.
   if(APPLE)
-    # macOS/iOS link the system libsqlite3 + libz (SQLite::SQLite3 / ZLIB::ZLIB
+    # macOS/iOS link the system libsqlite3 + libz (SQLite3::SQLite3 / ZLIB::ZLIB
     # resolve to the OS libraries via CMake's find modules), so the vcpkg
     # sqlite3/zlib packages are neither pulled nor linked here.
     target_link_libraries(mat
       PUBLIC
-        SQLite::SQLite3
+        SQLite3::SQLite3
         ZLIB::ZLIB
         nlohmann_json::nlohmann_json
         ${LIBS}
@@ -603,15 +603,19 @@ else()
     target_link_libraries(mat PRIVATE sqlite3 z ${LIBS})
   else()
     # Linux legacy: system zlib + system (or private minimal) sqlite3. ZLIB::ZLIB
-    # and SQLite::SQLite3 are imported targets that carry their own include dirs.
+    # and SQLite3::SQLite3 are imported targets that carry their own include dirs.
     find_package(ZLIB REQUIRED)
     if(MATSDK_BUNDLE_SQLITE)
       target_link_libraries(mat PRIVATE sqlite3_bundled ZLIB::ZLIB ${LIBS})
     else()
       # find_package(SQLite3) needs CMake >= 3.14, guaranteed by the project floor;
-      # SQLite::SQLite3 is an imported target carrying its own include dirs.
+      # SQLite3::SQLite3 is the canonical imported target. CMake < 4.3 only
+      # provides the deprecated SQLite::SQLite3 spelling.
       find_package(SQLite3 REQUIRED)
-      target_link_libraries(mat PRIVATE SQLite::SQLite3 ZLIB::ZLIB ${LIBS})
+      if(NOT TARGET SQLite3::SQLite3)
+        add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
+      endif()
+      target_link_libraries(mat PRIVATE SQLite3::SQLite3 ZLIB::ZLIB ${LIBS})
     endif()
   endif()
 endif()
