@@ -12,6 +12,8 @@
 
 #include <list>
 #include <mutex>
+#include <chrono>
+#include <condition_variable>
 
 namespace MAT_NS_BEGIN
 {
@@ -28,7 +30,7 @@ class HttpClientManager
 
         virtual ~HttpClientManager() noexcept;
 
-        void cancelAllRequests();
+        void cancelAllRequests(bool bestEffort = false);
 
         size_t requestCount() const
         {
@@ -55,14 +57,16 @@ class HttpClientManager
         void handleSendRequest(EventsUploadContextPtr const& ctx);
         virtual void scheduleOnHttpResponse(HttpCallback* callback);
         void onHttpResponse(HttpCallback* callback);
-        bool cancelAllRequestsAsync();
+        void cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());
+        void cancelTrackedRequestsAsync();
 
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;
         ITaskDispatcher&          m_taskDispatcher;
         mutable std::recursive_mutex m_httpCallbacksMtx;
         std::list<HttpCallback*>  m_httpCallbacks;
+        std::condition_variable_any m_httpCallbacksCV;
+        std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::seconds(30)};
 };
 
 } MAT_NS_END
-
