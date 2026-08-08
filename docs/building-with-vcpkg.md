@@ -418,7 +418,7 @@ unused) but does not save the dependency.
 For a plain (non-vcpkg) CMake build, pass the option directly:
 
 ```bash
-cmake -DMATSDK_MINIMAL_SQLITE=ON ..
+cmake -DMATSDK_SQLITE_PROVIDER=MINIMAL ..
 ```
 
 The strip is **amalgamation-safe**: it changes no SQLite grammar/parser, so no
@@ -438,22 +438,13 @@ unchanged against the minimal build.
 > that case, prefer the default `system-sqlite` feature so the whole graph shares a
 > single SQLite.
 
-## How It Works: MATSDK_USE_VCPKG_DEPS
+## How It Works
 
-When the SDK detects it is being built via vcpkg (by checking for
-`VCPKG_TOOLCHAIN` or `VCPKG_TARGET_TRIPLET`), it automatically sets
-`MATSDK_USE_VCPKG_DEPS=ON`. This switches dependency resolution from
-vendored sources to vcpkg-provided packages via `find_package()`. Android HTTP
-transport selection is controlled separately by `MATSDK_ANDROID_HTTP_CLIENT`,
-which defaults to `JAVA` on Android.
-
-You can also set this explicitly for custom CMake workflows:
-
-```bash
-cmake -DMATSDK_USE_VCPKG_DEPS=ON \
-      -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
-      ..
-```
+The SDK consumes canonical CMake dependency targets. The vcpkg toolchain
+provides those targets through normal `find_package()` discovery; no separate
+SDK-specific dependency-mode switch is required. Android transport selection is
+separate: `MATSDK_ANDROID_HTTP_CLIENT=AUTO` resolves to the Java/JNI transport,
+while the explicit Android curl features select the native curl transport.
 
 ## Migrating from the older overlay port
 

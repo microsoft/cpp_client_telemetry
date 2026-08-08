@@ -46,7 +46,7 @@ namespace PAL_NS_BEGIN {
         m_cost(NetworkCost_Unknown),
         m_info_helper(),
         m_registeredCount(0),
-        m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT]){};
+        m_isNetDetectEnabled(configuration[CFG_BOOL_ENABLE_NET_DETECT]){}
 
     NetworkInformationImpl::~NetworkInformationImpl() {};
 

@@ -33,7 +33,7 @@ if(NOT DEFINED SOURCE_PATH)
 endif()
 
 # Determine if Apple HTTP should be used (no curl needed).
-# Note: BUILD_APPLE_HTTP must remain ON for macOS/iOS because the vcpkg.json
+# Note: MATSDK_BUILD_APPLE_HTTP must remain ON for macOS/iOS because the vcpkg.json
 # curl dependency is excluded on these platforms.
 set(MATSDK_BUILD_APPLE_HTTP OFF)
 if(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
@@ -41,23 +41,28 @@ if(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
 endif()
 
 # iOS build options
-set(MATSDK_BUILD_IOS OFF)
+set(MATSDK_BUILD_IOS_LEGACY OFF)
 if(VCPKG_TARGET_IS_IOS)
-  set(MATSDK_BUILD_IOS ON)
+  set(MATSDK_BUILD_IOS_LEGACY ON)
 endif()
 
-# Keep the port's iOS deployment target aligned with the consumer test and the
-# SDK's supported minimum instead of letting Clang default to the SDK version.
 set(MATSDK_APPLE_DEPLOYMENT_OPTIONS)
 if(VCPKG_TARGET_IS_IOS)
   list(APPEND MATSDK_APPLE_DEPLOYMENT_OPTIONS
-    -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0)
+    -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0)
 endif()
 
 set(MATSDK_ANDROID_HTTP_CLIENT AUTO)
 if(VCPKG_TARGET_IS_ANDROID)
   file(READ "${SOURCE_PATH}/CMakeLists.txt" _matsdk_root_cmake)
-  if(NOT _matsdk_root_cmake MATCHES "MATSDK_ANDROID_HTTP_CLIENT")
+  set(_matsdk_android_option_source "${_matsdk_root_cmake}")
+  if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
+    file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake"
+      _matsdk_options_cmake)
+    string(APPEND _matsdk_android_option_source
+      "\n${_matsdk_options_cmake}")
+  endif()
+  if(NOT _matsdk_android_option_source MATCHES "MATSDK_ANDROID_HTTP_CLIENT")
     message(FATAL_ERROR
       "Android vcpkg builds require a cpp-client-telemetry source revision that "
       "supports MATSDK_ANDROID_HTTP_CLIENT. Update this port's REF/SHA512 to a "
@@ -114,19 +119,47 @@ if(VCPKG_TARGET_IS_LINUX OR MATSDK_ANDROID_HTTP_CLIENT STREQUAL "CURL")
   endif()
 endif()
 
-# minimal-sqlite -> -DMATSDK_MINIMAL_SQLITE=ON (private feature-stripped SQLite).
-vcpkg_check_features(
-    OUT_FEATURE_OPTIONS FEATURE_OPTIONS
-    FEATURES
-        minimal-sqlite MATSDK_MINIMAL_SQLITE
-)
+set(MATSDK_VCPKG_SQLITE_PROVIDER SYSTEM)
+if("minimal-sqlite" IN_LIST FEATURES)
+  set(MATSDK_VCPKG_SQLITE_PROVIDER MINIMAL)
+endif()
+
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+  set(MATSDK_VCPKG_BUILD_SHARED_LIBS ON)
+else()
+  set(MATSDK_VCPKG_BUILD_SHARED_LIBS OFF)
+endif()
+
+file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_ROOT_CMAKE)
+set(MATSDK_PINNED_SOURCE_OPTIONS)
+if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_USE_VCPKG_DEPS")
+  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_USE_VCPKG_DEPS=ON)
+endif()
+if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_MINIMAL_SQLITE"
+   AND "minimal-sqlite" IN_LIST FEATURES)
+  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_MINIMAL_SQLITE=ON)
+endif()
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        ${FEATURE_OPTIONS}
-        -DMATSDK_USE_VCPKG_DEPS=ON
+        ${MATSDK_PINNED_SOURCE_OPTIONS}
+        -DMATSDK_SQLITE_PROVIDER=${MATSDK_VCPKG_SQLITE_PROVIDER}
+        -DBUILD_SHARED_LIBS=${MATSDK_VCPKG_BUILD_SHARED_LIBS}
         -DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}
+        -DMATSDK_BUILD_HEADERS=ON
+        -DMATSDK_BUILD_LIBRARY=ON
+        -DMATSDK_BUILD_TEST_TOOL=OFF
+        -DMATSDK_BUILD_UNIT_TESTS=OFF
+        -DMATSDK_BUILD_FUNC_TESTS=OFF
+        -DMATSDK_BUILD_JNI_WRAPPER=OFF
+        -DMATSDK_BUILD_OBJC_WRAPPER=OFF
+        -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
+        -DMATSDK_BUILD_PACKAGE=OFF
+        -DBUILD_VERSION=${VERSION}
+        -DMATSDK_BUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
+        # Legacy aliases keep the pinned release fallback buildable until the
+        # next release contains the canonical MATSDK_* options.
         -DBUILD_HEADERS=ON
         -DBUILD_LIBRARY=ON
         -DBUILD_TEST_TOOL=OFF
@@ -136,9 +169,8 @@ vcpkg_cmake_configure(
         -DBUILD_OBJC_WRAPPER=OFF
         -DBUILD_SWIFT_WRAPPER=OFF
         -DBUILD_PACKAGE=OFF
-        -DBUILD_VERSION=${VERSION}
         -DBUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
-        -DBUILD_IOS=${MATSDK_BUILD_IOS}
+        -DBUILD_IOS=${MATSDK_BUILD_IOS_LEGACY}
         ${MATSDK_APPLE_DEPLOYMENT_OPTIONS}
 )
 
