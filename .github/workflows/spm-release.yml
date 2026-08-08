@@ -111,32 +111,6 @@ jobs:
           tools/apple/build-xcframework.sh release
           test -f "build/apple/$ARTIFACT"
 
-      - name: Validate SwiftPM package consumption
-        if: ${{ steps.ver.outputs.skip != 'true' }}
-        run: |
-          set -euo pipefail
-          swift package dump-package > package.json
-          python3 - <<'PY'
-          import json
-          expected = {
-              "ios": "12.0",
-              "maccatalyst": "14.0",
-              "macos": "10.15",
-              "visionos": "1.0",
-          }
-          with open("package.json", encoding="utf-8") as f:
-              platforms = {
-                  item["platformName"]: item["version"]
-                  for item in json.load(f)["platforms"]
-              }
-          if platforms != expected:
-              raise SystemExit(f"Unexpected Package.swift platforms: {platforms}")
-          PY
-          swift build
-          xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build
-          xcodebuild -scheme OneDSSwift -destination 'platform=macOS,variant=Mac Catalyst' build
-          xcodebuild -scheme OneDSSwift -destination 'generic/platform=visionOS Simulator' build
-
       - name: Compute SPM checksum
         id: sum
         if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
@@ -175,6 +149,32 @@ jobs:
           assert out != src, "binaryTarget(path:) block not found in Package.swift"
           open(path, "w").write(out)
           PY
+
+      - name: Validate SwiftPM package consumption
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        run: |
+          set -euo pipefail
+          swift package dump-package > package.json
+          python3 - <<'PY'
+          import json
+          expected = {
+              "ios": "12.0",
+              "maccatalyst": "14.0",
+              "macos": "10.15",
+              "visionos": "1.0",
+          }
+          with open("package.json", encoding="utf-8") as f:
+              platforms = {
+                  item["platformName"]: item["version"]
+                  for item in json.load(f)["platforms"]
+              }
+          if platforms != expected:
+              raise SystemExit(f"Unexpected Package.swift platforms: {platforms}")
+          PY
+          swift build
+          xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme OneDSSwift -destination 'platform=macOS,variant=Mac Catalyst' build
+          xcodebuild -scheme OneDSSwift -destination 'generic/platform=visionOS Simulator' build
 
       - name: Commit manifest and push the 3-component SPM tag
         if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
