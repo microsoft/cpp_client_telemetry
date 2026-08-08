@@ -25,11 +25,22 @@ Java_com_microsoft_applications_events_Signals_sendSignal(JNIEnv *env,
                                                           jlong nativeLoggerPtr,
                                                           jstring signal_item_json) {
     jboolean isCopy = true;
-    const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
-    env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
-
     auto logger = reinterpret_cast<ILogger*>(nativeLoggerPtr);
+    if (logger == nullptr) {
+        return false;
+    }
+    if (signal_item_json == nullptr) {
+        return false;
+    }
+    const char *signalItemJson = (env)->GetStringUTFChars(signal_item_json, &isCopy);
+    if (signalItemJson == nullptr) {
+        // Preserve the pending Java exception (typically an allocation failure)
+        // rather than masking it as a clean false result.
+        return false;
+    }
+
     EventProperties eventProperties = Signals::CreateEventProperties(signalItemJson);
+    env->ReleaseStringUTFChars(signal_item_json, signalItemJson);
     logger->LogEvent(eventProperties);
     return true;
 }
@@ -54,20 +65,34 @@ Java_com_microsoft_applications_events_Signals_nativeInitialize(JNIEnv *env, jcl
     SubstrateSignalsConfiguration config;
 
     jboolean isCopy = true;
-    const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
-    if (strlen(convertedValue) > 0) {
-        config.ServiceRequestConfig.BaseUrl = convertedValue;
+    if (base_url != nullptr) {
+        const char *convertedValue = (env)->GetStringUTFChars(base_url, &isCopy);
+        if (convertedValue == nullptr) {
+            // Preserve the pending Java exception (typically an allocation failure)
+            // rather than masking it as a clean false result.
+            return false;
+        }
+        if (strlen(convertedValue) > 0) {
+            config.ServiceRequestConfig.BaseUrl = convertedValue;
+        }
+        env->ReleaseStringUTFChars(base_url, convertedValue);
     }
-    env->ReleaseStringUTFChars(base_url, convertedValue);
 
     config.ServiceRequestConfig.TimeoutMs = reinterpret_cast<int>(timeout_ms);
     config.ServiceRequestConfig.RetryTimes = reinterpret_cast<int>(retry_times);
     config.ServiceRequestConfig.RetryTimesToWait = reinterpret_cast<int>(retry_time_to_wait);
 
-    jsize size = env->GetArrayLength(retry_status_codes);
-    std::vector<int> retryStatusCodes(size);
-    env->GetIntArrayRegion(retry_status_codes, jsize{0}, size, &retryStatusCodes[0] );
-    config.ServiceRequestConfig.RetryStatusCodes = std::vector<int64_t>(retryStatusCodes.begin(), retryStatusCodes.end());
+    if (retry_status_codes != nullptr)
+    {
+        jsize size = env->GetArrayLength(retry_status_codes);
+        std::vector<int> retryStatusCodes(size);
+        if (size > 0)
+        {
+            env->GetIntArrayRegion(retry_status_codes, jsize{0}, size, retryStatusCodes.data());
+        }
+        config.ServiceRequestConfig.RetryStatusCodes =
+            std::vector<int64_t>(retryStatusCodes.begin(), retryStatusCodes.end());
+    }
 
     spDataInspector = Signals::CreateSignalsEventInspector(nullptr, config);
     return true;
