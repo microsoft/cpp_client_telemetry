@@ -268,7 +268,7 @@ namespace testing {
         return fname;
 	}
 
-	void LogMemUsage(const char* label) 
+	void LogMemUsage(const char* label) noexcept
 	{
 #ifdef DEBUG_PERF
 #ifdef _WIN32
@@ -295,7 +295,7 @@ namespace testing {
 #endif
     }
 
-    void LogCpuUsage(const char* label)
+    void LogCpuUsage(const char* label) noexcept
     {
 #ifdef DEBUG_PERF
     	static int64_t lastTime = GetUptimeMs();

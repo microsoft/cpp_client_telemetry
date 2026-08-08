@@ -90,8 +90,33 @@ namespace MAT_NS_BEGIN {
 
     EventProperties& EventProperties::operator=(EventProperties const& copy)
     {
-        *m_storage = *copy.m_storage;
+        // m_storage may be null if this object was moved-from; reallocate then.
+        if (m_storage == nullptr)
+        {
+            m_storage = new EventPropertiesStorage(*copy.m_storage);
+        }
+        else
+        {
+            *m_storage = *copy.m_storage;
+        }
 
+        return *this;
+    }
+
+    EventProperties::EventProperties(EventProperties&& move) noexcept
+        : m_storage(move.m_storage)
+    {
+        move.m_storage = nullptr;
+    }
+
+    EventProperties& EventProperties::operator=(EventProperties&& move) noexcept
+    {
+        if (this != &move)
+        {
+            delete m_storage;
+            m_storage = move.m_storage;
+            move.m_storage = nullptr;
+        }
         return *this;
     }
 
@@ -449,7 +474,7 @@ namespace MAT_NS_BEGIN {
     evt_prop* EventProperties::pack()
     {
         size_t size = m_storage->properties.size() + m_storage->propertiesPartB.size() + 1;
-        evt_prop * result = static_cast<evt_prop *>(calloc(sizeof(evt_prop), size));
+        evt_prop * result = static_cast<evt_prop *>(calloc(size, sizeof(evt_prop)));
         if (result==nullptr)
         {
             LOG_ERROR("Unable to allocate memory to pack EventProperties");
@@ -594,5 +619,4 @@ namespace MAT_NS_BEGIN {
 #endif /* end of MAT_C_API */
 
 } MAT_NS_END
-
 

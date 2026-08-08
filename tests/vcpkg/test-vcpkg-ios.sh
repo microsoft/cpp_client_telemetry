@@ -10,6 +10,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 OVERLAY_PORTS="${REPO_ROOT}/tools/ports"
+
+# Build the working tree under review (not a pinned release) so this test
+# validates the actual SDK source together with the port manifest/portfile.
+export MATSDK_VCPKG_SOURCE_DIR="${REPO_ROOT}"
 USE_SIMULATOR=false
 
 for arg in "$@"; do
@@ -92,7 +96,7 @@ cmake -S "${SCRIPT_DIR}" -B "${BUILD_DIR}/consumer" \
   -DCMAKE_SYSTEM_NAME=iOS \
   -DCMAKE_OSX_SYSROOT="${APPLE_SDK}" \
   -DCMAKE_OSX_ARCHITECTURES=arm64 \
-  -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0
 
 echo ""
 echo "--- Step 2: Build test consumer for iOS ---"

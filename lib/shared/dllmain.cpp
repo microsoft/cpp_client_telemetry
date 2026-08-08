@@ -18,7 +18,7 @@
 #ifdef _MANAGED
 #pragma unmanaged
 #endif
-unsigned thread_count = 0;
+static unsigned thread_count = 0;
 
 BOOL APIENTRY DllMain(HMODULE /* hModule */, DWORD ul_reason_for_call, LPVOID /* lpReserved */)
 {

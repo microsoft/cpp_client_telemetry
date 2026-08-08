@@ -74,7 +74,7 @@ namespace MAT_NS_BEGIN {
 #endif
     }
 
-    bool IsRunningInApp()
+    bool IsRunningInApp() noexcept
     {
 #ifdef _WINRT_DLL  // Win 10 UWP
         typedef LONG (*LPFN_GPFN)(UINT32*, PWSTR);

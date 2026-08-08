@@ -67,9 +67,13 @@
 #  endif
 #endif
 
-// TODO: [MG] - ideally we'd like to use __attribute__((unused)) with gcc/clang
+// Cast the argument(s) to void so the parameter is genuinely referenced. An empty
+// expansion left the parameter unused under -Wunused-parameter, which broke
+// consumers compiling the SDK headers with -Wextra -Werror. On Windows the Win32
+// SDK provides its own UNREFERENCED_PARAMETER, so this definition only applies
+// where that macro is not already defined.
 #ifndef UNREFERENCED_PARAMETER
-#define UNREFERENCED_PARAMETER(...)
+#define UNREFERENCED_PARAMETER(...) (void)(__VA_ARGS__)
 #endif
 
 #define OACR_USE_PTR(...)

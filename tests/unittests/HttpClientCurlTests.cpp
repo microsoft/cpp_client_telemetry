@@ -9,6 +9,7 @@
     && !defined(__APPLE__) && !defined(ANDROID)
 
 #include "common/Common.hpp"
+#include "common/HttpServer.hpp"
 #include "http/HttpClient_Curl.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
@@ -54,6 +55,63 @@ TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithCaInfo)
         m_headers, m_body,
         false, 5, true, "/etc/ssl/certs/ca-certificates.crt");
     ASSERT_NE(op.GetHandle(), nullptr);
+}
+
+TEST(HttpClientCurlOperationTests, SelectsHttp2OnlyWhenRuntimeSupportsIt)
+{
+    const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+    const long expected = (versionInfo != nullptr && (versionInfo->features & CURL_VERSION_HTTP2) != 0)
+        ? CURL_HTTP_VERSION_2_0
+        : CURL_HTTP_VERSION_1_1;
+    EXPECT_EQ(CurlHttpOperation::GetPreferredHttpVersion(), expected);
+}
+
+class HttpClientCurlHeaderTests : public ::testing::Test,
+                                  public HttpServer::Callback
+{
+protected:
+    HttpServer m_server;
+    std::string m_url;
+
+    void SetUp() override
+    {
+        const int port = m_server.addListeningPort(0);
+        std::ostringstream address;
+        address << "127.0.0.1:" << port;
+        m_url = "http://" + address.str() + "/headers/";
+        m_server.setServerName(address.str());
+        m_server.addHandler("/headers/", *this);
+        m_server.start();
+    }
+
+    void TearDown() override
+    {
+        m_server.stop();
+    }
+
+    int onHttpRequest(HttpServer::Request const&, HttpServer::Response& response) override
+    {
+        response.headers["X-MAT-Test"] = "header-value";
+        response.content = "body-value";
+        return 200;
+    }
+};
+
+TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
+{
+    const std::map<std::string, std::string> requestHeaders;
+    const std::vector<uint8_t> requestBody;
+    const HttpClient_Curl client;
+    (void)client; // Initialize curl globally before constructing the operation.
+    CurlHttpOperation operation("GET", m_url, nullptr, requestHeaders, requestBody);
+
+    ASSERT_EQ(operation.Send(), 200L);
+    const auto responseHeaders = operation.GetResponseHeaders();
+    const auto responseBody = operation.GetResponseBody();
+
+    ASSERT_EQ(responseHeaders.count("X-MAT-Test"), 1u);
+    EXPECT_EQ(responseHeaders.at("X-MAT-Test"), "header-value");
+    EXPECT_EQ(std::string(responseBody.begin(), responseBody.end()), "body-value");
 }
 
 // --- ILogConfiguration integration ---
@@ -124,6 +182,120 @@ TEST_F(HttpClientCurlTests, SetSslVerification_ConcurrentCallsNoRace)
         f.get();
     }
     SUCCEED();
+}
+
+// --- Response-size cap (memory-amplification DoS hardening) ---
+
+class HttpClientCurlResponseCapTests : public ::testing::Test,
+                                       public HttpServer::Callback,
+                                       public IHttpResponseCallback
+{
+protected:
+    HttpServer      m_server;
+    HttpClient_Curl m_client;
+    // The client never takes ownership of the request (it only stores a raw pointer
+    // and erases it); the fixture owns it and frees it in TearDown -- on the main
+    // thread, after the transfer has completed. Freeing it inside OnHttpResponse
+    // would destroy the CurlHttpOperation from within its own async task, whose
+    // destructor waits on that task (a self-join deadlock).
+    std::unique_ptr<IHttpRequest> m_request;
+    std::string     m_hostname;
+    size_t          m_responseBodySize {0};
+
+    std::mutex      m_lock;
+    bool            m_received {false};
+    HttpResult      m_result {};
+    unsigned int    m_statusCode {0};
+    size_t          m_bodySize {0};
+
+    void SetUp() override
+    {
+        int port = m_server.addListeningPort(0);
+        std::ostringstream os;
+        os << "127.0.0.1:" << port;
+        m_hostname = os.str();
+        m_server.setServerName(m_hostname);
+        m_server.addHandler("/huge/", *this);
+        m_server.start();
+    }
+
+    void TearDown() override
+    {
+        m_server.stop();
+        m_request.reset();
+    }
+
+    // HttpServer::Callback -- returns a body of m_responseBodySize bytes.
+    int onHttpRequest(HttpServer::Request const& /*request*/, HttpServer::Response& response) override
+    {
+        size_t bodySize;
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            bodySize = m_responseBodySize;
+        }
+        response.headers["Content-Type"] = "application/octet-stream";
+        response.content = std::string(bodySize, 'A');
+        return 200;
+    }
+
+    // IHttpResponseCallback -- the SDK hands over ownership of the response.
+    void OnHttpResponse(IHttpResponse* response) override
+    {
+        std::unique_ptr<IHttpResponse> owned(response);
+        std::lock_guard<std::mutex> lock(m_lock);
+        m_result = owned->GetResult();
+        m_statusCode = owned->GetStatusCode();
+        m_bodySize = owned->GetBody().size();
+        m_received = true;
+    }
+
+    bool responseReceived()
+    {
+        std::lock_guard<std::mutex> lock(m_lock);
+        return m_received;
+    }
+
+    void sendAndWait(size_t bodySize)
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_received = false;
+            m_result = HttpResult{};
+            m_statusCode = 0;
+            m_bodySize = 0;
+            m_responseBodySize = bodySize; // read under the same lock by onHttpRequest
+        }
+        m_request.reset(m_client.CreateRequest());
+        m_request->SetUrl("http://" + m_hostname + "/huge/");
+        m_client.SendRequestAsync(m_request.get(), this);
+        for (int i = 0; i < 300 && !responseReceived(); i++)
+            PAL::sleep(100);
+    }
+};
+
+TEST_F(HttpClientCurlResponseCapTests, AbortsOversizedResponseBody)
+{
+    // A response body larger than the client's response-size cap (kMaxResponseBytes,
+    // 16 MB) must be refused, not buffered in full, so a hostile/MITM'd collector
+    // cannot exhaust process memory.
+    sendAndWait(17u * 1024u * 1024u);
+    ASSERT_TRUE(responseReceived());
+    // curl aborts the transfer (CURLE_WRITE_ERROR) once the cap is hit -> NetworkFailure.
+    EXPECT_EQ(m_result, HttpResult_NetworkFailure);
+    // The oversized body is never fully buffered.
+    EXPECT_LE(m_bodySize, static_cast<size_t>(16u * 1024u * 1024u));
+}
+
+TEST_F(HttpClientCurlResponseCapTests, AcceptsLargeResponseUnderCap)
+{
+    // A large-but-legitimate response (well under the cap) must still be received
+    // in full: the cap must not regress normal responses.
+    const size_t bodySize = 4u * 1024u * 1024u;
+    sendAndWait(bodySize);
+    ASSERT_TRUE(responseReceived());
+    EXPECT_EQ(m_result, HttpResult_OK);
+    EXPECT_EQ(m_statusCode, 200u);
+    EXPECT_EQ(m_bodySize, bodySize);
 }
 
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT

@@ -43,7 +43,8 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
-      continue-on-error: true
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Initialize googletest
+      run: git submodule update --init --depth=1 third_party/googletest
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       run: ./build-tests.sh ${{ matrix.config }}

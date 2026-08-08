@@ -22,6 +22,10 @@
 
 #include "NullObjects.hpp"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #if defined __has_include && defined(HAVE_MAT_PRIVACYGUARD)
 #if __has_include("modules/privacyguard/PrivacyGuard.hpp")
 #include "modules/privacyguard/PrivacyGuard.hpp"
@@ -35,6 +39,15 @@
 
 using namespace testing;
 using namespace MAT;
+
+// MultipleLogManagersTests stand up an in-process HttpServer on a loopback port
+// and run multiple concurrent LogManager instances against it. That pattern
+// hangs/fails inside the iOS simulator sandbox (the loopback uploads stall),
+// which previously left the iOS CI job to sit until its 60-minute timeout. The
+// behavior is still exercised on the desktop and macOS targets; exclude the
+// whole suite from the iOS build. (GTEST_SKIP in SetUp is not honored by the
+// iOS xctest gtest wrapper, so the exclusion must be at compile time.)
+#if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
 
 class RequestHandler : public HttpServer::Callback 
 {
@@ -291,6 +304,8 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
     lm2.reset();
 }
 #endif  //END HAVE_MAT_PRIVACYGUARD
+
+#endif  // !TARGET_OS_IPHONE (suite excluded on iOS; see note above)
 
 #endif  // HAVE_MAT_DEFAULT_HTTP_CLIENT
 

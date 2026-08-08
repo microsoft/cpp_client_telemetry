@@ -54,15 +54,14 @@ jobs:
     - name: Grant write permissions to /usr/local
       run: |
         sudo chown -R $USER:staff /usr/local
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'true'
-      continue-on-error: true
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Initialize googletest
+      run: git submodule update --init --depth=1 third_party/googletest
     - name: build
       run: |
         if [[ "${{ matrix.os }}" == "macos-14" ]]; then
-          export IOS_DEPLOYMENT_TARGET=13.0;
+          export CMAKE_OSX_DEPLOYMENT_TARGET=13.0;
         elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
-          export IOS_DEPLOYMENT_TARGET=15.0;
+          export CMAKE_OSX_DEPLOYMENT_TARGET=15.0;
         fi
         ./build-tests-ios.sh ${{ matrix.config }} ${{ matrix.simulator }}

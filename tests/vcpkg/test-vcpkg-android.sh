@@ -10,6 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 OVERLAY_PORTS="${REPO_ROOT}/tools/ports"
 
+# Build the working tree under review (not a pinned release) so this test
+# validates the actual SDK source together with the port manifest/portfile.
+export MATSDK_VCPKG_SOURCE_DIR="${REPO_ROOT}"
+
 # Android ABI/API (defaults match the repo's Android minSdk)
 ANDROID_ABI="${1:-arm64-v8a}"
 ANDROID_API="${2:-23}"

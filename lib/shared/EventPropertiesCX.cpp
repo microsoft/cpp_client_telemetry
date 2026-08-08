@@ -26,7 +26,7 @@ namespace Microsoft {
                     FromPlatformMap(propertiesMap, properties);
                     FromPlatformMap(this->PIITags, piiTags);
 
-                    for (map<string, T>::iterator it = properties.begin(); it != properties.end(); ++it)
+                    for (typename map<string, T>::iterator it = properties.begin(); it != properties.end(); ++it)
                     {
                         MAT::PiiKind piiType = MAT::PiiKind_None;
                         auto tag = piiTags.find(it->first);

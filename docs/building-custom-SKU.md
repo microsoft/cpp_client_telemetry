@@ -39,12 +39,12 @@ Build recipe must contain the following preprocessor definitions:
 Command:
 
 ```console
-build-all.bat %CD%\Solutions\build.compact.props
+build-all-windows.bat %CD%\Solutions\build.compact.props
 ```
 
 produces a custom compact SDK build.
 
-The argument passed to `build-all.bat` must be an MSBuild `.props` or `.targets` file that sets the required preprocessor definitions. Do not pass the `config-*.h` header directly to `ForceImportBeforeCppTargets`.
+The argument passed to `build-all-windows.bat` must be an MSBuild `.props` or `.targets` file that sets the required preprocessor definitions. Do not pass the `config-*.h` header directly to `ForceImportBeforeCppTargets`. `build-all.bat` remains as a compatibility wrapper for existing automation.
 
 How it works:
 

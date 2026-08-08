@@ -210,6 +210,98 @@ public:
     }
 };
 
+// Keep requests in flight until teardown cancels them, then simulate a connection
+// reset while honoring IHttpClient's exactly-once callback contract.
+class NetworkFailureHttpClient final : public IHttpClient
+{
+public:
+    IHttpRequest* CreateRequest() override
+    {
+        return new SimpleHttpRequest("bad-network-" + std::to_string(m_nextRequestId.fetch_add(1)));
+    }
+
+    void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_pending[request->GetId()] = callback;
+        m_sent.fetch_add(1);
+    }
+
+    void CancelRequestAsync(const std::string& id) override
+    {
+        IHttpResponseCallback* callback = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            auto it = m_pending.find(id);
+            if (it != m_pending.end())
+            {
+                callback = it->second;
+                m_pending.erase(it);
+            }
+        }
+        if (callback != nullptr)
+        {
+            m_cancelled.fetch_add(1);
+            CompleteWithNetworkFailure(id, callback);
+        }
+    }
+
+    void CancelAllRequests() override
+    {
+        std::map<std::string, IHttpResponseCallback*> pending;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            pending.swap(m_pending);
+        }
+        m_cancelled.fetch_add(static_cast<unsigned>(pending.size()));
+        for (const auto& request : pending)
+        {
+            CompleteWithNetworkFailure(request.first, request.second);
+        }
+    }
+
+    bool WaitForRequest(unsigned timeoutMs) const
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (SentCount() == 0 && PAL::getMonotonicTimeMs() < deadline)
+        {
+            PAL::sleep(10);
+        }
+        return SentCount() > 0;
+    }
+
+    unsigned SentCount() const
+    {
+        return m_sent.load();
+    }
+
+    unsigned CancelledCount() const
+    {
+        return m_cancelled.load();
+    }
+
+    unsigned CompletedCount() const
+    {
+        return m_completed.load();
+    }
+
+private:
+    void CompleteWithNetworkFailure(const std::string& id, IHttpResponseCallback* callback)
+    {
+        auto response = new SimpleHttpResponse("failure-" + id);
+        response->m_result = HttpResult_NetworkFailure;
+        callback->OnHttpResponse(response);
+        m_completed.fetch_add(1);
+    }
+
+    mutable std::mutex m_mutex;
+    std::map<std::string, IHttpResponseCallback*> m_pending;
+    std::atomic<unsigned> m_nextRequestId{0};
+    std::atomic<unsigned> m_sent{0};
+    std::atomic<unsigned> m_cancelled{0};
+    std::atomic<unsigned> m_completed{0};
+};
+
 /// <summary>
 /// Add all event listeners
 /// </summary>
@@ -1204,41 +1296,43 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
 TEST(APITest, LogManager_BadNetwork_Test)
 {
     auto& config = LogManager::GetLogConfiguration();
-
-    // Clean temp file first
     const char *cacheFilePath = "bad-network.db";
     std::string fileName = MAT::GetTempDirectory();
     fileName += cacheFilePath;
-    printf("remove %s\n", fileName.c_str());
     std::remove(fileName.c_str());
     std::remove((fileName + "-wal").c_str());
     std::remove((fileName + "-shm").c_str());
     std::remove((fileName + "-journal").c_str());
 
-    for (auto url : {
-#if 0 /* [MG}: Temporary change to avoid GitHub Actions crash #92 */
-        "https://0.0.0.0/",
-        "https://127.0.0.1/",
-#endif
-        "https://mobile.events-sandbox.data.microsoft.com/OneCollector/1.0/",
-        "https://invalid.host.name.microsoft.com/"
-        })
-    {
-        printf("--- trying %s", url);
-        config[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
-        config[CFG_INT_TRACE_LEVEL_MASK] = 0;
-        config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-        config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
-        config[CFG_STR_COLLECTOR_URL] = url;
-        size_t numIterations = 5;
-        while (numIterations--)
-        {
-            printf(".");
-            EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
-        }
-        printf("\n");
-    }
+    auto httpClient = std::make_shared<NetworkFailureHttpClient>();
+    config.AddModule(CFG_MODULE_HTTP_CLIENT, httpClient);
+    config[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
+    config[CFG_INT_TRACE_LEVEL_MASK] = 0;
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+    config[CFG_STR_COLLECTOR_URL] = "https://unused.invalid/";
+
+    TestDebugEventListener debugListener;
+    addAllListeners(debugListener);
+    LogManager::AddEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
+    auto logger = LogManager::Initialize(TEST_TOKEN, config);
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
+    logger->LogEvent("badNetworkEvent");
+    LogManager::UploadNow();
+
+    const bool requestStarted = httpClient->WaitForRequest(10000);
+    LogManager::FlushAndTeardown();
+    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
+    removeAllListeners(debugListener);
+    config.AddModule(CFG_MODULE_HTTP_CLIENT, nullptr);
+
+    EXPECT_TRUE(requestStarted);
+    EXPECT_GE(debugListener.numLogged.load(), 1u);
+    EXPECT_GE(debugListener.numHttpError.load(), 1u);
+    EXPECT_GE(httpClient->SentCount(), 1u);
+    EXPECT_EQ(httpClient->SentCount(), httpClient->CancelledCount());
+    EXPECT_EQ(httpClient->CancelledCount(), httpClient->CompletedCount());
 }
 
 TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
@@ -1485,4 +1579,3 @@ TEST(APITest, Custom_Decorator)
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)
-

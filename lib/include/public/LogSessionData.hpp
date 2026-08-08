@@ -29,7 +29,7 @@ namespace MAT_NS_BEGIN
         /// Gets the time that this session began.
         /// </summary>
         /// <returns>A 64-bit integer that contains the time.</returns>
-        uint64_t getSessionFirstTime() const;
+        uint64_t getSessionFirstTime() const noexcept;
 
         /// <summary>
         /// Gets the SDK unique identifier.
