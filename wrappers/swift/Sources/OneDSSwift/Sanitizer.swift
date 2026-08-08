@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-import ObjCModule
+import MATTelemetryObjC
 
 /// Wrapper to `ODWSanitizer` representing the Sanitizer.
 public final class Sanitizer {

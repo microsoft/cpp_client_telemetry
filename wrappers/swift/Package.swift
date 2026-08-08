@@ -25,7 +25,6 @@ if hasPrivacyGuard {
     swiftSettings.append(.define("MATSDK_PRIVACYGUARD_AVAILABLE"))
 } else {
     excludedSources.append(contentsOf: [
-        "CommonDataContext.swift",
         "PrivacyGuard.swift",
         "PrivacyGuardInitConfig.swift",
     ])
