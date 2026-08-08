@@ -103,6 +103,13 @@ function(matsdk_fetch_curl out_target)
     set(MBEDX509_LIBRARY mbedx509)
     set(MBEDCRYPTO_LIBRARY mbedcrypto)
     set(MBEDTLS_USE_STATIC_LIBS ON)
+    foreach(_matsdk_mbedtls_target mbedtls mbedx509 mbedcrypto)
+      if(TARGET ${_matsdk_mbedtls_target}
+         AND NOT TARGET MbedTLS::${_matsdk_mbedtls_target})
+        add_library(MbedTLS::${_matsdk_mbedtls_target}
+          ALIAS ${_matsdk_mbedtls_target})
+      endif()
+    endforeach()
   elseif(MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "OPENSSL")
     set(CURL_USE_OPENSSL ON)
     find_package(OpenSSL REQUIRED)
