@@ -116,4 +116,7 @@ fi
 matsdk_append_cmake_opts_to_cmake_args
 matsdk_run_logged_command "${cmake_args[@]}"
 
-matsdk_build_and_package_preset "$PRESET"
+cmake --build --preset "$PRESET"
+if [ "${MATTELEMETRY_SKIP_PACKAGE:-}" != "1" ]; then
+  cmake --build --preset "$PRESET" --target package
+fi

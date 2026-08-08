@@ -40,12 +40,12 @@ esac
 # need the repo's test, Swift wrapper, or package targets.
 CMAKE_OPTS="${CMAKE_OPTS:-}"
 CMAKE_OPTS="$CMAKE_OPTS -DBUILD_SHARED_LIBS=OFF"
-CMAKE_OPTS="$CMAKE_OPTS -DBUILD_OBJC_WRAPPER=YES"
-CMAKE_OPTS="$CMAKE_OPTS -DBUILD_TEST_TOOL=OFF"
-CMAKE_OPTS="$CMAKE_OPTS -DBUILD_UNIT_TESTS=OFF"
-CMAKE_OPTS="$CMAKE_OPTS -DBUILD_FUNC_TESTS=OFF"
-CMAKE_OPTS="$CMAKE_OPTS -DBUILD_SWIFT_WRAPPER=OFF"
-CMAKE_OPTS="$CMAKE_OPTS -DBUILD_PACKAGE=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DMATSDK_BUILD_OBJC_WRAPPER=ON"
+CMAKE_OPTS="$CMAKE_OPTS -DMATSDK_BUILD_TEST_TOOL=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DMATSDK_BUILD_UNIT_TESTS=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DMATSDK_BUILD_FUNC_TESTS=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DMATSDK_BUILD_SWIFT_WRAPPER=OFF"
+CMAKE_OPTS="$CMAKE_OPTS -DMATSDK_BUILD_PACKAGE=OFF"
 export CMAKE_OPTS
 
 rm -rf "$OUT"
@@ -79,10 +79,10 @@ cmake_option_enabled() { # option-name default-value
 }
 
 [[ -d "$ROOT/lib/modules/dataviewer" ]] && has_dataviewer=true
-if [[ -d "$ROOT/lib/modules/privacyguard" ]] && cmake_option_enabled BUILD_PRIVACYGUARD ON; then
+if [[ -d "$ROOT/lib/modules/privacyguard" ]] && cmake_option_enabled MATSDK_BUILD_PRIVACYGUARD ON; then
   has_privacyguard=true
 fi
-if [[ -d "$ROOT/lib/modules/sanitizer" ]] && cmake_option_enabled BUILD_SANITIZER ON; then
+if [[ -d "$ROOT/lib/modules/sanitizer" ]] && cmake_option_enabled MATSDK_BUILD_SANITIZER ON; then
   has_sanitizer=true
 fi
 
@@ -173,10 +173,10 @@ cmake -S "$ROOT" -B "$MACOS_BUILD" \
   -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOS_DEPLOYMENT_TARGET" \
   -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
   -DCMAKE_PACKAGE_TYPE=tgz \
-  -DBUILD_TEST_TOOL=OFF \
-  -DBUILD_UNIT_TESTS=OFF \
-  -DBUILD_FUNC_TESTS=OFF \
-  -DBUILD_SWIFT_WRAPPER=OFF \
+  -DMATSDK_BUILD_TEST_TOOL=OFF \
+  -DMATSDK_BUILD_UNIT_TESTS=OFF \
+  -DMATSDK_BUILD_FUNC_TESTS=OFF \
+  -DMATSDK_BUILD_SWIFT_WRAPPER=OFF \
   $CMAKE_OPTS
 cmake --build "$MACOS_BUILD" --target mat
 mkdir -p "$OUT/macos-universal"
