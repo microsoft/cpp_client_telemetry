@@ -13,6 +13,15 @@
 #include "http/HttpClient_Curl.hpp"
 #include "config/RuntimeConfig_Default.hpp"
 
+#include <future>
+#include <chrono>
+#include <memory>
+#include <atomic>
+#include <cstdlib>
+#include <functional>
+#include <stdexcept>
+#include <utility>
+
 using namespace testing;
 using namespace MAT;
 
@@ -184,6 +193,68 @@ TEST_F(HttpClientCurlTests, SetSslVerification_ConcurrentCallsNoRace)
     SUCCEED();
 }
 
+// --- Regression: EDEADLK self-join in ~CurlHttpOperation ---
+
+TEST_F(HttpClientCurlTests, SendAsync_DestroyOnWorkerThread_NoSelfJoin)
+{
+    struct TrackingCallback : public IHttpResponseCallback
+    {
+        std::atomic<int> destroyEvents { 0 };
+        void OnHttpResponse(IHttpResponse* response) override { delete response; }
+        void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
+        {
+            if (state == OnDestroy)
+            {
+                ++destroyEvents;
+            }
+        }
+    };
+
+    auto callback = std::make_shared<TrackingCallback>();
+    auto callbackDone = std::make_shared<std::promise<void>>();
+    auto done = callbackDone->get_future();
+
+    auto op = std::make_shared<CurlHttpOperation>(
+        "GET", "://malformed", callback.get(), m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+
+    auto box = std::make_shared<std::shared_ptr<CurlHttpOperation>>(std::move(op));
+    (*box)->SendAsync([box, callback, callbackDone](CurlHttpOperation&) {
+        box->reset();
+        callbackDone->set_value();
+    });
+
+    if (done.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        ADD_FAILURE() << "curl worker did not finish before fixture teardown";
+        std::abort();
+    }
+    EXPECT_EQ(callback->destroyEvents.load(), 1);
+}
+
+TEST_F(HttpClientCurlTests, SendAsync_CallbackCopyFailureStillCompletes)
+{
+    struct ThrowOnCopy
+    {
+        explicit ThrowOnCopy(bool& invoked) : invoked(&invoked) {}
+        ThrowOnCopy(ThrowOnCopy&&) = default;
+        ThrowOnCopy(const ThrowOnCopy&) { throw std::logic_error("copy failed"); }
+        void operator()(CurlHttpOperation&) const { *invoked = true; }
+        bool* invoked;
+    };
+
+    CurlHttpOperation op(
+        "GET", "://malformed", nullptr, m_headers, m_body,
+        false, 1 /*connTimeout*/, false /*sslVerify*/, "");
+    bool callbackInvoked = false;
+    std::function<void(CurlHttpOperation&)> callback { ThrowOnCopy(callbackInvoked) };
+
+    EXPECT_NO_THROW(op.SendAsync(std::move(callback)));
+    EXPECT_TRUE(callbackInvoked);
+    EXPECT_EQ(op.GetResponseCode(), CURLE_FAILED_INIT);
+    EXPECT_THROW(op.SendAsync(), std::logic_error);
+}
+
 // --- Response-size cap (memory-amplification DoS hardening) ---
 
 class HttpClientCurlResponseCapTests : public ::testing::Test,
@@ -195,9 +266,7 @@ protected:
     HttpClient_Curl m_client;
     // The client never takes ownership of the request (it only stores a raw pointer
     // and erases it); the fixture owns it and frees it in TearDown -- on the main
-    // thread, after the transfer has completed. Freeing it inside OnHttpResponse
-    // would destroy the CurlHttpOperation from within its own async task, whose
-    // destructor waits on that task (a self-join deadlock).
+    // thread, after the transfer has completed.
     std::unique_ptr<IHttpRequest> m_request;
     std::string     m_hostname;
     size_t          m_responseBodySize {0};

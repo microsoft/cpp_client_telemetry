@@ -83,11 +83,9 @@ namespace MAT_NS_BEGIN {
 
         auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body, false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
         curlRequest->SetOperation(curlOperation);
-        
-        // The lifetime of curlOperation is guarnteed by the call to result.wait() in the d'tor.  
-        curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {
-            this->EraseRequest(requestId);
 
+        curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {
+            EraseRequest(requestId);
             auto response = std::unique_ptr<SimpleHttpResponse>(new SimpleHttpResponse(requestId));
             response->m_result = HttpResult_OK;
 
@@ -161,4 +159,3 @@ namespace MAT_NS_BEGIN {
 } MAT_NS_END
 
 #endif
-
