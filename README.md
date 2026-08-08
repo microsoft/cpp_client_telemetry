@@ -55,6 +55,12 @@ Platform specific build instructions:
 * [Linux](docs/cpp-start-linux.md). [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or [Docker](https://www.docker.com/products/docker-desktop) can be used to build for various Linux distros. Please refer to [build-docker.cmd](build-docker.cmd) script and [the list of supported containers](docker/). Docker build script accepts the container name as first argument.
 * [iOS/iPadOS](docs/cpp-start-ios.md)
 * [Android](docs/cpp-start-android.md)
+* [CMake source embedding / FetchContent](docs/embedding-with-cmake.md)
+
+Standard configure/build presets are listed with `cmake --list-presets`.
+`build.sh`, `build-ios.sh`, and `build-cmake.ps1` are thin compatibility
+wrappers around those presets. Presets require CMake 3.21+; direct CMake builds
+retain the project's CMake 3.15 floor.
 
 Other resources to learn how to setup the build system:
 

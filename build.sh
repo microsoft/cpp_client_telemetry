@@ -32,6 +32,7 @@ export PATH=/usr/local/bin:$PATH
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
+. "$DIR/tools/build-common.sh"
 
 export NOROOT=$NOROOT
 
@@ -61,16 +62,16 @@ while [[ $# -gt 0 ]]; do
           echo "BUILD_TYPE = $BUILD_TYPE"
           ;;
         arm64|x86_64|universal)
-          if [[ -n "$MAC_ARCH" ]]; then
-              echo "Error: MAC_ARCH is already set to '$MAC_ARCH'. Cannot overwrite with $ARG." 1>&2
+          if [[ -n "$APPLE_ARCH" ]]; then
+              echo "Error: APPLE_ARCH is already set to '$APPLE_ARCH'. Cannot overwrite with $ARG." 1>&2
               exit 1
           else
-              MAC_ARCH="$ARG"
+              APPLE_ARCH="$ARG"
           fi
-          echo "MAC_ARCH = $MAC_ARCH"
+          echo "APPLE_ARCH = $APPLE_ARCH"
           ;;
         CUSTOM_BUILD_FLAGS*)
-          CUSTOM_CMAKE_CXX_FLAG="\"${ARG:19:999}\""
+          CUSTOM_CMAKE_CXX_FLAG="${ARG:19:999}"
           echo "custom compiler flags = $CUSTOM_CMAKE_CXX_FLAG"
           ;;
         *)
@@ -91,9 +92,9 @@ if [[ -z "$BUILD_TYPE" ]]; then
   echo "Assuming default BUILD_TYPE = Debug"
 fi
 
-if [[ -z "$MAC_ARCH" ]]; then
-  MAC_ARCH=$(/usr/bin/uname -m)
-  echo "Using current machine MAC_ARCH = $MAC_ARCH"
+if [[ -z "$APPLE_ARCH" ]]; then
+  APPLE_ARCH=$(/usr/bin/uname -m)
+  echo "Using current machine APPLE_ARCH = $APPLE_ARCH"
 fi
 
 # Evaluate switches
@@ -123,11 +124,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 if [[ "$CLEAN" == "true" ]]; then
-  echo "Cleaning previous build artifacts"
-  rm -f CMakeCache.txt *.cmake
-  rm -rf out
-  rm -rf .buildtools
-  # make clean
+  matsdk_clean_build_outputs "build.sh"
 fi
 
 echo "CMAKE_OPTS from caller: $CMAKE_OPTS"
@@ -137,74 +134,77 @@ if [ "$LINK_TYPE" == "shared" ]; then
 fi
 
 # Set target MacOS minver
-default_mac_os_target=$([ "$MAC_ARCH" == "arm64" ] && echo "11.10" || echo "10.10")
+default_mac_os_target=$([ "$APPLE_ARCH" == "arm64" ] && echo "11.10" || echo "10.10")
 [ -z $MACOSX_DEPLOYMENT_TARGET ] && export MACOSX_DEPLOYMENT_TARGET=${default_mac_os_target}
 echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 
 # Install build tools and recent sqlite3
-FILE=.buildtools
+BUILD_TOOLS_MARKER=.buildtools
 OS_NAME=`uname -a`
 
-if [ ! -f $FILE ]; then
+if [ ! -f "$BUILD_TOOLS_MARKER" ]; then
+  buildtools_cmd=()
   case "$OS_NAME" in
-    *Darwin*) CMD="tools/setup-buildtools-apple.sh $MAC_ARCH" ;;
-    *Linux*)  CMD="tools/setup-buildtools.sh" ;;
-    *)        CMD=""; echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." ;;
+    *Darwin*) buildtools_cmd=(tools/setup-buildtools-apple.sh "$APPLE_ARCH") ;;
+    *Linux*)  buildtools_cmd=(tools/setup-buildtools.sh) ;;
+    *)        echo "WARNING: unsupported OS $OS_NAME, skipping build tools installation.." ;;
   esac
 
-  [[ -n "$CMD" ]] && { [[ -z "$NOROOT" ]] && sudo $CMD || echo "No root: skipping build tools installation."; }
-  echo > $FILE
+  if [[ ${#buildtools_cmd[@]} -gt 0 ]]; then
+    if [[ -z "$NOROOT" ]]; then
+      matsdk_try_buildtools_once "$BUILD_TOOLS_MARKER" \
+        "No root: skipping build tools installation." \
+        sudo "${buildtools_cmd[@]}"
+    else
+      echo "No root: skipping build tools installation."
+      matsdk_mark_buildtools_checked "$BUILD_TOOLS_MARKER"
+    fi
+  else
+    matsdk_mark_buildtools_checked "$BUILD_TOOLS_MARKER"
+  fi
 fi
 
-if [ -f /usr/bin/gcc ]; then
-  echo "gcc   version: `gcc --version`"
-fi
-
-if [ -f /usr/bin/clang ]; then
-  echo "clang version: `clang --version`"
-fi
+matsdk_print_compiler_versions
+matsdk_require_cmake_preset_support
 
 # Skip Version.hpp changes
 # git update-index --skip-worktree lib/include/public/Version.hpp
 
-#rm -rf out
-mkdir -p out
-cd out
-
 # .tgz package
-CMAKE_PACKAGE_TYPE=tgz
+CPACK_GENERATOR=TGZ
 
 if [ -f /usr/bin/dpkg ]; then
   # .deb package
-  export CMAKE_PACKAGE_TYPE=deb
+  export CPACK_GENERATOR=DEB
 elif [ -f /usr/bin/rpmbuild ]; then
   # .rpm package
-  export CMAKE_PACKAGE_TYPE=rpm
+  export CPACK_GENERATOR=RPM
 fi
 
 # Fail on error
 set -e
 
-# TODO: should this be improved to verify if the platform is Apple? Right now we unconditionally pass -DMAC_ARCH even if building for Windows or Linux.
-cmake_cmd="cmake -DMAC_ARCH=$MAC_ARCH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE -DCMAKE_CXX_FLAGS="${CUSTOM_CMAKE_CXX_FLAG}" $CMAKE_OPTS .."
-echo $cmake_cmd
-eval $cmake_cmd
+PRESET="matsdk-$(echo "$BUILD_TYPE" | tr '[:upper:]' '[:lower:]')"
+cmake_args=(cmake --preset "$PRESET")
+if [[ "$OS_NAME" == *Darwin* ]]; then
+  if [[ "$APPLE_ARCH" == "universal" ]]; then
+    cmake_args+=("-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64")
+  else
+    cmake_args+=("-DCMAKE_OSX_ARCHITECTURES=$APPLE_ARCH")
+  fi
+fi
+cmake_args+=(
+  "-DCPACK_GENERATOR=$CPACK_GENERATOR"
+)
+if [[ -n "$CUSTOM_CMAKE_CXX_FLAG" ]]; then
+  cmake_args+=("-DCMAKE_CXX_FLAGS=$CUSTOM_CMAKE_CXX_FLAG")
+fi
+matsdk_append_cmake_opts_to_cmake_args
+matsdk_run_logged_command "${cmake_args[@]}"
 
-# TODO: strip symbols to minimize (release-only)
-
-# Build all
-# TODO: what are the pros and cons of using 'make' vs 'cmake --build' ?
-#make
-cmake --build .
-
-# No fail on error
-set +e
-
-# Remove old package
-rm -f *.deb *.rpm
-
-# Build new package
-make package
+rm -f out/*.deb out/*.rpm
+matsdk_build_and_package_preset "$PRESET"
+cd out
 
 # Install newly generated package
 if [ -f /usr/bin/dpkg ]; then
@@ -221,7 +221,7 @@ fi
 ## strip --strip-unneeded out/lib/libmat.so
 ## strip -S --strip-unneeded --remove-section=.note.gnu.gold-version --remove-section=.comment --remove-section=.note --remove-section=.note.gnu.build-id --remove-section=.note.ABI-tag out/lib/libmat.so
 
-if [ "$CMAKE_PACKAGE_TYPE" == "tgz" ]; then
+if [ "$CPACK_GENERATOR" == "TGZ" ]; then
   cd ..
   MATSDK_INSTALL_DIR="${MATSDK_INSTALL_DIR:-/usr/local}"
   echo "+-----------------------------------------------------------------------------------+"
