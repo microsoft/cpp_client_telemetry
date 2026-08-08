@@ -649,6 +649,11 @@ void HttpClient_WinHttp::CancelRequestAsync(std::string const& id)
 
 void HttpClient_WinHttp::CancelAllRequests()
 {
+    CancelAllRequests(std::chrono::milliseconds::zero());
+}
+
+void HttpClient_WinHttp::CancelAllRequests(std::chrono::milliseconds bestEffortTimeout)
+{
     // vector of all request IDs
     std::vector<std::string> ids;
     {
@@ -663,11 +668,21 @@ void HttpClient_WinHttp::CancelAllRequests()
 
     // Wait for all destructors to run, signaled from erase() rather than
     // polled -- unlike a sleep-and-recheck loop, this drains the common case
-    // in microseconds and never busy-spins.
+    // in microseconds and never busy-spins. A positive timeout is the bounded,
+    // best-effort path used during pause; zero is the full shutdown barrier.
     std::unique_lock<std::recursive_mutex> lock(m_requestsMutex);
-    m_requestsCv.wait(lock, [this]() noexcept -> bool {
-        return m_requests.empty();
-    });
+    if (bestEffortTimeout > std::chrono::milliseconds::zero())
+    {
+        m_requestsCv.wait_for(lock, bestEffortTimeout, [this]() noexcept -> bool {
+            return m_requests.empty();
+        });
+    }
+    else
+    {
+        m_requestsCv.wait(lock, [this]() noexcept -> bool {
+            return m_requests.empty();
+        });
+    }
 }
 
 /// <summary>
@@ -685,7 +700,7 @@ void HttpClient_WinHttp::SetMsRootCheck(bool enforceMsRoot)
 }
 
 /// <summary>
-/// Determines whether MS-Roted server cert check required.
+/// Determines whether MS-Rooted server cert check required.
 /// </summary>
 /// <returns>
 ///   <c>true</c> if [MS-Rooted server cert check required]; otherwise, <c>false</c>.

@@ -309,6 +309,7 @@ endif()
     http/HttpClient_WinInet.hpp
     http/HttpClient_WinHttp.cpp
     http/HttpClient_WinHttp.hpp
+    http/IBoundedHttpClientCancel.hpp
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp

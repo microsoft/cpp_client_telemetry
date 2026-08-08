@@ -8,6 +8,7 @@
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #include "IHttpClient.hpp"
+#include "IBoundedHttpClientCancel.hpp"
 #include "pal/PAL.hpp"
 
 #include "ILogManager.hpp"
@@ -31,7 +32,7 @@ class WinHttpRequestWrapper;
 // This is the default Win32 desktop transport; HttpClient_WinInet remains
 // available as an explicit opt-in for callers that need IE-integrated proxy
 // or cookie behavior.
-class HttpClient_WinHttp : public IHttpClient {
+class HttpClient_WinHttp : public IHttpClient, public IBoundedHttpClientCancel {
   public:
     // Common IHttpClient methods
     HttpClient_WinHttp();
@@ -40,6 +41,7 @@ class HttpClient_WinHttp : public IHttpClient {
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) final;
     virtual void CancelRequestAsync(std::string const& id) final;
     virtual void CancelAllRequests() final;
+    virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) final;
 
     virtual void ApplySettings(ILogConfiguration& config) override;
 
