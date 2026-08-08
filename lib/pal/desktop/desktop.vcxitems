@@ -15,6 +15,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinHttp.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\http\IBoundedHttpClientCancel.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\http\HttpClient_WinInet.cpp" />

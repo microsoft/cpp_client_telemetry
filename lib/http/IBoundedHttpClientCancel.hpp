@@ -16,7 +16,8 @@ class IBoundedHttpClientCancel
 public:
     virtual ~IBoundedHttpClientCancel() noexcept = default;
 
-    // A positive timeout is best-effort; zero requires a full drain.
+    // Positive timeout is a best-effort cap. Zero means the caller requires a
+    // full drain, matching IHttpClient::CancelAllRequests().
     virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) = 0;
 };
 
