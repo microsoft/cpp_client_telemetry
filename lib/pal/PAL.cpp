@@ -430,7 +430,26 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef _WIN32
         FILETIME tocks;
-        ::GetSystemTimeAsFileTime(&tocks);
+        // Resolve the precise API dynamically so the SDK retains its Windows 7
+        // runtime compatibility and falls back when the API is unavailable.
+        using GetSystemTimePreciseAsFileTimeProc = VOID (WINAPI*)(LPFILETIME);
+        static const GetSystemTimePreciseAsFileTimeProc getSystemTimePreciseAsFileTime =
+            []() -> GetSystemTimePreciseAsFileTimeProc
+            {
+                HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
+                return kernel32
+                    ? reinterpret_cast<GetSystemTimePreciseAsFileTimeProc>(
+                        ::GetProcAddress(kernel32, "GetSystemTimePreciseAsFileTime"))
+                    : nullptr;
+            }();
+        if (getSystemTimePreciseAsFileTime)
+        {
+            getSystemTimePreciseAsFileTime(&tocks);
+        }
+        else
+        {
+            ::GetSystemTimeAsFileTime(&tocks);
+        }
         ULONGLONG ticks = (ULONGLONG(tocks.dwHighDateTime) << 32) | tocks.dwLowDateTime;
         // number of days from beginning to 1601 multiplied by ticks per day
         return ticks + 0x701ce1722770000ULL;
@@ -440,10 +459,9 @@ namespace PAL_NS_BEGIN {
         // This UTC epoch contract has been signed in blood since C++20
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         auto duration = now.time_since_epoch();
-        auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-        uint64_t ticks = millis;
-        ticks *= 10000; // convert millis to ticks (1 tick = 100ns)
-        ticks += 0x89F7FF5F7B58000ULL; // UTC time 0 in .NET ticks
+        auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+        int64_t ticks = nanos / 100; // convert nanoseconds to .NET ticks (1 tick = 100ns)
+        ticks += static_cast<int64_t>(0x89F7FF5F7B58000ULL); // UTC time 0 in .NET ticks
         return ticks;
 #endif
     }
