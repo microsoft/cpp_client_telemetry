@@ -37,6 +37,25 @@ If Xcode reports that the requested simulator runtime is missing, install it
 from Xcode > Settings > Components or run
 `xcodebuild -downloadPlatform iOS -architectureVariant arm64`.
 
+For direct CMake integration, use the standard Apple variables rather than
+SDK-specific architecture flags:
+
+```sh
+cmake -S . -B out \
+  -DCMAKE_SYSTEM_NAME=iOS \
+  -DCMAKE_OSX_SYSROOT=iphonesimulator \
+  -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DMATSDK_BUILD_UNIT_TESTS=OFF \
+  -DMATSDK_BUILD_FUNC_TESTS=OFF \
+  -DMATSDK_BUILD_OBJC_WRAPPER=OFF \
+  -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
+```
+
+Use `iphoneos` for a device build. Legacy `IOS_ARCH`/`IOS_PLAT` inputs remain
+accepted temporarily, but new integrations should use `CMAKE_OSX_*`.
+
 ## 3. Integrate the SDK into your C++ project
 
 SDK package contains headers and library installed at the following locations

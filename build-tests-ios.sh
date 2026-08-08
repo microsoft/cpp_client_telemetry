@@ -5,7 +5,8 @@ SIMULATOR=${2:-iPhone 8}
 
 set -e
 
-./build-ios.sh ${SKU}
+CMAKE_OPTS="${CMAKE_OPTS} -DMATSDK_BUILD_UNIT_TESTS=ON -DMATSDK_BUILD_FUNC_TESTS=ON" \
+  ./build-ios.sh ${SKU}
 
 cd tests/unittests
 

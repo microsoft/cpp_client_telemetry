@@ -4,6 +4,7 @@
 # Sets the minimum version of CMake required to build the native library.
 
 cmake_minimum_required(VERSION 3.15...3.31)
+project(MaesdkAndroidTests LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -12,21 +13,6 @@ string(REPLACE "/lib/android_build/app/src/main/cpp" "" SDK_ROOT ${CMAKE_SOURCE_
 # TODO: migrate this from ${SDK_ROOT}/googletest to ${SDK_ROOT}/third_party/googletest
 set (gmock_dir ${SDK_ROOT}/third_party/googletest/googlemock)
 set (gtest_dir ${SDK_ROOT}/third_party/googletest/googletest)
-
-include_directories(AFTER
-        ${SDK_ROOT}/lib
-        ${SDK_ROOT}/lib/include/public
-        ${SDK_ROOT}/lib/include
-        ${SDK_ROOT}/lib/include/mat
-        ${SDK_ROOT}/sqlite
-        ${SDK_ROOT}lib/pal
-        ${SDK_ROOT}
-        "${gmock_dir}/include"
-        "${gmock_dir}"
-        "${gtest_dir}/include"
-        # This directory is needed to build directly from Google
-        # Test sources.
-        "${gtest_dir}")
 
 set(TESTS_COMMON_SRCS
         ${SDK_ROOT}/tests/common/Common.cpp
@@ -75,13 +61,8 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/UtilsTests.cpp
         )
 
-find_package( ZLIB REQUIRED )
-include_directories(
-        ${ZLIB_INCLUDE_DIRS}
-        ${SDK_ROOT}/tests
-)
-
-find_library(zlib-path z)
+# The test app builds SQLite storage alongside the Room-backed SDK.
+set(MATSDK_SQLITE_PROVIDER VENDORED CACHE STRING "" FORCE)
 
 #Add maesdk as a dependency
 add_subdirectory(../../../../maesdk/src/main/cpp maesdk)
@@ -89,10 +70,9 @@ add_subdirectory(../../../../maesdk/src/main/cpp maesdk)
 # include the other flavor of database: if maesdk builds with Room include sqlite
 # if maesdk builds with native sqlite, include Room
 
-if (USE_ROOM)
+if (MATSDK_ANDROID_USE_ROOM)
         set(OTHER_OFFLINE_SRCS
                 ${SDK_ROOT}/lib/offline/OfflineStorage_SQLite.cpp
-                ${SDK_ROOT}/sqlite/sqlite3.c
         )
 else()
         set(OTHER_OFFLINE_SRCS
@@ -128,6 +108,20 @@ add_library( # Sets the name of the library.
         ${TESTS_SRCS}
         )
 
+target_include_directories(native-lib PRIVATE
+        ${SDK_ROOT}
+        ${SDK_ROOT}/lib
+        ${SDK_ROOT}/lib/include/public
+        ${SDK_ROOT}/lib/include
+        ${SDK_ROOT}/lib/include/mat
+        ${SDK_ROOT}/lib/pal
+        ${SDK_ROOT}/sqlite
+        ${SDK_ROOT}/tests
+        "${gmock_dir}/include"
+        "${gmock_dir}"
+        "${gtest_dir}/include"
+        "${gtest_dir}")
+
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -135,10 +129,12 @@ add_library( # Sets the name of the library.
 
 target_link_libraries( # Specifies the target library.
         native-lib
-        maesdk
+        mat
+        matsdk_internal_config
+        SQLite::SQLite3
+        ZLIB::ZLIB
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}
-        ${zlib-path}
         )
         

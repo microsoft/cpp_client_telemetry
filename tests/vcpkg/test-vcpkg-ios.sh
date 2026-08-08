@@ -96,7 +96,7 @@ cmake -S "${SCRIPT_DIR}" -B "${BUILD_DIR}/consumer" \
   -DCMAKE_SYSTEM_NAME=iOS \
   -DCMAKE_OSX_SYSROOT="${APPLE_SDK}" \
   -DCMAKE_OSX_ARCHITECTURES=arm64 \
-  -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0
 
 echo ""
 echo "--- Step 2: Build test consumer for iOS ---"
