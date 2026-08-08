@@ -46,6 +46,14 @@ if(VCPKG_TARGET_IS_IOS)
   set(MATSDK_BUILD_IOS ON)
 endif()
 
+# Keep the port's iOS deployment target aligned with the consumer test and the
+# SDK's supported minimum instead of letting Clang default to the SDK version.
+set(MATSDK_APPLE_DEPLOYMENT_OPTIONS)
+if(VCPKG_TARGET_IS_IOS)
+  list(APPEND MATSDK_APPLE_DEPLOYMENT_OPTIONS
+    -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0)
+endif()
+
 set(MATSDK_ANDROID_HTTP_CLIENT AUTO)
 if(VCPKG_TARGET_IS_ANDROID)
   file(READ "${SOURCE_PATH}/CMakeLists.txt" _matsdk_root_cmake)
@@ -131,6 +139,7 @@ vcpkg_cmake_configure(
         -DBUILD_VERSION=${VERSION}
         -DBUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
         -DBUILD_IOS=${MATSDK_BUILD_IOS}
+        ${MATSDK_APPLE_DEPLOYMENT_OPTIONS}
 )
 
 vcpkg_cmake_install()
