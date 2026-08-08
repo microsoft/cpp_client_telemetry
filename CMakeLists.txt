@@ -255,7 +255,12 @@ if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite::SQLi
   endif()
 endif()
 if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
-  add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
+  get_target_property(_matsdk_sqlite_target SQLite::SQLite3 ALIASED_TARGET)
+  if(_matsdk_sqlite_target)
+    add_library(SQLite3::SQLite3 ALIAS ${_matsdk_sqlite_target})
+  else()
+    add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
+  endif()
 endif()
 
 if(MATSDK_ZLIB_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET ZLIB::ZLIB)
