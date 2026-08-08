@@ -71,6 +71,13 @@ private:
 
 class CurlHttpOperation {
 public:
+    static long GetPreferredHttpVersion()
+    {
+        const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+        return (versionInfo != nullptr && (versionInfo->features & CURL_VERSION_HTTP2) != 0)
+            ? CURL_HTTP_VERSION_2_0
+            : CURL_HTTP_VERSION_1_1;
+    }
 
     void DispatchEvent(HttpStateEvent type)
     {
@@ -134,21 +141,35 @@ public:
 
 #if 0
         // Be verbose
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        if (!SetOption(CURLOPT_VERBOSE, 1L))
 #else
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
+        if (!SetOption(CURLOPT_VERBOSE, 0L))
 #endif
+        {
+            DispatchEvent(OnCreateFailed);
+            return;
+        }
 
         // Specify target URL
-        curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
-
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L);
-        if (!m_sslCaInfo.empty()) {
-            curl_easy_setopt(curl, CURLOPT_CAINFO, m_sslCaInfo.c_str());
+        if (!SetOption(CURLOPT_URL, m_url.c_str())
+            || !SetOption(CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L)
+            || !SetOption(CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L))
+        {
+            DispatchEvent(OnCreateFailed);
+            return;
         }
-        // HTTP/2 please, fallback to HTTP/1.1 if not supported
-        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+
+        if (!m_sslCaInfo.empty() && !SetOption(CURLOPT_CAINFO, m_sslCaInfo.c_str()))
+        {
+            DispatchEvent(OnCreateFailed);
+            return;
+        }
+
+        if (!SetOption(CURLOPT_HTTP_VERSION, GetPreferredHttpVersion()))
+        {
+            DispatchEvent(OnCreateFailed);
+            return;
+        }
 
         // Headers are copied into m_headersChunk during construction and the
         // curl_slist is kept alive until destruction, so the original map does
@@ -156,15 +177,24 @@ public:
         for (const auto& kv : requestHeaders)
         {
             std::string header = kv.first + ": " + kv.second;
-            m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
+            curl_slist* appended = curl_slist_append(m_headersChunk, header.c_str());
+            if (appended == nullptr)
+            {
+                res = CURLE_OUT_OF_MEMORY;
+                DispatchEvent(OnCreateFailed);
+                return;
+            }
+            m_headersChunk = appended;
         }
 
-        if(m_headersChunk != nullptr)
+        if(m_headersChunk != nullptr && !SetOption(CURLOPT_HTTPHEADER, m_headersChunk))
         {
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_headersChunk);
+            DispatchEvent(OnCreateFailed);
+            return;
         }
         TRACE("method=%s, url=%s\n", this->m_method.c_str(), this->m_url.c_str());
 
+        m_isConfigured = true;
         DispatchEvent(OnCreated);
     }
 
@@ -181,7 +211,10 @@ public:
         }
         DispatchEvent(OnDestroy);
         res = CURLE_OK;
-        curl_easy_cleanup(curl);
+        if (curl != nullptr)
+        {
+            curl_easy_cleanup(curl);
+        }
         curl_slist_free_all(m_headersChunk);
         ReleaseResponse();
     }
@@ -197,10 +230,14 @@ public:
         // Request buffer
         const void *request  = requestBody.empty() ? nullptr : requestBody.data();
         const size_t reqSize = requestBody.size();
+        int socketWaitResult = 0;
 
-        if(!curl)
+        if(!curl || !m_isConfigured)
         {
-            res = CURLE_FAILED_INIT;
+            if (res == CURLE_OK)
+            {
+                res = CURLE_FAILED_INIT;
+            }
             DispatchEvent(OnSendFailed);
             goto cleanup;
         }
@@ -209,37 +246,49 @@ public:
         // curl_easy_setopt(curl, CURLOPT_LOCALPORT, dcf_port);
 
         // Perform initial connect, handling the timeout if needed
-        curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
-        DispatchEvent(OnConnecting);
-        res = curl_easy_perform(curl);
-        if(CURLE_OK != res)
+        if (!SetOption(CURLOPT_CONNECT_ONLY, 1L))
         {
-            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 1
-            TRACE("Error #1: %s\n", curl_easy_strerror(res));
+            DispatchEvent(OnConnectFailed);
             goto cleanup;
         }
-
-        /* Extract the socket from the curl handle - we'll need it for waiting.
-         * Note that this API takes a pointer to a 'long' while we use
-         * curl_socket_t for sockets otherwise.
-         */
-
-#if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
-        res = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
-#else
-        res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockextr);
-#endif
-
-        if(CURLE_OK != res)
+        DispatchEvent(OnConnecting);
         {
-            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
-            TRACE("Error #2: %s\n", curl_easy_strerror(res));
-            goto cleanup;
+            const CURLcode curlResult = curl_easy_perform(curl);
+            res = static_cast<long>(curlResult);
+            if(CURLE_OK != curlResult)
+            {
+                DispatchEvent(OnConnectFailed);     // couldn't connect - stage 1
+                TRACE("Error #1: %s\n", curl_easy_strerror(curlResult));
+                goto cleanup;
+            }
+        }
+
+        {
+            CURLcode infoResult;
+#if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
+            infoResult = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
+#else
+            long lastSocket = -1;
+            infoResult = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
+            if (infoResult == CURLE_OK)
+            {
+                sockextr = static_cast<curl_socket_t>(lastSocket);
+            }
+#endif
+            if(CURLE_OK != infoResult || sockextr == CURL_SOCKET_BAD)
+            {
+                res = static_cast<long>(
+                    infoResult != CURLE_OK ? infoResult : CURLE_COULDNT_CONNECT);
+                DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
+                TRACE("Error #2: %s\n", curl_easy_strerror(static_cast<CURLcode>(res)));
+                goto cleanup;
+            }
         }
 
         /* wait for the socket to become ready for sending */
         sockfd = sockextr;
-        if( !WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) || isAborted)
+        socketWaitResult = WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L);
+        if(socketWaitResult <= 0 || isAborted)
         {
             TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
             res = CURLE_OPERATION_TIMEDOUT;
@@ -248,27 +297,46 @@ public:
         }
 
         // once connection is there - switch back to easy perform for HTTP post
-        curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0);
+        if (!SetOption(CURLOPT_CONNECT_ONLY, 0L))
+        {
+            DispatchEvent(OnSendFailed);
+            goto cleanup;
+        }
 
         // send all data to our callback function
         if (rawResponse)
         {
-            curl_easy_setopt(curl, CURLOPT_HEADER,        true);
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void *)&WriteMemoryCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA,     (void *)&response);
-        } else {
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void *)&WriteVectorCallback);
-            curl_easy_setopt(curl, CURLOPT_HEADERDATA,    (void *)&respHeaders);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA,     (void *)&respBody);
+            if (!SetOption(CURLOPT_HEADER, 1L)
+                || !SetOption(CURLOPT_WRITEFUNCTION,
+                    static_cast<curl_write_callback>(&WriteMemoryCallback))
+                || !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&response)))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
+        }
+        else if (!SetOption(CURLOPT_WRITEFUNCTION,
+                static_cast<curl_write_callback>(&WriteVectorCallback))
+            || !SetOption(CURLOPT_HEADERFUNCTION,
+                static_cast<curl_write_callback>(&WriteVectorCallback))
+            || !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders))
+            || !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&respBody)))
+        {
+            DispatchEvent(OnSendFailed);
+            goto cleanup;
         }
 
         // TODO: only two methods supported for now - POST and GET
         if (m_method.compare("POST") == 0)
         {
             // POST
-            curl_easy_setopt(curl, CURLOPT_POST, true);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, static_cast<const char*>(request));
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, reqSize);
+            if (!SetOption(CURLOPT_POST, 1L)
+                || !SetOption(CURLOPT_POSTFIELDS, static_cast<const char*>(request))
+                || !SetOption(CURLOPT_POSTFIELDSIZE_LARGE, static_cast<curl_off_t>(reqSize)))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
         } else
         if (m_method.compare("GET") == 0)
         {
@@ -280,15 +348,22 @@ public:
             goto cleanup;
         }
 
-        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
-        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 4096);
-        DispatchEvent(OnSending);
-        res = curl_easy_perform(curl);
-        if(CURLE_OK != res)
+        if (!SetOption(CURLOPT_LOW_SPEED_TIME, 30L)
+            || !SetOption(CURLOPT_LOW_SPEED_LIMIT, 4096L))
         {
             DispatchEvent(OnSendFailed);
-            TRACE("Error: %s\n", curl_easy_strerror(res));
             goto cleanup;
+        }
+        DispatchEvent(OnSending);
+        {
+            const CURLcode curlResult = curl_easy_perform(curl);
+            res = static_cast<long>(curlResult);
+            if(CURLE_OK != curlResult)
+            {
+                DispatchEvent(OnSendFailed);
+                TRACE("Error: %s\n", curl_easy_strerror(curlResult));
+                goto cleanup;
+            }
         }
 
         /* Code snippet to parse raw HTTP response. This might come in handy
@@ -303,7 +378,17 @@ public:
          */
 
         /* libcurl is nice enough to parse the response code itself: */
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &res);
+        {
+            long responseCode = 0;
+            const CURLcode infoResult = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+            if (infoResult != CURLE_OK)
+            {
+                res = static_cast<long>(infoResult);
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
+            res = responseCode;
+        }
         // We got some response from server. Dump the contents.
         TRACE("HTTP response code %d\n", res);
         DispatchEvent(OnResponse);
@@ -436,7 +521,7 @@ protected:
     const size_t httpConnTimeout;   // Timeout for connect.  Default: 5s
 
     CURL *curl;                     // Local curl instance
-    CURLcode res = CURLE_OK;        // Curl result OR HTTP status code if successful
+    long res = CURLE_OK;            // Curl result OR HTTP status code if successful
     
     IHttpResponseCallback* m_callback = nullptr;
 
@@ -444,6 +529,7 @@ protected:
     std::string m_method;
     std::string m_url;
     std::string m_sslCaInfo;
+    bool m_isConfigured = false;
     // The SDK upload path keeps the owning IHttpRequest alive through the
     // callback context until Send() completes; copying this body would duplicate
     // every upload payload. Unlike CURLOPT_CAINFO, the body pointer is set and
@@ -458,13 +544,27 @@ protected:
     // Socket parameters
     curl_socket_t sockfd = 0;
 
-    long sockextr   = 0;
+    curl_socket_t sockextr = CURL_SOCKET_BAD;
 
     curl_off_t nread = 0;
     size_t sendlen   = 0;        // # bytes sent by client
     size_t acklen    = 0;        // # bytes ack by server
 
     std::future<long>       result;
+
+    template<typename TValue>
+    bool SetOption(CURLoption option, TValue value)
+    {
+        const CURLcode optionResult = curl_easy_setopt(curl, option, value);
+        if (optionResult != CURLE_OK)
+        {
+            res = static_cast<long>(optionResult);
+            TRACE("curl_easy_setopt(%d) failed: %s\n",
+                static_cast<int>(option), curl_easy_strerror(optionResult));
+            return false;
+        }
+        return true;
+    }
 
     /**
      * Helper routine to wait for data on socket
@@ -507,7 +607,7 @@ protected:
      * @param userp
      * @return
      */
-    static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+    static size_t WriteMemoryCallback(char *contents, size_t size, size_t nmemb, void *userp)
     {
         // Guard the size * nmemb product against size_t overflow before using it.
         if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
@@ -551,14 +651,15 @@ protected:
      * @param data
      * @return
      */
-    static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
+    static size_t WriteVectorCallback(char *ptr, size_t size, size_t nmemb, void* userp)
     {
         // Guard the size * nmemb product against size_t overflow before using it.
         if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
             return 0;
         }
+        size_t realsize = size * nmemb;
+        auto* data = static_cast<std::vector<uint8_t>*>(userp);
         if (data != nullptr) {
-            size_t realsize = size * nmemb;
             // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
             // overflow-safely (data->size() is always <= kMaxResponseBytes here).
             // Returning a short count aborts the transfer with CURLE_WRITE_ERROR.
@@ -566,11 +667,11 @@ protected:
                 TRACE("Response exceeds max buffered size (%zu bytes); aborting transfer\n", kMaxResponseBytes);
                 return 0;
             }
-            const auto* begin = static_cast<const uint8_t*>(ptr);
+            const auto* begin = reinterpret_cast<const uint8_t*>(ptr);
             const auto* end   = begin + realsize;
             data->insert( data->end(), begin, end);
         }
-        return size * nmemb;
+        return realsize;
     }
 
 };

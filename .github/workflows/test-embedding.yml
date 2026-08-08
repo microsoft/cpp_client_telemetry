@@ -1,0 +1,233 @@
+name: Source embedding matrix
+
+on:
+  push:
+    branches:
+    - main
+    - master
+    - dev
+  pull_request:
+    branches:
+    - main
+    - master
+    - dev
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - dependencies: system
+          library-type: STATIC
+          shared: OFF
+          fetchcontent: OFF
+          preload-curl: ON
+          preload-storage: ON
+        - dependencies: system
+          library-type: SHARED
+          shared: ON
+          fetchcontent: ON
+          preload-curl: OFF
+          preload-storage: OFF
+        - dependencies: self-contained
+          library-type: STATIC
+          shared: OFF
+          fetchcontent: ON
+          preload-curl: OFF
+          preload-storage: OFF
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install system dependencies
+      if: matrix.dependencies == 'system'
+      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev ninja-build zlib1g-dev
+    - name: Configure
+      shell: bash
+      run: |
+        options=(
+          -G Ninja
+          -S tests/embedding
+          -B build-embedding
+          -DCMAKE_BUILD_TYPE=Release
+          -DMATSDK_EMBEDDING_USE_FETCHCONTENT=${{ matrix.fetchcontent }}
+          -DMATSDK_EMBEDDING_PRELOAD_CURL=${{ matrix.preload-curl }}
+          -DMATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS=${{ matrix.preload-storage }}
+          -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+        )
+        if [[ "${{ matrix.dependencies }}" == "self-contained" ]]; then
+          options+=(
+            -DMATSDK_CURL_PROVIDER=FETCH
+            -DMATSDK_CURL_TLS_BACKEND=MBEDTLS
+            -DMATSDK_SQLITE_PROVIDER=MINIMAL
+            -DMATSDK_ZLIB_PROVIDER=VENDORED
+          )
+        else
+          options+=(
+            -DMATSDK_SQLITE_PROVIDER=SYSTEM
+            -DMATSDK_ZLIB_PROVIDER=SYSTEM
+          )
+        fi
+        cmake "${options[@]}"
+    - name: Build and run
+      run: |
+        cmake --build build-embedding --target embedding_test --parallel 4
+        ./build-embedding/embedding_test
+
+  windows:
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v4
+    - name: Configure
+      run: >
+        cmake -S tests/embedding -B build-embedding -A x64
+        -DMATSDK_EMBEDDING_USE_FETCHCONTENT=ON
+        -DMATSDK_SQLITE_PROVIDER=VENDORED
+        -DMATSDK_ZLIB_PROVIDER=VENDORED
+    - name: Build and run
+      shell: pwsh
+      run: |
+        cmake --build build-embedding --config Release --target embedding_test -- /m
+        & .\build-embedding\Release\embedding_test.exe
+
+  installed-package-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mode: [system, fetched]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install system dependencies
+      if: matrix.mode == 'system'
+      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
+    - name: Configure, install, and consume
+      shell: bash
+      run: |
+        options=(
+          -G Ninja
+          -S .
+          -B build-package
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DMATSDK_BUILD_UNIT_TESTS=OFF
+          -DMATSDK_BUILD_FUNC_TESTS=OFF
+          -DMATSDK_BUILD_PACKAGE=OFF
+          -DMATSDK_BUILD_OBJC_WRAPPER=OFF
+          -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
+          -DCMAKE_INSTALL_PREFIX="${RUNNER_TEMP}/matsdk"
+        )
+        if [[ "${{ matrix.mode }}" == "fetched" ]]; then
+          options+=(
+            -DMATSDK_CURL_PROVIDER=FETCH
+            -DMATSDK_CURL_TLS_BACKEND=MBEDTLS
+            -DMATSDK_SQLITE_PROVIDER=MINIMAL
+            -DMATSDK_ZLIB_PROVIDER=VENDORED
+          )
+        else
+          options+=(
+            -DMATSDK_SQLITE_PROVIDER=SYSTEM
+            -DMATSDK_ZLIB_PROVIDER=SYSTEM
+          )
+        fi
+        cmake "${options[@]}"
+        cmake --build build-package --target mat --parallel 4
+        cmake --install build-package
+        cmake -G Ninja -S tests/vcpkg -B build-consumer \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="${RUNNER_TEMP}/matsdk"
+        cmake --build build-consumer --parallel 4
+        ./build-consumer/vcpkg_test
+
+  installed-package-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Configure, install, and consume
+      run: |
+        cmake -G Ninja -S . -B build-package \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DMATSDK_BUILD_UNIT_TESTS=OFF \
+          -DMATSDK_BUILD_FUNC_TESTS=OFF \
+          -DMATSDK_BUILD_PACKAGE=OFF \
+          -DMATSDK_BUILD_OBJC_WRAPPER=OFF \
+          -DMATSDK_BUILD_SWIFT_WRAPPER=OFF \
+          -DMATSDK_SQLITE_PROVIDER=SYSTEM \
+          -DMATSDK_ZLIB_PROVIDER=SYSTEM \
+          -DCMAKE_INSTALL_PREFIX="${RUNNER_TEMP}/matsdk"
+        cmake --build build-package --target mat --parallel 4
+        cmake --install build-package
+        cmake -G Ninja -S tests/vcpkg -B build-consumer \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="${RUNNER_TEMP}/matsdk"
+        cmake --build build-consumer --parallel 4
+        ./build-consumer/vcpkg_test
+
+  macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        architectures: [arm64, "arm64;x86_64"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Configure
+      run: >
+        cmake -G Ninja -S tests/embedding -B build-embedding
+        -DCMAKE_BUILD_TYPE=Release
+        "-DCMAKE_OSX_ARCHITECTURES=${{ matrix.architectures }}"
+        -DMATSDK_EMBEDDING_USE_FETCHCONTENT=ON
+        -DMATSDK_SQLITE_PROVIDER=SYSTEM
+        -DMATSDK_ZLIB_PROVIDER=SYSTEM
+    - name: Build
+      run: cmake --build build-embedding --target embedding_test --parallel 4
+
+  ios:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+        - sdk: iphoneos
+          sqlite-provider: SYSTEM
+          zlib-provider: SYSTEM
+        - sdk: iphonesimulator
+          sqlite-provider: VENDORED
+          zlib-provider: VENDORED
+    steps:
+    - uses: actions/checkout@v4
+    - name: Configure
+      run: >
+        cmake -G Xcode -S tests/embedding -B build-embedding
+        -DCMAKE_SYSTEM_NAME=iOS
+        -DCMAKE_OSX_SYSROOT=${{ matrix.sdk }}
+        -DCMAKE_OSX_ARCHITECTURES=arm64
+        -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0
+        -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+        -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO
+        -DMATSDK_EMBEDDING_USE_FETCHCONTENT=ON
+        -DMATSDK_SQLITE_PROVIDER=${{ matrix.sqlite-provider }}
+        -DMATSDK_ZLIB_PROVIDER=${{ matrix.zlib-provider }}
+    - name: Build
+      run: cmake --build build-embedding --config Release --target embedding_test --parallel 4
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Configure
+      run: >
+        cmake -G Ninja -S tests/embedding -B build-embedding
+        -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_LATEST_HOME}/build/cmake/android.toolchain.cmake
+        -DANDROID_ABI=arm64-v8a
+        -DANDROID_PLATFORM=23
+        -DCMAKE_BUILD_TYPE=Release
+        -DMATSDK_EMBEDDING_USE_FETCHCONTENT=ON
+        -DMATSDK_SQLITE_PROVIDER=VENDORED
+        -DMATSDK_ZLIB_PROVIDER=VENDORED
+    - name: Build
+      run: cmake --build build-embedding --target embedding_test --parallel 4

@@ -11,7 +11,6 @@ $ErrorActionPreference = "Stop"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = (Resolve-Path (Join-Path $ScriptDir "..\..")).Path
-$BuildDir = Join-Path $ScriptDir "build-windows"
 $OverlayPorts = Join-Path $RepoRoot "tools\ports"
 
 # Build the working tree under review (not a pinned release) so this test
@@ -56,6 +55,7 @@ if ([string]::IsNullOrEmpty($Triplet)) {
         $Triplet = "x64-windows-static"
     }
 }
+$BuildDir = Join-Path $ScriptDir "build-windows-$Triplet"
 
 # Map triplet to vcvarsall architecture
 $VcvarsArch = switch -Regex ($Triplet) {

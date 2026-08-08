@@ -2,7 +2,8 @@
 cd "${0%/*}"
 SKU=${1:-release}
 echo Building and running $SKU tests...
-./build.sh ${SKU}
+CMAKE_OPTS="${CMAKE_OPTS} -DMATSDK_BUILD_UNIT_TESTS=ON -DMATSDK_BUILD_FUNC_TESTS=ON" \
+  ./build.sh ${SKU}
 # Fail on test errors
 set -e
 cd out

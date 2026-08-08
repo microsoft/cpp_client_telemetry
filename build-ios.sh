@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/bin/bash
+
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$DIR"
+. "$DIR/tools/build-common.sh"
 
 #  The expected iOS build invocation is:
 #    build-ios.sh [clean] [release|debug] ${ARCH} ${PLATFORM}
@@ -7,11 +13,7 @@
 #    PLATFORM = iphoneos|iphonesimulator|xros|xrsimulator
 
 if [ "$1" == "clean" ]; then
-  echo "build-ios.sh: cleaning previous build artifacts"
-  rm -f CMakeCache.txt *.cmake
-  rm -rf out
-  rm -rf .buildtools
-#  make clean
+  matsdk_clean_build_outputs "build-ios.sh"
   shift
 fi
 
@@ -55,7 +57,7 @@ if [ "$APPLE_PLATFORM" == "iphoneos" ] || [ "$APPLE_PLATFORM" == "iphonesimulato
   SYS_NAME="iOS"
   DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
   if [ -z "$DEPLOYMENT_TARGET" ]; then
-    DEPLOYMENT_TARGET="12.0"
+    DEPLOYMENT_TARGET="13.0"
   fi
 elif [ "$APPLE_PLATFORM" == "xros" ] || [ "$APPLE_PLATFORM" == "xrsimulator" ]; then
   SYS_NAME="visionOS"
@@ -68,30 +70,29 @@ fi
 echo "deployment target = $DEPLOYMENT_TARGET"
 
 # Install build tools and recent sqlite3
-FILE=".buildtools"
-if [ ! -f $FILE ]; then
-  tools/setup-buildtools-apple.sh ios
-  # Assume that the build tools have been successfully installed
-  echo > $FILE
-fi
+BUILD_TOOLS_MARKER=".buildtools"
+matsdk_install_buildtools_once "$BUILD_TOOLS_MARKER" tools/setup-buildtools-apple.sh ios
 
-if [ -f /usr/bin/gcc ]; then
-  echo "gcc   version: `gcc --version`"
-fi
+matsdk_print_compiler_versions
+matsdk_require_cmake_preset_support
 
-if [ -f /usr/bin/clang ]; then
-  echo "clang version: `clang --version`"
-fi
+CPACK_GENERATOR=TGZ
+case "$APPLE_PLATFORM" in
+  *simulator) PLATFORM_PRESET="matsdk-ios-simulator" ;;
+  *)         PLATFORM_PRESET="matsdk-ios-device" ;;
+esac
+PRESET="${PLATFORM_PRESET}-$(echo "$BUILD_TYPE" | tr '[:upper:]' '[:lower:]')"
 
-mkdir -p out
-cd out
+cmake_args=(
+  cmake --preset "$PRESET"
+  "-DCMAKE_SYSTEM_NAME=$SYS_NAME"
+  "-DCMAKE_OSX_SYSROOT=$APPLE_PLATFORM"
+  "-DCMAKE_OSX_ARCHITECTURES=$APPLE_ARCH"
+  "-DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET"
+  "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
+  "-DCPACK_GENERATOR=$CPACK_GENERATOR"
+)
+matsdk_append_cmake_opts_to_cmake_args
+matsdk_run_logged_command "${cmake_args[@]}"
 
-CMAKE_PACKAGE_TYPE=tgz
-
-cmake_cmd="cmake -DCMAKE_OSX_SYSROOT=$APPLE_PLATFORM -DCMAKE_SYSTEM_NAME=$SYS_NAME -DCMAKE_OSX_ARCHITECTURES=$APPLE_ARCH -DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET -DBUILD_IOS=YES -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PACKAGE_TYPE=$CMAKE_PACKAGE_TYPE $CMAKE_OPTS .."
-echo "${cmake_cmd}"
-eval $cmake_cmd
-
-make
-
-make package
+matsdk_build_and_package_preset "$PRESET"
