@@ -161,11 +161,31 @@ namespace MAT_NS_BEGIN {
         return count;
     }
 
+    void OfflineStorageHandler::SignalFlushComplete()
+    {
+        LOCKGUARD(m_flushLock);
+        m_flushHandle.Cancel();
+        m_flushComplete.post();
+        m_flushPending = false;
+    }
+
     void OfflineStorageHandler::Flush()
     {
+        // StartActivity() only keeps the LogManager alive for the duration of an
+        // asynchronously scheduled flush; it fails once teardown has begun pausing.
+        // Returning here without signalling would strand every thread blocked in
+        // WaitForFlush(): m_flushPending stays true and m_flushComplete is never
+        // posted, so Shutdown() waits on it forever. Always release the waiters.
         if (!m_logManager.StartActivity()) {
+            SignalFlushComplete();
             return;
         }
+        FlushImpl();
+        m_logManager.EndActivity();
+    }
+
+    void OfflineStorageHandler::FlushImpl()
+    {
         // Flush could be executed from context of worker thread, as well as from TPM and
         // after HTTP callback. Make sure it is atomic / thread-safe.
         LOCKGUARD(m_flushLock);
@@ -221,7 +241,6 @@ namespace MAT_NS_BEGIN {
         // Flush is done, notify the waiters
         m_flushComplete.post();
         m_flushPending = false;
-        m_logManager.EndActivity();
     }
 
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)

@@ -100,6 +100,8 @@ namespace MAT_NS_BEGIN {
 
     private:
         void WaitForFlush();
+        void FlushImpl();
+        void SignalFlushComplete();
 
     };
 
