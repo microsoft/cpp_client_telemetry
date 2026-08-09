@@ -20,6 +20,13 @@
 
 namespace MAT_NS_BEGIN {
 
+    namespace
+    {
+        // Keep each persistence transaction bounded so a large in-memory backlog
+        // cannot monopolize memory or database locks.
+        constexpr unsigned MAX_RECORDS_PER_STORAGE_BATCH = 100;
+    }
+
 
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class")
 
@@ -245,37 +252,43 @@ namespace MAT_NS_BEGIN {
             size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
             if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
             {
-                // Drain the in-memory queue into a local batch. Records are removed
-                // from memory here; any that fail to persist below are re-inserted, so
-                // a disk write failure does not silently lose events. Draining (rather
-                // than reserving) keeps only a single copy of each record in flight and
-                // avoids stamping a reservation lease that the Room backend would
-                // persist to disk.
-                recordsToRecover = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-
                 size_t totalSaved = 0;
                 if (IsBatchedStorageFlushEnabled())
                 {
-                    // Persist the drained batch to disk in a single transaction.
-                    // StoreRecords() commits as many records as it durably can and
-                    // returns that count. Records it can never store (e.g. ones failing
-                    // validation, reported separately) are dropped from the batch rather
-                    // than counted, so a return of 0 with records still queued means a
-                    // transient failure committed nothing -- return those records to the
-                    // in-memory queue for retry. No events are lost, and a rolled-back
-                    // batch leaves nothing on disk, so re-queuing cannot create duplicates
-                    // (the events table has no unique record_id constraint). A non-zero
-                    // count means those records are durably stored; do not re-queue.
-                    totalSaved = m_offlineStorageDisk->StoreRecords(recordsToRecover);
-                    if (totalSaved == 0 && !recordsToRecover.empty())
+                    // Drain and persist one bounded batch at a time. Each batch is
+                    // atomic, but already committed batches remain committed if a
+                    // later batch fails.
+                    while (true)
                     {
-                        LOG_WARN("Flush: disk store failed for the batch of %zu records; returning to the queue for retry",
-                            recordsToRecover.size());
-                        ReturnRecordsToMemory(recordsToRecover);
+                        recordsToRecover = m_offlineStorageMemory->GetRecords(
+                            false, EventLatency_Unspecified, MAX_RECORDS_PER_STORAGE_BATCH);
+                        if (recordsToRecover.empty())
+                        {
+                            break;
+                        }
+
+                        const size_t batchSaved = m_offlineStorageDisk->StoreRecords(recordsToRecover);
+                        // StoreRecords() removes permanently-invalid records before
+                        // returning, so compare against the remaining valid records.
+                        const size_t validBatchSize = recordsToRecover.size();
+                        if (batchSaved != validBatchSize)
+                        {
+                            LOG_WARN("Flush: disk store failed for the batch of %zu records; returning it to the queue for retry",
+                                validBatchSize);
+                            ReturnRecordsToMemory(recordsToRecover);
+                            recordsToRecover.clear();
+                            break;
+                        }
+
+                        totalSaved += batchSaved;
+                        recordsToRecover.clear();
                     }
                 }
                 else
                 {
+                    // Preserve the legacy per-record path and its unlimited drain.
+                    recordsToRecover = m_offlineStorageMemory->GetRecords(
+                        false, EventLatency_Unspecified);
                     totalSaved = StoreRecordsIndividually(recordsToRecover);
                 }
 

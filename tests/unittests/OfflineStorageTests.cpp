@@ -319,6 +319,115 @@ TEST(OfflineStorageHandlerFlushTests, BatchingOptOutUsesPerRecordDiskStores)
     handler.Flush();
 }
 
+TEST(OfflineStorageHandlerFlushTests, BatchedFlushLimitsEachDiskWrite)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+
+    OfflineStorageHandler handler(logManager, config, dispatcher);
+    OfflineStorageHandlerTestPeer::SetObserver(handler, observer);
+
+    auto* memory = new StrictMock<MockIOfflineStorage>();
+    std::shared_ptr<StrictMock<MockIOfflineStorage>> disk(new StrictMock<MockIOfflineStorage>());
+    OfflineStorageHandlerTestPeer::SetMemoryStorage(handler, memory);
+    OfflineStorageHandlerTestPeer::SetDiskStorage(handler, disk);
+
+    std::vector<StorageRecord> firstBatch;
+    std::vector<StorageRecord> secondBatch;
+    std::vector<StorageRecord> finalBatch;
+    for (size_t i = 0; i < 205; ++i)
+    {
+        StorageRecord record("batch-" + std::to_string(i), "tenant-token",
+            EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
+            std::vector<uint8_t>{ 'x' });
+        if (i < 100)
+        {
+            firstBatch.push_back(record);
+        }
+        else if (i < 200)
+        {
+            secondBatch.push_back(record);
+        }
+        else
+        {
+            finalBatch.push_back(record);
+        }
+    }
+
+    EXPECT_CALL(*memory, GetSize())
+        .WillOnce(Return(static_cast<size_t>(205)))
+        .WillOnce(Return(static_cast<size_t>(0)));
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 100))
+        .WillOnce(Return(firstBatch))
+        .WillOnce(Return(secondBatch))
+        .WillOnce(Return(finalBatch))
+        .WillOnce(Return(std::vector<StorageRecord>{}));
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) {
+            EXPECT_EQ(records.size(), static_cast<size_t>(100));
+            return records.size();
+        }))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) {
+            EXPECT_EQ(records.size(), static_cast<size_t>(100));
+            return records.size();
+        }))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) {
+            EXPECT_EQ(records.size(), static_cast<size_t>(5));
+            return records.size();
+        }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(205));
+
+    handler.Flush();
+}
+
+TEST(OfflineStorageHandlerFlushTests, FailedBatchRequeuesOnlyThatBatch)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+
+    OfflineStorageHandler handler(logManager, config, dispatcher);
+    OfflineStorageHandlerTestPeer::SetObserver(handler, observer);
+
+    auto* memory = new StrictMock<MockIOfflineStorage>();
+    std::shared_ptr<StrictMock<MockIOfflineStorage>> disk(new StrictMock<MockIOfflineStorage>());
+    OfflineStorageHandlerTestPeer::SetMemoryStorage(handler, memory);
+    OfflineStorageHandlerTestPeer::SetDiskStorage(handler, disk);
+
+    std::vector<StorageRecord> firstBatch;
+    std::vector<StorageRecord> failedBatch;
+    for (size_t i = 0; i < 200; ++i)
+    {
+        StorageRecord record("failed-batch-" + std::to_string(i), "tenant-token",
+            EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
+            std::vector<uint8_t>{ 'x' });
+        (i < 100 ? firstBatch : failedBatch).push_back(record);
+    }
+
+    EXPECT_CALL(*memory, GetSize())
+        .WillOnce(Return(static_cast<size_t>(200)))
+        .WillOnce(Return(static_cast<size_t>(200)));
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 100))
+        .WillOnce(Return(firstBatch))
+        .WillOnce(Return(failedBatch));
+    EXPECT_CALL(*memory, StoreRecord(_))
+        .Times(100)
+        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Return(static_cast<size_t>(100)))
+        .WillOnce(Return(static_cast<size_t>(0)));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(100));
+
+    handler.Flush();
+}
+
 // Regression test: when valid records drained from the in-memory queue fail to
 // be persisted by the disk backend during Flush() (a transient failure -- here
 // an unopenable database), they must be returned to the queue rather than lost.
