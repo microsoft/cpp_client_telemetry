@@ -94,6 +94,21 @@ public:
      * @param httpConnTimeout   HTTP connection timeout in seconds
      * @param httpReadTimeout   HTTP read timeout in seconds
      */
+    // Selects HTTP/2 only when the libcurl we are actually linked against was
+    // built with HTTP/2 support. Setting CURLOPT_HTTP_VERSION to
+    // CURL_HTTP_VERSION_2_0 against a libcurl without HTTP/2 does not silently
+    // downgrade -- it fails the transfer with CURLE_UNSUPPORTED_PROTOCOL -- so
+    // the version has to be probed at runtime rather than assumed.
+    static long GetPreferredHttpVersion() noexcept
+    {
+        const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+        if (versionInfo != nullptr && (versionInfo->features & CURL_VERSION_HTTP2) != 0)
+        {
+            return CURL_HTTP_VERSION_2_0;
+        }
+        return CURL_HTTP_VERSION_1_1;
+    }
+
     CurlHttpOperation(
             std::string method,
             std::string url,
@@ -152,8 +167,8 @@ public:
         if (!m_sslCaInfo.empty()) {
             curl_easy_setopt(curl, CURLOPT_CAINFO, m_sslCaInfo.c_str());
         }
-        // HTTP/2 please, fallback to HTTP/1.1 if not supported
-        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+        // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
+        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, GetPreferredHttpVersion());
 
         // Headers are copied into m_headersChunk during construction and the
         // curl_slist is kept alive until destruction, so the original map does
