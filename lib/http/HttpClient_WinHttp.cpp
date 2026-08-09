@@ -184,15 +184,39 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     // methods that attempt to use the object after triggering send on it.
     // Send operation on request may be issued no more than once.
     //
-    // Held under m_parent.m_requestsMutex (a recursive_mutex, matching
-    // HttpClient_WinInet's model) for the whole method, exactly like cancel():
-    // that serializes send() and cancel() completely, so cancel() can never
-    // interleave mid-way through handle creation and be silently lost, and a
-    // synchronous/reentrant completion on this same thread can safely re-enter
-    // the lock rather than deadlock.
+    // Handle setup runs under m_parent.m_requestsMutex (a recursive_mutex,
+    // matching HttpClient_WinInet's model), exactly like cancel(): that
+    // serializes send() and cancel() completely, so cancel() can never
+    // interleave mid-way through handle creation and be silently lost.
+    //
+    // DEADLOCK NOTE: the lock must NOT still be held when a synchronous
+    // failure completes the request. onRequestComplete() invokes the
+    // application callback, which is documented (below) to be able to tear the
+    // client down synchronously -- that reaches CancelAllRequests(), which
+    // waits on m_requestsCv. condition_variable_any::wait() releases only ONE
+    // level of a recursive_mutex, so waiting with the mutex held twice leaves
+    // it locked: erase() on the WinHTTP callback thread can then never acquire
+    // it to notify, and the wait never wakes. So sendLocked() only reports the
+    // failure, and send() completes it after the lock is released.
     void send(IHttpResponseCallback* callback)
     {
-        std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
+        bool failed = false;
+        DWORD dwError = ERROR_SUCCESS;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
+            failed = !sendLocked(callback, dwError);
+        }
+        if (failed)
+        {
+            onRequestComplete(dwError);
+        }
+    }
+
+    // Returns true if the request was handed off to WinHTTP asynchronously.
+    // Returns false on synchronous failure, setting dwError to the result the
+    // caller must complete the request with (once the lock has been dropped).
+    bool sendLocked(IHttpResponseCallback* callback, DWORD& dwErrorOut)
+    {
         m_appCallback = callback;
         m_parent.m_requests[m_id] = shared_from_this();
 
@@ -200,8 +224,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         {
             // Request force-aborted before creating a WinHTTP handle.
             DispatchEvent(OnConnectFailed);
-            onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-            return;
+            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            return false;
         }
 
         DispatchEvent(OnConnecting);
@@ -222,8 +246,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             LOG_WARN("WinHttpCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.c_str());
             // Invalid URL passed to WinHTTP API
             DispatchEvent(OnConnectFailed);
-            onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-            return;
+            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            return false;
         }
 
         // TODO: connect handle for the same target should be cached across
@@ -236,8 +260,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             LOG_WARN("WinHttpConnect() failed: %d", dwError);
             // Cannot connect to host
             DispatchEvent(OnConnectFailed);
-            onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-            return;
+            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            return false;
         }
 
         std::wstring wMethod = to_utf16_string(m_request->m_method);
@@ -252,8 +276,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             LOG_WARN("WinHttpOpenRequest() failed: %d", dwError);
             // Request cannot be opened to given URL because of some connectivity issue
             DispatchEvent(OnConnectFailed);
-            onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-            return;
+            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            return false;
         }
 
         // Unlike WinInet, WinHTTP has no automatic cookie jar to suppress (it
@@ -268,8 +292,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             {
                 // Request cannot be completed: end-point certificate is not MS-Rooted
                 DispatchEvent(OnConnectFailed);
-                onRequestComplete(ERROR_WINHTTP_SECURE_INVALID_CERT);
-                return;
+                dwErrorOut = ERROR_WINHTTP_SECURE_INVALID_CERT;
+                return false;
             }
         }
 
@@ -285,8 +309,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             DWORD dwError = ::GetLastError();
             LOG_WARN("WinHttpSetStatusCallback() failed: %d", dwError);
             DispatchEvent(OnConnectFailed);
-            onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-            return;
+            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            return false;
         }
 
         std::ostringstream os;
@@ -304,8 +328,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             // Unable to add request headers. There's no point in proceeding with upload because
             // our server is expecting those custom request headers to always be there.
             DispatchEvent(OnConnectFailed);
-            onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-            return;
+            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            return false;
         }
 
         // Try to send headers and request body to server
@@ -324,10 +348,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             LOG_WARN("WinHttpSendRequest() failed: %d", dwError);
             // Unable to send request
             DispatchEvent(OnSendFailed);
-            onRequestComplete(dwError);
-            return;
+            dwErrorOut = dwError;
+            return false;
         }
         // Async request has been queued; completion arrives via winHttpCallback.
+        return true;
     }
 
     // Drives the WinHTTP async state machine: SendRequest -> ReceiveResponse ->
