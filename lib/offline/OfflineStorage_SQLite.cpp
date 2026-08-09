@@ -162,10 +162,8 @@ namespace MAT_NS_BEGIN {
         LOG_TRACE("Shutting down offline storage %s", m_offlineStorageFileName.c_str());
         LOCKGUARD(m_lock);
         if (m_db) {
-            if (m_isOpened) {
-                m_db->shutdown();
-                m_db.reset();
-            }
+            m_db->shutdown();
+            m_db.reset();
             m_isOpened = false;
         }
     }
