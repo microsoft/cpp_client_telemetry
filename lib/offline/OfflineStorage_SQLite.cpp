@@ -367,6 +367,9 @@ namespace MAT_NS_BEGIN {
                 // back so Flush can safely requeue the entire batch.
                 transaction.markForRollback();
 #endif
+                // insertRecordUnsafe updates the estimate before the
+                // transaction commits; undo inserts that will be rolled back.
+                m_DbSizeEstimate -= std::min(m_DbSizeEstimate.load(), addedSize);
                 throw;
             }
 

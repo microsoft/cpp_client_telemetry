@@ -10,6 +10,7 @@
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
 #include "offline/OfflineStorage_SQLite.hpp"
+#include <vector>
 #include <stdio.h>
 #include <fstream>
 #if !defined(_WIN32)
@@ -619,9 +620,12 @@ TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
     initializeStorage();
     auto startTimeMs = PAL::getMonotonicTimeMs();
 
+    std::vector<StorageRecord> records;
+    records.reserve(1000);
     for (int i = 0; i < 1000; ++i) {
-        EXPECT_THAT(offlineStorage->StoreRecord({std::to_string(i), "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+        records.push_back({std::to_string(i), "token", EventLatency_Normal, EventPersistence_Normal, 1, {}});
     }
+    EXPECT_THAT(offlineStorage->StoreRecords(records), 1000u);
 
     TestRecordConsumer consumer;
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, EventLatency_Normal, 1000), true);
