@@ -227,7 +227,7 @@ namespace PAL_NS_BEGIN {
             if (m_itemInProgress.load(std::memory_order_acquire) == item)
             {
                 /* Can't recursively wait on completion of our own thread */
-                if (m_hThread.get_id() != std::this_thread::get_id())
+                if (m_workerId != std::this_thread::get_id())
                 {
                     if (waitTime > 0 && m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime)))
                     {
