@@ -16,9 +16,6 @@
 # Slices built here: iOS device (arm64), iOS simulator (arm64 + x86_64 fat),
 # Mac Catalyst (arm64 + x86_64 fat), visionOS device/simulator (arm64), and
 # macOS (arm64 + x86_64 universal).
-#
-# NOTE: this is a first-pass scaffold. It has been validated on macOS for iOS
-# device, simulator, Mac Catalyst, visionOS, and macOS slices.
 
 set -euo pipefail
 
