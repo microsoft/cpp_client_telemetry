@@ -47,21 +47,13 @@ class BoundCheckFunctions
 private:
 static bool oneds_buffer_region_overlap(const char *buffer1, size_t buffer1_len, const char *buffer2, size_t buffer2_len) noexcept
 {
-    if (buffer2 >= buffer1) 
+    // Two half-open ranges [b1, b1+len1) and [b2, b2+len2) overlap iff each
+    // starts before the other ends. Empty ranges never overlap.
+    if (buffer1_len == 0 || buffer2_len == 0)
     {
-        if (buffer1 + buffer1_len - 1 > buffer2 )
-        {
-            return true;
-        }
+        return false;
     }
-    else 
-    {
-        if (buffer2 + buffer2_len - 1 > buffer1)
-        { 
-            return true;
-        }
-    }
-    return false; 
+    return (buffer1 < buffer2 + buffer2_len) && (buffer2 < buffer1 + buffer1_len);
 }
 
 public:
@@ -147,12 +139,16 @@ static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char 
 // In case of error, the entire destination range [dest, dest+destsz) is zeroed out 
 // (if both dest and destsz are valid))
 
+//
+// NOTE: the constraint checks below are performed here rather than delegated to
+// the platform's Annex K / CRT memcpy_s. On MSVC the CRT memcpy_s reports a
+// constraint violation through the invalid parameter handler, whose default
+// behaviour terminates the process (__fastfail / STATUS_STACK_BUFFER_OVERRUN)
+// instead of returning EINVAL. Validating first keeps the documented
+// "return EINVAL and zero the destination" contract on every platform.
 static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
                   const void *restrict src, rsize_t count ) noexcept
 {
-#if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
-       return memcpy_s(dest, destsz, src, count);     
-#else
     if (dest == NULL)
     {
         return EINVAL;
@@ -176,13 +172,8 @@ static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
         memset(dest, 0, destsz);
         return EINVAL;
     }
-    void *result = memcpy(dest, src, count);
-    if (result == (void *)NULL)
-    {
-        return -1;
-    }
+    memcpy(dest, src, count);
     return 0;
-#endif
 }
 };
 }
