@@ -118,7 +118,8 @@ namespace MAT_NS_BEGIN {
             if (!m_flushPending)
                 return;
         }
-        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.GetTask());
+        LOG_INFO("Waiting for pending Flush (%p) to complete...",
+            static_cast<void*>(m_flushHandle.GetTask()));
         m_flushComplete.wait();
     }
 
@@ -377,7 +378,8 @@ namespace MAT_NS_BEGIN {
                         m_flushPending = true;
                         m_flushComplete.Reset();
                         m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
-                        LOG_INFO("Requested Flush (%p)", m_flushHandle.GetTask());
+                        LOG_INFO("Requested Flush (%p)",
+                            static_cast<void*>(m_flushHandle.GetTask()));
                     }
                     m_flushLock.unlock();
                 }
