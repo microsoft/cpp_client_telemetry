@@ -339,16 +339,16 @@ TEST(OfflineStorageHandlerFlushTests, BatchedFlushLimitsEachDiskWrite)
     std::vector<StorageRecord> firstBatch;
     std::vector<StorageRecord> secondBatch;
     std::vector<StorageRecord> finalBatch;
-    for (size_t i = 0; i < 205; ++i)
+    for (size_t i = 0; i < 4005; ++i)
     {
         StorageRecord record("batch-" + std::to_string(i), "tenant-token",
             EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
             std::vector<uint8_t>{ 'x' });
-        if (i < 100)
+        if (i < 2000)
         {
             firstBatch.push_back(record);
         }
-        else if (i < 200)
+        else if (i < 4000)
         {
             secondBatch.push_back(record);
         }
@@ -359,27 +359,27 @@ TEST(OfflineStorageHandlerFlushTests, BatchedFlushLimitsEachDiskWrite)
     }
 
     EXPECT_CALL(*memory, GetSize())
-        .WillOnce(Return(static_cast<size_t>(205)))
+        .WillOnce(Return(static_cast<size_t>(4005)))
         .WillOnce(Return(static_cast<size_t>(0)));
-    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 100))
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
         .WillOnce(Return(firstBatch))
         .WillOnce(Return(secondBatch))
         .WillOnce(Return(finalBatch))
         .WillOnce(Return(std::vector<StorageRecord>{}));
     EXPECT_CALL(*disk, StoreRecords(_))
         .WillOnce(Invoke([](std::vector<StorageRecord>& records) {
-            EXPECT_EQ(records.size(), static_cast<size_t>(100));
+            EXPECT_EQ(records.size(), static_cast<size_t>(2000));
             return records.size();
         }))
         .WillOnce(Invoke([](std::vector<StorageRecord>& records) {
-            EXPECT_EQ(records.size(), static_cast<size_t>(100));
+            EXPECT_EQ(records.size(), static_cast<size_t>(2000));
             return records.size();
         }))
         .WillOnce(Invoke([](std::vector<StorageRecord>& records) {
             EXPECT_EQ(records.size(), static_cast<size_t>(5));
             return records.size();
         }));
-    EXPECT_CALL(observer, OnStorageRecordsSaved(205));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(4005));
 
     handler.Flush();
 }
@@ -403,27 +403,27 @@ TEST(OfflineStorageHandlerFlushTests, FailedBatchRequeuesOnlyThatBatch)
 
     std::vector<StorageRecord> firstBatch;
     std::vector<StorageRecord> failedBatch;
-    for (size_t i = 0; i < 200; ++i)
+    for (size_t i = 0; i < 4000; ++i)
     {
         StorageRecord record("failed-batch-" + std::to_string(i), "tenant-token",
             EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
             std::vector<uint8_t>{ 'x' });
-        (i < 100 ? firstBatch : failedBatch).push_back(record);
+        (i < 2000 ? firstBatch : failedBatch).push_back(record);
     }
 
     EXPECT_CALL(*memory, GetSize())
-        .WillOnce(Return(static_cast<size_t>(200)))
-        .WillOnce(Return(static_cast<size_t>(200)));
-    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 100))
+        .WillOnce(Return(static_cast<size_t>(4000)))
+        .WillOnce(Return(static_cast<size_t>(4000)));
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
         .WillOnce(Return(firstBatch))
         .WillOnce(Return(failedBatch));
     EXPECT_CALL(*memory, StoreRecord(_))
-        .Times(100)
+        .Times(2000)
         .WillRepeatedly(Return(true));
     EXPECT_CALL(*disk, StoreRecords(_))
-        .WillOnce(Return(static_cast<size_t>(100)))
+        .WillOnce(Return(static_cast<size_t>(2000)))
         .WillOnce(Return(static_cast<size_t>(0)));
-    EXPECT_CALL(observer, OnStorageRecordsSaved(100));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2000));
 
     handler.Flush();
 }

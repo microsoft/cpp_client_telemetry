@@ -24,7 +24,7 @@ namespace MAT_NS_BEGIN {
     {
         // Keep each persistence transaction bounded so a large in-memory backlog
         // cannot monopolize memory or database locks.
-        constexpr unsigned MAX_RECORDS_PER_STORAGE_BATCH = 100;
+        constexpr unsigned MAX_RECORDS_PER_STORAGE_BATCH = 2000;
     }
 
 

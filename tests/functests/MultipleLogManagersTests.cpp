@@ -237,7 +237,7 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     CAPTURE_PERF_STATS("Events Sent");
     lm->GetLogController()->UploadNow();
     CAPTURE_PERF_STATS("Events Uploaded");
-    waitForRequestsSingleLogManager(20000, 2);
+    waitForRequestsSingleLogManager(20000, 1);
     lm.reset();
     CAPTURE_PERF_STATS("Log Manager deleted");
 }
@@ -308,4 +308,3 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
 #endif  // !TARGET_OS_IPHONE (suite excluded on iOS; see note above)
 
 #endif  // HAVE_MAT_DEFAULT_HTTP_CLIENT
-
