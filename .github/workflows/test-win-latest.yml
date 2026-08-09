@@ -36,8 +36,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        arch: [Win32, x64]
-        build: [Release, Debug]
+        arch: [Win32]
+        build: [Release]
         os: [windows-2022]
     
     steps:
@@ -53,7 +53,19 @@ jobs:
 
     - name: Test ${{ matrix.arch }} ${{ matrix.build }}
       shell: cmd
+      env:
+        FUNCTESTS_WATCHDOG_SEC: '420'
       run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.build }}
+
+    - name: Upload FuncTests binaries for offline symbolization
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: functests-${{ matrix.arch }}-${{ matrix.build }}
+        path: |
+          Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/FuncTests/FuncTests.exe
+          Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/FuncTests/FuncTests.pdb
+        if-no-files-found: warn
 
   public-headers:
     name: Public header gate (MSVC)

@@ -9,11 +9,16 @@
 extern "C" unsigned long __stdcall IsDebuggerPresent();
 #endif
 
+// TEMPORARY CI DIAGNOSTIC -- see HangWatchdog.cpp
+void FuncTestsWatchdog_NoteTestStart();
+void FuncTestsWatchdog_Start();
+
 class TestStatusLogger : public testing::EmptyTestEventListener {
   public:
     virtual void OnTestStart(testing::TestInfo const& test) override
     {
         std::ignore = test;
+        FuncTestsWatchdog_NoteTestStart();
         LOG_INFO("--- %s.%s", test.test_case_name(), test.name());
     }
 
@@ -35,6 +40,7 @@ int MAIN_CDECL main(int argc, char** argv)
 {
     ::testing::InitGoogleMock(&argc, argv);
     ::testing::UnitTest::GetInstance()->listeners().Append(new TestStatusLogger());
+    FuncTestsWatchdog_Start();
 
     int result = RUN_ALL_TESTS();
 
