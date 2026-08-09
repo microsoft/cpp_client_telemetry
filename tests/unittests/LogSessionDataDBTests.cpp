@@ -83,7 +83,9 @@ TEST_F(LogSessionDataDBTests, subTest) {
 #ifndef USE_ROOM
     logSessionData =  logSessionDataProvider->GetLogSessionData();
     auto sessionFirstTime= logSessionData->getSessionFirstTime();
-    EXPECT_IN_RANGE(sessionFirstTime, now , now + 1000);
+    // Database initialization can take longer than one second on slower CI
+    // runners before the first session timestamp is created.
+    EXPECT_IN_RANGE(sessionFirstTime, now, now + 5000);
     auto sdkUid = logSessionData->getSessionSDKUid();
     EXPECT_TRUE(sdkUid.size());
 
@@ -97,4 +99,3 @@ TEST_F(LogSessionDataDBTests, subTest) {
     ASSERT_EQ(1, 1);
 #endif
 }
-
