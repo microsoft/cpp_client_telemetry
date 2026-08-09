@@ -207,9 +207,11 @@ public:
             NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
             auto simpleResponse = new SimpleHttpResponse { NextRespId() };
 
-            simpleResponse->m_statusCode = static_cast<unsigned int>(httpResp.statusCode);
+            simpleResponse->m_statusCode = httpResp != nil
+                ? static_cast<unsigned int>(httpResp.statusCode)
+                : 0;
 
-            NSDictionary *responseHeaders = [httpResp allHeaderFields];
+            NSDictionary *responseHeaders = httpResp != nil ? [httpResp allHeaderFields] : nil;
             for (id key in responseHeaders)
             {
                 simpleResponse->m_headers.add([key UTF8String], [responseHeaders[key] UTF8String]);
