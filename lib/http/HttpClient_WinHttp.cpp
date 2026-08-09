@@ -679,34 +679,52 @@ void HttpClient_WinHttp::CancelAllRequests()
 
 void HttpClient_WinHttp::CancelAllRequests(std::chrono::milliseconds bestEffortTimeout)
 {
-    // vector of all request IDs
-    std::vector<std::string> ids;
-    {
-        std::lock_guard<std::recursive_mutex> lock(m_requestsMutex);
-        for (auto const& item : m_requests) {
-            ids.push_back(item.first);
-        }
-    }
-    // cancel all requests one-by-one not holding the lock
-    for (const auto& id : ids)
-        CancelRequestAsync(id);
-
-    // Wait for all destructors to run, signaled from erase() rather than
-    // polled -- unlike a sleep-and-recheck loop, this drains the common case
-    // in microseconds and never busy-spins. A positive timeout is the bounded,
-    // best-effort path used during pause; zero is the full shutdown barrier.
-    std::unique_lock<std::recursive_mutex> lock(m_requestsMutex);
     if (bestEffortTimeout > std::chrono::milliseconds::zero())
     {
+        std::vector<std::string> ids;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_requestsMutex);
+            for (auto const& item : m_requests) {
+                ids.push_back(item.first);
+            }
+        }
+        // Cancel all requests one-by-one without holding the lock.
+        for (const auto& id : ids)
+            CancelRequestAsync(id);
+
+        std::unique_lock<std::recursive_mutex> lock(m_requestsMutex);
         m_requestsCv.wait_for(lock, bestEffortTimeout, [this]() noexcept -> bool {
             return m_requests.empty();
         });
     }
     else
     {
-        m_requestsCv.wait(lock, [this]() noexcept -> bool {
-            return m_requests.empty();
-        });
+        // A request can be inserted after the initial cancellation snapshot
+        // while the producer side is still shutting down. Repeatedly take a
+        // snapshot and cancel until the map is empty; waiting only on the
+        // original snapshot can leave a late request uncancelled forever.
+        for (;;)
+        {
+            std::vector<std::string> ids;
+            {
+                std::lock_guard<std::recursive_mutex> lock(m_requestsMutex);
+                if (m_requests.empty())
+                {
+                    return;
+                }
+                for (auto const& item : m_requests) {
+                    ids.push_back(item.first);
+                }
+            }
+
+            for (const auto& id : ids)
+                CancelRequestAsync(id);
+
+            std::unique_lock<std::recursive_mutex> lock(m_requestsMutex);
+            m_requestsCv.wait_for(lock, std::chrono::milliseconds(100), [this]() noexcept -> bool {
+                return m_requests.empty();
+            });
+        }
     }
 }
 
