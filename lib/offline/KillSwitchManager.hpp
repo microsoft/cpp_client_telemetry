@@ -32,14 +32,14 @@ namespace MAT_NS_BEGIN {
         }
 
         KillSwitchManager()
-            : KillSwitchManager([]() { return static_cast<int64_t>(PAL::getMonotonicTimeMs()); })
+            : KillSwitchManager(defaultClock())
         {
         }
 
         explicit KillSwitchManager(Clock clock)
             : m_clock(clock
                 ? std::move(clock)
-                : Clock([]() { return static_cast<int64_t>(PAL::getMonotonicTimeMs()); })),
+                : defaultClock()),
               m_isRetryAfterActive(false),
               m_retryAfterExpiryTime(0)
         {
@@ -186,6 +186,11 @@ namespace MAT_NS_BEGIN {
         }
 
     private:
+        static Clock defaultClock()
+        {
+            return []() { return static_cast<int64_t>(PAL::getMonotonicTimeMs()); };
+        }
+
         // Precondition: seconds > 0. All call sites enforce this (handleResponse
         // and addToken both guard with `timeinSecs > 0` / `timeInSeconds > 0`).
         // Passing a non-positive value is UB: a negative durationMs makes the

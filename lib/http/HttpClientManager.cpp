@@ -139,6 +139,7 @@ namespace MAT_NS_BEGIN {
 
             LOG_TRACE("HTTP remove callback=%p", callback);
             m_httpCallbacks.remove(callback);
+            // Wake cancelAllRequests() waiting for the list to drain.
             m_httpCallbacksCV.notify_all();
         }
 
@@ -197,12 +198,16 @@ namespace MAT_NS_BEGIN {
 
     void HttpClientManager::cancelAllRequests(bool bestEffort)
     {
+        // Use the transport-specific bounded path when available; older clients
+        // fall back to cancelling tracked requests individually.
         const auto cancelStart = std::chrono::steady_clock::now();
         cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
 
+        // Drain callbacks through the condition variable signaled by onHttpResponse.
         std::unique_lock<std::recursive_mutex> lock(m_httpCallbacksMtx);
         if (bestEffort)
         {
+            // Keep pause bounded, including time spent in the transport cancel.
             const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - cancelStart);
             const auto remaining = (elapsed < m_cancelDrainTimeout)
@@ -211,11 +216,12 @@ namespace MAT_NS_BEGIN {
                     [this] { return m_httpCallbacks.empty(); }))
             {
                 LOG_WARN("cancelAllRequests: %zu callback(s) still draining after %lld ms (best-effort)",
-                    m_httpCallbacks.size(), static_cast<long long>(m_cancelDrainTimeout.count()));
+                         m_httpCallbacks.size(), static_cast<long long>(m_cancelDrainTimeout.count()));
             }
         }
         else
         {
+            // Shutdown/cleanup is the lifetime barrier for callback state, so drain fully.
             m_httpCallbacksCV.wait(lock, [this] { return m_httpCallbacks.empty(); });
         }
     }
