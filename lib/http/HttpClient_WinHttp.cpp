@@ -677,7 +677,10 @@ HttpClient_WinHttp::HttpClient_WinHttp() :
 HttpClient_WinHttp::~HttpClient_WinHttp()
 {
     CancelAllRequests();
-    ::WinHttpCloseHandle(m_hSession);
+    if (m_hSession != nullptr)
+    {
+        ::WinHttpCloseHandle(m_hSession);
+    }
 }
 
 /**
