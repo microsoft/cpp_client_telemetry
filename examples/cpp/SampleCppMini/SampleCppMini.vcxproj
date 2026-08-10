@@ -262,7 +262,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets>
     </CustomBuildAfterTargets>
     <CustomBuildBeforeTargets>
@@ -272,7 +272,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -280,7 +280,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.static|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -288,7 +288,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -296,7 +296,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.static|ARM64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -304,7 +304,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|ARM64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -312,7 +312,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets>
     </CustomBuildAfterTargets>
     <CustomBuildBeforeTargets>
@@ -322,7 +322,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.static|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -330,7 +330,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -338,7 +338,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets>
     </CustomBuildAfterTargets>
     <CustomBuildBeforeTargets>
@@ -348,7 +348,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -356,7 +356,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.static|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -364,7 +364,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -372,7 +372,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.static|ARM64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -380,7 +380,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.vc14x.MT-sqlite|ARM64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -388,7 +388,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets>
     </CustomBuildAfterTargets>
     <CustomBuildBeforeTargets>
@@ -398,7 +398,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.static|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -406,7 +406,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release.vc14x.MT-sqlite|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\..\lib\include\public</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)..\..\..\lib\include\public</IncludePath>
     <CustomBuildAfterTargets />
     <CustomBuildBeforeTargets />
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
@@ -1548,13 +1548,13 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup Condition="( $(Configuration.Contains('MT')) OR $(Configuration.Contains('static')) )">
-    <ProjectReference Include="$(SolutionDir)\win32-mini-lib\win32-mini-lib.vcxproj" />
+    <ProjectReference Include="$(ProjectDir)..\..\..\Solutions\win32-mini-lib\win32-mini-lib.vcxproj" />
   </ItemGroup>
   <ItemGroup Condition="!( $(Configuration.Contains('MT')) OR $(Configuration.Contains('static')) )">
     <None Include="deploy-dll.cmd" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\win32-mini-lib\win32-mini-lib.vcxproj">
+    <ProjectReference Include="$(ProjectDir)..\..\..\Solutions\win32-mini-lib\win32-mini-lib.vcxproj">
       <Project>{1dc6b38a-b390-34ce-907f-4958807a3d43}</Project>
     </ProjectReference>
   </ItemGroup>
