@@ -248,6 +248,7 @@ namespace PAL_NS_BEGIN {
                             (*item)();
                         }
                         catch (const std::exception& ex) {
+                            static_cast<void>(ex);
                             LOG_ERROR("Unhandled exception in worker task: %s", ex.what());
                         }
                         catch (...) {
@@ -275,4 +276,3 @@ namespace PAL_NS_BEGIN {
 } PAL_NS_END
 
 #endif
-
