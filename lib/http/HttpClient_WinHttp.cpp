@@ -572,13 +572,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 else
                 {
                     LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) failed twice: %d", ::GetLastError());
-                    response->m_result = HttpResult_NetworkFailure;
                 }
             }
             else
             {
                 LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) failed: %d", headerErr);
-                response->m_result = HttpResult_NetworkFailure;
             }
             // This event handler covers the only positive case when we actually got some server response.
             // We may still invoke OnHttpResponse(...) below for this positive as well as other negative
