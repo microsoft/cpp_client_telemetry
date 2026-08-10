@@ -277,13 +277,22 @@ public:
 #if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
         res = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
 #else
-        res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockextr);
+        long lastSocket = -1;
+        res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
+        sockextr = static_cast<curl_socket_t>(lastSocket);
 #endif
 
         if(CURLE_OK != res)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
             TRACE("Error #2: %s\n", curl_easy_strerror(res));
+            goto cleanup;
+        }
+        if (sockextr == CURL_SOCKET_BAD)
+        {
+            res = CURLE_FAILED_INIT;
+            DispatchEvent(OnConnectFailed);     // couldn't connect - no socket
+            TRACE("Error #2: curl returned an invalid socket\n");
             goto cleanup;
         }
 
@@ -572,7 +581,7 @@ protected:
     // Socket parameters
     curl_socket_t sockfd = 0;
 
-    long sockextr   = 0;
+    curl_socket_t sockextr = CURL_SOCKET_BAD;
 
     curl_off_t nread = 0;
     size_t sendlen   = 0;        // # bytes sent by client

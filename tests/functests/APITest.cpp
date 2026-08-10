@@ -696,11 +696,11 @@ void StressUploadLockMultiThreaded(ILogConfiguration& config)
         }
         EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
+        LogManager::FlushAndTeardown();
         for (auto& uploadThread : uploadThreads)
         {
             uploadThread.join();
         }
-        LogManager::FlushAndTeardown();
     }
     removeAllListeners(debugListener);
 }

@@ -296,6 +296,20 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             return false;
         }
 
+        // Match the WinInet transport's INTERNET_FLAG_NO_AUTH behavior.
+        // Telemetry requests must not answer server or proxy authentication
+        // challenges with ambient process credentials.
+        DWORD disableFeatures = WINHTTP_DISABLE_AUTHENTICATION;
+        if (!::WinHttpSetOption(
+                m_hRequest, WINHTTP_OPTION_DISABLE_FEATURE, &disableFeatures, sizeof(disableFeatures)))
+        {
+            DWORD dwError = ::GetLastError();
+            LOG_WARN("WinHttpSetOption(DISABLE_AUTHENTICATION) failed: %d", dwError);
+            DispatchEvent(OnConnectFailed);
+            dwErrorOut = dwError;
+            return false;
+        }
+
         // Unlike WinInet, WinHTTP has no automatic cookie jar to suppress (it
         // never manages cookies on the caller's behalf) and never shows UI, so
         // neither INTERNET_FLAG_NO_COOKIES nor INTERNET_FLAG_NO_UI has a WinHTTP
