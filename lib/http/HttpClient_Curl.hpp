@@ -682,14 +682,14 @@ protected:
      * @param userp
      * @return
      */
-    static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+    static size_t WriteMemoryCallback(char* contents, size_t size, size_t nmemb, void* userp)
     {
         // Guard the size * nmemb product against size_t overflow before using it.
         if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
             return 0;
         }
         size_t realsize = size * nmemb;
-        struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+        auto* mem = static_cast<MemoryStruct*>(userp);
 
         // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
         // overflow-safely (mem->size is always <= kMaxResponseBytes here). Returning a
@@ -726,13 +726,14 @@ protected:
      * @param data
      * @return
      */
-    static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
+    static size_t WriteVectorCallback(char* ptr, size_t size, size_t nmemb, void* userp)
     {
         // Guard the size * nmemb product against size_t overflow before using it.
         if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
             return 0;
         }
         size_t realsize = size * nmemb;
+        auto* data = static_cast<std::vector<uint8_t>*>(userp);
         if (data != nullptr) {
             // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
             // overflow-safely (data->size() is always <= kMaxResponseBytes here).
@@ -741,7 +742,7 @@ protected:
                 TRACE("Response exceeds max buffered size (%zu bytes); aborting transfer\n", kMaxResponseBytes);
                 return 0;
             }
-            const auto* begin = static_cast<const uint8_t*>(ptr);
+            const auto* begin = reinterpret_cast<const uint8_t*>(ptr);
             const auto* end   = begin + realsize;
             data->insert( data->end(), begin, end);
         }
