@@ -13,6 +13,7 @@
 
 #include "ILogManager.hpp"
 
+#include <atomic>
 #include <condition_variable>
 #include <memory>
 
@@ -58,7 +59,7 @@ class HttpClient_WinHttp : public IHttpClient, public IBoundedHttpClientCancel {
     std::condition_variable_any                                      m_requestsCv;
     std::map<std::string, std::shared_ptr<WinHttpRequestWrapper>>    m_requests;
     static unsigned                                                  s_nextRequestId;
-    bool                                                             m_msRootCheck;
+    std::atomic<bool>                                                m_msRootCheck;
     friend class WinHttpRequestWrapper;
 };
 

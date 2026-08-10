@@ -13,6 +13,7 @@
 #include <wincrypt.h>
 
 #include <atomic>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <utility>
@@ -96,8 +97,13 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         HINTERNET hRequestToClose = nullptr;
         {
             std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
+            if (isCallbackCalled)
+            {
+                return;
+            }
             isAborted = true;
             hRequestToClose = m_hRequest;
+            m_hRequest = nullptr;
         }
         if (hRequestToClose != nullptr)
         {
@@ -120,11 +126,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     /// certificate context, so the chain must be built explicitly before running
     /// the same CERT_CHAIN_POLICY_MICROSOFT_ROOT policy check WinInet performs.
     /// </summary>
-    bool isMsRootCert()
+    bool isMsRootCert(HINTERNET hRequest)
     {
         PCCERT_CONTEXT pCertContext = nullptr;
         DWORD dwSize = sizeof(pCertContext);
-        if (!::WinHttpQueryOption(m_hRequest, WINHTTP_OPTION_SERVER_CERT_CONTEXT, &pCertContext, &dwSize))
+        if (!::WinHttpQueryOption(hRequest, WINHTTP_OPTION_SERVER_CERT_CONTEXT, &pCertContext, &dwSize))
         {
             LOG_WARN("WinHttpQueryOption(SERVER_CERT_CONTEXT) failed: %d", ::GetLastError());
             return false;
@@ -163,6 +169,12 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         }
         ::CertFreeCertificateContext(pCertContext);
         return result;
+    }
+
+    HINTERNET getRequestHandle()
+    {
+        std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
+        return m_hRequest;
     }
 
     void DispatchEvent(HttpStateEvent type)
@@ -287,7 +299,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         // sentinel. Treating a null "previous callback" as failure would
         // reject every request immediately after this call.
         if (::WinHttpSetStatusCallback(m_hRequest, &WinHttpRequestWrapper::winHttpCallback,
-                WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS, 0) == WINHTTP_INVALID_STATUS_CALLBACK)
+                WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS | WINHTTP_CALLBACK_FLAG_HANDLES, 0) == WINHTTP_INVALID_STATUS_CALLBACK)
         {
             DWORD dwError = ::GetLastError();
             LOG_WARN("WinHttpSetStatusCallback() failed: %d", dwError);
@@ -303,6 +315,14 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         std::wstring wHeaders = to_utf16_string(os.str());
 
         if (!wHeaders.empty() &&
+            wHeaders.size() > static_cast<size_t>(std::numeric_limits<DWORD>::max()))
+        {
+            LOG_WARN("Request headers exceed WinHTTP's maximum size");
+            DispatchEvent(OnConnectFailed);
+            dwErrorOut = ERROR_INVALID_PARAMETER;
+            return false;
+        }
+        if (!wHeaders.empty() &&
             !::WinHttpAddRequestHeaders(m_hRequest, wHeaders.c_str(), static_cast<DWORD>(wHeaders.size()),
                 WINHTTP_ADDREQ_FLAG_ADD | WINHTTP_ADDREQ_FLAG_REPLACE))
         {
@@ -317,6 +337,13 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
         // Try to send headers and request body to server
         DispatchEvent(OnSending);
+        if (m_request->m_body.size() > static_cast<size_t>(std::numeric_limits<DWORD>::max()))
+        {
+            LOG_WARN("Request body exceeds WinHTTP's maximum size");
+            DispatchEvent(OnSendFailed);
+            dwErrorOut = ERROR_INVALID_PARAMETER;
+            return false;
+        }
         void* data = m_request->m_body.empty() ? nullptr : static_cast<void*>(m_request->m_body.data());
         DWORD size = static_cast<DWORD>(m_request->m_body.size());
         m_callbackContext = new WinHttpCallbackContext(shared_from_this());
@@ -376,26 +403,36 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         switch (dwInternetStatus)
         {
             case WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE:
-                if (!::WinHttpReceiveResponse(self->m_hRequest, NULL))
+            {
+                HINTERNET request = self->getRequestHandle();
+                if (request != nullptr && !::WinHttpReceiveResponse(request, NULL))
                 {
                     self->onRequestComplete(::GetLastError());
                 }
                 return;
+            }
 
             case WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE:
+            {
+                HINTERNET request = self->getRequestHandle();
+                if (request == nullptr)
+                {
+                    return;
+                }
                 // TLS negotiation and response-header receipt are both complete here,
                 // so WINHTTP_OPTION_SERVER_CERT_CONTEXT is available for the
                 // configured Microsoft-root enforcement.
-                if (self->m_parent.IsMsRootCheckRequired() && !self->isMsRootCert())
+                if (self->m_parent.IsMsRootCheckRequired() && !self->isMsRootCert(request))
                 {
                     self->onRequestComplete(ERROR_WINHTTP_SECURE_INVALID_CERT);
                     return;
                 }
-                if (!::WinHttpQueryDataAvailable(self->m_hRequest, NULL))
+                if (!::WinHttpQueryDataAvailable(request, NULL))
                 {
                     self->onRequestComplete(::GetLastError());
                 }
                 return;
+            }
 
             case WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE:
             {
@@ -418,8 +455,13 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                     self->onRequestComplete(ERROR_WINHTTP_INVALID_SERVER_RESPONSE);
                     return;
                 }
+                HINTERNET request = self->getRequestHandle();
+                if (request == nullptr)
+                {
+                    return;
+                }
                 self->m_readBuffer.resize(bytesAvailable);
-                if (!::WinHttpReadData(self->m_hRequest, self->m_readBuffer.data(), bytesAvailable, NULL))
+                if (!::WinHttpReadData(request, self->m_readBuffer.data(), bytesAvailable, NULL))
                 {
                     self->onRequestComplete(::GetLastError());
                 }
@@ -430,11 +472,23 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 // dwStatusInformationLength is the number of bytes actually placed
                 // into the buffer passed to WinHttpReadData (may be less than the
                 // bytesAvailable that was requested).
+                if (dwStatusInformationLength > self->m_readBuffer.size())
+                {
+                    self->onRequestComplete(ERROR_WINHTTP_INVALID_SERVER_RESPONSE);
+                    return;
+                }
                 self->m_bodyBuffer.insert(self->m_bodyBuffer.end(),
                     self->m_readBuffer.begin(), self->m_readBuffer.begin() + dwStatusInformationLength);
-                if (!::WinHttpQueryDataAvailable(self->m_hRequest, NULL))
                 {
-                    self->onRequestComplete(::GetLastError());
+                    HINTERNET request = self->getRequestHandle();
+                    if (request == nullptr)
+                    {
+                        return;
+                    }
+                    if (!::WinHttpQueryDataAvailable(request, NULL))
+                    {
+                        self->onRequestComplete(::GetLastError());
+                    }
                 }
                 return;
 
@@ -459,6 +513,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         }
 
         std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
+        HINTERNET request = getRequestHandle();
+        if (dwError == ERROR_SUCCESS && request == nullptr)
+        {
+            dwError = ERROR_WINHTTP_OPERATION_CANCELLED;
+        }
 
         if (dwError == ERROR_SUCCESS) {
             response->m_body = m_bodyBuffer;
@@ -466,23 +525,24 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
             DWORD statusCode = 0;
             DWORD dwSize = sizeof(statusCode);
-            if (!::WinHttpQueryHeaders(m_hRequest, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+            if (!::WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
                     WINHTTP_HEADER_NAME_BY_INDEX, &statusCode, &dwSize, WINHTTP_NO_HEADER_INDEX))
             {
                 LOG_WARN("WinHttpQueryHeaders(STATUS_CODE) failed: %d", ::GetLastError());
+                response->m_result = HttpResult_NetworkFailure;
             }
             response->m_statusCode = statusCode;
 
             // Raw headers, as "Name: Value\r\n..." pairs -- the same shape WinInet
             // hands back via HTTP_QUERY_RAW_HEADERS_CRLF.
             DWORD headerBytes = 0;
-            ::WinHttpQueryHeaders(m_hRequest, WINHTTP_QUERY_RAW_HEADERS_CRLF,
+            ::WinHttpQueryHeaders(request, WINHTTP_QUERY_RAW_HEADERS_CRLF,
                 WINHTTP_HEADER_NAME_BY_INDEX, WINHTTP_NO_OUTPUT_BUFFER, &headerBytes, WINHTTP_NO_HEADER_INDEX);
             DWORD headerErr = ::GetLastError();
             if (headerBytes > 0 && headerErr == ERROR_INSUFFICIENT_BUFFER)
             {
                 std::wstring wHeaders(headerBytes / sizeof(wchar_t), L'\0');
-                if (::WinHttpQueryHeaders(m_hRequest, WINHTTP_QUERY_RAW_HEADERS_CRLF,
+                if (::WinHttpQueryHeaders(request, WINHTTP_QUERY_RAW_HEADERS_CRLF,
                         WINHTTP_HEADER_NAME_BY_INDEX, &wHeaders[0], &headerBytes, WINHTTP_NO_HEADER_INDEX))
                 {
                     // WinHttpQueryHeaders includes the buffer's trailing NUL(s) in
@@ -497,7 +557,13 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 else
                 {
                     LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) failed twice: %d", ::GetLastError());
+                    response->m_result = HttpResult_NetworkFailure;
                 }
+            }
+            else
+            {
+                LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) failed: %d", headerErr);
+                response->m_result = HttpResult_NetworkFailure;
             }
             // This event handler covers the only positive case when we actually got some server response.
             // We may still invoke OnHttpResponse(...) below for this positive as well as other negative
@@ -555,27 +621,27 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     // HttpHeaders map. Shared shape with HttpClient_WinInet's inline parser.
     static void parseHeaders(std::string const& raw, SimpleHttpResponse& response)
     {
-        char const* ptr = raw.c_str();
-        while (*ptr) {
-            char const* colon = strchr(ptr, ':');
-            if (!colon) {
+        size_t lineStart = 0;
+        while (lineStart < raw.size()) {
+            size_t lineEnd = raw.find("\r\n", lineStart);
+            if (lineEnd == std::string::npos) {
+                lineEnd = raw.size();
+            }
+
+            const std::string line = raw.substr(lineStart, lineEnd - lineStart);
+            const size_t colon = line.find(':');
+            if (colon != std::string::npos) {
+                size_t valueStart = colon + 1;
+                while (valueStart < line.size() && line[valueStart] == ' ') {
+                    ++valueStart;
+                }
+                response.m_headers.add(line.substr(0, colon), line.substr(valueStart));
+            }
+
+            if (lineEnd == raw.size()) {
                 break;
             }
-            std::string name(ptr, colon);
-
-            ptr = colon + 1;
-            while (*ptr == ' ') {
-                ptr++;
-            }
-
-            char const* eol = strstr(ptr, "\r\n");
-            if (!eol) {
-                break;
-            }
-            std::string value(ptr, eol);
-
-            response.m_headers.add(name, value);
-            ptr = eol + 2;
+            lineStart = lineEnd + 2;
         }
     }
 };
@@ -732,7 +798,7 @@ void HttpClient_WinHttp::ApplySettings(ILogConfiguration& config)
 
 void HttpClient_WinHttp::SetMsRootCheck(bool enforceMsRoot)
 {
-    m_msRootCheck = enforceMsRoot;
+    m_msRootCheck.store(enforceMsRoot, std::memory_order_release);
 }
 
 /// <summary>
@@ -743,7 +809,7 @@ void HttpClient_WinHttp::SetMsRootCheck(bool enforceMsRoot)
 /// </returns>
 bool HttpClient_WinHttp::IsMsRootCheckRequired()
 {
-    return m_msRootCheck;
+    return m_msRootCheck.load(std::memory_order_acquire);
 }
 
 } MAT_NS_END
