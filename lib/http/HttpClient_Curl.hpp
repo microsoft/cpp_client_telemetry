@@ -332,9 +332,18 @@ public:
          */
 
         /* libcurl is nice enough to parse the response code itself: */
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &res);
+        long httpStatusCode = 0;
+        CURLcode infoResult = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpStatusCode);
+        if (infoResult != CURLE_OK)
+        {
+            res = infoResult;
+            DispatchEvent(OnSendFailed);
+            TRACE("Error getting HTTP response code: %s\n", curl_easy_strerror(res));
+            goto cleanup;
+        }
+        res = static_cast<CURLcode>(httpStatusCode);
         // We got some response from server. Dump the contents.
-        TRACE("HTTP response code %d\n", res);
+        TRACE("HTTP response code %ld\n", httpStatusCode);
         DispatchEvent(OnResponse);
 
 cleanup:
