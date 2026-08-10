@@ -48,6 +48,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     std::vector<uint8_t>   m_readBuffer;
     std::atomic<bool>      isCallbackCalled {false};
     bool                   isAborted {false};
+    bool                   m_isHttps {false};
     WinHttpCallbackContext* m_callbackContext {nullptr};
 
   public:
@@ -280,11 +281,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         }
 
         std::wstring wMethod = to_utf16_string(m_request->m_method);
-        bool isHttps = (urlc.nScheme == INTERNET_SCHEME_HTTPS);
+        m_isHttps = (urlc.nScheme == INTERNET_SCHEME_HTTPS);
         m_hRequest = ::WinHttpOpenRequest(
             m_hConnect, wMethod.c_str(), path, NULL, WINHTTP_NO_REFERER,
             WINHTTP_DEFAULT_ACCEPT_TYPES,
-            WINHTTP_FLAG_REFRESH | (isHttps ? WINHTTP_FLAG_SECURE : 0));
+            WINHTTP_FLAG_REFRESH | (m_isHttps ? WINHTTP_FLAG_SECURE : 0));
         if (m_hRequest == nullptr)
         {
             DWORD dwError = ::GetLastError();
@@ -435,7 +436,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 // TLS negotiation and response-header receipt are both complete here,
                 // so WINHTTP_OPTION_SERVER_CERT_CONTEXT is available for the
                 // configured Microsoft-root enforcement.
-                if (self->m_parent.IsMsRootCheckRequired() && !self->isMsRootCert(request))
+                if (self->m_isHttps && self->m_parent.IsMsRootCheckRequired() && !self->isMsRootCert(request))
                 {
                     self->onRequestComplete(ERROR_WINHTTP_SECURE_INVALID_CERT);
                     return;
