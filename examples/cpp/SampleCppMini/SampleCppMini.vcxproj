@@ -430,7 +430,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -452,13 +452,8 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
       <AdditionalDependencies>wininet.lib;winhttp.lib;Crypt32.lib;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -486,7 +481,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -508,15 +503,8 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
       <AdditionalDependencies>wininet.lib;winhttp.lib;Crypt32.lib;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -549,7 +537,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -571,14 +559,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -611,7 +592,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -635,14 +616,7 @@
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -675,7 +649,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -697,14 +671,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -737,7 +704,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -761,14 +728,7 @@
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -802,7 +762,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -823,15 +783,8 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
       <AdditionalDependencies>wininet.lib;winhttp.lib;Crypt32.lib;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -866,7 +819,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -887,14 +840,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -930,7 +876,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -951,14 +897,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -990,7 +929,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1013,15 +952,8 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
       <AdditionalDependencies>wininet.lib;winhttp.lib;Crypt32.lib;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1054,7 +986,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1077,15 +1009,8 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
       <AdditionalDependencies>wininet.lib;winhttp.lib;Crypt32.lib;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1119,7 +1044,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1142,14 +1067,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1183,7 +1101,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1206,14 +1124,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1246,7 +1157,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1269,14 +1180,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1310,7 +1214,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1333,14 +1237,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1370,7 +1267,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1393,15 +1290,8 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
       <AdditionalDependencies>wininet.lib;winhttp.lib;Crypt32.lib;</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1433,7 +1323,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1456,14 +1346,7 @@
       <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1496,7 +1379,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -1521,14 +1404,7 @@
       <MergeSections>/merge:.rdata=.text</MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>API-MS-WIN-CORE-WINRT-STRING-L1-1-0;API-MS-WIN-CORE-WINRT-L1-1-0</DelayLoadDLLs>
     </Link>
-    <PostBuildEvent>
-      <Command>$(ProjectDir)\deploy-dll.cmd $(PlatformTarget) $(Configuration) $(OutDir)</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copy DLL to target dir</Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
@@ -1551,7 +1427,6 @@
     <ProjectReference Include="$(ProjectDir)..\..\..\Solutions\win32-mini-lib\win32-mini-lib.vcxproj" />
   </ItemGroup>
   <ItemGroup Condition="!( $(Configuration.Contains('MT')) OR $(Configuration.Contains('static')) )">
-    <None Include="deploy-dll.cmd" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(ProjectDir)..\..\..\Solutions\win32-mini-lib\win32-mini-lib.vcxproj">
