@@ -732,8 +732,8 @@ protected:
         if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
             return 0;
         }
+        size_t realsize = size * nmemb;
         if (data != nullptr) {
-            size_t realsize = size * nmemb;
             // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
             // overflow-safely (data->size() is always <= kMaxResponseBytes here).
             // Returning a short count aborts the transfer with CURLE_WRITE_ERROR.
@@ -745,7 +745,7 @@ protected:
             const auto* end   = begin + realsize;
             data->insert( data->end(), begin, end);
         }
-        return size * nmemb;
+        return realsize;
     }
 
 };
