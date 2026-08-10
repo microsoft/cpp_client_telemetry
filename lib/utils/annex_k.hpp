@@ -7,9 +7,8 @@
 #include <stddef.h>
 #include <errno.h>
 #include <string.h>
-#ifndef _MSC_VER
 #include <stdint.h>
-#else
+#ifdef _MSC_VER
 #include <limits.h>
 #endif
 
@@ -47,13 +46,24 @@ class BoundCheckFunctions
 private:
 static bool oneds_buffer_region_overlap(const char *buffer1, size_t buffer1_len, const char *buffer2, size_t buffer2_len) noexcept
 {
-    // Two half-open ranges [b1, b1+len1) and [b2, b2+len2) overlap iff each
-    // starts before the other ends. Empty ranges never overlap.
+    // Compare half-open address ranges without pointer arithmetic: the
+    // arguments may refer to different objects, and invalid lengths must not
+    // wrap an end address before the overlap check.
     if (buffer1_len == 0 || buffer2_len == 0)
     {
         return false;
     }
-    return (buffer1 < buffer2 + buffer2_len) && (buffer2 < buffer1 + buffer1_len);
+
+    uintptr_t begin1 = reinterpret_cast<uintptr_t>(buffer1);
+    uintptr_t begin2 = reinterpret_cast<uintptr_t>(buffer2);
+    if (buffer1_len > UINTPTR_MAX - begin1 || buffer2_len > UINTPTR_MAX - begin2)
+    {
+        return true;
+    }
+
+    uintptr_t end1 = begin1 + buffer1_len;
+    uintptr_t end2 = begin2 + buffer2_len;
+    return begin1 < end2 && begin2 < end1;
 }
 
 public:
