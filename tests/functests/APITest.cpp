@@ -1248,8 +1248,8 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
 }
 
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-/* This test requires WinInet HTTP client */
+#if defined(_WIN32) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
+/* This test verifies the certificate policy used by either Windows HTTP transport. */
 TEST(APITest, LogConfiguration_MsRoot_Check)
 {
     TestDebugEventListener debugListener;

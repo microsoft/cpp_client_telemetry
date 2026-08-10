@@ -126,11 +126,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         DWORD dwSize = sizeof(pCertContext);
         if (!::WinHttpQueryOption(m_hRequest, WINHTTP_OPTION_SERVER_CERT_CONTEXT, &pCertContext, &dwSize))
         {
-            // Downlevel/unsupported: proceed without cert validation. This behavior
-            // is identical to WinInet's fallback when its cert-chain option is
-            // unavailable, to avoid regressions for downlevel OS.
-            LOG_TRACE("WinHttpQueryOption(SERVER_CERT_CONTEXT) failed to obtain cert");
-            return true;
+            LOG_WARN("WinHttpQueryOption(SERVER_CERT_CONTEXT) failed: %d", ::GetLastError());
+            return false;
         }
 
         bool result = true;
@@ -161,9 +158,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         }
         else
         {
-            // Unable to build the chain -- proceed without cert validation, same
-            // fallback philosophy as the "downlevel OS" case above.
-            LOG_TRACE("CertGetCertificateChain() failed to build cert chain");
+            LOG_WARN("CertGetCertificateChain() failed: %d", ::GetLastError());
+            result = false;
         }
         ::CertFreeCertificateContext(pCertContext);
         return result;
@@ -284,18 +280,6 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         // neither INTERNET_FLAG_NO_COOKIES nor INTERNET_FLAG_NO_UI has a WinHTTP
         // equivalent to set here.
 
-        /* Perform optional MS Root certificate check for certain end-point URLs */
-        if (m_parent.IsMsRootCheckRequired())
-        {
-            if (!isMsRootCert())
-            {
-                // Request cannot be completed: end-point certificate is not MS-Rooted
-                DispatchEvent(OnConnectFailed);
-                dwErrorOut = ERROR_WINHTTP_SECURE_INVALID_CERT;
-                return false;
-            }
-        }
-
         // WinHttpSetStatusCallback returns the PREVIOUS callback function
         // pointer (typically NULL here, since this is the first registration
         // on a freshly opened request handle) -- not a BOOL -- and signals
@@ -399,6 +383,14 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 return;
 
             case WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE:
+                // TLS negotiation and response-header receipt are both complete here,
+                // so WINHTTP_OPTION_SERVER_CERT_CONTEXT is available for the
+                // configured Microsoft-root enforcement.
+                if (self->m_parent.IsMsRootCheckRequired() && !self->isMsRootCert())
+                {
+                    self->onRequestComplete(ERROR_WINHTTP_SECURE_INVALID_CERT);
+                    return;
+                }
                 if (!::WinHttpQueryDataAvailable(self->m_hRequest, NULL))
                 {
                     self->onRequestComplete(::GetLastError());
@@ -601,15 +593,17 @@ HttpClient_WinHttp::HttpClient_WinHttp() :
     // INTERNET_OPEN_TYPE_PRECONFIG, which requires one. This is why WinHTTP,
     // not WinInet, is Microsoft's documented recommendation for services and
     // other non-interactive processes. On an older OS that rejects this access
-    // type, fall back to no proxy rather than failing to construct at all.
+    // type, fall back to the machine-wide WinHTTP proxy configuration. This is
+    // the documented pre-Windows-8.1 behavior and avoids bypassing enterprise
+    // proxies entirely.
     m_hSession = ::WinHttpOpen(
         NULL, WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
         WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, WINHTTP_FLAG_ASYNC);
     if (m_hSession == nullptr)
     {
-        LOG_WARN("WinHttpOpen(AUTOMATIC_PROXY) failed: %d; retrying with no proxy", ::GetLastError());
+        LOG_WARN("WinHttpOpen(AUTOMATIC_PROXY) failed: %d; retrying with default proxy", ::GetLastError());
         m_hSession = ::WinHttpOpen(
-            NULL, WINHTTP_ACCESS_TYPE_NO_PROXY,
+            NULL, WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
             WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, WINHTTP_FLAG_ASYNC);
     }
 }

@@ -226,6 +226,8 @@ public:
         // Request buffer
         const void *request  = requestBody.empty() ? nullptr : requestBody.data();
         const size_t reqSize = requestBody.size();
+        long httpStatusCode = 0;
+        CURLcode infoResult = CURLE_OK;
 
         if(!curl)
         {
@@ -332,8 +334,7 @@ public:
          */
 
         /* libcurl is nice enough to parse the response code itself: */
-        long httpStatusCode = 0;
-        CURLcode infoResult = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpStatusCode);
+        infoResult = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpStatusCode);
         if (infoResult != CURLE_OK)
         {
             res = infoResult;
