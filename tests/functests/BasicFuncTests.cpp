@@ -1260,6 +1260,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         myLogger->LogEvent(event2);
     }
     // Expect all events to be dropped
+    EXPECT_TRUE(listener.waitForAtLeast(listener.numDropped, 100, 10000));
     EXPECT_EQ(uint32_t { 100 }, listener.numDropped);
     LogManager::FlushAndTeardown();
 
