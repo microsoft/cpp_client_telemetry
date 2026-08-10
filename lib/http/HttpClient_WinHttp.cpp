@@ -253,7 +253,15 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             LOG_WARN("WinHttpCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.c_str());
             // Invalid URL passed to WinHTTP API
             DispatchEvent(OnConnectFailed);
-            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            dwErrorOut = dwError;
+            return false;
+        }
+
+        if (m_parent.m_hSession == nullptr)
+        {
+            LOG_WARN("WinHttpOpen() did not produce a usable session handle");
+            DispatchEvent(OnConnectFailed);
+            dwErrorOut = ERROR_WINHTTP_CANNOT_CONNECT;
             return false;
         }
 
@@ -267,7 +275,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             LOG_WARN("WinHttpConnect() failed: %d", dwError);
             // Cannot connect to host
             DispatchEvent(OnConnectFailed);
-            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            dwErrorOut = dwError;
             return false;
         }
 
@@ -283,7 +291,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             LOG_WARN("WinHttpOpenRequest() failed: %d", dwError);
             // Request cannot be opened to given URL because of some connectivity issue
             DispatchEvent(OnConnectFailed);
-            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            dwErrorOut = dwError;
             return false;
         }
 
@@ -304,7 +312,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             DWORD dwError = ::GetLastError();
             LOG_WARN("WinHttpSetStatusCallback() failed: %d", dwError);
             DispatchEvent(OnConnectFailed);
-            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            dwErrorOut = dwError;
             return false;
         }
 
@@ -331,7 +339,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             // Unable to add request headers. There's no point in proceeding with upload because
             // our server is expecting those custom request headers to always be there.
             DispatchEvent(OnConnectFailed);
-            dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
+            dwErrorOut = dwError;
             return false;
         }
 
@@ -405,7 +413,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             case WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE:
             {
                 HINTERNET request = self->getRequestHandle();
-                if (request != nullptr && !::WinHttpReceiveResponse(request, NULL))
+                if (request == nullptr)
+                {
+                    self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
+                }
+                else if (!::WinHttpReceiveResponse(request, NULL))
                 {
                     self->onRequestComplete(::GetLastError());
                 }
@@ -417,6 +429,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 HINTERNET request = self->getRequestHandle();
                 if (request == nullptr)
                 {
+                    self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
                     return;
                 }
                 // TLS negotiation and response-header receipt are both complete here,
@@ -458,6 +471,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 HINTERNET request = self->getRequestHandle();
                 if (request == nullptr)
                 {
+                    self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
                     return;
                 }
                 self->m_readBuffer.resize(bytesAvailable);
@@ -483,6 +497,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                     HINTERNET request = self->getRequestHandle();
                     if (request == nullptr)
                     {
+                        self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
                         return;
                     }
                     if (!::WinHttpQueryDataAvailable(request, NULL))
