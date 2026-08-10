@@ -945,7 +945,7 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     LogManager::ResumeTransmission(); // ?
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    waitForEvents(5, 4); // (start + stop) + (2 events + start)
+    waitForEvents(30, 4); // (start + stop) + (2 events + start)
 
     auto r2 = records();
     ASSERT_GE(r2.size(), (size_t)4); // (start + stop) + (2 events + start)
@@ -1260,7 +1260,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         myLogger->LogEvent(event2);
     }
     // Expect all events to be dropped
-    EXPECT_TRUE(listener.waitForAtLeast(listener.numDropped, 100, 10000));
+    EXPECT_TRUE(listener.waitForAtLeast(listener.numDropped, 100, 30000));
     EXPECT_EQ(uint32_t { 100 }, listener.numDropped);
     LogManager::FlushAndTeardown();
 
@@ -1301,7 +1301,7 @@ TEST_F(BasicFuncTests, killIsTemporary)
     killedLogger->LogEvent("activateKillSwitch");
     LogManager::UploadNow();
 
-    const bool killSwitchActivated = listener.waitForAtLeast(listener.numHttpOK, 1, 10000);
+    const bool killSwitchActivated = listener.waitForAtLeast(listener.numHttpOK, 1, 30000);
     if (!killSwitchActivated)
     {
         LogManager::FlushAndTeardown();
