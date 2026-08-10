@@ -214,8 +214,14 @@ public:
 
         DispatchDestroyEvent();
         res = CURLE_OK;
-        curl_easy_cleanup(curl);
-        curl_slist_free_all(m_headersChunk);
+        if (curl != nullptr)
+        {
+            curl_easy_cleanup(curl);
+        }
+        if (m_headersChunk != nullptr)
+        {
+            curl_slist_free_all(m_headersChunk);
+        }
         ReleaseResponse();
     }
 
@@ -309,8 +315,9 @@ public:
                 goto cleanup;
             }
         } else {
-            if (!SetOption(CURLOPT_WRITEFUNCTION, &WriteVectorCallback) ||
+            if (!SetOption(CURLOPT_HEADERFUNCTION, &WriteVectorCallback) ||
                 !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders)) ||
+                !SetOption(CURLOPT_WRITEFUNCTION, &WriteVectorCallback) ||
                 !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&respBody)))
             {
                 DispatchEvent(OnSendFailed);
@@ -615,6 +622,13 @@ protected:
     template <typename T>
     bool SetOption(CURLoption option, T value)
     {
+        if (curl == nullptr)
+        {
+            res = CURLE_FAILED_INIT;
+            m_optionFailure = true;
+            return false;
+        }
+
         const CURLcode optionResult = curl_easy_setopt(curl, option, value);
         if (optionResult == CURLE_OK)
         {

@@ -353,8 +353,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         if (!bResult)
         {
             DWORD dwError = ::GetLastError();
-            delete m_callbackContext;
-            m_callbackContext = nullptr;
+            // WinHTTP retains the context on the request handle and can deliver
+            // HANDLE_CLOSING after this failure. Keep it alive until that callback.
             LOG_WARN("WinHttpSendRequest() failed: %d", dwError);
             // Unable to send request
             DispatchEvent(OnSendFailed);
