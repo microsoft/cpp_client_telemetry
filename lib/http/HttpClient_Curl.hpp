@@ -85,6 +85,7 @@ public:
     }
 
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
+    bool m_optionFailure { false };
 
     /**
      * Create local CURL instance for url and body
@@ -152,23 +153,17 @@ public:
             return;
         }
 
-#if 0
-        // Be verbose
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#else
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
-#endif
-
-        // Specify target URL
-        curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
-
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L);
-        if (!m_sslCaInfo.empty()) {
-            curl_easy_setopt(curl, CURLOPT_CAINFO, m_sslCaInfo.c_str());
+        if (!SetOption(CURLOPT_VERBOSE, 0L) ||
+            !SetOption(CURLOPT_URL, m_url.c_str()) ||
+            !SetOption(CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L) ||
+            !SetOption(CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L) ||
+            (!m_sslCaInfo.empty() && !SetOption(CURLOPT_CAINFO, m_sslCaInfo.c_str())) ||
+            // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
+            !SetOption(CURLOPT_HTTP_VERSION, GetPreferredHttpVersion()))
+        {
+            DispatchEvent(OnCreateFailed);
+            return;
         }
-        // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
-        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, GetPreferredHttpVersion());
 
         // Headers are copied into m_headersChunk during construction and the
         // curl_slist is kept alive until destruction, so the original map does
@@ -176,12 +171,21 @@ public:
         for (const auto& kv : requestHeaders)
         {
             std::string header = kv.first + ": " + kv.second;
-            m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
+            curl_slist* appendedHeaders = curl_slist_append(m_headersChunk, header.c_str());
+            if (appendedHeaders == nullptr)
+            {
+                res = CURLE_OUT_OF_MEMORY;
+                m_optionFailure = true;
+                DispatchEvent(OnCreateFailed);
+                return;
+            }
+            m_headersChunk = appendedHeaders;
         }
 
-        if(m_headersChunk != nullptr)
+        if (m_headersChunk != nullptr && !SetOption(CURLOPT_HTTPHEADER, m_headersChunk))
         {
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_headersChunk);
+            DispatchEvent(OnCreateFailed);
+            return;
         }
         TRACE("method=%s, url=%s\n", this->m_method.c_str(), this->m_url.c_str());
 
@@ -235,12 +239,21 @@ public:
             DispatchEvent(OnSendFailed);
             goto cleanup;
         }
+        if (m_optionFailure)
+        {
+            DispatchEvent(OnSendFailed);
+            goto cleanup;
+        }
 
         // TODO: should we control what local source port we use?
         // curl_easy_setopt(curl, CURLOPT_LOCALPORT, dcf_port);
 
         // Perform initial connect, handling the timeout if needed
-        curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
+        if (!SetOption(CURLOPT_CONNECT_ONLY, 1L))
+        {
+            DispatchEvent(OnConnectFailed);
+            goto cleanup;
+        }
         DispatchEvent(OnConnecting);
         res = curl_easy_perform(curl);
         if(CURLE_OK != res)
@@ -279,27 +292,43 @@ public:
         }
 
         // once connection is there - switch back to easy perform for HTTP post
-        curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0);
+        if (!SetOption(CURLOPT_CONNECT_ONLY, 0L))
+        {
+            DispatchEvent(OnSendFailed);
+            goto cleanup;
+        }
 
         // send all data to our callback function
         if (rawResponse)
         {
-            curl_easy_setopt(curl, CURLOPT_HEADER,        true);
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void *)&WriteMemoryCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA,     (void *)&response);
+            if (!SetOption(CURLOPT_HEADER, 1L) ||
+                !SetOption(CURLOPT_WRITEFUNCTION, &WriteMemoryCallback) ||
+                !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&response)))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
         } else {
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void *)&WriteVectorCallback);
-            curl_easy_setopt(curl, CURLOPT_HEADERDATA,    (void *)&respHeaders);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA,     (void *)&respBody);
+            if (!SetOption(CURLOPT_WRITEFUNCTION, &WriteVectorCallback) ||
+                !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders)) ||
+                !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&respBody)))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
         }
 
         // TODO: only two methods supported for now - POST and GET
         if (m_method.compare("POST") == 0)
         {
             // POST
-            curl_easy_setopt(curl, CURLOPT_POST, true);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, static_cast<const char*>(request));
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, reqSize);
+            if (!SetOption(CURLOPT_POST, 1L) ||
+                !SetOption(CURLOPT_POSTFIELDS, static_cast<const char*>(request)) ||
+                !SetOption(CURLOPT_POSTFIELDSIZE_LARGE, static_cast<curl_off_t>(reqSize)))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
         } else
         if (m_method.compare("GET") == 0)
         {
@@ -311,8 +340,12 @@ public:
             goto cleanup;
         }
 
-        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
-        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 4096);
+        if (!SetOption(CURLOPT_LOW_SPEED_TIME, 30L) ||
+            !SetOption(CURLOPT_LOW_SPEED_LIMIT, 4096L))
+        {
+            DispatchEvent(OnSendFailed);
+            goto cleanup;
+        }
         DispatchEvent(OnSending);
         res = curl_easy_perform(curl);
         if(CURLE_OK != res)
@@ -412,6 +445,11 @@ cleanup:
     bool WasAborted()
     {
         return isAborted.load();
+    }
+
+    bool HasOptionFailure() const
+    {
+        return m_optionFailure;
     }
 
     /**
@@ -572,6 +610,21 @@ protected:
         {
             // Match the old unobserved-future behavior at the thread boundary.
         }
+    }
+
+    template <typename T>
+    bool SetOption(CURLoption option, T value)
+    {
+        const CURLcode optionResult = curl_easy_setopt(curl, option, value);
+        if (optionResult == CURLE_OK)
+        {
+            return true;
+        }
+
+        LOG_WARN("curl_easy_setopt(%d) failed: %s", static_cast<int>(option), curl_easy_strerror(optionResult));
+        res = optionResult;
+        m_optionFailure = true;
+        return false;
     }
 
     /**

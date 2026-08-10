@@ -90,7 +90,7 @@ namespace MAT_NS_BEGIN {
             response->m_result = HttpResult_OK;
 
             response->m_statusCode = operation.GetResponseCode();
-            if (response->m_statusCode == CURLE_FAILED_INIT) {
+            if (operation.HasOptionFailure() || response->m_statusCode == CURLE_FAILED_INIT) {
                 // There was an error in CURL stack while trying to create request
                 response->m_result = HttpResult_LocalFailure;
             } else if ((CURLE_OK < response->m_statusCode) && (response->m_statusCode <= CURL_LAST)) {
