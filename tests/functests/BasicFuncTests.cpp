@@ -128,6 +128,7 @@ class BasicFuncTests : public ::testing::Test,
 protected:
     std::mutex                       mtx_requests;
     std::vector<HttpServer::Request> receivedRequests;
+    std::string serverBaseAddress;
     std::string serverAddress;
     HttpServer server;
 
@@ -155,7 +156,8 @@ public:
         int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
         os << "127.0.0.1:" << port;
-        serverAddress = "http://" + os.str() + "/simple/";
+        serverBaseAddress = "http://" + os.str();
+        serverAddress = serverBaseAddress + "/simple/";
         server.setServerName(os.str());
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
@@ -1367,12 +1369,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
         // Use the fixture's local slow endpoint so cancellation does not depend
         // on how the CI runner handles connections to an unused port.
-        std::string slowCollectorUrl = serverAddress;
-        const size_t simplePath = slowCollectorUrl.rfind("/simple/");
-        if (simplePath != std::string::npos)
-        {
-            slowCollectorUrl.replace(simplePath, sizeof("/simple/") - 1, "/slow/");
-        }
+        const std::string slowCollectorUrl = serverBaseAddress + "/slow/";
         configuration[CFG_STR_COLLECTOR_URL] = slowCollectorUrl.c_str();
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
