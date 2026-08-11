@@ -301,7 +301,7 @@ public:
 
         /* wait for the socket to become ready for sending */
         sockfd = sockextr;
-        if( !WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) || isAborted)
+        if (WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) <= 0 || isAborted)
         {
             TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
             res = CURLE_OPERATION_TIMEDOUT;
