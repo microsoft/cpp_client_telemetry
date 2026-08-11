@@ -114,7 +114,6 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             // request here if no callback delivered the terminal result.
             if (!isCallbackCalled)
             {
-                m_hRequest = nullptr;
                 onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
             }
         }
@@ -176,6 +175,62 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     {
         std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
         return m_hRequest;
+    }
+
+    // Keep each WinHTTP operation and the handle check under the same lock as
+    // cancellation. WinHttpCloseHandle remains outside the lock because it
+    // waits for callbacks that may need this mutex.
+    DWORD receiveResponse()
+    {
+        std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
+        if (m_hRequest == nullptr)
+        {
+            return ERROR_WINHTTP_OPERATION_CANCELLED;
+        }
+        if (!::WinHttpReceiveResponse(m_hRequest, NULL))
+        {
+            return ::GetLastError();
+        }
+        return ERROR_SUCCESS;
+    }
+
+    DWORD queryDataAvailable()
+    {
+        std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
+        if (m_hRequest == nullptr)
+        {
+            return ERROR_WINHTTP_OPERATION_CANCELLED;
+        }
+        if (!::WinHttpQueryDataAvailable(m_hRequest, NULL))
+        {
+            return ::GetLastError();
+        }
+        return ERROR_SUCCESS;
+    }
+
+    DWORD readData()
+    {
+        std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
+        if (m_hRequest == nullptr)
+        {
+            return ERROR_WINHTTP_OPERATION_CANCELLED;
+        }
+        if (!::WinHttpReadData(m_hRequest, m_readBuffer.data(),
+                static_cast<DWORD>(m_readBuffer.size()), NULL))
+        {
+            return ::GetLastError();
+        }
+        return ERROR_SUCCESS;
+    }
+
+    DWORD validateCurrentRequestMsRootCert()
+    {
+        std::lock_guard<std::recursive_mutex> lock(m_parent.m_requestsMutex);
+        if (m_hRequest == nullptr)
+        {
+            return ERROR_WINHTTP_OPERATION_CANCELLED;
+        }
+        return isMsRootCert(m_hRequest) ? ERROR_SUCCESS : ERROR_WINHTTP_SECURE_INVALID_CERT;
     }
 
     void DispatchEvent(HttpStateEvent type)
@@ -427,37 +482,32 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         {
             case WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE:
             {
-                HINTERNET request = self->getRequestHandle();
-                if (request == nullptr)
+                DWORD dwError = self->receiveResponse();
+                if (dwError != ERROR_SUCCESS)
                 {
-                    self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-                }
-                else if (!::WinHttpReceiveResponse(request, NULL))
-                {
-                    self->onRequestComplete(::GetLastError());
+                    self->onRequestComplete(dwError);
                 }
                 return;
             }
 
             case WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE:
             {
-                HINTERNET request = self->getRequestHandle();
-                if (request == nullptr)
-                {
-                    self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-                    return;
-                }
                 // TLS negotiation and response-header receipt are both complete here,
                 // so WINHTTP_OPTION_SERVER_CERT_CONTEXT is available for the
                 // configured Microsoft-root enforcement.
-                if (self->m_isHttps && self->m_parent.IsMsRootCheckRequired() && !self->isMsRootCert(request))
+                if (self->m_isHttps && self->m_parent.IsMsRootCheckRequired())
                 {
-                    self->onRequestComplete(ERROR_WINHTTP_SECURE_INVALID_CERT);
-                    return;
+                    DWORD dwError = self->validateCurrentRequestMsRootCert();
+                    if (dwError != ERROR_SUCCESS)
+                    {
+                        self->onRequestComplete(dwError);
+                        return;
+                    }
                 }
-                if (!::WinHttpQueryDataAvailable(request, NULL))
+                DWORD dwError = self->queryDataAvailable();
+                if (dwError != ERROR_SUCCESS)
                 {
-                    self->onRequestComplete(::GetLastError());
+                    self->onRequestComplete(dwError);
                 }
                 return;
             }
@@ -483,16 +533,11 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                     self->onRequestComplete(ERROR_WINHTTP_INVALID_SERVER_RESPONSE);
                     return;
                 }
-                HINTERNET request = self->getRequestHandle();
-                if (request == nullptr)
-                {
-                    self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-                    return;
-                }
                 self->m_readBuffer.resize(bytesAvailable);
-                if (!::WinHttpReadData(request, self->m_readBuffer.data(), bytesAvailable, NULL))
+                DWORD dwError = self->readData();
+                if (dwError != ERROR_SUCCESS)
                 {
-                    self->onRequestComplete(::GetLastError());
+                    self->onRequestComplete(dwError);
                 }
                 return;
             }
@@ -509,15 +554,10 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 self->m_bodyBuffer.insert(self->m_bodyBuffer.end(),
                     self->m_readBuffer.begin(), self->m_readBuffer.begin() + dwStatusInformationLength);
                 {
-                    HINTERNET request = self->getRequestHandle();
-                    if (request == nullptr)
+                    DWORD dwError = self->queryDataAvailable();
+                    if (dwError != ERROR_SUCCESS)
                     {
-                        self->onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
-                        return;
-                    }
-                    if (!::WinHttpQueryDataAvailable(request, NULL))
-                    {
-                        self->onRequestComplete(::GetLastError());
+                        self->onRequestComplete(dwError);
                     }
                 }
                 return;
