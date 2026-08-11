@@ -279,7 +279,10 @@ public:
 #else
         long lastSocket = -1;
         res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
-        sockextr = static_cast<curl_socket_t>(lastSocket);
+        if (res == CURLE_OK)
+        {
+            sockextr = static_cast<curl_socket_t>(lastSocket);
+        }
 #endif
 
         if(CURLE_OK != res)
