@@ -114,9 +114,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+    <BootstrapperPackage Include=".NETFramework,Version=v4.8.1">
       <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <ProductName>Microsoft .NET Framework 4.8.1 %28x86 and x64%29</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
@@ -132,7 +132,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp">
-      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\Microsoft.CSharp.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8.1\Microsoft.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualC" />
     <Reference Include="System" />

@@ -50,6 +50,8 @@ namespace
         std::string summary;
     };
 
+    std::shared_ptr<EventNameStorage> spEventNameStorage;
+
     void SetEventNames(
         JNIEnv* env,
         jstring notificationEventName,
@@ -101,8 +103,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     InitializationConfiguration config(
             reinterpret_cast<ILogger*>(iLoggerNativePtr),
             CommonDataContext{});
-    EventNameStorage eventNameStorage;
-    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, eventNameStorage, config);
+    spEventNameStorage = std::make_shared<EventNameStorage>();
+    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, *spEventNameStorage, config);
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
     config.ScanForUrls = static_cast<bool>(ScanForUrls);
@@ -150,8 +152,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                             machineIds,
                                             outOfScopeIdentifiers));
 
-    EventNameStorage eventNameStorage;
-    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, eventNameStorage, config);
+    spEventNameStorage = std::make_shared<EventNameStorage>();
+    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, *spEventNameStorage, config);
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
     config.ScanForUrls = static_cast<bool>(ScanForUrls);
@@ -172,6 +174,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(const JNIEnv *e
         return false;
     }
     spPrivacyGuard.reset();
+    spEventNameStorage.reset();
 
     return true;
 }

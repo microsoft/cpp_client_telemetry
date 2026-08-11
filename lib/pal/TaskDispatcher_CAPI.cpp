@@ -152,13 +152,13 @@ namespace PAL_NS_BEGIN {
     {
         std::shared_ptr<Task_CAPI> task;
 
-        // Find and remove pending task
+        // Keep the task discoverable while its callback is running so a
+        // concurrent cancellation can wait for completion.
         {
             LOCKGUARD(s_tasksLock);
             auto itTask = GetPendingTasks().find(taskId);
             if (itTask != GetPendingTasks().end()) {
                 task = itTask->second;
-                GetPendingTasks().erase(itTask);
             }
         }
 

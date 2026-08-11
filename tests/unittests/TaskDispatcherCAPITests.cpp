@@ -9,7 +9,11 @@
 #include "pal/typename.hpp"
 #include "mat.h"
 
+#include <atomic>
+#include <chrono>
+#include <limits>
 #include <stdexcept>
+#include <thread>
 
 using namespace testing;
 using namespace MAT;
@@ -250,6 +254,21 @@ namespace
     {
         void Callback(int, int) {}
     };
+
+    struct BlockingCallbackTarget
+    {
+        std::atomic<bool> entered{false};
+        std::atomic<bool> release{false};
+
+        void Callback(int, int)
+        {
+            entered.store(true, std::memory_order_release);
+            while (!release.load(std::memory_order_acquire))
+            {
+                std::this_thread::yield();
+            }
+        }
+    };
 }
 
 // When the dispatcher drops the task (for example during shutdown), scheduleTask
@@ -273,7 +292,7 @@ namespace
     {
         std::string taskId;
         task_callback_fn_t callback = nullptr;
-        bool cancelCalled = false;
+        std::atomic<bool> cancelCalled{false};
     };
 
     static std::unique_ptr<DeferredExecutionState> s_deferredExecutionState;
@@ -286,7 +305,7 @@ namespace
 
     bool EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherCancel(const char* taskId)
     {
-        s_deferredExecutionState->cancelCalled = true;
+        s_deferredExecutionState->cancelCalled.store(true, std::memory_order_release);
         return (s_deferredExecutionState->taskId == taskId);
     }
 
@@ -311,6 +330,56 @@ TEST(TaskDispatcherCAPITests, ScheduleTaskHandleClearsAfterAsyncCallbackComplete
     EXPECT_TRUE(handle.Cancel());
     EXPECT_FALSE(s_deferredExecutionState->cancelCalled);
 
+    s_deferredExecutionState.reset();
+}
+
+TEST(TaskDispatcherCAPITests, CancelWaitsForCallbackAlreadyInProgress)
+{
+    TaskDispatcher_CAPI taskDispatcher(&OnDeferredTaskDispatcherQueue, &OnDeferredTaskDispatcherCancel, &OnDeferredTaskDispatcherJoin);
+    s_deferredExecutionState.reset(new DeferredExecutionState());
+
+    BlockingCallbackTarget target;
+    auto handle = scheduleTask(&taskDispatcher, 100 /*delayMs*/, &target, &BlockingCallbackTarget::Callback, 1, 2);
+    ASSERT_NE(s_deferredExecutionState->callback, nullptr);
+
+    std::thread callbackThread([&]() {
+        s_deferredExecutionState->callback(s_deferredExecutionState->taskId.c_str());
+    });
+
+    while (!target.entered.load(std::memory_order_acquire))
+    {
+        std::this_thread::yield();
+    }
+
+    std::atomic<bool> cancelReturned{false};
+    bool cancelResult = false;
+    std::thread cancelThread([&]() {
+        cancelResult = handle.Cancel(std::numeric_limits<uint64_t>::max());
+        cancelReturned.store(true, std::memory_order_release);
+    });
+
+    bool cancelWasWaiting = false;
+    for (int i = 0; i < 1000; ++i)
+    {
+        if (cancelReturned.load(std::memory_order_acquire))
+        {
+            break;
+        }
+        if (s_deferredExecutionState->cancelCalled.load(std::memory_order_acquire))
+        {
+            cancelWasWaiting = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    target.release.store(true, std::memory_order_release);
+    callbackThread.join();
+    cancelThread.join();
+
+    EXPECT_TRUE(cancelWasWaiting);
+    EXPECT_TRUE(cancelResult);
+    EXPECT_EQ(handle.GetTask(), nullptr);
     s_deferredExecutionState.reset();
 }
 
