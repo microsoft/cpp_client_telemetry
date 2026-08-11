@@ -13,6 +13,7 @@
 #include <list>
 #include <memory>
 #include <chrono>
+#include <mutex>
 #include <thread>
 
 #include <iostream>
@@ -57,6 +58,40 @@
 #include <ctime>
 
 namespace PAL_NS_BEGIN {
+
+#if defined(_WIN32) || defined(_WIN64)
+    namespace
+    {
+        using GetSystemTimeAsFileTimeProc = VOID (WINAPI*)(LPFILETIME);
+
+        GetSystemTimeAsFileTimeProc getPreciseSystemTimeAsFileTime() noexcept
+        {
+            static std::once_flag once;
+            static GetSystemTimeAsFileTimeProc proc = nullptr;
+            std::call_once(once, [] {
+                HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
+                if (kernel32 != nullptr)
+                {
+                    proc = reinterpret_cast<GetSystemTimeAsFileTimeProc>(
+                        ::GetProcAddress(kernel32, "GetSystemTimePreciseAsFileTime"));
+                }
+            });
+            return proc;
+        }
+
+        void getSystemTimeAsFileTime(FILETIME& fileTime) noexcept
+        {
+            if (auto preciseProc = getPreciseSystemTimeAsFileTime())
+            {
+                preciseProc(&fileTime);
+            }
+            else
+            {
+                ::GetSystemTimeAsFileTime(&fileTime);
+            }
+        }
+    }
+#endif
 
     PlatformAbstractionLayer& GetPAL() noexcept
     {
@@ -424,8 +459,11 @@ namespace PAL_NS_BEGIN {
     int64_t PlatformAbstractionLayer::getUtcSystemTimeMs() const
     {
 #ifdef _WIN32
+        FILETIME fileTime;
+        getSystemTimeAsFileTime(fileTime);
         ULARGE_INTEGER now;
-        ::GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&now));
+        now.LowPart = fileTime.dwLowDateTime;
+        now.HighPart = fileTime.dwHighDateTime;
         return (now.QuadPart - 116444736000000000ull) / 10000;
 #else
         return std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
@@ -441,26 +479,7 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef _WIN32
         FILETIME tocks;
-        // Resolve the precise API dynamically so the SDK retains its Windows 7
-        // runtime compatibility and falls back when the API is unavailable.
-        using GetSystemTimePreciseAsFileTimeProc = VOID (WINAPI*)(LPFILETIME);
-        static const GetSystemTimePreciseAsFileTimeProc getSystemTimePreciseAsFileTime =
-            []() -> GetSystemTimePreciseAsFileTimeProc
-            {
-                HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
-                return kernel32
-                    ? reinterpret_cast<GetSystemTimePreciseAsFileTimeProc>(
-                        ::GetProcAddress(kernel32, "GetSystemTimePreciseAsFileTime"))
-                    : nullptr;
-            }();
-        if (getSystemTimePreciseAsFileTime)
-        {
-            getSystemTimePreciseAsFileTime(&tocks);
-        }
-        else
-        {
-            ::GetSystemTimeAsFileTime(&tocks);
-        }
+        getSystemTimeAsFileTime(tocks);
         ULONGLONG ticks = (ULONGLONG(tocks.dwHighDateTime) << 32) | tocks.dwLowDateTime;
         // number of days from beginning to 1601 multiplied by ticks per day
         return ticks + 0x701ce1722770000ULL;
@@ -538,20 +557,27 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef USE_WIN32_PERFCOUNTER
         /* Win32 API implementation */
-        static bool frequencyQueried = false;
-        static int64_t ticksPerMillisecond;
-        if (!frequencyQueried)
-        {
-            // There is no harm in querying twice in case of a race condition.
+        static std::once_flag frequencyOnce;
+        static int64_t frequency = 0;
+        std::call_once(frequencyOnce, [] {
             LARGE_INTEGER ticksInOneSecond;
-            ::QueryPerformanceFrequency(&ticksInOneSecond);
-            ticksPerMillisecond = ticksInOneSecond.QuadPart / 1000;
-            frequencyQueried = true;
-        }
+            if (::QueryPerformanceFrequency(&ticksInOneSecond))
+            {
+                frequency = ticksInOneSecond.QuadPart;
+            }
+        });
 
         LARGE_INTEGER now;
         ::QueryPerformanceCounter(&now);
-        return static_cast<uint64_t>(now.QuadPart / ticksPerMillisecond);
+        if (frequency <= 0)
+        {
+            return std::chrono::steady_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+        }
+
+        const int64_t wholeSeconds = now.QuadPart / frequency;
+        const int64_t remainder = now.QuadPart % frequency;
+        return static_cast<uint64_t>(wholeSeconds) * 1000u +
+            static_cast<uint64_t>((remainder * 1000) / frequency);
 #else
         /* Cross-platform C++11 implementation */
         return std::chrono::steady_clock::now().time_since_epoch() / std::chrono::milliseconds(1);

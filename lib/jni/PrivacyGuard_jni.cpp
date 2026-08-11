@@ -7,6 +7,8 @@
 #include "modules/privacyguard/PrivacyGuard.hpp"
 #include "PrivacyGuardHelper.hpp"
 
+#include <mutex>
+
 using namespace MAT;
 
 CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
@@ -36,10 +38,46 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
     return cdc;
 }
 
-std::shared_ptr<PrivacyGuard> spPrivacyGuard;
+namespace
+{
+    std::shared_ptr<PrivacyGuard> spPrivacyGuard;
+    std::mutex privacyGuardMutex;
+
+    struct EventNameStorage
+    {
+        std::string notification;
+        std::string semanticContext;
+        std::string summary;
+    };
+
+    void SetEventNames(
+        JNIEnv* env,
+        jstring notificationEventName,
+        jstring semanticContextEventName,
+        jstring summaryEventName,
+        EventNameStorage& storage,
+        InitializationConfiguration& config)
+    {
+        if (notificationEventName != nullptr) {
+            storage.notification = JStringToStdString(env, notificationEventName);
+            config.NotificationEventName = storage.notification.c_str();
+        }
+
+        if (semanticContextEventName != nullptr) {
+            storage.semanticContext = JStringToStdString(env, semanticContextEventName);
+            config.SemanticContextNotificationEventName = storage.semanticContext.c_str();
+        }
+
+        if (summaryEventName != nullptr) {
+            storage.summary = JStringToStdString(env, summaryEventName);
+            config.SummaryEventName = storage.summary.c_str();
+        }
+    }
+}
 
 std::shared_ptr<PrivacyGuard> PrivacyGuardHelper::GetPrivacyGuardPtr() noexcept
 {
+    std::lock_guard<std::mutex> lock(privacyGuardMutex);
     return spPrivacyGuard;
 }
 
@@ -55,6 +93,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         jboolean ScanForUrls,
         jboolean DisableAdvancedScans,
         jboolean StampEventIKeyForConcerns) {
+    std::lock_guard<std::mutex> lock(privacyGuardMutex);
     if (spPrivacyGuard != nullptr) {
         return false;
     }
@@ -62,23 +101,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     InitializationConfiguration config(
             reinterpret_cast<ILogger*>(iLoggerNativePtr),
             CommonDataContext{});
-    // InitializationConfiguration holds const char* pointers, so the backing
-    // std::string storage must outlive the PrivacyGuard construction below.
-    std::string notificationEventName, semanticContextEventName, summaryEventName;
-    if (NotificationEventName != nullptr) {
-        notificationEventName = JStringToStdString(env, NotificationEventName);
-        config.NotificationEventName = notificationEventName.c_str();
-    }
-
-    if (SemanticContextEventName != nullptr) {
-        semanticContextEventName = JStringToStdString(env, SemanticContextEventName);
-        config.SemanticContextNotificationEventName = semanticContextEventName.c_str();
-    }
-
-    if (SummaryEventName != nullptr) {
-        summaryEventName = JStringToStdString(env, SummaryEventName);
-        config.SummaryEventName = summaryEventName.c_str();
-    }
+    EventNameStorage eventNameStorage;
+    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, eventNameStorage, config);
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
     config.ScanForUrls = static_cast<bool>(ScanForUrls);
@@ -109,6 +133,7 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         jobjectArray languageIdentifiers,
         jobjectArray machineIds,
         jobjectArray outOfScopeIdentifiers) {
+    std::lock_guard<std::mutex> lock(privacyGuardMutex);
     if (spPrivacyGuard != nullptr) {
         return false;
     }
@@ -125,23 +150,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                             machineIds,
                                             outOfScopeIdentifiers));
 
-    // InitializationConfiguration holds const char* pointers, so the backing
-    // std::string storage must outlive the PrivacyGuard construction below.
-    std::string notificationEventName, semanticContextEventName, summaryEventName;
-    if (NotificationEventName != NULL) {
-        notificationEventName = JStringToStdString(env, NotificationEventName);
-        config.NotificationEventName = notificationEventName.c_str();
-    }
-
-    if (SemanticContextEventName != NULL) {
-        semanticContextEventName = JStringToStdString(env, SemanticContextEventName);
-        config.SemanticContextNotificationEventName = semanticContextEventName.c_str();
-    }
-
-    if (SummaryEventName != NULL) {
-        summaryEventName = JStringToStdString(env, SummaryEventName);
-        config.SummaryEventName = summaryEventName.c_str();
-    }
+    EventNameStorage eventNameStorage;
+    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, eventNameStorage, config);
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
     config.ScanForUrls = static_cast<bool>(ScanForUrls);
@@ -156,11 +166,11 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(const JNIEnv *env, jclass /*this*/)
 {
+    std::lock_guard<std::mutex> lock(privacyGuardMutex);
     if(spPrivacyGuard == nullptr)
     {
         return false;
     }
-
     spPrivacyGuard.reset();
 
     return true;
@@ -169,17 +179,19 @@ Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(const JNIEnv *e
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_setEnabled(const JNIEnv *env, jclass /*this*/, jboolean isEnabled) {
-    if (spPrivacyGuard == nullptr) {
+    auto privacyGuard = PrivacyGuardHelper::GetPrivacyGuardPtr();
+    if (privacyGuard == nullptr) {
         return false;
     }
-    spPrivacyGuard->SetEnabled(static_cast<bool>(isEnabled));
+    privacyGuard->SetEnabled(static_cast<bool>(isEnabled));
     return true;
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_isEnabled(const JNIEnv *env, jclass /*this*/) {
-    return spPrivacyGuard != nullptr && spPrivacyGuard->IsEnabled();
+    auto privacyGuard = PrivacyGuardHelper::GetPrivacyGuardPtr();
+    return privacyGuard != nullptr && privacyGuard->IsEnabled();
 }
 
 extern "C"
@@ -194,11 +206,12 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAppendCommonDataContex
         jobjectArray languageIdentifiers,
         jobjectArray machineIds,
         jobjectArray outOfScopeIdentifiers) {
-    if (spPrivacyGuard == nullptr) {
+    auto privacyGuard = PrivacyGuardHelper::GetPrivacyGuardPtr();
+    if (privacyGuard == nullptr) {
         return false;
     }
 
-    spPrivacyGuard->AppendCommonDataContext(GenerateCommonDataContextObject(env,
+    privacyGuard->AppendCommonDataContext(GenerateCommonDataContextObject(env,
                                                                             domainName,
                                                                             machineName,
                                                                             userNames,
@@ -218,19 +231,19 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeAddIgnoredConcern(JNIE
         jstring eventName,
         jstring fieldName,
         jint dataConcern) {
-    if (spPrivacyGuard == nullptr) {
+    auto privacyGuard = PrivacyGuardHelper::GetPrivacyGuardPtr();
+    if (privacyGuard == nullptr) {
         return;
     }
 
     auto eventNameStr = JStringToStdString(env, eventName);
     auto fieldNameStr = JStringToStdString(env, fieldName);
     auto dataConcernInt = static_cast<uint8_t>(dataConcern);
-    spPrivacyGuard->AddIgnoredConcern(eventNameStr, fieldNameStr, static_cast<DataConcernType >(dataConcernInt));
+    privacyGuard->AddIgnoredConcern(eventNameStr, fieldNameStr, static_cast<DataConcernType >(dataConcernInt));
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_isInitialized(const JNIEnv *env, jclass/* this */){
-    return spPrivacyGuard != nullptr;
+    return PrivacyGuardHelper::GetPrivacyGuardPtr() != nullptr;
 }
-

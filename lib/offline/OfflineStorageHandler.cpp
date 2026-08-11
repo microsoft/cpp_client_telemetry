@@ -17,6 +17,7 @@
 #include <limits>
 #include <numeric>
 #include <set>
+#include <stdexcept>
 
 namespace MAT_NS_BEGIN {
 
@@ -31,10 +32,17 @@ namespace MAT_NS_BEGIN {
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class")
 
     OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher) :
+        OfflineStorageHandler(logManager, runtimeConfig, taskDispatcher, OfflineStorageFactory::GetDefaultProvider())
+    {
+    }
+
+    OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig,
+        ITaskDispatcher& taskDispatcher, std::shared_ptr<IOfflineStorageProvider> storageProvider) :
         m_observer(nullptr),
         m_logManager(logManager),
         m_config(runtimeConfig),
         m_taskDispatcher(taskDispatcher),
+        m_storageProvider(std::move(storageProvider)),
         m_killSwitchManager(),
         m_clockSkewManager(),
         m_flushPending(false),
@@ -48,6 +56,11 @@ namespace MAT_NS_BEGIN {
         m_cacheMemorySizeLimitInBytes(0),
         m_isStorageFullNotificationSend(false)
     {
+        if (!m_storageProvider)
+        {
+            throw std::invalid_argument("OfflineStorageHandler requires a storage provider");
+        }
+
         // TODO: [MG] - OfflineStorage_SQLite.cpp is performing similar checks
         uint32_t percentage = m_config[CFG_INT_RAMCACHE_FULL_PCT];
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
@@ -78,7 +91,15 @@ namespace MAT_NS_BEGIN {
        public:
         explicit ActivityGuard(ILogManager& logManager) :
             m_logManager(logManager),
-            m_active(logManager.StartActivity())
+            m_active(logManager.StartActivity()),
+            m_allowInactive(false)
+        {
+        }
+
+        ActivityGuard(ILogManager& logManager, bool allowInactive) :
+            m_logManager(logManager),
+            m_active(logManager.StartActivity()),
+            m_allowInactive(allowInactive)
         {
         }
 
@@ -104,11 +125,12 @@ namespace MAT_NS_BEGIN {
         ActivityGuard(ActivityGuard const&) = delete;
         ActivityGuard& operator=(ActivityGuard const&) = delete;
 
-        bool IsActive() const noexcept { return m_active; }
+        bool IsActive() const noexcept { return m_active || m_allowInactive; }
 
        private:
         ILogManager& m_logManager;
         bool m_active;
+        bool m_allowInactive;
     };
 
     bool OfflineStorageHandler::isKilled(StorageRecord const& record)
@@ -148,7 +170,7 @@ namespace MAT_NS_BEGIN {
         m_observer = &observer;
         m_cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
-        m_offlineStorageDisk = OfflineStorageFactory::Create(m_logManager, m_config);
+        m_offlineStorageDisk = m_storageProvider->CreateDiskStorage(m_logManager, m_config);
         if (m_offlineStorageDisk)
         {
             m_offlineStorageDisk->Initialize(*this);
@@ -159,7 +181,7 @@ namespace MAT_NS_BEGIN {
         // disk.
         if (m_cacheMemorySizeLimitInBytes > 0)
         {
-            m_offlineStorageMemory.reset(new MemoryStorage(m_logManager, m_config));
+            m_offlineStorageMemory = m_storageProvider->CreateMemoryStorage(m_logManager, m_config);
             m_offlineStorageMemory->Initialize(*this);
         }
 
@@ -225,7 +247,9 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorageHandler::Flush()
     {
-        ActivityGuard activityGuard(m_logManager);
+        // Shutdown has already paused normal logging, but its synchronous final
+        // flush must still persist the in-memory records before storage closes.
+        ActivityGuard activityGuard(m_logManager, m_shutdownStarted);
         if (!activityGuard.IsActive()) {
             // The LogManager is shutting down, so the flush cannot run. Still
             // signal completion and clear the pending flag so a concurrent
@@ -255,10 +279,10 @@ namespace MAT_NS_BEGIN {
                 size_t totalSaved = 0;
                 if (IsBatchedStorageFlushEnabled())
                 {
-                    // Drain and persist one bounded batch at a time. Each batch is
-                    // atomic, but already committed batches remain committed if a
-                    // later batch fails.
-                    while (true)
+                    // Drain only the records present when this flush started so
+                    // producers cannot keep the flush alive indefinitely.
+                    size_t recordsRemaining = m_offlineStorageMemory->GetRecordCount();
+                    while (recordsRemaining > 0)
                     {
                         recordsToRecover = m_offlineStorageMemory->GetRecords(
                             false, EventLatency_Unspecified, MAX_RECORDS_PER_STORAGE_BATCH);
@@ -267,6 +291,8 @@ namespace MAT_NS_BEGIN {
                             break;
                         }
 
+                        const size_t drainedBatchSize = recordsToRecover.size();
+                        recordsRemaining -= std::min(recordsRemaining, drainedBatchSize);
                         const size_t batchSaved = m_offlineStorageDisk->StoreRecords(recordsToRecover);
                         // StoreRecords() removes permanently-invalid records before
                         // returning, so compare against the remaining valid records.
@@ -391,6 +417,13 @@ namespace MAT_NS_BEGIN {
                         m_flushPending = true;
                         m_flushComplete.Reset();
                         m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
+                        if (m_flushHandle.GetTask() == nullptr)
+                        {
+                            // The dispatcher may drop a task synchronously during
+                            // shutdown. Do not leave WaitForFlush blocked forever.
+                            m_flushPending = false;
+                            m_flushComplete.post();
+                        }
                         LOG_INFO("Requested Flush (%p)",
                             static_cast<void*>(m_flushHandle.GetTask()));
                     }
@@ -416,12 +449,17 @@ namespace MAT_NS_BEGIN {
 
     bool OfflineStorageHandler::IsBatchedStorageFlushEnabled()
     {
-        return !m_config.HasConfig(CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH) ||
+        const bool batchingConfigured =
+            !m_config.HasConfig(CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH) ||
             m_config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH];
+        const bool usingCustomStorage =
+            m_logManager.GetLogConfiguration().GetModule(CFG_MODULE_OFFLINE_STORAGE) != nullptr;
+        return batchingConfigured && !usingCustomStorage;
     }
 
     void OfflineStorageHandler::ReportInvalidDiskRecord(StorageRecord const& record)
     {
+        (void)record;
         LOG_ERROR("Flush: dropping event %s:%s: Invalid parameters",
             tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
         OnStorageFailed("Invalid parameters");

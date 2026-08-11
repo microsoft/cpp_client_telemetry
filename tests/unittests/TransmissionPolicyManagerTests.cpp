@@ -214,6 +214,14 @@ private:
     size_t m_cancelCount = 0;
 };
 
+class DroppingTaskDispatcher : public ITaskDispatcher
+{
+public:
+    void Join() override {}
+    void Queue(Task* task) override { delete task; }
+    bool Cancel(Task*, uint64_t = 0) override { return false; }
+};
+
 class TransmissionPolicyManagerTests : public StrictMock<Test> {
   protected:
     StrictMock<MockIRuntimeConfig>       runtimeConfigMock;
@@ -818,6 +826,18 @@ TEST_F(TransmissionPolicyManagerTests, ForceScheduleAppliesLatencyWhenRunningCan
     EXPECT_TRUE(runningTpm.m_isUploadScheduled);
     EXPECT_EQ(runningTpm.m_runningLatency, EventLatency_RealTime);
     EXPECT_EQ(runningTpm.m_scheduledUploadTime, scheduledTimeBefore);
+}
+
+TEST_F(TransmissionPolicyManagerTests, DroppedScheduleDoesNotLatchUploadState)
+{
+    DroppingTaskDispatcher dispatcher;
+    TransmissionPolicyManager4Test droppingTpm(testing::getSystem(), dispatcher, &bandwidthControllerMock);
+    droppingTpm.paused(false);
+
+    droppingTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+
+    EXPECT_FALSE(droppingTpm.m_isUploadScheduled);
+    EXPECT_EQ(droppingTpm.m_scheduledUploadTime, std::numeric_limits<uint64_t>::max());
 }
 
 TEST_F(TransmissionPolicyManagerTests, increaseBackoff_EmptyBackoffObject_ReturnZero)

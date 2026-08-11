@@ -8,6 +8,7 @@
 
 #include "pal/PAL.hpp"
 #include "IOfflineStorage.hpp"
+#include "IOfflineStorageProvider.hpp"
 
 #include "api/IRuntimeConfig.hpp"
 #include "ILogManager.hpp"
@@ -25,10 +26,10 @@ namespace MAT_NS_BEGIN {
 
     class OfflineStorageHandler final : public IOfflineStorage, public IOfflineStorageObserver
     {
-        friend class OfflineStorageHandlerTestPeer;
-
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
+        OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig,
+            ITaskDispatcher& taskDispatcher, std::shared_ptr<IOfflineStorageProvider> storageProvider);
         virtual ~OfflineStorageHandler() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
         virtual void Shutdown() override;
@@ -73,6 +74,7 @@ namespace MAT_NS_BEGIN {
         std::string                 m_databasePath;
         IRuntimeConfig&             m_config;
         ITaskDispatcher&            m_taskDispatcher;
+        std::shared_ptr<IOfflineStorageProvider> m_storageProvider;
         
         KillSwitchManager           m_killSwitchManager;
         ClockSkewManager            m_clockSkewManager;
@@ -84,7 +86,7 @@ namespace MAT_NS_BEGIN {
         PAL::DeferredCallbackHandle            m_flushHandle;
         PAL::Event                             m_flushComplete;
 
-        std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
+        std::shared_ptr<IOfflineStorage>       m_offlineStorageMemory;
         std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
         std::atomic<bool>                      m_readFromMemory;

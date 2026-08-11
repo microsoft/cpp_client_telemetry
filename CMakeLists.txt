@@ -296,6 +296,10 @@ if(MATSDK_BUILD_UNIT_TESTS OR MATSDK_BUILD_FUNC_TESTS)
       endif()
       set(_matsdk_saved_build_shared_libs "${BUILD_SHARED_LIBS}")
       set(BUILD_SHARED_LIBS OFF)
+      # GoogleTest's legacy CMake file evaluates ARCH unconditionally.
+      # Supply the SDK's normalized architecture so non-iOS builds do not
+      # expand an empty elseif expression during configuration.
+      set(ARCH "${TARGET_ARCH}")
       add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
       set(BUILD_SHARED_LIBS "${_matsdk_saved_build_shared_libs}")
       # Checked-in iOS test projects consume these archive paths directly.

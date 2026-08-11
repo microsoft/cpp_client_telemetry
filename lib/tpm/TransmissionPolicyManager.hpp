@@ -128,7 +128,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         /// <summary>
         /// Cancels pending upload task.
         /// </summary>
-        bool cancelUploadTask();
+        bool cancelUploadTask(bool waitForCompletion = false);
         
         /// <summary>
         /// Calculate the number of pending upload contexts.

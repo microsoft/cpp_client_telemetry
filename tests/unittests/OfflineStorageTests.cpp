@@ -5,6 +5,7 @@
 #include "common/MockIOfflineStorageObserver.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "offline/OfflineStorageHandler.hpp"
+#include "offline/IOfflineStorageProvider.hpp"
 #include "offline/StorageObserver.hpp"
 #include "NullObjects.hpp"
 
@@ -175,6 +176,13 @@ TEST_F(OfflineStorageTests, ReleaseRecordsIsForwarded)
 
 namespace
 {
+    class ConfigurableLogManager : public NullLogManager
+    {
+    public:
+        ILogConfiguration config;
+        ILogConfiguration& GetLogConfiguration() override { return config; }
+    };
+
     // Remove a SQLite db file along with its WAL-mode companion files
     // (-wal/-shm/-journal), which would otherwise accumulate in the temp dir.
     void RemoveDbFiles(const std::string& path)
@@ -219,28 +227,31 @@ namespace
 
 namespace MAT_NS_BEGIN {
 
-    class OfflineStorageHandlerTestPeer
+    class MockOfflineStorageProvider : public IOfflineStorageProvider
     {
     public:
-        static void SetObserver(OfflineStorageHandler& handler, IOfflineStorageObserver& observer)
+        MockOfflineStorageProvider(
+            std::shared_ptr<IOfflineStorage> memory,
+            std::shared_ptr<IOfflineStorage> disk)
+            : memory(std::move(memory)), disk(std::move(disk))
         {
-            handler.m_observer = &observer;
         }
 
-        static void SetMemoryStorage(OfflineStorageHandler& handler, IOfflineStorage* storage)
+        std::shared_ptr<IOfflineStorage> CreateDiskStorage(
+            ILogManager&, IRuntimeConfig&) override
         {
-            handler.m_offlineStorageMemory.reset(storage);
+            return disk;
         }
 
-        static void SetDiskStorage(OfflineStorageHandler& handler, std::shared_ptr<IOfflineStorage> storage)
+        std::shared_ptr<IOfflineStorage> CreateMemoryStorage(
+            ILogManager&, IRuntimeConfig&) override
         {
-            handler.m_offlineStorageDisk = storage;
+            return memory;
         }
 
-        static size_t ReturnRecordsToMemory(OfflineStorageHandler& handler, std::vector<StorageRecord> const& records)
-        {
-            return handler.ReturnRecordsToMemory(records);
-        }
+    private:
+        std::shared_ptr<IOfflineStorage> memory;
+        std::shared_ptr<IOfflineStorage> disk;
     };
 
 } MAT_NS_END
@@ -252,11 +263,15 @@ TEST(OfflineStorageHandlerFlushTests, FailedMemoryRequeueIsReportedAndDropped)
     NoopTaskDispatcher dispatcher;
     StrictMock<MockIOfflineStorageObserver> observer;
 
-    OfflineStorageHandler handler(logManager, config, dispatcher);
-    OfflineStorageHandlerTestPeer::SetObserver(handler, observer);
-
-    auto* memory = new StrictMock<MockIOfflineStorage>();
-    OfflineStorageHandlerTestPeer::SetMemoryStorage(handler, memory);
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    config[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    EXPECT_CALL(*memory, Initialize(Ref(handler))).WillOnce(Return());
+    EXPECT_CALL(*disk, Initialize(Ref(handler))).WillOnce(Return());
+    handler.Initialize(observer);
 
     std::vector<StorageRecord> records;
     records.push_back(StorageRecord("retry-ok", "tenant-one-token",
@@ -266,9 +281,18 @@ TEST(OfflineStorageHandlerFlushTests, FailedMemoryRequeueIsReportedAndDropped)
         EventLatency_Normal, EventPersistence_Normal, /*timestamp*/ 1,
         std::vector<uint8_t>{ 'y' }));
 
+    EXPECT_CALL(*memory, GetSize())
+        .WillOnce(Return(records.size()))
+        .WillOnce(Return(records.size()));
+    EXPECT_CALL(*memory, GetRecordCount(EventLatency_Unspecified))
+        .WillOnce(Return(records.size()));
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
+        .WillOnce(Return(records));
+    EXPECT_CALL(*disk, StoreRecords(_)).WillOnce(Return(0));
     EXPECT_CALL(*memory, StoreRecord(_))
         .WillOnce(Return(true))
         .WillOnce(Return(false));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(0));
     EXPECT_CALL(observer, OnStorageRecordsDropped(_))
         .WillOnce(Invoke([](std::map<std::string, size_t> const& dropped) {
             auto found = dropped.find("tenant-two-token");
@@ -276,8 +300,7 @@ TEST(OfflineStorageHandlerFlushTests, FailedMemoryRequeueIsReportedAndDropped)
             EXPECT_EQ(found->second, static_cast<size_t>(1));
         }));
 
-    EXPECT_EQ(OfflineStorageHandlerTestPeer::ReturnRecordsToMemory(handler, records),
-        static_cast<size_t>(1));
+    handler.Flush();
 }
 
 TEST(OfflineStorageHandlerFlushTests, BatchingOptOutUsesPerRecordDiskStores)
@@ -288,14 +311,15 @@ TEST(OfflineStorageHandlerFlushTests, BatchingOptOutUsesPerRecordDiskStores)
     StrictMock<MockIOfflineStorageObserver> observer;
 
     config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = false;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
 
-    OfflineStorageHandler handler(logManager, config, dispatcher);
-    OfflineStorageHandlerTestPeer::SetObserver(handler, observer);
-
-    auto* memory = new StrictMock<MockIOfflineStorage>();
-    std::shared_ptr<StrictMock<MockIOfflineStorage>> disk(new StrictMock<MockIOfflineStorage>());
-    OfflineStorageHandlerTestPeer::SetMemoryStorage(handler, memory);
-    OfflineStorageHandlerTestPeer::SetDiskStorage(handler, disk);
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*memory, Initialize(Ref(handler))).WillOnce(Return());
+    EXPECT_CALL(*disk, Initialize(Ref(handler))).WillOnce(Return());
+    handler.Initialize(observer);
 
     std::vector<StorageRecord> records;
     records.push_back(StorageRecord("per-record-1", "tenant-one-token",
@@ -327,14 +351,15 @@ TEST(OfflineStorageHandlerFlushTests, BatchedFlushLimitsEachDiskWrite)
     StrictMock<MockIOfflineStorageObserver> observer;
 
     config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
 
-    OfflineStorageHandler handler(logManager, config, dispatcher);
-    OfflineStorageHandlerTestPeer::SetObserver(handler, observer);
-
-    auto* memory = new StrictMock<MockIOfflineStorage>();
-    std::shared_ptr<StrictMock<MockIOfflineStorage>> disk(new StrictMock<MockIOfflineStorage>());
-    OfflineStorageHandlerTestPeer::SetMemoryStorage(handler, memory);
-    OfflineStorageHandlerTestPeer::SetDiskStorage(handler, disk);
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*memory, Initialize(Ref(handler))).WillOnce(Return());
+    EXPECT_CALL(*disk, Initialize(Ref(handler))).WillOnce(Return());
+    handler.Initialize(observer);
 
     std::vector<StorageRecord> firstBatch;
     std::vector<StorageRecord> secondBatch;
@@ -361,11 +386,12 @@ TEST(OfflineStorageHandlerFlushTests, BatchedFlushLimitsEachDiskWrite)
     EXPECT_CALL(*memory, GetSize())
         .WillOnce(Return(static_cast<size_t>(4005)))
         .WillOnce(Return(static_cast<size_t>(0)));
+    EXPECT_CALL(*memory, GetRecordCount(EventLatency_Unspecified))
+        .WillOnce(Return(static_cast<size_t>(4005)));
     EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
         .WillOnce(Return(firstBatch))
         .WillOnce(Return(secondBatch))
-        .WillOnce(Return(finalBatch))
-        .WillOnce(Return(std::vector<StorageRecord>{}));
+        .WillOnce(Return(finalBatch));
     EXPECT_CALL(*disk, StoreRecords(_))
         .WillOnce(Invoke([](std::vector<StorageRecord>& records) {
             EXPECT_EQ(records.size(), static_cast<size_t>(2000));
@@ -392,14 +418,15 @@ TEST(OfflineStorageHandlerFlushTests, FailedBatchRequeuesOnlyThatBatch)
     StrictMock<MockIOfflineStorageObserver> observer;
 
     config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
 
-    OfflineStorageHandler handler(logManager, config, dispatcher);
-    OfflineStorageHandlerTestPeer::SetObserver(handler, observer);
-
-    auto* memory = new StrictMock<MockIOfflineStorage>();
-    std::shared_ptr<StrictMock<MockIOfflineStorage>> disk(new StrictMock<MockIOfflineStorage>());
-    OfflineStorageHandlerTestPeer::SetMemoryStorage(handler, memory);
-    OfflineStorageHandlerTestPeer::SetDiskStorage(handler, disk);
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*memory, Initialize(Ref(handler))).WillOnce(Return());
+    EXPECT_CALL(*disk, Initialize(Ref(handler))).WillOnce(Return());
+    handler.Initialize(observer);
 
     std::vector<StorageRecord> firstBatch;
     std::vector<StorageRecord> failedBatch;
@@ -414,6 +441,8 @@ TEST(OfflineStorageHandlerFlushTests, FailedBatchRequeuesOnlyThatBatch)
     EXPECT_CALL(*memory, GetSize())
         .WillOnce(Return(static_cast<size_t>(4000)))
         .WillOnce(Return(static_cast<size_t>(4000)));
+    EXPECT_CALL(*memory, GetRecordCount(EventLatency_Unspecified))
+        .WillOnce(Return(static_cast<size_t>(4000)));
     EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
         .WillOnce(Return(firstBatch))
         .WillOnce(Return(failedBatch));
@@ -424,6 +453,43 @@ TEST(OfflineStorageHandlerFlushTests, FailedBatchRequeuesOnlyThatBatch)
         .WillOnce(Return(static_cast<size_t>(2000)))
         .WillOnce(Return(static_cast<size_t>(0)));
     EXPECT_CALL(observer, OnStorageRecordsSaved(2000));
+
+    handler.Flush();
+}
+
+TEST(OfflineStorageHandlerFlushTests, CustomStorageUsesPerRecordWrites)
+{
+    ConfigurableLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    logManager.config.AddModule(CFG_MODULE_OFFLINE_STORAGE, disk);
+
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*memory, Initialize(Ref(handler))).WillOnce(Return());
+    EXPECT_CALL(*disk, Initialize(Ref(handler))).WillOnce(Return());
+    handler.Initialize(observer);
+
+    std::vector<StorageRecord> records;
+    records.push_back(StorageRecord("custom-1", "tenant-token",
+        EventLatency_Normal, EventPersistence_Normal, 1, std::vector<uint8_t>{ 'x' }));
+    records.push_back(StorageRecord("custom-2", "tenant-token",
+        EventLatency_Normal, EventPersistence_Normal, 1, std::vector<uint8_t>{ 'y' }));
+
+    EXPECT_CALL(*memory, GetSize())
+        .WillOnce(Return(records.size()))
+        .WillOnce(Return(static_cast<size_t>(0)));
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 0))
+        .WillOnce(Return(records));
+    EXPECT_CALL(*disk, StoreRecords(_)).Times(0);
+    EXPECT_CALL(*disk, StoreRecord(_)).Times(2).WillRepeatedly(Return(true));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(records.size()));
 
     handler.Flush();
 }

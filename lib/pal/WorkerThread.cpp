@@ -9,6 +9,7 @@
 #include <exception>
 #include <system_error>
 #include <atomic>
+#include <limits>
 
 #if defined(MATSDK_PAL_CPP11) || defined(MATSDK_PAL_WIN32)
 
@@ -112,10 +113,12 @@ namespace PAL_NS_BEGIN {
                 }
             }
             catch (const std::system_error& e) {
+                (void)e;
                 LOG_ERROR("Thread join/detach failed: [%d] %s", e.code().value(), e.what());
                 std::terminate();
             }
             catch (const std::exception& e) {
+                (void)e;
                 LOG_ERROR("Thread join/detach failed: %s", e.what());
                 std::terminate();
             }
@@ -162,6 +165,7 @@ namespace PAL_NS_BEGIN {
                     }
                 }
                 catch (const std::exception& e) {
+                    (void)e;
                     LOG_ERROR("Worker self-detach failed: %s", e.what());
                 }
                 return false;
@@ -229,7 +233,17 @@ namespace PAL_NS_BEGIN {
                 /* Can't recursively wait on completion of our own thread */
                 if (m_workerId != std::this_thread::get_id())
                 {
-                    if (waitTime > 0 && m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime)))
+                    bool locked = false;
+                    if (waitTime == std::numeric_limits<uint64_t>::max())
+                    {
+                        m_execution_mutex.lock();
+                        locked = true;
+                    }
+                    else if (waitTime > 0)
+                    {
+                        locked = m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime));
+                    }
+                    if (locked)
                     {
                         m_itemInProgress.store(nullptr, std::memory_order_release);
                         m_execution_mutex.unlock();
@@ -358,6 +372,7 @@ namespace PAL_NS_BEGIN {
                             (*item)();
                         }
                         catch (const std::exception& ex) {
+                            (void)ex;
                             LOG_ERROR("Unhandled exception in worker task: %s", ex.what());
                         }
                         catch (...) {

@@ -8,6 +8,7 @@
 
 #include "OfflineStorageFactory.hpp"
 
+#include "offline/MemoryStorage.hpp"
 #ifdef USE_ROOM
 #include "offline/OfflineStorage_Room.hpp"
 #else
@@ -18,6 +19,25 @@
 
 namespace MAT_NS_BEGIN
 {
+    namespace
+    {
+        class DefaultOfflineStorageProvider final : public IOfflineStorageProvider
+        {
+        public:
+            std::shared_ptr<IOfflineStorage> CreateDiskStorage(
+                ILogManager& logManager, IRuntimeConfig& runtimeConfig) override
+            {
+                return OfflineStorageFactory::Create(logManager, runtimeConfig);
+            }
+
+            std::shared_ptr<IOfflineStorage> CreateMemoryStorage(
+                ILogManager& logManager, IRuntimeConfig& runtimeConfig) override
+            {
+                return std::make_shared<MemoryStorage>(logManager, runtimeConfig);
+            }
+        };
+    }
+
     std::shared_ptr<IOfflineStorage> OfflineStorageFactory::Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig)
     {
 #ifdef HAVE_MAT_STORAGE
@@ -40,6 +60,14 @@ namespace MAT_NS_BEGIN
         return nullptr;
 #endif //HAVE_MAT_STORAGE
     }
+
+    std::shared_ptr<IOfflineStorageProvider> OfflineStorageFactory::GetDefaultProvider()
+    {
+        // The default provider is stateless; sharing it avoids per-handler
+        // allocation while preserving a stable provider lifetime.
+        static std::shared_ptr<IOfflineStorageProvider> provider =
+            std::make_shared<DefaultOfflineStorageProvider>();
+        return provider;
+    }
 }
 MAT_NS_END
-

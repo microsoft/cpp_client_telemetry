@@ -201,6 +201,11 @@ namespace MAT_NS_BEGIN {
             m_runningLatency = latency;
             LOG_TRACE("SCHED upload %lld ms for lat=%d", static_cast<long long>(delay.count()), m_runningLatency);
             m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, static_cast<unsigned>(delay.count()), this, &TransmissionPolicyManager::uploadAsync, latency);
+            if (m_scheduledUpload.GetTask() == nullptr)
+            {
+                m_isUploadScheduled = false;
+                m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
+            }
         }
     }
 
@@ -311,7 +316,9 @@ namespace MAT_NS_BEGIN {
             m_scheduledUploadAborted = true;
         }
         // Make sure we wait for completion of the upload scheduling task that may be running
-        cancelUploadTask();
+        // The task callback contains a raw pointer to this manager. During
+        // teardown, wait without a deadline so the callback cannot outlive us.
+        cancelUploadTask(true);
 
         // Make sure we wait for all active upload callbacks to finish
         while (uploadCount() > 0)
@@ -501,12 +508,17 @@ namespace MAT_NS_BEGIN {
         return result;
     }
 
-    bool TransmissionPolicyManager::cancelUploadTask()
+    bool TransmissionPolicyManager::cancelUploadTask(bool waitForCompletion)
     {
-        auto waitTime = std::chrono::milliseconds{};
+        auto waitTime = waitForCompletion
+            ? std::chrono::milliseconds::max()
+            : std::chrono::milliseconds{};
         {
             LOCKGUARD(m_scheduledUploadMutex);
-            waitTime = getCancelWaitTime();
+            if (!waitForCompletion)
+            {
+                waitTime = getCancelWaitTime();
+            }
             if (waitTime.count() == 0)
             {
                 return cancelUploadTaskNoWaitLocked();
