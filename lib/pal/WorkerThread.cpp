@@ -248,6 +248,10 @@ namespace PAL_NS_BEGIN {
                     }
                     if (locked)
                     {
+                        // Prevent a dequeued but not-yet-started task from running.
+                        // The worker checks this marker after acquiring the same
+                        // execution mutex.
+                        m_itemInProgress.store(nullptr, std::memory_order_release);
                         m_execution_mutex.unlock();
                     }
                 }

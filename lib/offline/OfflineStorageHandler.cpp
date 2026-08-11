@@ -465,37 +465,57 @@ namespace MAT_NS_BEGIN {
         OnStorageFailed("Invalid parameters");
     }
 
-    size_t OfflineStorageHandler::StoreRecordsIndividually(std::vector<StorageRecord> const& records)
+    size_t OfflineStorageHandler::StoreRecordsIndividually(std::vector<StorageRecord>& records)
     {
         size_t totalSaved = 0;
         std::vector<StorageRecord> recordsToRetry;
+        size_t nextRecord = 0;
 
-        for (auto it = records.begin(); it != records.end(); ++it)
+        try
         {
-            if (!IsValidDiskStorageRecord(*it))
+            for (; nextRecord < records.size(); ++nextRecord)
             {
-                ReportInvalidDiskRecord(*it);
-                continue;
-            }
-
-            if (m_offlineStorageDisk->StoreRecord(*it))
-            {
-                ++totalSaved;
-                continue;
-            }
-
-            for (auto retryIt = it; retryIt != records.end(); ++retryIt)
-            {
-                if (IsValidDiskStorageRecord(*retryIt))
+                auto const& record = records[nextRecord];
+                if (!IsValidDiskStorageRecord(record))
                 {
-                    recordsToRetry.push_back(*retryIt);
+                    ReportInvalidDiskRecord(record);
+                    continue;
                 }
-                else
+
+                if (m_offlineStorageDisk->StoreRecord(record))
                 {
-                    ReportInvalidDiskRecord(*retryIt);
+                    ++totalSaved;
+                    continue;
+                }
+
+                for (size_t retryIndex = nextRecord; retryIndex < records.size(); ++retryIndex)
+                {
+                    auto const& retryRecord = records[retryIndex];
+                    if (IsValidDiskStorageRecord(retryRecord))
+                    {
+                        recordsToRetry.push_back(retryRecord);
+                    }
+                    else
+                    {
+                        ReportInvalidDiskRecord(retryRecord);
+                    }
+                }
+                break;
+            }
+        }
+        catch (...)
+        {
+            recordsToRetry.clear();
+            for (size_t retryIndex = nextRecord; retryIndex < records.size(); ++retryIndex)
+            {
+                if (IsValidDiskStorageRecord(records[retryIndex]))
+                {
+                    recordsToRetry.push_back(records[retryIndex]);
                 }
             }
-            break;
+            records.clear();
+            ReturnRecordsToMemory(recordsToRetry);
+            throw;
         }
 
         if (!recordsToRetry.empty())
