@@ -327,9 +327,9 @@ public:
                 goto cleanup;
             }
         } else {
-            if (!SetOption(CURLOPT_WRITEFUNCTION, &WriteVectorCallback) ||
-                !SetOption(CURLOPT_HEADERFUNCTION, &WriteVectorCallback) ||
+            if (!SetOption(CURLOPT_HEADERFUNCTION, &WriteVectorCallback) ||
                 !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders)) ||
+                !SetOption(CURLOPT_WRITEFUNCTION, &WriteVectorCallback) ||
                 !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&respBody)))
             {
                 DispatchEvent(OnSendFailed);
