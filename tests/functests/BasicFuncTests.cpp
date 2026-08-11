@@ -128,6 +128,7 @@ class BasicFuncTests : public ::testing::Test,
 protected:
     std::mutex                       mtx_requests;
     std::vector<HttpServer::Request> receivedRequests;
+    std::string serverBaseAddress;
     std::string serverAddress;
     HttpServer server;
 
@@ -155,7 +156,8 @@ public:
         int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
         os << "127.0.0.1:" << port;
-        serverAddress = "http://" + os.str() + "/simple/";
+        serverBaseAddress = "http://" + os.str();
+        serverAddress = serverBaseAddress + "/simple/";
         server.setServerName(os.str());
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
@@ -606,16 +608,7 @@ TEST_F(BasicFuncTests, teardownDuringInFlightUpload_ShutsDownCleanly)
 
     // Point Initialize() at the (slow) endpoint so uploads stay in flight.
     std::string savedAddress = serverAddress;
-    size_t pos = serverAddress.rfind("/simple/");
-    // Assert the rewrite actually happens: if the base URL format ever changes and
-    // no longer contains "/simple/", uploads would hit the normal endpoint and the
-    // in-flight teardown scenario would not be exercised, yet the test would still
-    // pass. Fail loudly instead so the regression coverage can't silently lapse.
-    ASSERT_NE(pos, std::string::npos)
-        << "serverAddress '" << serverAddress << "' does not contain '/simple/'; "
-        << "the /slow/ rewrite would be a no-op and this test would not exercise "
-        << "teardown during an in-flight upload.";
-    serverAddress.replace(pos, std::string("/simple/").size(), "/slow/");
+    serverAddress = serverBaseAddress + "/slow/";
     Initialize(0);
     serverAddress = savedAddress;
 

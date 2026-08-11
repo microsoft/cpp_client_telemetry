@@ -197,10 +197,9 @@ namespace PAL_NS_BEGIN {
 
         // Cancel a task or wait for task completion for up to waitTime ms:
         //
-        // - acquire the m_lock to prevent a new task from getting scheduled.
-        //   This may block the scheduling of a new task in queue for up to
-        //   waitTime in case if the task being canceled
-        //   is the one being executed right now.
+        // - acquire m_lock to inspect the current task or remove a queued task.
+        //   Do not hold it while waiting for an active task to finish, because
+        //   the active task may need to queue follow-up work.
         //
         // - if currently executing task is the one we are trying to cancel,
         //   then verify for recursion: if the current thread is the same
@@ -222,7 +221,7 @@ namespace PAL_NS_BEGIN {
         //
         bool Cancel(MAT::Task* item, uint64_t waitTime) override
         {
-            LOCKGUARD(m_lock);
+            std::unique_lock<std::recursive_mutex> lock(m_lock);
             if (item == nullptr)
             {
                 return false;
@@ -233,6 +232,10 @@ namespace PAL_NS_BEGIN {
                 /* Can't recursively wait on completion of our own thread */
                 if (m_workerId != std::this_thread::get_id())
                 {
+                    // Do not hold m_lock while waiting for the worker. A task
+                    // may queue follow-up work before it finishes, which needs
+                    // the same lock.
+                    lock.unlock();
                     bool locked = false;
                     if (waitTime == std::numeric_limits<uint64_t>::max())
                     {
@@ -245,7 +248,6 @@ namespace PAL_NS_BEGIN {
                     }
                     if (locked)
                     {
-                        m_itemInProgress.store(nullptr, std::memory_order_release);
                         m_execution_mutex.unlock();
                     }
                 }

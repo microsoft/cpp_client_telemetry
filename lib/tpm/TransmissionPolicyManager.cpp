@@ -510,21 +510,21 @@ namespace MAT_NS_BEGIN {
 
     bool TransmissionPolicyManager::cancelUploadTask(bool waitForCompletion)
     {
-        auto waitTime = waitForCompletion
-            ? std::chrono::milliseconds::max()
-            : std::chrono::milliseconds{};
+        uint64_t waitTime = waitForCompletion
+            ? std::numeric_limits<uint64_t>::max()
+            : 0;
         {
             LOCKGUARD(m_scheduledUploadMutex);
             if (!waitForCompletion)
             {
-                waitTime = getCancelWaitTime();
+                waitTime = static_cast<uint64_t>(getCancelWaitTime().count());
             }
-            if (waitTime.count() == 0)
+            if (waitTime == 0)
             {
                 return cancelUploadTaskNoWaitLocked();
             }
         }
-        bool result = m_scheduledUpload.Cancel(waitTime.count());
+        bool result = m_scheduledUpload.Cancel(waitTime);
 
         // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
         //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to

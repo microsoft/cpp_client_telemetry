@@ -105,8 +105,6 @@ public:
 
     bool Cancel(Task* task, uint64_t waitTime = 0) override
     {
-        UNREFERENCED_PARAMETER(waitTime);
-
         {
             std::lock_guard<std::mutex> lock(m_tasksMutex);
             auto it = std::find(m_tasks.begin(), m_tasks.end(), task);
@@ -120,6 +118,7 @@ public:
 
         {
             std::lock_guard<std::mutex> lock(m_cancelMutex);
+            m_waitTime = waitTime;
             m_cancelEntered = true;
         }
         m_cancelEnteredCv.notify_all();
@@ -144,6 +143,12 @@ public:
         m_cancelReleasedCv.notify_all();
     }
 
+    uint64_t WaitTime()
+    {
+        std::lock_guard<std::mutex> lock(m_cancelMutex);
+        return m_waitTime;
+    }
+
 private:
     std::mutex m_tasksMutex;
     std::vector<Task*> m_tasks;
@@ -151,6 +156,7 @@ private:
     std::mutex m_cancelMutex;
     std::condition_variable m_cancelEnteredCv;
     std::condition_variable m_cancelReleasedCv;
+    uint64_t m_waitTime = 0;
     bool m_cancelEntered = false;
     bool m_cancelReleased = false;
 };
@@ -759,6 +765,29 @@ TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_ScheduledUpload_IsUpload
     tpm.m_isUploadScheduled = true;
     tpm.cancelUploadTask();
     ASSERT_FALSE(tpm.m_isUploadScheduled);
+}
+
+TEST_F(TransmissionPolicyManagerTests, cancelUploadTask_WaitForCompletionUsesInfiniteSentinel)
+{
+    BlockingCancelTaskDispatcher dispatcher;
+    TransmissionPolicyManager4Test blockingTpm(testing::getSystem(), dispatcher, &bandwidthControllerMock);
+    blockingTpm.paused(false);
+    blockingTpm.scheduleUploadParent(std::chrono::milliseconds{ 1000 }, EventLatency_Normal, false);
+
+    auto cancel = std::async(std::launch::async, [&blockingTpm]() {
+        return blockingTpm.cancelUploadTask(true);
+    });
+
+    if (!dispatcher.WaitForCancel(std::chrono::milliseconds{ 250 }))
+    {
+        dispatcher.ReleaseCancel();
+        cancel.get();
+        FAIL() << "Timed out waiting for cancel to block";
+    }
+
+    EXPECT_EQ(dispatcher.WaitTime(), std::numeric_limits<uint64_t>::max());
+    dispatcher.ReleaseCancel();
+    EXPECT_TRUE(cancel.get());
 }
 
 TEST_F(TransmissionPolicyManagerTests, ForceScheduleRetainsImmediateUploadWhenCancelBlocks)
