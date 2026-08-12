@@ -179,23 +179,88 @@ namespace SocketTools {
     void Reactor::onThread()
     {
         LOG_INFO("Reactor: Thread started");
+#ifdef _WIN32
+        size_t nextEventChunk = 0;
+#endif
         while(!shouldTerminate())
         {
 #ifdef _WIN32
-            DWORD dwResult = ::WSAWaitForMultipleEvents(static_cast<DWORD>(m_events.size()), m_events.data(), FALSE, 500, FALSE);
+            if (m_events.empty())
+            {
+                ::Sleep(10);
+                continue;
+            }
+
+            const size_t maxEvents = WSA_MAXIMUM_WAIT_EVENTS;
+            const size_t chunkCount = (m_events.size() + maxEvents - 1) / maxEvents;
+            if (nextEventChunk >= chunkCount)
+            {
+                nextEventChunk = 0;
+            }
+
+            DWORD dwResult = WSA_WAIT_TIMEOUT;
+            size_t selectedChunkStart = 0;
+            bool waitFailed = false;
+            for (size_t offset = 0; offset < chunkCount; ++offset)
+            {
+                const size_t chunk = (nextEventChunk + offset) % chunkCount;
+                const size_t chunkStart = chunk * maxEvents;
+                const DWORD chunkSize = static_cast<DWORD>(
+                    std::min(maxEvents, m_events.size() - chunkStart));
+                dwResult = ::WSAWaitForMultipleEvents(
+                    chunkSize, m_events.data() + chunkStart, FALSE, 0, FALSE);
+                if (dwResult == WSA_WAIT_FAILED)
+                {
+                    LOG_ERROR("WSAWaitForMultipleEvents failed: %d", ::WSAGetLastError());
+                    waitFailed = true;
+                    continue;
+                }
+                if (dwResult != WSA_WAIT_TIMEOUT)
+                {
+                    selectedChunkStart = chunkStart;
+                    nextEventChunk = (chunk + 1) % chunkCount;
+                    break;
+                }
+            }
+
+            if (dwResult == WSA_WAIT_TIMEOUT)
+            {
+                const size_t chunkStart = nextEventChunk * maxEvents;
+                const DWORD chunkSize = static_cast<DWORD>(
+                    std::min(maxEvents, m_events.size() - chunkStart));
+                dwResult = ::WSAWaitForMultipleEvents(
+                    chunkSize, m_events.data() + chunkStart, FALSE, 50, FALSE);
+                selectedChunkStart = chunkStart;
+                nextEventChunk = (nextEventChunk + 1) % chunkCount;
+            }
+
             if (dwResult == WSA_WAIT_TIMEOUT)
             {
                 continue;
             }
+            if (dwResult == WSA_WAIT_FAILED)
+            {
+                LOG_ERROR("WSAWaitForMultipleEvents failed: %d", ::WSAGetLastError());
+                if (waitFailed)
+                {
+                    ::Sleep(10);
+                }
+                continue;
+            }
 
-            assert(dwResult <= WSA_WAIT_EVENT_0 + m_events.size());
-            int index = dwResult - WSA_WAIT_EVENT_0;
+            const size_t index = selectedChunkStart
+                + static_cast<size_t>(dwResult - WSA_WAIT_EVENT_0);
+            if (index >= m_events.size() || index >= m_sockets.size())
+            {
+                LOG_ERROR("WSAWaitForMultipleEvents returned invalid index %zu", index);
+                continue;
+            }
             Socket socket = m_sockets[index].socket;
             int flags = m_sockets[index].flags;
 
             WSANETWORKEVENTS ne;
             ::WSAEnumNetworkEvents(socket, m_events[index], &ne);
-            LOG_TRACE("Reactor: Handling socket 0x%x (index %d) with active flags 0x%x (armed 0x%x)",
+            LOG_TRACE("Reactor: Handling socket 0x%x (index %zu) with active flags 0x%x (armed 0x%x)",
                 static_cast<int>(socket), index, ne.lNetworkEvents, flags);
 
             if ((flags & Readable) && (ne.lNetworkEvents & FD_READ))
@@ -321,4 +386,3 @@ namespace SocketTools {
     };
 
 }
-

@@ -16,6 +16,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <memory>
+#include <mutex>
 
 namespace MAT_NS_BEGIN {
 
@@ -24,6 +25,7 @@ typedef void* HINTERNET;
 #endif
 
 class WinHttpRequestWrapper;
+struct WinHttpClientState;
 
 // WinHTTP-based HTTP client. Unlike WinInet, WinHTTP does not depend on a
 // logged-on interactive user or that user's Internet Explorer settings, so
@@ -51,15 +53,8 @@ class HttpClient_WinHttp : public IHttpClient, public IBoundedHttpClientCancel {
     bool IsMsRootCheckRequired();
 
   protected:
-    void erase(std::string const& id);
-
-  protected:
-    HINTERNET                                                        m_hSession;
-    std::recursive_mutex                                             m_requestsMutex;
-    std::condition_variable_any                                      m_requestsCv;
-    std::map<std::string, std::shared_ptr<WinHttpRequestWrapper>>    m_requests;
-    static unsigned                                                  s_nextRequestId;
-    std::atomic<bool>                                                m_msRootCheck;
+    std::shared_ptr<WinHttpClientState> m_state;
+    static unsigned                  s_nextRequestId;
     friend class WinHttpRequestWrapper;
 };
 

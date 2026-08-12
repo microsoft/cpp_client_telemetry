@@ -14,6 +14,7 @@
 #include "ILogManager.hpp"
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 
 namespace MAT_NS_BEGIN {
@@ -23,6 +24,7 @@ typedef void* HINTERNET;
 #endif
 
 class WinInetRequestWrapper;
+struct WinInetClientState;
 
 class HttpClient_WinInet : public IHttpClient, public IBoundedHttpClientCancel {
   public:
@@ -42,17 +44,8 @@ class HttpClient_WinInet : public IHttpClient, public IBoundedHttpClientCancel {
     bool IsMsRootCheckRequired();
 
   protected:
-    void erase(std::string const& id);
-
-  protected:
-    HINTERNET                                                        m_hInternet;
-    std::recursive_mutex                                             m_requestsMutex;
-    std::map<std::string, WinInetRequestWrapper*>                    m_requests;
-    // Signaled from erase() when a request is removed, so CancelAllRequests can drain
-    // via a condition variable instead of a poll loop (no 100% CPU spin).
-    std::condition_variable_any                                      m_requestsCV;
+    std::shared_ptr<WinInetClientState>                              m_state;
     static unsigned                                                  s_nextRequestId;
-    bool                                                             m_msRootCheck;
     friend class WinInetRequestWrapper;
 };
 

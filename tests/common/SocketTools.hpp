@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <thread>
+#include <atomic>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -409,7 +410,7 @@ class Thread
 {
  private:
     std::thread m_thread;
-    volatile bool m_terminate { false };
+    std::atomic<bool> m_terminate { false };
 
  protected:
     Thread()
@@ -437,7 +438,7 @@ class Thread
 
     bool shouldTerminate() const
     {
-        return m_terminate;
+        return m_terminate.load();
     }
 
     virtual void onThread() = 0;
@@ -465,5 +466,4 @@ struct SocketData
 
 }
 #endif
-
 

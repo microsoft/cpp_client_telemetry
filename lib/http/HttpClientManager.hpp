@@ -14,6 +14,8 @@
 #include <mutex>
 #include <chrono>
 #include <condition_variable>
+#include <map>
+#include <thread>
 
 namespace MAT_NS_BEGIN
 {
@@ -65,15 +67,15 @@ class HttpClientManager
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;
         ITaskDispatcher&          m_taskDispatcher;
-        mutable std::recursive_mutex m_httpCallbacksMtx;
+        mutable std::mutex           m_httpCallbacksMtx;
         std::list<HttpCallback*>  m_httpCallbacks;
+        std::map<HttpCallback*, std::thread::id> m_activeHttpCallbacks;
         // Signaled from onHttpResponse when a callback is removed, so cancelAllRequests
         // can drain via a condition variable instead of a poll loop.
-        std::condition_variable_any m_httpCallbacksCV;
-        // Upper bound on how long cancelAllRequests waits for callbacks to drain. A
-        // last-resort safety valve so a stalled dispatcher/HTTP stack can never make
-        // the drain spin or block forever. Adjustable so tests can
-        // exercise the timeout path without a long wait.
+        std::condition_variable      m_httpCallbacksCV;
+        // Upper bound on the best-effort pause drain. Full shutdown deliberately
+        // remains a lifetime barrier and waits for every accepted request's required
+        // terminal callback.
         std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::seconds(30)};
 };
 

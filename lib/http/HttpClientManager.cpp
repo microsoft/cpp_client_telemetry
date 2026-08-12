@@ -90,7 +90,20 @@ namespace MAT_NS_BEGIN {
 
     HttpClientManager::~HttpClientManager() noexcept
     {
-        cancelAllRequestsAsync();
+        // HttpCallback and scheduled response tasks retain a reference to this
+        // manager, so destruction must be a full callback lifetime barrier.
+        // Reentrant destruction is unsupported because the active callback
+        // itself must still unwind through this object.
+#ifndef NDEBUG
+        {
+            std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
+            for (auto const& active : m_activeHttpCallbacks)
+            {
+                assert(active.second != std::this_thread::get_id());
+            }
+        }
+#endif
+        cancelAllRequests();
     }
 
     void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
@@ -117,29 +130,41 @@ namespace MAT_NS_BEGIN {
     void HttpClientManager::onHttpResponse(HttpCallback* callback)
     {
         EventsUploadContextPtr &ctx = callback->m_ctx;
+
+#if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
+        // Response may be null if request got aborted
+        if (ctx->httpResponse != nullptr)
         {
-            LOCKGUARD(m_httpCallbacksMtx);
+            IHttpResponse const& response = (*ctx->httpResponse);
+            LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
+                response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
+        }
+#endif
+
+        {
+            std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
             auto z = std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback);
             if (z == m_httpCallbacks.end()) {
                 assert(false);
+                return;
             }
+            m_activeHttpCallbacks[callback] = std::this_thread::get_id();
+            m_httpCallbacksCV.notify_all();
+        }
 
-#if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
-            // Response may be null if request got aborted
-            if (ctx->httpResponse != nullptr)
-            {
-                IHttpResponse const& response = (*ctx->httpResponse);
-                LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
-                    response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
-            }
-#endif
+        // Downstream handling dispatches customer callbacks and must not run
+        // under the callback-list mutex. Reentrant cancellation recognizes this
+        // callback as active and does not wait for its own stack to unwind.
+        requestDone(ctx);
+        // request done should be handled by now
 
-            requestDone(ctx);
-            // request done should be handled by now
-
+        {
+            std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
             LOG_TRACE("HTTP remove callback=%p", callback);
             m_httpCallbacks.remove(callback);
-            // Wake cancelAllRequests() waiting for the list to drain.
+            m_activeHttpCallbacks.erase(callback);
+            // Wake cancelAllRequests() waiting for the list to drain while the
+            // condition variable is still guaranteed to be alive.
             m_httpCallbacksCV.notify_all();
         }
 
@@ -204,7 +229,22 @@ namespace MAT_NS_BEGIN {
         cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
 
         // Drain callbacks through the condition variable signaled by onHttpResponse.
-        std::unique_lock<std::recursive_mutex> lock(m_httpCallbacksMtx);
+        std::unique_lock<std::mutex> lock(m_httpCallbacksMtx);
+        std::thread::id const callerThread = std::this_thread::get_id();
+        auto callbacksDrainedForCaller = [this, callerThread] {
+            for (auto const& active : m_activeHttpCallbacks)
+            {
+                if (active.second == callerThread)
+                {
+                    // A completion running on a single-thread dispatcher cannot
+                    // wait for peer completions queued behind itself. Returning
+                    // from reentrant cancellation lets this callback unwind and
+                    // the dispatcher drain the remaining work.
+                    return true;
+                }
+            }
+            return m_httpCallbacks.empty();
+        };
         if (bestEffort)
         {
             // Keep pause bounded, including time spent in the transport cancel.
@@ -212,8 +252,8 @@ namespace MAT_NS_BEGIN {
                 std::chrono::steady_clock::now() - cancelStart);
             const auto remaining = (elapsed < m_cancelDrainTimeout)
                 ? (m_cancelDrainTimeout - elapsed) : std::chrono::milliseconds::zero();
-            if (!m_httpCallbacksCV.wait_for(lock, remaining,
-                    [this] { return m_httpCallbacks.empty(); }))
+            if (!m_httpCallbacksCV.wait_for(
+                    lock, remaining, callbacksDrainedForCaller))
             {
                 LOG_WARN("cancelAllRequests: %zu callback(s) still draining after %lld ms (best-effort)",
                          m_httpCallbacks.size(), static_cast<long long>(m_cancelDrainTimeout.count()));
@@ -222,7 +262,7 @@ namespace MAT_NS_BEGIN {
         else
         {
             // Shutdown/cleanup is the lifetime barrier for callback state, so drain fully.
-            m_httpCallbacksCV.wait(lock, [this] { return m_httpCallbacks.empty(); });
+            m_httpCallbacksCV.wait(lock, callbacksDrainedForCaller);
         }
     }
 
