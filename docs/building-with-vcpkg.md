@@ -220,18 +220,22 @@ On Linux, libcurl is provided by the default `curl-openssl` feature;
 `curl-mbedtls` swaps in the mbedTLS backend — see
 [Choose the Linux HTTP client / TLS backend](#choose-the-linux-http-client--tls-backend-largest-lever-on-linux).
 
-Windows and macOS/iOS use platform-native HTTP clients (WinInet and
+Windows and macOS/iOS use platform-native HTTP clients (WinHTTP and
 NSURLSession respectively). Android defaults to the platform Java/JNI HTTP
 bridge; native curl is available only through explicit `android-curl-*` features.
 
 > **Note (Windows):** The port targets the MSVC/`WIN32` PAL on Windows, which
-> uses WinInet, so the default `curl` dependency is declared for Linux only
+> uses WinHTTP, so the default `curl` dependency is declared for Linux only
 > (Android has separate explicit `android-curl-*` features). A MinGW /
 > non-MSVC Windows triplet — or forcing `-DPAL_IMPLEMENTATION=CPP11` on Windows —
 > selects the curl HTTP client, which the port does not provision on Windows
 > (broadening `curl` to `windows` would pull an unused curl into every MSVC
 > build, since vcpkg platform expressions can't key off the PAL). Use a standard
 > MSVC triplet such as `x64-windows-static` for Windows vcpkg builds.
+>
+> Consumers that require WinInet's IE-integrated proxy or cookie behavior can
+> opt in with the `wininet` feature, for example
+> `"features": ["wininet", "system-sqlite"]`.
 
 ## Optional: SIMD-Optimized zlib with zlib-ng
 
@@ -303,7 +307,7 @@ export table pins its symbols and defeats `/OPT:REF`.
 ### Choose the Linux HTTP client / TLS backend (largest lever on Linux)
 
 On Linux the built-in HTTP client is libcurl, and curl's TLS backend dominates
-the SDK's footprint. (Windows uses WinInet, Apple uses NSURLSession, and Android
+the SDK's footprint. (Windows uses WinHTTP by default, Apple uses NSURLSession, and Android
 uses the Java/JNI bridge by default, so this section does not apply there.) The
 port exposes the Linux TLS backend as two mutually-exclusive features; pick the
 one that matches what your application already has:

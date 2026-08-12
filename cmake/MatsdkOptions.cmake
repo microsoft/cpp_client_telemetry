@@ -113,10 +113,26 @@ option(LINK_STATIC_DEPENDS
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
+set(_matsdk_sqlite_provider_predefined OFF)
+if(DEFINED MATSDK_SQLITE_PROVIDER)
+  set(_matsdk_sqlite_provider_predefined ON)
+endif()
 set(MATSDK_SQLITE_PROVIDER "AUTO" CACHE STRING
   "SQLite dependency provider: AUTO, SYSTEM, MINIMAL, VENDORED, or NONE")
 set_property(CACHE MATSDK_SQLITE_PROVIDER PROPERTY STRINGS
   AUTO SYSTEM MINIMAL VENDORED NONE)
+if(DEFINED MATSDK_MINIMAL_SQLITE AND MATSDK_MINIMAL_SQLITE)
+  if(NOT _matsdk_sqlite_provider_predefined
+     OR MATSDK_SQLITE_PROVIDER STREQUAL "AUTO")
+    set(MATSDK_SQLITE_PROVIDER "MINIMAL" CACHE STRING
+      "SQLite dependency provider: AUTO, SYSTEM, MINIMAL, VENDORED, or NONE" FORCE)
+  elseif(NOT MATSDK_SQLITE_PROVIDER STREQUAL "MINIMAL")
+    message(DEPRECATION
+      "MATSDK_MINIMAL_SQLITE is deprecated and conflicts with "
+      "MATSDK_SQLITE_PROVIDER=${MATSDK_SQLITE_PROVIDER}; "
+      "MATSDK_SQLITE_PROVIDER takes precedence.")
+  endif()
+endif()
 set(MATSDK_ZLIB_PROVIDER "AUTO" CACHE STRING
   "zlib dependency provider: AUTO, SYSTEM, or VENDORED")
 set_property(CACHE MATSDK_ZLIB_PROVIDER PROPERTY STRINGS AUTO SYSTEM VENDORED)
