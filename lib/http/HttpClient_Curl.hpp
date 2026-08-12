@@ -85,8 +85,6 @@ public:
     }
 
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
-    bool m_optionFailure { false };
-
     /**
      * Create local CURL instance for url and body
      *
@@ -114,10 +112,8 @@ public:
             std::string method,
             std::string url,
             IHttpResponseCallback* callback,
-            // requestHeaders is copied into the curl_slist during construction and
-            // need not outlive this operation. requestBody is stored by reference;
-            // CurlHttpRequest destroys this operation (which joins the worker) before
-            // destroying its inherited request-body storage.
+            // requestHeaders and requestBody are copied into operation-owned storage
+            // so the worker does not depend on the caller retaining the request.
             const std::map<std::string, std::string>& requestHeaders,
             const std::vector<uint8_t>& requestBody,
             // Default connectivity and response size options
@@ -137,7 +133,7 @@ public:
             m_sslCaInfo(sslCaInfo),
 
             // Local vars
-            requestBody(requestBody)
+            m_requestBody(requestBody)
     {
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
@@ -148,7 +144,8 @@ public:
         if(!curl)
         {
             TRACE("libcurl failed to init!\n");
-            res = CURLE_FAILED_INIT;
+            m_transportError = CURLE_FAILED_INIT;
+            m_setupError = CURLE_FAILED_INIT;
             DispatchEvent(OnCreateFailed);
             return;
         }
@@ -174,8 +171,8 @@ public:
             curl_slist* appendedHeaders = curl_slist_append(m_headersChunk, header.c_str());
             if (appendedHeaders == nullptr)
             {
-                res = CURLE_OUT_OF_MEMORY;
-                m_optionFailure = true;
+                m_transportError = CURLE_OUT_OF_MEMORY;
+                m_setupError = CURLE_OUT_OF_MEMORY;
                 DispatchEvent(OnCreateFailed);
                 return;
             }
@@ -213,7 +210,7 @@ public:
         }
 
         DispatchDestroyEvent();
-        res = CURLE_OK;
+        m_transportError = CURLE_OK;
         if (curl != nullptr)
         {
             curl_easy_cleanup(curl);
@@ -228,24 +225,24 @@ public:
     /**
      * Send request synchronously
      */
-    long Send()
+    void Send()
     {
         TRACE("method=%s\n", this->m_method.c_str());
 
         ReleaseResponse();
         // Request buffer
-        const void *request  = requestBody.empty() ? nullptr : requestBody.data();
-        const size_t reqSize = requestBody.size();
+        const void *request  = m_requestBody.empty() ? nullptr : m_requestBody.data();
+        const size_t reqSize = m_requestBody.size();
         long httpStatusCode = 0;
         CURLcode infoResult = CURLE_OK;
 
         if(!curl)
         {
-            res = CURLE_FAILED_INIT;
+            m_transportError = CURLE_FAILED_INIT;
             DispatchEvent(OnSendFailed);
             goto cleanup;
         }
-        if (m_optionFailure)
+        if (m_setupError != CURLE_OK)
         {
             DispatchEvent(OnSendFailed);
             goto cleanup;
@@ -261,11 +258,11 @@ public:
             goto cleanup;
         }
         DispatchEvent(OnConnecting);
-        res = curl_easy_perform(curl);
-        if(CURLE_OK != res)
+        m_transportError = curl_easy_perform(curl);
+        if(CURLE_OK != m_transportError)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 1
-            TRACE("Error #1: %s\n", curl_easy_strerror(res));
+            TRACE("Error #1: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
 
@@ -275,25 +272,25 @@ public:
          */
 
 #if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
-        res = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
+        m_transportError = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
 #else
         long lastSocket = -1;
-        res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
-        if (res == CURLE_OK)
+        m_transportError = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
+        if (m_transportError == CURLE_OK)
         {
             sockextr = static_cast<curl_socket_t>(lastSocket);
         }
 #endif
 
-        if(CURLE_OK != res)
+        if(CURLE_OK != m_transportError)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
-            TRACE("Error #2: %s\n", curl_easy_strerror(res));
+            TRACE("Error #2: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
         if (sockextr == CURL_SOCKET_BAD)
         {
-            res = CURLE_FAILED_INIT;
+            m_transportError = CURLE_FAILED_INIT;
             DispatchEvent(OnConnectFailed);     // couldn't connect - no socket
             TRACE("Error #2: curl returned an invalid socket\n");
             goto cleanup;
@@ -304,7 +301,7 @@ public:
         if (WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) <= 0 || isAborted)
         {
             TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
-            res = CURLE_OPERATION_TIMEDOUT;
+            m_transportError = CURLE_OPERATION_TIMEDOUT;
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 3
             goto cleanup;
         }
@@ -355,7 +352,7 @@ public:
         } else
         {
             TRACE("Error #4: unsupported method %s\n", m_method.c_str());
-            res = CURLE_UNSUPPORTED_PROTOCOL;
+            m_transportError = CURLE_UNSUPPORTED_PROTOCOL;
             goto cleanup;
         }
 
@@ -366,11 +363,11 @@ public:
             goto cleanup;
         }
         DispatchEvent(OnSending);
-        res = curl_easy_perform(curl);
-        if(CURLE_OK != res)
+        m_transportError = curl_easy_perform(curl);
+        if(CURLE_OK != m_transportError)
         {
             DispatchEvent(OnSendFailed);
-            TRACE("Error: %s\n", curl_easy_strerror(res));
+            TRACE("Error: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
 
@@ -389,23 +386,18 @@ public:
         infoResult = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpStatusCode);
         if (infoResult != CURLE_OK)
         {
-            res = infoResult;
+            m_transportError = infoResult;
             DispatchEvent(OnSendFailed);
-            TRACE("Error getting HTTP response code: %s\n", curl_easy_strerror(res));
+            TRACE("Error getting HTTP response code: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
-        res = static_cast<CURLcode>(httpStatusCode);
+        m_httpStatusCode = httpStatusCode;
         // We got some response from server. Dump the contents.
         TRACE("HTTP response code %ld\n", httpStatusCode);
         DispatchEvent(OnResponse);
 
 cleanup:
-
-        // This function returns:
-        // - on success: HTTP status code.
-        // - on failure: CURL error code.
-        // The two sets of enums (CURLE, HTTP codes) - do not intersect, so we collapse them in one set.
-        return res;
+        return;
     }
 
     void SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
@@ -434,7 +426,8 @@ cleanup:
                     {
                         // std::async stored worker exceptions in its unobserved
                         // future. A raw thread must contain them.
-                        res = CURLE_FAILED_INIT;
+                        m_transportError = CURLE_FAILED_INIT;
+                        m_setupError = CURLE_FAILED_INIT;
                     }
                     Complete(callback);
                 });
@@ -446,16 +439,19 @@ cleanup:
             }
         }
 
-        res = CURLE_FAILED_INIT;
+        m_transportError = CURLE_FAILED_INIT;
+        m_setupError = CURLE_FAILED_INIT;
         Complete(callback);
     }
 
-    /**
-     * Get HTTP response code. This function returns CURL error code if HTTP response code is invalid.
-     */
-    long GetResponseCode()
+    CURLcode GetTransportError() const
     {
-        return res;
+        return m_transportError;
+    }
+
+    long GetHttpStatusCode() const
+    {
+        return m_httpStatusCode;
     }
 
     /**
@@ -466,9 +462,9 @@ cleanup:
         return isAborted.load();
     }
 
-    bool HasOptionFailure() const
+    CURLcode GetSetupError() const
     {
-        return m_optionFailure;
+        return m_setupError;
     }
 
     /**
@@ -564,7 +560,9 @@ protected:
     const size_t httpConnTimeout;   // Timeout for connect.  Default: 5s
 
     CURL *curl;                     // Local curl instance
-    CURLcode res = CURLE_OK;        // Curl result OR HTTP status code if successful
+    CURLcode m_transportError = CURLE_OK;
+    CURLcode m_setupError = CURLE_OK;
+    long m_httpStatusCode = 0;
 
     IHttpResponseCallback* m_callback = nullptr;
 
@@ -572,9 +570,8 @@ protected:
     std::string m_method;
     std::string m_url;
     std::string m_sslCaInfo;
-    // The owning CurlHttpRequest destroys this operation before its inherited
-    // request-body storage, and cross-thread destruction joins the worker.
-    const std::vector<uint8_t>& requestBody;
+    // Own the payload so operation lifetime is independent of CurlHttpRequest.
+    std::vector<uint8_t> m_requestBody;
     struct curl_slist *m_headersChunk = nullptr;
 
     // Processed response headers and body
@@ -597,9 +594,7 @@ protected:
 
     void DispatchDestroyEvent() noexcept
     {
-        bool expected = false;
-        if (m_destroyEventDispatched.compare_exchange_strong(
-                expected, true, std::memory_order_acq_rel))
+        if (!m_destroyEventDispatched.exchange(true, std::memory_order_acq_rel))
         {
             try
             {
@@ -636,8 +631,8 @@ protected:
     {
         if (curl == nullptr)
         {
-            res = CURLE_FAILED_INIT;
-            m_optionFailure = true;
+            m_transportError = CURLE_FAILED_INIT;
+            m_setupError = CURLE_FAILED_INIT;
             return false;
         }
 
@@ -648,8 +643,8 @@ protected:
         }
 
         LOG_WARN("curl_easy_setopt(%d) failed: %s", static_cast<int>(option), curl_easy_strerror(optionResult));
-        res = optionResult;
-        m_optionFailure = true;
+        m_transportError = optionResult;
+        m_setupError = optionResult;
         return false;
     }
 

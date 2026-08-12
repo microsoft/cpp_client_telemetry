@@ -11,6 +11,7 @@
 #include "ctmacros.hpp"
 
 #include <memory>
+#include <exception>
 
 #include "utils/Utils.hpp"
 #include "HttpClient_Curl.hpp"
@@ -66,7 +67,6 @@ namespace MAT_NS_BEGIN {
     void HttpClient_Curl::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
         // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
-        AddRequest(request);
         auto curlRequest = static_cast<CurlHttpRequest*>(request);
 
         std::string requestId = curlRequest->GetId();
@@ -81,19 +81,35 @@ namespace MAT_NS_BEGIN {
             sslCaInfo = m_sslCaInfo;
         }
 
-        auto curlOperation = std::make_shared<CurlHttpOperation>(curlRequest->m_method, curlRequest->m_url, callback, requestHeaders, curlRequest->m_body, false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
+        std::shared_ptr<CurlHttpOperation> curlOperation;
+        try
+        {
+            curlOperation = std::make_shared<CurlHttpOperation>(
+                curlRequest->m_method, curlRequest->m_url, callback, requestHeaders,
+                curlRequest->m_body, false, HTTP_CONN_TIMEOUT, m_sslVerify, sslCaInfo);
+        }
+        catch (const std::exception&)
+        {
+            auto response = std::unique_ptr<SimpleHttpResponse>(
+                new SimpleHttpResponse(requestId));
+            response->m_result = HttpResult_LocalFailure;
+            callback->OnHttpResponse(response.get());
+            response.release();
+            return;
+        }
         curlRequest->SetOperation(curlOperation);
+        AddRequest(request);
 
         curlOperation->SendAsync([this, callback, requestId](CurlHttpOperation& operation) {
             EraseRequest(requestId);
             auto response = std::unique_ptr<SimpleHttpResponse>(new SimpleHttpResponse(requestId));
             response->m_result = HttpResult_OK;
 
-            response->m_statusCode = operation.GetResponseCode();
-            if (operation.HasOptionFailure() || response->m_statusCode == CURLE_FAILED_INIT) {
-                // There was an error in CURL stack while trying to create request
+            response->m_statusCode = operation.GetHttpStatusCode();
+            if (operation.GetSetupError() != CURLE_OK) {
+                // There was an error configuring the CURL request.
                 response->m_result = HttpResult_LocalFailure;
-            } else if ((CURLE_OK < response->m_statusCode) && (response->m_statusCode <= CURL_LAST)) {
+            } else if (operation.GetTransportError() != CURLE_OK) {
                 if (operation.WasAborted()) {
                     // Operation was manually aborted
                     response->m_result = HttpResult_Aborted;

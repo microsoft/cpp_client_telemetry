@@ -114,7 +114,9 @@ TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
     (void)client; // Initialize curl globally before constructing the operation.
     CurlHttpOperation operation("GET", m_url, nullptr, requestHeaders, requestBody);
 
-    ASSERT_EQ(operation.Send(), 200L);
+    operation.Send();
+    ASSERT_EQ(operation.GetTransportError(), CURLE_OK);
+    ASSERT_EQ(operation.GetHttpStatusCode(), 200L);
     const auto responseHeaders = operation.GetResponseHeaders();
     const auto responseBody = operation.GetResponseBody();
 
@@ -251,7 +253,8 @@ TEST_F(HttpClientCurlTests, SendAsync_CallbackCopyFailureStillCompletes)
 
     EXPECT_NO_THROW(op.SendAsync(std::move(callback)));
     EXPECT_TRUE(callbackInvoked);
-    EXPECT_EQ(op.GetResponseCode(), CURLE_FAILED_INIT);
+    EXPECT_EQ(op.GetTransportError(), CURLE_FAILED_INIT);
+    EXPECT_EQ(op.GetSetupError(), CURLE_FAILED_INIT);
     EXPECT_THROW(op.SendAsync(), std::logic_error);
 }
 
