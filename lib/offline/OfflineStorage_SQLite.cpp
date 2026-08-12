@@ -152,7 +152,9 @@ namespace MAT_NS_BEGIN {
         // TODO: [MG] - this works, but may not play nicely with several LogManager instances
         // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
 
-        if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
+        if (record.id.empty() || record.tenantToken.empty()
+            || record.latency < EventLatency_Off || record.latency > EventLatency_Max
+            || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
             m_observer->OnStorageFailed("Invalid parameters");
@@ -1064,4 +1066,3 @@ namespace MAT_NS_BEGIN {
     
 } MAT_NS_END
 #endif
-
