@@ -6,8 +6,6 @@
 #include "mat/config.h"
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
-#pragma warning(push)
-#pragma warning(disable:4189)   /* Turn off Level 4: local variable is initialized but not referenced. dwError unused in Release without printing it. */
 #include "HttpClient_WinInet.hpp"
 #include "utils/StringUtils.hpp"
 
@@ -55,6 +53,9 @@ class WinInetRequestWrapper
         if (m_hWinInetRequest != nullptr)
         {
             ::InternetCloseHandle(m_hWinInetRequest);
+        }
+        if (m_hWinInetSession != nullptr)
+        {
             ::InternetCloseHandle(m_hWinInetSession);
         }
     }
@@ -187,6 +188,7 @@ class WinInetRequestWrapper
         if (!::InternetCrackUrlA(m_request->m_url.data(), (DWORD)m_request->m_url.size(), 0, &urlc))
         {
             DWORD dwError = ::GetLastError();
+            (void)dwError;
             LOG_WARN("InternetCrackUrl() failed: dwError=%d url=%s", dwError, m_request->m_url.data());
             // Invalid URL passed to WinInet API
             DispatchEvent(OnConnectFailed);
@@ -198,6 +200,7 @@ class WinInetRequestWrapper
             NULL, NULL, INTERNET_SERVICE_HTTP, 0, reinterpret_cast<DWORD_PTR>(this));
         if (m_hWinInetSession == NULL) {
             DWORD dwError = ::GetLastError();
+            (void)dwError;
             LOG_WARN("InternetConnect() failed: %d", dwError);
             // Cannot connect to host
             DispatchEvent(OnConnectFailed);
@@ -215,6 +218,7 @@ class WinInetRequestWrapper
             reinterpret_cast<DWORD_PTR>(this));
         if (m_hWinInetRequest == NULL) {
             DWORD dwError = ::GetLastError();
+            (void)dwError;
             LOG_WARN("HttpOpenRequest() failed: %d", dwError);
             // Request cannot be opened to given URL because of some connectivity issue
             DispatchEvent(OnConnectFailed);
@@ -244,6 +248,7 @@ class WinInetRequestWrapper
         if (!::HttpAddRequestHeadersA(m_hWinInetRequest, os.str().data(), static_cast<DWORD>(os.tellp()), HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE))
         {
             DWORD dwError = ::GetLastError();
+            (void)dwError;
             LOG_WARN("HttpAddRequestHeadersA() failed: %d", dwError);
             // Unable to add request headers. There's no point in proceeding with upload because
             // our server is expecting those custom request headers to always be there.
@@ -604,6 +609,5 @@ bool HttpClient_WinInet::IsMsRootCheckRequired()
 }
 
 } MAT_NS_END
-#pragma warning(pop)
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 // clang-format on

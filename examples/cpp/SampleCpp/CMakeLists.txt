@@ -6,8 +6,10 @@ project(SampleCpp)
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/MSTelemetrySample.cmake)
 
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O0 -ggdb -gdwarf-2 -std=c11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -gdwarf-2 -std=c++11")
+if(NOT MSVC)
+  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O0 -ggdb -gdwarf-2 -std=c11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -gdwarf-2 -std=c++11")
+endif()
 
 find_package (Threads)
 
@@ -30,4 +32,4 @@ endif()
 #target_link_libraries(SampleCpp ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} ${PLATFORM_LIBS} dl tcmalloc)
 
 # TODO: use add_library to allow linking against a proper exported SDK target
-target_link_libraries(SampleCpp ${MATSDK_LIBRARY} curl z ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} ${PLATFORM_LIBS} dl)
+target_link_libraries(SampleCpp ${MATSDK_LIBRARY} ${MATSDK_SAMPLE_DEPENDENCY_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${MATSDK_SQLITE3_LIB} ${MATSDK_SAMPLE_PLATFORM_LIBS} ${PLATFORM_LIBS})

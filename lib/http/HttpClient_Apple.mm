@@ -207,9 +207,11 @@ public:
             NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
             auto simpleResponse = new SimpleHttpResponse { NextRespId() };
 
-            simpleResponse->m_statusCode = static_cast<unsigned int>(httpResp.statusCode);
+            simpleResponse->m_statusCode = httpResp != nil
+                ? static_cast<unsigned int>(httpResp.statusCode)
+                : 0;
 
-            NSDictionary *responseHeaders = [httpResp allHeaderFields];
+            NSDictionary *responseHeaders = httpResp != nil ? [httpResp allHeaderFields] : nil;
             for (id key in responseHeaders)
             {
                 simpleResponse->m_headers.add([key UTF8String], [responseHeaders[key] UTF8String]);
@@ -299,7 +301,6 @@ void HttpClient_Apple::CancelRequestAsync(const std::string& id)
                 LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
                 request->Cancel();
             }
-            m_requests.erase(id);
         }
     }
 }
@@ -317,17 +318,6 @@ void HttpClient_Apple::CancelAllRequests()
     for (const auto &id : ids)
         CancelRequestAsync(id);
 
-    for (;;)
-    {
-        {
-            std::lock_guard<std::mutex> lock(m_requestsMtx);
-            if (m_requests.empty())
-            {
-                return;
-            }
-        }
-        PAL::sleep(100);
-    }
 }
 
 void HttpClient_Apple::Erase(IHttpRequest* req)

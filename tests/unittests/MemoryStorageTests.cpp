@@ -213,6 +213,24 @@ TEST_F(MemoryStorageTests, DeleteAllRecords)
     EXPECT_THAT(storage.GetReservedCount(), 0);
 }
 
+TEST_F(MemoryStorageTests, DeleteRecordsWithEmptyFilterDoesNotDeleteAll)
+{
+    MemoryStorage storage(testLogManager, *testConfig);
+
+    // Add some events to storage
+    auto total_db_size = addEvents(storage);
+    EXPECT_THAT(storage.GetSize(), total_db_size);
+    auto count_before = storage.GetRecordCount();
+    EXPECT_GT(count_before, static_cast<size_t>(0));
+
+    // An empty where-filter matches every record; it must NOT wipe the queue.
+    // Intentional full clears go through DeleteAllRecords().
+    storage.DeleteRecords(std::map<std::string, std::string>{});
+
+    EXPECT_THAT(storage.GetRecordCount(), count_before);
+    EXPECT_THAT(storage.GetSize(), total_db_size);
+}
+
 
 TEST_F(MemoryStorageTests, ReleaseRecords)
 {
@@ -262,18 +280,11 @@ TEST_F(MemoryStorageTests, GetAndReserveSome)
     storage.Initialize(testObserver);
     addEvents(storage);
     auto totalCount = storage.GetRecordCount();
-    constexpr size_t howMany = 32;
+    static constexpr size_t howMany = 32;
     std::vector<StorageRecord> someRecords;
 
-#if defined(__clang__)
-#pragma clang diagnostic push                              // This appears to be a detection bug with constexpr variables in Clang9
-#pragma clang diagnostic ignored "-Wunused-lambda-capture" // error : lambda capture 'howMany' is not required to be captured for this use[-Werror, -Wunused - lambda - capture]
-#elif defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 5258)  // warning C5258: explicit capture of 'howMany' is not required for this use
-#endif
     storage.GetAndReserveRecords(
-        [&someRecords, howMany] (StorageRecord && record)->bool
+        [&someRecords] (StorageRecord && record)->bool
         {
             if (someRecords.size() >= howMany) {
                 return false;
@@ -283,11 +294,6 @@ TEST_F(MemoryStorageTests, GetAndReserveSome)
         },
         EventLatency_Normal
     );
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 
     EXPECT_EQ(howMany, someRecords.size());
     EXPECT_EQ(howMany, storage.LastReadRecordCount());
@@ -377,4 +383,3 @@ TEST_F(MemoryStorageTests, MultiThreadPerfTest)
     EXPECT_THAT(storage.GetSize(), 0);
 
 }
-

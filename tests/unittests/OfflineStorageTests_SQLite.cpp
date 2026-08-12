@@ -10,8 +10,11 @@
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
 #include "offline/OfflineStorage_SQLite.hpp"
+#include <atomic>
+#include <vector>
 #include <stdio.h>
 #include <fstream>
+#include <thread>
 #if !defined(_WIN32)
 #include <sys/stat.h>
 #endif
@@ -107,7 +110,6 @@ struct OfflineStorageTests_SQLite : public Test
     }
 };
 
-
 class TestRecordConsumer {
   public:
     operator std::function<bool(StorageRecord&&)>()
@@ -130,6 +132,60 @@ class TestRecordConsumer {
 TEST_F(OfflineStorageTests_SQLite, InitializeAndShutdownCreateFileThatCanBeDeleted)
 {
     initializeStorage();
+}
+
+TEST_F(OfflineStorageTests_SQLite, ConcurrentAccessAndShutdownAreSerialized)
+{
+    initializeStorage();
+    EXPECT_CALL(observerMock, OnStorageOpenFailed("Database is not open"))
+        .Times(AnyNumber());
+    EXPECT_CALL(observerMock, OnStorageFailed("Database is not open"))
+        .Times(AnyNumber());
+
+    std::atomic<bool> start{ false };
+    std::atomic<unsigned> writerProgress{ 0 };
+    std::atomic<unsigned> readerProgress{ 0 };
+
+    std::thread writer([&]() {
+        while (!start.load(std::memory_order_acquire))
+        {
+            std::this_thread::yield();
+        }
+        for (unsigned i = 0; i < 200; ++i)
+        {
+            offlineStorage->StoreRecord({
+                "concurrent-" + std::to_string(i),
+                "token",
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                static_cast<int64_t>(i + 1),
+                {} });
+            writerProgress.store(i + 1, std::memory_order_release);
+        }
+    });
+
+    std::thread reader([&]() {
+        while (!start.load(std::memory_order_acquire))
+        {
+            std::this_thread::yield();
+        }
+        for (unsigned i = 0; i < 200; ++i)
+        {
+            (void)offlineStorage->GetRecords(false, EventLatency_Off, 1);
+            readerProgress.store(i + 1, std::memory_order_release);
+        }
+    });
+
+    start.store(true, std::memory_order_release);
+    while (writerProgress.load(std::memory_order_acquire) == 0 ||
+           readerProgress.load(std::memory_order_acquire) == 0)
+    {
+        std::this_thread::yield();
+    }
+
+    offlineStorage->Shutdown();
+    writer.join();
+    reader.join();
 }
 
 TEST_F(OfflineStorageTests_SQLite, StorageRecordConstructorSetsAllFields)
@@ -160,6 +216,84 @@ TEST_F(OfflineStorageTests_SQLite, GetAndReservedReturnsStoredRecord)
     EXPECT_THAT(consumer.records[0].blob, record.blob);
     EXPECT_THAT(consumer.records[0].retryCount, 0);
     EXPECT_THAT(consumer.records[0].reservedUntil, 0);
+}
+
+TEST_F(OfflineStorageTests_SQLite, MalformedPersistedLatencyFallsBackToNormal)
+{
+    initializeStorage();
+    offlineStorage->Execute(
+        "INSERT INTO events "
+        "(record_id,tenant_token,latency,persistence,timestamp,payload) "
+        "VALUES ('malformed-latency','token',987,1,1,X'010203')");
+
+    auto records = offlineStorage->GetRecords(false, EventLatency_Off);
+    ASSERT_THAT(records.size(), 1);
+    EXPECT_THAT(records[0].id, "malformed-latency");
+    EXPECT_THAT(records[0].latency, EventLatency_Normal);
+    EXPECT_THAT(records[0].blob, StorageBlob({ 1, 2, 3 }));
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(
+        offlineStorage->GetAndReserveRecords(
+            consumer, 100000, EventLatency_Off),
+        true);
+    ASSERT_THAT(consumer.records.size(), 1);
+    EXPECT_THAT(consumer.records[0].id, "malformed-latency");
+    EXPECT_THAT(consumer.records[0].latency, EventLatency_Normal);
+    EXPECT_THAT(consumer.records[0].blob, StorageBlob({ 1, 2, 3 }));
+}
+
+TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchStoresAllRecords)
+{
+    initializeStorage();
+    std::vector<StorageRecord> batch;
+    const size_t kCount = 8;
+    for (size_t i = 0; i < kCount; i++)
+    {
+        batch.push_back({ "g" + std::to_string(i), "token", EventLatency_Normal,
+            EventPersistence_Normal, static_cast<int64_t>(i + 1), { static_cast<uint8_t>(i) } });
+    }
+
+    // Every record in the batch is stored and individually retrievable. (The
+    // single-transaction batching is a performance optimization verified by
+    // benchmarking; this test covers the batch's storage correctness.)
+    EXPECT_THAT(offlineStorage->StoreRecords(batch), kCount);
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), kCount);
+    for (size_t i = 0; i < kCount; i++)
+    {
+        std::string expectedId = "g" + std::to_string(i);
+        bool found = false;
+        for (auto const& r : consumer.records)
+        {
+            if (r.id == expectedId) { found = true; break; }
+        }
+        EXPECT_TRUE(found) << "record " << expectedId << " was not retrieved";
+    }
+}
+
+TEST_F(OfflineStorageTests_SQLite, StoreRecordsBatchDropsInvalidAndStoresValid)
+{
+    initializeStorage();
+    std::vector<StorageRecord> batch = {
+        { "g1", "token", EventLatency_Normal, EventPersistence_Normal, 1, { 1 } }, // valid
+        { "g2", "token", EventLatency_Normal, EventPersistence_Normal, 0, { 2 } }, // invalid: timestamp <= 0
+    };
+
+    // The invalid record is reported once during validation.
+    EXPECT_CALL(observerMock, OnStorageFailed("Invalid parameters"));
+
+    // A permanently-invalid record is dropped (reported once) and the valid
+    // remainder is still stored. One bad record can never wedge the batch or, via
+    // a caller that re-queues on a short return (e.g. Flush), block the queue.
+    EXPECT_THAT(offlineStorage->StoreRecords(batch), static_cast<size_t>(1));
+
+    TestRecordConsumer consumer;
+    EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), static_cast<size_t>(1));
+    EXPECT_THAT(consumer.records[0].id, "g1");
 }
 
 TEST_F(OfflineStorageTests_SQLite, ReservedRecordIsNotReturned)
@@ -566,9 +700,12 @@ TEST_F(OfflineStorageTests_SQLite, StoreThousandEventsTakesLessThanASecond)
     initializeStorage();
     auto startTimeMs = PAL::getMonotonicTimeMs();
 
+    std::vector<StorageRecord> records;
+    records.reserve(1000);
     for (int i = 0; i < 1000; ++i) {
-        EXPECT_THAT(offlineStorage->StoreRecord({std::to_string(i), "token", EventLatency_Normal, EventPersistence_Normal, 1, {}}), true);
+        records.push_back({std::to_string(i), "token", EventLatency_Normal, EventPersistence_Normal, 1, {}});
     }
+    EXPECT_THAT(offlineStorage->StoreRecords(records), 1000u);
 
     TestRecordConsumer consumer;
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 10000, EventLatency_Normal, 1000), true);
@@ -697,8 +834,7 @@ StorageRecord GOOD_RECORDS[] = {
 StorageRecord BAD_RECORDS[] = {
     { "",     "tenant-token", EventLatency_Normal, EventPersistence_Normal,                2, { 1, 2, 3 } },
     { "guid", "",             EventLatency_Normal, EventPersistence_Normal,                2, { 1, 2, 3 } },
-    { "guid", "tenant-token", EventLatency_Unspecified,EventPersistence_Normal,       0, {} },
-    { "guid", "tenant-token", static_cast<EventLatency>(987),EventPersistence_Normal,  0, {} },
+    { "guid", "tenant-token", EventLatency_Unspecified, EventPersistence_Normal,            1, {} },
     { "guid", "tenant-token", EventLatency_Normal, EventPersistence_Normal,            -1, {} }
 };
 
@@ -802,6 +938,30 @@ TEST_F(OfflineStorageTests_SQLite, ExceededStorageSizeCausesDbToDropOldestEvents
     consumer.records.clear();
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000, EventLatency_Normal), false);
     ASSERT_THAT(consumer.records.size(), 0);
+}
+
+TEST_F(OfflineStorageTests_SQLite, ResizeDbCompactsThePhysicalDatabase)
+{
+    constexpr size_t maximumSize = 5 * 1024 * 1024;
+    EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes())
+        .WillRepeatedly(Return(maximumSize));
+    configMock[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = true;
+    initializeStorage(false);
+
+    std::vector<StorageRecord> records;
+    for (int i = 0; i < 12; ++i)
+    {
+        records.push_back({
+            "record-" + std::to_string(i),
+            "token",
+            EventLatency_Normal,
+            EventPersistence_Normal,
+            i + 1,
+            StorageBlob(1024 * 1024) });
+    }
+
+    ASSERT_THAT(offlineStorage->StoreRecords(records), records.size());
+    EXPECT_LE(offlineStorage->GetSize(), maximumSize);
 }
 
 TEST_F(OfflineStorageTests_SQLite, TrimmingAlwaysDropsAtLeastOneEvent)

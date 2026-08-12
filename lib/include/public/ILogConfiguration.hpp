@@ -155,6 +155,12 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_INT_RAM_QUEUE_BUFFERS = "maxDBFlushQueues";
 
     /// <summary>
+    /// Batch records when flushing the RAM queue to disk storage.
+    /// Set to false to use per-record disk stores during flush.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH = "enableBatchedStorageFlush";
+
+    /// <summary>
     /// SQLite DB will be checkpointed when flushing.
     /// </summary>
     static constexpr const char* const CFG_BOOL_CHECKPOINT_DB_ON_FLUSH = "checkpointDBOnFlush";
@@ -481,4 +487,3 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 #endif
-

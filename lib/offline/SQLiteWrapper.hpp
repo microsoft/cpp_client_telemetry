@@ -216,15 +216,30 @@ namespace MAT_NS_BEGIN {
     public:
         SqliteDB(bool skipInitAndShutdown,
                  std::mutex* initAndShutdownLock = nullptr,
-                 int* instanceCount = nullptr)
+                 int* instanceCount = nullptr,
+                 bool* ownsTempDirectory = nullptr)
             : m_db(nullptr),
               m_skipInitAndShutdown(skipInitAndShutdown),
               m_initAndShutdownLock(initAndShutdownLock),
-              m_instanceCount(instanceCount)
+              m_instanceCount(instanceCount),
+              m_ownsTempDirectory(ownsTempDirectory)
         {
         }
 
-        bool initialize(std::string const& filename, bool deletePrevious, size_t maxHeapLimit = 0)
+        ~SqliteDB()
+        {
+            // Finalize prepared statements and close the database even if
+            // shutdown() was not called explicitly (e.g. the owning storage was
+            // destroyed without Shutdown()). shutdown() is idempotent -- it
+            // returns immediately once m_db is null -- so an earlier explicit
+            // shutdown() makes this a no-op.
+            shutdown();
+        }
+
+        bool initialize(std::string const& filename,
+                        bool deletePrevious,
+                        size_t maxHeapLimit = 0,
+                        std::string const& tempDirectory = {})
         {
             int result = SQLITE_OK;
 
@@ -235,10 +250,33 @@ namespace MAT_NS_BEGIN {
                     if (*m_instanceCount > 0) {
                         *m_instanceCount += 1;
                     } else {
+                        // Android and WinRT may require an explicit temp directory.
+                        // Configure SQLite's process-global value once, before the
+                        // first SQLite initialization, and release it with the last
+                        // connection. Other platforms pass an empty directory and
+                        // use SQLite's native temp-directory selection.
+                        if (!tempDirectory.empty() && sqlite3_temp_directory == nullptr) {
+                            sqlite3_temp_directory = ::sqlite3_mprintf("%s", tempDirectory.c_str());
+                            if (sqlite3_temp_directory == nullptr) {
+                                result = SQLITE_NOMEM;
+                            } else if (m_ownsTempDirectory != nullptr) {
+                                *m_ownsTempDirectory = true;
+                            }
+                        }
+                    }
+                    if (result == SQLITE_OK && *m_instanceCount == 0) {
                         result = g_sqlite3Proxy->sqlite3_initialize();
                         if (result == SQLITE_OK) {
                             *m_instanceCount = 1;
                         }
+                    }
+                    if (result != SQLITE_OK &&
+                        m_ownsTempDirectory != nullptr &&
+                        *m_ownsTempDirectory) {
+                        ::sqlite3_free(sqlite3_temp_directory);
+                        sqlite3_temp_directory = nullptr;
+                        *m_ownsTempDirectory = false;
+                        g_sqlite3Proxy->sqlite3_shutdown();
                     }
                 } else {
                     result = g_sqlite3Proxy->sqlite3_initialize();
@@ -354,6 +392,11 @@ namespace MAT_NS_BEGIN {
                         *m_instanceCount -= 1;
                     } else if (*m_instanceCount == 1) {
                         *m_instanceCount = 0;
+                        if (m_ownsTempDirectory != nullptr && *m_ownsTempDirectory) {
+                            ::sqlite3_free(sqlite3_temp_directory);
+                            sqlite3_temp_directory = nullptr;
+                            *m_ownsTempDirectory = false;
+                        }
                         g_sqlite3Proxy->sqlite3_shutdown();
                     }
                 } else
@@ -490,6 +533,13 @@ namespace MAT_NS_BEGIN {
             return isOK(sqlite3_exec("COMMIT;"));
         }
 
+        /**
+        * @brief   Roll back (discard) the current DB transaction.
+        */
+        bool rollback() {
+            return isOK(sqlite3_exec("ROLLBACK;"));
+        }
+
         bool lock() {
 #ifndef NDEBUG
             unsigned count = 0;
@@ -564,6 +614,7 @@ namespace MAT_NS_BEGIN {
         bool                       m_skipInitAndShutdown;
         std::mutex*                m_initAndShutdownLock;
         int*                       m_instanceCount;
+        bool*                      m_ownsTempDirectory;
 
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
@@ -865,4 +916,3 @@ namespace MAT_NS_BEGIN {
 
 } MAT_NS_END
 #endif
-

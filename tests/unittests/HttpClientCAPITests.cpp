@@ -20,8 +20,9 @@ namespace
 
         virtual void OnHttpResponse(IHttpResponse* response) override
         {
+            std::unique_ptr<IHttpResponse> ownedResponse(response);
             if (m_validateFn)
-                m_validateFn(response);
+                m_validateFn(ownedResponse.get());
         }
 
     private:
@@ -35,8 +36,10 @@ namespace
         void SetSendValidation(std::function<void(http_request_t*)> fn) { m_validateSendFn = fn; }
         void SetCancelValidation(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
 
-        void OnSend(http_request_t* request)
+        void OnSend(http_request_t* request, http_complete_fn_t completeFn)
         {
+            m_requestId = request->id;
+            m_completeFn = completeFn;
             if (m_validateSendFn)
                 m_validateSendFn(request);
         }
@@ -45,11 +48,22 @@ namespace
         {
             if (m_validateCancelFn)
                 m_validateCancelFn(requestId);
+            Complete(HTTP_RESULT_CANCELLED, nullptr);
+        }
+
+        void Complete(http_result_t result, http_response_t* response)
+        {
+            auto completeFn = m_completeFn;
+            m_completeFn = nullptr;
+            if (completeFn != nullptr)
+                completeFn(m_requestId.c_str(), result, response);
         }
 
     private:
         std::function<void(http_request_t*)> m_validateSendFn;
         std::function<void(const char*)> m_validateCancelFn;
+        std::string m_requestId;
+        http_complete_fn_t m_completeFn = nullptr;
         bool m_shouldSend = false;
     };
 
@@ -77,7 +91,7 @@ namespace
 
 void EVTSDK_LIBABI_CDECL OnHttpSend(http_request_t* request, http_complete_fn_t callback)
 {
-    s_testHelper->OnSend(request);
+    s_testHelper->OnSend(request, callback);
 
     if (s_testHelper->ShouldSend())
     {
@@ -93,7 +107,7 @@ void EVTSDK_LIBABI_CDECL OnHttpSend(http_request_t* request, http_complete_fn_t 
         response.headers = &header;
         response.headersCount = 1;
 
-        callback(request->id, HTTP_RESULT_OK, &response);
+        s_testHelper->Complete(HTTP_RESULT_OK, &response);
     }
 }
 
@@ -108,7 +122,7 @@ TEST(HttpClientCAPITests, SendAsync)
 
     // Build request
     std::vector<uint8_t> body = {'a', 'b', 'c'};
-    auto request = httpClient.CreateRequest();
+    std::unique_ptr<IHttpRequest> request(httpClient.CreateRequest());
     request->SetUrl("https://www.microsoft.com");
     request->SetBody(body);
     request->SetMethod("POST");
@@ -150,7 +164,7 @@ TEST(HttpClientCAPITests, SendAsync)
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });
 
-    httpClient.SendRequestAsync(request, &responseCallback);
+    httpClient.SendRequestAsync(request.get(), &responseCallback);
 
     EXPECT_EQ(wasSent, true);
     EXPECT_EQ(wasReceived, true);
@@ -161,9 +175,10 @@ TEST(HttpClientCAPITests, Cancel)
     HttpClient_CAPI httpClient(&OnHttpSend, &OnHttpCancel);
 
     // Build request
-    auto request = httpClient.CreateRequest();
+    std::unique_ptr<IHttpRequest> request(httpClient.CreateRequest());
     request->SetUrl("https://www.microsoft.com");
     request->SetMethod("GET");
+    const auto requestId = request->GetId();
 
     AutoTestHelper testHelper;
     testHelper->SetShouldSend(false);
@@ -174,14 +189,17 @@ TEST(HttpClientCAPITests, Cancel)
     });
 
     TestHttpResponseCallback responseCallback;
-    responseCallback.SetResponseValidation([](IHttpResponse* /*response*/) {
-        FAIL() << "No response should have been received";
+    bool wasReceived = false;
+    responseCallback.SetResponseValidation([&wasReceived](IHttpResponse* response) {
+        wasReceived = true;
+        EXPECT_EQ(response->GetResult(), HttpResult_Aborted);
     });
 
-    httpClient.SendRequestAsync(request, &responseCallback);
-    httpClient.CancelRequestAsync(request->GetId());
+    httpClient.SendRequestAsync(request.get(), &responseCallback);
+    httpClient.CancelRequestAsync(requestId);
 
-    EXPECT_EQ(cancelledId, request->GetId());
+    EXPECT_EQ(cancelledId, requestId);
+    EXPECT_TRUE(wasReceived);
 }
 
 TEST(HttpClientCAPITests, CancelAllThenSend)
@@ -195,7 +213,7 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
     httpClient.CancelAllRequests();
 
     // Build request
-    auto request = httpClient.CreateRequest();
+    std::unique_ptr<IHttpRequest> request(httpClient.CreateRequest());
     request->SetUrl("https://www.microsoft.com");
     request->SetMethod("GET");
     request->GetHeaders().add("key1", "value1");
@@ -227,7 +245,7 @@ TEST(HttpClientCAPITests, CancelAllThenSend)
         EXPECT_EQ(response->GetHeaders().get("response_key1"), string("response_value1"));
     });
 
-    httpClient.SendRequestAsync(request, &responseCallback);
+    httpClient.SendRequestAsync(request.get(), &responseCallback);
 
     EXPECT_EQ(wasSent, true);
     EXPECT_EQ(wasReceived, true);

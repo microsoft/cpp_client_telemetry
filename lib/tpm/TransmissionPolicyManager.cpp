@@ -47,7 +47,8 @@ namespace MAT_NS_BEGIN {
         m_system(system),
         m_taskDispatcher(taskDispatcher),
         m_config(m_system.getConfig()),
-        m_bandwidthController(bandwidthController)
+        m_bandwidthController(bandwidthController),
+        m_scheduledUploadCallbackState(std::make_shared<ScheduledUploadCallbackState>(this))
     {
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
@@ -56,6 +57,7 @@ namespace MAT_NS_BEGIN {
 
     TransmissionPolicyManager::~TransmissionPolicyManager()
     {
+        m_scheduledUploadCallbackState->Invalidate();
         m_deviceStateHandler.Stop();
     }
 
@@ -111,26 +113,36 @@ namespace MAT_NS_BEGIN {
             LOG_TRACE("Collector URL is not set, no upload.");
             return;
         }
-        LOCKGUARD(m_scheduledUploadMutex);
-        if (delay.count() < 0 || m_timerdelay.count() < 0)
+        auto shouldSkipScheduling = [&delay, this]() -> bool
         {
-            LOG_TRACE("Negative delay(%d) or m_timerdelay(%d), no upload", delay.count(), m_timerdelay.count());
-            return;
-        }
-        if (m_scheduledUploadAborted)
-        {
-            LOG_TRACE("Scheduled upload aborted, no upload.");
-            return;
-        }
-        if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]) )
-        {
-            LOG_TRACE("Maximum number of HTTP requests reached");
-            return;
-        }
+            if (delay.count() < 0 || m_timerdelay.count() < 0)
+            {
+                LOG_TRACE("Negative delay(%lld) or m_timerdelay(%lld), no upload",
+                    static_cast<long long>(delay.count()), static_cast<long long>(m_timerdelay.count()));
+                return true;
+            }
+            if (m_scheduledUploadAborted)
+            {
+                LOG_TRACE("Scheduled upload aborted, no upload.");
+                return true;
+            }
+            if (uploadCount() >= static_cast<uint32_t>(m_config[CFG_INT_MAX_PENDING_REQ]))
+            {
+                LOG_TRACE("Maximum number of HTTP requests reached");
+                return true;
+            }
+            if (m_isPaused)
+            {
+                LOG_TRACE("Paused, not uploading anything until resumed");
+                return true;
+            }
 
-        if (m_isPaused)
+            return false;
+        };
+
+        LOCKGUARD(m_scheduledUploadMutex);
+        if (shouldSkipScheduling())
         {
-            LOG_TRACE("Paused, not uploading anything until resumed");
             return;
         }
 
@@ -151,10 +163,9 @@ namespace MAT_NS_BEGIN {
             if (delta <= static_cast<uint64_t>(delay.count()))
             {
                 // Don't need to cancel and reschedule if it's about to happen now anyways.
-                // m_isUploadScheduled check does not have to be strictly atomic because
                 // the completion of upload will schedule more uploads as-needed, we only
                 // want to avoid the unnecessary wasteful rescheduling.
-                LOG_TRACE("WAIT  upload %d ms for lat=%d", delta, m_runningLatency);
+                LOG_TRACE("WAIT  upload %llu ms for lat=%d", static_cast<unsigned long long>(delta), m_runningLatency);
                 return;
             }
         }
@@ -162,19 +173,47 @@ namespace MAT_NS_BEGIN {
         // Cancel upload if already scheduled.
         if (force || delay.count() == 0)
         {
-            if (!cancelUploadTask())
+            if (!cancelUploadTaskNoWaitLocked())
             {
                 LOG_TRACE("Upload either hasn't been scheduled or already done.");
+                // Cancel can return false when the previous upload task is
+                // currently executing on the worker. If uploadAsync hasn't
+                // yet entered its own LOCKGUARD (m_isUploadScheduled is
+                // still set under the mutex we hold), propagate the
+                // requested latency so the running task picks it up when
+                // it acquires m_scheduledUploadMutex. Otherwise the
+                // running task has already cleared the flag and the
+                // schedule below will queue a fresh task.
+                if (m_isUploadScheduled)
+                {
+                    m_runningLatency = latency;
+                }
+            }
+            if (shouldSkipScheduling())
+            {
+                return;
             }
         }
 
         // Schedule new upload
-        if (!m_isUploadScheduled.exchange(true))
+        if (!m_isUploadScheduled)
         {
+            m_isUploadScheduled = true;
             m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delay.count();
             m_runningLatency = latency;
-            LOG_TRACE("SCHED upload %d ms for lat=%d", delay.count(), m_runningLatency);
-            m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, static_cast<unsigned>(delay.count()), this, &TransmissionPolicyManager::uploadAsync, latency);
+            LOG_TRACE("SCHED upload %lld ms for lat=%d", static_cast<long long>(delay.count()), m_runningLatency);
+            auto callbackState = m_scheduledUploadCallbackState;
+            m_scheduledUpload = PAL::scheduleTask(
+                &m_taskDispatcher,
+                static_cast<unsigned>(delay.count()),
+                [callbackState, latency]() {
+                    callbackState->Invoke(latency);
+                });
+            if (m_scheduledUpload.GetTask() == nullptr)
+            {
+                m_isUploadScheduled = false;
+                m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
+            }
         }
     }
 
@@ -184,16 +223,15 @@ namespace MAT_NS_BEGIN {
         if (guard.isPaused()) {
             return;
         }
-        m_runningLatency = latency;
-        m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
-
+        EventLatency requestedLatency = latency;
         {
             LOCKGUARD(m_scheduledUploadMutex);
+            requestedLatency = m_runningLatency;
+            m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
             m_isUploadScheduled = false;  // Allow to schedule another uploadAsync
             if ((m_isPaused) || (m_scheduledUploadAborted))
             {
-                LOG_TRACE("Paused or upload aborted: cancel pending upload task.");
-                cancelUploadTask();  // If there is a pending upload task, kill it
+                LOG_TRACE("Paused or upload aborted: skip upload.");
                 return;
             }
         }
@@ -210,14 +248,14 @@ namespace MAT_NS_BEGIN {
                 unsigned delayMs = 1000;
                 LOG_INFO("Bandwidth controller proposed bandwidth %u bytes/sec but minimum accepted is %u, will retry %u ms later",
                     proposedBandwidthBps, minimumBandwidthBps, delayMs);
-                scheduleUpload(delayMs, latency); // reschedule uploadAsync to run again 1000 ms later
+                scheduleUpload(std::chrono::milliseconds{delayMs}, requestedLatency); // reschedule uploadAsync to run again 1000 ms later
                 return;
             }
         }
 #endif
 
         auto ctx = m_system.createEventsUploadContext();
-        ctx->requestedMinLatency = m_runningLatency;
+        ctx->requestedMinLatency = requestedLatency;
         addUpload(ctx);
         initiateUpload(ctx);
     }
@@ -238,7 +276,7 @@ namespace MAT_NS_BEGIN {
         // Rescheduling upload
         if (nextUpload.count() >= 0)
         {
-            LOG_TRACE("Scheduling upload in %d ms", nextUpload.count());
+            LOG_TRACE("Scheduling upload in %lld ms", static_cast<long long>(nextUpload.count()));
             EventLatency proposed = calculateNewPriority();
             scheduleUpload(nextUpload, proposed); // reschedule uploadAsync again
         }
@@ -284,8 +322,16 @@ namespace MAT_NS_BEGIN {
             LOCKGUARD(m_scheduledUploadMutex);
             // Prevent execution of all upload tasks
             m_scheduledUploadAborted = true;
-            // Make sure we wait for completion of the upload scheduling task that may be running
-            cancelUploadTask();
+        }
+        // A queued task retains only the callback state. Invalidate it first so
+        // an uncooperative custom dispatcher cannot run the manager callback
+        // after teardown; Invalidate waits for an already-running callback.
+        m_scheduledUploadCallbackState->Invalidate();
+        cancelUploadTask(true);
+        {
+            LOCKGUARD(m_scheduledUploadMutex);
+            m_isUploadScheduled = false;
+            m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
         }
 
         // Make sure we wait for all active upload callbacks to finish
@@ -342,7 +388,12 @@ namespace MAT_NS_BEGIN {
         }
 
         // Schedule async upload if not scheduled yet
-        if (!m_isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
+        bool isUploadScheduled = false;
+        {
+            LOCKGUARD(m_scheduledUploadMutex);
+            isUploadScheduled = m_isUploadScheduled;
+        }
+        if (!isUploadScheduled || TransmitProfiles::isTimerUpdateRequired())
         {
             if (updateTimersIfNecessary())
             {
@@ -374,7 +425,13 @@ namespace MAT_NS_BEGIN {
             return EventLatency_RealTime;
         }
 
-        if (m_runningLatency == EventLatency_RealTime)
+        EventLatency runningLatency = EventLatency_RealTime;
+        {
+            LOCKGUARD(m_scheduledUploadMutex);
+            runningLatency = m_runningLatency;
+        }
+
+        if (runningLatency == EventLatency_RealTime)
         {
             return EventLatency_Normal;
         }
@@ -453,16 +510,51 @@ namespace MAT_NS_BEGIN {
        return (m_scheduledUploadAborted) ? DefaultTaskCancelTime : std::chrono::milliseconds {};
     }
 
-    bool TransmissionPolicyManager::cancelUploadTask()
+    bool TransmissionPolicyManager::cancelUploadTaskNoWaitLocked()
     {
-        bool result = m_scheduledUpload.Cancel(getCancelWaitTime().count());
+        bool result = m_scheduledUpload.Cancel(std::chrono::milliseconds {}.count());
+
+        if (result)
+        {
+            m_isUploadScheduled = false;
+            m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
+        }
+        return result;
+    }
+
+    bool TransmissionPolicyManager::cancelUploadTask(bool waitForCompletion)
+    {
+        uint64_t waitTime = 0;
+        {
+            LOCKGUARD(m_scheduledUploadMutex);
+            if (waitForCompletion)
+            {
+                // Poll with a representable finite duration so custom
+                // ITaskDispatcher implementations do not have to interpret an
+                // unsigned sentinel as an infinite signed chrono duration.
+                waitTime = std::max<uint64_t>(
+                    1,
+                    static_cast<uint64_t>(DefaultTaskCancelTime.count()));
+            }
+            else
+            {
+                waitTime = static_cast<uint64_t>(getCancelWaitTime().count());
+            }
+            if (waitTime == 0)
+            {
+                return cancelUploadTaskNoWaitLocked();
+            }
+        }
+        bool result = m_scheduledUpload.Cancel(waitTime);
 
         // TODO: There is a potential for upload tasks to not be canceled, especially if they aren't waited for.
         //       We either need a stronger guarantee here (could impact SDK performance), or a mechanism to
         //       ensure those tasks are canceled when the log manager is destroyed. Issue 388
         if (result)
         {
-            m_isUploadScheduled.exchange(false);
+            LOCKGUARD(m_scheduledUploadMutex);
+            m_isUploadScheduled = false;
+            m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
         }
         return result;
     }
@@ -473,9 +565,10 @@ namespace MAT_NS_BEGIN {
         return m_activeUploads.size();
     }
 
-    bool TransmissionPolicyManager::isUploadInProgress() const noexcept
+    bool TransmissionPolicyManager::isUploadInProgress() const
     {
         // unfinished uploads that haven't processed callbacks or pending upload task
+        LOCKGUARD(m_scheduledUploadMutex);
         return (uploadCount() > 0) || m_isUploadScheduled;
     }
 

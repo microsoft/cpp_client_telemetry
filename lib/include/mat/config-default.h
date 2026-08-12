@@ -8,7 +8,9 @@
 #if defined(_WIN32)
 #if defined __has_include
 #  if __has_include ("modules/azmon/AITelemetrySystem.hpp")
+#    ifndef HAVE_MAT_AI
 #    define HAVE_MAT_AI
+#    endif
 #  endif
 #  if __has_include ("modules/utc/UtcTelemetrySystem.hpp")
 #    define HAVE_MAT_UTC
@@ -51,4 +53,3 @@
 //#define HAVE_CS4
 //#define HAVE_CS4_FULL
 //#define HAVE_ONEDS_BOUNDCHECK_METHODS
-

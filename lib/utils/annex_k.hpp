@@ -150,9 +150,6 @@ static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char 
 static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
                   const void *restrict src, rsize_t count ) noexcept
 {
-#if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
-       return memcpy_s(dest, destsz, src, count);     
-#else
     if (dest == NULL)
     {
         return EINVAL;
@@ -176,6 +173,9 @@ static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
         memset(dest, 0, destsz);
         return EINVAL;
     }
+#if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
+    return memcpy_s(dest, destsz, src, count);
+#else
     void *result = memcpy(dest, src, count);
     if (result == (void *)NULL)
     {

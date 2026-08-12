@@ -97,12 +97,6 @@ class MultipleLogManagersTests : public ::testing::Test
 
         server.start();
 
-#if 0
-        sqlite3_initialize();
-        config1["skipSqliteInitAndShutdown"] = "true";
-        config2["skipSqliteInitAndShutdown"] = "true";
-#endif
-
         // Config for instance #1
         config1["cacheFilePath"] = "lm1.db";
         ::remove(config1["cacheFilePath"]);
@@ -308,4 +302,3 @@ TEST_F(MultipleLogManagersTests, PrivacyGuardSharedWithTwoInstancesCoexist)
 #endif  // !TARGET_OS_IPHONE (suite excluded on iOS; see note above)
 
 #endif  // HAVE_MAT_DEFAULT_HTTP_CLIENT
-

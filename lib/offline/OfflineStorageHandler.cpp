@@ -7,22 +7,42 @@
 #include "OfflineStorageFactory.hpp"
 
 #include "offline/MemoryStorage.hpp"
+#include "offline/StorageRecordValidation.hpp"
 
 #include "ILogManager.hpp"
+#include "utils/Utils.hpp"
 #include <algorithm>
+#include <cstdio>
+#include <exception>
+#include <limits>
 #include <numeric>
 #include <set>
+#include <stdexcept>
 
 namespace MAT_NS_BEGIN {
+
+    namespace
+    {
+        // Keep each persistence transaction bounded so a large in-memory backlog
+        // cannot monopolize memory or database locks.
+        constexpr unsigned MAX_RECORDS_PER_STORAGE_BATCH = 2000;
+    }
 
 
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class")
 
     OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher) :
+        OfflineStorageHandler(logManager, runtimeConfig, taskDispatcher, OfflineStorageFactory::GetDefaultProvider())
+    {
+    }
+
+    OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig,
+        ITaskDispatcher& taskDispatcher, std::shared_ptr<IOfflineStorageProvider> storageProvider) :
         m_observer(nullptr),
         m_logManager(logManager),
         m_config(runtimeConfig),
         m_taskDispatcher(taskDispatcher),
+        m_storageProvider(std::move(storageProvider)),
         m_killSwitchManager(),
         m_clockSkewManager(),
         m_flushPending(false),
@@ -36,6 +56,11 @@ namespace MAT_NS_BEGIN {
         m_cacheMemorySizeLimitInBytes(0),
         m_isStorageFullNotificationSend(false)
     {
+        if (!m_storageProvider)
+        {
+            throw std::invalid_argument("OfflineStorageHandler requires a storage provider");
+        }
+
         // TODO: [MG] - OfflineStorage_SQLite.cpp is performing similar checks
         uint32_t percentage = m_config[CFG_INT_RAMCACHE_FULL_PCT];
         uint32_t cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
@@ -49,6 +74,64 @@ namespace MAT_NS_BEGIN {
             m_memoryDbSizeNotificationLimit = (DB_FULL_NOTIFICATION_DEFAULT_PERCENTAGE * cacheMemorySizeLimitInBytes) / 100;
         }
     }
+
+    /// <summary>
+    /// RAII guard around ILogManager::StartActivity()/EndActivity(). Flush()
+    /// used to pair these manually (StartActivity() at the top, EndActivity()
+    /// on the last line), so an exception thrown by disk I/O or by
+    /// IOfflineStorageObserver::OnStorageRecordsSaved() partway through would
+    /// skip EndActivity() and permanently leak the pause-activity count --
+    /// deadlocking every later FlushAndTeardown()'s WaitPause(). This guard
+    /// guarantees EndActivity() runs on every exit path, matching the existing
+    /// safe pattern used by PauseGuard (TransmissionPolicyManager.cpp) and
+    /// ActiveLoggerCall (Logger.cpp).
+    /// </summary>
+    class ActivityGuard
+    {
+       public:
+        explicit ActivityGuard(ILogManager& logManager) :
+            m_logManager(logManager),
+            m_active(logManager.StartActivity()),
+            m_allowInactive(false)
+        {
+        }
+
+        ActivityGuard(ILogManager& logManager, bool allowInactive) :
+            m_logManager(logManager),
+            m_active(logManager.StartActivity()),
+            m_allowInactive(allowInactive)
+        {
+        }
+
+        ~ActivityGuard() noexcept
+        {
+            if (m_active)
+            {
+                try
+                {
+                    m_logManager.EndActivity();
+                }
+                catch (const std::exception& e)
+                {
+                    std::fprintf(stderr, "Failed to end telemetry activity: %s\n", e.what());
+                }
+                catch (...)
+                {
+                    std::fputs("Failed to end telemetry activity\n", stderr);
+                }
+            }
+        }
+
+        ActivityGuard(ActivityGuard const&) = delete;
+        ActivityGuard& operator=(ActivityGuard const&) = delete;
+
+        bool IsActive() const noexcept { return m_active || m_allowInactive; }
+
+       private:
+        ILogManager& m_logManager;
+        bool m_active;
+        bool m_allowInactive;
+    };
 
     bool OfflineStorageHandler::isKilled(StorageRecord const& record)
     {
@@ -64,7 +147,8 @@ namespace MAT_NS_BEGIN {
             if (!m_flushPending)
                 return;
         }
-        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task);
+        LOG_INFO("Waiting for pending Flush (%p) to complete...",
+            static_cast<void*>(m_flushHandle.GetTask()));
         m_flushComplete.wait();
     }
 
@@ -86,7 +170,7 @@ namespace MAT_NS_BEGIN {
         m_observer = &observer;
         m_cacheMemorySizeLimitInBytes = m_config[CFG_INT_RAM_QUEUE_SIZE];
 
-        m_offlineStorageDisk = OfflineStorageFactory::Create(m_logManager, m_config);
+        m_offlineStorageDisk = m_storageProvider->CreateDiskStorage(m_logManager, m_config);
         if (m_offlineStorageDisk)
         {
             m_offlineStorageDisk->Initialize(*this);
@@ -97,7 +181,7 @@ namespace MAT_NS_BEGIN {
         // disk.
         if (m_cacheMemorySizeLimitInBytes > 0)
         {
-            m_offlineStorageMemory.reset(new MemoryStorage(m_logManager, m_config));
+            m_offlineStorageMemory = m_storageProvider->CreateMemoryStorage(m_logManager, m_config);
             m_offlineStorageMemory->Initialize(*this);
         }
 
@@ -163,65 +247,124 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorageHandler::Flush()
     {
-        if (!m_logManager.StartActivity()) {
+        // Shutdown has already paused normal logging, but its synchronous final
+        // flush must still persist the in-memory records before storage closes.
+        ActivityGuard activityGuard(m_logManager, m_shutdownStarted);
+        if (!activityGuard.IsActive()) {
+            // The LogManager is shutting down, so the flush cannot run. Still
+            // signal completion and clear the pending flag so a concurrent
+            // WaitForFlush() (e.g. during teardown) does not block forever
+            // waiting for m_flushComplete.
+            LOCKGUARD(m_flushLock);
+            m_flushHandle.Cancel();
+            m_flushComplete.post();
+            m_flushPending = false;
             return;
         }
-        // Flush could be executed from context of worker thread, as well as from TPM and
-        // after HTTP callback. Make sure it is atomic / thread-safe.
-        LOCKGUARD(m_flushLock);
-
-        // If item isn't scheduled yet, it gets canceled, so that we don't do two flushes.
-        // If we are running that item right now (our thread), then nothing happens other
-        // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
-        m_flushHandle.Cancel();
-
-        size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
-        if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
+        std::vector<StorageRecord> recordsToRecover;
+        try
         {
-            // This will block on and then take a lock for the duration of this move, and
-            // StoreRecord() will then block until the move completes.
-            auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-            std::vector<StorageRecordId> ids;
+            // Flush could be executed from context of worker thread, as well as from TPM and
+            // after HTTP callback. Make sure it is atomic / thread-safe.
+            LOCKGUARD(m_flushLock);
 
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("BEGIN");
+            // If item isn't scheduled yet, it gets canceled, so that we don't do two flushes.
+            // If we are running that item right now (our thread), then nothing happens other
+            // than the handle reporting nullptr once that task finishes.
+            m_flushHandle.Cancel();
 
-            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
-
-            // TODO: [MG] - consider running the batch in transaction
-            //            if (sqlite)
-            //                sqlite->Execute("END");
-
-            // Delete records from reserved on flush
-            HttpHeaders dummy;
-            bool fromMemory = true;
-            m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
-
-            // Notify event listener about the records cached
-            OnStorageRecordsSaved(totalSaved);
-
-            if (m_offlineStorageMemory->GetSize() > dbSizeBeforeFlush)
+            size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
+            if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
             {
-                // We managed to accumulate as much data as we had before the flush,
-                // means we cannot keep up flushing at the same speed as incoming
-                // obviously because the disk is slower than ram.
-                LOG_WARN("Data is arriving too fast!");
+                size_t totalSaved = 0;
+                if (IsBatchedStorageFlushEnabled())
+                {
+                    // Drain only the records present when this flush started so
+                    // producers cannot keep the flush alive indefinitely.
+                    size_t recordsRemaining = m_offlineStorageMemory->GetRecordCount();
+                    while (recordsRemaining > 0)
+                    {
+                        recordsToRecover = m_offlineStorageMemory->GetRecords(
+                            false, EventLatency_Unspecified, MAX_RECORDS_PER_STORAGE_BATCH);
+                        if (recordsToRecover.empty())
+                        {
+                            break;
+                        }
+
+                        const size_t drainedBatchSize = recordsToRecover.size();
+                        recordsRemaining -= std::min(recordsRemaining, drainedBatchSize);
+                        const size_t batchSaved = m_offlineStorageDisk->StoreRecords(recordsToRecover);
+                        // StoreRecords() removes permanently-invalid records before
+                        // returning, so compare against the remaining valid records.
+                        const size_t validBatchSize = recordsToRecover.size();
+                        if (batchSaved != validBatchSize)
+                        {
+                            LOG_WARN("Flush: disk store failed for the batch of %zu records; returning it to the queue for retry",
+                                validBatchSize);
+                            ReturnRecordsToMemory(recordsToRecover);
+                            recordsToRecover.clear();
+                            break;
+                        }
+
+                        totalSaved += batchSaved;
+                        recordsToRecover.clear();
+                    }
+                }
+                else
+                {
+                    // Preserve the legacy per-record path and its unlimited drain.
+                    recordsToRecover = m_offlineStorageMemory->GetRecords(
+                        false, EventLatency_Unspecified);
+                    totalSaved = StoreRecordsIndividually(recordsToRecover);
+                }
+
+                // Persistence and retry handling are complete; a later exception
+                // must not requeue records that were already committed.
+                recordsToRecover.clear();
+
+                if (m_offlineStorageMemory->GetSize() > dbSizeBeforeFlush)
+                {
+                    // We managed to accumulate as much data as we had before the flush,
+                    // means we cannot keep up flushing at the same speed as incoming
+                    // obviously because the disk is slower than ram.
+                    LOG_WARN("Data is arriving too fast!");
+                }
+                OnStorageRecordsSaved(totalSaved);
             }
-        }
 
-        // Checkpoint DB
-        if (m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH]) 
+            // Checkpoint DB
+            if (m_offlineStorageDisk && m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH])
+            {
+                m_offlineStorageDisk->Flush();
+            }
+
+            m_isStorageFullNotificationSend = false;
+            m_flushComplete.post();
+            m_flushPending = false;
+        }
+        catch (...)
         {
-            m_offlineStorageDisk->Flush();
+            std::exception_ptr failure = std::current_exception();
+            try
+            {
+                if (m_offlineStorageMemory && !recordsToRecover.empty())
+                {
+                    ReturnRecordsToMemory(recordsToRecover);
+                }
+            }
+            catch (const std::exception& e)
+            {
+                std::fprintf(stderr, "Failed to recover records after flush failure: %s\n", e.what());
+            }
+            catch (...)
+            {
+                std::fputs("Failed to recover records after flush failure\n", stderr);
+            }
+            LOCKGUARD(m_flushLock);
+            m_flushComplete.post();
+            m_flushPending = false;
+            std::rethrow_exception(failure);
         }
-
-        m_isStorageFullNotificationSend = false;
-
-        // Flush is done, notify the waiters
-        m_flushComplete.post();
-        m_flushPending = false;
-        m_logManager.EndActivity();
     }
 
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
@@ -247,7 +390,21 @@ namespace MAT_NS_BEGIN {
                 // are selected and removed from the cache (but will
                 // not block for the subsequent handoff to persistent
                 // storage)
-                m_offlineStorageMemory->StoreRecord(record);
+                if (!m_offlineStorageMemory->StoreRecord(record))
+                {
+                    if (record.latency == EventLatency_Off)
+                    {
+                        // MemoryStorage intentionally returns false for latency-off
+                        // records to mean "drop without storing", not "storage
+                        // failed". Keep the handler's false return reserved for
+                        // genuine storage failures so StorageObserver does not
+                        // misclassify this normal drop as a persistence error.
+                        return true;
+                    }
+                    LOG_ERROR("Failed to store event %s:%s in memory queue",
+                        tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                    return false;
+                }
             }
 
             // Perform periodic flush to disk
@@ -260,7 +417,15 @@ namespace MAT_NS_BEGIN {
                         m_flushPending = true;
                         m_flushComplete.Reset();
                         m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
-                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task);
+                        if (m_flushHandle.GetTask() == nullptr)
+                        {
+                            // The dispatcher may drop a task synchronously during
+                            // shutdown. Do not leave WaitForFlush blocked forever.
+                            m_flushPending = false;
+                            m_flushComplete.post();
+                        }
+                        LOG_INFO("Requested Flush (%p)",
+                            static_cast<void*>(m_flushHandle.GetTask()));
                     }
                     m_flushLock.unlock();
                 }
@@ -272,12 +437,142 @@ namespace MAT_NS_BEGIN {
             {
                 if (record.persistence != EventPersistence::EventPersistence_DoNotStoreOnDisk)
                 {
-                    m_offlineStorageDisk->StoreRecord(record);
+                    // Propagate a synchronous disk write failure to the caller so a
+                    // failed store is not counted as successfully persisted.
+                    return m_offlineStorageDisk->StoreRecord(record);
                 }
             }
         }
 
         return true;
+    }
+
+    bool OfflineStorageHandler::IsBatchedStorageFlushEnabled()
+    {
+        const bool batchingConfigured =
+            !m_config.HasConfig(CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH) ||
+            m_config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH];
+        const bool usingCustomStorage =
+            m_logManager.GetLogConfiguration().GetModule(CFG_MODULE_OFFLINE_STORAGE) != nullptr;
+        return batchingConfigured && !usingCustomStorage;
+    }
+
+    void OfflineStorageHandler::ReportInvalidDiskRecord(StorageRecord const& record)
+    {
+        (void)record;
+        LOG_ERROR("Flush: dropping event %s:%s: Invalid parameters",
+            tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+        OnStorageFailed("Invalid parameters");
+    }
+
+    size_t OfflineStorageHandler::StoreRecordsIndividually(std::vector<StorageRecord>& records)
+    {
+        size_t totalSaved = 0;
+        std::vector<StorageRecord> recordsToRetry;
+        size_t nextRecord = 0;
+
+        try
+        {
+            for (; nextRecord < records.size(); ++nextRecord)
+            {
+                auto const& record = records[nextRecord];
+                if (!IsValidDiskStorageRecord(record))
+                {
+                    ReportInvalidDiskRecord(record);
+                    continue;
+                }
+
+                if (m_offlineStorageDisk->StoreRecord(record))
+                {
+                    ++totalSaved;
+                    continue;
+                }
+
+                for (size_t retryIndex = nextRecord; retryIndex < records.size(); ++retryIndex)
+                {
+                    auto const& retryRecord = records[retryIndex];
+                    if (IsValidDiskStorageRecord(retryRecord))
+                    {
+                        recordsToRetry.push_back(retryRecord);
+                    }
+                    else
+                    {
+                        ReportInvalidDiskRecord(retryRecord);
+                    }
+                }
+                break;
+            }
+        }
+        catch (...)
+        {
+            recordsToRetry.clear();
+            for (size_t retryIndex = nextRecord; retryIndex < records.size(); ++retryIndex)
+            {
+                if (IsValidDiskStorageRecord(records[retryIndex]))
+                {
+                    recordsToRetry.push_back(records[retryIndex]);
+                }
+            }
+            records.clear();
+            ReturnRecordsToMemory(recordsToRetry);
+            throw;
+        }
+
+        if (!recordsToRetry.empty())
+        {
+            LOG_WARN("Flush: per-record disk store failed after saving %zu of %zu records; returning %zu records to the queue for retry",
+                totalSaved, records.size(), recordsToRetry.size());
+            ReturnRecordsToMemory(recordsToRetry);
+        }
+
+        return totalSaved;
+    }
+
+    size_t OfflineStorageHandler::ReturnRecordsToMemory(std::vector<StorageRecord> const& records)
+    {
+        size_t returned = 0;
+        DroppedMap dropped;
+
+        for (auto const& record : records)
+        {
+            try
+            {
+                if (m_offlineStorageMemory && m_offlineStorageMemory->StoreRecord(record))
+                {
+                    ++returned;
+                    continue;
+                }
+                LOG_ERROR("Flush: failed to return event %s:%s to memory queue after disk store failure; dropping record",
+                    tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                dropped[record.tenantToken]++;
+            }
+            catch (const std::exception& e)
+            {
+                std::fprintf(stderr, "Failed to recover a record after flush failure: %s\n", e.what());
+            }
+            catch (...)
+            {
+                std::fputs("Failed to recover a record after flush failure\n", stderr);
+            }
+        }
+
+        if (!dropped.empty())
+        {
+            try
+            {
+                OnStorageRecordsDropped(dropped);
+            }
+            catch (const std::exception& e)
+            {
+                std::fprintf(stderr, "Failed to report dropped records after flush failure: %s\n", e.what());
+            }
+            catch (...)
+            {
+                std::fputs("Failed to report dropped records after flush failure\n", stderr);
+            }
+        }
+
+        return returned;
     }
 
     size_t OfflineStorageHandler::StoreRecords(std::vector<StorageRecord>& records)

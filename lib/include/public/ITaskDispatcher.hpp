@@ -115,12 +115,17 @@ namespace MAT_NS_BEGIN
         virtual void Queue(Task* task) = 0;
 
         /// <summary>
-        /// Cancel a previously queued tasks
+        /// Cancel a previously queued task
         /// </summary>
-        /// <param name="task">Task to be cancelled</param>
+        /// <param name="task">
+        /// Opaque task identity to cancel. The task may complete concurrently;
+        /// implementations must not dereference this pointer outside their own
+        /// queue/execution synchronization.
+        /// </param>
         /// <param name="waitTime">Amount of time to wait for if the task is currently executing</param>
         /// <returns>True if successfully cancelled, else false</returns>
         virtual bool Cancel(Task* task, uint64_t waitTime = 0) = 0;
+
     };
 
     /// @endcond
@@ -128,4 +133,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif // ITASKDISPATCHER_HPP
-
