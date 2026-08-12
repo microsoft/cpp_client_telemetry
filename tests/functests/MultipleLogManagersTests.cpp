@@ -97,12 +97,6 @@ class MultipleLogManagersTests : public ::testing::Test
 
         server.start();
 
-#if 0
-        sqlite3_initialize();
-        config1["skipSqliteInitAndShutdown"] = "true";
-        config2["skipSqliteInitAndShutdown"] = "true";
-#endif
-
         // Config for instance #1
         config1["cacheFilePath"] = "lm1.db";
         ::remove(config1["cacheFilePath"]);
@@ -237,7 +231,7 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     CAPTURE_PERF_STATS("Events Sent");
     lm->GetLogController()->UploadNow();
     CAPTURE_PERF_STATS("Events Uploaded");
-    waitForRequestsSingleLogManager(20000, 1);
+    waitForRequestsSingleLogManager(20000, 2);
     lm.reset();
     CAPTURE_PERF_STATS("Log Manager deleted");
 }

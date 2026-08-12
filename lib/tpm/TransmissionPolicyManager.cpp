@@ -47,7 +47,8 @@ namespace MAT_NS_BEGIN {
         m_system(system),
         m_taskDispatcher(taskDispatcher),
         m_config(m_system.getConfig()),
-        m_bandwidthController(bandwidthController)
+        m_bandwidthController(bandwidthController),
+        m_scheduledUploadCallbackState(std::make_shared<ScheduledUploadCallbackState>(this))
     {
         m_backoff = IBackoff::createFromConfig(m_backoffConfig);
         assert(m_backoff);
@@ -56,6 +57,7 @@ namespace MAT_NS_BEGIN {
 
     TransmissionPolicyManager::~TransmissionPolicyManager()
     {
+        m_scheduledUploadCallbackState->Invalidate();
         m_deviceStateHandler.Stop();
     }
 
@@ -200,7 +202,13 @@ namespace MAT_NS_BEGIN {
             m_scheduledUploadTime = PAL::getMonotonicTimeMs() + delay.count();
             m_runningLatency = latency;
             LOG_TRACE("SCHED upload %lld ms for lat=%d", static_cast<long long>(delay.count()), m_runningLatency);
-            m_scheduledUpload = PAL::scheduleTask(&m_taskDispatcher, static_cast<unsigned>(delay.count()), this, &TransmissionPolicyManager::uploadAsync, latency);
+            auto callbackState = m_scheduledUploadCallbackState;
+            m_scheduledUpload = PAL::scheduleTask(
+                &m_taskDispatcher,
+                static_cast<unsigned>(delay.count()),
+                [callbackState, latency]() {
+                    callbackState->Invoke(latency);
+                });
             if (m_scheduledUpload.GetTask() == nullptr)
             {
                 m_isUploadScheduled = false;
@@ -315,10 +323,16 @@ namespace MAT_NS_BEGIN {
             // Prevent execution of all upload tasks
             m_scheduledUploadAborted = true;
         }
-        // Make sure we wait for completion of the upload scheduling task that may be running
-        // The task callback contains a raw pointer to this manager. During
-        // teardown, wait without a deadline so the callback cannot outlive us.
+        // A queued task retains only the callback state. Invalidate it first so
+        // an uncooperative custom dispatcher cannot run the manager callback
+        // after teardown; Invalidate waits for an already-running callback.
+        m_scheduledUploadCallbackState->Invalidate();
         cancelUploadTask(true);
+        {
+            LOCKGUARD(m_scheduledUploadMutex);
+            m_isUploadScheduled = false;
+            m_scheduledUploadTime = std::numeric_limits<uint64_t>::max();
+        }
 
         // Make sure we wait for all active upload callbacks to finish
         while (uploadCount() > 0)
@@ -510,12 +524,19 @@ namespace MAT_NS_BEGIN {
 
     bool TransmissionPolicyManager::cancelUploadTask(bool waitForCompletion)
     {
-        uint64_t waitTime = waitForCompletion
-            ? std::numeric_limits<uint64_t>::max()
-            : 0;
+        uint64_t waitTime = 0;
         {
             LOCKGUARD(m_scheduledUploadMutex);
-            if (!waitForCompletion)
+            if (waitForCompletion)
+            {
+                // Poll with a representable finite duration so custom
+                // ITaskDispatcher implementations do not have to interpret an
+                // unsigned sentinel as an infinite signed chrono duration.
+                waitTime = std::max<uint64_t>(
+                    1,
+                    static_cast<uint64_t>(DefaultTaskCancelTime.count()));
+            }
+            else
             {
                 waitTime = static_cast<uint64_t>(getCancelWaitTime().count());
             }

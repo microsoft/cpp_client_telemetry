@@ -242,10 +242,6 @@ namespace PAL_NS_BEGIN {
 #define     gettid()       std::this_thread::get_id()
 #endif
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4996)
-#endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
 #if defined(ANDROID) && !defined(ANDROID_SUPPRESS_LOGCAT)
@@ -359,9 +355,6 @@ namespace PAL_NS_BEGIN {
             (void)(fmt);
 #endif /* of #ifdef HAVE_MAT_LOGGING */
         }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     } // namespace detail
 
@@ -376,17 +369,16 @@ namespace PAL_NS_BEGIN {
         return m_taskDispatcher;
     }
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:6031)
-#endif
     std::string PlatformAbstractionLayer::generateUuidString() const
     {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
-        auto hr = CoCreateGuid(&uuid);
-        /* CoCreateGuid` will possiblity never fail, so ignoring the result */
-        UNREFERENCED_PARAMETER(hr);
+        const HRESULT hr = CoCreateGuid(&uuid);
+        if (FAILED(hr))
+        {
+            LOG_ERROR("CoCreateGuid failed: 0x%08lx", static_cast<unsigned long>(hr));
+            return {};
+        }
         return MAT::to_string(uuid);
 #elif defined(__APPLE__)
         auto uuid {CFUUIDCreate(kCFAllocatorDefault)};
@@ -452,9 +444,6 @@ namespace PAL_NS_BEGIN {
         return buf;
 #endif
     }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     int64_t PlatformAbstractionLayer::getUtcSystemTimeMs() const
     {
@@ -500,49 +489,39 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef _WIN32
         __time64_t seconds = static_cast<__time64_t>(timestampMs / 1000);
-        int milliseconds = static_cast<int>(timestampMs % 1000);
-
-        tm tm;
-        if (::_gmtime64_s(&tm, &seconds) != 0)
+        tm timeParts;
+        if (::_gmtime64_s(&timeParts, &seconds) != 0)
         {
-            memset(&tm, 0, sizeof(tm));
+            return {};
         }
-
-        char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
-        ::_snprintf_s(buf, _TRUNCATE, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
-            1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
-            tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
 #else
         time_t seconds = static_cast<time_t>(timestampMs / 1000);
-        int milliseconds = static_cast<int>(timestampMs % 1000);
-
-        tm tm;
-        bool valid = (gmtime_r(&seconds, &tm) != NULL);
-
-        if (!valid)
+        tm timeParts;
+        if (gmtime_r(&seconds, &timeParts) == nullptr)
         {
-            memset(&tm, 0, sizeof(tm));
+            return {};
         }
+#endif
 
-        char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
-
-#if defined(__GNUC__) && !defined(__clang__)
-#include <features.h>
-#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"  // error: 'T' directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Werror=format-truncation=]
-#endif
-#endif
-        (void)snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
-                       1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
-                       tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
-#if defined(__GNUC__) && !defined(__clang__)
-#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
-#pragma GCC diagnostic pop
-#endif
-#endif
-#endif
-        return buf;
+        const int milliseconds = static_cast<int>(timestampMs % 1000);
+        char buf[128] = { 0 };
+        const int length = snprintf(
+            buf,
+            sizeof(buf),
+            "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+            1900 + timeParts.tm_year,
+            1 + timeParts.tm_mon,
+            timeParts.tm_mday,
+            timeParts.tm_hour,
+            timeParts.tm_min,
+            timeParts.tm_sec,
+            milliseconds);
+        if (length < 0 || static_cast<size_t>(length) >= sizeof(buf))
+        {
+            LOG_ERROR("Failed to format UTC timestamp");
+            return {};
+        }
+        return std::string(buf, static_cast<size_t>(length));
     }
 
     /**

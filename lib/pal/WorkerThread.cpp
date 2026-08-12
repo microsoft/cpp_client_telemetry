@@ -81,6 +81,12 @@ namespace PAL_NS_BEGIN {
 
         void drainPendingTasksLocked()
         {
+            if (!m_queue.empty()) {
+                LOG_WARN("Shutdown with %zu queued task(s) pending", m_queue.size());
+            }
+            if (!m_timerQueue.empty()) {
+                LOG_WARN("Shutdown with %zu timer(s) pending", m_timerQueue.size());
+            }
             for (auto task : m_queue) { delete task; }
             m_queue.clear();
             for (auto task : m_timerQueue) { delete task; }
@@ -123,16 +129,7 @@ namespace PAL_NS_BEGIN {
                 std::terminate();
             }
 
-            // Log pending work in both paths so operators can see if
-            // shutdown is dropping tasks.
             LOCKGUARD(m_lock);
-            if (!m_queue.empty()) {
-                LOG_WARN("Shutdown with %zu queued task(s) pending", m_queue.size());
-            }
-            if (!m_timerQueue.empty()) {
-                LOG_WARN("Shutdown with %zu timer(s) pending", m_timerQueue.size());
-            }
-
             // Clean up any tasks remaining in the queues after shutdown.
             // Only safe after join() — the thread has fully exited.
             // After detach(), the thread still needs the shutdown item
@@ -249,9 +246,14 @@ namespace PAL_NS_BEGIN {
                     if (locked)
                     {
                         // Prevent a dequeued but not-yet-started task from running.
-                        // The worker checks this marker after acquiring the same
-                        // execution mutex.
-                        m_itemInProgress.store(nullptr, std::memory_order_release);
+                        // Only clear the requested task: after releasing m_lock,
+                        // the worker may already have published its successor.
+                        MAT::Task* expected = item;
+                        m_itemInProgress.compare_exchange_strong(
+                            expected,
+                            nullptr,
+                            std::memory_order_acq_rel,
+                            std::memory_order_acquire);
                         m_execution_mutex.unlock();
                     }
                 }
@@ -277,17 +279,6 @@ namespace PAL_NS_BEGIN {
                     delete item;
                 }
             }
-#if 0
-            for (;;) {
-                {
-                    LOCKGUARD(m_lock);
-                    if (item->Type == MAT::Task::Done) {
-                        return;
-                    }
-                }
-                Sleep(10);
-            }
-#endif
             return true;
         }
 
@@ -368,7 +359,7 @@ namespace PAL_NS_BEGIN {
                     std::lock_guard<std::timed_mutex> lock(self->m_execution_mutex);
 
                     // Item wasn't cancelled before it could be executed
-                    if (self->m_itemInProgress.load(std::memory_order_acquire) != nullptr) {
+                    if (self->m_itemInProgress.load(std::memory_order_acquire) == item.get()) {
                         LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
                         // A task can run arbitrary work (storage I/O, HTTP encode, and
                         // user DebugEventListener callbacks). An exception escaping here

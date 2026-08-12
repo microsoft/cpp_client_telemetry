@@ -24,14 +24,14 @@
 #include <chrono>
 #include <cstdint>
 #include <limits>
+#include <memory>
+#include <mutex>
 #include <set>
 
 namespace MAT_NS_BEGIN {
 
-// This macro allows to specify max upload task cancellation wait time at compile-time,
-// addressing the case when a task that we are trying to cancel is currently running.
-// Default value:   500ms       - sufficient for upload scheduler/batcher task to finish.
-// Alternate value: UINT64_MAX  - for infinite wait until the task is completed.
+// This macro specifies the maximum duration of one upload-task cancellation
+// attempt when the task may already be running. The default is 500 ms.
 #ifdef UPLOAD_TASK_CANCEL_TIME_MS
 static_assert(std::numeric_limits<std::chrono::milliseconds::rep>::max() >= UPLOAD_TASK_CANCEL_TIME_MS, "std::numeric_limits<std::chrono::milliseconds::rep>::max() >= UPLOAD_TASK_CANCEL_TIME_MS");
 static_assert(UPLOAD_TASK_CANCEL_TIME_MS >= 0, "UPLOAD_TASK_CANCEL_TIME_MS >= 0");
@@ -51,6 +51,32 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         virtual void scheduleUpload(const std::chrono::milliseconds& delay, EventLatency latency, bool force = false);
 
     protected:
+        struct ScheduledUploadCallbackState
+        {
+            explicit ScheduledUploadCallbackState(TransmissionPolicyManager* owner)
+                : manager(owner)
+            {
+            }
+
+            void Invoke(EventLatency latency)
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                if (manager != nullptr)
+                {
+                    manager->uploadAsync(latency);
+                }
+            }
+
+            void Invalidate()
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                manager = nullptr;
+            }
+
+            std::mutex mutex;
+            TransmissionPolicyManager* manager;
+        };
+
         MATSDK_LOG_DECL_COMPONENT_CLASS();
         void checkBackoffConfigUpdate();
         void resetBackoff();
@@ -88,6 +114,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         std::string                      m_backoffConfig { DefaultBackoffConfig };
         std::unique_ptr<IBackoff>        m_backoff;
         DeviceStateHandler               m_deviceStateHandler;
+        std::shared_ptr<ScheduledUploadCallbackState> m_scheduledUploadCallbackState;
 
         std::atomic<bool>                m_isPaused { true };
         bool                             m_isUploadScheduled { false };
@@ -126,7 +153,8 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         bool cancelUploadTaskNoWaitLocked();
 
         /// <summary>
-        /// Cancels pending upload task.
+        /// Cancels a pending upload task, optionally asking the dispatcher to
+        /// wait for at most DefaultTaskCancelTime.
         /// </summary>
         bool cancelUploadTask(bool waitForCompletion = false);
         

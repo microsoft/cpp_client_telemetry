@@ -4,8 +4,9 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '18.0'))">
     <ClCompile>
+      <!-- v145's C++14 compatibility headers still use experimental coroutines.
+           This acknowledges that deprecation only; it does not disable compiler diagnostics. -->
       <PreprocessorDefinitions>_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>/D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir)..\zlib;$(SolutionDir)..\sqlite;$(SolutionDir)..\lib\pal\universal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>

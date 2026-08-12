@@ -85,6 +85,7 @@ namespace MAT_NS_BEGIN {
         // of this class still using SQLite.
         static std::mutex           m_initAndShutdownLock;
         static int                  m_instanceCount;
+        static bool                 m_ownsTempDirectory;
 
         size_t                      m_stmtBeginTransaction {};
         size_t                      m_stmtCommitTransaction {};
@@ -136,4 +137,3 @@ namespace MAT_NS_BEGIN {
 
 } MAT_NS_END
 #endif
-

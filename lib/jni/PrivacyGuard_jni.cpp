@@ -8,6 +8,7 @@
 #include "PrivacyGuardHelper.hpp"
 
 #include <mutex>
+#include <utility>
 
 using namespace MAT;
 
@@ -50,8 +51,6 @@ namespace
         std::string summary;
     };
 
-    std::shared_ptr<EventNameStorage> spEventNameStorage;
-
     void SetEventNames(
         JNIEnv* env,
         jstring notificationEventName,
@@ -74,6 +73,21 @@ namespace
             storage.summary = JStringToStdString(env, summaryEventName);
             config.SummaryEventName = storage.summary.c_str();
         }
+    }
+
+    std::shared_ptr<PrivacyGuard> CreatePrivacyGuard(
+        const InitializationConfiguration& config,
+        std::shared_ptr<EventNameStorage> eventNameStorage)
+    {
+        // Log managers can retain the guard after JNI uninitialization. Keep the
+        // strings backing its raw event-name pointers alive until the last owner
+        // releases the guard.
+        return std::shared_ptr<PrivacyGuard>(
+            new PrivacyGuard(config),
+            [eventNameStorage](PrivacyGuard* privacyGuard) {
+                (void)eventNameStorage;
+                delete privacyGuard;
+            });
     }
 }
 
@@ -103,15 +117,15 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     InitializationConfiguration config(
             reinterpret_cast<ILogger*>(iLoggerNativePtr),
             CommonDataContext{});
-    spEventNameStorage = std::make_shared<EventNameStorage>();
-    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, *spEventNameStorage, config);
+    auto eventNameStorage = std::make_shared<EventNameStorage>();
+    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, *eventNameStorage, config);
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
     config.ScanForUrls = static_cast<bool>(ScanForUrls);
     config.DisableAdvancedScans = static_cast<bool>(DisableAdvancedScans);
     config.StampEventIKeyForConcerns = static_cast<bool>(StampEventIKeyForConcerns);
 
-    spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
+    spPrivacyGuard = CreatePrivacyGuard(config, std::move(eventNameStorage));
     return true;
 }
 
@@ -152,15 +166,15 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
                                             machineIds,
                                             outOfScopeIdentifiers));
 
-    spEventNameStorage = std::make_shared<EventNameStorage>();
-    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, *spEventNameStorage, config);
+    auto eventNameStorage = std::make_shared<EventNameStorage>();
+    SetEventNames(env, NotificationEventName, SemanticContextEventName, SummaryEventName, *eventNameStorage, config);
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
     config.ScanForUrls = static_cast<bool>(ScanForUrls);
     config.DisableAdvancedScans = static_cast<bool>(DisableAdvancedScans);
     config.StampEventIKeyForConcerns = static_cast<bool>(StampEventIKeyForConcerns);
 
-    spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
+    spPrivacyGuard = CreatePrivacyGuard(config, std::move(eventNameStorage));
     return true;
 }
 
@@ -174,7 +188,6 @@ Java_com_microsoft_applications_events_PrivacyGuard_uninitialize(const JNIEnv *e
         return false;
     }
     spPrivacyGuard.reset();
-    spEventNameStorage.reset();
 
     return true;
 }

@@ -19,8 +19,27 @@ namespace MAT_NS_BEGIN {
 
     constexpr static size_t kBlockSize = 8192;
 
+    EventLatency NormalizePersistedLatency(int latency)
+    {
+        if (latency < EventLatency_Off || latency > EventLatency_Max)
+        {
+            return EventLatency_Normal;
+        }
+        return static_cast<EventLatency>(latency);
+    }
+
     std::mutex OfflineStorage_SQLite::m_initAndShutdownLock;
     int OfflineStorage_SQLite::m_instanceCount = 0;
+    bool OfflineStorage_SQLite::m_ownsTempDirectory = false;
+
+    static std::string GetRequiredSqliteTempDirectory()
+    {
+#if defined(ANDROID) || defined(_WINRT_DLL)
+        return GetTempDirectory();
+#else
+        return {};
+#endif
+    }
 
     class DbTransaction {
         SqliteDB* m_db;
@@ -130,15 +149,18 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
     {
+        LOCKGUARD(m_lock);
         m_observer = &observer;
 
         assert(!m_db);
         m_db.reset(new SqliteDB(m_skipInitAndShutdown, &m_initAndShutdownLock,
-                                &m_instanceCount));
+                                &m_instanceCount, &m_ownsTempDirectory));
 
         LOG_TRACE("Initializing offline storage: %s", m_offlineStorageFileName.c_str());
         auto sqlStartTime = GetUptimeMs();
-        if (m_db->initialize(m_offlineStorageFileName, false, m_DbSizeHeapLimit) && initializeDatabase()) {
+        if (m_db->initialize(m_offlineStorageFileName, false, m_DbSizeHeapLimit,
+                             GetRequiredSqliteTempDirectory()) &&
+            initializeDatabase()) {
             LOG_INFO("Using configured on-disk database");
             m_observer->OnStorageOpened("SQLite/Default");
             sqlStartTime = GetUptimeMs() - sqlStartTime;
@@ -170,12 +192,14 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorage_SQLite::Flush() 
     {
+        LOCKGUARD(m_lock);
         if (m_db)
             m_db->flush();
     }
     
     void OfflineStorage_SQLite::Execute(std::string command)
     {
+        LOCKGUARD(m_lock);
         if (m_db)
             m_db->execute(command.c_str());
     }
@@ -245,17 +269,16 @@ namespace MAT_NS_BEGIN {
             return false;
         }
 
-        if (!m_db) {
-            LOG_ERROR("Failed to store event %s:%s: Database is not open",
-                tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
-            m_observer->OnStorageOpenFailed("Database is not open");
-            return false;
-        }
-
         bool stored = false;
         {
-#ifdef ENABLE_LOCKING
             LOCKGUARD(m_lock);
+            if (!m_db) {
+                LOG_ERROR("Failed to store event %s:%s: Database is not open",
+                    tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                m_observer->OnStorageOpenFailed("Database is not open");
+                return false;
+            }
+#ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
             if (!transaction.locked)
             {
@@ -319,15 +342,15 @@ namespace MAT_NS_BEGIN {
             return 0;
         }
 
-        if (!m_db) {
-            LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
-            m_observer->OnStorageOpenFailed("Database is not open");
-            return 0;
-        }
-
         size_t addedSize = 0;
         bool committed = false;
         {
+            LOCKGUARD(m_lock);
+            if (!m_db) {
+                LOG_ERROR("Failed to store %zu events: Database is not open", records.size());
+                m_observer->OnStorageOpenFailed("Database is not open");
+                return 0;
+            }
             // Batch all inserts into a single transaction: one BEGIN EXCLUSIVE /
             // COMMIT (one fsync) for the whole flush instead of one per record.
             // All-or-nothing: if any insert OR the COMMIT fails the transaction is
@@ -336,7 +359,6 @@ namespace MAT_NS_BEGIN {
             // record_id constraint).
             bool allInserted = true;
 #ifdef ENABLE_LOCKING
-            LOCKGUARD(m_lock);
             DbTransaction transaction(m_db.get());
             if (!transaction.locked)
             {
@@ -428,6 +450,7 @@ namespace MAT_NS_BEGIN {
     /// <returns></returns>
     bool OfflineStorage_SQLite::GetAndReserveRecords(std::function<bool(StorageRecord&&)> const& consumer, unsigned leaseTimeMs, EventLatency minLatency, unsigned maxCount)
     {
+        LOCKGUARD(m_lock);
         m_lastReadCount = 0;
 
         if (!m_db) {
@@ -439,7 +462,6 @@ namespace MAT_NS_BEGIN {
             maxCount, (maxCount > 0) ? "" : " (unlimited)", minLatency, latencyToStr(static_cast<EventLatency>(minLatency)));
 
         /* ============================================================================================================= */
-        LOCKGUARD(m_lock);
         {
 #ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
@@ -474,12 +496,7 @@ namespace MAT_NS_BEGIN {
 
             while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
             {
-                if (latency < EventLatency_Off || latency > EventLatency_Max) {
-                    record.latency = EventLatency_Normal;
-                }
-                else {
-                    record.latency = static_cast<EventLatency>(latency);
-                }
+                record.latency = NormalizePersistedLatency(latency);
                 consumedIds.push_back(record.id);
                 if (!consumer(std::move(record)))
                 {
@@ -526,6 +543,7 @@ namespace MAT_NS_BEGIN {
 
     unsigned OfflineStorage_SQLite::LastReadRecordCount()
     {
+        LOCKGUARD(m_lock);
         return  m_lastReadCount;
     }
 
@@ -534,6 +552,7 @@ namespace MAT_NS_BEGIN {
         std::vector<StorageRecord> records;
         StorageRecord record;
 
+        LOCKGUARD(m_lock);
         if (!isOpen()) {
             return records;
         }
@@ -546,7 +565,7 @@ namespace MAT_NS_BEGIN {
                 int latency;
                 while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
                 {
-                    record.latency = static_cast<EventLatency>(latency);
+                    record.latency = NormalizePersistedLatency(latency);
                     records.push_back(record);
                 }
                 selectStmt.reset();
@@ -560,7 +579,7 @@ namespace MAT_NS_BEGIN {
                 int latency;
                 while (selectStmt.getRow(record.id, record.tenantToken, latency, record.timestamp, record.retryCount, record.reservedUntil, record.blob))
                 {
-                    record.latency = static_cast<EventLatency>(latency);
+                    record.latency = NormalizePersistedLatency(latency);
                     records.push_back(record);
                 }
                 selectStmt.reset();
@@ -578,11 +597,11 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorage_SQLite::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
+        LOCKGUARD(m_lock);
         if (!isOpen()) {
             return;
         }
 
-        LOCKGUARD(m_lock);
         {
 #ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
@@ -698,6 +717,7 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
+        LOCKGUARD(m_lock);
         if (!m_db) {
             LOG_ERROR("Failed to delete %u sent event(s) {%s%s}: Database is not open",
                 static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
@@ -705,7 +725,6 @@ namespace MAT_NS_BEGIN {
         }
 
         /* ============================================================================================================= */
-        LOCKGUARD(m_lock);
         {
 #ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
@@ -741,13 +760,13 @@ namespace MAT_NS_BEGIN {
         if (ids.empty()) {
             return;
         }
+        LOCKGUARD(m_lock);
         if (!m_db) {
             LOG_ERROR("Failed to release %u event(s) {%s%s}, retry count %s: Database is not open",
                 static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "", incrementRetryCount ? "+1" : "not changed");
             return;
         }
 
-        LOCKGUARD(m_lock);
         {
 #ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
@@ -823,6 +842,7 @@ namespace MAT_NS_BEGIN {
             return false;
         }
 
+        LOCKGUARD(m_lock);
         if (!m_db) {
             LOG_ERROR("Failed to set setting \"%s\": Database is not open", name.c_str());
             return false;
@@ -855,6 +875,7 @@ namespace MAT_NS_BEGIN {
             return result;
         }
 
+        LOCKGUARD(m_lock);
         if (!isOpen()) {
             LOG_ERROR("Oddly closed");
             return result;
@@ -885,6 +906,7 @@ namespace MAT_NS_BEGIN {
             LOG_ERROR("Failed to delete setting \"%s\": Name cannot be empty", name.c_str());
             return false;
         }
+        LOCKGUARD(m_lock);
         if (!isOpen()) {
             LOG_ERROR("Oddly closed");
             return false;
@@ -913,7 +935,8 @@ namespace MAT_NS_BEGIN {
         {
             m_db->shutdown();
             // Try again with deletePrevious = true
-            if (m_db->initialize(m_offlineStorageFileName, true)) {
+            if (m_db->initialize(m_offlineStorageFileName, true, 0,
+                                 GetRequiredSqliteTempDirectory())) {
                 if (initializeDatabase()) {
                     m_observer->OnStorageOpened("SQLite/Clean");
                     LOG_INFO("Using configured on-disk database after deleting the existing one");
@@ -935,12 +958,6 @@ namespace MAT_NS_BEGIN {
         SqliteStatement(*m_db, "PRAGMA auto_vacuum=FULL").select();
         SqliteStatement(*m_db, "PRAGMA journal_mode=WAL").select();
         SqliteStatement(*m_db, "PRAGMA synchronous=NORMAL").select();
-        {
-            std::ostringstream tempPragma;
-            tempPragma << "PRAGMA temp_store_directory = '" << GetTempDirectory() << "'";
-            SqliteStatement(*m_db, tempPragma.str().c_str()).select();
-            LOG_INFO("Set sqlite3 temp_store_directory to '%s'", sqlite3_temp_directory);
-        }
 
         int openedDbVersion;
         {
@@ -1004,19 +1021,8 @@ namespace MAT_NS_BEGIN {
             if (!stmt.select() || !stmt.getRow(m_pageSize)) { return false; }
         }
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable:4296) // expression always false.
-#elif defined( __clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtype-limits" // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"  // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
-#endif
-
 #define PREPARE_SQL(var_, stmt_) \
-    if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
+    if ((var_ = m_db->prepare(stmt_)) == 0) { return false; }
 
 #ifdef ENABLE_LOCKING
         PREPARE_SQL(m_stmtBeginTransaction,
@@ -1102,26 +1108,18 @@ namespace MAT_NS_BEGIN {
 
 #undef PREPARE_SQL
 
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#elif defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
         ResizeDb();
         return true;
 }
 
     size_t OfflineStorage_SQLite::GetSize()
     {
+        LOCKGUARD(m_lock);
         if (!m_db) {
             LOG_ERROR("Failed to get DB size: database is not open");
             return 0;
         }
 
-        LOCKGUARD(m_lock);
         unsigned pageCount = 0;
         SqliteStatement pageCountStmt(*m_db, m_stmtGetPageCount);
         if (!pageCountStmt.select())
@@ -1156,28 +1154,29 @@ namespace MAT_NS_BEGIN {
 
     size_t OfflineStorage_SQLite::GetRecordCount(EventLatency latency = EventLatency_Unspecified) const
     {
+        LOCKGUARD(m_lock);
         if (!m_db) {
             LOG_ERROR("Failed to get DB size: database is not open");
             return 0;
         }
 
-        LOCKGUARD(m_lock);
         return OfflineStorage_SQLite::GetRecordCountUnsafe(latency);
     }
 
     bool OfflineStorage_SQLite::ResizeDb()
     {
+        LOCKGUARD(m_lock);
         if (!m_db) {
             LOG_ERROR("Failed to resize DB: database is not open");
             return false;
         }
 
         size_t eventsDropped = 0;
+        bool compactDatabase = false;
         m_DbSizeEstimate = GetSize();
         if (m_DbSizeEstimate <= m_DbSizeLimit)
             return false;
 
-        LOCKGUARD(m_lock);
         {
 #ifdef ENABLE_LOCKING
             DbTransaction transaction(m_db.get());
@@ -1191,9 +1190,17 @@ namespace MAT_NS_BEGIN {
             if (m_DbSizeEstimate > 2 * m_DbSizeLimit)
             {
                 LOG_TRACE("DB is too big, deleting...");
-                Execute("DELETE FROM " TABLE_NAME_EVENTS);
-                Execute("VACUUM");
+                if (!SqliteStatement(*m_db, "DELETE FROM " TABLE_NAME_EVENTS).execute())
+                {
+#ifdef ENABLE_LOCKING
+                    transaction.markForRollback();
+#endif
+                    LOG_ERROR("Failed to delete events while resizing database");
+                    m_observer->OnStorageFailed("Database resize failed");
+                    return false;
+                }
                 eventsDropped = count;
+                compactDatabase = true;
             }
             else
             {
@@ -1208,6 +1215,26 @@ namespace MAT_NS_BEGIN {
                 LOG_TRACE("Db resized, events dropped: %zu", eventsDropped);
                 trimStmt.reset();
             }
+
+#ifdef ENABLE_LOCKING
+            if (!transaction.commit())
+            {
+                LOG_ERROR("Failed to commit database resize");
+                m_observer->OnStorageFailed("Database resize failed");
+                return false;
+            }
+#endif
+        }
+
+        // VACUUM cannot run inside a transaction. Reserve the full rewrite for
+        // the emergency delete-all path; routine 25% trims use auto_vacuum=FULL.
+        if (compactDatabase &&
+            !SqliteStatement(*m_db, "VACUUM").execute())
+        {
+            LOG_ERROR("Failed to compact database after resize");
+            m_observer->OnStorageFailed("Database resize failed");
+            m_DbSizeEstimate = GetSize();
+            return false;
         }
 
         m_DbSizeEstimate = GetSize();

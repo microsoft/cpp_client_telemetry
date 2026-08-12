@@ -146,6 +146,24 @@ namespace PAL_NS_BEGIN {
         MAT::ITaskDispatcher* m_taskDispatcher = nullptr;
     };
 
+    inline DeferredCallbackHandle scheduleTask(
+        MAT::ITaskDispatcher* taskDispatcher,
+        unsigned delayMs,
+        std::function<void()> call)
+    {
+        auto taskLifetime = std::make_shared<detail::TaskLifetimeState>();
+        auto task = new detail::TaskCall<std::function<void()>>(
+            call,
+            getMonotonicTimeMs() + static_cast<int64_t>(delayMs),
+            taskLifetime);
+        taskDispatcher->Queue(task);
+        if (taskLifetime->task.load(std::memory_order_acquire) == nullptr)
+        {
+            return DeferredCallbackHandle();
+        }
+        return DeferredCallbackHandle(taskLifetime, taskDispatcher);
+    }
+
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
     void dispatchTask(MAT::ITaskDispatcher* taskDispatcher, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
     {
@@ -170,8 +188,9 @@ namespace PAL_NS_BEGIN {
         taskDispatcher->Queue(task);
         // Queue() is void; an SDK dispatcher that rejects by deleting the task
         // synchronously clears this state before Queue() returns, and the task
-        // destructor also clears it after normal asynchronous completion so a
-        // later Cancel() never touches a stale Task*.
+        // destructor publishes completion after normal asynchronous execution.
+        // Cancel() treats the pointer only as an opaque dispatcher identity
+        // because completion may race the handle's atomic load.
         if (taskLifetime->task.load(std::memory_order_acquire) == nullptr)
         {
             return DeferredCallbackHandle();

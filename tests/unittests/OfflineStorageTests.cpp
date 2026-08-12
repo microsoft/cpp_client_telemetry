@@ -76,18 +76,18 @@ TEST_F(OfflineStorageTests, StopShutsDown)
 
 TEST_F(OfflineStorageTests, StoreRecordIsForwarded)
 {
-    auto ctx = new IncomingEventContext();
+    IncomingEventContext ctx;
 
-    EXPECT_CALL(offlineStorageMock, StoreRecord(Ref(ctx->record)))
+    EXPECT_CALL(offlineStorageMock, StoreRecord(Ref(ctx.record)))
         .WillOnce(Return(true));
-    EXPECT_THAT(offlineStorage.storeRecord(ctx), true);
-    EXPECT_THAT(ctx->record.timestamp, Near(PAL::getUtcSystemTimeMs(), 1000));
+    EXPECT_THAT(offlineStorage.storeRecord(&ctx), true);
+    EXPECT_THAT(ctx.record.timestamp, Near(PAL::getUtcSystemTimeMs(), 1000));
 
-    EXPECT_CALL(offlineStorageMock, StoreRecord(Ref(ctx->record)))
+    EXPECT_CALL(offlineStorageMock, StoreRecord(Ref(ctx.record)))
         .WillOnce(Return(false));
-    EXPECT_CALL(*this, resultStoreRecordFailed(ctx))
+    EXPECT_CALL(*this, resultStoreRecordFailed(&ctx))
         .WillOnce(Return());
-    EXPECT_THAT(offlineStorage.storeRecord(ctx), false);
+    EXPECT_THAT(offlineStorage.storeRecord(&ctx), false);
 }
 
 TEST_F(OfflineStorageTests, RetrieveEventsPassesRecordsThrough)

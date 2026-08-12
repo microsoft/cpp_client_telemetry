@@ -10,12 +10,18 @@
 #include "Version.hpp"
 
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <set>
 #include <functional>
+#include <future>
+#include <limits>
 #include <memory>
+#include <mutex>
+#include <thread>
 
 #ifdef HAVE_MAT_LOGGING
 #include "pal/PAL.hpp"
@@ -233,6 +239,53 @@ namespace
     public:
         void Callback() {}
     };
+
+    class BlockingCancellationTarget
+    {
+    public:
+        void Block()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            m_entered = true;
+            m_stateChanged.notify_all();
+            m_stateChanged.wait(lock, [this]() { return m_release; });
+        }
+
+        void Signal()
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_successorRan = true;
+            m_stateChanged.notify_all();
+        }
+
+        bool WaitUntilEntered()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            return m_stateChanged.wait_for(
+                lock, std::chrono::seconds{5}, [this]() { return m_entered; });
+        }
+
+        bool WaitUntilSuccessorRan()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            return m_stateChanged.wait_for(
+                lock, std::chrono::seconds{5}, [this]() { return m_successorRan; });
+        }
+
+        void Release()
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_release = true;
+            m_stateChanged.notify_all();
+        }
+
+    private:
+        std::mutex m_lock;
+        std::condition_variable m_stateChanged;
+        bool m_entered = false;
+        bool m_release = false;
+        bool m_successorRan = false;
+    };
 }
 
 // A task throwing an exception must be contained by the worker thread loop;
@@ -296,6 +349,56 @@ TEST_F(PalTests, ScheduleTaskHandleClearsAfterWorkerThreadCallbackCompletes)
     ASSERT_TRUE(callbackRan.load());
     EXPECT_EQ(handle.GetTask(), nullptr);
     EXPECT_TRUE(handle.Cancel());
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, CancellingRunningTaskDoesNotDropSuccessor)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    constexpr int Iterations = 400;
+
+    for (int iteration = 0; iteration < Iterations; ++iteration)
+    {
+        BlockingCancellationTarget target;
+        auto running = PAL::scheduleTask(
+            dispatcher.get(), 0, &target, &BlockingCancellationTarget::Block);
+
+        if (!target.WaitUntilEntered())
+        {
+            target.Release();
+            dispatcher->Join();
+            FAIL() << "Worker did not start the blocking task";
+            return;
+        }
+
+        auto successor = PAL::scheduleTask(
+            dispatcher.get(), 0, &target, &BlockingCancellationTarget::Signal);
+        std::promise<void> cancelStarted;
+        auto cancelStartedFuture = cancelStarted.get_future();
+        bool cancelResult = false;
+        std::thread cancelThread([&]() {
+            cancelStarted.set_value();
+            cancelResult = running.Cancel(std::numeric_limits<uint64_t>::max());
+        });
+
+        cancelStartedFuture.wait();
+        for (int i = 0; i < 100; ++i)
+        {
+            std::this_thread::yield();
+        }
+        target.Release();
+        cancelThread.join();
+
+        EXPECT_TRUE(cancelResult);
+        if (!target.WaitUntilSuccessorRan())
+        {
+            dispatcher->Join();
+            FAIL() << "Cancellation dropped the successor task at iteration " << iteration;
+            return;
+        }
+        (void)successor;
+    }
 
     dispatcher->Join();
 }

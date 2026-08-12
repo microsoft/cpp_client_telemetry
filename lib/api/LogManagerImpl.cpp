@@ -2,9 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
-#ifdef _MSC_VER
-// evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
-#pragma warning(disable : 4459)
+#ifdef _WIN32
+// Include the SDK declaration before the telemetry Version symbol enters scope.
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#include <evntprov.h>
 #endif
 #include "LogManagerImpl.hpp"
 #include <cstdio>

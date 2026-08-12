@@ -192,9 +192,6 @@ namespace MAT_NS_BEGIN {
 
     EventRejectedReason validateEventName(std::string const& name)
     {
-        // Data collector uses this regex (avoided here for code size reasons):
-        // ^[a-zA-Z0-9]([a-zA-Z0-9]|_){2,98}[a-zA-Z0-9]$
-
         if (name.length() < 1 + 2 + 1 || name.length() > 1 + 98 + 1) {
             LOG_ERROR("Invalid event name - \"%s\": must be between 4 and 100 characters long", name.c_str());
             return REJECTED_REASON_VALIDATION_FAILED;
@@ -205,13 +202,6 @@ namespace MAT_NS_BEGIN {
             LOG_ERROR("Invalid event name - \"%s\": must contain [0-9A-Za-z_] characters only", name.c_str());
             return REJECTED_REASON_VALIDATION_FAILED;
         }
-
-#if 0
-        if (name.front() == '_' || name.back() == '_') {
-            LOG_ERROR("Invalid event name - \"%s\": must not start or end with an underscore", name.c_str());
-            return REJECTED_REASON_VALIDATION_FAILED;
-        }
-#endif
 
         return REJECTED_REASON_OK;
     }
@@ -262,4 +252,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

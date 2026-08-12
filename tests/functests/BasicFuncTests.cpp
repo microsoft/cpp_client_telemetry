@@ -140,6 +140,9 @@ protected:
 
     std::condition_variable cv_gotEvents;
     std::mutex cv_m;
+    std::condition_variable cv_slowRequest;
+    std::mutex mtx_slowRequest;
+    bool slowRequestStarted = false;
 public:
 
     BasicFuncTests() :
@@ -188,9 +191,14 @@ public:
         std::remove((fileName + "-journal").c_str());
     }
 
-    virtual void Initialize(int64_t maxTeardownUploadTimeInSec = 2)
+    virtual void Initialize(
+        int64_t maxTeardownUploadTimeInSec = 2,
+        int64_t cacheFileSize = 4096 * 1024)
     {
-        receivedRequests.clear();
+        {
+            LOCKGUARD(mtx_requests);
+            receivedRequests.clear();
+        }
         auto configuration = LogManager::GetLogConfiguration();
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
@@ -203,7 +211,7 @@ public:
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration[CFG_INT_CACHE_FILE_SIZE] = 4096 * 1024;  // 4MB default
+        configuration[CFG_INT_CACHE_FILE_SIZE] = cacheFileSize;
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = maxTeardownUploadTimeInSec;
         configuration[CFG_INT_STORAGE_FULL_PCT] = 75;   // default
         configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 5000; // default 5s
@@ -239,6 +247,11 @@ public:
         }
 
         if (request.uri.compare(0, 6, "/slow/") == 0) {
+            {
+                std::lock_guard<std::mutex> lock(mtx_slowRequest);
+                slowRequestStarted = true;
+            }
+            cv_slowRequest.notify_all();
             PAL::sleep(static_cast<unsigned int>(request.content.size() / DELAY_FACTOR_FOR_SERVER));
         }
 
@@ -251,6 +264,15 @@ public:
         response.content = "{ \"status\": \"0\" }";
 
         return 200;
+    }
+
+    bool waitForSlowRequest(unsigned timeoutSec)
+    {
+        std::unique_lock<std::mutex> lock(mtx_slowRequest);
+        return cv_slowRequest.wait_for(
+            lock,
+            std::chrono::seconds(timeoutSec),
+            [this] { return slowRequestStarted; });
     }
 
     bool waitForRequests(unsigned timeOutSec, unsigned expected_count = 1)
@@ -504,6 +526,7 @@ public:
 
     std::vector<CsProtocol::Record> records()
     {
+        LOCKGUARD(mtx_requests);
         std::vector<CsProtocol::Record> result;
         if (receivedRequests.size())
         {
@@ -523,6 +546,7 @@ public:
     // Find first matching event
     CsProtocol::Record find(const std::string& name)
     {
+        LOCKGUARD(mtx_requests);
         CsProtocol::Record result;
         result.name = "";
         if (receivedRequests.size())
@@ -620,7 +644,8 @@ TEST_F(BasicFuncTests, teardownDuringInFlightUpload_ShutsDownCleanly)
         logger->LogEvent(event);
     }
     LogManager::UploadNow();
-    PAL::sleep(300); // let the upload reach the slow server so it is in flight
+    ASSERT_TRUE(waitForSlowRequest(5))
+        << "Upload did not reach the /slow/ endpoint";
     // Teardown with timeout 0 returns while the upload is still outstanding.
     LogManager::FlushAndTeardown();
     SUCCEED();
@@ -838,19 +863,20 @@ TEST_F(BasicFuncTests, configDecorations)
 
 TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
 {
+    EventProperties event1("first_event");
+    EventProperties event2("second_event");
+    event1.SetProperty("property1", "value1");
+    event2.SetProperty("property2", "value2");
+    event1.SetLatency(MAT::EventLatency::EventLatency_RealTime);
+    event1.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
+    event2.SetLatency(MAT::EventLatency::EventLatency_RealTime);
+    event2.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
+
     {
         CleanStorage();
         Initialize();
         // This code is a bit racy because ResumeTransmission is done in Initialize
         LogManager::PauseTransmission();
-        EventProperties event1("first_event");
-        EventProperties event2("second_event");
-        event1.SetProperty("property1", "value1");
-        event2.SetProperty("property2", "value2");
-        event1.SetLatency(MAT::EventLatency::EventLatency_RealTime);
-        event1.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
-        event2.SetLatency(MAT::EventLatency::EventLatency_RealTime);
-        event2.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
         logger->LogEvent(event1);
         logger->LogEvent(event2);
         FlushAndTeardown();
@@ -865,30 +891,16 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         LogManager::SetTransmitProfile(TransmitProfile_RealTime);
         LogManager::UploadNow();
 
-        // 1st request for realtime event
-        waitForEvents(10, 5); // start, first_event, second_event, ongoing, stop, start, fooEvent
-        // we drop two of the events during pause, though.
-        EXPECT_GE(receivedRequests.size(), (size_t)1);
-        if (receivedRequests.size() != 0)
-        {
-            auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-        }
+        // The first manager persists both paused customer events and its lifecycle
+        // metastats; the second manager then uploads those plus its own start event.
+        waitForEvents(10, 7);
+        verifyEvent(event1, find(event1.GetName()));
+        verifyEvent(event2, find(event2.GetName()));
+        verifyEvent(fooEvent, find(fooEvent.GetName()));
         FlushAndTeardown();
     }
-
-    /*
-        ASSERT_THAT(receivedRequests, SizeIs(1));
-        auto payload = decodeRequest(receivedRequests[0], false);
-        ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-        ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-        auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-        ASSERT_THAT(payload, SizeIs(2));
-        verifyEvent(event1, payload[0]);
-        verifyEvent(event2, payload[1]);
-        */
 }
 
-#if 0 // FIXME: 1445871 [v3][1DS] Offline storage size may exceed configured limit
 TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 {
     CleanStorage();
@@ -897,15 +909,13 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     static int64_t const MAX_FILE_SIZE = 8 * 1024 * 1024;
     static int64_t const ALLOWED_OVERFLOW = 10 * MAX_FILE_SIZE / 100;
 
-    auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 0;
-    configuration[CFG_INT_CACHE_FILE_SIZE] = MAX_FILE_SIZE;
-
-    std::string slowServiceUrl;
-    slowServiceUrl.insert(slowServiceUrl.find('/', sizeof("http://")) + 1, "slow/");
-    configuration[CFG_STR_COLLECTOR_URL] = slowServiceUrl.c_str();
+    auto& configuration = LogManager::GetLogConfiguration();
+    configuration[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = true;
+    std::string savedAddress = serverAddress;
+    serverAddress = serverBaseAddress + "/slow/";
     {
-        Initialize();
+        Initialize(0, MAX_FILE_SIZE);
+        serverAddress = savedAddress;
         LogManager::PauseTransmission();
         for (int i = 0; i < 50; i++) {
             EventProperties event("event" + toString(i));
@@ -919,38 +929,13 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
         FlushAndTeardown();
 
         std::string fileName = MAT::GetTempDirectory();
-        fileName += "\\";
+        fileName += PATH_SEPARATOR_CHAR;
         fileName += TEST_STORAGE_FILENAME;
         size_t fileSize = getFileSize(fileName);
         EXPECT_LE(fileSize, (size_t)(MAX_FILE_SIZE + ALLOWED_OVERFLOW));
     }
-
-    // Restore fast URL
-    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-
-    {
-        Initialize();
-        waitForEvents(5, 8);
-        if (receivedRequests.size())
-        {
-            auto payload = decodeRequest(receivedRequests[0], false);
-            /*    auto payload = decodeRequest(receivedRequests[0], false);
-                ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
-                auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-                ASSERT_THAT(payload, SizeIs(2));
-                EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-                EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-                // The expected number of dropped events is hard to estimate because of database overhead,
-                // varying timing, some events have been sent etc. Just check that it's at least a quarter.
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
-                */
-        }
-        FlushAndTeardown();
-    }
-
+    configuration[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = false;
 }
-#endif
 
 TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 {
@@ -977,10 +962,10 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     LogManager::ResumeTransmission(); // ?
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    waitForEvents(5, 4); // (start + stop) + (2 events + start)
+    waitForEvents(5, 6); // Four lifecycle metastats plus the two persisted customer events.
 
     auto r2 = records();
-    ASSERT_GE(r2.size(), (size_t)4); // (start + stop) + (2 events + start)
+    ASSERT_EQ(r2.size(), (size_t)6);
 
     for (const auto &evt : { event1, event2 })
     {
@@ -1601,56 +1586,4 @@ TEST_F(BasicFuncTests, deleteEvents)
 }
 #endif
 
-#if 0 // TODO: [MG] - re-enable this long-haul test
-TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
-{
-    CleanStorage();
-
-    auto &configuration = LogManager::GetLogConfiguration();
-
-    std::string badServiceUrl;
-    badServiceUrl.insert(badServiceUrl.find('/', sizeof("http://")) + 1, "503/");
-
-    configuration[CFG_STR_COLLECTOR_URL] = badServiceUrl.c_str();
-
-    {
-        Initialize();
-
-        EventProperties event("event");
-        event.SetProperty("property", "value");
-
-        logger->LogEvent(event);
-
-        // After initial delay of 2 seconds, the library will send a request, wait 3 seconds, send 1st retry and stop.
-        // 2nd retry after another 3 seconds (using the good URL again) should not come - wait 1 more second to be sure.
-        PAL::sleep(2000 + 2 * 3000 + 1000);
-        // EXPECT_THAT(receivedRequests, SizeIs(0));
-
-         // Check meta stats on restart (will be first request)
-        FlushAndTeardown();
-    }
-
-    // Restore fast URL
-    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-
-    {
-        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        Initialize();
-        waitForEvents(5, 2);
-        if (receivedRequests.size())
-        {
-            auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-            /*    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-                ASSERT_THAT(payload, SizeIs(1));
-                EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-                EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
-                */
-        }
-        FlushAndTeardown();
-    }
-}
-#endif
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
