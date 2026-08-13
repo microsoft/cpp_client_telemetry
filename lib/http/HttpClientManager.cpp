@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <algorithm>
 #include <chrono>
+#include <exception>
+#include <limits>
 #include <thread>
 #include <vector>
 
@@ -86,14 +88,23 @@ namespace MAT_NS_BEGIN {
         m_httpClient(httpClient),
         m_taskDispatcher(taskDispatcher)
     {
+        int64_t configuredSeconds =
+            logManager.GetLogConfiguration()[CFG_INT_MAX_TEARDOWN_TIME];
+        if (configuredSeconds > 0)
+        {
+            int64_t const maxSeconds =
+                std::chrono::milliseconds::max().count() / 1000;
+            m_cancelDrainTimeout = std::chrono::seconds(
+                std::min(configuredSeconds, maxSeconds));
+        }
     }
 
     HttpClientManager::~HttpClientManager() noexcept
     {
         // HttpCallback and scheduled response tasks retain a reference to this
-        // manager, so destruction must be a full callback lifetime barrier.
-        // Reentrant destruction is unsupported because the active callback
-        // itself must still unwind through this object.
+        // manager, so non-reentrant destruction must be a full callback lifetime
+        // barrier. Reentrant destruction is unsupported because the active
+        // callback itself must still unwind through this object.
 #ifndef NDEBUG
         {
             std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
@@ -129,6 +140,17 @@ namespace MAT_NS_BEGIN {
     /* This method may get executed synchronously on Windows from handleSendRequest in case of connection failure */
     void HttpClientManager::onHttpResponse(HttpCallback* callback)
     {
+        {
+            std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
+            auto z = std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback);
+            if (z == m_httpCallbacks.end()) {
+                LOG_ERROR("Ignoring untracked HTTP callback=%p", callback);
+                return;
+            }
+            m_activeHttpCallbacks[callback] = std::this_thread::get_id();
+            m_httpCallbacksCV.notify_all();
+        }
+
         EventsUploadContextPtr &ctx = callback->m_ctx;
 
 #if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
@@ -141,21 +163,22 @@ namespace MAT_NS_BEGIN {
         }
 #endif
 
+        // Never hold m_httpCallbacksMtx while calling the transport or
+        // dispatching requestDone(): either path may synchronously re-enter this
+        // manager. Reentrant cancellation recognizes this callback as active
+        // and does not wait for its own stack to unwind.
+        try
         {
-            std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
-            auto z = std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback);
-            if (z == m_httpCallbacks.end()) {
-                assert(false);
-                return;
-            }
-            m_activeHttpCallbacks[callback] = std::this_thread::get_id();
-            m_httpCallbacksCV.notify_all();
+            requestDone(ctx);
         }
-
-        // Downstream handling dispatches customer callbacks and must not run
-        // under the callback-list mutex. Reentrant cancellation recognizes this
-        // callback as active and does not wait for its own stack to unwind.
-        requestDone(ctx);
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("Unhandled exception in HTTP response callback: %s", ex.what());
+        }
+        catch (...)
+        {
+            LOG_ERROR("Unhandled non-standard exception in HTTP response callback");
+        }
         // request done should be handled by now
 
         {
@@ -223,8 +246,14 @@ namespace MAT_NS_BEGIN {
 
     void HttpClientManager::cancelAllRequests(bool bestEffort)
     {
-        // Use the transport-specific bounded path when available; older clients
-        // fall back to cancelling tracked requests individually.
+        if (bestEffort &&
+            m_cancelDrainTimeout <= std::chrono::milliseconds::zero())
+        {
+            return;
+        }
+        // Quiesce the transport before taking m_httpCallbacksMtx. Moving this
+        // call under the mutex deadlocks when a synchronous transport completion
+        // re-enters onHttpResponse().
         const auto cancelStart = std::chrono::steady_clock::now();
         cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
 
@@ -247,7 +276,9 @@ namespace MAT_NS_BEGIN {
         };
         if (bestEffort)
         {
-            // Keep pause bounded, including time spent in the transport cancel.
+            // Keep pause within the configured soft cap, including time spent
+            // in transport cancellation. A synchronous native handle close
+            // already in progress can finish after the deadline.
             const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - cancelStart);
             const auto remaining = (elapsed < m_cancelDrainTimeout)
@@ -261,7 +292,9 @@ namespace MAT_NS_BEGIN {
         }
         else
         {
-            // Shutdown/cleanup is the lifetime barrier for callback state, so drain fully.
+            // Non-reentrant shutdown/cleanup is the lifetime barrier for callback
+            // state. A callback re-entering cancellation must return so its own
+            // stack can unwind; destroying the manager from that stack is unsupported.
             m_httpCallbacksCV.wait(lock, callbacksDrainedForCaller);
         }
     }

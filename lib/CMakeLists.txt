@@ -301,19 +301,21 @@ target_compile_definitions(matsdk_internal_config INTERFACE
 target_compile_options(matsdk_internal_config INTERFACE /U_MBCS)
 if(MATSDK_USE_WININET)
   target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_WININET_HTTP_CLIENT)
+else()
+  target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_WINHTTP_HTTP_CLIENT)
 endif()
-  if(MATSDK_USE_WININET)
-    list(APPEND SRCS
-      http/HttpClient_WinInet.cpp
-      http/HttpClient_WinInet.hpp
-    )
-  else()
-    list(APPEND SRCS
-      http/HttpClient_WinHttp.cpp
-      http/HttpClient_WinHttp.hpp
-      http/IBoundedHttpClientCancel.hpp
-    )
-  endif()
+if(MATSDK_USE_WININET)
+  list(APPEND SRCS
+    http/HttpClient_WinInet.cpp
+    http/HttpClient_WinInet.hpp
+  )
+else()
+  list(APPEND SRCS
+    http/HttpClient_WinHttp.cpp
+    http/HttpClient_WinHttp.hpp
+    http/IBoundedHttpClientCancel.hpp
+  )
+endif()
   list(APPEND SRCS
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp

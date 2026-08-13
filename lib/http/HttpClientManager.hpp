@@ -73,10 +73,11 @@ class HttpClientManager
         // Signaled from onHttpResponse when a callback is removed, so cancelAllRequests
         // can drain via a condition variable instead of a poll loop.
         std::condition_variable      m_httpCallbacksCV;
-        // Upper bound on the best-effort pause drain. Full shutdown deliberately
-        // remains a lifetime barrier and waits for every accepted request's required
-        // terminal callback.
-        std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::seconds(30)};
+        // Configured soft cap on the best-effort pause drain. One native handle
+        // close already in progress may finish after it. Non-reentrant full
+        // shutdown remains a lifetime barrier and waits for every accepted
+        // request's terminal callback.
+        std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::milliseconds::zero()};
 };
 
 } MAT_NS_END

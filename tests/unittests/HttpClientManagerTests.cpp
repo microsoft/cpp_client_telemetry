@@ -13,6 +13,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <stdexcept>
 #include <thread>
 
 using namespace testing;
@@ -183,6 +184,28 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 
     EXPECT_THAT(ctx->httpResponse, rspRef);
     EXPECT_THAT(ctx->durationMs, Gt(199));
+}
+
+TEST_F(HttpClientManagerTests, ThrowingRequestDoneStillDrainsCallback)
+{
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("throwing-request-done");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+    ctx->recordIdsAndTenantIds["r1"] = "t1";
+    ctx->latency = EventLatency_Normal;
+    ctx->packageIds["tenant1-token"] = 0;
+
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    hcm.sendRequest(ctx);
+    ASSERT_THAT(callback, NotNull());
+
+    EXPECT_CALL(*this, resultRequestDone(ctx))
+        .WillOnce(Throw(std::runtime_error("listener failed")));
+
+    EXPECT_NO_THROW(callback->OnHttpResponse(new SimpleHttpResponse("throwing-request-done")));
+    EXPECT_THAT(hcm.requestCount(), 0u);
 }
 
 TEST_F(HttpClientManagerTests, RequestDoneCanCancelAllRequests)

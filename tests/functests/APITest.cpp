@@ -15,7 +15,10 @@
 
 #include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <LogManager.hpp>
+#include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -210,6 +213,32 @@ public:
         std::cerr << "[          ] numCached    = " << numCached << std::endl;
         std::cerr << "[          ] numFiltered  = " << numFiltered << std::endl;
     }
+};
+
+class HttpResponseWaiter final : public IHttpResponseCallback {
+public:
+    void OnHttpResponse(IHttpResponse* response) override
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_response.reset(response);
+        m_cv.notify_all();
+    }
+
+    void OnHttpStateEvent(HttpStateEvent, void*, size_t) override
+    {
+    }
+
+    std::unique_ptr<IHttpResponse> WaitForResponse(std::chrono::seconds timeout)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_cv.wait_for(lock, timeout, [this]() { return m_response != nullptr; });
+        return std::move(m_response);
+    }
+
+private:
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+    std::unique_ptr<IHttpResponse> m_response;
 };
 
 // Keep requests in flight until teardown cancels them, then simulate a connection
@@ -1249,6 +1278,52 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 }
 
 #if defined(_WIN32) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
+TEST(APITest, WindowsHttpTransport_MsRoot_Check)
+{
+    auto sendRequest = [](bool enforceMsRoot) {
+        HttpResponseWaiter callback;
+        auto client = HttpClientFactory::Create();
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+        auto windowsClient = dynamic_cast<HttpClient_WinInet*>(client.get());
+#elif defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+        auto windowsClient = dynamic_cast<HttpClient_WinHttp*>(client.get());
+#else
+#error A Windows HTTP transport must be selected.
+#endif
+        EXPECT_NE(windowsClient, nullptr);
+        if (windowsClient == nullptr)
+        {
+            return std::unique_ptr<IHttpResponse>();
+        }
+        windowsClient->SetMsRootCheck(enforceMsRoot);
+
+        std::unique_ptr<IHttpRequest> request(client->CreateRequest());
+        request->SetMethod("POST");
+        request->SetUrl("https://mobile.events.data.microsoft.com/OneCollector/1.0/");
+        std::vector<uint8_t> body {'{', '}'};
+        request->SetBody(body);
+        client->SendRequestAsync(request.release(), &callback);
+
+        auto response = callback.WaitForResponse(std::chrono::seconds(10));
+        if (response == nullptr)
+        {
+            client->CancelAllRequests();
+            response = callback.WaitForResponse(std::chrono::seconds(2));
+        }
+        client.reset();
+        return response;
+    };
+
+    auto accepted = sendRequest(false);
+    ASSERT_NE(accepted, nullptr);
+    EXPECT_EQ(accepted->GetResult(), HttpResult_OK);
+
+    auto rejected = sendRequest(true);
+    ASSERT_NE(rejected, nullptr);
+    EXPECT_EQ(rejected->GetResult(), HttpResult_NetworkFailure);
+    EXPECT_EQ(rejected->GetStatusCode(), 0u);
+}
+
 /* This test verifies the certificate policy used by either Windows HTTP transport. */
 TEST(APITest, LogConfiguration_MsRoot_Check)
 {
@@ -1279,13 +1354,21 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
         debugListener.reset();
         addAllListeners(debugListener);
         logger->LogEvent("fooBar");
+        LogManager::UploadNow();
+        const auto deadline = PAL::getMonotonicTimeMs() + 10000;
+        while (PAL::getMonotonicTimeMs() < deadline &&
+               debugListener.numHttpOK.load() == 0 &&
+               debugListener.numHttpError.load() == 0)
+        {
+            PAL::sleep(50);
+        }
         LogManager::FlushAndTeardown();
         removeAllListeners(debugListener);
 
-        // Connection is a best-effort, occasionally we can't connect,
-        // but we MUST NOT connect to end-point that doesn't have the
-        // right cert.
-        EXPECT_LE(debugListener.numHttpOK, expectedHttpCount);
+        // The successful cases establish that the runner can reach both
+        // endpoints, so the rejected case cannot pass merely because external
+        // networking is unavailable.
+        EXPECT_EQ(debugListener.numHttpOK.load(), expectedHttpCount);
     }
 }
 #endif

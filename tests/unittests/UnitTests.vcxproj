@@ -411,6 +411,16 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(MATSDK_USE_WININET)' == 'true'">
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_MAT_WININET_HTTP_CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(MATSDK_USE_WININET)' != 'true'">
+    <ClCompile>
+      <PreprocessorDefinitions>HAVE_MAT_WINHTTP_HTTP_CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(ProjectDir)..\common\Common.cpp" />
     <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp" />

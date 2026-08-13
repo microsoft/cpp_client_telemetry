@@ -22,6 +22,9 @@
 #include <vector>
 #include <oacr.h>
 
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "wininet.lib")
+
 namespace MAT_NS_BEGIN {
 
 class WinInetRequestWrapper;
@@ -91,9 +94,9 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     std::string            m_id;
     IHttpResponseCallback* m_appCallback {nullptr};
     // WinInet may deliver completion callbacks synchronously from an async API.
-    // This per-request recursive mutex permits only that narrow re-entry; the
-    // parent request-map mutex remains non-recursive and is never held while a
-    // handle is closed or application code is invoked.
+    // This per-request recursive mutex permits only that narrow re-entry. It is
+    // never nested with the parent request-map mutex; cancellation snapshots
+    // the registry before touching request handles or invoking application code.
     std::recursive_mutex    m_handleMutex;
     HINTERNET              m_hWinInetSession {nullptr};
     HINTERNET              m_hWinInetRequest {nullptr};
@@ -105,6 +108,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     std::atomic<bool>       m_terminalCallbackStarted {false};
     std::atomic<bool>       m_isAborted {false};
     std::atomic<DWORD>      m_deferredError {ERROR_SUCCESS};
+    bool                   m_msRootCheckRequired {false};
     bool                   m_contextInstalled {false};
     bool                   m_sendIssued {false};
     bool                   m_setupActive {false};
@@ -342,6 +346,8 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     {
         SetupGuard setupGuard(*this);
         m_appCallback = callback;
+        m_msRootCheckRequired =
+            m_clientState->msRootCheck.load(std::memory_order_acquire);
         if (!m_clientState->registerRequest(m_id, shared_from_this()))
         {
             onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
@@ -432,6 +438,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                     INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_AUTH | INTERNET_FLAG_NO_CACHE_WRITE |
                     INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_PRAGMA_NOCACHE |
                     INTERNET_FLAG_RELOAD |
+                        (m_msRootCheckRequired ? INTERNET_FLAG_NO_AUTO_REDIRECT : 0) |
                         (urlc.nScheme == INTERNET_SCHEME_HTTPS ? INTERNET_FLAG_SECURE : 0),
                     reinterpret_cast<DWORD_PTR>(context.get()));
                 if (m_hWinInetRequest == nullptr)
@@ -465,7 +472,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         }
 
         /* Perform optional MS Root certificate check for certain end-point URLs */
-        if (m_clientState->msRootCheck.load(std::memory_order_acquire))
+        if (m_msRootCheckRequired)
         {
             if (!isMsRootCert())
             {
@@ -644,25 +651,29 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
 
     void DispatchEvent(HttpStateEvent type)
     {
-        if (m_appCallback != nullptr)
+        IHttpResponseCallback* callback = nullptr;
+        HINTERNET request = nullptr;
+        std::thread::id const callbackThread = std::this_thread::get_id();
         {
-            HINTERNET request = nullptr;
-            std::thread::id const callbackThread = std::this_thread::get_id();
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            if (m_appCallback == nullptr ||
+                m_terminalCallbackStarted.load(std::memory_order_acquire))
             {
-                std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
-                request = m_hWinInetRequest;
-                ++m_stateCallbackDepth;
-                ++m_stateCallbacksByThread[callbackThread];
+                return;
             }
-            m_appCallback->OnHttpStateEvent(type, static_cast<void*>(request), 0);
+            callback = m_appCallback;
+            request = m_hWinInetRequest;
+            ++m_stateCallbackDepth;
+            ++m_stateCallbacksByThread[callbackThread];
+        }
+        callback->OnHttpStateEvent(type, static_cast<void*>(request), 0);
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            --m_stateCallbackDepth;
+            auto it = m_stateCallbacksByThread.find(callbackThread);
+            if (it != m_stateCallbacksByThread.end() && --it->second == 0)
             {
-                std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
-                --m_stateCallbackDepth;
-                auto it = m_stateCallbacksByThread.find(callbackThread);
-                if (it != m_stateCallbacksByThread.end() && --it->second == 0)
-                {
-                    m_stateCallbacksByThread.erase(it);
-                }
+                m_stateCallbacksByThread.erase(it);
             }
         }
     }
@@ -671,8 +682,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     {
         {
             std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
-            if (m_stateCallbackDepth != 0 ||
-                (m_setupActive && !m_sendIssued))
+            if (m_stateCallbackDepth != 0 || m_setupActive)
             {
                 m_setupCompletionPending = true;
                 m_setupCompletionError = dwError;
@@ -1027,9 +1037,20 @@ void WinInetClientState::endCallback()
 {
     {
         std::lock_guard<std::mutex> lock(requestsMutex);
+        if (callbacksInFlight == 0)
+        {
+            LOG_ERROR("WinInet callback accounting underflow");
+            requestsCv.notify_all();
+            return;
+        }
+
         --callbacksInFlight;
         auto it = callbacksByThread.find(std::this_thread::get_id());
-        if (it != callbacksByThread.end() && --it->second == 0)
+        if (it == callbacksByThread.end() || it->second == 0)
+        {
+            LOG_ERROR("WinInet callback thread was not registered");
+        }
+        else if (--it->second == 0)
         {
             callbacksByThread.erase(it);
         }
@@ -1185,6 +1206,10 @@ void HttpClient_WinInet::CancelAllRequests(std::chrono::milliseconds bestEffortT
 
         for (auto const& request : requests)
         {
+            if (hasTimeout && std::chrono::steady_clock::now() >= deadline)
+            {
+                break;
+            }
             request->cancel();
         }
 

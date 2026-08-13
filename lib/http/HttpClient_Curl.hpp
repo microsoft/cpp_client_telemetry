@@ -274,11 +274,13 @@ public:
 #if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
         m_transportError = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
 #else
-        long lastSocket = -1;
-        m_transportError = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
-        if (m_transportError == CURLE_OK)
         {
-            sockextr = static_cast<curl_socket_t>(lastSocket);
+            long lastSocket = -1;
+            m_transportError = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
+            if (m_transportError == CURLE_OK)
+            {
+                sockextr = static_cast<curl_socket_t>(lastSocket);
+            }
         }
 #endif
 

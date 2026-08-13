@@ -25,6 +25,9 @@ private:
 
 // TODO: [maxgolov] - remove this once there is a better way to pass HTTP client configuration
 #if defined(MATSDK_PAL_WIN32) && !defined(_WINRT_DLL)
+  #if defined(HAVE_MAT_WININET_HTTP_CLIENT) && defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+    #error WinInet and WinHTTP cannot both be selected.
+  #endif
   #if defined(HAVE_MAT_WININET_HTTP_CLIENT)
     #include "http/HttpClient_WinInet.hpp"
   #else
@@ -33,7 +36,9 @@ private:
     // Explorer settings, so it works in services and other non-interactive
     // processes without extra configuration. Define HAVE_MAT_WININET_HTTP_CLIENT
     // to opt back into WinInet (e.g. for IE-integrated proxy/cookie behavior).
-    #define HAVE_MAT_WINHTTP_HTTP_CLIENT
+    #ifndef HAVE_MAT_WINHTTP_HTTP_CLIENT
+      #define HAVE_MAT_WINHTTP_HTTP_CLIENT
+    #endif
     #include "http/HttpClient_WinHttp.hpp"
   #endif
 #endif

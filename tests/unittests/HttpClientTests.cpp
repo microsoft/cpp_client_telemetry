@@ -89,6 +89,7 @@ class HttpClientTests : public ::testing::Test,
         _server.addHandler("/count/",  *this);
         _server.addHandler("/block/",  *this);
         _server.addHandler("/large/",  *this);
+        _server.addHandler("/redirect/", *this);
         _server.start();
 
         Clear();
@@ -144,6 +145,11 @@ class HttpClientTests : public ::testing::Test,
             std::unique_lock<std::mutex> lock(_blockedRequestLock);
             _blockedRequestCv.wait(lock, [this]() { return _releaseBlockedRequest; });
             return 200;
+        }
+
+        if (request.uri == "/redirect/") {
+            inResponse.headers["Location"] = "http://" + _hostname + "/simple/200";
+            return 302;
         }
 
         if (request.uri.substr(0, 7) == "/large/") {
@@ -303,6 +309,43 @@ TEST_F(HttpClientTests, HandlesCancellationWhileResponseIsInFlight)
 }
 
 //---
+
+#ifdef MATSDK_PAL_WIN32
+TEST_F(HttpClientTests, UsesConfiguredWindowsTransport)
+{
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+    EXPECT_THAT(dynamic_cast<HttpClient_WinInet*>(_client.get()), NotNull());
+#elif defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+    EXPECT_THAT(dynamic_cast<HttpClient_WinHttp*>(_client.get()), NotNull());
+#else
+#error A Windows HTTP transport must be selected.
+#endif
+}
+
+TEST_F(HttpClientTests, DisablesRedirectsWhenMicrosoftRootCheckIsEnabled)
+{
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+    auto windowsClient = dynamic_cast<HttpClient_WinInet*>(_client.get());
+#elif defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+    auto windowsClient = dynamic_cast<HttpClient_WinHttp*>(_client.get());
+#else
+#error A Windows HTTP transport must be selected.
+#endif
+    ASSERT_THAT(windowsClient, NotNull());
+    windowsClient->SetMsRootCheck(true);
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    request->SetUrl("http://" + _hostname + "/redirect/");
+    _client->SendRequestAsync(request.release(), this);
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+        [this]() { return !_responses.empty(); }));
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_OK);
+    EXPECT_THAT(_responses[0]->GetStatusCode(), 302u);
+}
+#endif
 
 TEST_F(HttpClientTests, HandlesSimpleRequest)
 {
@@ -501,6 +544,11 @@ TEST_F(HttpClientTests, HandlesConcurrentCancellationDuringStateEvent)
     }
     _client->CancelRequestAsync(requestId);
     {
+        std::lock_guard<std::mutex> lock(_lock);
+        EXPECT_TRUE(_responses.empty())
+            << "Terminal response overlapped the active state callback";
+    }
+    {
         std::lock_guard<std::mutex> lock(_blockedRequestLock);
         _releaseConnecting = true;
     }
@@ -609,6 +657,22 @@ TEST_F(HttpClientTests, TerminalCallbackCanCancelAllRequests)
         [this]() { return !_responses.empty(); }));
     EXPECT_THAT(_responses[0]->GetResult(), HttpResult_OK);
 }
+
+#if defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+TEST_F(HttpClientTests, SynchronousFailureCallbackCanCancelAllRequests)
+{
+    _cancelAllOnResponse.store(1);
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    request->SetUrl("://invalid-url");
+    _client->SendRequestAsync(request.release(), this);
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+        [this]() { return !_responses.empty(); }));
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_LocalFailure);
+}
+#endif
 
 TEST_F(HttpClientTests, ConcurrentTerminalCallbacksCanCancelAllRequests)
 {

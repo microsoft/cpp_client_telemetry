@@ -21,6 +21,7 @@
 #include <utility>
 #include <vector>
 
+#pragma comment(lib, "crypt32.lib")
 #pragma comment(lib, "winhttp.lib")
 
 namespace MAT_NS_BEGIN {
@@ -139,7 +140,6 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     enum class NextOperation
     {
         None,
-        ValidateAndSendBody,
         WriteBody,
         ReceiveResponse,
         QueryDataAvailable,
@@ -165,12 +165,22 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     bool                   isAborted {false};
     bool                   m_isHttps {false};
     bool                   m_msRootCheckRequired {false};
+    std::atomic<bool>      m_msRootCheckCompleted {false};
     bool                   m_contextInstalled {false};
     bool                   m_sendIssued {false};
+    bool                   m_handleCallInProgress {false};
+    bool                   m_closeRequestAfterCall {false};
+    unsigned               m_stateCallbackDepth {0};
+    std::map<std::thread::id, size_t> m_stateCallbacksByThread;
+    bool                   m_stateCompletionPending {false};
+    DWORD                  m_stateCompletionError {ERROR_SUCCESS};
     // Reason recorded by an abort that must let WinHTTP report the terminal
     // callback itself instead of completing inline.
     std::atomic<DWORD>     m_deferredError {ERROR_SUCCESS};
 
+    // requestsMutex may nest this mutex only while the initial send claims or
+    // releases the pump. Code holding m_pumpMutex must release it before any
+    // operation that acquires requestsMutex.
     std::mutex             m_pumpMutex;
     bool                   m_pumpActive {false};
     NextOperation          m_nextOperation {NextOperation::None};
@@ -189,6 +199,19 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
     WinHttpRequestWrapper(WinHttpRequestWrapper const&) = delete;
     WinHttpRequestWrapper& operator=(WinHttpRequestWrapper const&) = delete;
+
+    // The caller must hold m_clientState->requestsMutex.
+    bool hasStateCallbackOnThreadLocked(std::thread::id threadId) const
+    {
+        return m_stateCallbacksByThread.find(threadId) !=
+            m_stateCallbacksByThread.end();
+    }
+
+    // The caller must hold m_clientState->requestsMutex.
+    bool hasActiveStateCallbackLocked() const
+    {
+        return m_stateCallbackDepth != 0;
+    }
 
     ~WinHttpRequestWrapper() noexcept
     {
@@ -244,7 +267,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     /// response is delivered from the resulting REQUEST_ERROR callback -- or
     /// from HANDLE_CLOSING, which WinHTTP always delivers last.
     /// </summary>
-    void abortRequest(DWORD dwError)
+    void abortRequest(DWORD dwError, bool calledFromWinHttpCallback = false)
     {
         HINTERNET hRequestToClose = nullptr;
         bool completeHere = false;
@@ -257,6 +280,15 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             isAborted = true;
             DWORD noError = ERROR_SUCCESS;
             m_deferredError.compare_exchange_strong(noError, dwError);
+            if (m_handleCallInProgress && !calledFromWinHttpCallback)
+            {
+                // WinHTTP forbids another thread from closing an asynchronous
+                // handle while this thread is inside WinHttpSendRequest or
+                // WinHttpWriteData. Record the cancellation and let that API
+                // frame close the handle as soon as its call returns.
+                m_closeRequestAfterCall = true;
+                return;
+            }
             hRequestToClose = m_hRequest;
             m_hRequest = nullptr;
             // Without an installed callback context WinHTTP has no way to
@@ -383,24 +415,44 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     // Hands the remaining request body to WinHTTP. The body is deliberately not
     // passed as WinHttpSendRequest's lpOptional: that buffer belongs to the
     // caller's request object and WinHTTP may hold it until the request handle
-    // is closed, whereas WinHttpWriteData releases it at WRITE_COMPLETE. Writing
-    // it separately is also what makes the certificate policy check at
-    // SENDREQUEST_COMPLETE meaningful, because no payload has left the process
-    // by then.
+    // is closed, whereas WinHttpWriteData releases it at WRITE_COMPLETE.
     DWORD writeBody()
     {
-        std::lock_guard<std::mutex> lock(m_clientState->requestsMutex);
-        if (m_hRequest == nullptr)
+        HINTERNET request = nullptr;
+        const void* body = nullptr;
+        DWORD bodySize = 0;
         {
-            return ERROR_WINHTTP_OPERATION_CANCELLED;
+            std::lock_guard<std::mutex> lock(m_clientState->requestsMutex);
+            if (m_hRequest == nullptr)
+            {
+                return ERROR_WINHTTP_OPERATION_CANCELLED;
+            }
+            size_t remaining = m_request->m_body.size() - m_bodyWritten;
+            request = m_hRequest;
+            body = m_request->m_body.data() + m_bodyWritten;
+            bodySize = static_cast<DWORD>(remaining);
+            m_handleCallInProgress = true;
         }
-        size_t remaining = m_request->m_body.size() - m_bodyWritten;
-        if (!::WinHttpWriteData(m_hRequest, m_request->m_body.data() + m_bodyWritten,
-                static_cast<DWORD>(remaining), NULL))
+
+        BOOL result = ::WinHttpWriteData(request, body, bodySize, NULL);
+        DWORD error = result ? ERROR_SUCCESS : ::GetLastError();
+
+        HINTERNET cancelledRequest = nullptr;
         {
-            return ::GetLastError();
+            std::lock_guard<std::mutex> lock(m_clientState->requestsMutex);
+            m_handleCallInProgress = false;
+            if (m_closeRequestAfterCall)
+            {
+                m_closeRequestAfterCall = false;
+                cancelledRequest = m_hRequest;
+                m_hRequest = nullptr;
+            }
         }
-        return ERROR_SUCCESS;
+        if (cancelledRequest != nullptr)
+        {
+            ::WinHttpCloseHandle(cancelledRequest);
+        }
+        return error;
     }
 
     DWORD validateCurrentRequestMsRootCert()
@@ -411,22 +463,6 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             return ERROR_WINHTTP_OPERATION_CANCELLED;
         }
         return isMsRootCert(m_hRequest) ? ERROR_SUCCESS : ERROR_WINHTTP_SECURE_INVALID_CERT;
-    }
-
-    // Runs the configured Microsoft-root policy check and, only if it passes,
-    // queues transmission of the request body.
-    DWORD validateAndSendBody()
-    {
-        if (m_isHttps && m_msRootCheckRequired)
-        {
-            DWORD dwError = validateCurrentRequestMsRootCert();
-            if (dwError != ERROR_SUCCESS)
-            {
-                return dwError;
-            }
-        }
-        schedule(m_request->m_body.empty() ? NextOperation::ReceiveResponse : NextOperation::WriteBody);
-        return ERROR_SUCCESS;
     }
 
     // Detaches and closes the request handle. WinHttpCloseHandle can block
@@ -539,9 +575,6 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     {
         switch (operation)
         {
-            case NextOperation::ValidateAndSendBody:
-                return validateAndSendBody();
-
             case NextOperation::WriteBody:
                 return writeBody();
 
@@ -561,20 +594,50 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
     void DispatchEvent(std::unique_lock<std::mutex>& lock, HttpStateEvent type)
     {
-        if (m_appCallback != nullptr)
+        if (m_appCallback != nullptr && !isCallbackCalled)
         {
             void* handle = static_cast<void*>(m_hRequest);
+            IHttpResponseCallback* callback = m_appCallback;
             auto state = m_clientState;
+            ++m_stateCallbackDepth;
+            ++m_stateCallbacksByThread[std::this_thread::get_id()];
             state->beginCallbackLocked();
             lock.unlock();
             {
                 WinHttpCallbackScope callbackScope(
                     state, WinHttpCallbackAlreadyStarted {});
-                m_appCallback->OnHttpStateEvent(type, handle, 0);
+                callback->OnHttpStateEvent(type, handle, 0);
             }
-            if (!isCallbackCalled)
+
+            bool complete = false;
+            DWORD completionError = ERROR_SUCCESS;
             {
                 lock.lock();
+                assert(m_stateCallbackDepth != 0);
+                --m_stateCallbackDepth;
+                auto stateCallback = m_stateCallbacksByThread.find(
+                    std::this_thread::get_id());
+                assert(stateCallback != m_stateCallbacksByThread.end());
+                if (stateCallback != m_stateCallbacksByThread.end() &&
+                    --stateCallback->second == 0)
+                {
+                    m_stateCallbacksByThread.erase(stateCallback);
+                }
+                if (m_stateCallbackDepth == 0 && m_stateCompletionPending)
+                {
+                    complete = true;
+                    completionError = m_stateCompletionError;
+                    m_stateCompletionPending = false;
+                    m_stateCompletionError = ERROR_SUCCESS;
+                }
+            }
+            if (complete)
+            {
+                // Terminal delivery may free the application callback. Leave the
+                // setup lock released, matching the existing DispatchEvent
+                // contract when a state callback synchronously completes.
+                lock.unlock();
+                onRequestComplete(completionError);
             }
         }
     }
@@ -600,7 +663,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     void send(IHttpResponseCallback* callback)
     {
         m_appCallback = callback;
-        if (!m_clientState->registerRequest(m_id, shared_from_this()))
+        std::shared_ptr<WinHttpRequestWrapper> keepAlive = shared_from_this();
+        if (!m_clientState->registerRequest(m_id, keepAlive))
         {
             onRequestComplete(ERROR_WINHTTP_OPERATION_CANCELLED);
             return;
@@ -629,10 +693,13 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     // caller must complete the request with (once the lock has been dropped).
     bool sendLocked(std::unique_lock<std::mutex>& lock, DWORD& dwErrorOut)
     {
-        if (isAborted)
+        if (isCallbackCalled || isAborted)
         {
             // Request force-aborted before creating a WinHTTP handle.
-            DispatchEvent(lock, OnConnectFailed);
+            if (!isCallbackCalled)
+            {
+                DispatchEvent(lock, OnConnectFailed);
+            }
             dwErrorOut = ERROR_WINHTTP_OPERATION_CANCELLED;
             return false;
         }
@@ -710,6 +777,13 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         // Telemetry requests must not answer server or proxy authentication
         // challenges with ambient process credentials.
         DWORD disableFeatures = WINHTTP_DISABLE_AUTHENTICATION;
+        if (m_msRootCheckRequired)
+        {
+            // Automatic redirects would move the request to a new TLS peer
+            // after the original certificate check, potentially forwarding
+            // telemetry credentials to a non-Microsoft-root endpoint.
+            disableFeatures |= WINHTTP_DISABLE_REDIRECTS;
+        }
         if (!::WinHttpSetOption(
                 m_hRequest, WINHTTP_OPTION_DISABLE_FEATURE, &disableFeatures, sizeof(disableFeatures)))
         {
@@ -732,7 +806,10 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         // sentinel. Treating a null "previous callback" as failure would
         // reject every request immediately after this call.
         if (::WinHttpSetStatusCallback(m_hRequest, &WinHttpRequestWrapper::winHttpCallback,
-                WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS | WINHTTP_CALLBACK_FLAG_HANDLES, 0) == WINHTTP_INVALID_STATUS_CALLBACK)
+                WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS |
+                    WINHTTP_CALLBACK_FLAG_HANDLES |
+                    WINHTTP_CALLBACK_FLAG_SEND_REQUEST,
+                0) == WINHTTP_INVALID_STATUS_CALLBACK)
         {
             DWORD dwError = ::GetLastError();
             LOG_WARN("WinHttpSetStatusCallback() failed: %d", dwError);
@@ -811,11 +888,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         }
         // Send the headers only. dwTotalLength still declares Content-Length, so
         // the server sees the same request; the body follows via
-        // WinHttpWriteData once SENDREQUEST_COMPLETE has confirmed the TLS
-        // session and the certificate policy has passed. Passing the body as
-        // lpOptional would both put the payload on the wire before any
-        // certificate can be inspected and require the caller's buffer to stay
-        // valid until the handle is closed.
+        // WinHttpWriteData. The SENDING_REQUEST callback validates the negotiated
+        // certificate before WinHTTP commits these headers to the wire.
         DWORD totalLength = static_cast<DWORD>(m_request->m_body.size());
         // Claim the pump so that a completion WinHTTP may deliver synchronously
         // on this thread parks its next step instead of issuing a WinHTTP call
@@ -827,12 +901,40 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             m_nextOperation = NextOperation::None;
         }
         m_sendIssued = true;
+        m_handleCallInProgress = true;
+        HINTERNET hRequest = m_hRequest;
+        // SENDING_REQUEST may run synchronously from WinHttpSendRequest and must
+        // acquire requestsMutex to enforce the certificate policy. Keep the
+        // wrapper alive, but release the registry lock across the WinHTTP call.
+        lock.unlock();
         BOOL bResult = ::WinHttpSendRequest(
-            m_hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
+            hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
             WINHTTP_NO_REQUEST_DATA, 0, totalLength, contextValue);
+        DWORD dwSendError = bResult ? ERROR_SUCCESS : ::GetLastError();
+        lock.lock();
+        m_handleCallInProgress = false;
+        HINTERNET cancelledRequest = nullptr;
+        if (m_closeRequestAfterCall)
+        {
+            m_closeRequestAfterCall = false;
+            cancelledRequest = m_hRequest;
+            m_hRequest = nullptr;
+        }
+        if (cancelledRequest != nullptr)
+        {
+            // Closing the handle may synchronously invoke a terminal callback,
+            // which acquires requestsMutex through onRequestComplete().
+            lock.unlock();
+            ::WinHttpCloseHandle(cancelledRequest);
+            lock.lock();
+        }
         if (!bResult)
         {
-            DWORD dwError = ::GetLastError();
+            DWORD dwError = m_deferredError.load(std::memory_order_acquire);
+            if (dwError == ERROR_SUCCESS)
+            {
+                dwError = dwSendError;
+            }
             {
                 std::lock_guard<std::mutex> pumpLock(m_pumpMutex);
                 m_pumpActive = false;
@@ -906,14 +1008,30 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
         switch (dwInternetStatus)
         {
+            case WINHTTP_CALLBACK_STATUS_SENDING_REQUEST:
+                // TLS is negotiated, but the request headers have not left the
+                // process. Enforce the configured Microsoft-root policy here so
+                // API keys and auth tickets are never disclosed to a server that
+                // only passes the platform's broader certificate policy.
+                if (self->m_isHttps && self->m_msRootCheckRequired &&
+                    !self->m_msRootCheckCompleted.exchange(true))
+                {
+                    DWORD dwError = self->validateCurrentRequestMsRootCert();
+                    if (dwError != ERROR_SUCCESS)
+                    {
+                        // WinHTTP permits closing a handle from its own status
+                        // callback even while WinHttpSendRequest is active. Do
+                        // that here so rejected credentials never leave the
+                        // process; external cancellation uses the deferred path.
+                        self->abortRequest(dwError, true);
+                    }
+                }
+                return;
+
             case WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE:
-                // The request line and headers have gone out, so the TLS session
-                // is fully negotiated and WINHTTP_OPTION_SERVER_CERT_CONTEXT is
-                // available -- yet no request body has been handed to WinHTTP
-                // yet. This is the earliest point where the Microsoft-root
-                // policy can be applied to a live certificate, and the last one
-                // before any telemetry payload can reach the wire.
-                self->schedule(NextOperation::ValidateAndSendBody);
+                self->schedule(self->m_request->m_body.empty()
+                    ? NextOperation::ReceiveResponse
+                    : NextOperation::WriteBody);
                 return;
 
             case WINHTTP_CALLBACK_STATUS_WRITE_COMPLETE:
@@ -939,8 +1057,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             }
 
             case WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE:
-                // The certificate policy was already enforced at
-                // SENDREQUEST_COMPLETE, before the body was transmitted.
+                // The certificate policy was already enforced before the
+                // request headers were transmitted.
                 self->schedule(NextOperation::QueryDataAvailable);
                 return;
 
@@ -1012,9 +1130,18 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
     void onRequestComplete(DWORD dwError)
     {
-        if (isCallbackCalled.exchange(true))
         {
-            return;
+            std::lock_guard<std::mutex> lock(m_clientState->requestsMutex);
+            if (m_stateCallbackDepth != 0)
+            {
+                m_stateCompletionPending = true;
+                m_stateCompletionError = dwError;
+                return;
+            }
+            if (isCallbackCalled.exchange(true))
+            {
+                return;
+            }
         }
 
         std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
@@ -1239,10 +1366,20 @@ void WinHttpClientState::beginCallbackLocked()
 void WinHttpClientState::endCallback()
 {
     std::lock_guard<std::mutex> lock(requestsMutex);
-    --callbacksInFlight;
     auto it = callbacksByThread.find(std::this_thread::get_id());
-    assert(it != callbacksByThread.end());
-    if (--it->second == 0)
+    if (callbacksInFlight == 0)
+    {
+        LOG_ERROR("WinHTTP callback accounting underflow");
+        requestsCv.notify_all();
+        return;
+    }
+
+    --callbacksInFlight;
+    if (it == callbacksByThread.end() || it->second == 0)
+    {
+        LOG_ERROR("WinHTTP callback thread was not registered");
+    }
+    else if (--it->second == 0)
     {
         callbacksByThread.erase(it);
     }
@@ -1384,6 +1521,31 @@ void HttpClient_WinHttp::CancelAllRequests(std::chrono::milliseconds bestEffortT
                 state->callbacksByThread.end() ||
             state->callbacksInFlight == 0;
     };
+    auto requestsDrainedForCaller = [&state, callerThread]() {
+        if (state->requests.empty())
+        {
+            return true;
+        }
+
+        bool callerIsInStateCallback = false;
+        for (auto const& item : state->requests)
+        {
+            if (item.second->hasStateCallbackOnThreadLocked(callerThread))
+            {
+                callerIsInStateCallback = true;
+                break;
+            }
+        }
+        for (auto const& item : state->requests)
+        {
+            if (!callerIsInStateCallback ||
+                !item.second->hasActiveStateCallbackLocked())
+            {
+                return false;
+            }
+        }
+        return true;
+    };
 
     for (;;)
     {
@@ -1410,11 +1572,15 @@ void HttpClient_WinHttp::CancelAllRequests(std::chrono::milliseconds bestEffortT
 
         for (auto const& request : requests)
         {
+            if (hasTimeout && std::chrono::steady_clock::now() >= deadline)
+            {
+                break;
+            }
             request->cancel();
         }
 
         std::unique_lock<std::mutex> lock(state->requestsMutex);
-        if (state->requests.empty() && callbacksDrainedForCaller())
+        if (requestsDrainedForCaller() && callbacksDrainedForCaller())
         {
             cancelAllScope.finishLocked();
             return;
@@ -1422,7 +1588,7 @@ void HttpClient_WinHttp::CancelAllRequests(std::chrono::milliseconds bestEffortT
         auto stateChangedOrDrained = [&]() {
             return state->registryGeneration != registryGeneration ||
                 state->callbackGeneration != callbackGeneration ||
-                (state->requests.empty() && callbacksDrainedForCaller());
+                (requestsDrainedForCaller() && callbacksDrainedForCaller());
         };
         if (hasTimeout)
         {
