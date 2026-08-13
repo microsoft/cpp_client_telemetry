@@ -10,10 +10,13 @@
 #include "Version.hpp"
 
 #include <atomic>
+#include <condition_variable>
 #include <cstdint>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <set>
+#include <thread>
 
 #ifdef HAVE_MAT_LOGGING
 #include "pal/PAL.hpp"
@@ -225,6 +228,72 @@ namespace
         void ThrowNonStdException() { throw 123; }
         void Signal(std::atomic<bool>* ran) { ran->store(true); }
     };
+
+    class DroppingTaskDispatcher final : public ITaskDispatcher
+    {
+    public:
+        void Join() override {}
+        void Queue(Task* task) override { delete task; }
+
+        bool Cancel(Task*, uint64_t = 0) override
+        {
+            cancelCalled = true;
+            return false;
+        }
+
+        bool cancelCalled = false;
+    };
+
+    class ScheduledTaskTarget
+    {
+    public:
+        explicit ScheduledTaskTarget(std::atomic<bool>& callbackRan) :
+            m_callbackRan(callbackRan)
+        {
+        }
+
+        void Callback()
+        {
+            m_callbackRan.store(true);
+        }
+
+    private:
+        std::atomic<bool>& m_callbackRan;
+    };
+
+    class BlockingScheduledTaskTarget
+    {
+    public:
+        void Callback()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_entered = true;
+            m_condition.notify_all();
+            m_condition.wait(lock, [this]() { return m_released; });
+        }
+
+        bool WaitUntilEntered()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_condition.wait_for(
+                lock, std::chrono::seconds(2), [this]() { return m_entered; });
+        }
+
+        void Release()
+        {
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_released = true;
+            }
+            m_condition.notify_all();
+        }
+
+    private:
+        std::mutex m_mutex;
+        std::condition_variable m_condition;
+        bool m_entered {false};
+        bool m_released {false};
+    };
 }
 
 // A task throwing an exception must be contained by the worker thread loop;
@@ -249,6 +318,86 @@ TEST_F(PalTests, WorkerThreadContainsThrowingTask)
 
     EXPECT_TRUE(ranAfterStdThrow.load());
     EXPECT_TRUE(ranAfterNonStdThrow.load());
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskReturnsNoOpHandleWhenDispatcherDropsTask)
+{
+    DroppingTaskDispatcher dispatcher;
+    std::atomic<bool> callbackRan(false);
+    ScheduledTaskTarget target(callbackRan);
+
+    auto handle = PAL::scheduleTask(&dispatcher, 0, &target, &ScheduledTaskTarget::Callback);
+
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+    EXPECT_FALSE(dispatcher.cancelCalled);
+    EXPECT_FALSE(callbackRan.load());
+}
+
+TEST_F(PalTests, ScheduleTaskHandleClearsAfterCallbackCompletes)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    std::atomic<bool> callbackRan(false);
+    ScheduledTaskTarget target(callbackRan);
+    auto handle = PAL::scheduleTask(dispatcher.get(), 0, &target, &ScheduledTaskTarget::Callback);
+
+    for (int i = 0; i < 500 && (!callbackRan.load() || handle.GetTask() != nullptr); ++i)
+    {
+        PAL::sleep(10);
+    }
+
+    EXPECT_TRUE(callbackRan.load());
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskCancelSerializesTaskDestruction)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    std::atomic<bool> callbackRan(false);
+    ScheduledTaskTarget target(callbackRan);
+    auto handle = PAL::scheduleTask(
+        dispatcher.get(), 60000, &target, &ScheduledTaskTarget::Callback);
+
+    ASSERT_NE(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_FALSE(callbackRan.load());
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskCancelWaitDoesNotDeadlockTaskDestruction)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    BlockingScheduledTaskTarget target;
+    auto handle = PAL::scheduleTask(
+        dispatcher.get(), 0, &target, &BlockingScheduledTaskTarget::Callback);
+
+    ASSERT_TRUE(target.WaitUntilEntered());
+
+    std::atomic<bool> cancelReturned(false);
+    bool cancelResult = false;
+    std::thread canceller([&]() {
+        cancelResult = handle.Cancel(2000);
+        cancelReturned.store(true);
+    });
+
+    PAL::sleep(50);
+    target.Release();
+    for (int i = 0; i < 50 && !cancelReturned.load(); ++i)
+    {
+        PAL::sleep(10);
+    }
+
+    EXPECT_TRUE(cancelReturned.load());
+    canceller.join();
+    EXPECT_TRUE(cancelResult);
+    EXPECT_EQ(handle.GetTask(), nullptr);
 
     dispatcher->Join();
 }

@@ -229,8 +229,13 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (item->Type == MAT::Task::Shutdown) {
+                    {
+                        LOCKGUARD(self->m_lock);
+                        if (self->m_itemInProgress == item.get()) {
+                            self->m_itemInProgress = nullptr;
+                        }
+                    }
                     item.reset();
-                    self->m_itemInProgress = nullptr;
                     break;
                 }
 
@@ -254,14 +259,22 @@ namespace PAL_NS_BEGIN {
                         catch (...) {
                             LOG_ERROR("Unhandled non-standard exception in worker task");
                         }
-                        self->m_itemInProgress = nullptr;
                     }
 
                     if (item) {
                         item->Type = MAT::Task::Done;
-                        item = nullptr;
                     }
                 }
+                {
+                    LOCKGUARD(self->m_lock);
+                    if (self->m_itemInProgress == item.get()) {
+                        self->m_itemInProgress = nullptr;
+                    }
+                }
+                // Task destruction may synchronize with a cancellation caller.
+                // Never run it while holding m_execution_mutex, which Cancel()
+                // waits on while that caller owns the task lifetime lock.
+                item = nullptr;
             }
         }
     };

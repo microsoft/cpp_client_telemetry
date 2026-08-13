@@ -835,9 +835,8 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         LogManager::SetTransmitProfile(TransmitProfile_RealTime);
         LogManager::UploadNow();
 
-        // 1st request for realtime event
-        waitForEvents(10, 5); // start, first_event, second_event, ongoing, stop, start, fooEvent
-        // we drop two of the events during pause, though.
+        // A graceful paused shutdown persists every pending event for restart.
+        waitForEvents(10, 7);
         EXPECT_GE(receivedRequests.size(), (size_t)1);
         if (receivedRequests.size() != 0)
         {
@@ -947,10 +946,10 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     LogManager::ResumeTransmission(); // ?
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    waitForEvents(5, 4); // (start + stop) + (2 events + start)
+    waitForEvents(5, 6);
 
     auto r2 = records();
-    ASSERT_GE(r2.size(), (size_t)4); // (start + stop) + (2 events + start)
+    ASSERT_GE(r2.size(), (size_t)6);
 
     for (const auto &evt : { event1, event2 })
     {
@@ -1363,6 +1362,9 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 
     for (size_t i = 0; i < 20; i++)
     {
+        printf("sendManyRequestsAndCancel iteration %zu: creating manager\n", i);
+        fflush(stdout);
+
         auto &configuration = LogManager::GetLogConfiguration();
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
@@ -1399,7 +1401,11 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
                 std::this_thread::yield();
             }
         }
+        printf("sendManyRequestsAndCancel iteration %zu: tearing down manager\n", i);
+        fflush(stdout);
         LogManager::FlushAndTeardown();
+        printf("sendManyRequestsAndCancel iteration %zu: teardown complete\n", i);
+        fflush(stdout);
     }
 
     listener.dump();
