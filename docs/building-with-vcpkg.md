@@ -236,6 +236,11 @@ bridge; native curl is available only through explicit `android-curl-*` features
 > Consumers that require WinInet's IE-integrated proxy or cookie behavior can
 > opt in with the `wininet` feature, for example
 > `"features": ["wininet", "system-sqlite"]`.
+> WinHTTP uses automatic or machine-level proxy configuration rather than the
+> logged-on user's Internet Explorer settings, does not answer authentication
+> challenges with ambient user credentials, and reports WinHTTP error codes.
+> Consumers that depend on the prior WinInet behavior should select the feature
+> explicitly before updating.
 
 ## Optional: SIMD-Optimized zlib with zlib-ng
 

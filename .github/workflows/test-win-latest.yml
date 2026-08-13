@@ -32,28 +32,52 @@ concurrency:
 
 jobs:
   test:
-    name: Test on Windows ${{ matrix.arch }}-${{ matrix.build }}
+    name: Test on Windows ${{ matrix.arch }}-${{ matrix.build }}${{ matrix.transport == 'WinInet' && ' (WinInet)' || '' }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         arch: [Win32, x64]
         build: [Release, Debug]
+        transport: [WinHTTP, WinInet]
         os: [windows-2022]
     
     steps:
 
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      continue-on-error: true
 
     - name: setup-msbuild
       uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
       with:
         vs-version: '[17,)'
 
-    - name: Test ${{ matrix.arch }} ${{ matrix.build }}
+    - name: Test ${{ matrix.transport }} ${{ matrix.arch }} ${{ matrix.build }}
       shell: cmd
-      run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.build }}
+      run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.build }} "" ${{ matrix.transport }}
+
+    - name: Upload test diagnostics
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: windows-test-diagnostics-${{ matrix.transport }}-${{ matrix.arch }}-${{ matrix.build }}
+        path: test-diagnostics
+        if-no-files-found: ignore
+        retention-days: 7
+
+    - name: Upload test symbols on failure
+      if: failure() || cancelled()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: windows-test-symbols-${{ matrix.transport }}-${{ matrix.arch }}-${{ matrix.build }}
+        path: |
+          Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/UnitTests/*.pdb
+          Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/UnitTests/*.map
+          Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/FuncTests/*.pdb
+          Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/FuncTests/*.map
+        if-no-files-found: ignore
+        retention-days: 7
 
   public-headers:
     name: Public header gate (MSVC)

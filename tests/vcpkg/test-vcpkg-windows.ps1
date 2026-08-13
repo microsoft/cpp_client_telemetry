@@ -4,7 +4,8 @@
 #   .\tests\vcpkg\test-vcpkg-windows.ps1 -Triplet x64-windows
 param(
     [string]$VcpkgRoot = "",
-    [string]$Triplet = ""
+    [string]$Triplet = "",
+    [switch]$WinInet
 )
 
 $ErrorActionPreference = "Stop"
@@ -55,7 +56,8 @@ if ([string]::IsNullOrEmpty($Triplet)) {
         $Triplet = "x64-windows-static"
     }
 }
-$BuildDir = Join-Path $ScriptDir "build-windows-$Triplet"
+$Transport = if ($WinInet) { "WinInet" } else { "WinHTTP" }
+$BuildDir = Join-Path $ScriptDir "build-windows-$Triplet-$($Transport.ToLowerInvariant())"
 
 # Map triplet to vcvarsall architecture
 $VcvarsArch = switch -Regex ($Triplet) {
@@ -67,6 +69,7 @@ $VcvarsArch = switch -Regex ($Triplet) {
 Write-Host "Repository root: $RepoRoot"
 Write-Host "vcpkg root:      $VcpkgRoot"
 Write-Host "Triplet:         $Triplet"
+Write-Host "HTTP transport:  $Transport"
 
 # Clean previous build
 if (Test-Path $BuildDir) {
@@ -84,6 +87,9 @@ $CmakeArgs = @(
     "-DVCPKG_OVERLAY_PORTS=$OverlayPorts",
     "-DCMAKE_BUILD_TYPE=Release"
 )
+if ($WinInet) {
+    $CmakeArgs += "-DVCPKG_MANIFEST_FEATURES=wininet"
+}
 
 # Detect whether cl.exe is on PATH (i.e., running from VS Developer Command Prompt)
 $clExe = Get-Command cl.exe -ErrorAction SilentlyContinue
