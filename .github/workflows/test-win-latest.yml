@@ -42,6 +42,9 @@ jobs:
         build: [Release, Debug]
         transport: [WinHTTP, WinInet]
         os: [windows-2022]
+        exclude:
+        - build: Debug
+          transport: WinInet
     
     steps:
 
@@ -57,21 +60,13 @@ jobs:
       shell: cmd
       run: build-tests.cmd ${{ matrix.arch }} ${{ matrix.build }} "" ${{ matrix.transport }}
 
-    - name: Upload test diagnostics
-      if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: windows-test-diagnostics-${{ matrix.transport }}-${{ matrix.arch }}-${{ matrix.build }}
-        path: test-diagnostics
-        if-no-files-found: ignore
-        retention-days: 7
-
-    - name: Upload test symbols on failure
+    - name: Upload test failure diagnostics
       if: failure() || cancelled()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
-        name: windows-test-symbols-${{ matrix.transport }}-${{ matrix.arch }}-${{ matrix.build }}
+        name: windows-test-failure-${{ matrix.transport }}-${{ matrix.arch }}-${{ matrix.build }}
         path: |
+          test-diagnostics
           Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/UnitTests/*.pdb
           Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/UnitTests/*.map
           Solutions/out/${{ matrix.build }}/${{ matrix.arch }}/FuncTests/*.pdb

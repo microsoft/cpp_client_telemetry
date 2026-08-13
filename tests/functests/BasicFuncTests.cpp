@@ -1362,9 +1362,6 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
 
     for (size_t i = 0; i < 20; i++)
     {
-        printf("sendManyRequestsAndCancel iteration %zu: creating manager\n", i);
-        fflush(stdout);
-
         auto &configuration = LogManager::GetLogConfiguration();
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
@@ -1401,11 +1398,7 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
                 std::this_thread::yield();
             }
         }
-        printf("sendManyRequestsAndCancel iteration %zu: tearing down manager\n", i);
-        fflush(stdout);
         LogManager::FlushAndTeardown();
-        printf("sendManyRequestsAndCancel iteration %zu: teardown complete\n", i);
-        fflush(stdout);
     }
 
     listener.dump();
