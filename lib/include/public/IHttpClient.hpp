@@ -196,9 +196,9 @@ namespace MAT_NS_BEGIN
         virtual ~IHttpResponse() noexcept = default;
 
         /// <summary>
-        /// Gets the response ID.
+        /// Gets the ID of the request that produced this response.
         /// </summary>
-        /// <returns>A string that contains the response ID.</returns>
+        /// <returns>The same ID returned by the originating IHttpRequest::GetId().</returns>
         virtual const std::string& GetId() const = 0;
 
         /// <summary>
