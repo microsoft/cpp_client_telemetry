@@ -252,32 +252,50 @@ namespace MAT_NS_BEGIN {
         {
             // This will block on and then take a lock for the duration of this move, and
             // StoreRecord() will then block until the move completes.
-            auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-            std::vector<StorageRecordId> ids;
+            auto memoryRecords =
+                m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
+            std::vector<StorageRecord> persistentRecords;
+            persistentRecords.reserve(memoryRecords.size());
+            for (auto& record : memoryRecords)
+            {
+                if (record.persistence != EventPersistence_DoNotStoreOnDisk)
+                {
+                    persistentRecords.push_back(std::move(record));
+                }
+            }
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("BEGIN");
 
-            records.erase(
-                std::remove_if(
-                    records.begin(),
-                    records.end(),
-                    [](const StorageRecord& record)
-                    {
-                        return record.persistence == EventPersistence_DoNotStoreOnDisk;
-                    }),
-                records.end());
-            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
+            // IOfflineStorage::StoreRecords accepts a mutable vector, so an
+            // external storage module may consume or reorder its input. Keep an
+            // untouched batch for exception and partial-write recovery.
+            auto recordsForRetry = persistentRecords;
+            size_t const recordsToSave = recordsForRetry.size();
+            size_t totalSaved = 0;
+            try
+            {
+                totalSaved = m_offlineStorageDisk->StoreRecords(persistentRecords);
+            }
+            catch (...)
+            {
+                // GetRecords() removes records from the RAM queue. Restore them
+                // before propagating so a transient disk failure cannot lose data.
+                m_offlineStorageMemory->StoreRecords(recordsForRetry);
+                throw;
+            }
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("END");
 
-            // Delete records from reserved on flush
-            HttpHeaders dummy;
-            bool fromMemory = true;
-            m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
+            if (totalSaved != recordsToSave)
+            {
+                // StoreRecords reports only a count, not the failed record IDs.
+                // Restore the complete batch to preserve at-least-once delivery.
+                m_offlineStorageMemory->StoreRecords(recordsForRetry);
+            }
 
             // Notify event listener about the records cached
             OnStorageRecordsSaved(totalSaved);

@@ -174,6 +174,18 @@ namespace MAT_NS_BEGIN
     class OfflineStorageHandlerTests : public ::testing::Test
     {
     protected:
+        class ConfigurableLogManager : public NullLogManager
+        {
+        public:
+            ILogConfiguration& GetLogConfiguration() override
+            {
+                return m_configuration;
+            }
+
+        private:
+            ILogConfiguration m_configuration;
+        };
+
         class NoCheckpointRuntimeConfig final : public testing::MockIRuntimeConfig
         {
         public:
@@ -183,7 +195,7 @@ namespace MAT_NS_BEGIN
             }
         };
 
-        class CountingLogManager final : public NullLogManager
+        class CountingLogManager final : public ConfigurableLogManager
         {
         public:
             bool StartActivity() override
@@ -200,7 +212,7 @@ namespace MAT_NS_BEGIN
             int activeActivities = 0;
         };
 
-        class PausedLogManager final : public NullLogManager
+        class PausedLogManager final : public ConfigurableLogManager
         {
         public:
             bool StartActivity() override
@@ -227,136 +239,168 @@ namespace MAT_NS_BEGIN
 
             void Queue(Task* task) override
             {
+                ++queueCalls;
                 std::unique_ptr<Task> ownedTask(task);
                 throw std::runtime_error("queue failed");
             }
 
             bool Cancel(Task*, uint64_t = 0) override { return true; }
+
+            int queueCalls = 0;
         };
 
         class DroppingTaskDispatcher final : public ITaskDispatcher
         {
         public:
             void Join() override {}
-            void Queue(Task* task) override { delete task; }
+            void Queue(Task* task) override
+            {
+                ++queueCalls;
+                delete task;
+            }
             bool Cancel(Task*, uint64_t = 0) override { return true; }
+
+            int queueCalls = 0;
         };
 
-        static void MarkFlushPending(OfflineStorageHandler& handler)
+        static void ConfigureMemoryCache(
+            testing::MockIRuntimeConfig& config,
+            uint32_t sizeInBytes)
         {
-            handler.m_flushComplete.Reset();
-            handler.m_flushPending = true;
+            config[CFG_INT_RAM_QUEUE_SIZE] = sizeInBytes;
+            config[CFG_INT_RAMCACHE_FULL_PCT] = 75;
         }
 
-        static bool IsFlushPending(OfflineStorageHandler const& handler)
+        static std::shared_ptr<StrictMock<testing::MockIOfflineStorage>>
+        AttachDiskStorage(ConfigurableLogManager& logManager)
         {
-            return handler.m_flushPending;
+            auto storage =
+                std::make_shared<StrictMock<testing::MockIOfflineStorage>>();
+            logManager.GetLogConfiguration().AddModule(
+                CFG_MODULE_OFFLINE_STORAGE,
+                storage);
+            return storage;
         }
 
-        static bool IsFlushComplete(OfflineStorageHandler const& handler)
+        static StorageRecord MakeRecord(
+            const char* id,
+            EventPersistence persistence = EventPersistence_Normal)
         {
-            return handler.m_flushComplete.wait(0);
-        }
-
-        static testing::MockIOfflineStorage& InstallMemoryStorage(OfflineStorageHandler& handler)
-        {
-            auto storage = std::make_unique<StrictMock<testing::MockIOfflineStorage>>();
-            auto* result = storage.get();
-            handler.m_offlineStorageMemory = std::move(storage);
-            handler.m_cacheMemorySizeLimitInBytes = 1;
-            return *result;
-        }
-
-        static testing::MockIOfflineStorage& InstallDiskStorage(OfflineStorageHandler& handler)
-        {
-            auto storage = std::make_shared<StrictMock<testing::MockIOfflineStorage>>();
-            auto* result = storage.get();
-            handler.m_offlineStorageDisk = std::move(storage);
-            return *result;
-        }
-
-        static void SetObserver(
-            OfflineStorageHandler& handler,
-            testing::MockIOfflineStorageObserver& observer)
-        {
-            handler.m_observer = &observer;
-        }
-
-        static bool CanLockFlushState(OfflineStorageHandler& handler)
-        {
-            if (!handler.m_flushLock.try_lock())
-            {
-                return false;
-            }
-            handler.m_flushLock.unlock();
-            return true;
+            return StorageRecord(
+                id,
+                "tenant-token",
+                EventLatency_Normal,
+                persistence,
+                1234567890,
+                std::vector<uint8_t>{1});
         }
     };
 
-    TEST_F(OfflineStorageHandlerTests, FlushExceptionRestoresCompletionState)
+    TEST_F(OfflineStorageHandlerTests, FlushExceptionReleasesActivityAndAllowsRetry)
     {
         CountingLogManager logManager;
         NoCheckpointRuntimeConfig config;
         NoopTaskDispatcher taskDispatcher;
+        ConfigureMemoryCache(config, 1024 * 1024);
+        auto diskStorage = AttachDiskStorage(logManager);
+        StrictMock<testing::MockIOfflineStorageObserver> observer;
         OfflineStorageHandler handler(logManager, config, taskDispatcher);
-        auto& memoryStorage = InstallMemoryStorage(handler);
-        MarkFlushPending(handler);
-        EXPECT_CALL(memoryStorage, GetSize())
-            .WillOnce(Throw(std::runtime_error("flush failed")));
+        EXPECT_CALL(*diskStorage, Initialize(_));
+        handler.Initialize(observer);
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord("persisted-id")));
+        EXPECT_CALL(*diskStorage, StoreRecords(_))
+            .WillOnce(Invoke([](std::vector<StorageRecord>& records) -> size_t
+            {
+                records.clear();
+                throw std::runtime_error("flush failed");
+            }));
 
         EXPECT_THROW(handler.Flush(), std::runtime_error);
 
-        EXPECT_FALSE(IsFlushPending(handler));
-        EXPECT_TRUE(IsFlushComplete(handler));
         EXPECT_EQ(logManager.activeActivities, 0);
+        EXPECT_CALL(*diskStorage, StoreRecords(_)).WillOnce(Return(1));
+        EXPECT_CALL(observer, OnStorageRecordsSaved(1));
+        EXPECT_NO_THROW(handler.Flush());
+        EXPECT_EQ(logManager.activeActivities, 0);
+        EXPECT_CALL(*diskStorage, Shutdown());
+        handler.Shutdown();
     }
 
-    TEST_F(OfflineStorageHandlerTests, SchedulingExceptionDoesNotPublishPendingFlush)
+    TEST_F(OfflineStorageHandlerTests, SchedulingExceptionAllowsAnotherFlushAttempt)
     {
-        NullLogManager logManager;
-        testing::MockIRuntimeConfig config;
+        ConfigurableLogManager logManager;
+        NoCheckpointRuntimeConfig config;
         ThrowingTaskDispatcher taskDispatcher;
+        ConfigureMemoryCache(config, 1);
+        auto diskStorage = AttachDiskStorage(logManager);
+        StrictMock<testing::MockIOfflineStorageObserver> observer;
         OfflineStorageHandler handler(logManager, config, taskDispatcher);
-        auto& memoryStorage = InstallMemoryStorage(handler);
-        StorageRecord record(
-            "id",
-            "tenant-token",
-            EventLatency_Normal,
-            EventPersistence_Normal,
-            1234567890,
-            std::vector<uint8_t>{});
+        EXPECT_CALL(*diskStorage, Initialize(_));
+        handler.Initialize(observer);
 
-        EXPECT_CALL(memoryStorage, GetSize()).WillOnce(Return(2));
-        EXPECT_CALL(memoryStorage, StoreRecord(Ref(record))).WillOnce(Return(true));
-
-        EXPECT_THROW(handler.StoreRecord(record), std::runtime_error);
-
-        EXPECT_FALSE(IsFlushPending(handler));
-        EXPECT_TRUE(CanLockFlushState(handler));
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord("first")));
+        EXPECT_THROW(
+            handler.StoreRecord(MakeRecord("second")),
+            std::runtime_error);
+        EXPECT_THROW(
+            handler.StoreRecord(MakeRecord("third")),
+            std::runtime_error);
+        EXPECT_EQ(taskDispatcher.queueCalls, 2);
     }
 
-    TEST_F(OfflineStorageHandlerTests, DroppedTaskDoesNotPublishPendingFlush)
+    TEST_F(OfflineStorageHandlerTests, DroppedTaskAllowsAnotherFlushAttempt)
     {
-        NullLogManager logManager;
-        testing::MockIRuntimeConfig config;
+        ConfigurableLogManager logManager;
+        NoCheckpointRuntimeConfig config;
         DroppingTaskDispatcher taskDispatcher;
+        ConfigureMemoryCache(config, 1);
+        auto diskStorage = AttachDiskStorage(logManager);
+        StrictMock<testing::MockIOfflineStorageObserver> observer;
         OfflineStorageHandler handler(logManager, config, taskDispatcher);
-        auto& memoryStorage = InstallMemoryStorage(handler);
-        StorageRecord record(
-            "id",
-            "tenant-token",
-            EventLatency_Normal,
-            EventPersistence_Normal,
-            1234567890,
-            std::vector<uint8_t>{});
+        EXPECT_CALL(*diskStorage, Initialize(_));
+        handler.Initialize(observer);
 
-        EXPECT_CALL(memoryStorage, GetSize()).WillOnce(Return(2));
-        EXPECT_CALL(memoryStorage, StoreRecord(Ref(record))).WillOnce(Return(true));
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord("first")));
+        EXPECT_TRUE(handler.StoreRecord(MakeRecord("second")));
+        EXPECT_TRUE(handler.StoreRecord(MakeRecord("third")));
+        EXPECT_EQ(taskDispatcher.queueCalls, 2);
+    }
 
-        EXPECT_TRUE(handler.StoreRecord(record));
+    TEST_F(OfflineStorageHandlerTests, PartialFlushRestoresBatchForRetry)
+    {
+        CountingLogManager logManager;
+        NoCheckpointRuntimeConfig config;
+        NoopTaskDispatcher taskDispatcher;
+        ConfigureMemoryCache(config, 1024 * 1024);
+        auto diskStorage = AttachDiskStorage(logManager);
+        StrictMock<testing::MockIOfflineStorageObserver> observer;
+        OfflineStorageHandler handler(logManager, config, taskDispatcher);
+        EXPECT_CALL(*diskStorage, Initialize(_));
+        handler.Initialize(observer);
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord("first")));
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord("second")));
 
-        EXPECT_FALSE(IsFlushPending(handler));
-        EXPECT_TRUE(CanLockFlushState(handler));
+        EXPECT_CALL(*diskStorage, StoreRecords(_))
+            .WillOnce(Invoke([](std::vector<StorageRecord>& records)
+            {
+                EXPECT_THAT(records, SizeIs(2));
+                records.clear();
+                return 1;
+            }));
+        EXPECT_CALL(observer, OnStorageRecordsSaved(1));
+        handler.Flush();
+
+        EXPECT_CALL(*diskStorage, StoreRecords(_))
+            .WillOnce(Invoke([](const std::vector<StorageRecord>& records)
+            {
+                EXPECT_THAT(records, SizeIs(2));
+                return records.size();
+            }));
+        EXPECT_CALL(observer, OnStorageRecordsSaved(2));
+        handler.Flush();
+
+        EXPECT_CALL(*diskStorage, Shutdown());
+        handler.Shutdown();
     }
 
     TEST_F(OfflineStorageHandlerTests, ShutdownFlushesMemoryAfterActivityPause)
@@ -364,44 +408,26 @@ namespace MAT_NS_BEGIN
         PausedLogManager logManager;
         NoCheckpointRuntimeConfig config;
         NoopTaskDispatcher taskDispatcher;
-        OfflineStorageHandler handler(logManager, config, taskDispatcher);
-        auto& memoryStorage = InstallMemoryStorage(handler);
-        auto& diskStorage = InstallDiskStorage(handler);
+        ConfigureMemoryCache(config, 1024 * 1024);
+        auto diskStorage = AttachDiskStorage(logManager);
         StrictMock<testing::MockIOfflineStorageObserver> observer;
-        SetObserver(handler, observer);
-        std::vector<StorageRecord> records {
-            StorageRecord(
-                "persisted-id",
-                "tenant-token",
-                EventLatency_Normal,
-                EventPersistence_Normal,
-                1234567890,
-                std::vector<uint8_t>{1}),
-            StorageRecord(
-                "memory-only-id",
-                "tenant-token",
-                EventLatency_Normal,
-                EventPersistence_DoNotStoreOnDisk,
-                1234567891,
-                std::vector<uint8_t>{1})
-        };
+        OfflineStorageHandler handler(logManager, config, taskDispatcher);
+        EXPECT_CALL(*diskStorage, Initialize(_));
+        handler.Initialize(observer);
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord("persisted-id")));
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord(
+            "memory-only-id",
+            EventPersistence_DoNotStoreOnDisk)));
 
-        EXPECT_CALL(memoryStorage, GetSize())
-            .WillOnce(Return(1))
-            .WillOnce(Return(0));
-        EXPECT_CALL(memoryStorage, GetRecords(false, EventLatency_Unspecified, _))
-            .WillOnce(Return(records));
-        EXPECT_CALL(diskStorage, StoreRecords(_))
+        EXPECT_CALL(*diskStorage, StoreRecords(_))
             .WillOnce(Invoke([](const std::vector<StorageRecord>& persistedRecords)
             {
                 EXPECT_THAT(persistedRecords, SizeIs(1));
                 EXPECT_EQ(persistedRecords.front().id, "persisted-id");
                 return persistedRecords.size();
             }));
-        EXPECT_CALL(memoryStorage, DeleteRecords(_, _, _));
         EXPECT_CALL(observer, OnStorageRecordsSaved(1));
-        EXPECT_CALL(memoryStorage, Shutdown());
-        EXPECT_CALL(diskStorage, Shutdown());
+        EXPECT_CALL(*diskStorage, Shutdown());
 
         handler.Shutdown();
 

@@ -99,8 +99,6 @@ namespace MAT_NS_BEGIN {
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
-        friend class OfflineStorageHandlerTests;
-
         void WaitForFlush();
         void FlushImpl();
         void SignalFlushComplete();

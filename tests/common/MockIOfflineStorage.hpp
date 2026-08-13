@@ -14,7 +14,7 @@ namespace testing {
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"  // GMock MOCK_METHOD* macros don't use override.
 #endif
 
-class MockIOfflineStorage : public MAT::IOfflineStorage {
+class MockIOfflineStorage : public MAT::IOfflineStorageModule {
   public:
     MockIOfflineStorage();
     virtual ~MockIOfflineStorage();
@@ -46,4 +46,3 @@ class MockIOfflineStorage : public MAT::IOfflineStorage {
 #endif
 
 } // namespace testing
-
