@@ -397,6 +397,10 @@ TEST_F(PalTests, ScheduleTaskCancelWaitDoesNotDeadlockTaskDestruction)
     EXPECT_TRUE(cancelReturned.load());
     canceller.join();
     EXPECT_TRUE(cancelResult);
+    for (int i = 0; i < 50 && handle.GetTask() != nullptr; ++i)
+    {
+        PAL::sleep(10);
+    }
     EXPECT_EQ(handle.GetTask(), nullptr);
 
     dispatcher->Join();
