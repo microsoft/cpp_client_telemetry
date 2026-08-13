@@ -19,6 +19,13 @@
 
 namespace MAT_NS_BEGIN {
 
+    static bool IsLocalRequestError(CURLcode error) noexcept
+    {
+        return error == CURLE_UNSUPPORTED_PROTOCOL ||
+            error == CURLE_URL_MALFORMAT ||
+            error == CURLE_NOT_BUILT_IN;
+    }
+
     static std::string NextReqId() {
         static std::atomic<uint64_t> seq(0);
         return std::string("REQ-") + std::to_string(seq.fetch_add(1));
@@ -106,17 +113,17 @@ namespace MAT_NS_BEGIN {
             response->m_result = HttpResult_OK;
 
             response->m_statusCode = operation.GetHttpStatusCode();
-            if (operation.GetSetupError() != CURLE_OK) {
+            if (operation.WasAborted()) {
+                // Cancellation wins even when libcurl finishes the transfer
+                // successfully after the caller has requested an abort.
+                response->m_result = HttpResult_Aborted;
+            } else if (operation.GetSetupError() != CURLE_OK ||
+                       IsLocalRequestError(operation.GetTransportError())) {
                 // There was an error configuring the CURL request.
                 response->m_result = HttpResult_LocalFailure;
             } else if (operation.GetTransportError() != CURLE_OK) {
-                if (operation.WasAborted()) {
-                    // Operation was manually aborted
-                    response->m_result = HttpResult_Aborted;
-                } else {
-                    // There was an error in CURL stack while trying to connect
-                    response->m_result = HttpResult_NetworkFailure;
-                }
+                // There was an error in CURL stack while trying to connect.
+                response->m_result = HttpResult_NetworkFailure;
             }
 
             auto responseHeaders = operation.GetResponseHeaders();

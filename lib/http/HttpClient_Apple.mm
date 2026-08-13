@@ -128,12 +128,6 @@ static std::string NextReqId()
     return std::string("REQ-") + std::to_string(seq.fetch_add(1));
 }
 
-static std::string NextRespId()
-{
-    static std::atomic<uint64_t> seq;
-    return std::string("RESP-") + std::to_string(seq.fetch_add(1));
-}
-
 static dispatch_once_t once;
 static NSURLSession* session;
 static MATStreamingSessionDelegate* sessionDelegate;
@@ -205,7 +199,7 @@ public:
         @autoreleasepool
         {
             NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
-            auto simpleResponse = new SimpleHttpResponse { NextRespId() };
+            auto simpleResponse = new SimpleHttpResponse { GetId() };
 
             simpleResponse->m_statusCode = static_cast<unsigned int>(httpResp.statusCode);
 
@@ -220,9 +214,16 @@ public:
                 NSString* errorDomain = [error domain];
                 long errorCode = [error code];
 
-                if ([errorDomain isEqualToString:@"NSURLErrorDomain"] && (errorCode == NSURLErrorCancelled))
+                if ([errorDomain isEqualToString:@"NSURLErrorDomain"] &&
+                    errorCode == NSURLErrorCancelled)
                 {
                     simpleResponse->m_result = HttpResult_Aborted;
+                }
+                else if ([errorDomain isEqualToString:@"NSURLErrorDomain"] &&
+                         (errorCode == NSURLErrorBadURL ||
+                          errorCode == NSURLErrorUnsupportedURL))
+                {
+                    simpleResponse->m_result = HttpResult_LocalFailure;
                 }
                 else
                 {
