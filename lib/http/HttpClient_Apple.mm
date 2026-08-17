@@ -15,6 +15,9 @@
 #include "utils/StringUtils.hpp"
 #include "utils/Utils.hpp"
 
+#include <atomic>
+#include <mutex>
+
 // Streams the response body in bounded chunks and enforces MAX_HTTP_RESPONSE_SIZE.
 // The completionHandler-based NSURLSession APIs fully materialize the response body
 // as an NSData before handing it over, so an attacker-controlled collector could force
@@ -23,7 +26,7 @@
 // more than the cap is ever buffered. Delegate callbacks may arrive on the session's
 // delegate queue while a request thread registers a task, so shared state is guarded.
 @interface MATStreamingSessionDelegate : NSObject <NSURLSessionDataDelegate>
-- (void)registerTask:(NSURLSessionTask*)task
+- (BOOL)registerTask:(NSURLSessionTask*)task
              handler:(void (^)(NSData* data, NSURLResponse* response, NSError* error))handler;
 @end
 
@@ -45,14 +48,31 @@
     return self;
 }
 
-- (void)registerTask:(NSURLSessionTask*)task
+- (BOOL)registerTask:(NSURLSessionTask*)task
              handler:(void (^)(NSData*, NSURLResponse*, NSError*))handler
 {
     NSNumber* key = @(task.taskIdentifier);
+    NSMutableData* buffer = [NSMutableData new];
+    id copiedHandler = [handler copy];
+    if (buffer == nil || copiedHandler == nil)
+    {
+        return NO;
+    }
     @synchronized(self)
     {
-        _buffers[key] = [NSMutableData new];
-        _handlers[key] = [handler copy];
+        @try
+        {
+            _buffers[key] = buffer;
+            _handlers[key] = copiedHandler;
+            return YES;
+        }
+        @catch (NSException* exception)
+        {
+            (void)exception;
+            [_buffers removeObjectForKey:key];
+            [_handlers removeObjectForKey:key];
+            return NO;
+        }
     }
 }
 
@@ -156,60 +176,197 @@ public:
 
     void SendAsync(IHttpResponseCallback* callback)
     {
-        @autoreleasepool
+        bool cancelledBeforeSend = false;
+        bool registered = false;
+        NSURLSessionDataTask* task = nil;
         {
+            std::lock_guard<std::mutex> lock(m_mutex);
             m_callback = callback;
-            NSString* url = [[NSString alloc] initWithUTF8String:m_url.c_str()];
-            m_urlRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
+            cancelledBeforeSend = m_cancelRequested;
+        }
+        if (cancelledBeforeSend)
+        {
+            // A Cancel() raced ahead of SendAsync and only set the flag (it never
+            // completes on its own because there was no callback yet). Now that the
+            // callback is published we own the single terminal Aborted.
+            Complete(HttpResult_Aborted);
+            return;
+        }
 
-            for(const auto& header : m_headers)
+        @try
+        {
+            @autoreleasepool
             {
-                NSString* name = [[NSString alloc] initWithUTF8String:header.first.c_str()];
-                NSString* value = [[NSString alloc] initWithUTF8String:header.second.c_str()];
-                [m_urlRequest setValue:value forHTTPHeaderField:name];
-            }
-
-            m_completionMethod =
-                ^(NSData *data, NSURLResponse *response, NSError *error)
+                NSString* url = [[NSString alloc] initWithUTF8String:m_url.c_str()];
+                NSURL* nsUrl = (url != nil) ? [NSURL URLWithString:url] : nil;
+                if (nsUrl == nil || nsUrl.scheme == nil)
                 {
-                    HandleResponse(data, response, error);
-                };
+                    Complete(HttpResult_LocalFailure);
+                    return;
+                }
 
-            if(equalsIgnoreCase(m_method, "get"))
-            {
-                [m_urlRequest setHTTPMethod:@"GET"];
-                m_dataTask = [session dataTaskWithRequest:m_urlRequest];
-            }
-            else
-            {
-                [m_urlRequest setHTTPMethod:@"POST"];
-                NSData* postData = [NSData dataWithBytes:m_body.data() length:m_body.size()];
-                m_dataTask = [session uploadTaskWithRequest:m_urlRequest fromData:postData];
-            }
+                NSMutableURLRequest* urlRequest = [[NSMutableURLRequest alloc] initWithURL:nsUrl];
+                if (urlRequest == nil)
+                {
+                    Complete(HttpResult_LocalFailure);
+                    return;
+                }
 
-            // Register before resume so the streaming delegate has the buffer and
-            // completion handler in place before any response data arrives.
-            [sessionDelegate registerTask:m_dataTask handler:m_completionMethod];
-            [m_dataTask resume];
+                for(const auto& header : m_headers)
+                {
+                    NSString* name = [[NSString alloc] initWithUTF8String:header.first.c_str()];
+                    NSString* value = [[NSString alloc] initWithUTF8String:header.second.c_str()];
+                    if (name == nil || value == nil)
+                    {
+                        Complete(HttpResult_LocalFailure);
+                        return;
+                    }
+                    [urlRequest setValue:value forHTTPHeaderField:name];
+                }
+
+                m_completionMethod =
+                    ^(NSData *data, NSURLResponse *response, NSError *error)
+                    {
+                        HandleResponse(data, response, error);
+                    };
+
+                if (session == nil || sessionDelegate == nil)
+                {
+                    Complete(HttpResult_NetworkFailure);
+                    return;
+                }
+
+                if(equalsIgnoreCase(m_method, "get"))
+                {
+                    [urlRequest setHTTPMethod:@"GET"];
+                    task = [session dataTaskWithRequest:urlRequest];
+                }
+                else
+                {
+                    [urlRequest setHTTPMethod:@"POST"];
+                    NSData* postData = [NSData dataWithBytes:m_body.data() length:m_body.size()];
+                    task = [session uploadTaskWithRequest:urlRequest fromData:postData];
+                }
+
+                if (task == nil || m_completionMethod == nil)
+                {
+                    Complete(HttpResult_LocalFailure);
+                    return;
+                }
+
+                m_urlRequest = urlRequest;
+
+                // Publish the task under the lock so a concurrent Cancel() can reach
+                // and cancel it, and observe a cancel that raced with setup.
+                bool cancelledDuringSetup = false;
+                {
+                    std::lock_guard<std::mutex> lock(m_mutex);
+                    m_dataTask = task;
+                    cancelledDuringSetup = m_cancelRequested;
+                }
+                if (cancelledDuringSetup)
+                {
+                    [task cancel];
+                    Complete(HttpResult_Aborted);
+                    return;
+                }
+
+                // Register before resume so the streaming delegate has the buffer and
+                // completion handler in place before any response data arrives.
+                registered = [sessionDelegate registerTask:task handler:m_completionMethod];
+                if (!registered)
+                {
+                    bool cancelled = false;
+                    {
+                        std::lock_guard<std::mutex> lock(m_mutex);
+                        cancelled = m_cancelRequested;
+                    }
+                    Complete(cancelled ? HttpResult_Aborted : HttpResult_LocalFailure);
+                    return;
+                }
+
+                bool cancelledAfterRegister = false;
+                {
+                    std::lock_guard<std::mutex> lock(m_mutex);
+                    cancelledAfterRegister = m_cancelRequested;
+                }
+                if (cancelledAfterRegister)
+                {
+                    // The task is already registered, so let didCompleteWithError:
+                    // be the sole terminal producer. Cancelling a suspended task is
+                    // enough to drive that completion on Apple runtimes, so do not
+                    // resume it here.
+                    [task cancel];
+                    return;
+                }
+                [task resume];
+            }
+        }
+        @catch (NSException* exception)
+        {
+            LOG_WARN("HTTP request setup failed: %s", [[exception reason] UTF8String]);
+            bool cancelled = false;
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                cancelled = m_cancelRequested;
+            }
+            if (registered)
+            {
+                [task cancel];
+                return;
+            }
+            Complete(cancelled ? HttpResult_Aborted : HttpResult_LocalFailure);
         }
     }
 
     void HandleResponse(NSData* data, NSURLResponse* response, NSError* error)
     {
+        IHttpResponseCallback* callback = nullptr;
+        bool cancelRequested = false;
+        HttpClient_Apple* parent = m_parent;
+        IHttpRequest* self = static_cast<IHttpRequest*>(this);
+        const std::string requestId = GetId();
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_terminal)
+            {
+                return;
+            }
+            m_terminal = true;
+            callback = m_callback;
+            cancelRequested = m_cancelRequested;
+        }
+
         @autoreleasepool
         {
-            NSHTTPURLResponse *httpResp = static_cast<NSHTTPURLResponse*>(response);
-            auto simpleResponse = new SimpleHttpResponse { GetId() };
+            NSHTTPURLResponse *httpResp =
+                [response isKindOfClass:[NSHTTPURLResponse class]]
+                    ? static_cast<NSHTTPURLResponse*>(response)
+                    : nil;
+            auto simpleResponse = new SimpleHttpResponse { requestId };
 
-            simpleResponse->m_statusCode = static_cast<unsigned int>(httpResp.statusCode);
+            simpleResponse->m_statusCode =
+                (httpResp != nil) ? static_cast<unsigned int>(httpResp.statusCode) : 0;
 
-            NSDictionary *responseHeaders = [httpResp allHeaderFields];
-            for (id key in responseHeaders)
+            if (httpResp != nil)
             {
-                simpleResponse->m_headers.add([key UTF8String], [responseHeaders[key] UTF8String]);
+                NSDictionary *responseHeaders = [httpResp allHeaderFields];
+                for (id key in responseHeaders)
+                {
+                    const char* keyString = [key UTF8String];
+                    const char* valueString = [responseHeaders[key] UTF8String];
+                    if (keyString != nullptr && valueString != nullptr)
+                    {
+                        simpleResponse->m_headers.add(keyString, valueString);
+                    }
+                }
             }
 
-            if (error)
+            if (cancelRequested)
+            {
+                simpleResponse->m_result = HttpResult_Aborted;
+            }
+            else if (error)
             {
                 NSString* errorDomain = [error domain];
                 long errorCode = [error code];
@@ -224,6 +381,10 @@ public:
                           errorCode == NSURLErrorUnsupportedURL))
                 {
                     simpleResponse->m_result = HttpResult_LocalFailure;
+                }
+                else if (httpResp == nil)
+                {
+                    simpleResponse->m_result = HttpResult_NetworkFailure;
                 }
                 else
                 {
@@ -246,21 +407,89 @@ public:
                     std::copy(body, body + length, std::back_inserter(simpleResponse->m_body));
                 }
             }
-            m_callback->OnHttpResponse(simpleResponse);
+            if (parent != nullptr)
+            {
+                // Remove the request from the parent map before the callback runs.
+                // A concurrent CancelRequestAsync that already holds the parent mutex
+                // must finish first, keeping this raw request alive while it calls
+                // Cancel(); later cancels will not find the request at all. The
+                // callback may delete the request, so this erase must happen first.
+                parent->Erase(self);
+            }
+            if (callback != nullptr)
+            {
+                callback->OnHttpResponse(simpleResponse);
+            }
+            else
+            {
+                delete simpleResponse;
+            }
         }
+        // Do not touch `this` after invoking the callback: it may delete the request.
     }
 
     void Cancel()
     {
-        [m_dataTask cancel];
+        // Only set the flag and cancel the in-flight task; never invoke the callback
+        // here. A cancel before SendAsync has no callback yet, so completing from
+        // Cancel would claim the terminal transition with no one to notify. SendAsync
+        // (or the task's own delegate completion) delivers the single Aborted.
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_cancelRequested = true;
+        if (m_dataTask != nil)
+        {
+            [m_dataTask cancel];
+        }
     }
 
 private:
+    void Complete(HttpResult result)
+    {
+        IHttpResponseCallback* callback = nullptr;
+        HttpClient_Apple* parent = m_parent;
+        IHttpRequest* self = static_cast<IHttpRequest*>(this);
+        const std::string requestId = GetId();
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_terminal)
+            {
+                return;
+            }
+            m_terminal = true;
+            callback = m_callback;
+        }
+
+        auto response = new SimpleHttpResponse { requestId };
+        response->m_statusCode = 0;
+        response->m_result = result;
+        if (parent != nullptr)
+        {
+            // Same ordering rule as HandleResponse(): deregister before invoking
+            // the callback because the callback may delete the request.
+            parent->Erase(self);
+        }
+        if (callback != nullptr)
+        {
+            callback->OnHttpResponse(response);
+        }
+        else
+        {
+            delete response;
+        }
+        // Do not touch `this` after invoking the callback: it may delete the request.
+    }
+
     HttpClient_Apple* m_parent = nullptr;
     IHttpResponseCallback* m_callback = nullptr;
     NSURLSessionDataTask* m_dataTask = nullptr;
     NSMutableURLRequest* m_urlRequest = nullptr;
     void (^m_completionMethod)(NSData* data, NSURLResponse* response, NSError* error);
+    // Guards m_callback, m_cancelRequested, m_dataTask and m_terminal so setup,
+    // cancellation and the single terminal completion observe a consistent view.
+    // The callback is always invoked outside this lock.
+    std::mutex m_mutex;
+    bool m_cancelRequested = false;
+    bool m_terminal = false;
 };
 
 HttpClient_Apple::HttpClient_Apple()
@@ -289,18 +518,20 @@ void HttpClient_Apple::SendRequestAsync(IHttpRequest* request, IHttpResponseCall
 
 void HttpClient_Apple::CancelRequestAsync(const std::string& id)
 {
-    HttpRequestApple* request = nullptr;
+    // Hold the requests mutex across Cancel(): Cancel() only flips the per-request
+    // flag and cancels the NSURLSession task, and never completes synchronously.
+    // That lets the mutex pin the raw request lifetime while we touch it. The
+    // terminal path removes the request from this map immediately before invoking
+    // the callback, so a callback-time delete cannot race a later cancel.
+    std::lock_guard<std::mutex> lock(m_requestsMtx);
+    auto it = m_requests.find(id);
+    if (it != m_requests.cend())
     {
-        std::lock_guard<std::mutex> lock(m_requestsMtx);
-        if (m_requests.find(id) != m_requests.cend())
+        auto* request = static_cast<HttpRequestApple*>(it->second);
+        if (request != nullptr)
         {
-            request = static_cast<HttpRequestApple*>(m_requests[id]);
-            if (request != nullptr)
-            {
-                LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
-                request->Cancel();
-            }
-            m_requests.erase(id);
+            LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
+            request->Cancel();
         }
     }
 }

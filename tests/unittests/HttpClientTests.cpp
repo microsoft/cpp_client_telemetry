@@ -15,6 +15,18 @@
 #include "common/HttpServer.hpp"
 #include "http/HttpClientFactory.hpp"
 
+// Mirror HttpClientFactory's selection of HttpClient_Apple so the Apple-specific
+// tests below only compile when the factory actually hands back that transport.
+// On macOS desktop without APPLE_HTTP the factory builds HttpClient_Curl instead,
+// and gating merely on __APPLE__ would run these expectations against the wrong
+// client.
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE || defined(APPLE_HTTP)
+#define MAT_TEST_APPLE_TRANSPORT 1
+#endif
+#endif
+
 #include <atomic>
 #include <condition_variable>
 #include <thread>
@@ -434,6 +446,90 @@ TEST_F(HttpClientTests, HandlesLocalErrors)
     EXPECT_THAT(_response->GetResult(), HttpResult_LocalFailure);
     _response.release();
 }
+
+#if defined(MAT_TEST_APPLE_TRANSPORT)
+TEST_F(HttpClientTests, InvalidUtf8UrlCompletesExactlyOnce)
+{
+    // The request must outlive the whole exchange: keep ownership here (the Apple
+    // transport never deletes it) and hand only a borrowed pointer to the client.
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    std::string requestId = request->GetId();
+    std::string invalidUrl("http://invalid-url/");
+    invalidUrl.push_back(static_cast<char>(0xff));
+    request->SetUrl(invalidUrl);
+    _client->SendRequestAsync(request.get(), this);
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+        [this]() { return !_responses.empty(); }));
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_THAT(_responses[0]->GetId(), requestId);
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_LocalFailure);
+    EXPECT_FALSE(_responseCv.wait_for(lock, std::chrono::milliseconds(250),
+        [this]() { return _responses.size() > 1; }));
+}
+
+TEST_F(HttpClientTests, CancelBeforeSendCompletesExactlyOneAborted)
+{
+    // A cancel issued before SendRequestAsync must only arm the cancel flag; the
+    // single Aborted has to be delivered by Send once the callback is known, and
+    // never twice. The request is kept alive by this fixture for the duration.
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    std::string requestId = request->GetId();
+    request->SetUrl("http://" + _hostname + "/simple/200");
+
+    _client->CancelRequestAsync(requestId);
+    _client->SendRequestAsync(request.get(), this);
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+        [this]() { return !_responses.empty(); }));
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_THAT(_responses[0]->GetId(), requestId);
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_Aborted);
+    EXPECT_FALSE(_responseCv.wait_for(lock, std::chrono::milliseconds(250),
+        [this]() { return _responses.size() > 1; }));
+}
+
+TEST_F(HttpClientTests, CancelAfterRegisterCompletesExactlyOneAborted)
+{
+    // Keep ownership here so the delegate callback still runs while the caller
+    // owns the request object. The transport must not self-complete after it has
+    // registered the task; the cancellation terminal comes from didCompleteWithError.
+    {
+        std::lock_guard<std::mutex> lock(_blockedRequestLock);
+        _blockedRequestReceived = false;
+        _releaseBlockedRequest = false;
+    }
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    std::string requestId = request->GetId();
+    request->SetUrl("http://" + _hostname + "/block/");
+    _client->SendRequestAsync(request.get(), this);
+
+    {
+        std::unique_lock<std::mutex> lock(_blockedRequestLock);
+        ASSERT_TRUE(_blockedRequestCv.wait_for(lock, std::chrono::seconds(10),
+            [this]() { return _blockedRequestReceived; }));
+    }
+
+    _client->CancelRequestAsync(requestId);
+    {
+        std::lock_guard<std::mutex> lock(_blockedRequestLock);
+        _releaseBlockedRequest = true;
+    }
+    _blockedRequestCv.notify_all();
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+        [this]() { return !_responses.empty(); }));
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_THAT(_responses[0]->GetId(), requestId);
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_Aborted);
+    EXPECT_FALSE(_responseCv.wait_for(lock, std::chrono::milliseconds(250),
+        [this]() { return _responses.size() > 1; }));
+}
+#endif
 
 TEST_F(HttpClientTests, HandlesDnsError)
 {
