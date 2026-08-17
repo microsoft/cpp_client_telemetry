@@ -12,6 +12,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <cstdint>
+#include <future>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -294,6 +295,80 @@ namespace
         bool m_entered {false};
         bool m_released {false};
     };
+
+    class ReentrantQueueScheduledTaskTarget
+    {
+    public:
+        explicit ReentrantQueueScheduledTaskTarget(ITaskDispatcher* dispatcher) :
+            m_dispatcher(dispatcher)
+        {
+        }
+
+        void Callback()
+        {
+            {
+                std::unique_lock<std::mutex> lock(m_mutex);
+                m_entered = true;
+                m_condition.notify_all();
+                m_condition.wait(lock, [this]() { return m_queueAllowed; });
+            }
+
+            PAL::dispatchTask(
+                m_dispatcher, this, &ReentrantQueueScheduledTaskTarget::FollowUp);
+
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_queueReturned = true;
+            }
+            m_condition.notify_all();
+        }
+
+        void FollowUp()
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_followUpRan = true;
+            m_condition.notify_all();
+        }
+
+        bool WaitUntilEntered()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_condition.wait_for(
+                lock, std::chrono::seconds(2), [this]() { return m_entered; });
+        }
+
+        void AllowQueue()
+        {
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_queueAllowed = true;
+            }
+            m_condition.notify_all();
+        }
+
+        bool WaitUntilQueueReturned()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_condition.wait_for(
+                lock, std::chrono::seconds(1), [this]() { return m_queueReturned; });
+        }
+
+        bool WaitUntilFollowUpRan()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_condition.wait_for(
+                lock, std::chrono::seconds(2), [this]() { return m_followUpRan; });
+        }
+
+    private:
+        ITaskDispatcher* m_dispatcher;
+        std::mutex m_mutex;
+        std::condition_variable m_condition;
+        bool m_entered {false};
+        bool m_queueAllowed {false};
+        bool m_queueReturned {false};
+        bool m_followUpRan {false};
+    };
 }
 
 // A task throwing an exception must be contained by the worker thread loop;
@@ -402,6 +477,46 @@ TEST_F(PalTests, ScheduleTaskCancelWaitDoesNotDeadlockTaskDestruction)
         PAL::sleep(10);
     }
     EXPECT_EQ(handle.GetTask(), nullptr);
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskCancelWaitAllowsRunningTaskToQueue)
+{
+    constexpr uint64_t CancelWaitMs = 3000;
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    ReentrantQueueScheduledTaskTarget target(dispatcher.get());
+    auto handle = PAL::scheduleTask(
+        dispatcher.get(), 0, &target, &ReentrantQueueScheduledTaskTarget::Callback);
+
+    ASSERT_TRUE(target.WaitUntilEntered());
+
+    std::promise<void> cancelStarted;
+    std::future<void> cancelStartedFuture = cancelStarted.get_future();
+    std::promise<void> cancelFinished;
+    std::future<void> cancelFinishedFuture = cancelFinished.get_future();
+    bool cancelResult = false;
+    std::thread canceller([&]() {
+        cancelStarted.set_value();
+        cancelResult = handle.Cancel(CancelWaitMs);
+        cancelFinished.set_value();
+    });
+
+    EXPECT_EQ(cancelStartedFuture.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    EXPECT_EQ(
+        cancelFinishedFuture.wait_for(std::chrono::milliseconds(100)),
+        std::future_status::timeout);
+
+    target.AllowQueue();
+
+    EXPECT_TRUE(target.WaitUntilQueueReturned());
+    EXPECT_EQ(
+        cancelFinishedFuture.wait_for(std::chrono::seconds(1)),
+        std::future_status::ready);
+
+    canceller.join();
+    EXPECT_TRUE(cancelResult);
+    EXPECT_TRUE(target.WaitUntilFollowUpRan());
 
     dispatcher->Join();
 }
