@@ -248,7 +248,7 @@ TEST_F(OfflineStorageTests_SQLite, CachedStatementPrepareFailureRecreatesDatabas
     EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Clean"));
     offlineStorage->Initialize(observerMock);
 
-    EXPECT_THAT(offlineStorage->GetSize(), Gt(0));
+    EXPECT_THAT(offlineStorage->GetSize(), Gt(size_t{0}));
 }
 
 TEST_F(OfflineStorageTests_SQLite, StorageRecordConstructorSetsAllFields)
