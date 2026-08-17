@@ -83,7 +83,7 @@ if !hasSanitizer {
 let package = Package(
     name: "OneDSSwift",
     platforms: [
-        .iOS(.v12),
+        .iOS(.v13),
         .macCatalyst(.v14),
         .macOS(.v10_15),
         .visionOS(.v1),

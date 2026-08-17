@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+#if canImport(MATTelemetryObjC)
 import MATTelemetryObjC
+#else
+import ObjCModule
+#endif
 
 /// Wrapper over `ODWSemanticContext` class that manages the inclusion of semantic context values on logged events.
 public class SemanticContext {

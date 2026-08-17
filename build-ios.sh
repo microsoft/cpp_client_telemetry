@@ -53,28 +53,36 @@ echo "architecture = $APPLE_ARCH, platform = $APPLE_PLATFORM, build type = $BUIL
 
 DEPLOYMENT_TARGET=""
 
-if [ "$APPLE_PLATFORM" == "iphoneos" ] || [ "$APPLE_PLATFORM" == "iphonesimulator" ]; then
-  SYS_NAME="iOS"
-  APPLE_SYSROOT="$APPLE_PLATFORM"
-  DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
-  if [ -z "$DEPLOYMENT_TARGET" ]; then
-    DEPLOYMENT_TARGET="13.0"
-  fi
-elif [ "$APPLE_PLATFORM" == "maccatalyst" ]; then
-  SYS_NAME="iOS"
-  APPLE_SYSROOT="macosx"
-  DEPLOYMENT_TARGET="$MACCATALYST_DEPLOYMENT_TARGET"
-  if [ -z "$DEPLOYMENT_TARGET" ]; then
-    DEPLOYMENT_TARGET="14.0"
-  fi
-elif [ "$APPLE_PLATFORM" == "xros" ] || [ "$APPLE_PLATFORM" == "xrsimulator" ]; then
-  SYS_NAME="visionOS"
-  APPLE_SYSROOT="$APPLE_PLATFORM"
-  DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
-  if [ -z "$DEPLOYMENT_TARGET" ]; then
-    DEPLOYMENT_TARGET="1.0"
-  fi
-fi
+case "$APPLE_PLATFORM" in
+  iphoneos|iphonesimulator)
+    SYS_NAME="iOS"
+    APPLE_SYSROOT="$APPLE_PLATFORM"
+    DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
+    if [ -z "$DEPLOYMENT_TARGET" ]; then
+      DEPLOYMENT_TARGET="13.0"
+    fi
+    ;;
+  maccatalyst)
+    SYS_NAME="iOS"
+    APPLE_SYSROOT="macosx"
+    DEPLOYMENT_TARGET="$MACCATALYST_DEPLOYMENT_TARGET"
+    if [ -z "$DEPLOYMENT_TARGET" ]; then
+      DEPLOYMENT_TARGET="14.0"
+    fi
+    ;;
+  xros|xrsimulator)
+    SYS_NAME="visionOS"
+    APPLE_SYSROOT="$APPLE_PLATFORM"
+    DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
+    if [ -z "$DEPLOYMENT_TARGET" ]; then
+      DEPLOYMENT_TARGET="1.0"
+    fi
+    ;;
+  *)
+    echo "Unsupported Apple platform '$APPLE_PLATFORM'. Expected iphoneos, iphonesimulator, maccatalyst, xros, or xrsimulator." >&2
+    exit 1
+    ;;
+esac
 
 echo "deployment target = $DEPLOYMENT_TARGET"
 
