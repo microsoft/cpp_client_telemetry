@@ -22,12 +22,14 @@
 //      with the desired Xcode destination.
 //
 // Release distribution (so consumers can add the repo by URL in Xcode):
-//   .github/workflows/spm-release.yml builds and uploads the xcframework,
-//   computes the checksum, rewrites the local `.binaryTarget(... path:)` below
-//   to `url:`+`checksum:`, and pushes the 3-component SemVer tag that SPM can
-//   resolve. Because vX.Y.Z.W release tags map to one X.Y.Z SPM tag, only one
-//   build per three-component version can publish; later fourth-component
-//   hotfixes for the same X.Y.Z are skipped unless the mapping changes.
+//   .github/workflows/spm-release.yml builds, validates, and uploads the
+//   xcframework, rewrites the local `.binaryTarget(... path:)` below to
+//   `url:`+`checksum:`, removes repository submodules from the tag-only commit,
+//   validates that commit through a clean consumer, and pushes the
+//   3-component SemVer tag that SPM can resolve. Because vX.Y.Z.W release tags
+//   map to one X.Y.Z SPM tag, only one build per three-component version can
+//   publish; later fourth-component hotfixes for the same X.Y.Z are skipped
+//   unless the mapping changes.
 
 import PackageDescription
 import Foundation

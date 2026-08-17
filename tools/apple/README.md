@@ -16,8 +16,9 @@ conditionals. Instead, the package is split into:
 | Swift API (`OneDSSwift`) | Source target in `wrappers/swift/Sources/OneDSSwift` |
 
 The xcframework vendors a Clang module named `MATTelemetryObjC` through
-`tools/apple/module.modulemap` and `MATTelemetry-umbrella.h`, matching the
-existing Swift sources' `import MATTelemetryObjC`.
+`tools/apple/module.modulemap` and `MATTelemetry-umbrella.h`. The shared Swift
+sources import it when available and otherwise fall back to the existing local
+`ObjCModule`.
 
 ## Runtime dependencies (sqlite3 / zlib)
 
@@ -37,6 +38,9 @@ system copy).
 ## Supported slices
 
 `tools/apple/build-xcframework.sh release` builds:
+
+The prebuilt package declares minimum versions of iOS 13, Mac Catalyst 14,
+macOS 10.15, and visionOS 1.
 
 | Platform | Slice |
 | --- | --- |
@@ -101,6 +105,10 @@ dispatch. It:
 5. Creates a self-contained tag commit without the repository's submodules.
 6. Resolves and builds that tag from a clean external Swift package.
 7. Pushes the 3-component SPM tag.
+
+The clean consumer build gates tag publication. If it fails after the artifact
+upload, no SPM tag is pushed; rerunning the workflow replaces the untagged asset
+with `gh release upload --clobber`.
 
 The private `lib/modules` submodule is intentionally not fetched by the release
 workflow, so optional module headers and Swift sources are gated by
