@@ -30,7 +30,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: spm-release-${{ github.event.release.tag_name || inputs.tag }}
+  # Serialize all SPM publications because different vX.Y.Z.W releases can map
+  # to the same X.Y.Z tag and release asset.
+  group: spm-release
   cancel-in-progress: false
 
 jobs:
@@ -104,12 +106,38 @@ jobs:
           fi
 
       - name: Build MATTelemetry.xcframework
-        if: ${{ steps.ver.outputs.skip != 'true' }}
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
         run: |
           set -euo pipefail
           chmod +x tools/apple/build-xcframework.sh
           tools/apple/build-xcframework.sh release
           test -f "build/apple/$ARTIFACT"
+
+      - name: Validate local SwiftPM package consumption
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        run: |
+          set -euo pipefail
+          swift package dump-package > package.json
+          python3 - <<'PY'
+          import json
+          expected = {
+              "ios": "13.0",
+              "maccatalyst": "14.0",
+              "macos": "10.15",
+              "visionos": "1.0",
+          }
+          with open("package.json", encoding="utf-8") as f:
+              platforms = {
+                  item["platformName"]: item["version"]
+                  for item in json.load(f)["platforms"]
+              }
+          if platforms != expected:
+              raise SystemExit(f"Unexpected Package.swift platforms: {platforms}")
+          PY
+          swift build
+          xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme OneDSSwift -destination 'platform=macOS,variant=Mac Catalyst' build
+          xcodebuild -scheme OneDSSwift -destination 'generic/platform=visionOS Simulator' build
 
       - name: Compute SPM checksum
         id: sum
@@ -120,6 +148,7 @@ jobs:
           echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
 
       - name: Upload xcframework to the release
+        id: upload
         if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -150,47 +179,72 @@ jobs:
           open(path, "w").write(out)
           PY
 
-      - name: Validate SwiftPM package consumption
+      - name: Create submodule-free SPM tag candidate
         if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
         run: |
           set -euo pipefail
-          swift package dump-package > package.json
-          python3 - <<'PY'
-          import json
-          expected = {
-              "ios": "13.0",
-              "maccatalyst": "14.0",
-              "macos": "10.15",
-              "visionos": "1.0",
-          }
-          with open("package.json", encoding="utf-8") as f:
-              platforms = {
-                  item["platformName"]: item["version"]
-                  for item in json.load(f)["platforms"]
-              }
-          if platforms != expected:
-              raise SystemExit(f"Unexpected Package.swift platforms: {platforms}")
-          PY
-          swift build
-          xcodebuild -scheme OneDSSwift -destination 'generic/platform=iOS Simulator' build
-          xcodebuild -scheme OneDSSwift -destination 'platform=macOS,variant=Mac Catalyst' build
-          xcodebuild -scheme OneDSSwift -destination 'generic/platform=visionOS Simulator' build
-
-      - name: Commit manifest and push the 3-component SPM tag
-        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
-        run: |
-          set -euo pipefail
-          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null; then
-            echo "::notice::SPM tag ${{ steps.ver.outputs.spm_version }} already exists; skipping tag publish."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # SwiftPM recursively fetches every submodule in a package checkout.
+          # Neither the private optional modules nor googletest is needed by the
+          # released binary/source package, so the SPM-only tag must omit both.
+          git rm -f .gitmodules lib/modules third_party/googletest
           git add Package.swift tools/apple/MATTelemetryAvailability.json
           git commit -m "[spm] ${{ steps.ver.outputs.spm_version }}: pin xcframework url + checksum"
-          # The SPM tag points at this commit (release source + resolved
-          # binaryTarget). It is published as a tag only, not merged to a branch.
+          if git ls-files --stage | grep -q '^160000 '; then
+            echo "::error::SPM tag candidate still contains a git submodule." 1>&2
+            exit 1
+          fi
           git tag -a "${{ steps.ver.outputs.spm_version }}" \
             -m "Swift Package Manager release ${{ steps.ver.outputs.spm_version }} (from ${{ steps.ver.outputs.tag }})"
+
+      - name: Validate clean package resolution
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        env:
+          SPM_VERSION: ${{ steps.ver.outputs.spm_version }}
+        run: |
+          set -euo pipefail
+          SPM_REPO="$RUNNER_TEMP/cpp_client_telemetry.git"
+          CONSUMER="$RUNNER_TEMP/MATTelemetrySPMSmoke"
+          git clone --bare --no-local . "$SPM_REPO"
+          mkdir -p "$CONSUMER/Sources/Smoke"
+          cat > "$CONSUMER/Package.swift" <<EOF
+          // swift-tools-version: 5.9
+          import PackageDescription
+
+          let package = Package(
+              name: "MATTelemetrySPMSmoke",
+              platforms: [.macOS(.v10_15)],
+              dependencies: [
+                  .package(url: "file://$SPM_REPO", exact: "$SPM_VERSION"),
+              ],
+              targets: [
+                  .executableTarget(
+                      name: "Smoke",
+                      dependencies: [
+                          .product(name: "OneDSSwift", package: "cpp_client_telemetry"),
+                      ]),
+              ])
+          EOF
+          printf '%s\n' 'import OneDSSwift' > "$CONSUMER/Sources/Smoke/main.swift"
+          swift build --package-path "$CONSUMER"
+
+      - name: Push the 3-component SPM tag
+        if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        run: |
+          set -euo pipefail
           git push origin "refs/tags/${{ steps.ver.outputs.spm_version }}"
           echo "Published SPM tag ${{ steps.ver.outputs.spm_version }}"
+
+      - name: Remove unvalidated release asset after failure
+        if: ${{ failure() && steps.upload.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null 2>&1; then
+            echo "::warning::SPM tag already exists; retaining its release asset."
+            exit 0
+          fi
+          gh release delete-asset "${{ steps.ver.outputs.tag }}" "$ARTIFACT" \
+            --repo "${{ github.repository }}" --yes

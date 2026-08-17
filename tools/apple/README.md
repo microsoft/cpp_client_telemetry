@@ -98,11 +98,16 @@ dispatch. It:
    visionOS Simulator.
 3. Uploads the zip to the GitHub Release.
 4. Rewrites `Package.swift` from local `path:` to hosted `url:` + `checksum:`.
-5. Commits the resolved manifest and pushes the 3-component SPM tag.
+5. Creates a self-contained tag commit without the repository's submodules.
+6. Resolves and builds that tag from a clean external Swift package.
+7. Pushes the 3-component SPM tag. If validation fails after upload, the
+   workflow removes the unvalidated release asset.
 
 The private `lib/modules` submodule is intentionally not fetched by the release
 workflow, so optional module headers and Swift sources are gated by
-`MATTelemetryAvailability.json`.
+`MATTelemetryAvailability.json`. The SPM-only tag removes `.gitmodules` and both
+gitlinks (`lib/modules` and `third_party/googletest`) because SwiftPM recursively
+fetches submodules and neither is needed to consume the prebuilt package.
 
 ## Validation performed
 
