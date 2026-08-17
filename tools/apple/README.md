@@ -100,8 +100,7 @@ dispatch. It:
 4. Rewrites `Package.swift` from local `path:` to hosted `url:` + `checksum:`.
 5. Creates a self-contained tag commit without the repository's submodules.
 6. Resolves and builds that tag from a clean external Swift package.
-7. Pushes the 3-component SPM tag. If validation fails after upload, the
-   workflow removes the unvalidated release asset.
+7. Pushes the 3-component SPM tag.
 
 The private `lib/modules` submodule is intentionally not fetched by the release
 workflow, so optional module headers and Swift sources are gated by
