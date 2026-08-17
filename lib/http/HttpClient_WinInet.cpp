@@ -1172,7 +1172,7 @@ IHttpRequest* HttpClient_WinInet::CreateRequest()
 
 void HttpClient_WinInet::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
-    // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+    // SendRequestAsync borrows the request; the caller retains ownership.
     auto wrapper = std::make_shared<WinInetRequestWrapper>(
         m_state, static_cast<SimpleHttpRequest*>(request));
     wrapper->send(callback);

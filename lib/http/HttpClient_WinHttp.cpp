@@ -1441,7 +1441,7 @@ IHttpRequest* HttpClient_WinHttp::CreateRequest()
 
 void HttpClient_WinHttp::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
 {
-    // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+    // SendRequestAsync borrows the request; the caller retains ownership.
     auto state = m_state;
     auto wrapper = std::make_shared<WinHttpRequestWrapper>(
         std::move(state), static_cast<SimpleHttpRequest*>(request));

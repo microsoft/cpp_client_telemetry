@@ -521,25 +521,28 @@ namespace MAT_NS_BEGIN
 
         /// <summary>
         /// Creates an empty HTTP request object.
-        /// The created request object has only its ID prepopulated. Other fields
-        /// must be set by the caller. The request object can then be sent
-        /// using SendRequestAsync(). If you are not going to use the request object, 
-        /// then you can delete it safely using its virtual destructor.
+        /// The caller owns the returned request object. The object has only its ID
+        /// prepopulated; the caller must populate the other fields before passing it
+        /// to SendRequestAsync(). If the request is never sent, delete it using its
+        /// virtual destructor. If it is sent, the caller still owns it and must
+        /// delete it exactly once after the request completes.
         /// </summary>
         /// <returns>An HTTP request object for you to prepare.</returns>
         virtual IHttpRequest* CreateRequest() = 0;
 
         /// <summary>
         /// Begins an HTTP request.
-        /// The method takes ownership of the passed request, and can destroy it before
-        /// returning to the caller. Do not access the request object in any
-        /// way after this invocation, and do not delete it.
-        /// The callback object is always called, even if the request is 
-        /// cancelled, or if an error occurs immediately during sending. In the
-        /// latter case, the OnHttpResponse() callback is called before this
-        /// method returns. You must keep the callback object alive until its
-        /// OnHttpResponse() callback is called. It will never be used twice, so
-        /// after you use it - you can safely delete it.
+        /// The client borrows the request object; it does not take ownership and
+        /// does not delete it. Keep the request alive and do not modify it from the
+        /// start of this call until the request's terminal OnHttpResponse() callback
+        /// begins. The built-in SDK transports finish their last access to the
+        /// request before invoking OnHttpResponse(), so the caller may delete the
+        /// request during that callback or any time after it returns.
+        ///
+        /// On synchronous setup or validation failure, OnHttpResponse() may be
+        /// invoked before this method returns. Keep the callback object alive until
+        /// OnHttpResponse() returns. For portability, delete request objects created
+        /// by a client before destroying that client.
         /// </summary>
         /// <param name="request">The filled request object returned earlier by
         /// CreateRequest()</param>
@@ -549,9 +552,10 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Cancels an HTTP request.
         /// The caller must provide a string ID returned earlier by request->GetId().
-        /// The request is cancelled asynchronously. The caller must still 
-        /// wait for the relevant OnHttpResponse() callback (it can just come
-        /// earlier with some "aborted" error status).
+        /// Cancellation is asynchronous. The built-in SDK transports still report
+        /// completion through the request's terminal OnHttpResponse() callback, so
+        /// the caller must keep the request alive and unchanged until that callback
+        /// begins.
         /// </summary>
         /// <param name="id">A string that contains the ID of the request to cancel.</param>
         virtual void CancelRequestAsync(std::string const& id) = 0;

@@ -73,7 +73,7 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_Curl::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
-        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+        // SendRequestAsync borrows the request; the caller retains ownership.
         auto curlRequest = static_cast<CurlHttpRequest*>(request);
 
         std::string requestId = curlRequest->GetId();

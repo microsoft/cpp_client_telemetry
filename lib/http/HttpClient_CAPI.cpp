@@ -148,7 +148,7 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_CAPI::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
-        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+        // SendRequestAsync borrows the request; the caller retains ownership.
         auto simpleRequest = static_cast<SimpleHttpRequest*>(request);
         auto requestId = simpleRequest->m_id;
 

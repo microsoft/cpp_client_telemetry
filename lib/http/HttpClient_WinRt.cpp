@@ -368,7 +368,7 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_WinRt::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
-        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+        // SendRequestAsync borrows the request; the caller retains ownership.
         if (request==nullptr)
         {
             LOG_ERROR("request is null!");
