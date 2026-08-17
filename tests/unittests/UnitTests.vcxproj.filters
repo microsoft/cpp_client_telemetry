@@ -26,6 +26,7 @@
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\MsRootCertPolicyTests.cpp"/>
     <ClCompile Include="$(ProjectDir)\OacrTests.cpp" />
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\OfflineStorageTests_SQLite.cpp" />

@@ -220,6 +220,7 @@ public:
     void OnHttpResponse(IHttpResponse* response) override
     {
         std::lock_guard<std::mutex> lock(m_mutex);
+        ++m_callbackCount;
         m_response.reset(response);
         m_cv.notify_all();
     }
@@ -235,10 +236,17 @@ public:
         return std::move(m_response);
     }
 
+    size_t CallbackCount() const
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_callbackCount;
+    }
+
 private:
-    std::mutex m_mutex;
+    mutable std::mutex m_mutex;
     std::condition_variable m_cv;
     std::unique_ptr<IHttpResponse> m_response;
+    size_t m_callbackCount {0};
 };
 
 // Keep requests in flight until teardown cancels them, then simulate a connection
@@ -1280,8 +1288,16 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 #if defined(_WIN32) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
 TEST(APITest, WindowsHttpTransport_MsRoot_Check)
 {
+    struct RequestOutcome
+    {
+        std::unique_ptr<IHttpResponse> response;
+        size_t callbackCount {0};
+    };
+
     auto sendRequest = [](bool enforceMsRoot) {
         HttpResponseWaiter callback;
+        // A fresh client gives the checked request a cold transport session; do
+        // not warm this endpoint with an unchecked request first.
         auto client = HttpClientFactory::Create();
 #if defined(HAVE_MAT_WININET_HTTP_CLIENT)
         auto windowsClient = dynamic_cast<HttpClient_WinInet*>(client.get());
@@ -1293,7 +1309,7 @@ TEST(APITest, WindowsHttpTransport_MsRoot_Check)
         EXPECT_NE(windowsClient, nullptr);
         if (windowsClient == nullptr)
         {
-            return std::unique_ptr<IHttpResponse>();
+            return RequestOutcome {};
         }
         windowsClient->SetMsRootCheck(enforceMsRoot);
 
@@ -1311,17 +1327,21 @@ TEST(APITest, WindowsHttpTransport_MsRoot_Check)
             response = callback.WaitForResponse(std::chrono::seconds(2));
         }
         client.reset();
-        return response;
+        return RequestOutcome {std::move(response), callback.CallbackCount()};
     };
 
-    auto accepted = sendRequest(false);
-    ASSERT_NE(accepted, nullptr);
-    EXPECT_EQ(accepted->GetResult(), HttpResult_OK);
-
+    // The negative case must execute first so its certificate decision is not
+    // preceded by a successful request to the same endpoint.
     auto rejected = sendRequest(true);
-    ASSERT_NE(rejected, nullptr);
-    EXPECT_EQ(rejected->GetResult(), HttpResult_NetworkFailure);
-    EXPECT_EQ(rejected->GetStatusCode(), 0u);
+    ASSERT_NE(rejected.response, nullptr);
+    EXPECT_EQ(rejected.callbackCount, 1u);
+    EXPECT_EQ(rejected.response->GetResult(), HttpResult_NetworkFailure);
+    EXPECT_EQ(rejected.response->GetStatusCode(), 0u);
+
+    auto accepted = sendRequest(false);
+    ASSERT_NE(accepted.response, nullptr);
+    EXPECT_EQ(accepted.callbackCount, 1u);
+    EXPECT_EQ(accepted.response->GetResult(), HttpResult_OK);
 }
 
 /* This test verifies the certificate policy used by either Windows HTTP transport. */

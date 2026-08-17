@@ -7,6 +7,7 @@
 
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 #include "HttpClient_WinInet.hpp"
+#include "detail/MsRootCertPolicy.hpp"
 #include "utils/StringUtils.hpp"
 
 #include <Wincrypt.h>
@@ -109,6 +110,16 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     std::atomic<bool>       m_isAborted {false};
     std::atomic<DWORD>      m_deferredError {ERROR_SUCCESS};
     bool                   m_msRootCheckRequired {false};
+    // HTTPS is latched from the cracked URL before the request handle exists, so
+    // the SENDING_REQUEST callback can tell HTTPS (subject to policy) from HTTP.
+    bool                   m_isHttps {false};
+    // The MS-root check runs at most once per request handle, on the first
+    // SENDING_REQUEST notification after the TLS handshake completes.
+    std::atomic<bool>       m_msRootChecked {false};
+    // Set when a confirmed non-MS-root rejection is detected from inside an async
+    // WinInet API frame; the issuing frame performs the handle close on unwind so
+    // we never close the request handle while that API is still on the stack.
+    bool                   m_msRootAbortClosePending {false};
     bool                   m_contextInstalled {false};
     bool                   m_sendIssued {false};
     bool                   m_setupActive {false};
@@ -286,48 +297,53 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     }
 
     /**
-     * Verify that the server end-point certificate is MS-Rooted
+     * Gather the server certificate chain facts for the current request handle
+     * and reduce them to a pure policy decision. This is the only place that
+     * touches WinInet/Wincrypt; the Allow/Reject/Unable logic lives in the
+     * platform-independent detail::EvaluateMsRootPolicy helper so it can be
+     * reasoned about and unit-tested without a live connection.
+     *
+     * Called from SENDING_REQUEST while m_handleMutex is held, so cancellation
+     * and terminal completion cannot close the request handle during the query,
+     * policy evaluation, or chain release.
      */
-    bool isMsRootCert()
+    detail::MsRootPolicyDecision evaluateServerCertificatePolicyLocked()
     {
-        std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+        detail::MsRootCertQuery query;
+        query.httpsScheme = m_isHttps;
+
         if (m_hWinInetRequest == nullptr)
         {
-            return false;
+            // Cancellation or terminal completion won before evaluation began.
+            return detail::EvaluateMsRootPolicy(query);
         }
+
         // Pointer to certificate chain obtained via InternetQueryOption :
         // Ref. https://blogs.msdn.microsoft.com/alejacma/2012/01/18/how-to-use-internet_option_server_cert_chain_context-with-internetqueryoption-in-c/
         PCCERT_CHAIN_CONTEXT pCertCtx = nullptr;
         DWORD dwCertChainContextSize = sizeof(PCCERT_CHAIN_CONTEXT);
-        // Proceed to process the result if API call succeeds. That option is available in MSIE 8.x+ since Windows 7.1 and Win Server 2008 R2.
-        // In case if API call fails, then proceed without cert validation. This behavior is identical to default old behavior to avoid
-        // regressions for downlevel OS.
+        // That option is available in MSIE 8.x+ since Windows 7.1 and Win Server
+        // 2008 R2. On downlevel OS the call fails; we then preserve fail-open.
         if (::InternetQueryOption(m_hWinInetRequest, INTERNET_OPTION_SERVER_CERT_CHAIN_CONTEXT, (LPVOID)&pCertCtx, &dwCertChainContextSize))
         {
-            CERT_CHAIN_POLICY_STATUS pps = { 0, 0, 0, 0, nullptr };
-            pps.cbSize = sizeof(pps);
-            // Verify that the cert chain roots up to the Microsoft application root at top level
-            CERT_CHAIN_POLICY_PARA policyPara = {0, 0, nullptr };
-            policyPara.cbSize = sizeof(policyPara);
-            policyPara.dwFlags = MICROSOFT_ROOT_CERT_CHAIN_POLICY_CHECK_APPLICATION_ROOT_FLAG;
-            policyPara.pvExtraPolicyPara = nullptr;
-
-            BOOL policyChecked = CertVerifyCertificateChainPolicy(CERT_CHAIN_POLICY_MICROSOFT_ROOT, pCertCtx, &policyPara, &pps);
+            query.chainQuerySucceeded = true;
+            query.chainContextPresent = (pCertCtx != nullptr);
             if (pCertCtx != nullptr)
             {
+                CERT_CHAIN_POLICY_STATUS pps = { sizeof(pps), 0, 0, 0, nullptr };
+                // Verify that the cert chain roots up to the Microsoft application root at top level
+                CERT_CHAIN_POLICY_PARA policyPara = { sizeof(policyPara), 0, nullptr };
+                policyPara.dwFlags = MICROSOFT_ROOT_CERT_CHAIN_POLICY_CHECK_APPLICATION_ROOT_FLAG;
+                policyPara.pvExtraPolicyPara = nullptr;
+
+                BOOL policyChecked = CertVerifyCertificateChainPolicy(CERT_CHAIN_POLICY_MICROSOFT_ROOT, pCertCtx, &policyPara, &pps);
+                query.policyCheckPerformed = (policyChecked == TRUE);
+                query.policyStatusError = static_cast<std::uint32_t>(pps.dwError);
                 CertFreeCertificateChain(pCertCtx);
             }
-            // Unable to verify the chain
-            if (!policyChecked)
+            else
             {
-                LOG_WARN("CertVerifyCertificateChainPolicy() failed: unable to verify");
-                return false;
-            }
-            // Non-MS rooted cert chain
-            if (pps.dwError != ERROR_SUCCESS)
-            {
-                LOG_WARN("CertVerifyCertificateChainPolicy() failed: invalid root CA - %d", pps.dwError);
-                return false;
+                LOG_TRACE("InternetQueryOption() returned no server cert chain");
             }
         }
         else
@@ -335,7 +351,72 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             // Downlevel OS prior to Win 7 and Win 2008 Server R2 do not support cert chain retrieval
             LOG_TRACE("InternetQueryOption() failed to obtain cert chain");
         }
-        return true;
+
+        return detail::EvaluateMsRootPolicy(query);
+    }
+
+    /**
+     * Run the MS-root certificate policy exactly once per request handle, from
+     * the SENDING_REQUEST notification. A confirmed non-MS-root rejection
+     * aborts the logical request and is reported as NetworkFailure/status 0.
+     * Inability to evaluate preserves origin/master fail-open behavior.
+     */
+    void runMsRootCheckOnce()
+    {
+        if (!m_msRootCheckRequired || !m_isHttps)
+        {
+            return;
+        }
+        if (m_msRootChecked.exchange(true, std::memory_order_acq_rel))
+        {
+            return;  // atomic latch: at most once per handle
+        }
+
+        HINTERNET requestToClose = nullptr;
+        detail::MsRootPolicyDecision decision;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            decision = evaluateServerCertificatePolicyLocked();
+            if (decision == detail::MsRootPolicyDecision::Reject)
+            {
+                // We still own a live handle under this lock, so this evaluated
+                // rejection takes precedence over a cancellation that has not yet
+                // acquired the lock. A prior cancellation removes the handle and
+                // therefore evaluates as Unable above.
+                m_deferredError.store(
+                    ERROR_INTERNET_SEC_INVALID_CERT, std::memory_order_release);
+                m_isAborted.store(true, std::memory_order_release);
+                if (m_asyncApiDepth != 0)
+                {
+                    m_msRootAbortClosePending = true;
+                }
+                else
+                {
+                    requestToClose = m_hWinInetRequest;
+                    m_hWinInetRequest = nullptr;
+                }
+            }
+        }
+
+        switch (decision)
+        {
+            case detail::MsRootPolicyDecision::Allow:
+                return;
+
+            case detail::MsRootPolicyDecision::Unable:
+                LOG_WARN("MS-root certificate policy could not be evaluated; proceeding (fail-open)");
+                return;
+
+            case detail::MsRootPolicyDecision::Reject:
+                LOG_WARN("Server certificate chain is not MS-rooted; aborting request");
+                if (requestToClose != nullptr)
+                {
+                    // InternetCloseHandle may synchronously deliver HANDLE_CLOSING.
+                    // The callback holds its own shared_ptr before this call.
+                    ::InternetCloseHandle(requestToClose);
+                }
+                return;
+        }
     }
 
     // Asynchronously send HTTP request and invoke response callback.
@@ -394,6 +475,10 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             onRequestComplete(dwError);
             return;
         }
+
+        // Latch the scheme before the request handle exists: the SENDING_REQUEST
+        // callback uses this to apply the MS-root policy to HTTPS only.
+        m_isHttps = (urlc.nScheme == INTERNET_SCHEME_HTTPS);
 
         DWORD dwError = ERROR_SUCCESS;
         {
@@ -471,27 +556,9 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             return;
         }
 
-        /* Perform optional MS Root certificate check for certain end-point URLs */
-        if (m_msRootCheckRequired)
-        {
-            if (!isMsRootCert())
-            {
-                if (shouldStopSetup())
-                {
-                    onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
-                    return;
-                }
-                // Request cannot be completed: end-point certificate is not MS-Rooted
-                DispatchEvent(OnConnectFailed);
-                onRequestComplete(ERROR_INTERNET_SEC_INVALID_CERT);
-                return;
-            }
-        }
-        if (shouldStopSetup())
-        {
-            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
-            return;
-        }
+        // The MS-root certificate policy runs later, from the SENDING_REQUEST
+        // notification, once the TLS handshake has produced a server certificate
+        // chain to inspect. It cannot run here: no connection has been made yet.
 
         std::ostringstream os;
         for (auto const& header : m_request->m_headers) {
@@ -551,6 +618,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         BOOL sendResult = FALSE;
         bool completionPending = false;
         DWORD completionError = ERROR_SUCCESS;
+        bool abortClosePending = false;
         {
             std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
             if (m_hWinInetRequest == nullptr || shouldStopSetup())
@@ -574,6 +642,19 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 m_apiCompletionPending = false;
                 m_apiCompletionError = ERROR_SUCCESS;
             }
+            // A synchronously delivered SENDING_REQUEST may have rejected the
+            // certificate while HttpSendRequest was on the stack; it deferred the
+            // handle close to us. Perform it now that the API has returned.
+            abortClosePending = m_msRootAbortClosePending;
+            m_msRootAbortClosePending = false;
+        }
+
+        if (abortClosePending)
+        {
+            // A reject committed during SENDING_REQUEST closes after the issuing
+            // API frame returns. The deferred error maps terminal delivery to
+            // NetworkFailure/status 0.
+            closeRequestHandle();
         }
 
         if (completionPending)
@@ -612,6 +693,15 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         // Go To Definition (F12) on INTERNET_STATUS_REQUEST_COMPLETE below to get to the right place of WinInet.h.
 
         switch (dwInternetStatus) {
+            case INTERNET_STATUS_SENDING_REQUEST: {
+                // Evaluate the certificate policy during SENDING_REQUEST. Retain
+                // ownership before calling into code that can close the handle;
+                // do not use context after this call.
+                auto self = context->request;
+                self->runMsRootCheckOnce();
+                return;
+            }
+
             case INTERNET_STATUS_REQUEST_SENT:
                 return;
 
