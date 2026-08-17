@@ -14,8 +14,9 @@
 #include "pal/TaskDispatcher.hpp"
 
 #include <memory>
-#include <atomic>
+#include <condition_variable>
 #include <list>
+#include <mutex>
 #include <string>
 
 #include "KillSwitchManager.hpp"
@@ -25,6 +26,8 @@ namespace MAT_NS_BEGIN {
 
     class OfflineStorageHandler final : public IOfflineStorage, public IOfflineStorageObserver
     {
+        friend class OfflineStorageFlushTask;
+
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
         virtual ~OfflineStorageHandler() override;
@@ -77,18 +80,23 @@ namespace MAT_NS_BEGIN {
 
         bool isKilled(StorageRecord const& record);
 
-        std::mutex                             m_flushLock;
-        bool                                   m_flushPending;
-        PAL::DeferredCallbackHandle            m_flushHandle;
-        PAL::Event                             m_flushComplete;
+    private:
+        enum class StoragePhase { Accepting, Draining, TearingDown, Stopped };
 
+        std::mutex                             m_stateMutex;
+        std::condition_variable                m_stateCV;
+        StoragePhase                           m_phase;
+        size_t                                 m_inFlight;
+        bool                                   m_scheduled;
+        std::mutex                             m_ioMutex;
+
+    protected:
         std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
         std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
         bool                                   m_readFromMemory;
         unsigned                               m_lastReadCount;
 
-        bool                                   m_shutdownStarted;
         unsigned                               m_memoryDbSize;
         unsigned                               m_memoryDbSizeNotificationLimit;
         unsigned                               m_queryDbSize;
@@ -99,9 +107,13 @@ namespace MAT_NS_BEGIN {
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
-        void WaitForFlush();
-        void FlushImpl();
-        void SignalFlushComplete();
+        bool BeginOperation();
+        void EndOperation();
+        void DropScheduledFlush();
+        bool BeginTeardown();
+        void FinishTeardown();
+        bool FlushImpl(size_t& savedRecords);
+        void RunScheduledFlush();
 
     };
 
