@@ -9,6 +9,8 @@
 #include "common/MockIOfflineStorageObserver.hpp"
 #include "common/MockIRuntimeConfig.hpp"
 #include "utils/Utils.hpp"
+#include "sqlite3.h"
+#include "offline/ISqlite3Proxy.hpp"
 #include "offline/OfflineStorage_SQLite.hpp"
 #include <stdio.h>
 #include <fstream>
@@ -42,6 +44,106 @@ class OfflineStorage_SQLiteNoAutoCommit : public OfflineStorage_SQLite
     virtual void scheduleAutoCommitTransaction()
     {
     }
+
+    size_t DbSizeEstimate() const
+    {
+        return m_DbSizeEstimate.load();
+    }
+};
+
+class FaultInjectingSqlite3Proxy : public ISqlite3Proxy
+{
+  public:
+    explicit FaultInjectingSqlite3Proxy(ISqlite3Proxy& delegate)
+        : m_delegate(delegate)
+    {
+    }
+
+    bool failCachedStatementPrepare = false;
+    bool failNextInsertStep = false;
+
+    int sqlite3_bind_blob(sqlite3_stmt* stmt, int idx, void const* value, int size, void (* d)(void*)) override { return m_delegate.sqlite3_bind_blob(stmt, idx, value, size, d); }
+    int sqlite3_bind_int(sqlite3_stmt* stmt, int idx, int value) override { return m_delegate.sqlite3_bind_int(stmt, idx, value); }
+    int sqlite3_bind_int64(sqlite3_stmt* stmt, int idx, int64_t value) override { return m_delegate.sqlite3_bind_int64(stmt, idx, value); }
+    int sqlite3_bind_text(sqlite3_stmt* stmt, int idx, char const* value, int size, void (* d)(void*)) override { return m_delegate.sqlite3_bind_text(stmt, idx, value, size, d); }
+    int sqlite3_changes(sqlite3* db) override { return m_delegate.sqlite3_changes(db); }
+    int sqlite3_clear_bindings(sqlite3_stmt* stmt) override { return m_delegate.sqlite3_clear_bindings(stmt); }
+    int sqlite3_close(sqlite3* db) override { return m_delegate.sqlite3_close(db); }
+    int sqlite3_close_v2(sqlite3* db) override { return m_delegate.sqlite3_close_v2(db); }
+    void const* sqlite3_column_blob(sqlite3_stmt* stmt, int iCol) override { return m_delegate.sqlite3_column_blob(stmt, iCol); }
+    int sqlite3_column_bytes(sqlite3_stmt* stmt, int iCol) override { return m_delegate.sqlite3_column_bytes(stmt, iCol); }
+    int sqlite3_column_int(sqlite3_stmt* stmt, int iCol) override { return m_delegate.sqlite3_column_int(stmt, iCol); }
+    int64_t sqlite3_column_int64(sqlite3_stmt* stmt, int iCol) override { return m_delegate.sqlite3_column_int64(stmt, iCol); }
+    unsigned char const* sqlite3_column_text(sqlite3_stmt* stmt, int iCol) override { return m_delegate.sqlite3_column_text(stmt, iCol); }
+    int sqlite3_create_function_v2(sqlite3* db, char const* zFunctionName, int nArg, int eTextRep, void* pApp,
+        void (* xFunc)(sqlite3_context*, int, sqlite3_value**), void (* xStep)(sqlite3_context*, int, sqlite3_value**),
+        void (* xFinal)(sqlite3_context*), void (* xDestroy)(void*)) override
+    {
+        return m_delegate.sqlite3_create_function_v2(db, zFunctionName, nArg, eTextRep, pApp, xFunc, xStep, xFinal, xDestroy);
+    }
+    char const* sqlite3_errmsg(sqlite3* db) override { return m_delegate.sqlite3_errmsg(db); }
+    int sqlite3_extended_result_codes(sqlite3* db, int on) override { return m_delegate.sqlite3_extended_result_codes(db, on); }
+    int sqlite3_finalize(sqlite3_stmt* stmt) override { return m_delegate.sqlite3_finalize(stmt); }
+    void* sqlite3_get_auxdata(sqlite3_context* ctx, int N) override { return m_delegate.sqlite3_get_auxdata(ctx, N); }
+    int sqlite3_initialize() override { return m_delegate.sqlite3_initialize(); }
+    int sqlite3_open_v2(char const* file, sqlite3** pdb, int flags, char const* zvfs) override { return m_delegate.sqlite3_open_v2(file, pdb, flags, zvfs); }
+    int sqlite3_prepare_v2(sqlite3* db, char const* zsql, int size, sqlite3_stmt** pstmt, char const** pztail) override
+    {
+        if (failCachedStatementPrepare && std::string(zsql) == "PRAGMA page_count")
+        {
+            failCachedStatementPrepare = false;
+            *pstmt = nullptr;
+            return SQLITE_ERROR;
+        }
+
+        int result = m_delegate.sqlite3_prepare_v2(db, zsql, size, pstmt, pztail);
+        if (result == SQLITE_OK && std::string(zsql).find("REPLACE INTO events") != std::string::npos)
+        {
+            m_insertStatement = *pstmt;
+        }
+        return result;
+    }
+    int sqlite3_reset(sqlite3_stmt* stmt) override { return m_delegate.sqlite3_reset(stmt); }
+    void sqlite3_result_null(sqlite3_context* ctx) override { m_delegate.sqlite3_result_null(ctx); }
+    void sqlite3_result_text(sqlite3_context* ctx, char const* value, int size, void (* d)(void*)) override { m_delegate.sqlite3_result_text(ctx, value, size, d); }
+    void sqlite3_set_auxdata(sqlite3_context* ctx, int N, void* data, void (* d)(void*)) override { m_delegate.sqlite3_set_auxdata(ctx, N, data, d); }
+    int sqlite3_shutdown() override { return m_delegate.sqlite3_shutdown(); }
+    int sqlite3_step(sqlite3_stmt* stmt) override
+    {
+        if (failNextInsertStep && stmt == m_insertStatement)
+        {
+            failNextInsertStep = false;
+            return SQLITE_IOERR;
+        }
+        return m_delegate.sqlite3_step(stmt);
+    }
+    int64_t sqlite3_soft_heap_limit64(int64_t N) override { return m_delegate.sqlite3_soft_heap_limit64(N); }
+    void const* sqlite3_value_blob(sqlite3_value* value) override { return m_delegate.sqlite3_value_blob(value); }
+    int sqlite3_value_bytes(sqlite3_value* value) override { return m_delegate.sqlite3_value_bytes(value); }
+    sqlite3_vfs* sqlite3_vfs_find(char const* zVfsName) override { return m_delegate.sqlite3_vfs_find(zVfsName); }
+    void sqlite3_wal_checkpoint(sqlite3* db) override { m_delegate.sqlite3_wal_checkpoint(db); }
+
+  private:
+    ISqlite3Proxy& m_delegate;
+    sqlite3_stmt* m_insertStatement = nullptr;
+};
+
+class Sqlite3ProxySwap
+{
+  public:
+    explicit Sqlite3ProxySwap(ISqlite3Proxy& replacement)
+        : m_original(g_sqlite3Proxy)
+    {
+        g_sqlite3Proxy = &replacement;
+    }
+
+    ~Sqlite3ProxySwap()
+    {
+        g_sqlite3Proxy = m_original;
+    }
+
+  private:
+    ISqlite3Proxy* m_original;
 };
 
 
@@ -132,6 +234,23 @@ TEST_F(OfflineStorageTests_SQLite, InitializeAndShutdownCreateFileThatCanBeDelet
     initializeStorage();
 }
 
+TEST_F(OfflineStorageTests_SQLite, CachedStatementPrepareFailureRecreatesDatabase)
+{
+    EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes()).WillRepeatedly(Return(UINT_MAX));
+    storageInitialized = true;
+    offlineStorage.reset(new OfflineStorage_SQLiteNoAutoCommit(*logManager, configMock));
+
+    FaultInjectingSqlite3Proxy proxy(*g_sqlite3Proxy);
+    proxy.failCachedStatementPrepare = true;
+    Sqlite3ProxySwap swap(proxy);
+
+    EXPECT_CALL(observerMock, OnStorageFailed("1"));
+    EXPECT_CALL(observerMock, OnStorageOpened("SQLite/Clean"));
+    offlineStorage->Initialize(observerMock);
+
+    EXPECT_THAT(offlineStorage->GetSize(), Gt(0));
+}
+
 TEST_F(OfflineStorageTests_SQLite, StorageRecordConstructorSetsAllFields)
 {
     initializeStorage();
@@ -143,6 +262,31 @@ TEST_F(OfflineStorageTests_SQLite, StorageRecordConstructorSetsAllFields)
     EXPECT_THAT(record.blob, StorageBlob({ 5, 4, 3, 2, 1 }));
     EXPECT_THAT(record.retryCount, 77);
     EXPECT_THAT(record.reservedUntil, INT64_MAX - 1);
+}
+
+TEST_F(OfflineStorageTests_SQLite, FailedInsertDoesNotPersistOrIncreaseSizeEstimate)
+{
+    FaultInjectingSqlite3Proxy proxy(*g_sqlite3Proxy);
+    Sqlite3ProxySwap swap(proxy);
+    initializeStorage();
+
+    StorageRecord const failedRecord{ "failed", "token", EventLatency_Normal, EventPersistence_Normal, 1, { 1, 2, 3 } };
+    StorageRecord const storedRecord{ "stored", "token", EventLatency_Normal, EventPersistence_Normal, 2, { 4, 5, 6, 7 } };
+    size_t const initialSizeEstimate = offlineStorage->DbSizeEstimate();
+
+    proxy.failNextInsertStep = true;
+    EXPECT_CALL(observerMock, OnStorageFailed("Database error"));
+    EXPECT_THAT(offlineStorage->StoreRecord(failedRecord), false);
+    EXPECT_THAT(offlineStorage->GetRecordCount(EventLatency_Unspecified), 0);
+    EXPECT_THAT(offlineStorage->DbSizeEstimate(), initialSizeEstimate);
+
+    ASSERT_THAT(offlineStorage->StoreRecord(storedRecord), true);
+    EXPECT_THAT(offlineStorage->DbSizeEstimate(), initialSizeEstimate + storedRecord.id.size() + storedRecord.tenantToken.size() + storedRecord.blob.size());
+
+    TestRecordConsumer consumer;
+    ASSERT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
+    ASSERT_THAT(consumer.records.size(), 1);
+    EXPECT_THAT(consumer.records[0].id, storedRecord.id);
 }
 
 TEST_F(OfflineStorageTests_SQLite, GetAndReservedReturnsStoredRecord)
