@@ -242,9 +242,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null 2>&1; then
+          rc=0
+          git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.spm_version }}" >/dev/null 2>&1 || rc=$?
+          if [ "$rc" -eq 0 ]; then
             echo "::warning::SPM tag already exists; retaining its release asset."
             exit 0
+          elif [ "$rc" -ne 2 ]; then
+            echo "::warning::Could not verify whether the SPM tag exists (git ls-remote exit $rc); retaining the release asset to avoid breaking a possibly-published tag." 1>&2
+            exit 1
           fi
           gh release delete-asset "${{ steps.ver.outputs.tag }}" "$ARTIFACT" \
             --repo "${{ github.repository }}" --yes
