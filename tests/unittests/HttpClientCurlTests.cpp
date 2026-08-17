@@ -15,12 +15,24 @@
 
 #include <future>
 #include <chrono>
+#include <condition_variable>
 #include <memory>
 #include <atomic>
 #include <cstdlib>
+#include <cstring>
 #include <functional>
+#include <map>
+#include <mutex>
 #include <stdexcept>
+#include <string>
+#include <thread>
 #include <utility>
+#include <vector>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 using namespace testing;
 using namespace MAT;
@@ -368,6 +380,478 @@ TEST_F(HttpClientCurlResponseCapTests, AcceptsLargeResponseUnderCap)
     EXPECT_EQ(m_result, HttpResult_OK);
     EXPECT_EQ(m_statusCode, 200u);
     EXPECT_EQ(m_bodySize, bodySize);
+}
+
+// --- Lifetime, cancellation and drain semantics ---
+
+namespace
+{
+
+// A TCP endpoint that accepts connections at the kernel level (the listen
+// backlog completes the handshake) but never reads or answers them. curl
+// therefore connects, writes the request, and blocks waiting for a response
+// until it is cancelled. No sleeps, no timing assumptions, no dependence on a
+// live network: the stall is a property of the socket, not of the schedule.
+class StalledEndpoint
+{
+public:
+    StalledEndpoint()
+    {
+        m_listener = ::socket(AF_INET, SOCK_STREAM, 0);
+        if (m_listener < 0)
+        {
+            return;
+        }
+        int reuse = 1;
+        ::setsockopt(m_listener, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+
+        struct sockaddr_in address;
+        std::memset(&address, 0, sizeof(address));
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        address.sin_port = 0;
+        if (::bind(m_listener, reinterpret_cast<struct sockaddr*>(&address), sizeof(address)) != 0 ||
+            ::listen(m_listener, 32) != 0)
+        {
+            ::close(m_listener);
+            m_listener = -1;
+            return;
+        }
+
+        socklen_t length = sizeof(address);
+        if (::getsockname(m_listener, reinterpret_cast<struct sockaddr*>(&address), &length) == 0)
+        {
+            m_port = ntohs(address.sin_port);
+        }
+    }
+
+    ~StalledEndpoint()
+    {
+        if (m_listener >= 0)
+        {
+            ::close(m_listener);
+        }
+    }
+
+    StalledEndpoint(StalledEndpoint const&) = delete;
+    StalledEndpoint& operator=(StalledEndpoint const&) = delete;
+
+    bool valid() const { return m_listener >= 0 && m_port != 0; }
+
+    std::string url() const
+    {
+        return "http://127.0.0.1:" + std::to_string(m_port) + "/stall";
+    }
+
+private:
+    int m_listener {-1};
+    int m_port {0};
+};
+
+// One-shot barrier used to pin a callback in place for as long as a test needs.
+class Gate
+{
+public:
+    void wait()
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_cv.wait(lock, [this]() { return m_open; });
+    }
+
+    void open()
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_open = true;
+        }
+        m_cv.notify_all();
+    }
+
+private:
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+    bool m_open {false};
+};
+
+class RecordingCallback : public IHttpResponseCallback
+{
+public:
+    // Runs inside OnHttpResponse, after the response has been counted, so a test
+    // can hold the terminal callback open or re-enter the client from it.
+    void setResponseHook(std::function<void()> hook)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_hook = std::move(hook);
+    }
+
+    void setStateHook(std::function<void(HttpStateEvent)> hook)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_stateHook = std::move(hook);
+    }
+
+    void OnHttpResponse(IHttpResponse* response) override
+    {
+        std::unique_ptr<IHttpResponse> owned(response);
+        std::function<void()> hook;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            ++m_responses;
+            m_results.push_back(owned->GetResult());
+            hook = m_hook;
+        }
+        m_cv.notify_all();
+        if (hook != nullptr)
+        {
+            hook();
+        }
+    }
+
+    void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
+    {
+        std::function<void(HttpStateEvent)> hook;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            ++m_states[static_cast<int>(state)];
+            hook = m_stateHook;
+        }
+        m_cv.notify_all();
+        if (hook != nullptr)
+        {
+            hook(state);
+        }
+    }
+
+    size_t responses()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_responses;
+    }
+
+    size_t responsesWithResult(HttpResult result)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        size_t count = 0;
+        for (auto const& item : m_results)
+        {
+            if (item == result)
+            {
+                ++count;
+            }
+        }
+        return count;
+    }
+
+    size_t stateCount(HttpStateEvent state)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto it = m_states.find(static_cast<int>(state));
+        return (it == m_states.end()) ? 0u : it->second;
+    }
+
+    bool waitForResponses(size_t count, std::chrono::milliseconds timeout)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        return m_cv.wait_for(lock, timeout, [&]() { return m_responses >= count; });
+    }
+
+    bool waitForState(HttpStateEvent state, size_t count, std::chrono::milliseconds timeout)
+    {
+        const int key = static_cast<int>(state);
+        std::unique_lock<std::mutex> lock(m_mutex);
+        return m_cv.wait_for(lock, timeout, [&]() { return m_states[key] >= count; });
+    }
+
+private:
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+    size_t m_responses {0};
+    std::vector<HttpResult> m_results;
+    std::map<int, size_t> m_states;
+    std::function<void()> m_hook;
+    std::function<void(HttpStateEvent)> m_stateHook;
+};
+
+constexpr std::chrono::milliseconds kInFlightTimeout {15000};
+constexpr std::chrono::milliseconds kTerminalTimeout {15000};
+
+} // namespace
+
+class HttpClientCurlLifetimeTests : public ::testing::Test
+{
+protected:
+    // Declared first so it is destroyed last: the client's destructor drains
+    // in-flight transfers that are still pointed at this endpoint.
+    StalledEndpoint m_endpoint;
+    HttpClient_Curl m_client;
+
+    void SetUp() override
+    {
+        ASSERT_TRUE(m_endpoint.valid()) << "could not open a loopback listening socket";
+    }
+
+    // Sends a request whose transfer is guaranteed to stall, and returns once
+    // the worker has actually written the request to the socket.
+    std::string sendStalled(std::unique_ptr<IHttpRequest>& request, RecordingCallback& callback)
+    {
+        request.reset(m_client.CreateRequest());
+        request->SetUrl(m_endpoint.url());
+        const std::string id = request->GetId();
+        m_client.SendRequestAsync(request.get(), &callback);
+        return id;
+    }
+};
+
+// A client destroyed with a transfer in flight must deliver the terminal
+// callback before ~HttpClient_Curl returns.
+TEST_F(HttpClientCurlLifetimeTests, DestroyingClientWithRequestInFlightCompletesAbortedFirst)
+{
+    RecordingCallback callback;
+    std::unique_ptr<HttpClient_Curl> client(new HttpClient_Curl());
+    std::unique_ptr<IHttpRequest> request(client->CreateRequest());
+    request->SetUrl(m_endpoint.url());
+    client->SendRequestAsync(request.get(), &callback);
+    ASSERT_TRUE(callback.waitForState(OnSending, 1, kInFlightTimeout));
+
+    client.reset();
+
+    // No wait here on purpose: the drain is the assertion.
+    EXPECT_EQ(callback.responses(), 1u);
+    EXPECT_EQ(callback.responsesWithResult(HttpResult_Aborted), 1u);
+}
+
+// The public IHttpClient contract requires the request to stay alive until the
+// terminal callback begins. This intentionally violates that contract to prove
+// Curl's private cancellation registry does not retain or dereference it.
+TEST_F(HttpClientCurlLifetimeTests, InternalRegistryDoesNotDereferenceDeletedRequest)
+{
+    RecordingCallback callback;
+    IHttpRequest* request = m_client.CreateRequest();
+    request->SetUrl(m_endpoint.url());
+    const std::string id = request->GetId();
+    m_client.SendRequestAsync(request, &callback);
+    ASSERT_TRUE(callback.waitForState(OnSending, 1, kInFlightTimeout));
+
+    delete request;
+    m_client.CancelRequestAsync(id);
+
+    ASSERT_TRUE(callback.waitForResponses(1, kTerminalTimeout));
+    EXPECT_EQ(callback.responses(), 1u);
+    EXPECT_EQ(callback.responsesWithResult(HttpResult_Aborted), 1u);
+
+    // Cancelling a retired id is a no-op and must not produce a second callback.
+    m_client.CancelRequestAsync(id);
+    EXPECT_EQ(callback.responses(), 1u);
+}
+
+// A full drain returns only when every operation has completed and been
+// destroyed, for all of them, not just the first.
+TEST_F(HttpClientCurlLifetimeTests, CancelAllRequestsFullyDrainsEveryOperation)
+{
+    constexpr size_t kRequests = 4;
+    RecordingCallback callback;
+    std::vector<std::unique_ptr<IHttpRequest>> requests(kRequests);
+    for (size_t i = 0; i < kRequests; ++i)
+    {
+        sendStalled(requests[i], callback);
+    }
+    ASSERT_TRUE(callback.waitForState(OnSending, kRequests, kInFlightTimeout));
+
+    m_client.CancelAllRequests();
+
+    EXPECT_EQ(callback.responses(), kRequests);
+    EXPECT_EQ(callback.responsesWithResult(HttpResult_Aborted), kRequests);
+}
+
+// The bounded overload is a soft cap: it stops waiting at the deadline even
+// though a terminal callback (and therefore the operation and the shared state)
+// is still alive. The callback keeps everything it touches alive itself.
+TEST_F(HttpClientCurlLifetimeTests, BoundedCancelAllReturnsAtDeadlineWhileCallbackIsRunning)
+{
+    RecordingCallback callback;
+    auto gate = std::make_shared<Gate>();
+    callback.setResponseHook([gate]() { gate->wait(); });
+
+    std::unique_ptr<IHttpRequest> request;
+    const std::string id = sendStalled(request, callback);
+    ASSERT_TRUE(callback.waitForState(OnSending, 1, kInFlightTimeout));
+    m_client.CancelRequestAsync(id);
+    // The response is counted before the hook blocks, so this proves the
+    // terminal callback is in flight and pinned.
+    ASSERT_TRUE(callback.waitForResponses(1, kTerminalTimeout));
+
+    const auto start = std::chrono::steady_clock::now();
+    m_client.CancelAllRequests(std::chrono::milliseconds(200));
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start);
+
+    EXPECT_GE(elapsed, std::chrono::milliseconds(150));
+    EXPECT_LT(elapsed, std::chrono::seconds(5));
+
+    gate->open();
+    // The unbounded drain now has to complete, which also makes fixture
+    // teardown safe.
+    m_client.CancelAllRequests();
+    EXPECT_EQ(callback.responses(), 1u);
+}
+
+// A terminal callback must abort every registered peer before returning from a
+// reentrant CancelAllRequests call; it must not wait for either callback.
+TEST_F(HttpClientCurlLifetimeTests, ReentrantCancelAllAbortsStalledPeerBeforeReturning)
+{
+    RecordingCallback callbackA;
+    RecordingCallback callbackB;
+    std::atomic<bool> reentrantCancelReturned {false};
+    callbackA.setResponseHook([this, &reentrantCancelReturned]() {
+        m_client.CancelAllRequests();
+        reentrantCancelReturned = true;
+    });
+
+    std::unique_ptr<IHttpRequest> requestA;
+    std::unique_ptr<IHttpRequest> requestB;
+    const std::string idA = sendStalled(requestA, callbackA);
+    sendStalled(requestB, callbackB);
+    ASSERT_TRUE(callbackA.waitForState(OnSending, 1, kInFlightTimeout));
+    ASSERT_TRUE(callbackB.waitForState(OnSending, 1, kInFlightTimeout));
+    m_client.CancelRequestAsync(idA);
+    ASSERT_TRUE(callbackA.waitForResponses(1, kTerminalTimeout));
+    ASSERT_TRUE(callbackB.waitForResponses(1, kTerminalTimeout));
+
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(15);
+    while (!reentrantCancelReturned && std::chrono::steady_clock::now() < deadline)
+    {
+        PAL::sleep(10);
+    }
+    if (!reentrantCancelReturned)
+    {
+        ADD_FAILURE() << "reentrant CancelAllRequests() did not return";
+        std::abort();
+    }
+
+    m_client.CancelAllRequests();
+    EXPECT_EQ(callbackA.responsesWithResult(HttpResult_Aborted), 1u);
+    EXPECT_EQ(callbackB.responsesWithResult(HttpResult_Aborted), 1u);
+}
+
+TEST_F(HttpClientCurlLifetimeTests, StateCallbackMayDestroyClientDuringOperationConstruction)
+{
+    RecordingCallback callback;
+    std::unique_ptr<HttpClient_Curl> client(new HttpClient_Curl());
+    callback.setStateHook([&client](HttpStateEvent state) {
+        if (state == OnCreated)
+        {
+            client.reset();
+        }
+    });
+
+    std::unique_ptr<IHttpRequest> request(client->CreateRequest());
+    request->SetUrl(m_endpoint.url());
+    client->SendRequestAsync(request.get(), &callback);
+
+    EXPECT_EQ(client.get(), nullptr);
+    EXPECT_EQ(callback.responses(), 1u);
+    EXPECT_EQ(callback.responsesWithResult(HttpResult_Aborted), 1u);
+}
+
+// A send that lands inside an open cancellation epoch must not start network
+// work (that would let late arrivals starve the drain), and must still get
+// exactly one terminal callback, synchronously, so no caller is left hanging.
+TEST_F(HttpClientCurlLifetimeTests, SendDuringCancellationEpochCompletesAbortedWithoutNetwork)
+{
+    RecordingCallback stalledCallback;
+    auto gate = std::make_shared<Gate>();
+    stalledCallback.setResponseHook([gate]() { gate->wait(); });
+
+    std::unique_ptr<IHttpRequest> stalledRequest;
+    sendStalled(stalledRequest, stalledCallback);
+    ASSERT_TRUE(stalledCallback.waitForState(OnSending, 1, kInFlightTimeout));
+
+    // The drain runs on its own thread and cannot return while the pinned
+    // callback is in flight, so the epoch is provably open below.
+    std::thread drain([this]() { m_client.CancelAllRequests(); });
+    ASSERT_TRUE(stalledCallback.waitForResponses(1, kTerminalTimeout));
+
+    std::mutex lateEventsMutex;
+    std::vector<std::string> lateEvents;
+    auto lateCallback = std::make_shared<RecordingCallback>();
+    lateCallback->setStateHook([&lateEventsMutex, &lateEvents](HttpStateEvent state) {
+        std::lock_guard<std::mutex> lock(lateEventsMutex);
+        switch (state)
+        {
+        case OnCreated: lateEvents.push_back("created"); break;
+        case OnCreateFailed: lateEvents.push_back("create-failed"); break;
+        case OnConnecting: lateEvents.push_back("connecting"); break;
+        case OnConnectFailed: lateEvents.push_back("connect-failed"); break;
+        case OnSendFailed: lateEvents.push_back("send-failed"); break;
+        case OnSending: lateEvents.push_back("sending"); break;
+        case OnResponse: lateEvents.push_back("response-state"); break;
+        case OnDestroy: lateEvents.push_back("destroy"); break;
+        }
+    });
+    lateCallback->setResponseHook([&lateEventsMutex, &lateEvents, &lateCallback]() {
+        {
+            std::lock_guard<std::mutex> lock(lateEventsMutex);
+            lateEvents.push_back("response");
+        }
+        lateCallback.reset();
+    });
+
+    std::unique_ptr<IHttpRequest> lateRequest(m_client.CreateRequest());
+    lateRequest->SetUrl(m_endpoint.url());
+    m_client.SendRequestAsync(lateRequest.get(), lateCallback.get());
+
+    // Completed synchronously, on this thread, before SendRequestAsync returned.
+    {
+        std::lock_guard<std::mutex> lock(lateEventsMutex);
+        EXPECT_EQ(lateEvents, (std::vector<std::string>{"created", "destroy", "response"}));
+    }
+
+    gate->open();
+    drain.join();
+    EXPECT_EQ(stalledCallback.responses(), 1u);
+}
+
+// Clients are independent: one going away with work in flight must not disturb
+// another, and the process-wide libcurl initialization must survive all of it.
+TEST_F(HttpClientCurlLifetimeTests, OverlappingClientsWithActiveRequestsDestroyIndependently)
+{
+    constexpr size_t kClients = 4;
+    std::vector<std::unique_ptr<RecordingCallback>> callbacks;
+    for (size_t i = 0; i < kClients; ++i)
+    {
+        callbacks.emplace_back(new RecordingCallback());
+    }
+
+    Gate release;
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < kClients; ++i)
+    {
+        threads.emplace_back([this, i, &callbacks, &release]() {
+            HttpClient_Curl client;
+            std::unique_ptr<IHttpRequest> request(client.CreateRequest());
+            request->SetUrl(m_endpoint.url());
+            client.SendRequestAsync(request.get(), callbacks[i].get());
+            callbacks[i]->waitForState(OnSending, 1, kInFlightTimeout);
+            // Destroy all of them while every one of them has work in flight.
+            release.wait();
+        });
+    }
+
+    for (size_t i = 0; i < kClients; ++i)
+    {
+        callbacks[i]->waitForState(OnSending, 1, kInFlightTimeout);
+    }
+    release.open();
+    for (auto& thread : threads)
+    {
+        thread.join();
+    }
+
+    for (size_t i = 0; i < kClients; ++i)
+    {
+        EXPECT_EQ(callbacks[i]->responses(), 1u) << "client " << i;
+        EXPECT_EQ(callbacks[i]->responsesWithResult(HttpResult_Aborted), 1u) << "client " << i;
+    }
 }
 
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT

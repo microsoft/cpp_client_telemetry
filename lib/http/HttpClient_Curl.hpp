@@ -23,9 +23,13 @@
 #include <numeric>
 #include <limits>
 #include <atomic>
+#include <chrono>
+#include <functional>
+#include <memory>
 #include <thread>
 #include <mutex>
 #include <stdexcept>
+#include <utility>
 
 #include <poll.h>
 #include <curl/curl.h>
@@ -33,6 +37,7 @@
 #include <unistd.h>
 
 #include "IHttpClient.hpp"
+#include "IBoundedHttpClientCancel.hpp"
 #include "pal/PAL.hpp"
 
 #ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
@@ -49,9 +54,42 @@
 namespace MAT_NS_BEGIN {
 
 /**
+ * Perform libcurl's process-wide initialization exactly once.
+ *
+ * curl_global_init() is not thread-safe on the libcurl versions this SDK
+ * supports, and it must run before any other libcurl entry point. Every code
+ * path that can be the process's first libcurl user -- the HttpClient_Curl
+ * facade and a directly constructed CurlHttpOperation -- funnels through this
+ * function. The C++11 function-local static guarantees the initializer runs
+ * exactly once per process and that concurrent first callers block until it
+ * has completed, so overlapping client construction cannot race.
+ *
+ * There is deliberately no matching curl_global_cleanup() anywhere in the SDK.
+ * libcurl's global state is process-wide and shared with every other static
+ * libcurl user in the host process: the application itself, other SDKs, and
+ * plugins that may be loaded after this library. This SDK cannot observe those
+ * users, so it cannot know when the last one is finished, which makes teardown
+ * unknowable from here. Releasing the global state when a telemetry client is
+ * destroyed would pull it out from under an unrelated component (and, worse,
+ * out from under this SDK's own in-flight transfers). Leaving it initialized
+ * for the life of the process is the only correct choice for an embedded
+ * library; the host may still call curl_global_cleanup() itself at exit.
+ */
+inline void EnsureCurlGlobalInit() noexcept
+{
+    static const CURLcode initResult = curl_global_init(CURL_GLOBAL_ALL);
+    (void)initResult;
+}
+
+// Private per-client shared state. Defined in HttpClient_Curl.cpp: it owns the
+// operation registry, the drain bookkeeping and the SSL settings, and it
+// outlives the facade because every completion captures it by shared_ptr.
+struct CurlClientState;
+
+/**
  * Curl-based HTTP client
  */
-class HttpClient_Curl : public IHttpClient {
+class HttpClient_Curl : public IHttpClient, public IBoundedHttpClientCancel {
 public:
     HttpClient_Curl();
     virtual ~HttpClient_Curl();
@@ -60,26 +98,113 @@ public:
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
 
+    // Full drain: returns once every tracked operation has delivered its
+    // terminal callback and has been destroyed, unless the caller is itself
+    // running inside one of this client's callbacks (see the implementation).
+    virtual void CancelAllRequests() override;
+    // Soft-bounded drain: stops initiating further cancellations at the
+    // deadline and may return while an operation and the shared state are
+    // still alive.
+    virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) override;
+
     virtual void ApplySettings(ILogConfiguration& config) override;
     void SetSslVerification(bool sslVerify, const std::string& caInfo = "");
 
 private:
-    void EraseRequest(std::string const& id);
-    void AddRequest(IHttpRequest* request);
-
-    std::mutex m_requestsMtx;
-    std::map<std::string, IHttpRequest*> m_requests;
-    std::atomic<bool> m_sslVerify { true };
-    std::string m_sslCaInfo;
+    std::shared_ptr<CurlClientState> m_state;
 };
 
 class CurlHttpOperation {
 public:
+    struct CallbackHooks
+    {
+        std::function<void()> begin;
+        std::function<void()> end;
+    };
 
+    struct WorkerHooks
+    {
+        std::function<void()> begin;
+        std::function<void()> end;
+    };
+
+private:
+    class CallbackScope
+    {
+    public:
+        explicit CallbackScope(CallbackHooks const& hooks)
+            : m_hooks(hooks)
+        {
+            if (m_hooks.begin != nullptr)
+            {
+                m_hooks.begin();
+                m_started = true;
+            }
+        }
+
+        ~CallbackScope() noexcept
+        {
+            if (m_started && m_hooks.end != nullptr)
+            {
+                try
+                {
+                    m_hooks.end();
+                }
+                catch (...)
+                {
+                }
+            }
+        }
+
+        CallbackScope(CallbackScope const&) = delete;
+        CallbackScope& operator=(CallbackScope const&) = delete;
+
+    private:
+        CallbackHooks const& m_hooks;
+        bool m_started {false};
+    };
+
+    class WorkerScope
+    {
+    public:
+        explicit WorkerScope(WorkerHooks const& hooks)
+            : m_hooks(hooks)
+        {
+            if (m_hooks.begin != nullptr)
+            {
+                m_hooks.begin();
+                m_started = true;
+            }
+        }
+
+        ~WorkerScope() noexcept
+        {
+            if (m_started && m_hooks.end != nullptr)
+            {
+                try
+                {
+                    m_hooks.end();
+                }
+                catch (...)
+                {
+                }
+            }
+        }
+
+        WorkerScope(WorkerScope const&) = delete;
+        WorkerScope& operator=(WorkerScope const&) = delete;
+
+    private:
+        WorkerHooks const& m_hooks;
+        bool m_started {false};
+    };
+
+public:
     void DispatchEvent(HttpStateEvent type)
     {
         if (m_callback != nullptr)
         {
+            CallbackScope callbackScope(m_callbackHooks);
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
         }
     }
@@ -121,7 +246,9 @@ public:
             size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
             // SSL certificate verification options
             bool sslVerify                                           = true,
-            const std::string& sslCaInfo                             = "") :
+            const std::string& sslCaInfo                             = "",
+            CallbackHooks callbackHooks                              = CallbackHooks(),
+            WorkerHooks workerHooks                                  = WorkerHooks()) :
 
             // Optional connection params
             rawResponse(rawResponse),
@@ -131,6 +258,8 @@ public:
             m_method(method),
             m_url(url),
             m_sslCaInfo(sslCaInfo),
+            m_callbackHooks(std::move(callbackHooks)),
+            m_workerHooks(std::move(workerHooks)),
 
             // Local vars
             m_requestBody(requestBody)
@@ -138,6 +267,11 @@ public:
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
         response.size = 0;
+
+        // A directly constructed operation may be the process's first libcurl
+        // user, so it shares the client's init-once rather than assuming an
+        // HttpClient_Curl was built first.
+        EnsureCurlGlobalInit();
 
         /* get a curl handle */
         curl = curl_easy_init();
@@ -155,12 +289,26 @@ public:
             !SetOption(CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L) ||
             !SetOption(CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L) ||
             (!m_sslCaInfo.empty() && !SetOption(CURLOPT_CAINFO, m_sslCaInfo.c_str())) ||
+            // The worker is one thread of a host process this SDK does not own:
+            // never let libcurl install process-wide signal handlers or use
+            // SIGALRM-based timeouts.
+            !SetOption(CURLOPT_NOSIGNAL, 1L) ||
+            // The progress callback is the only cancellation channel that is
+            // safe to trigger from another thread: it runs on the worker,
+            // inside libcurl, and aborts the transfer in an orderly way.
+            !SetOption(CURLOPT_NOPROGRESS, 0L) ||
+            !SetAbortProgressOption() ||
             // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
             !SetOption(CURLOPT_HTTP_VERSION, GetPreferredHttpVersion()))
         {
             DispatchEvent(OnCreateFailed);
             return;
         }
+
+        // Do not override libcurl's shipped connect timeout. With NOSIGNAL,
+        // a synchronous resolver may still block before libcurl can invoke the
+        // progress callback; cancellation is therefore observed once libcurl
+        // returns to its transfer loop, not while that resolver call is active.
 
         // Headers are copied into m_headersChunk during construction and the
         // curl_slist is kept alive until destruction, so the original map does
@@ -247,6 +395,13 @@ public:
             DispatchEvent(OnSendFailed);
             goto cleanup;
         }
+        if (isAborted)
+        {
+            // Cancelled before the worker reached the network. Do not open a
+            // connection; the terminal result is Aborted either way.
+            m_transportError = CURLE_ABORTED_BY_CALLBACK;
+            goto cleanup;
+        }
 
         // TODO: should we control what local source port we use?
         // curl_easy_setopt(curl, CURLOPT_LOCALPORT, dcf_port);
@@ -300,7 +455,7 @@ public:
 
         /* wait for the socket to become ready for sending */
         sockfd = sockextr;
-        if (WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) <= 0 || isAborted)
+        if (WaitOnSocket(sockfd, 0, static_cast<long>(httpConnTimeout) * 1000L) <= 0 || isAborted)
         {
             TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
             m_transportError = CURLE_OPERATION_TIMEDOUT;
@@ -420,18 +575,21 @@ cleanup:
                     {
                         std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
                     }
-                    try
                     {
-                        Send();
+                        WorkerScope workerScope(m_workerHooks);
+                        try
+                        {
+                            Send();
+                        }
+                        catch (...)
+                        {
+                            // std::async stored worker exceptions in its unobserved
+                            // future. A raw thread must contain them.
+                            m_transportError = CURLE_FAILED_INIT;
+                            m_setupError = CURLE_FAILED_INIT;
+                        }
+                        Complete(callback);
                     }
-                    catch (...)
-                    {
-                        // std::async stored worker exceptions in its unobserved
-                        // future. A raw thread must contain them.
-                        m_transportError = CURLE_FAILED_INIT;
-                        m_setupError = CURLE_FAILED_INIT;
-                    }
-                    Complete(callback);
                 });
                 return;
             }
@@ -443,6 +601,11 @@ cleanup:
 
         m_transportError = CURLE_FAILED_INIT;
         m_setupError = CURLE_FAILED_INIT;
+        CompleteWithoutSend(callback);
+    }
+
+    void CompleteWithoutSend(const std::function<void(CurlHttpOperation &)>& callback) noexcept
+    {
         Complete(callback);
     }
 
@@ -537,19 +700,21 @@ cleanup:
     }
 
     /**
-     * Abort request in connecting or reading state.
+     * Request cancellation of a request that is connecting or transferring.
+     *
+     * This raises a flag and nothing else. It deliberately does not close the
+     * socket: the descriptor is owned by the worker thread and by libcurl, and
+     * closing it from another thread races with libcurl's own close. After that
+     * race the descriptor number can be handed straight back out by the kernel,
+     * so a late close tears down an unrelated connection somewhere else in the
+     * host process. The worker observes the flag from libcurl's progress
+     * callback and from its poll loop and unwinds the transfer on the thread
+     * that owns it. The terminal result stays Aborted because WasAborted()
+     * wins over whatever CURLcode the unwind produces.
      */
     void Abort()
     {
-        isAborted = true;
-        if (curl!=nullptr)
-        {
-            // Simply close the socket - connection reset by peer.. Ha-ha-ha-ha-ha!
-            if (sockfd) {
-                ::close(sockfd);
-                sockfd = 0;
-            }
-        }
+        isAborted.store(true, std::memory_order_release);
     }
 
     CURL *GetHandle()
@@ -572,6 +737,8 @@ protected:
     std::string m_method;
     std::string m_url;
     std::string m_sslCaInfo;
+    CallbackHooks m_callbackHooks;
+    WorkerHooks m_workerHooks;
     // Own the payload so operation lifetime is independent of CurlHttpRequest.
     std::vector<uint8_t> m_requestBody;
     struct curl_slist *m_headersChunk = nullptr;
@@ -581,7 +748,9 @@ protected:
     std::vector<uint8_t>        respBody;
 
     // Socket parameters
-    curl_socket_t sockfd = 0;
+    // Owned exclusively by the worker thread; CURL_SOCKET_BAD is the "no
+    // socket" sentinel (0 is a valid descriptor number).
+    curl_socket_t sockfd = CURL_SOCKET_BAD;
 
     curl_socket_t sockextr = CURL_SOCKET_BAD;
 
@@ -651,22 +820,82 @@ protected:
     }
 
     /**
-     * Helper routine to wait for data on socket
+     * Helper routine to wait for data on socket.
      *
-     * @param sockfd
+     * Polls in short slices instead of one long sleep so a cancellation flagged
+     * on another thread is observed within a bounded delay, without anybody
+     * closing the descriptor the worker owns.
+     *
+     * @param socket
      * @param for_recv
      * @param timeout_ms
-     * @return
+     * @return >0 when the socket is ready, 0 on timeout or cancellation, <0 on error
      */
-    static int WaitOnSocket(curl_socket_t sockfd, int for_recv, long timeout_ms)
+    int WaitOnSocket(curl_socket_t socket, int for_recv, long timeout_ms)
     {
-        struct pollfd pfd;
-        pfd.fd = sockfd;
-        pfd.events = for_recv ? POLLIN : POLLOUT;
         // Cap timeout to max int value to avoid overflow in poll()
-        auto timeout = std::min(timeout_ms, static_cast<long>(std::numeric_limits<int>::max()));   
-        return poll(&pfd, 1, static_cast<int>(timeout));
+        long remaining = std::min(std::max(timeout_ms, 0L), static_cast<long>(std::numeric_limits<int>::max()));
+        constexpr long sliceMs = 100;
+        for (;;)
+        {
+            if (isAborted.load(std::memory_order_acquire))
+            {
+                return 0;
+            }
+
+            const long slice = std::min(remaining, sliceMs);
+            struct pollfd pfd;
+            pfd.fd = socket;
+            pfd.events = for_recv ? POLLIN : POLLOUT;
+            pfd.revents = 0;
+            const int pollResult = poll(&pfd, 1, static_cast<int>(slice));
+            if (pollResult != 0)
+            {
+                // Ready, or a poll() error. Both are terminal, exactly as the
+                // single-shot poll() this replaced.
+                return pollResult;
+            }
+            if (remaining <= slice)
+            {
+                return 0;   // timed out
+            }
+            remaining -= slice;
+        }
     }
+
+    /**
+     * Install the libcurl progress callback used to abort a transfer.
+     *
+     * XFERINFO supersedes PROGRESSFUNCTION in libcurl 7.32.0; keep the old
+     * option for builds pinned to an older libcurl.
+     */
+    bool SetAbortProgressOption()
+    {
+#if LIBCURL_VERSION_NUM >= 0x072000 // Version 7.32.0
+        return SetOption(CURLOPT_XFERINFOFUNCTION, &XferInfoAbortCallback) &&
+               SetOption(CURLOPT_XFERINFODATA, static_cast<void*>(this));
+#else
+        return SetOption(CURLOPT_PROGRESSFUNCTION, &ProgressAbortCallback) &&
+               SetOption(CURLOPT_PROGRESSDATA, static_cast<void*>(this));
+#endif
+    }
+
+#if LIBCURL_VERSION_NUM >= 0x072000 // Version 7.32.0
+    static int XferInfoAbortCallback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_off_t) noexcept
+    {
+        const auto* operation = static_cast<const CurlHttpOperation*>(clientp);
+        // Returning non-zero makes libcurl fail the transfer with
+        // CURLE_ABORTED_BY_CALLBACK, on the worker thread, with the socket and
+        // the easy handle still owned by their owner.
+        return (operation != nullptr && operation->isAborted.load(std::memory_order_acquire)) ? 1 : 0;
+    }
+#else
+    static int ProgressAbortCallback(void* clientp, double, double, double, double) noexcept
+    {
+        const auto* operation = static_cast<const CurlHttpOperation*>(clientp);
+        return (operation != nullptr && operation->isAborted.load(std::memory_order_acquire)) ? 1 : 0;
+    }
+#endif
 
     // SECURITY: upper bound on the collector response the client will buffer. The
     // OneCollector protocol responses (status, kill-switch tokens, retry-after, small
