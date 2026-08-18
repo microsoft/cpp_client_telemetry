@@ -521,23 +521,27 @@ namespace MAT_NS_BEGIN
 
         /// <summary>
         /// Creates an empty HTTP request object.
-        /// The caller owns the returned request object. The object has only its ID
-        /// prepopulated; the caller must populate the other fields before passing it
-        /// to SendRequestAsync(). If the request is never sent, delete it using its
-        /// virtual destructor. If it is sent, the caller still owns it and must
-        /// delete it exactly once after the request completes.
+        /// The object has only its ID prepopulated; the caller must populate the
+        /// other fields before passing it to SendRequestAsync(). If the request is
+        /// never sent, delete it using its virtual destructor. Ownership after
+        /// SendRequestAsync() is implementation-specific for compatibility with
+        /// custom IHttpClient modules; see that implementation's contract.
         /// </summary>
         /// <returns>An HTTP request object for you to prepare.</returns>
         virtual IHttpRequest* CreateRequest() = 0;
 
         /// <summary>
         /// Begins an HTTP request.
-        /// The client borrows the request object; it does not take ownership and
-        /// does not delete it. Keep the request alive and do not modify it from the
-        /// start of this call until the request's terminal OnHttpResponse() callback
-        /// begins. The built-in SDK transports finish their last access to the
-        /// request before invoking OnHttpResponse(), so the caller may delete the
-        /// request during that callback or any time after it returns.
+        /// The SDK-provided transports borrow the request object; they do not take
+        /// ownership and do not delete it. For those transports, keep the request
+        /// alive and do not modify it from the start of this call until the
+        /// request's terminal OnHttpResponse() callback begins. They finish their
+        /// last request access before invoking OnHttpResponse(), so the caller may
+        /// delete the request during that callback or any time after it returns.
+        ///
+        /// Custom IHttpClient modules are a legacy extension point and may retain
+        /// their own documented ownership behavior, including taking ownership.
+        /// Callers using a custom module must follow that module's contract.
         ///
         /// On synchronous setup or validation failure, OnHttpResponse() may be
         /// invoked before this method returns. Keep the callback object alive until
@@ -562,7 +566,10 @@ namespace MAT_NS_BEGIN
 
         /// <summary>
         /// Cancels all pending requests, draining fully before returning when the
-        /// implementation owns a synchronous drain.
+        /// implementation owns a synchronous transport drain. This method is not a
+        /// universal terminal-callback barrier; callers must still observe the
+        /// relevant OnHttpResponse() callbacks unless their implementation documents
+        /// a stronger guarantee.
         /// </summary>
         virtual void CancelAllRequests() {}
 
