@@ -116,6 +116,16 @@ namespace MAT_NS_BEGIN {
             return shouldSend;
         }
 
+        // Re-evaluated after the deferred creation event has run: the worker may
+        // only start if admission is still open and no cancellation epoch is in
+        // progress. Mirrors registerOperation's send decision so a creation
+        // callback that stopped admission or opened an epoch cannot be raced.
+        bool stillAcceptingSend()
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            return accepting && cancelAllDepth == 0;
+        }
+
         void eraseOperation(std::string const& id)
         {
             {
@@ -274,7 +284,10 @@ namespace MAT_NS_BEGIN {
                     CurlHttpOperation::WorkerHooks {
                         [state]() { state->beginWorker(); },
                         [state]() { state->endWorker(); }
-                    });
+                    },
+                    // Tracked operations defer OnCreated/OnCreateFailed until
+                    // after registration so a reentrant cancel can find them.
+                    true);
             }
             catch (...)
             {
@@ -331,8 +344,9 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_Curl::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
-        // Keep shared state locally before construction dispatches OnCreated or
-        // OnCreateFailed: either callback may destroy this facade. The request
+        // Keep shared state locally: the deferred OnCreated / OnCreateFailed
+        // event dispatched below (or the terminal callback) may destroy this
+        // facade, so nothing after construction may touch m_state. The request
         // is borrowed under the public IHttpClient contract, while this Curl
         // implementation copies its fields and never touches it after this
         // initial extraction.
@@ -410,15 +424,48 @@ namespace MAT_NS_BEGIN {
             callback->OnHttpResponse(response.release());
         };
 
-        // Register before the worker starts. A cancellation that arrives between
-        // here and the first byte on the wire must not be able to miss it.
+        // Register before dispatching the creation event. A cancellation that
+        // arrives from that event (or between here and the first byte on the
+        // wire) must not be able to miss the operation.
         const bool shouldSend = state->registerOperation(requestId, operation);
-        if (!shouldSend)
+
+        // Now that the operation is discoverable, replay the OnCreated /
+        // OnCreateFailed state event that construction deferred. A reentrant
+        // CancelRequestAsync/CancelAllRequests fired from it will find and abort
+        // this operation, and it is accounted as a callback via the operation
+        // hooks so a concurrent drain observes it.
+        bool startWorker = false;
+        try
         {
-            // Admission stopped, or the registration landed inside an active
-            // cancellation epoch. Complete exactly one Aborted terminal here,
-            // on this thread, without starting a worker or opening a socket.
+            operation->DispatchDeferredCreationEvent();
+
+            // Re-evaluate the send decision after the creation event. A fast
+            // constructor/setup failure never touches the network. Otherwise
+            // the worker starts only if registration admitted it, the creation
+            // callback did not cancel it, and admission is still open with no
+            // cancellation epoch in progress.
+            const bool creationFailed = operation->GetSetupError() != CURLE_OK;
+            startWorker = shouldSend && !creationFailed &&
+                !operation->WasAborted() && state->stillAcceptingSend();
+            if (!startWorker && !creationFailed)
+            {
+                // Canceled, client destroyed, or landed in a cancellation epoch:
+                // complete exactly one Aborted terminal, no worker, no socket.
+                operation->Abort();
+            }
+        }
+        catch (...)
+        {
+            // A state observer must not strand the operation without a terminal.
             operation->Abort();
+            startWorker = false;
+        }
+
+        if (!startWorker)
+        {
+            // Destroy-before-terminal, no-send path. Exactly one terminal here,
+            // on this thread: OnCreateFailed/OnCreated already fired, OnDestroy
+            // and the response callback follow in order.
             operation->CompleteWithoutSend(completion);
             return;
         }

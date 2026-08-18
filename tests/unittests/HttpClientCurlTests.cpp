@@ -811,6 +811,182 @@ TEST_F(HttpClientCurlLifetimeTests, SendDuringCancellationEpochCompletesAbortedW
     EXPECT_EQ(stalledCallback.responses(), 1u);
 }
 
+// A reentrant CancelRequestAsync fired from the OnCreated state event must find
+// the operation (it is registered before the event fires), stop it before any
+// network work begins, and yield exactly one Aborted terminal in
+// OnCreated -> OnDestroy -> response order.
+TEST_F(HttpClientCurlLifetimeTests, OnCreatedCancelRequestFindsOperationAndAbortsWithoutNetwork)
+{
+    RecordingCallback callback;
+    std::unique_ptr<IHttpRequest> request(m_client.CreateRequest());
+    request->SetUrl(m_endpoint.url());
+    const std::string id = request->GetId();
+
+    std::mutex eventsMutex;
+    std::vector<std::string> events;
+    callback.setStateHook([this, id, &eventsMutex, &events](HttpStateEvent state) {
+        {
+            std::lock_guard<std::mutex> lock(eventsMutex);
+            switch (state)
+            {
+            case OnCreated: events.push_back("created"); break;
+            case OnCreateFailed: events.push_back("create-failed"); break;
+            case OnConnecting: events.push_back("connecting"); break;
+            case OnConnectFailed: events.push_back("connect-failed"); break;
+            case OnSendFailed: events.push_back("send-failed"); break;
+            case OnSending: events.push_back("sending"); break;
+            case OnResponse: events.push_back("response-state"); break;
+            case OnDestroy: events.push_back("destroy"); break;
+            }
+        }
+        if (state == OnCreated)
+        {
+            // If the operation were not registered yet, this would be a no-op and
+            // the transfer would proceed to the stalled endpoint.
+            m_client.CancelRequestAsync(id);
+        }
+    });
+    callback.setResponseHook([&eventsMutex, &events]() {
+        std::lock_guard<std::mutex> lock(eventsMutex);
+        events.push_back("response");
+    });
+
+    m_client.SendRequestAsync(request.get(), &callback);
+
+    ASSERT_TRUE(callback.waitForResponses(1, kTerminalTimeout));
+    EXPECT_EQ(callback.responses(), 1u);
+    EXPECT_EQ(callback.responsesWithResult(HttpResult_Aborted), 1u);
+    // No worker, no socket: the cancellation during OnCreated was honored.
+    EXPECT_EQ(callback.stateCount(OnConnecting), 0u);
+    EXPECT_EQ(callback.stateCount(OnSending), 0u);
+    {
+        std::lock_guard<std::mutex> lock(eventsMutex);
+        EXPECT_EQ(events, (std::vector<std::string>{"created", "destroy", "response"}));
+    }
+}
+
+// The same guarantee for a reentrant CancelAllRequests fired from OnCreated: the
+// operation is found among the peers, aborted before network work, and produces
+// exactly one Aborted terminal.
+TEST_F(HttpClientCurlLifetimeTests, OnCreatedCancelAllAbortsOperationBeforeNetwork)
+{
+    RecordingCallback callback;
+    std::unique_ptr<IHttpRequest> request(m_client.CreateRequest());
+    request->SetUrl(m_endpoint.url());
+    callback.setStateHook([this](HttpStateEvent state) {
+        if (state == OnCreated)
+        {
+            m_client.CancelAllRequests();
+        }
+    });
+
+    m_client.SendRequestAsync(request.get(), &callback);
+
+    ASSERT_TRUE(callback.waitForResponses(1, kTerminalTimeout));
+    EXPECT_EQ(callback.responses(), 1u);
+    EXPECT_EQ(callback.responsesWithResult(HttpResult_Aborted), 1u);
+    EXPECT_EQ(callback.stateCount(OnConnecting), 0u);
+    EXPECT_EQ(callback.stateCount(OnSending), 0u);
+    EXPECT_EQ(callback.stateCount(OnDestroy), 1u);
+}
+
+// A cancellation reentered from the OnDestroy state event of a *successful*
+// transfer may legitimately abort peers, but it must not rewrite this
+// operation's already-finished result. The cancellation classification is
+// frozen before OnDestroy runs, so the terminal stays OK/200.
+class HttpClientCurlDestroyReentryTests : public ::testing::Test,
+                                          public HttpServer::Callback
+{
+protected:
+    HttpServer      m_server;
+    HttpClient_Curl m_client;
+    std::string     m_url;
+
+    void SetUp() override
+    {
+        const int port = m_server.addListeningPort(0);
+        std::ostringstream address;
+        address << "127.0.0.1:" << port;
+        m_url = "http://" + address.str() + "/ok/";
+        m_server.setServerName(address.str());
+        m_server.addHandler("/ok/", *this);
+        m_server.start();
+    }
+
+    void TearDown() override
+    {
+        m_server.stop();
+    }
+
+    int onHttpRequest(HttpServer::Request const&, HttpServer::Response& response) override
+    {
+        response.content = "ok-body";
+        return 200;
+    }
+
+    struct ResultCallback : public IHttpResponseCallback
+    {
+        std::mutex mutex;
+        std::condition_variable cv;
+        size_t responses {0};
+        HttpResult result {};
+        unsigned int statusCode {0};
+        std::function<void(HttpStateEvent)> stateHook;
+
+        void OnHttpResponse(IHttpResponse* response) override
+        {
+            std::unique_ptr<IHttpResponse> owned(response);
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                ++responses;
+                result = owned->GetResult();
+                statusCode = owned->GetStatusCode();
+            }
+            cv.notify_all();
+        }
+
+        void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
+        {
+            if (stateHook != nullptr)
+            {
+                stateHook(state);
+            }
+        }
+
+        bool waitForResponse(std::chrono::milliseconds timeout)
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            return cv.wait_for(lock, timeout, [&]() { return responses >= 1; });
+        }
+    };
+};
+
+TEST_F(HttpClientCurlDestroyReentryTests, OnDestroyReentrantCancelDoesNotRewriteSuccess)
+{
+    ResultCallback callback;
+    std::unique_ptr<IHttpRequest> request(m_client.CreateRequest());
+    request->SetUrl(m_url);
+    const std::string id = request->GetId();
+
+    callback.stateHook = [this, id](HttpStateEvent state) {
+        if (state == OnDestroy)
+        {
+            // The operation is still registered during OnDestroy. Both of these
+            // set its live abort flag, but the frozen classification must win.
+            m_client.CancelRequestAsync(id);
+            m_client.CancelAllRequests();
+        }
+    };
+
+    m_client.SendRequestAsync(request.get(), &callback);
+    ASSERT_TRUE(callback.waitForResponse(kTerminalTimeout));
+
+    std::lock_guard<std::mutex> lock(callback.mutex);
+    EXPECT_EQ(callback.responses, 1u);
+    EXPECT_EQ(callback.result, HttpResult_OK);
+    EXPECT_EQ(callback.statusCode, 200u);
+}
+
 // Clients are independent: one going away with work in flight must not disturb
 // another, and the process-wide libcurl initialization must survive all of it.
 TEST_F(HttpClientCurlLifetimeTests, OverlappingClientsWithActiveRequestsDestroyIndependently)

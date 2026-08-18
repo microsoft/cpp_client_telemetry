@@ -209,6 +209,24 @@ public:
         }
     }
 
+    // Replays the creation state event (OnCreated / OnCreateFailed) that
+    // construction deferred (see the deferCreationEvent constructor parameter).
+    // A no-op for a directly constructed operation, which dispatches its
+    // creation event during construction. Dispatching here -- after the caller
+    // has registered the operation -- is what lets a reentrant
+    // CancelRequestAsync/CancelAllRequests fired from the creation callback find
+    // and abort this operation before any network work starts. The dispatch is
+    // accounted through the operation's callback hooks, exactly like every other
+    // state event, so a concurrent drain sees it.
+    void DispatchDeferredCreationEvent()
+    {
+        if (m_hasPendingCreationEvent)
+        {
+            m_hasPendingCreationEvent = false;
+            DispatchEvent(m_pendingCreationEvent);
+        }
+    }
+
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
     /**
      * Create local CURL instance for url and body
@@ -248,7 +266,15 @@ public:
             bool sslVerify                                           = true,
             const std::string& sslCaInfo                             = "",
             CallbackHooks callbackHooks                              = CallbackHooks(),
-            WorkerHooks workerHooks                                  = WorkerHooks()) :
+            WorkerHooks workerHooks                                  = WorkerHooks(),
+            // When true (client-created, tracked operations), the OnCreated /
+            // OnCreateFailed state event is not dispatched during construction.
+            // It is recorded and replayed later by DispatchDeferredCreationEvent()
+            // once the operation has been registered, so a reentrant
+            // CancelRequestAsync/CancelAllRequests fired from that event can find
+            // the operation. A directly constructed operation keeps the historical
+            // immediate-dispatch behavior.
+            bool deferCreationEvent                                  = false) :
 
             // Optional connection params
             rawResponse(rawResponse),
@@ -260,6 +286,7 @@ public:
             m_sslCaInfo(sslCaInfo),
             m_callbackHooks(std::move(callbackHooks)),
             m_workerHooks(std::move(workerHooks)),
+            m_deferCreationEvent(deferCreationEvent),
 
             // Local vars
             m_requestBody(requestBody)
@@ -280,7 +307,7 @@ public:
             TRACE("libcurl failed to init!\n");
             m_transportError = CURLE_FAILED_INIT;
             m_setupError = CURLE_FAILED_INIT;
-            DispatchEvent(OnCreateFailed);
+            EmitCreationEvent(OnCreateFailed);
             return;
         }
 
@@ -301,7 +328,7 @@ public:
             // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
             !SetOption(CURLOPT_HTTP_VERSION, GetPreferredHttpVersion()))
         {
-            DispatchEvent(OnCreateFailed);
+            EmitCreationEvent(OnCreateFailed);
             return;
         }
 
@@ -321,7 +348,7 @@ public:
             {
                 m_transportError = CURLE_OUT_OF_MEMORY;
                 m_setupError = CURLE_OUT_OF_MEMORY;
-                DispatchEvent(OnCreateFailed);
+                EmitCreationEvent(OnCreateFailed);
                 return;
             }
             m_headersChunk = appendedHeaders;
@@ -329,12 +356,12 @@ public:
 
         if (m_headersChunk != nullptr && !SetOption(CURLOPT_HTTPHEADER, m_headersChunk))
         {
-            DispatchEvent(OnCreateFailed);
+            EmitCreationEvent(OnCreateFailed);
             return;
         }
         TRACE("method=%s, url=%s\n", this->m_method.c_str(), this->m_url.c_str());
 
-        DispatchEvent(OnCreated);
+        EmitCreationEvent(OnCreated);
     }
 
     /**
@@ -620,10 +647,23 @@ cleanup:
     }
 
     /**
-     * Get whether or not response was programmatically aborted
+     * Get whether or not response was programmatically aborted.
+     *
+     * Once the outcome has been frozen (at the start of Complete, before the
+     * OnDestroy state event runs; see FreezeOutcome) this returns the latched
+     * classification rather than the live flag. That is what stops an Abort()
+     * triggered from an OnDestroy observer -- which is legitimately allowed to
+     * cancel *peers* -- from retroactively turning this operation's already
+     * finished, successful transfer into an Aborted one. A cancellation that
+     * won before the freeze is captured by the latch and still reported as
+     * Aborted.
      */
     bool WasAborted()
     {
+        if (m_outcomeFrozen.load(std::memory_order_acquire))
+        {
+            return m_frozenAborted.load(std::memory_order_relaxed);
+        }
         return isAborted.load();
     }
 
@@ -739,6 +779,13 @@ protected:
     std::string m_sslCaInfo;
     CallbackHooks m_callbackHooks;
     WorkerHooks m_workerHooks;
+    // Deferred creation-event bookkeeping (see the deferCreationEvent ctor arg
+    // and DispatchDeferredCreationEvent). m_deferCreationEvent is fixed at
+    // construction; the pending fields are only touched on the caller thread
+    // before the worker exists, so they need no synchronization.
+    bool m_deferCreationEvent;
+    bool m_hasPendingCreationEvent {false};
+    HttpStateEvent m_pendingCreationEvent {OnCreated};
     // Own the payload so operation lifetime is independent of CurlHttpRequest.
     std::vector<uint8_t> m_requestBody;
     struct curl_slist *m_headersChunk = nullptr;
@@ -763,6 +810,39 @@ protected:
     std::thread m_worker;
     std::atomic<bool> m_destroyEventDispatched { false };
 
+    // Latched cancellation classification. Frozen once, at the very start of
+    // completion, before the OnDestroy state event can run. Only the
+    // cancellation outcome is latched -- transport/setup/status fields stay
+    // live -- because those are already final by completion, while isAborted is
+    // the one input an OnDestroy observer can still legally flip (when it
+    // cancels peers) after this transfer has already succeeded.
+    std::atomic<bool> m_outcomeFrozen { false };
+    std::atomic<bool> m_frozenAborted { false };
+
+    // Snapshot the abort classification exactly once. After this returns,
+    // WasAborted() reports the latched value regardless of any later Abort().
+    void FreezeOutcome() noexcept
+    {
+        if (!m_outcomeFrozen.load(std::memory_order_acquire))
+        {
+            m_frozenAborted.store(isAborted.load(std::memory_order_acquire), std::memory_order_relaxed);
+            m_outcomeFrozen.store(true, std::memory_order_release);
+        }
+    }
+
+    // Dispatch the creation event immediately, or record it for later replay
+    // when the operation was constructed in deferred mode.
+    void EmitCreationEvent(HttpStateEvent type)
+    {
+        if (m_deferCreationEvent)
+        {
+            m_pendingCreationEvent = type;
+            m_hasPendingCreationEvent = true;
+            return;
+        }
+        DispatchEvent(type);
+    }
+
     void DispatchDestroyEvent() noexcept
     {
         if (!m_destroyEventDispatched.exchange(true, std::memory_order_acq_rel))
@@ -780,6 +860,12 @@ protected:
 
     void Complete(const std::function<void(CurlHttpOperation &)>& callback) noexcept
     {
+        // Latch the cancellation outcome before the OnDestroy event fires. The
+        // operation is still in the registry here, so an OnDestroy observer may
+        // reenter CancelAllRequests/CancelRequestAsync and Abort() this object;
+        // freezing first guarantees response mapping sees the outcome as it was
+        // when the transfer actually finished, not as a late cancel rewrote it.
+        FreezeOutcome();
         // Preserve the documented state event while m_callback is still valid.
         // The completion callback can release the last owner, so this must remain
         // the worker's final access to the operation.
