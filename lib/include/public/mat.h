@@ -257,7 +257,20 @@ extern "C" {
         int32_t                 headersCount;
     } http_response_t;
 
-    /* HTTP callback function signatures */
+    /*
+     * HTTP callback function signatures.
+     *
+     * http_send_fn_t borrows every pointer in http_request_t only for the
+     * duration of the call. Implementations must copy data needed by asynchronous
+     * work, return promptly without waiting for completion, and invoke the
+     * supplied http_complete_fn_t exactly once for each accepted request.
+     * Completion may be synchronous. Exceptions must not cross this C ABI.
+     *
+     * http_cancel_fn_t requests cancellation of the identified operation. The
+     * SDK adapter terminally reports HTTP_RESULT_CANCELLED after invoking the
+     * hook; the hook must not retain request pointers, and any later completion
+     * it attempts is ignored.
+     */
     typedef void (EVTSDK_LIBABI_CDECL *http_complete_fn_t)(const char* /*requestId*/, http_result_t, http_response_t*);
     typedef void (EVTSDK_LIBABI_CDECL *http_send_fn_t)(http_request_t*, http_complete_fn_t);
     typedef void (EVTSDK_LIBABI_CDECL *http_cancel_fn_t)(const char* /*requestId*/);
