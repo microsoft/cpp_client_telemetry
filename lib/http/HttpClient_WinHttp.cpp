@@ -1158,7 +1158,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         bool const receivedResponse = dwError == ERROR_SUCCESS;
 
         if (dwError == ERROR_SUCCESS) {
-            response->m_body = m_bodyBuffer;
+            response->m_body = std::move(m_bodyBuffer);
             response->m_result = HttpResult_OK;
 
             DWORD statusCode = 0;

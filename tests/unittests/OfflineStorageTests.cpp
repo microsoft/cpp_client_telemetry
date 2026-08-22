@@ -1007,6 +1007,27 @@ namespace MAT_NS_BEGIN
             MakeRecord("after-shutdown-mem", EventPersistence_DoNotStoreOnDisk)));
     }
 
+    TEST_F(OfflineStorageHandlerTests, EmptyDeleteIdsDoNotAccessStorage)
+    {
+        ConfigurableLogManager logManager;
+        NoCheckpointRuntimeConfig config;
+        NoopTaskDispatcher taskDispatcher;
+        config[CFG_INT_RAM_QUEUE_SIZE] = 0;
+        auto diskStorage = AttachDiskStorage(logManager);
+        StrictMock<testing::MockIOfflineStorageObserver> observer;
+        OfflineStorageHandler handler(logManager, config, taskDispatcher);
+        EXPECT_CALL(*diskStorage, Initialize(_));
+        handler.Initialize(observer);
+
+        std::vector<StorageRecordId> ids;
+        HttpHeaders headers;
+        bool fromMemory = false;
+        EXPECT_NO_THROW(handler.DeleteRecords(ids, headers, fromMemory));
+
+        EXPECT_CALL(*diskStorage, Shutdown());
+        handler.Shutdown();
+    }
+
     TEST_F(OfflineStorageHandlerTests, DirectFlushAfterAdmissionCloseIsNoOp)
     {
         ConfigurableLogManager logManager;

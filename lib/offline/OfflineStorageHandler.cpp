@@ -688,6 +688,11 @@ namespace MAT_NS_BEGIN {
             DeleteRecordsByKeys(m_killSwitchManager.getTokensList());
         }
 
+        if (ids.empty())
+        {
+            return;
+        }
+
         LOG_TRACE(" OfflineStorageHandler Deleting %u sent event(s) {%s%s}...",
                   static_cast<unsigned>(ids.size()), ids.front().c_str(), (ids.size() > 1) ? ", ..." : "");
         if (fromMemory && nullptr != m_offlineStorageMemory)

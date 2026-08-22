@@ -543,6 +543,11 @@ namespace MAT_NS_BEGIN
         /// their own documented ownership behavior, including taking ownership.
         /// Callers using a custom module must follow that module's contract.
         ///
+        /// Every request accepted by an implementation must produce exactly one
+        /// terminal OnHttpResponse() callback, including after cancellation. If
+        /// this method throws, the request was not accepted: the implementation
+        /// must not invoke the callback before throwing or at any later time.
+        ///
         /// On synchronous setup or validation failure, OnHttpResponse() may be
         /// invoked before this method returns. Keep the callback object alive until
         /// OnHttpResponse() returns. For portability, delete request objects created

@@ -903,7 +903,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
         if (dwError == ERROR_SUCCESS)
         {
-            response->m_body = m_bodyBuffer;
+            response->m_body = std::move(m_bodyBuffer);
 
             uint32_t statusCode = 0;
             DWORD statusBytes = sizeof(statusCode);

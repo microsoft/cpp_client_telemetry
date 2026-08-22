@@ -153,6 +153,14 @@ class MockBoundedIHttpClient : public MockIHttpClient, public IBoundedHttpClient
     MOCK_METHOD1(CancelAllRequests, void(std::chrono::milliseconds));
 };
 
+class ThrowingCancelAllHttpClient : public MockIHttpClient {
+  public:
+    void CancelAllRequests() override
+    {
+        throw std::runtime_error("cancel all failed");
+    }
+};
+
 
 TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 {
@@ -205,6 +213,55 @@ TEST_F(HttpClientManagerTests, ThrowingRequestDoneStillDrainsCallback)
         .WillOnce(Throw(std::runtime_error("listener failed")));
 
     EXPECT_NO_THROW(callback->OnHttpResponse(new SimpleHttpResponse("throwing-request-done")));
+    EXPECT_THAT(hcm.requestCount(), 0u);
+}
+
+TEST_F(HttpClientManagerTests, ThrowingSendProducesOneTerminalFailure)
+{
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("throwing-send");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+    ctx->recordIdsAndTenantIds["r1"] = "t1";
+    ctx->latency = EventLatency_Normal;
+    ctx->packageIds["tenant1-token"] = 0;
+
+    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(Throw(std::runtime_error("send failed")));
+    EXPECT_CALL(*this, resultRequestDone(ctx))
+        .WillOnce(Invoke([](EventsUploadContextPtr const& completed) {
+            ASSERT_THAT(completed->httpResponse, NotNull());
+            EXPECT_EQ(completed->httpResponse->GetId(), "throwing-send");
+            EXPECT_EQ(completed->httpResponse->GetResult(), HttpResult_LocalFailure);
+        }));
+
+    EXPECT_NO_THROW(hcm.sendRequest(ctx));
+    EXPECT_THAT(hcm.requestCount(), 0u);
+}
+
+TEST_F(HttpClientManagerTests, CallbackThenThrowDoesNotCompleteTwice)
+{
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("callback-then-throw");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+    ctx->recordIdsAndTenantIds["r1"] = "t1";
+    ctx->latency = EventLatency_Normal;
+    ctx->packageIds["tenant1-token"] = 0;
+
+    EXPECT_CALL(*this, resultRequestDone(ctx))
+        .WillOnce(Invoke([](EventsUploadContextPtr const& completed) {
+            ASSERT_THAT(completed->httpResponse, NotNull());
+            EXPECT_EQ(completed->httpResponse->GetId(), "original-response");
+            EXPECT_EQ(completed->httpResponse->GetResult(), HttpResult_OK);
+        }));
+    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(Invoke([](IHttpRequest*, IHttpResponseCallback* callback) {
+            auto response = new SimpleHttpResponse("original-response");
+            response->m_result = HttpResult_OK;
+            callback->OnHttpResponse(response);
+            throw std::runtime_error("invalid throw after callback");
+        }));
+
+    EXPECT_NO_THROW(hcm.sendRequest(ctx));
     EXPECT_THAT(hcm.requestCount(), 0u);
 }
 
@@ -467,4 +524,106 @@ TEST_F(HttpClientManagerTests, CancelAllRequests_UsesBoundedCancelCapability)
 
     EXPECT_CALL(*this, resultRequestDone(ctx)).WillOnce(Return());
     callback->OnHttpResponse(new SimpleHttpResponse("bounded"));
+}
+
+TEST_F(HttpClientManagerTests, ZeroBudgetPauseCancelsWithoutWaiting)
+{
+    hcm.setCancelDrainTimeout(std::chrono::milliseconds::zero());
+
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("zero-budget");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+    ctx->recordIdsAndTenantIds["r1"] = "t1";
+    ctx->latency = EventLatency_Normal;
+    ctx->packageIds["tenant1-token"] = 0;
+
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    hcm.sendRequest(ctx);
+    ASSERT_THAT(callback, NotNull());
+
+    EXPECT_CALL(httpClientMock, CancelRequestAsync(ctx->httpRequestId));
+    EXPECT_NO_THROW(hcm.cancelAllRequests(/* bestEffort */ true));
+    EXPECT_THAT(hcm.requestCount(), 1u);
+
+    EXPECT_CALL(*this, resultRequestDone(ctx)).WillOnce(Return());
+    callback->OnHttpResponse(new SimpleHttpResponse("zero-budget"));
+    EXPECT_THAT(hcm.requestCount(), 0u);
+}
+
+TEST_F(HttpClientManagerTests, ZeroBudgetPauseContinuesAfterCancelThrows)
+{
+    hcm.setCancelDrainTimeout(std::chrono::milliseconds::zero());
+
+    std::vector<IHttpResponseCallback*> callbacks;
+    std::vector<EventsUploadContextPtr> contexts;
+    for (const char* id : {"cancel-throws", "cancel-continues"})
+    {
+        auto ctx = std::make_shared<EventsUploadContext>();
+        ctx->httpRequest = new SimpleHttpRequest(id);
+        ctx->httpRequestId = id;
+        ctx->recordIdsAndTenantIds["r1"] = "t1";
+        ctx->latency = EventLatency_Normal;
+        ctx->packageIds["tenant1-token"] = 0;
+
+        IHttpResponseCallback* callback = nullptr;
+        EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
+            .WillOnce(SaveArg<1>(&callback));
+        hcm.sendRequest(ctx);
+        ASSERT_THAT(callback, NotNull());
+        callbacks.push_back(callback);
+        contexts.push_back(std::move(ctx));
+    }
+
+    {
+        InSequence sequence;
+        EXPECT_CALL(httpClientMock, CancelRequestAsync("cancel-throws"))
+            .WillOnce(Throw(std::runtime_error("cancel failed")));
+        EXPECT_CALL(httpClientMock, CancelRequestAsync("cancel-continues"));
+    }
+    EXPECT_NO_THROW(hcm.cancelAllRequests(/* bestEffort */ true));
+
+    for (size_t i = 0; i < callbacks.size(); ++i)
+    {
+        EXPECT_CALL(*this, resultRequestDone(contexts[i])).WillOnce(Return());
+        callbacks[i]->OnHttpResponse(
+            new SimpleHttpResponse(contexts[i]->httpRequestId));
+    }
+    EXPECT_THAT(hcm.requestCount(), 0u);
+}
+
+TEST(HttpClientManagerExceptionTests, FullCancellationContainsClientException)
+{
+    ThrowingCancelAllHttpClient httpClient;
+    HttpClientManager4Test manager(httpClient);
+
+    EXPECT_NO_THROW(manager.cancelAllRequests());
+}
+
+TEST(HttpClientManagerExceptionTests, BoundedCancellationFallsBackAfterException)
+{
+    MockBoundedIHttpClient httpClient;
+    HttpClientManager4Test manager(httpClient);
+    manager.setCancelDrainTimeout(std::chrono::milliseconds(50));
+
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("bounded-throws");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+    ctx->recordIdsAndTenantIds["r1"] = "t1";
+    ctx->latency = EventLatency_Normal;
+    ctx->packageIds["tenant1-token"] = 0;
+
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(httpClient, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    manager.sendRequest(ctx);
+    ASSERT_THAT(callback, NotNull());
+
+    EXPECT_CALL(httpClient, CancelAllRequests(std::chrono::milliseconds(50)))
+        .WillOnce(Throw(std::runtime_error("bounded cancel failed")));
+    EXPECT_CALL(httpClient, CancelRequestAsync(ctx->httpRequestId));
+    manager.cancelAllRequests(/* bestEffort */ true);
+
+    callback->OnHttpResponse(new SimpleHttpResponse("bounded-throws"));
 }

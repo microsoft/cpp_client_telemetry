@@ -10,10 +10,14 @@
 
 #include <assert.h>
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <exception>
 #include <limits>
+#include <memory>
+#include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #ifdef linux
@@ -37,15 +41,49 @@ namespace MAT_NS_BEGIN {
     class HttpClientManager::HttpCallback : public IHttpResponseCallback
     {
     public:
+        struct CompletionState
+        {
+            explicit CompletionState(std::string id)
+                : requestId(std::move(id))
+            {
+            }
+
+            bool TryStartTerminal() noexcept
+            {
+                bool expected = false;
+                return terminalStarted.compare_exchange_strong(expected, true);
+            }
+
+            std::atomic<bool> terminalStarted{false};
+            std::string const requestId;
+        };
 
         HttpCallback(HttpClientManager& hcm, EventsUploadContextPtr const& ctx)
             : m_hcm(hcm),
             m_ctx(ctx),
-            m_startTime(PAL::getMonotonicTimeMs())
+            m_startTime(PAL::getMonotonicTimeMs()),
+            m_completion(std::make_shared<CompletionState>(
+                !ctx->httpRequestId.empty()
+                    ? ctx->httpRequestId
+                    : (ctx->httpRequest != nullptr
+                        ? ctx->httpRequest->GetId()
+                        : std::string())))
         {
         }
 
         virtual void OnHttpResponse(IHttpResponse* response) override
+        {
+            std::unique_ptr<IHttpResponse> ownedResponse(response);
+            if (!m_completion->TryStartTerminal())
+            {
+                LOG_ERROR("Ignoring duplicate terminal HTTP callback for request %s",
+                    m_completion->requestId.c_str());
+                return;
+            }
+            CompleteClaimed(ownedResponse.release());
+        }
+
+        void CompleteClaimed(IHttpResponse* response)
         {
             m_ctx->durationMs = static_cast<int>(PAL::getMonotonicTimeMs() - m_startTime);
             m_ctx->httpResponse = response;
@@ -79,6 +117,7 @@ namespace MAT_NS_BEGIN {
         HttpClientManager&      m_hcm;
         EventsUploadContextPtr  m_ctx;
         int64_t                 m_startTime;
+        std::shared_ptr<CompletionState> m_completion;
     };
 
     //---
@@ -120,6 +159,7 @@ namespace MAT_NS_BEGIN {
     void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
     {
         HttpCallback *callback = new HttpCallback(*this, ctx);
+        auto completion = callback->m_completion;
         {
             LOCKGUARD(m_httpCallbacksMtx);
             m_httpCallbacks.push_back(callback);
@@ -129,7 +169,30 @@ namespace MAT_NS_BEGIN {
             static_cast<unsigned>(ctx->recordIdsAndTenantIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
             ctx->httpRequest->GetId().c_str(), static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()));
 
-        m_httpClient.SendRequestAsync(ctx->httpRequest, callback);
+        try
+        {
+            m_httpClient.SendRequestAsync(ctx->httpRequest, callback);
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("HTTP client rejected request %s with an exception: %s",
+                completion->requestId.c_str(), ex.what());
+            if (completion->TryStartTerminal())
+            {
+                callback->CompleteClaimed(
+                    new SimpleHttpResponse(completion->requestId));
+            }
+        }
+        catch (...)
+        {
+            LOG_ERROR("HTTP client rejected request %s with a non-standard exception",
+                completion->requestId.c_str());
+            if (completion->TryStartTerminal())
+            {
+                callback->CompleteClaimed(
+                    new SimpleHttpResponse(completion->requestId));
+            }
+        }
     }
 
     void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
@@ -202,8 +265,19 @@ namespace MAT_NS_BEGIN {
             auto boundedCancel = dynamic_cast<IBoundedHttpClientCancel*>(&m_httpClient);
             if (boundedCancel != nullptr)
             {
-                boundedCancel->CancelAllRequests(bestEffortTimeout);
-                return;
+                try
+                {
+                    boundedCancel->CancelAllRequests(bestEffortTimeout);
+                    return;
+                }
+                catch (const std::exception& ex)
+                {
+                    LOG_ERROR("HTTP client bounded cancellation failed: %s", ex.what());
+                }
+                catch (...)
+                {
+                    LOG_ERROR("HTTP client bounded cancellation failed with a non-standard exception");
+                }
             }
 #endif
 
@@ -211,7 +285,20 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
-        m_httpClient.CancelAllRequests();
+        try
+        {
+            m_httpClient.CancelAllRequests();
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("HTTP client cancellation failed: %s", ex.what());
+            cancelTrackedRequestsAsync();
+        }
+        catch (...)
+        {
+            LOG_ERROR("HTTP client cancellation failed with a non-standard exception");
+            cancelTrackedRequestsAsync();
+        }
     }
 
     void HttpClientManager::cancelTrackedRequestsAsync()
@@ -240,7 +327,20 @@ namespace MAT_NS_BEGIN {
 
         for (const auto& id : requestIds)
         {
-            m_httpClient.CancelRequestAsync(id);
+            try
+            {
+                m_httpClient.CancelRequestAsync(id);
+            }
+            catch (const std::exception& ex)
+            {
+                LOG_ERROR("HTTP client failed to cancel request %s: %s",
+                    id.c_str(), ex.what());
+            }
+            catch (...)
+            {
+                LOG_ERROR("HTTP client failed to cancel request %s with a non-standard exception",
+                    id.c_str());
+            }
         }
     }
 
@@ -249,6 +349,9 @@ namespace MAT_NS_BEGIN {
         if (bestEffort &&
             m_cancelDrainTimeout <= std::chrono::milliseconds::zero())
         {
+            // A zero budget means "do not wait", not "leave requests running".
+            // Snapshot IDs and initiate asynchronous cancellation before returning.
+            cancelTrackedRequestsAsync();
             return;
         }
         // Quiesce the transport before taking m_httpCallbacksMtx. Moving this
