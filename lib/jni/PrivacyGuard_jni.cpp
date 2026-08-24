@@ -22,21 +22,54 @@ CommonDataContext GenerateCommonDataContextObject(JNIEnv* env,
     CommonDataContext cdc;
     if(domainName != nullptr) {
         cdc.DomainName = JStringToStdString(env, domainName);
+        if (env->ExceptionCheck()) {
+            return cdc;
+        }
     }
     if(machineName != nullptr) {
         cdc.MachineName = JStringToStdString(env, machineName);
+        if (env->ExceptionCheck()) {
+            return cdc;
+        }
     }
 
     cdc.UserNames = ConvertJObjectArrayToStdStringVector(env, userNames);
+    if (env->ExceptionCheck()) {
+        return cdc;
+    }
     cdc.UserAliases = ConvertJObjectArrayToStdStringVector(env, userAliases);
+    if (env->ExceptionCheck()) {
+        return cdc;
+    }
     cdc.IpAddresses = ConvertJObjectArrayToStdStringVector(env, ipAddresses);
+    if (env->ExceptionCheck()) {
+        return cdc;
+    }
     cdc.LanguageIdentifiers = ConvertJObjectArrayToStdStringVector(env, languageIdentifiers);
+    if (env->ExceptionCheck()) {
+        return cdc;
+    }
     cdc.MachineIds = ConvertJObjectArrayToStdStringVector(env, machineIds);
+    if (env->ExceptionCheck()) {
+        return cdc;
+    }
     cdc.OutOfScopeIdentifiers = ConvertJObjectArrayToStdStringVector(env, outOfScopeIdentifiers);
     return cdc;
 }
 
-std::shared_ptr<PrivacyGuard> spPrivacyGuard;
+namespace
+{
+    // PrivacyGuard borrows its configured event names, so keep their storage with the guard.
+    struct PrivacyGuardState
+    {
+        std::string notificationEventName;
+        std::string semanticContextEventName;
+        std::string summaryEventName;
+        std::unique_ptr<PrivacyGuard> privacyGuard;
+    };
+
+    std::shared_ptr<PrivacyGuard> spPrivacyGuard;
+}
 
 std::shared_ptr<PrivacyGuard> PrivacyGuardHelper::GetPrivacyGuardPtr() noexcept
 {
@@ -62,16 +95,29 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     InitializationConfiguration config(
             reinterpret_cast<ILogger*>(iLoggerNativePtr),
             CommonDataContext{});
+    auto state = std::make_shared<PrivacyGuardState>();
     if (NotificationEventName != nullptr) {
-        config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
+        state->notificationEventName = JStringToStdString(env, NotificationEventName);
+        if (env->ExceptionCheck()) {
+            return false;
+        }
+        config.NotificationEventName = state->notificationEventName.c_str();
     }
 
     if (SemanticContextEventName != nullptr) {
-        config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
+        state->semanticContextEventName = JStringToStdString(env, SemanticContextEventName);
+        if (env->ExceptionCheck()) {
+            return false;
+        }
+        config.SemanticContextNotificationEventName = state->semanticContextEventName.c_str();
     }
 
     if (SummaryEventName != nullptr) {
-        config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
+        state->summaryEventName = JStringToStdString(env, SummaryEventName);
+        if (env->ExceptionCheck()) {
+            return false;
+        }
+        config.SummaryEventName = state->summaryEventName.c_str();
     }
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
@@ -79,7 +125,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     config.DisableAdvancedScans = static_cast<bool>(DisableAdvancedScans);
     config.StampEventIKeyForConcerns = static_cast<bool>(StampEventIKeyForConcerns);
 
-    spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
+    state->privacyGuard = std::make_unique<PrivacyGuard>(config);
+    spPrivacyGuard = std::shared_ptr<PrivacyGuard>(state, state->privacyGuard.get());
     return true;
 }
 
@@ -107,28 +154,45 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
         return false;
     }
 
+    auto commonDataContext = GenerateCommonDataContextObject(env,
+                                                            domainName,
+                                                            machineName,
+                                                            userNames,
+                                                            userAliases,
+                                                            ipAddresses,
+                                                            languageIdentifiers,
+                                                            machineIds,
+                                                            outOfScopeIdentifiers);
+    if (env->ExceptionCheck()) {
+        return false;
+    }
     InitializationConfiguration config(
             reinterpret_cast<ILogger *>(iLoggerNativePtr),
-            GenerateCommonDataContextObject(env,
-                                            domainName,
-                                            machineName,
-                                            userNames,
-                                            userAliases,
-                                            ipAddresses,
-                                            languageIdentifiers,
-                                            machineIds,
-                                            outOfScopeIdentifiers));
+            commonDataContext);
 
+    auto state = std::make_shared<PrivacyGuardState>();
     if (NotificationEventName != NULL) {
-        config.NotificationEventName = JStringToStdString(env, NotificationEventName).c_str();
+        state->notificationEventName = JStringToStdString(env, NotificationEventName);
+        if (env->ExceptionCheck()) {
+            return false;
+        }
+        config.NotificationEventName = state->notificationEventName.c_str();
     }
 
     if (SemanticContextEventName != NULL) {
-        config.SemanticContextNotificationEventName = JStringToStdString(env, SemanticContextEventName).c_str();
+        state->semanticContextEventName = JStringToStdString(env, SemanticContextEventName);
+        if (env->ExceptionCheck()) {
+            return false;
+        }
+        config.SemanticContextNotificationEventName = state->semanticContextEventName.c_str();
     }
 
     if (SummaryEventName != NULL) {
-        config.SummaryEventName = JStringToStdString(env, SummaryEventName).c_str();
+        state->summaryEventName = JStringToStdString(env, SummaryEventName);
+        if (env->ExceptionCheck()) {
+            return false;
+        }
+        config.SummaryEventName = state->summaryEventName.c_str();
     }
 
     config.UseEventFieldPrefix = static_cast<bool>(UseEventFieldPrefix);
@@ -136,7 +200,8 @@ Java_com_microsoft_applications_events_PrivacyGuard_nativeInitializePrivacyGuard
     config.DisableAdvancedScans = static_cast<bool>(DisableAdvancedScans);
     config.StampEventIKeyForConcerns = static_cast<bool>(StampEventIKeyForConcerns);
 
-    spPrivacyGuard = std::make_shared<PrivacyGuard>(config);
+    state->privacyGuard = std::make_unique<PrivacyGuard>(config);
+    spPrivacyGuard = std::shared_ptr<PrivacyGuard>(state, state->privacyGuard.get());
     return true;
 }
 
@@ -221,4 +286,3 @@ JNIEXPORT jboolean JNICALL
 Java_com_microsoft_applications_events_PrivacyGuard_isInitialized(const JNIEnv *env, jclass/* this */){
     return spPrivacyGuard != nullptr;
 }
-
