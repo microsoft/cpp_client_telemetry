@@ -114,11 +114,8 @@ static std::string Exec(const char* cmd)
 {
     std::array<char, 128> buffer;
     std::string result;
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), [](FILE* file) {
-        if (file != nullptr) {
-            pclose(file);
-        }
-    });
+    auto close_pipe = [](FILE* file) { pclose(file); };
+    std::unique_ptr<FILE, decltype(close_pipe)> pipe(popen(cmd, "r"), close_pipe);
     if (!pipe)
     {
         // throw std::runtime_error("popen() failed!");
