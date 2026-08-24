@@ -26,6 +26,7 @@
 #endif
 
 #include <utils/Utils.hpp>
+#include "callbacks/DebugSourceInternal.hpp"
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
@@ -1570,12 +1571,27 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 
 namespace
 {
-    struct JniDebugEventListener : DebugEventListener
+    struct JniDebugEventListener;
+    void ReleaseUnregisteredListener(
+        const std::shared_ptr<JniDebugEventListener>& listener);
+
+    struct JniDebugEventListener :
+        DebugEventListener,
+        std::enable_shared_from_this<JniDebugEventListener>
     {
         struct Registration
         {
+            enum class State
+            {
+                Adding,
+                Active,
+                Cancelled,
+                Removing
+            };
+
             jlong logManager;
             DebugEventType eventType;
+            State state;
         };
 
         JavaVM* javaVm;
@@ -1639,6 +1655,8 @@ namespace
 
         void OnDebugEvent(DebugEvent& evt) override
         {
+            auto keepAlive = shared_from_this();
+            ReleaseUnregisteredListener(keepAlive);
             bool detach = false;
             auto env = GetEnv(detach);
             if (env == nullptr)
@@ -1672,7 +1690,7 @@ namespace
             }
             if (detach)
             {
-                javaVm->DetachCurrentThread();
+                keepAlive->javaVm->DetachCurrentThread();
             }
         }
 
@@ -1681,40 +1699,28 @@ namespace
             return env->IsSameObject(javaListener, listener) == JNI_TRUE;
         }
 
-        bool AddRegistration(jlong logManager, DebugEventType eventType)
+        std::vector<Registration>::iterator FindRegistration(
+            jlong logManager,
+            DebugEventType eventType)
         {
-            auto existing = std::find_if(
+            return std::find_if(
                 registrations.begin(),
                 registrations.end(),
                 [logManager, eventType](const Registration& registration) {
                     return registration.logManager == logManager &&
                            registration.eventType == eventType;
                 });
-            if (existing != registrations.end())
-            {
-                return false;
-            }
-
-            registrations.push_back({logManager, eventType});
-            return true;
         }
 
-        bool RemoveRegistration(jlong logManager, DebugEventType eventType)
+        bool HasLiveRegistrations() const
         {
-            auto existing = std::find_if(
+            return std::any_of(
                 registrations.begin(),
                 registrations.end(),
-                [logManager, eventType](const Registration& registration) {
-                    return registration.logManager == logManager &&
-                           registration.eventType == eventType;
+                [](const Registration& registration) {
+                    return registration.state == Registration::State::Adding ||
+                           registration.state == Registration::State::Active;
                 });
-            if (existing == registrations.end())
-            {
-                return false;
-            }
-
-            registrations.erase(existing);
-            return true;
         }
 
        private:
@@ -1740,8 +1746,52 @@ namespace
         }
     };
 
-    static std::vector<std::unique_ptr<JniDebugEventListener>> listeners;
+    static std::vector<std::shared_ptr<JniDebugEventListener>> listeners;
     static std::mutex listeners_mutex;
+
+    void ReleaseUnregisteredListener(
+        const std::shared_ptr<JniDebugEventListener>& listener)
+    {
+        std::lock_guard<std::mutex> lock(listeners_mutex);
+        if (!listener->registrations.empty() ||
+            IsDebugEventListenerPending(listener.get()))
+        {
+            return;
+        }
+
+        auto existing = std::find(listeners.begin(), listeners.end(), listener);
+        if (existing != listeners.end())
+        {
+            existing->reset();
+        }
+    }
+
+    void ReleasePendingJniDebugEventListener(
+        DebugEventListener* listener) noexcept
+    {
+        std::shared_ptr<JniDebugEventListener> callback;
+        {
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            auto existing = std::find_if(
+                listeners.begin(),
+                listeners.end(),
+                [listener](const std::shared_ptr<JniDebugEventListener>& value) {
+                    return value.get() == listener;
+                });
+            if (existing == listeners.end() || (*existing)->HasLiveRegistrations())
+            {
+                return;
+            }
+            callback = *existing;
+        }
+        ReleaseUnregisteredListener(callback);
+    }
+
+    const bool pendingReleaseCallbackRegistered = [] {
+        SetDebugEventListenerPendingReleaseCallback(
+            ReleasePendingJniDebugEventListener);
+        return true;
+    }();
 }  // anonymous namespace
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -1759,71 +1809,158 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return -1;
     }
 
-    auto eventType = static_cast<DebugEventType>(event_type);
-    JniDebugEventListener* callback = nullptr;
-    jlong identity = -1;
+    JavaVM* vm = nullptr;
+    if (env->GetJavaVM(&vm) != JNI_OK)
     {
-        std::lock_guard<std::mutex> lock(listeners_mutex);
-        if (current_identity >= 0 &&
-            current_identity < static_cast<jlong>(listeners.size()) &&
-            listeners[current_identity] &&
-            listeners[current_identity]->IsSameListener(env, listener))
-        {
-            callback = listeners[current_identity].get();
-            identity = current_identity;
-        }
+        return -1;
     }
 
-    if (!callback)
+    try
     {
-        JavaVM* vm = nullptr;
-        if (env->GetJavaVM(&vm) != JNI_OK)
+        auto eventType = static_cast<DebugEventType>(event_type);
+        std::shared_ptr<JniDebugEventListener> callback;
+        jlong identity = -1;
         {
-            return -1;
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            if (current_identity >= 0 &&
+                current_identity < static_cast<jlong>(listeners.size()) &&
+                listeners[current_identity] &&
+                listeners[current_identity]->IsSameListener(env, listener))
+            {
+                callback = listeners[current_identity];
+                identity = current_identity;
+            }
+
+            if (!callback)
+            {
+                auto existing = std::find_if(
+                    listeners.begin(),
+                    listeners.end(),
+                    [env, listener](const std::shared_ptr<JniDebugEventListener>& value) {
+                        return value && value->IsSameListener(env, listener);
+                    });
+                if (existing != listeners.end())
+                {
+                    callback = *existing;
+                    identity = static_cast<jlong>(
+                        std::distance(listeners.begin(), existing));
+                }
+            }
+
+            if (!callback)
+            {
+                callback = std::make_shared<JniDebugEventListener>(env, vm, listener);
+                callback->registrations.push_back(
+                    {native_log_manager, eventType, JniDebugEventListener::Registration::State::Adding});
+
+                auto available = std::find(listeners.begin(), listeners.end(), nullptr);
+                if (available == listeners.end())
+                {
+                    identity = static_cast<jlong>(listeners.size());
+                    listeners.emplace_back(callback);
+                }
+                else
+                {
+                    identity = static_cast<jlong>(std::distance(listeners.begin(), available));
+                    *available = callback;
+                }
+            }
+            else if (callback->FindRegistration(native_log_manager, eventType) !=
+                     callback->registrations.end())
+            {
+                return identity;
+            }
+            else
+            {
+                callback->registrations.push_back(
+                    {native_log_manager, eventType, JniDebugEventListener::Registration::State::Adding});
+            }
         }
 
         try
         {
-            auto newCallback = std::make_unique<JniDebugEventListener>(env, vm, listener);
-            callback = newCallback.get();
-
+            logManager->AddEventListener(eventType, *callback);
+        }
+        catch (...)
+        {
             std::lock_guard<std::mutex> lock(listeners_mutex);
-            auto available = std::find(listeners.begin(), listeners.end(), nullptr);
-            if (available == listeners.end())
+            auto registration =
+                callback->FindRegistration(native_log_manager, eventType);
+            if (registration != callback->registrations.end() &&
+                (registration->state ==
+                     JniDebugEventListener::Registration::State::Adding ||
+                 registration->state ==
+                     JniDebugEventListener::Registration::State::Cancelled))
             {
-                identity = static_cast<jlong>(listeners.size());
-                listeners.emplace_back(std::move(newCallback));
+                callback->registrations.erase(registration);
+            }
+            if (callback->registrations.empty() &&
+                !IsDebugEventListenerPending(callback.get()))
+            {
+                auto existing = std::find(listeners.begin(), listeners.end(), callback);
+                if (existing != listeners.end())
+                {
+                    existing->reset();
+                }
+            }
+            throw;
+        }
+
+        bool removeCancelledRegistration = false;
+        {
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            auto registration =
+                callback->FindRegistration(native_log_manager, eventType);
+            if (registration == callback->registrations.end())
+            {
+                removeCancelledRegistration = true;
+            }
+            else if (registration->state ==
+                     JniDebugEventListener::Registration::State::Cancelled)
+            {
+                removeCancelledRegistration = true;
             }
             else
             {
-                identity = static_cast<jlong>(std::distance(listeners.begin(), available));
-                *available = std::move(newCallback);
+                registration->state =
+                    JniDebugEventListener::Registration::State::Active;
             }
         }
-        catch (const std::exception& e)
-        {
-            if (!env->ExceptionCheck())
-            {
-                auto exceptionClass = env->FindClass("java/lang/RuntimeException");
-                if (exceptionClass != nullptr)
-                {
-                    env->ThrowNew(exceptionClass, e.what());
-                    env->DeleteLocalRef(exceptionClass);
-                }
-            }
-            return -1;
-        }
-    }
 
-    {
-        std::lock_guard<std::mutex> lock(listeners_mutex);
-        if (!callback->AddRegistration(native_log_manager, eventType))
+        if (removeCancelledRegistration)
         {
-            return identity;
+            logManager->RemoveEventListener(eventType, *callback);
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            auto registration =
+                callback->FindRegistration(native_log_manager, eventType);
+            if (registration != callback->registrations.end() &&
+                registration->state ==
+                    JniDebugEventListener::Registration::State::Cancelled)
+            {
+                callback->registrations.erase(registration);
+            }
+            if (callback->registrations.empty() &&
+                !IsDebugEventListenerPending(callback.get()))
+            {
+                listeners[identity].reset();
+            }
         }
+        std::lock_guard<std::mutex> lock(listeners_mutex);
+        return callback->HasLiveRegistrations() ? identity : -1;
     }
-    logManager->AddEventListener(eventType, *callback);
-    return identity;
+    catch (const std::exception& e)
+    {
+        if (!env->ExceptionCheck())
+        {
+            auto exceptionClass = env->FindClass("java/lang/RuntimeException");
+            if (exceptionClass != nullptr)
+            {
+                env->ThrowNew(exceptionClass, e.what());
+                env->DeleteLocalRef(exceptionClass);
+            }
+        }
+        return -1;
+    }
 }
 
 extern "C"
@@ -1835,8 +1972,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jlong eventType,
     jlong identity,
     jobject listener) {
-    JniDebugEventListener* callback = nullptr;
-    auto newIdentity = identity;
+    auto logManager = getLogManager(native_log_manager);
+    std::shared_ptr<JniDebugEventListener> callback;
+    auto event = static_cast<DebugEventType>(eventType);
     {
         std::lock_guard<std::mutex> lock(listeners_mutex);
         if (identity < 0 ||
@@ -1847,36 +1985,49 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
             return identity;
         }
 
-        callback = listeners[identity].get();
-        if (!callback->RemoveRegistration(
-                native_log_manager,
-                static_cast<DebugEventType>(eventType)))
+        callback = listeners[identity];
+        auto registration =
+            callback->FindRegistration(native_log_manager, event);
+        if (registration == callback->registrations.end())
         {
-            return identity;
+            return callback->HasLiveRegistrations() ? identity : -1;
         }
-        if (callback->registrations.empty())
+        if (registration->state ==
+            JniDebugEventListener::Registration::State::Adding)
         {
-            newIdentity = -1;
+            registration->state =
+                JniDebugEventListener::Registration::State::Cancelled;
+            return callback->HasLiveRegistrations() ? identity : -1;
         }
+        if (registration->state !=
+            JniDebugEventListener::Registration::State::Active)
+        {
+            return callback->HasLiveRegistrations() ? identity : -1;
+        }
+        registration->state =
+            JniDebugEventListener::Registration::State::Removing;
     }
 
-    auto logManager = getLogManager(native_log_manager);
     if (logManager != nullptr)
     {
-        logManager->RemoveEventListener(
-            static_cast<DebugEventType>(eventType),
-            *callback);
+        logManager->RemoveEventListener(event, *callback);
     }
-    if (newIdentity < 0)
+
+    std::lock_guard<std::mutex> lock(listeners_mutex);
+    auto registration = callback->FindRegistration(native_log_manager, event);
+    if (registration != callback->registrations.end() &&
+        registration->state ==
+            JniDebugEventListener::Registration::State::Removing)
     {
-        std::lock_guard<std::mutex> lock(listeners_mutex);
-        if (listeners[identity].get() == callback &&
-            callback->registrations.empty())
-        {
-            listeners[identity].reset();
-        }
+        callback->registrations.erase(registration);
     }
-    return newIdentity;
+    if (listeners[identity] == callback &&
+        callback->registrations.empty() &&
+        !IsDebugEventListenerPending(callback.get()))
+    {
+        listeners[identity].reset();
+    }
+    return callback->HasLiveRegistrations() ? identity : -1;
 }
 
 extern "C"
