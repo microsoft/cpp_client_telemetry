@@ -13,6 +13,7 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <utility>
 
 #include <ctime>
@@ -33,9 +34,9 @@ namespace MAT_NS_BEGIN
     ILogManager* LogManagerFactory::Create(ILogConfiguration& configuration)
     {
         LOCKGUARD(ILogManagerInternal::managers_lock);
-        auto logManager = new LogManagerImpl(configuration);
-        ILogManagerInternal::managers.emplace(logManager);
-        return logManager;
+        auto logManager = std::make_unique<LogManagerImpl>(configuration);
+        ILogManagerInternal::managers.emplace(logManager.get());
+        return logManager.release();
     }
 
     /// <summary>
@@ -254,4 +255,3 @@ namespace MAT_NS_BEGIN
 
 }
 MAT_NS_END
-
