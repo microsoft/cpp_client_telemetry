@@ -1,0 +1,9 @@
+// Clang module vended by MATTelemetry.xcframework. Imported by the OneDSSwift
+// Swift layer as `import MATTelemetryObjC`. The module name is kept identical
+// to the one in wrappers/swift/Modules/module.modulemap so the same Swift
+// sources compile against both the local modulemap and this xcframework.
+
+module MATTelemetryObjC {
+    umbrella header "MATTelemetry-umbrella.h"
+    export *
+}
