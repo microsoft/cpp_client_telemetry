@@ -10,7 +10,7 @@ cd "$DIR"
 #    build-ios.sh [clean] [release|debug] ${ARCH} ${PLATFORM}
 #  where
 #    ARCH = arm64|arm64e|x86_64
-#    PLATFORM = iphoneos|iphonesimulator|xros|xrsimulator
+#    PLATFORM = iphoneos|iphonesimulator|maccatalyst|xros|xrsimulator
 
 if [ "$1" == "clean" ]; then
   matsdk_clean_build_outputs "build-ios.sh"
@@ -39,7 +39,7 @@ elif [ "$1" == "x86_64" ]; then
   shift
 fi
 
-# the last param is expected to specify the platform name: iphoneos|iphonesimulator|xros|xrsimulator
+# the last param is expected to specify the platform name: iphoneos|iphonesimulator|maccatalyst|xros|xrsimulator
 # so if it is non-empty and it is not "device", we take it as a valid platform name
 # otherwise we fall back to old iOS logic which only supported iphoneos|iphonesimulator
 APPLE_PLATFORM="iphonesimulator"
@@ -53,19 +53,36 @@ echo "architecture = $APPLE_ARCH, platform = $APPLE_PLATFORM, build type = $BUIL
 
 DEPLOYMENT_TARGET=""
 
-if [ "$APPLE_PLATFORM" == "iphoneos" ] || [ "$APPLE_PLATFORM" == "iphonesimulator" ]; then
-  SYS_NAME="iOS"
-  DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
-  if [ -z "$DEPLOYMENT_TARGET" ]; then
-    DEPLOYMENT_TARGET="13.0"
-  fi
-elif [ "$APPLE_PLATFORM" == "xros" ] || [ "$APPLE_PLATFORM" == "xrsimulator" ]; then
-  SYS_NAME="visionOS"
-  DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
-  if [ -z "$DEPLOYMENT_TARGET" ]; then
-    DEPLOYMENT_TARGET="1.0"
-  fi
-fi
+case "$APPLE_PLATFORM" in
+  iphoneos|iphonesimulator)
+    SYS_NAME="iOS"
+    APPLE_SYSROOT="$APPLE_PLATFORM"
+    DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
+    if [ -z "$DEPLOYMENT_TARGET" ]; then
+      DEPLOYMENT_TARGET="13.0"
+    fi
+    ;;
+  maccatalyst)
+    SYS_NAME="iOS"
+    APPLE_SYSROOT="macosx"
+    DEPLOYMENT_TARGET="$MACCATALYST_DEPLOYMENT_TARGET"
+    if [ -z "$DEPLOYMENT_TARGET" ]; then
+      DEPLOYMENT_TARGET="14.0"
+    fi
+    ;;
+  xros|xrsimulator)
+    SYS_NAME="visionOS"
+    APPLE_SYSROOT="$APPLE_PLATFORM"
+    DEPLOYMENT_TARGET="$CMAKE_OSX_DEPLOYMENT_TARGET"
+    if [ -z "$DEPLOYMENT_TARGET" ]; then
+      DEPLOYMENT_TARGET="1.0"
+    fi
+    ;;
+  *)
+    echo "Unsupported Apple platform '$APPLE_PLATFORM'. Expected iphoneos, iphonesimulator, maccatalyst, xros, or xrsimulator." >&2
+    exit 1
+    ;;
+esac
 
 echo "deployment target = $DEPLOYMENT_TARGET"
 
@@ -86,13 +103,28 @@ PRESET="${PLATFORM_PRESET}-$(echo "$BUILD_TYPE" | tr '[:upper:]' '[:lower:]')"
 cmake_args=(
   cmake --preset "$PRESET"
   "-DCMAKE_SYSTEM_NAME=$SYS_NAME"
-  "-DCMAKE_OSX_SYSROOT=$APPLE_PLATFORM"
+  "-DCMAKE_OSX_SYSROOT=$APPLE_SYSROOT"
   "-DCMAKE_OSX_ARCHITECTURES=$APPLE_ARCH"
   "-DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET"
   "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
   "-DCPACK_GENERATOR=$CPACK_GENERATOR"
 )
+if [ "$APPLE_PLATFORM" == "maccatalyst" ]; then
+  CMAKE_TARGET="${APPLE_ARCH}-apple-ios${DEPLOYMENT_TARGET}-macabi"
+  IOS_SUPPORT_FRAMEWORKS="$(xcrun --sdk macosx --show-sdk-path)/System/iOSSupport/System/Library/Frameworks"
+  cmake_args+=(
+    "-DCMAKE_C_COMPILER_TARGET=$CMAKE_TARGET"
+    "-DCMAKE_CXX_COMPILER_TARGET=$CMAKE_TARGET"
+    "-DCMAKE_OSX_DEPLOYMENT_TARGET="
+    "-DMATSDK_PLATFORM_IOS=ON"
+    "-DCMAKE_C_FLAGS=-iframework ${IOS_SUPPORT_FRAMEWORKS}"
+    "-DCMAKE_CXX_FLAGS=-iframework ${IOS_SUPPORT_FRAMEWORKS}"
+  )
+fi
 matsdk_append_cmake_opts_to_cmake_args
 matsdk_run_logged_command "${cmake_args[@]}"
 
-matsdk_build_and_package_preset "$PRESET"
+cmake --build --preset "$PRESET"
+if [ "${MATTELEMETRY_SKIP_PACKAGE:-}" != "1" ]; then
+  cmake --build --preset "$PRESET" --target package
+fi
