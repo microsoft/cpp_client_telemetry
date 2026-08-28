@@ -188,6 +188,27 @@ TEST(DebugEventSourceTests, DispatchEvent_TwoEventsOneSameAsListenerType_Listene
    ASSERT_EQ(countOfEventsSeen, uint64_t { 1 });
 }
 
+TEST(DebugEventSourceTests, DispatchEvent_ListenerRemovesLaterListener_SnapshotRemainsValid)
+{
+   TestDebugEventSource source;
+   TestDebugEventListener removingListener;
+   TestDebugEventListener removedListener;
+   uint64_t removedListenerCalls {};
+   removingListener.OnDebugEventOverride = [&](DebugEvent&) noexcept {
+       source.RemoveEventListener(EVT_LOG_EVENT, removedListener);
+   };
+   removedListener.OnDebugEventOverride = [&](DebugEvent&) noexcept {
+       removedListenerCalls++;
+   };
+   source.AddEventListener(EVT_LOG_EVENT, removingListener);
+   source.AddEventListener(EVT_LOG_EVENT, removedListener);
+
+   source.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+   source.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+
+   ASSERT_EQ(removedListenerCalls, uint64_t { 1 });
+}
+
 TEST(DebugEventSourceTests, DispatchEvent_OneEventToCascaded_ListenerSeesOneEvent)
 {
    TestDebugEventSource source;
@@ -216,5 +237,4 @@ TEST(DebugEventSourceTests, DispatchEvent_OneEventToCascadedAndToSource_Listener
    source.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
    ASSERT_EQ(sequenceNumberToCountMap[1], uint64_t { 2 });
 }
-
 
