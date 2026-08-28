@@ -136,15 +136,21 @@ class HttpClientManagerTests : public StrictMock<Test> {
     HttpClientManager4Test hcm;
 
     RouteSink<HttpClientManagerTests, EventsUploadContextPtr const&> requestDone{this, &HttpClientManagerTests::resultRequestDone};
+    RouteSink<HttpClientManagerTests, EventsUploadContextPtr const&> requestFailed{this, &HttpClientManagerTests::resultRequestFailed};
+    RouteSink<HttpClientManagerTests, EventsUploadContextPtr const&> requestFailureComplete{this, &HttpClientManagerTests::resultRequestFailureComplete};
 
   protected:
     HttpClientManagerTests()
       : hcm(httpClientMock)
     {
         hcm.requestDone >> requestDone;
+        hcm.requestFailed >> requestFailed;
+        hcm.requestFailureComplete >> requestFailureComplete;
     }
 
     MOCK_METHOD1(resultRequestDone, void(EventsUploadContextPtr const &));
+    MOCK_METHOD1(resultRequestFailed, void(EventsUploadContextPtr const &));
+    MOCK_METHOD1(resultRequestFailureComplete, void(EventsUploadContextPtr const &));
 };
 
 class MockBoundedIHttpClient : public MockIHttpClient, public IBoundedHttpClientCancel {
@@ -194,7 +200,7 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
     EXPECT_THAT(ctx->durationMs, Gt(199));
 }
 
-TEST_F(HttpClientManagerTests, ThrowingRequestDoneStillDrainsCallback)
+TEST_F(HttpClientManagerTests, ThrowingRequestDoneSettlesFailureAndDrainsCallback)
 {
     auto ctx = std::make_shared<EventsUploadContext>();
     ctx->httpRequest = new SimpleHttpRequest("throwing-request-done");
@@ -211,8 +217,39 @@ TEST_F(HttpClientManagerTests, ThrowingRequestDoneStillDrainsCallback)
 
     EXPECT_CALL(*this, resultRequestDone(ctx))
         .WillOnce(Throw(std::runtime_error("listener failed")));
+    {
+        InSequence sequence;
+        EXPECT_CALL(*this, resultRequestFailed(ctx));
+        EXPECT_CALL(*this, resultRequestFailureComplete(ctx));
+    }
 
     EXPECT_NO_THROW(callback->OnHttpResponse(new SimpleHttpResponse("throwing-request-done")));
+    EXPECT_THAT(hcm.requestCount(), 0u);
+}
+
+TEST_F(HttpClientManagerTests, ThrowingFailureReleaseStillCompletesRequest)
+{
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("throwing-failure-release");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+    ctx->recordIdsAndTenantIds["r1"] = "t1";
+    ctx->latency = EventLatency_Normal;
+    ctx->packageIds["tenant1-token"] = 0;
+
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(httpClientMock, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    hcm.sendRequest(ctx);
+    ASSERT_THAT(callback, NotNull());
+
+    EXPECT_CALL(*this, resultRequestDone(ctx))
+        .WillOnce(Throw(std::runtime_error("listener failed")));
+    EXPECT_CALL(*this, resultRequestFailed(ctx))
+        .WillOnce(Throw(std::runtime_error("release failed")));
+    EXPECT_CALL(*this, resultRequestFailureComplete(ctx));
+
+    EXPECT_NO_THROW(callback->OnHttpResponse(
+        new SimpleHttpResponse("throwing-failure-release")));
     EXPECT_THAT(hcm.requestCount(), 0u);
 }
 

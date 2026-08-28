@@ -237,10 +237,12 @@ namespace MAT_NS_BEGIN {
         catch (const std::exception& ex)
         {
             LOG_ERROR("Unhandled exception in HTTP response callback: %s", ex.what());
+            notifyRequestFailure(ctx);
         }
         catch (...)
         {
             LOG_ERROR("Unhandled non-standard exception in HTTP response callback");
+            notifyRequestFailure(ctx);
         }
         // request done should be handled by now
 
@@ -255,6 +257,40 @@ namespace MAT_NS_BEGIN {
         }
 
         delete callback;
+    }
+
+    void HttpClientManager::notifyRequestFailure(EventsUploadContextPtr const& ctx) noexcept
+    {
+#if HAVE_EXCEPTIONS
+        try
+        {
+            requestFailed(ctx);
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("Unhandled exception while releasing failed HTTP request: %s", ex.what());
+        }
+        catch (...)
+        {
+            LOG_ERROR("Unhandled non-standard exception while releasing failed HTTP request");
+        }
+
+        try
+        {
+            requestFailureComplete(ctx);
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("Unhandled exception while completing failed HTTP request: %s", ex.what());
+        }
+        catch (...)
+        {
+            LOG_ERROR("Unhandled non-standard exception while completing failed HTTP request");
+        }
+#else
+        requestFailed(ctx);
+        requestFailureComplete(ctx);
+#endif
     }
 
     void HttpClientManager::cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout)

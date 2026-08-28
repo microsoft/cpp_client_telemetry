@@ -192,6 +192,8 @@ namespace MAT_NS_BEGIN {
 #endif
 
         hcm.requestDone >> clockSkewDelta.decode >> httpDecoder.decode;
+        hcm.requestFailed >> storage.releaseRecords >> stats.onUploadFailed;
+        hcm.requestFailureComplete >> tpm.eventsUploadAborted;
 
         httpDecoder.eventsAccepted >> storage.deleteRecords >> stats.onUploadSuccessful >> tpm.eventsUploadSuccessful;
         httpDecoder.eventsRejected >> storage.deleteRecords >> stats.onUploadRejected >> tpm.eventsUploadRejected;
@@ -251,4 +253,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

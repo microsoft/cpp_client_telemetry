@@ -149,6 +149,17 @@ TEST_F(TransmissionPolicyManagerTests, StopLeavesNoScheduledUploads)
     EXPECT_THAT(tpm.activeUploads(), SizeIs(0));
 }
 
+TEST_F(TransmissionPolicyManagerTests, DuplicateTerminalNotificationIsIgnored)
+{
+    tpm.paused(true);
+    auto ctx = tpm.fakeActiveUpload();
+
+    tpm.eventsUploadAborted(ctx);
+    tpm.eventsUploadAborted(ctx);
+
+    EXPECT_THAT(tpm.activeUploads(), IsEmpty());
+}
+
 TEST_F(TransmissionPolicyManagerTests, IncomingEventDoesNothingWhenPaused)
 {
     tpm.paused(true);

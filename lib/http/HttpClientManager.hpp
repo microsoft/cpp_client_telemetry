@@ -48,6 +48,8 @@ class HttpClientManager
         }
 
         RouteSource<EventsUploadContextPtr const&> requestDone;
+        RouteSource<EventsUploadContextPtr const&> requestFailed;
+        RouteSource<EventsUploadContextPtr const&> requestFailureComplete;
 
         RouteSink<HttpClientManager, EventsUploadContextPtr const&> sendRequest
         {
@@ -56,11 +58,11 @@ class HttpClientManager
 
     protected:
         class HttpCallback;
-        friend class HttpCallback;
 
         void handleSendRequest(EventsUploadContextPtr const& ctx);
         virtual void scheduleOnHttpResponse(HttpCallback* callback);
         void onHttpResponse(HttpCallback* callback);
+        void notifyRequestFailure(EventsUploadContextPtr const& ctx) noexcept;
         void cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());
         void cancelTrackedRequestsAsync();
 
