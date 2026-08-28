@@ -1,6 +1,5 @@
 plugins {
     id 'maven-publish'
-    id 'net.linguica.maven-settings' version '0.5'
 }
 
 apply plugin: 'com.android.library'
