@@ -1787,11 +1787,14 @@ namespace
         ReleaseUnregisteredListener(callback);
     }
 
-    const bool pendingReleaseCallbackRegistered = [] {
-        SetDebugEventListenerPendingReleaseCallback(
-            ReleasePendingJniDebugEventListener);
-        return true;
-    }();
+    void EnsurePendingReleaseCallbackRegistered()
+    {
+        static std::once_flag registerCallback;
+        std::call_once(registerCallback, [] {
+            SetDebugEventListenerPendingReleaseCallback(
+                ReleasePendingJniDebugEventListener);
+        });
+    }
 }  // anonymous namespace
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -1817,6 +1820,8 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 
     try
     {
+        EnsurePendingReleaseCallbackRegistered();
+
         auto eventType = static_cast<DebugEventType>(event_type);
         std::shared_ptr<JniDebugEventListener> callback;
         jlong identity = -1;
