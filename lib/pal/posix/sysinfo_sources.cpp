@@ -114,7 +114,8 @@ static std::string Exec(const char* cmd)
 {
     std::array<char, 128> buffer;
     std::string result;
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    auto close_pipe = [](FILE* file) { pclose(file); };
+    std::unique_ptr<FILE, decltype(close_pipe)> pipe(popen(cmd, "r"), close_pipe);
     if (!pipe)
     {
         // throw std::runtime_error("popen() failed!");
@@ -349,4 +350,3 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     }
 
 }
-
