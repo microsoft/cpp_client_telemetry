@@ -114,6 +114,15 @@ TEST(EventPropertiesTests, Properties)
     EXPECT_THAT(ep.GetPiiProperties(), IsEmpty());
 }
 
+TEST(EventPropertiesTests, SelfAssignmentPreservesValue)
+{
+    EventProperty property("value");
+
+    property = property;
+
+    EXPECT_EQ(property, EventProperty("value"));
+}
+
 TEST(EventPropertiesTests, NumericProperties)
 {
     EventProperties ep("test");
