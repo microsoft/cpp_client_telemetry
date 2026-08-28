@@ -208,6 +208,7 @@ std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const
         auto jStringValue = static_cast<jstring>(env->GetObjectArrayElement(jArrayToConvert, i));
         if (env->ExceptionCheck())
         {
+            env->DeleteLocalRef(jStringValue);
             return stringVector;
         }
         auto stringValue = JStringToStdString(env, jStringValue);
