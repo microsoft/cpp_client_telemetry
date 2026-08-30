@@ -395,14 +395,21 @@ namespace MAT_NS_BEGIN {
             auto memoryRecords =
                 m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
             std::vector<StorageRecord> persistentRecords;
+            std::vector<StorageRecord> memoryOnlyRecords;
             persistentRecords.reserve(memoryRecords.size());
+            memoryOnlyRecords.reserve(memoryRecords.size());
             for (auto& record : memoryRecords)
             {
                 if (record.persistence != EventPersistence_DoNotStoreOnDisk)
                 {
                     persistentRecords.push_back(std::move(record));
                 }
+                else
+                {
+                    memoryOnlyRecords.push_back(std::move(record));
+                }
             }
+            m_offlineStorageMemory->StoreRecords(memoryOnlyRecords);
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)

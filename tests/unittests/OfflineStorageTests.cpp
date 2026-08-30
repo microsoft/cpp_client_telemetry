@@ -654,6 +654,55 @@ namespace MAT_NS_BEGIN
         handler.Shutdown();
     }
 
+    TEST_F(OfflineStorageHandlerTests, FlushKeepsMemoryOnlyRecordsInMemory)
+    {
+        CountingLogManager logManager;
+        NoCheckpointRuntimeConfig config;
+        NoopTaskDispatcher taskDispatcher;
+        ConfigureMemoryCache(config, 1024 * 1024);
+        auto diskStorage = AttachDiskStorage(logManager);
+        StrictMock<testing::MockIOfflineStorageObserver> observer;
+        OfflineStorageHandler handler(logManager, config, taskDispatcher);
+        EXPECT_CALL(*diskStorage, Initialize(_));
+        handler.Initialize(observer);
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord("persisted-id")));
+        ASSERT_TRUE(handler.StoreRecord(MakeRecord(
+            "memory-only-id",
+            EventPersistence_DoNotStoreOnDisk)));
+
+        EXPECT_CALL(*diskStorage, StoreRecords(_))
+            .WillOnce(Invoke([](const std::vector<StorageRecord>& records)
+            {
+                EXPECT_THAT(records, SizeIs(1));
+                if (!records.empty())
+                {
+                    EXPECT_EQ(records.front().id, "persisted-id");
+                }
+                return records.size();
+            }));
+        EXPECT_CALL(observer, OnStorageRecordsSaved(1));
+        handler.Flush();
+
+        std::vector<StorageRecord> retrievedRecords;
+        ASSERT_TRUE(handler.GetAndReserveRecords(
+            [&retrievedRecords](StorageRecord&& record)
+            {
+                retrievedRecords.push_back(std::move(record));
+                return true;
+            },
+            0,
+            EventLatency_Unspecified,
+            1));
+        ASSERT_THAT(retrievedRecords, SizeIs(1));
+        EXPECT_EQ(retrievedRecords.front().id, "memory-only-id");
+        EXPECT_EQ(
+            retrievedRecords.front().persistence,
+            EventPersistence_DoNotStoreOnDisk);
+
+        EXPECT_CALL(*diskStorage, Shutdown());
+        handler.Shutdown();
+    }
+
     TEST_F(OfflineStorageHandlerTests, ShutdownFlushesMemoryAfterActivityPause)
     {
         PausedLogManager logManager;
