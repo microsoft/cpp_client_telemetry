@@ -285,7 +285,7 @@ TEST_F(TransmissionPolicyManagerTests, UploadPostponedWithInsufficientAvailableB
         .WillOnce(Return(999999));
     EXPECT_CALL(tpm, scheduleUpload(1000, EventLatency_Normal, false))
         .WillOnce(Return());
-    tpm.uploadAsync(EventLatency_Normal);
+    tpm.uploadAsyncParent(EventLatency_Normal);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
 }
@@ -299,7 +299,7 @@ TEST_F(TransmissionPolicyManagerTests, UploadInitiatesUpload)
     EventsUploadContextPtr upload;
     EXPECT_CALL(*this, resultInitiateUpload(_))
         .WillOnce(SaveArg<0>(&upload));
-    tpm.uploadAsync(EventLatency_Normal);
+    tpm.uploadAsyncParent(EventLatency_Normal);
 
     EXPECT_THAT(tpm.uploadScheduled(), false);
     EXPECT_THAT(upload, NotNull());
