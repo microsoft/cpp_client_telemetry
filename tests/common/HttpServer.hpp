@@ -236,7 +236,13 @@ class HttpServer : private Reactor::Callback
 
         int sent = conn.socket.send(conn.sendBuffer.data(), static_cast<int>(conn.sendBuffer.size()));
         LOG_TRACE("HttpServer: [%s] sent %d", conn.request.client.c_str(), sent);
-        if (sent < 0 && conn.socket.error() != Socket::ErrorWouldBlock) {
+        if (sent < 0 && conn.socket.error() == Socket::ErrorWouldBlock)
+        {
+            return true;
+        }
+        if (sent <= 0)
+        {
+            handleConnectionClosed(conn);
             return true;
         }
         conn.sendBuffer.erase(0, sent);
@@ -662,4 +668,3 @@ class HttpServer : private Reactor::Callback
 
 
 } // namespace testing
-
