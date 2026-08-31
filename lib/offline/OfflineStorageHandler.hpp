@@ -26,8 +26,6 @@ namespace MAT_NS_BEGIN {
 
     class OfflineStorageHandler final : public IOfflineStorage, public IOfflineStorageObserver
     {
-        friend class OfflineStorageFlushTask;
-
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
         virtual ~OfflineStorageHandler() override;
@@ -81,6 +79,8 @@ namespace MAT_NS_BEGIN {
         bool isKilled(StorageRecord const& record);
 
     private:
+        class OfflineStorageFlushTask;
+
         enum class StoragePhase { Accepting, Draining, TearingDown, Stopped };
 
         std::mutex                             m_stateMutex;

@@ -55,7 +55,6 @@ class HttpClient_WinHttp : public IHttpClient, public IBoundedHttpClientCancel {
   protected:
     std::shared_ptr<WinHttpClientState> m_state;
     static unsigned                  s_nextRequestId;
-    friend class WinHttpRequestWrapper;
 };
 
 } MAT_NS_END

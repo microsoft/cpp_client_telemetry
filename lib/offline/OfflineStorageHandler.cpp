@@ -89,7 +89,7 @@ namespace MAT_NS_BEGIN {
         }
     }
 
-    class OfflineStorageFlushTask final : public Task
+    class OfflineStorageHandler::OfflineStorageFlushTask final : public Task
     {
     public:
         explicit OfflineStorageFlushTask(OfflineStorageHandler& handler) :
