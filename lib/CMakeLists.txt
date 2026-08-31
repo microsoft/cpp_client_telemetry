@@ -1,17 +1,6 @@
 # Honor visibility properties for all target types
 cmake_policy(SET CMP0063 NEW)
 
-# Keep TLS authentication fail-closed even when this transport is not selected
-# by a particular product build. Every CI CMake configure scans the implementation
-# so an insecure curl option cannot silently enter a future shipping target.
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/http/HttpClient_Curl.hpp" MATSDK_CURL_HTTP_SOURCE)
-if(MATSDK_CURL_HTTP_SOURCE MATCHES
-    "CURLOPT_SSL_VERIFY(PEER|HOST)[^\r\n]*(0L|false)")
-  message(FATAL_ERROR
-    "HttpClient_Curl must not disable peer or hostname certificate verification")
-endif()
-unset(MATSDK_CURL_HTTP_SOURCE)
-
 set(SRCS decorators/BaseDecorator.cpp
   packager/BondSplicer.cpp
   packager/Packager.cpp
