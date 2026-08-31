@@ -331,7 +331,12 @@ namespace SocketTools {
                 struct kevent& event = m_events[i];
                 int fd = (int)event.ident;
                 auto it = std::find(m_sockets.begin(), m_sockets.end(), fd);
-                assert(it != m_sockets.end());
+                if (it == m_sockets.end())
+                {
+                    // An earlier notification in this batch may have closed and
+                    // removed the socket. Discard any remaining stale events.
+                    continue;
+                }
                 Socket socket = it->socket;
                 int flags = it->flags;
 

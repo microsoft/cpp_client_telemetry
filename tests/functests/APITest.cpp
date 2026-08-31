@@ -1306,10 +1306,10 @@ TEST(APITest, WindowsHttpTransport_MsRoot_Check)
 #else
 #error A Windows HTTP transport must be selected.
 #endif
-        EXPECT_NE(windowsClient, nullptr);
         if (windowsClient == nullptr)
         {
-            return RequestOutcome {};
+            ADD_FAILURE() << "HttpClientFactory returned the wrong Windows transport";
+            return RequestOutcome{};
         }
         windowsClient->SetMsRootCheck(enforceMsRoot);
 
