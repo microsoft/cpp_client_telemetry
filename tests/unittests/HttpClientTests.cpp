@@ -29,6 +29,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <future>
 #include <thread>
 
 using namespace testing;
@@ -489,6 +490,31 @@ TEST_F(HttpClientTests, CancelBeforeSendCompletesExactlyOneAborted)
     EXPECT_THAT(_responses[0]->GetResult(), HttpResult_Aborted);
     EXPECT_FALSE(_responseCv.wait_for(lock, std::chrono::milliseconds(250),
         [this]() { return _responses.size() > 1; }));
+}
+
+TEST_F(HttpClientTests, CancelAllReturnsWithUnsentRequest)
+{
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    std::string requestId = request->GetId();
+    request->SetUrl("http://" + _hostname + "/simple/200");
+
+    auto cancel = std::async(std::launch::async, [this]()
+                             { _client->CancelAllRequests(); });
+    ASSERT_EQ(cancel.wait_for(std::chrono::seconds(5)), std::future_status::ready);
+    cancel.get();
+
+    _client->SendRequestAsync(request.get(), this);
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+                                     [this]()
+                                     { return !_responses.empty(); }));
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_THAT(_responses[0]->GetId(), requestId);
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_Aborted);
+    EXPECT_FALSE(_responseCv.wait_for(lock, std::chrono::milliseconds(250),
+                                      [this]()
+                                      { return _responses.size() > 1; }));
 }
 
 TEST_F(HttpClientTests, CancelAfterRegisterCompletesExactlyOneAborted)

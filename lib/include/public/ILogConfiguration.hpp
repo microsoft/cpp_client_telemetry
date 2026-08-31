@@ -372,7 +372,9 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_HTTP_COMPRESSION = "compress";
 
     /// <summary>
-    /// HTTP configuration: SSL certificate verification (peer + host)
+    /// HTTP configuration: SSL certificate verification (peer + host).
+    /// Retained for compatibility; the curl transport always verifies TLS and
+    /// ignores attempts to set this value to false.
     /// </summary>
     static constexpr const char* const CFG_BOOL_HTTP_SSL_VERIFY = "sslVerify";
 
@@ -481,4 +483,3 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 #endif
-

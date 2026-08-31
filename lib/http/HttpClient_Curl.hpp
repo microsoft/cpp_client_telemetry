@@ -108,6 +108,8 @@ public:
     virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) override;
 
     virtual void ApplySettings(ILogConfiguration& config) override;
+    // sslVerify is retained for source compatibility, but false is ignored:
+    // production transports always verify the peer certificate and hostname.
     void SetSslVerification(bool sslVerify, const std::string& caInfo = "");
 
 private:
@@ -291,6 +293,10 @@ public:
             // Local vars
             m_requestBody(requestBody)
     {
+        // sslVerify is retained for source compatibility. Disabling TLS
+        // authentication is never permitted by the production transport.
+        (void)sslVerify;
+
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
         response.size = 0;
@@ -313,8 +319,8 @@ public:
 
         if (!SetOption(CURLOPT_VERBOSE, 0L) ||
             !SetOption(CURLOPT_URL, m_url.c_str()) ||
-            !SetOption(CURLOPT_SSL_VERIFYPEER, sslVerify ? 1L : 0L) ||
-            !SetOption(CURLOPT_SSL_VERIFYHOST, sslVerify ? 2L : 0L) ||
+            !SetOption(CURLOPT_SSL_VERIFYPEER, 1L) ||
+            !SetOption(CURLOPT_SSL_VERIFYHOST, 2L) ||
             (!m_sslCaInfo.empty() && !SetOption(CURLOPT_CAINFO, m_sslCaInfo.c_str())) ||
             // The worker is one thread of a host process this SDK does not own:
             // never let libcurl install process-wide signal handlers or use

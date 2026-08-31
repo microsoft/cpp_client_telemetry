@@ -323,7 +323,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         PCCERT_CHAIN_CONTEXT pCertCtx = nullptr;
         DWORD dwCertChainContextSize = sizeof(PCCERT_CHAIN_CONTEXT);
         // That option is available in MSIE 8.x+ since Windows 7.1 and Win Server
-        // 2008 R2. On downlevel OS the call fails; we then preserve fail-open.
+        // 2008 R2. If the chain cannot be obtained, the optional policy fails closed.
         if (::InternetQueryOption(m_hWinInetRequest, INTERNET_OPTION_SERVER_CERT_CHAIN_CONTEXT, (LPVOID)&pCertCtx, &dwCertChainContextSize))
         {
             query.chainQuerySucceeded = true;
@@ -359,7 +359,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
      * Run the MS-root certificate policy exactly once per request handle, from
      * the SENDING_REQUEST notification. A confirmed non-MS-root rejection
      * aborts the logical request and is reported as NetworkFailure/status 0.
-     * Inability to evaluate preserves origin/master fail-open behavior.
+     * Inability to evaluate also rejects the request.
      */
     void runMsRootCheckOnce()
     {
@@ -376,8 +376,12 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         detail::MsRootPolicyDecision decision;
         {
             std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            if (m_hWinInetRequest == nullptr)
+            {
+                return;
+            }
             decision = evaluateServerCertificatePolicyLocked();
-            if (decision == detail::MsRootPolicyDecision::Reject)
+            if (!detail::ShouldProceed(decision))
             {
                 // We still own a live handle under this lock, so this evaluated
                 // rejection takes precedence over a cancellation that has not yet
@@ -404,18 +408,18 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 return;
 
             case detail::MsRootPolicyDecision::Unable:
-                LOG_WARN("MS-root certificate policy could not be evaluated; proceeding (fail-open)");
-                return;
+                LOG_ERROR("MS-root certificate policy could not be evaluated; aborting request");
+                break;
 
             case detail::MsRootPolicyDecision::Reject:
-                LOG_WARN("Server certificate chain is not MS-rooted; aborting request");
-                if (requestToClose != nullptr)
-                {
-                    // InternetCloseHandle may synchronously deliver HANDLE_CLOSING.
-                    // The callback holds its own shared_ptr before this call.
-                    ::InternetCloseHandle(requestToClose);
-                }
-                return;
+                LOG_ERROR("Server certificate chain is not MS-rooted; aborting request");
+                break;
+        }
+        if (requestToClose != nullptr)
+        {
+            // InternetCloseHandle may synchronously deliver HANDLE_CLOSING.
+            // The callback holds its own shared_ptr before this call.
+            ::InternetCloseHandle(requestToClose);
         }
     }
 
@@ -666,6 +670,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         {
             // WinInet is permitted to finish an asynchronous-session request
             // synchronously. A TRUE return is success, not an error.
+            runMsRootCheckOnce();
             onRequestComplete(ERROR_SUCCESS);
             return;
         }
@@ -730,6 +735,13 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 }
                 INTERNET_ASYNC_RESULT const& result =
                     *static_cast<INTERNET_ASYNC_RESULT const*>(lpvStatusInformation);
+                if (result.dwError == ERROR_SUCCESS)
+                {
+                    // SENDING_REQUEST is the primary post-handshake hook. Check
+                    // again before processing a successful response so a missing
+                    // notification cannot bypass the optional root policy.
+                    self->runMsRootCheckOnce();
+                }
                 self->onRequestComplete(result.dwError);
                 return;
             }

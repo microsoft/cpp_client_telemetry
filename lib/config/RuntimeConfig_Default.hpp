@@ -61,7 +61,7 @@ namespace MAT_NS_BEGIN
              {"contentEncoding", "deflate"},
              /* Optional parameter to require Microsoft Root CA */
              {CFG_BOOL_HTTP_MS_ROOT_CHECK, false},
-             /* Optional parameter for SSL certificate verification (curl) */
+             /* Compatibility parameter; curl verification cannot be disabled */
              {CFG_BOOL_HTTP_SSL_VERIFY, true},
              /* Optional CA bundle path for OpenSSL-backed curl */
              {CFG_STR_HTTP_SSL_CAINFO, ""}}},
@@ -233,4 +233,3 @@ namespace MAT_NS_BEGIN
 
 }
 MAT_NS_END
-

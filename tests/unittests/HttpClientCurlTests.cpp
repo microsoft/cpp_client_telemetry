@@ -62,8 +62,10 @@ TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithVerifyTrue)
     ASSERT_NE(op.GetHandle(), nullptr);
 }
 
-TEST_F(HttpClientCurlTests, CurlHttpOperation_ConstructsWithVerifyFalse)
+TEST_F(HttpClientCurlTests, CurlHttpOperation_IgnoresLegacyVerifyFalse)
 {
+    // The argument remains in the internal constructor for source compatibility,
+    // but the operation always configures peer and hostname verification.
     CurlHttpOperation op("GET", "https://example.com", nullptr,
         m_headers, m_body,
         false, 5, false, "");
@@ -152,8 +154,10 @@ TEST(HttpClientCurlConfigTests, LogConfiguration_SslCaInfo_DefaultIsEmpty)
     EXPECT_STREQ(caInfo, "");
 }
 
-TEST(HttpClientCurlConfigTests, LogConfiguration_SslVerify_CanBeDisabled)
+TEST(HttpClientCurlConfigTests, LogConfiguration_LegacySslVerifyFalseRemainsReadable)
 {
+    // Keep parsing the legacy setting for configuration compatibility. The curl
+    // transport ignores false and always enables peer and hostname verification.
     ILogConfiguration config;
     config[CFG_MAP_HTTP][CFG_BOOL_HTTP_SSL_VERIFY] = false;
     bool sslVerify = config[CFG_MAP_HTTP][CFG_BOOL_HTTP_SSL_VERIFY];
@@ -170,13 +174,14 @@ TEST(HttpClientCurlConfigTests, LogConfiguration_SslCaInfo_CanBeSet)
 
 // --- ApplySettings integration ---
 
-TEST_F(HttpClientCurlTests, ApplySettings_ReadsSslConfigFromLogConfiguration)
+TEST_F(HttpClientCurlTests, ApplySettingsAcceptsLegacySslDisableAndCaInfo)
 {
     ILogConfiguration config;
     config[CFG_MAP_HTTP][CFG_BOOL_HTTP_SSL_VERIFY] = false;
     config[CFG_MAP_HTTP][CFG_STR_HTTP_SSL_CAINFO] = "/custom/ca.pem";
     m_client.ApplySettings(config);
-    // Verify indirectly -- constructing an operation should not fail
+    // The compatibility setting is accepted, but transport construction always
+    // applies CURLOPT_SSL_VERIFYPEER=1 and CURLOPT_SSL_VERIFYHOST=2.
     SUCCEED();
 }
 

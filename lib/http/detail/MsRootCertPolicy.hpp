@@ -29,10 +29,9 @@ namespace detail
     /// The distinction between <c>Reject</c> and <c>Unable</c> is the whole point
     /// of this helper: the legacy transport collapsed both into a single "not
     /// trusted" boolean, which conflated "the chain was evaluated and is not
-    /// MS-rooted" with "the chain could not be evaluated at all". The product
-    /// decision is to fail OPEN (proceed) when evaluation cannot be performed and
-    /// to fail CLOSED (reject) only when a chain was actually evaluated and found
-    /// to violate the Microsoft-root policy.
+    /// MS-rooted" with "the chain could not be evaluated at all". The policy
+    /// fails closed whenever evaluation cannot establish that the server
+    /// certificate satisfies the Microsoft-root requirement.
     /// </summary>
     enum class MsRootPolicyDecision
     {
@@ -44,10 +43,9 @@ namespace detail
         /// policy engine reported an explicit policy error). Reject the request.
         Reject,
 
-        /// The chain could not be queried, built, or verified. Per the preserved
-        /// origin/master behavior this fails OPEN (treated as Allow by
-        /// ShouldProceed), but it is reported distinctly so callers can emit a
-        /// diagnostic rather than silently proceeding.
+        /// The chain could not be queried, built, or verified. This is distinct
+        /// from an evaluated rejection for diagnostics, but both outcomes stop
+        /// the request.
         Unable
     };
 
@@ -91,15 +89,14 @@ namespace detail
             return MsRootPolicyDecision::Allow;
         }
 
-        // Could not obtain a chain to evaluate -> cannot evaluate -> fail open.
+        // Could not obtain a chain to evaluate -> cannot establish trust.
         if (!query.chainQuerySucceeded || !query.chainContextPresent)
         {
             return MsRootPolicyDecision::Unable;
         }
 
         // Obtained a chain but the verification API itself did not run to
-        // completion -> cannot evaluate -> fail open. (The legacy code treated
-        // this as a rejection; the product decision is to preserve fail-open.)
+        // completion -> cannot establish trust.
         if (!query.policyCheckPerformed)
         {
             return MsRootPolicyDecision::Unable;
@@ -115,12 +112,11 @@ namespace detail
     }
 
     /// <summary>
-    /// Convenience predicate expressing the fail-open contract: only a confirmed
-    /// Reject stops the request; Allow and Unable both proceed.
+    /// Only a successfully evaluated Allow permits the request.
     /// </summary>
     inline bool ShouldProceed(MsRootPolicyDecision decision) noexcept
     {
-        return decision != MsRootPolicyDecision::Reject;
+        return decision == MsRootPolicyDecision::Allow;
     }
 
 }  // namespace detail

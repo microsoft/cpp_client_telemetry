@@ -672,7 +672,11 @@ namespace MAT_NS_BEGIN {
     void HttpClient_Curl::SetSslVerification(bool sslVerify, const std::string& caInfo)
     {
         std::lock_guard<std::mutex> lock(m_state->mutex);
-        m_state->sslVerify.store(sslVerify, std::memory_order_release);
+        if (!sslVerify)
+        {
+            LOG_WARN("Ignoring sslVerify=false: curl TLS certificate and hostname verification cannot be disabled");
+        }
+        m_state->sslVerify.store(true, std::memory_order_release);
         m_state->sslCaInfo = caInfo;
     }
 

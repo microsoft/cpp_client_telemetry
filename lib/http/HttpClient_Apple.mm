@@ -428,7 +428,7 @@ public:
         // Do not touch `this` after invoking the callback: it may delete the request.
     }
 
-    void Cancel()
+    bool Cancel()
     {
         // Only set the flag and cancel the in-flight task; never invoke the callback
         // here. A cancel before SendAsync has no callback yet, so completing from
@@ -440,6 +440,7 @@ public:
         {
             [m_dataTask cancel];
         }
+        return m_callback == nullptr && m_dataTask == nil;
     }
 
 private:
@@ -520,9 +521,9 @@ void HttpClient_Apple::CancelRequestAsync(const std::string& id)
 {
     // Hold the requests mutex across Cancel(): Cancel() only flips the per-request
     // flag and cancels the NSURLSession task, and never completes synchronously.
-    // That lets the mutex pin the raw request lifetime while we touch it. The
-    // terminal path removes the request from this map immediately before invoking
-    // the callback, so a callback-time delete cannot race a later cancel.
+    // That lets the mutex pin the raw request lifetime while we touch it. A request
+    // that has never started has no callback capable of removing it, so retire it
+    // here; a later SendAsync still observes its cancel flag and delivers Aborted.
     std::lock_guard<std::mutex> lock(m_requestsMtx);
     auto it = m_requests.find(id);
     if (it != m_requests.cend())
@@ -531,32 +532,33 @@ void HttpClient_Apple::CancelRequestAsync(const std::string& id)
         if (request != nullptr)
         {
             LOG_TRACE("HTTP request=%p id=%s being aborted...", request, id.c_str());
-            request->Cancel();
+            if (request->Cancel())
+            {
+                m_requests.erase(it);
+            }
         }
     }
 }
 
 void HttpClient_Apple::CancelAllRequests()
 {
-    std::vector<std::string> ids;
-    {
-        std::lock_guard<std::mutex> lock(m_requestsMtx);
-        for (auto const& item : m_requests) {
-            ids.push_back(item.first);
-        }
-    }
-
-    for (const auto &id : ids)
-        CancelRequestAsync(id);
-
     for (;;)
     {
+        std::vector<std::string> ids;
         {
             std::lock_guard<std::mutex> lock(m_requestsMtx);
             if (m_requests.empty())
             {
                 return;
             }
+            for (auto const& item : m_requests)
+            {
+                ids.push_back(item.first);
+            }
+        }
+        for (const auto& id : ids)
+        {
+            CancelRequestAsync(id);
         }
         PAL::sleep(100);
     }

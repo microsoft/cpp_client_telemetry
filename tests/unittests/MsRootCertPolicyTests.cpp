@@ -10,9 +10,7 @@
 // could not represent, so they FAIL against the old behavior:
 //   1. "could not evaluate" is distinct from "evaluated and rejected"
 //      (tri-state), and
-//   2. both "could not evaluate" cases (query unavailable, policy API failure)
-//      preserve fail-open (ShouldProceed == true), whereas the legacy code
-//      mapped a policy-API failure to a hard rejection.
+//   2. every "could not evaluate" case fails closed (ShouldProceed == false).
 //
 #include "common/Common.hpp"
 
@@ -57,9 +55,8 @@ TEST(MsRootCertPolicyTests, EvaluatedNonMsRootedChainIsReject)
     EXPECT_FALSE(ShouldProceed(EvaluateMsRootPolicy(query)));
 }
 
-// query unavailable => Unable, and fails OPEN (proceeds).
-// This is the preserved downlevel-OS / no-cert-chain behavior.
-TEST(MsRootCertPolicyTests, ChainQueryUnavailableIsUnableAndFailsOpen)
+// query unavailable => Unable, and fails closed.
+TEST(MsRootCertPolicyTests, ChainQueryUnavailableIsUnableAndFailsClosed)
 {
     MsRootCertQuery query;
     query.httpsScheme = true;
@@ -68,11 +65,11 @@ TEST(MsRootCertPolicyTests, ChainQueryUnavailableIsUnableAndFailsOpen)
     query.policyCheckPerformed = false;
 
     EXPECT_EQ(EvaluateMsRootPolicy(query), MsRootPolicyDecision::Unable);
-    EXPECT_TRUE(ShouldProceed(EvaluateMsRootPolicy(query)));
+    EXPECT_FALSE(ShouldProceed(EvaluateMsRootPolicy(query)));
 }
 
-// query succeeds but yields no chain context => Unable / fail open.
-TEST(MsRootCertPolicyTests, ChainQuerySucceedsButNoContextIsUnableAndFailsOpen)
+// query succeeds but yields no chain context => Unable / fail closed.
+TEST(MsRootCertPolicyTests, ChainQuerySucceedsButNoContextIsUnableAndFailsClosed)
 {
     MsRootCertQuery query;
     query.httpsScheme = true;
@@ -81,14 +78,12 @@ TEST(MsRootCertPolicyTests, ChainQuerySucceedsButNoContextIsUnableAndFailsOpen)
     query.policyCheckPerformed = false;
 
     EXPECT_EQ(EvaluateMsRootPolicy(query), MsRootPolicyDecision::Unable);
-    EXPECT_TRUE(ShouldProceed(EvaluateMsRootPolicy(query)));
+    EXPECT_FALSE(ShouldProceed(EvaluateMsRootPolicy(query)));
 }
 
-// policy API failure => Unable (fail open), NOT Reject.
-// The legacy boolean code returned "not trusted" (reject) here; the product
-// decision is to preserve fail-open when verification cannot be performed. This
-// assertion is what fails the old behavior.
-TEST(MsRootCertPolicyTests, PolicyApiFailureIsUnableNotReject)
+// policy API failure => Unable and fail closed, while remaining distinguishable
+// from an evaluated rejection for diagnostics.
+TEST(MsRootCertPolicyTests, PolicyApiFailureIsUnableAndFailsClosed)
 {
     MsRootCertQuery query;
     query.httpsScheme = true;
@@ -100,7 +95,7 @@ TEST(MsRootCertPolicyTests, PolicyApiFailureIsUnableNotReject)
     auto decision = EvaluateMsRootPolicy(query);
     EXPECT_EQ(decision, MsRootPolicyDecision::Unable);
     EXPECT_NE(decision, MsRootPolicyDecision::Reject);
-    EXPECT_TRUE(ShouldProceed(decision));
+    EXPECT_FALSE(ShouldProceed(decision));
 }
 
 // Non-HTTPS is never subject to the MS-root policy, regardless of other inputs.
@@ -135,8 +130,8 @@ TEST(MsRootCertPolicyTests, AllowRejectUnableAreDistinct)
     EXPECT_NE(allow, unable);
     EXPECT_NE(reject, unable);
 
-    // Fail-open contract: only Reject stops the request.
+    // Fail-closed contract: only Allow permits the request.
     EXPECT_TRUE(ShouldProceed(allow));
     EXPECT_FALSE(ShouldProceed(reject));
-    EXPECT_TRUE(ShouldProceed(unable));
+    EXPECT_FALSE(ShouldProceed(unable));
 }
