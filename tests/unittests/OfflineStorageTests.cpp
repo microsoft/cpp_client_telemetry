@@ -1172,6 +1172,25 @@ namespace MAT_NS_BEGIN
         handler.Shutdown();
     }
 
+    TEST_F(OfflineStorageHandlerTests, FailedShutdownCompletesTeardown)
+    {
+        ConfigurableLogManager logManager;
+        NoCheckpointRuntimeConfig config;
+        NoopTaskDispatcher taskDispatcher;
+        config[CFG_INT_RAM_QUEUE_SIZE] = 0;
+        auto diskStorage = AttachDiskStorage(logManager);
+        StrictMock<testing::MockIOfflineStorageObserver> observer;
+        OfflineStorageHandler handler(logManager, config, taskDispatcher);
+        EXPECT_CALL(*diskStorage, Initialize(_));
+        handler.Initialize(observer);
+
+        EXPECT_CALL(*diskStorage, Shutdown())
+            .WillOnce(Throw(std::runtime_error("shutdown failed")));
+        EXPECT_THROW(handler.Shutdown(), std::runtime_error);
+
+        handler.Shutdown();
+    }
+
     TEST_F(OfflineStorageHandlerTests, SavedObserverCanReenterFlush)
     {
         ConfigurableLogManager logManager;

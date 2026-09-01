@@ -18,6 +18,29 @@
 #include <atomic>
 #include <mutex>
 
+namespace
+{
+    thread_local bool isAppleDelegateCallback = false;
+
+    class AppleDelegateCallbackScope final
+    {
+    public:
+        AppleDelegateCallbackScope() :
+            m_previous(isAppleDelegateCallback)
+        {
+            isAppleDelegateCallback = true;
+        }
+
+        ~AppleDelegateCallbackScope() noexcept
+        {
+            isAppleDelegateCallback = m_previous;
+        }
+
+    private:
+        bool m_previous;
+    };
+}
+
 // Streams the response body in bounded chunks and enforces MAX_HTTP_RESPONSE_SIZE.
 // The completionHandler-based NSURLSession APIs fully materialize the response body
 // as an NSData before handing it over, so an attacker-controlled collector could force
@@ -124,6 +147,7 @@ didCompleteWithError:(NSError*)error
     {
         return;
     }
+    AppleDelegateCallbackScope callbackScope;
     if (overCap)
     {
         // Surface a non-cancellation error so the request maps to NetworkFailure
@@ -542,6 +566,10 @@ void HttpClient_Apple::CancelRequestAsync(const std::string& id)
 
 void HttpClient_Apple::CancelAllRequests()
 {
+    // NSURLSession serializes delegate callbacks when delegateQueue is nil. A
+    // callback may cancel its peers, but it cannot wait for their callbacks to
+    // drain without blocking the only queue that can deliver them.
+    const bool waitForDrain = !isAppleDelegateCallback;
     for (;;)
     {
         std::vector<std::string> ids;
@@ -559,6 +587,10 @@ void HttpClient_Apple::CancelAllRequests()
         for (const auto& id : ids)
         {
             CancelRequestAsync(id);
+        }
+        if (!waitForDrain)
+        {
+            return;
         }
         PAL::sleep(100);
     }

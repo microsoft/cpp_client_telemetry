@@ -1318,7 +1318,7 @@ TEST(APITest, WindowsHttpTransport_MsRoot_Check)
         request->SetUrl("https://mobile.events.data.microsoft.com/OneCollector/1.0/");
         std::vector<uint8_t> body {'{', '}'};
         request->SetBody(body);
-        client->SendRequestAsync(request.release(), &callback);
+        client->SendRequestAsync(request.get(), &callback);
 
         auto response = callback.WaitForResponse(std::chrono::seconds(10));
         if (response == nullptr)

@@ -266,35 +266,43 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
-        size_t savedRecords = 0;
-        bool notifySaved = false;
+        try
         {
-            std::lock_guard<std::mutex> lock(m_ioMutex);
-            if (m_offlineStorageMemory != nullptr)
+            size_t savedRecords = 0;
+            bool notifySaved = false;
             {
-                m_offlineStorageMemory->ReleaseAllRecords();
-                try
+                std::lock_guard<std::mutex> lock(m_ioMutex);
+                if (m_offlineStorageMemory != nullptr)
                 {
-                    notifySaved = FlushImpl(savedRecords);
+                    m_offlineStorageMemory->ReleaseAllRecords();
+                    try
+                    {
+                        notifySaved = FlushImpl(savedRecords);
+                    }
+                    catch (const std::exception& ex)
+                    {
+                        LOG_ERROR("Offline storage shutdown flush failed: %s", ex.what());
+                    }
+                    catch (...)
+                    {
+                        LOG_ERROR("Offline storage shutdown flush failed");
+                    }
+                    m_offlineStorageMemory->Shutdown();
                 }
-                catch (const std::exception& ex)
+                if (m_offlineStorageDisk != nullptr)
                 {
-                    LOG_ERROR("Offline storage shutdown flush failed: %s", ex.what());
+                    m_offlineStorageDisk->Shutdown();
                 }
-                catch (...)
-                {
-                    LOG_ERROR("Offline storage shutdown flush failed");
-                }
-                m_offlineStorageMemory->Shutdown();
             }
-            if (m_offlineStorageDisk != nullptr)
+            if (notifySaved)
             {
-                m_offlineStorageDisk->Shutdown();
+                OnStorageRecordsSaved(savedRecords);
             }
         }
-        if (notifySaved)
+        catch (...)
         {
-            OnStorageRecordsSaved(savedRecords);
+            FinishTeardown();
+            throw;
         }
         FinishTeardown();
     }
