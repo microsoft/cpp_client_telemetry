@@ -38,6 +38,11 @@ as the communication channel for both feature requests and issues.
 contributors](https://github.com/orgs/microsoft/teams/everyone) - please refer
 to contributing instructions
 [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
+
+ - Repository maintainers and engineers making substantial changes should start
+with the [maintainer onboarding guide](docs/maintainer-onboarding.md) for the
+documentation reading order, local build and validation matrix, PR checklist,
+and release process.
  
 ## Release policy:
 
@@ -129,7 +134,8 @@ the test results.
 
 ## Versioning
 
-This library follows [Semantic Versioning](http://semver.org/).
+See the [release and version strategy](docs/versioning.md) and the
+[maintainer release checklist](docs/maintainer-onboarding.md#cutting-a-release).
 
 ## License
 
