@@ -253,6 +253,13 @@ public:
         return CURL_HTTP_VERSION_1_1;
     }
 
+    static long ClampConnectionTimeout(size_t timeout) noexcept
+    {
+        const long maxSeconds = std::numeric_limits<long>::max() / 1000L;
+        return static_cast<long>(std::min(
+            timeout, static_cast<size_t>(maxSeconds)));
+    }
+
     CurlHttpOperation(
             std::string method,
             std::string url,
@@ -280,7 +287,7 @@ public:
 
             // Optional connection params
             rawResponse(rawResponse),
-            httpConnTimeout(httpConnTimeout),
+            httpConnTimeout(ClampConnectionTimeout(httpConnTimeout)),
 
             m_callback(callback),
             m_method(method),
@@ -326,6 +333,9 @@ public:
             // never let libcurl install process-wide signal handlers or use
             // SIGALRM-based timeouts.
             !SetOption(CURLOPT_NOSIGNAL, 1L) ||
+            // Bound DNS, TCP, proxy, and TLS connection establishment before
+            // curl_easy_perform() returns the connected socket.
+            !SetOption(CURLOPT_CONNECTTIMEOUT, httpConnTimeout) ||
             // The progress callback is the only cancellation channel that is
             // safe to trigger from another thread: it runs on the worker,
             // inside libcurl, and aborts the transfer in an orderly way.
@@ -338,10 +348,8 @@ public:
             return;
         }
 
-        // Do not override libcurl's shipped connect timeout. With NOSIGNAL,
-        // a synchronous resolver may still block before libcurl can invoke the
-        // progress callback; cancellation is therefore observed once libcurl
-        // returns to its transfer loop, not while that resolver call is active.
+        // With NOSIGNAL, a synchronous resolver may still prevent libcurl from
+        // enforcing a strict deadline until the resolver call returns.
 
         // Headers are copied into m_headersChunk during construction and the
         // curl_slist is kept alive until destruction, so the original map does
@@ -770,7 +778,7 @@ cleanup:
 
 protected:
     const bool   rawResponse;       // Do not split response headers from response body
-    const size_t httpConnTimeout;   // Timeout for connect.  Default: 5s
+    const long   httpConnTimeout;   // Timeout for connect.  Default: 5s
 
     CURL *curl;                     // Local curl instance
     CURLcode m_transportError = CURLE_OK;

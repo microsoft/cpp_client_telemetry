@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <map>
 #include <mutex>
 #include <stdexcept>
@@ -87,6 +88,15 @@ TEST(HttpClientCurlOperationTests, SelectsHttp2OnlyWhenRuntimeSupportsIt)
         ? CURL_HTTP_VERSION_2_0
         : CURL_HTTP_VERSION_1_1;
     EXPECT_EQ(CurlHttpOperation::GetPreferredHttpVersion(), expected);
+}
+
+TEST(HttpClientCurlOperationTests, ClampsConnectionTimeoutBeforeMillisecondsConversion)
+{
+    EXPECT_EQ(CurlHttpOperation::ClampConnectionTimeout(5), 5L);
+    EXPECT_EQ(
+        CurlHttpOperation::ClampConnectionTimeout(
+            std::numeric_limits<size_t>::max()),
+        std::numeric_limits<long>::max() / 1000L);
 }
 
 class HttpClientCurlHeaderTests : public ::testing::Test,
