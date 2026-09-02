@@ -56,9 +56,38 @@ namespace MAT_NS_BEGIN {
             OnResponse(response.release());
         }
 
+        void BeginSendHandoff()
+        {
+            std::lock_guard<std::mutex> lock(m_completionMutex);
+            m_sendInProgress = true;
+        }
+
+        void FinishSendHandoff()
+        {
+            std::unique_ptr<IHttpResponse> deferredResponse;
+            {
+                std::lock_guard<std::mutex> lock(m_completionMutex);
+                m_sendInProgress = false;
+                deferredResponse = std::move(m_deferredResponse);
+            }
+            if (deferredResponse != nullptr)
+            {
+                m_callback->OnHttpResponse(deferredResponse.release());
+            }
+        }
+
         void OnResponse(IHttpResponse* response)
         {
-            m_callback->OnHttpResponse(response);
+            std::unique_ptr<IHttpResponse> ownedResponse(response);
+            {
+                std::lock_guard<std::mutex> lock(m_completionMutex);
+                if (m_sendInProgress)
+                {
+                    m_deferredResponse = std::move(ownedResponse);
+                    return;
+                }
+            }
+            m_callback->OnHttpResponse(ownedResponse.release());
         }
 
         uint64_t OwnerId() const noexcept
@@ -71,6 +100,9 @@ namespace MAT_NS_BEGIN {
         uint64_t const                      m_ownerId;
         IHttpResponseCallback*              m_callback;
         http_cancel_fn_t                    m_cancelFn;
+        std::mutex                          m_completionMutex;
+        bool                                m_sendInProgress {false};
+        std::unique_ptr<IHttpResponse>       m_deferredResponse;
     };
 
 
@@ -263,11 +295,19 @@ namespace MAT_NS_BEGIN {
             state->ownerId, requestId, callback, cancelFn);
         AddPendingOperation(requestId, operation);
 
+        std::exception_ptr sendException;
+        operation->BeginSendHandoff();
         try
         {
             sendFn(&capiRequest, &OnHttpResponse);
         }
         catch (...)
+        {
+            sendException = std::current_exception();
+        }
+        operation->FinishSendHandoff();
+
+        if (sendException != nullptr)
         {
             // A throwing send rejected the request. Retire the operation so a
             // misbehaving hook cannot later call into a callback the manager has
@@ -284,7 +324,7 @@ namespace MAT_NS_BEGIN {
                     requestId.c_str());
                 return;
             }
-            throw;
+            std::rethrow_exception(sendException);
         }
     }
 

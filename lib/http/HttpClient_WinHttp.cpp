@@ -715,12 +715,9 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         URL_COMPONENTS urlc;
         memset(&urlc, 0, sizeof(urlc));
         urlc.dwStructSize = sizeof(urlc);
-        wchar_t hostname[256] = { 0 };
-        urlc.lpszHostName = hostname;
-        urlc.dwHostNameLength = ARRAYSIZE(hostname);
-        wchar_t path[1024] = { 0 };
-        urlc.lpszUrlPath = path;
-        urlc.dwUrlPathLength = ARRAYSIZE(path);
+        urlc.dwHostNameLength = static_cast<DWORD>(-1);
+        urlc.dwUrlPathLength = static_cast<DWORD>(-1);
+        urlc.dwExtraInfoLength = static_cast<DWORD>(-1);
         if (!::WinHttpCrackUrl(wUrl.c_str(), static_cast<DWORD>(wUrl.size()), 0, &urlc))
         {
             DWORD dwError = ::GetLastError();
@@ -729,6 +726,14 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             DispatchEvent(lock, OnConnectFailed);
             dwErrorOut = dwError;
             return false;
+        }
+        std::wstring hostname(urlc.lpszHostName, urlc.dwHostNameLength);
+        std::wstring objectName(urlc.lpszUrlPath, urlc.dwUrlPathLength);
+        if (urlc.lpszExtraInfo != nullptr)
+        {
+            std::wstring extraInfo(urlc.lpszExtraInfo, urlc.dwExtraInfoLength);
+            const auto fragment = extraInfo.find(L'#');
+            objectName.append(extraInfo, 0, fragment);
         }
 
         if (m_clientState->session == nullptr)
@@ -742,7 +747,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         // TODO: connect handle for the same target should be cached across
         // requests to enable keep-alive (same pre-existing opportunity noted
         // in HttpClient_WinInet.cpp; out of scope for this transport swap).
-        m_hConnect = ::WinHttpConnect(m_clientState->session, hostname, urlc.nPort, 0);
+        m_hConnect = ::WinHttpConnect(m_clientState->session, hostname.c_str(), urlc.nPort, 0);
         if (m_hConnect == nullptr)
         {
             DWORD dwError = ::GetLastError();
@@ -760,7 +765,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         m_msRootCheckRequired =
             m_clientState->msRootCheck.load(std::memory_order_acquire);
         m_hRequest = ::WinHttpOpenRequest(
-            m_hConnect, wMethod.c_str(), path, NULL, WINHTTP_NO_REFERER,
+            m_hConnect, wMethod.c_str(), objectName.c_str(), NULL, WINHTTP_NO_REFERER,
             WINHTTP_DEFAULT_ACCEPT_TYPES,
             WINHTTP_FLAG_REFRESH | (m_isHttps ? WINHTTP_FLAG_SECURE : 0));
         if (m_hRequest == nullptr)

@@ -40,6 +40,11 @@ namespace
         void SetShouldSend(bool shouldSend) { m_shouldSend = shouldSend; }
         bool ShouldSend() { return m_shouldSend; }
         void SetSendValidation(std::function<void(http_request_t*)> fn) { m_validateSendFn = fn; }
+        void SetSendCallbackValidation(
+            std::function<void(http_request_t*, http_complete_fn_t)> fn)
+        {
+            m_validateSendCallbackFn = fn;
+        }
         void SetCancelValidation(std::function<void(const char*)> fn) { m_validateCancelFn = fn; }
 
         void OnSend(http_request_t* request, http_complete_fn_t callback)
@@ -48,6 +53,8 @@ namespace
             m_completeFn = callback;
             if (m_validateSendFn)
                 m_validateSendFn(request);
+            if (m_validateSendCallbackFn)
+                m_validateSendCallbackFn(request, callback);
         }
 
         void OnCancel(const char* requestId)
@@ -66,6 +73,7 @@ namespace
 
     private:
         std::function<void(http_request_t*)> m_validateSendFn;
+        std::function<void(http_request_t*, http_complete_fn_t)> m_validateSendCallbackFn;
         std::function<void(const char*)> m_validateCancelFn;
         bool m_shouldSend = false;
         std::string m_requestId;
@@ -268,6 +276,46 @@ TEST(HttpClientCAPITests, CallbackThenThrowCompletesWithoutExposingException)
     EXPECT_EQ(responses, 1u);
 }
 
+TEST(HttpClientCAPITests, ConcurrentCompletionWaitsForSendHookToReturn)
+{
+    HttpClient_CAPI httpClient(&OnHttpSend, &OnHttpCancel);
+    auto request = std::unique_ptr<IHttpRequest>(httpClient.CreateRequest());
+    request->SetUrl("https://www.microsoft.com");
+    request->SetMethod("GET");
+
+    AutoTestHelper testHelper;
+    testHelper->SetShouldSend(false);
+    std::atomic<bool> completionStarted {false};
+    std::thread completer;
+    testHelper->SetSendCallbackValidation(
+        [&](http_request_t* capiRequest, http_complete_fn_t callback)
+        {
+            std::string requestId = capiRequest->id;
+            completer = std::thread([&, requestId, callback]
+            {
+                completionStarted.store(true);
+                callback(requestId.c_str(), HTTP_RESULT_OK, nullptr);
+            });
+            while (!completionStarted.load())
+            {
+                std::this_thread::yield();
+            }
+            completer.join();
+            EXPECT_NE(request, nullptr);
+        });
+
+    TestHttpResponseCallback responseCallback;
+    responseCallback.SetResponseValidation(
+        [&](IHttpResponse* response)
+        {
+            EXPECT_EQ(response->GetResult(), HttpResult_OK);
+            request.reset();
+        });
+
+    httpClient.SendRequestAsync(request.get(), &responseCallback);
+    EXPECT_EQ(request, nullptr);
+}
+
 TEST(HttpClientCAPITests, CancelAllCompletesEveryPendingRequest)
 {
     HttpClient_CAPI httpClient(&OnHttpSend, &OnHttpCancel);
@@ -331,10 +379,22 @@ TEST(HttpClientCAPITests, CancelWaitsForSendHookToReleaseRequestBuffers)
     std::thread sender([&] {
         httpClient.SendRequestAsync(request.get(), &responseCallback);
     });
+    bool didEnterSend = false;
     {
         std::unique_lock<std::mutex> lock(gateMutex);
-        ASSERT_TRUE(gateCV.wait_for(
-            lock, std::chrono::seconds(5), [&] { return sendEntered; }));
+        didEnterSend = gateCV.wait_for(
+            lock, std::chrono::seconds(5), [&] { return sendEntered; });
+        if (!didEnterSend)
+        {
+            releaseSend = true;
+        }
+    }
+    if (!didEnterSend)
+    {
+        gateCV.notify_all();
+        sender.join();
+        httpClient.CancelRequestAsync(request->GetId());
+        FAIL() << "Send hook was not entered";
     }
 
     std::thread canceller([&] {

@@ -103,6 +103,7 @@ class HttpClientTests : public ::testing::Test,
         _server.addHandler("/block/",  *this);
         _server.addHandler("/large/",  *this);
         _server.addHandler("/redirect/", *this);
+        _server.addHandler("/query", *this);
         _server.start();
 
         Clear();
@@ -146,6 +147,10 @@ class HttpClientTests : public ::testing::Test,
             auto it = request.headers.find("Content-Type");
             inResponse.headers["Content-Type"] = (it != request.headers.end()) ? it->second : "application/octet-stream";
             inResponse.content = request.content;
+            return 200;
+        }
+
+        if (request.uri == "/query?key=value") {
             return 200;
         }
 
@@ -781,6 +786,18 @@ TEST_F(HttpClientTests, TerminalCallbackCanCancelAllRequests)
 }
 
 #if defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+TEST_F(HttpClientTests, QueryStringIsPreservedWithoutFragment)
+{
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    request->SetUrl("http://" + _hostname + "/query?key=value#client-only");
+    _client->SendRequestAsync(request.release(), this);
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+        [this]() { return !_responses.empty(); }));
+    EXPECT_THAT(_responses[0]->GetStatusCode(), 200u);
+}
+
 TEST_F(HttpClientTests, SynchronousFailureCallbackCanCancelAllRequests)
 {
     _cancelAllOnResponse.store(1);

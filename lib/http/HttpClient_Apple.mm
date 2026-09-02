@@ -305,6 +305,7 @@ public:
                         std::lock_guard<std::mutex> lock(m_mutex);
                         cancelled = m_cancelRequested;
                     }
+                    [task cancel];
                     Complete(cancelled ? HttpResult_Aborted : HttpResult_LocalFailure);
                     return;
                 }
@@ -338,6 +339,10 @@ public:
             {
                 [task cancel];
                 return;
+            }
+            if (task != nil)
+            {
+                [task cancel];
             }
             Complete(cancelled ? HttpResult_Aborted : HttpResult_LocalFailure);
         }
