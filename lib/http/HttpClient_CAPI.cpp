@@ -225,6 +225,7 @@ namespace MAT_NS_BEGIN {
 
     HttpClient_CAPI::~HttpClient_CAPI() noexcept
     {
+#if HAVE_EXCEPTIONS
         try
         {
             CancelAllRequests();
@@ -237,6 +238,9 @@ namespace MAT_NS_BEGIN {
         {
             LOG_ERROR("CAPI HTTP client teardown failed with a non-standard exception");
         }
+#else
+        CancelAllRequests();
+#endif
     }
 
     IHttpRequest* HttpClient_CAPI::CreateRequest()
@@ -295,8 +299,9 @@ namespace MAT_NS_BEGIN {
             state->ownerId, requestId, callback, cancelFn);
         AddPendingOperation(requestId, operation);
 
-        std::exception_ptr sendException;
         operation->BeginSendHandoff();
+#if HAVE_EXCEPTIONS
+        std::exception_ptr sendException;
         try
         {
             sendFn(&capiRequest, &OnHttpResponse);
@@ -326,6 +331,10 @@ namespace MAT_NS_BEGIN {
             }
             std::rethrow_exception(sendException);
         }
+#else
+        sendFn(&capiRequest, &OnHttpResponse);
+        operation->FinishSendHandoff();
+#endif
     }
 
     void HttpClient_CAPI::CancelRequestAsync(const std::string& id)
@@ -343,6 +352,7 @@ namespace MAT_NS_BEGIN {
         
         if (operation != nullptr)
         {
+#if HAVE_EXCEPTIONS
             try
             {
                 operation->Cancel();
@@ -357,9 +367,13 @@ namespace MAT_NS_BEGIN {
                 LOG_ERROR("CAPI HTTP cancellation failed for request %s",
                     id.c_str());
             }
+#else
+            operation->Cancel();
+#endif
             // Cancellation is terminal from the adapter's perspective. The
             // operation was removed first, so synchronous or late external
             // completions are ignored and cannot double-complete the callback.
+#if HAVE_EXCEPTIONS
             try
             {
                 operation->CompleteAborted();
@@ -374,6 +388,9 @@ namespace MAT_NS_BEGIN {
                 LOG_ERROR("CAPI HTTP cancellation callback failed for request %s",
                     id.c_str());
             }
+#else
+            operation->CompleteAborted();
+#endif
         }
     }
 
@@ -395,6 +412,7 @@ namespace MAT_NS_BEGIN {
 
         for (const auto& operation : operations)
         {
+#if HAVE_EXCEPTIONS
             try
             {
                 operation->Cancel();
@@ -407,6 +425,10 @@ namespace MAT_NS_BEGIN {
             {
                 LOG_ERROR("CAPI HTTP cancellation failed with a non-standard exception");
             }
+#else
+            operation->Cancel();
+#endif
+#if HAVE_EXCEPTIONS
             try
             {
                 operation->CompleteAborted();
@@ -419,6 +441,9 @@ namespace MAT_NS_BEGIN {
             {
                 LOG_ERROR("CAPI HTTP cancellation callback failed with a non-standard exception");
             }
+#else
+            operation->CompleteAborted();
+#endif
         }
     }
 

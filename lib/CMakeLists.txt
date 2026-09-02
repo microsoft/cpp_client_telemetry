@@ -85,6 +85,8 @@ endif()
 # Support for Azure Monitor / Application Insights
 if(MATSDK_BUILD_AZMON)
   include(modules/azmon/CMakeLists.txt OPTIONAL)
+else()
+  target_compile_definitions(matsdk_internal_config INTERFACE MATSDK_NO_AZMON)
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/")

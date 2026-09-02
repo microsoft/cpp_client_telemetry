@@ -169,6 +169,7 @@ namespace MAT_NS_BEGIN {
             static_cast<unsigned>(ctx->recordIdsAndTenantIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
             ctx->httpRequest->GetId().c_str(), static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()));
 
+#if HAVE_EXCEPTIONS
         try
         {
             m_httpClient.SendRequestAsync(ctx->httpRequest, callback);
@@ -193,6 +194,9 @@ namespace MAT_NS_BEGIN {
                     new SimpleHttpResponse(completion->requestId));
             }
         }
+#else
+        m_httpClient.SendRequestAsync(ctx->httpRequest, callback);
+#endif
     }
 
     void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
@@ -230,6 +234,7 @@ namespace MAT_NS_BEGIN {
         // dispatching requestDone(): either path may synchronously re-enter this
         // manager. Reentrant cancellation recognizes this callback as active
         // and does not wait for its own stack to unwind.
+#if HAVE_EXCEPTIONS
         try
         {
             requestDone(ctx);
@@ -244,6 +249,9 @@ namespace MAT_NS_BEGIN {
             LOG_ERROR("Unhandled non-standard exception in HTTP response callback");
             notifyRequestFailure(ctx);
         }
+#else
+        requestDone(ctx);
+#endif
         // request done should be handled by now
 
         {
@@ -301,6 +309,7 @@ namespace MAT_NS_BEGIN {
             auto boundedCancel = dynamic_cast<IBoundedHttpClientCancel*>(&m_httpClient);
             if (boundedCancel != nullptr)
             {
+#if HAVE_EXCEPTIONS
                 try
                 {
                     boundedCancel->CancelAllRequests(bestEffortTimeout);
@@ -314,6 +323,10 @@ namespace MAT_NS_BEGIN {
                 {
                     LOG_ERROR("HTTP client bounded cancellation failed with a non-standard exception");
                 }
+#else
+                boundedCancel->CancelAllRequests(bestEffortTimeout);
+                return;
+#endif
             }
 #endif
 
@@ -321,6 +334,7 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
+#if HAVE_EXCEPTIONS
         try
         {
             m_httpClient.CancelAllRequests();
@@ -335,6 +349,9 @@ namespace MAT_NS_BEGIN {
             LOG_ERROR("HTTP client cancellation failed with a non-standard exception");
             cancelTrackedRequestsAsync();
         }
+#else
+        m_httpClient.CancelAllRequests();
+#endif
     }
 
     void HttpClientManager::cancelTrackedRequestsAsync()
@@ -363,6 +380,7 @@ namespace MAT_NS_BEGIN {
 
         for (const auto& id : requestIds)
         {
+#if HAVE_EXCEPTIONS
             try
             {
                 m_httpClient.CancelRequestAsync(id);
@@ -377,6 +395,9 @@ namespace MAT_NS_BEGIN {
                 LOG_ERROR("HTTP client failed to cancel request %s with a non-standard exception",
                     id.c_str());
             }
+#else
+            m_httpClient.CancelRequestAsync(id);
+#endif
         }
     }
 

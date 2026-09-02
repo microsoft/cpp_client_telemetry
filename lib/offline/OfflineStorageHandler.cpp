@@ -266,45 +266,41 @@ namespace MAT_NS_BEGIN {
             return;
         }
 
-        try
+        auto finishTeardown = MakeScopeExit([this] { FinishTeardown(); });
+        size_t savedRecords = 0;
+        bool notifySaved = false;
         {
-            size_t savedRecords = 0;
-            bool notifySaved = false;
+            std::lock_guard<std::mutex> lock(m_ioMutex);
+            if (m_offlineStorageMemory != nullptr)
             {
-                std::lock_guard<std::mutex> lock(m_ioMutex);
-                if (m_offlineStorageMemory != nullptr)
+                m_offlineStorageMemory->ReleaseAllRecords();
+#if HAVE_EXCEPTIONS
+                try
                 {
-                    m_offlineStorageMemory->ReleaseAllRecords();
-                    try
-                    {
-                        notifySaved = FlushImpl(savedRecords);
-                    }
-                    catch (const std::exception& ex)
-                    {
-                        LOG_ERROR("Offline storage shutdown flush failed: %s", ex.what());
-                    }
-                    catch (...)
-                    {
-                        LOG_ERROR("Offline storage shutdown flush failed");
-                    }
-                    m_offlineStorageMemory->Shutdown();
+                    notifySaved = FlushImpl(savedRecords);
                 }
-                if (m_offlineStorageDisk != nullptr)
+                catch (const std::exception& ex)
                 {
-                    m_offlineStorageDisk->Shutdown();
+                    LOG_ERROR("Offline storage shutdown flush failed: %s", ex.what());
                 }
+                catch (...)
+                {
+                    LOG_ERROR("Offline storage shutdown flush failed");
+                }
+#else
+                notifySaved = FlushImpl(savedRecords);
+#endif
+                m_offlineStorageMemory->Shutdown();
             }
-            if (notifySaved)
+            if (m_offlineStorageDisk != nullptr)
             {
-                OnStorageRecordsSaved(savedRecords);
+                m_offlineStorageDisk->Shutdown();
             }
         }
-        catch (...)
+        if (notifySaved)
         {
-            FinishTeardown();
-            throw;
+            OnStorageRecordsSaved(savedRecords);
         }
-        FinishTeardown();
     }
 
     /// <summary>
@@ -429,6 +425,7 @@ namespace MAT_NS_BEGIN {
             auto recordsForRetry = persistentRecords;
             size_t const recordsToSave = recordsForRetry.size();
             size_t totalSaved = 0;
+#if HAVE_EXCEPTIONS
             try
             {
                 totalSaved = m_offlineStorageDisk->StoreRecords(persistentRecords);
@@ -440,6 +437,9 @@ namespace MAT_NS_BEGIN {
                 m_offlineStorageMemory->StoreRecords(recordsForRetry);
                 throw;
             }
+#else
+            totalSaved = m_offlineStorageDisk->StoreRecords(persistentRecords);
+#endif
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
@@ -507,6 +507,7 @@ namespace MAT_NS_BEGIN {
                 }
                 if (queueFlush)
                 {
+#if HAVE_EXCEPTIONS
                     try
                     {
                         m_taskDispatcher.Queue(new OfflineStorageFlushTask(*this));
@@ -516,6 +517,9 @@ namespace MAT_NS_BEGIN {
                         DropScheduledFlush();
                         throw;
                     }
+#else
+                    m_taskDispatcher.Queue(new OfflineStorageFlushTask(*this));
+#endif
                 }
             }
         }
