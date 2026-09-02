@@ -46,7 +46,7 @@ jobs:
     - name: Setup Java
       uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
       with:
-        distribution: 'adopt'
+        distribution: 'temurin'
         java-version: '17'
     - name: Setup Android SDK
       uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
