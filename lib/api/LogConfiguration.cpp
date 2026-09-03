@@ -68,14 +68,13 @@ namespace MAT_NS_BEGIN {
         return result;
     }
 
-    ILogConfiguration FromJSON(const char* configuration)
+    void MergeFromJSON(ILogConfiguration &config, const char* configuration)
     {
-        ILogConfiguration result;
 #ifdef HAVE_MAT_JSONHPP
-        auto src = json::parse(configuration);
-        std::function<void(json &src, VariantMap &dst)> parse;
-        parse = [&parse](json &src, VariantMap &dst)->void {
-            for (json::iterator it = src.begin(); it != src.end(); ++it) {
+        auto jsonRoot = json::parse(configuration);
+        std::function<void(json &node, VariantMap &dst)> parse;
+        parse = [&parse](json &node, VariantMap &dst)->void {
+            for (json::iterator it = node.begin(); it != node.end(); ++it) {
                 auto t = it.value().type();
                 switch (t)
                 {
@@ -119,11 +118,17 @@ namespace MAT_NS_BEGIN {
                 }
             }
         };
-        parse(src, *result);
+        parse(jsonRoot, *config);
 #else
         (void)(configuration);
         assert(false /* json.hpp support is not enabled! */);
 #endif
+    }
+
+    ILogConfiguration FromJSON(const char* configuration)
+    {
+        ILogConfiguration result;
+        MergeFromJSON(result, configuration);
         return result;
     }
 
