@@ -38,12 +38,20 @@ as the communication channel for both feature requests and issues.
 contributors](https://github.com/orgs/microsoft/teams/everyone) - please refer
 to contributing instructions
 [here](https://github.com/microsoft/cpp_client_telemetry_modules/blob/master/CONTRIBUTING.md).**
+
+ - Repository maintainers and engineers making substantial changes should start
+with the [maintainer onboarding guide](docs/maintainer-onboarding.md) for the
+documentation reading order, local build and validation matrix, PR checklist,
+and release process.
  
 ## Release policy:
 
-The SDK is released as a [source package](https://github.com/microsoft/cpp_client_telemetry/releases)
-on need basis.
-There is no plan to release prebuilt binaries.
+The SDK's primary release artifact is a
+[source package](https://github.com/microsoft/cpp_client_telemetry/releases),
+published on an as-needed basis. A preliminary Swift Package Manager packaging
+flow is designed to distribute a prebuilt Apple xcframework; see the
+[Apple packaging guide](tools/apple/README.md) for its current status and
+available slices.
 
 ## Build
 
@@ -56,6 +64,7 @@ Platform specific build instructions:
 * [iOS/iPadOS](docs/cpp-start-ios.md)
 * [Android](docs/cpp-start-android.md)
 * [CMake source embedding / FetchContent](docs/embedding-with-cmake.md)
+* [Swift Package Manager xcframework](tools/apple/README.md)
 
 Standard configure/build presets are listed with `cmake --list-presets`.
 `build.sh`, `build-ios.sh`, and `build-cmake.ps1` are thin compatibility
@@ -103,6 +112,10 @@ Other resources to learn how to setup the build system:
 * For iOS simulator, CI covers representative supported simulator
   configurations on the current macOS runner images rather than every
   supported iOS 12+ runtime.
+* The Swift Package Manager xcframework includes preliminary Mac Catalyst 14+
+  and visionOS 1+ device and simulator slices. These targets have received
+  limited validation and are not currently covered by regular CI. Evaluate
+  them for your scenario before production use.
 
 ## Test
 
@@ -129,7 +142,8 @@ the test results.
 
 ## Versioning
 
-This library follows [Semantic Versioning](http://semver.org/).
+See the [release and version strategy](docs/versioning.md) and the
+[maintainer release checklist](docs/maintainer-onboarding.md#cutting-a-release).
 
 ## License
 
