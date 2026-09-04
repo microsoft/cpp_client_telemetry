@@ -453,7 +453,13 @@ TEST_F(PalTests, ScheduleTaskCancelWaitDoesNotDeadlockTaskDestruction)
     auto handle = PAL::scheduleTask(
         dispatcher.get(), 0, &target, &BlockingScheduledTaskTarget::Callback);
 
-    ASSERT_TRUE(target.WaitUntilEntered());
+    if (!target.WaitUntilEntered())
+    {
+        target.Release();
+        handle.Cancel(2000);
+        dispatcher->Join();
+        FAIL() << "scheduled task did not start";
+    }
 
     std::atomic<bool> cancelReturned(false);
     bool cancelResult = false;
@@ -489,7 +495,13 @@ TEST_F(PalTests, ScheduleTaskCancelWaitAllowsRunningTaskToQueue)
     auto handle = PAL::scheduleTask(
         dispatcher.get(), 0, &target, &ReentrantQueueScheduledTaskTarget::Callback);
 
-    ASSERT_TRUE(target.WaitUntilEntered());
+    if (!target.WaitUntilEntered())
+    {
+        target.AllowQueue();
+        handle.Cancel(CancelWaitMs);
+        dispatcher->Join();
+        FAIL() << "scheduled task did not start";
+    }
 
     std::promise<void> cancelStarted;
     std::future<void> cancelStartedFuture = cancelStarted.get_future();
