@@ -280,23 +280,8 @@ public:
 
                 m_urlRequest = urlRequest;
 
-                // Publish the task under the lock so a concurrent Cancel() can reach
-                // and cancel it, and observe a cancel that raced with setup.
-                bool cancelledDuringSetup = false;
-                {
-                    std::lock_guard<std::mutex> lock(m_mutex);
-                    m_dataTask = task;
-                    cancelledDuringSetup = m_cancelRequested;
-                }
-                if (cancelledDuringSetup)
-                {
-                    [task cancel];
-                    Complete(HttpResult_Aborted);
-                    return;
-                }
-
-                // Register before resume so the streaming delegate has the buffer and
-                // completion handler in place before any response data arrives.
+                // Register before exposing the task to Cancel() so cancellation cannot
+                // deliver the task's only terminal callback before its handler exists.
                 registered = [sessionDelegate registerTask:task handler:m_completionMethod];
                 if (!registered)
                 {
@@ -310,21 +295,19 @@ public:
                     return;
                 }
 
-                bool cancelledAfterRegister = false;
                 {
                     std::lock_guard<std::mutex> lock(m_mutex);
-                    cancelledAfterRegister = m_cancelRequested;
+                    m_dataTask = task;
+                    if (m_cancelRequested)
+                    {
+                        // The registered delegate remains the sole terminal producer.
+                        [task cancel];
+                    }
+                    else
+                    {
+                        [task resume];
+                    }
                 }
-                if (cancelledAfterRegister)
-                {
-                    // The task is already registered, so let didCompleteWithError:
-                    // be the sole terminal producer. Cancelling a suspended task is
-                    // enough to drive that completion on Apple runtimes, so do not
-                    // resume it here.
-                    [task cancel];
-                    return;
-                }
-                [task resume];
             }
         }
         @catch (NSException* exception)

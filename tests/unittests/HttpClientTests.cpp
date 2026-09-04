@@ -297,7 +297,7 @@ TEST_F(HttpClientTests, HandlesCancellationWhileResponseIsInFlight)
     std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
     std::string requestId = request->GetId();
     request->SetUrl("http://" + _hostname + "/block/");
-    _client->SendRequestAsync(request.release(), this);
+    _client->SendRequestAsync(request.get(), this);
 
     {
         std::unique_lock<std::mutex> lock(_blockedRequestLock);
@@ -324,6 +324,13 @@ TEST_F(HttpClientTests, HandlesCancellationWhileResponseIsInFlight)
 
     EXPECT_THAT(response->GetId(), requestId);
     EXPECT_THAT(response->GetResult(), HttpResult_Aborted);
+#if defined(MAT_TEST_APPLE_TRANSPORT)
+    {
+        std::unique_lock<std::mutex> lock(_lock);
+        EXPECT_FALSE(_responseCv.wait_for(lock, std::chrono::milliseconds(250),
+            [this]() { return !_responses.empty(); }));
+    }
+#endif
 }
 
 //---
@@ -522,44 +529,6 @@ TEST_F(HttpClientTests, CancelAllReturnsWithUnsentRequest)
                                       { return _responses.size() > 1; }));
 }
 
-TEST_F(HttpClientTests, CancelAfterRegisterCompletesExactlyOneAborted)
-{
-    // Keep ownership here so the delegate callback still runs while the caller
-    // owns the request object. The transport must not self-complete after it has
-    // registered the task; the cancellation terminal comes from didCompleteWithError.
-    {
-        std::lock_guard<std::mutex> lock(_blockedRequestLock);
-        _blockedRequestReceived = false;
-        _releaseBlockedRequest = false;
-    }
-
-    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
-    std::string requestId = request->GetId();
-    request->SetUrl("http://" + _hostname + "/block/");
-    _client->SendRequestAsync(request.get(), this);
-
-    {
-        std::unique_lock<std::mutex> lock(_blockedRequestLock);
-        ASSERT_TRUE(_blockedRequestCv.wait_for(lock, std::chrono::seconds(10),
-            [this]() { return _blockedRequestReceived; }));
-    }
-
-    _client->CancelRequestAsync(requestId);
-    {
-        std::lock_guard<std::mutex> lock(_blockedRequestLock);
-        _releaseBlockedRequest = true;
-    }
-    _blockedRequestCv.notify_all();
-
-    std::unique_lock<std::mutex> lock(_lock);
-    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
-        [this]() { return !_responses.empty(); }));
-    ASSERT_EQ(_responses.size(), 1u);
-    EXPECT_THAT(_responses[0]->GetId(), requestId);
-    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_Aborted);
-    EXPECT_FALSE(_responseCv.wait_for(lock, std::chrono::milliseconds(250),
-        [this]() { return _responses.size() > 1; }));
-}
 #endif
 
 TEST_F(HttpClientTests, HandlesDnsError)
