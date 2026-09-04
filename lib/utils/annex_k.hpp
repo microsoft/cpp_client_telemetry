@@ -7,9 +7,8 @@
 #include <stddef.h>
 #include <errno.h>
 #include <string.h>
-#ifndef _MSC_VER
 #include <stdint.h>
-#else
+#ifdef _MSC_VER
 #include <limits.h>
 #endif
 
@@ -47,21 +46,24 @@ class BoundCheckFunctions
 private:
 static bool oneds_buffer_region_overlap(const char *buffer1, size_t buffer1_len, const char *buffer2, size_t buffer2_len) noexcept
 {
-    if (buffer2 >= buffer1) 
+    // Compare half-open address ranges without pointer arithmetic: the
+    // arguments may refer to different objects, and invalid lengths must not
+    // wrap an end address before the overlap check.
+    if (buffer1_len == 0 || buffer2_len == 0)
     {
-        if (buffer1 + buffer1_len - 1 > buffer2 )
-        {
-            return true;
-        }
+        return false;
     }
-    else 
+
+    uintptr_t begin1 = reinterpret_cast<uintptr_t>(buffer1);
+    uintptr_t begin2 = reinterpret_cast<uintptr_t>(buffer2);
+    if (buffer1_len > UINTPTR_MAX - begin1 || buffer2_len > UINTPTR_MAX - begin2)
     {
-        if (buffer2 + buffer2_len - 1 > buffer1)
-        { 
-            return true;
-        }
+        return true;
     }
-    return false; 
+
+    uintptr_t end1 = begin1 + buffer1_len;
+    uintptr_t end2 = begin2 + buffer2_len;
+    return begin1 < end2 && begin2 < end1;
 }
 
 public:
@@ -147,12 +149,16 @@ static errno_t oneds_strncpy_s(char * restrict dest, rsize_t destsz, const char 
 // In case of error, the entire destination range [dest, dest+destsz) is zeroed out 
 // (if both dest and destsz are valid))
 
+//
+// NOTE: the constraint checks below are performed here rather than delegated to
+// the platform's Annex K / CRT memcpy_s. On MSVC the CRT memcpy_s reports a
+// constraint violation through the invalid parameter handler, whose default
+// behaviour terminates the process (__fastfail / STATUS_STACK_BUFFER_OVERRUN)
+// instead of returning EINVAL. Validating first keeps the documented
+// "return EINVAL and zero the destination" contract on every platform.
 static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
                   const void *restrict src, rsize_t count ) noexcept
 {
-#if (defined __STDC_LIB_EXT1__) || ( defined _MSC_VER)
-       return memcpy_s(dest, destsz, src, count);     
-#else
     if (dest == NULL)
     {
         return EINVAL;
@@ -172,17 +178,13 @@ static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
         return EINVAL;
     }
     // donot allow overflow
-    if (oneds_buffer_region_overlap((char *)dest, destsz, (char *)src, count)) {
+    if (oneds_buffer_region_overlap((char*)dest, count, (char*)src, count))
+    {
         memset(dest, 0, destsz);
         return EINVAL;
     }
-    void *result = memcpy(dest, src, count);
-    if (result == (void *)NULL)
-    {
-        return -1;
-    }
+    memcpy(dest, src, count);
     return 0;
-#endif
 }
 };
 }

@@ -15,7 +15,12 @@
 
 #include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <LogManager.hpp>
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 #include "PayloadDecoder.hpp"
 
@@ -208,6 +213,40 @@ public:
         std::cerr << "[          ] numCached    = " << numCached << std::endl;
         std::cerr << "[          ] numFiltered  = " << numFiltered << std::endl;
     }
+};
+
+class HttpResponseWaiter final : public IHttpResponseCallback {
+public:
+    void OnHttpResponse(IHttpResponse* response) override
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        ++m_callbackCount;
+        m_response.reset(response);
+        m_cv.notify_all();
+    }
+
+    void OnHttpStateEvent(HttpStateEvent, void*, size_t) override
+    {
+    }
+
+    std::unique_ptr<IHttpResponse> WaitForResponse(std::chrono::seconds timeout)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_cv.wait_for(lock, timeout, [this]() { return m_response != nullptr; });
+        return std::move(m_response);
+    }
+
+    size_t CallbackCount() const
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_callbackCount;
+    }
+
+private:
+    mutable std::mutex m_mutex;
+    std::condition_variable m_cv;
+    std::unique_ptr<IHttpResponse> m_response;
+    size_t m_callbackCount {0};
 };
 
 // Keep requests in flight until teardown cancels them, then simulate a connection
@@ -673,38 +712,32 @@ constexpr static unsigned MAX_THREADS = 25;
 /// <param name="config">The configuration.</param>
 void StressUploadLockMultiThreaded(ILogConfiguration& config)
 {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     TestDebugEventListener debugListener;
 
     addAllListeners(debugListener);
     size_t numIterations = MAX_ITERATIONS_MT;
 
-    std::mutex m_threads_mtx;
-    std::atomic<unsigned> threadCount(0);
-
     while (numIterations--)
     {
         ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
-        // Keep spawning UploadNow threads while the main thread is trying to perform
-        // Initialize and Teardown, but no more than MAX_THREADS at a time.
+        std::vector<std::thread> uploadThreads;
+        uploadThreads.reserve(MAX_THREADS);
         for (size_t i = 0; i < MAX_THREADS; i++)
         {
-            if (threadCount++ < MAX_THREADS)
+            uploadThreads.emplace_back([]()
             {
-                auto t = std::thread([&]()
-                {
-                    std::this_thread::yield();
-                    LogManager::UploadNow();
-                    const auto randTimeSub2ms = std::rand() % 2;
-                    PAL::sleep(randTimeSub2ms);
-                    threadCount--;
-                });
-                t.detach();
-            }
-        };
+                std::this_thread::yield();
+                LogManager::UploadNow();
+                PAL::sleep(0);
+            });
+        }
         EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
         LogManager::FlushAndTeardown();
+        for (auto& uploadThread : uploadThreads)
+        {
+            uploadThread.join();
+        }
     }
     removeAllListeners(debugListener);
 }
@@ -1252,8 +1285,66 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
 }
 
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-/* This test requires WinInet HTTP client */
+#if defined(_WIN32) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
+TEST(APITest, WindowsHttpTransport_MsRoot_Check)
+{
+    struct RequestOutcome
+    {
+        std::unique_ptr<IHttpResponse> response;
+        size_t callbackCount {0};
+    };
+
+    auto sendRequest = [](bool enforceMsRoot) {
+        HttpResponseWaiter callback;
+        // A fresh client gives the checked request a cold transport session; do
+        // not warm this endpoint with an unchecked request first.
+        auto client = HttpClientFactory::Create();
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+        auto windowsClient = dynamic_cast<HttpClient_WinInet*>(client.get());
+#elif defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+        auto windowsClient = dynamic_cast<HttpClient_WinHttp*>(client.get());
+#else
+#error A Windows HTTP transport must be selected.
+#endif
+        if (windowsClient == nullptr)
+        {
+            ADD_FAILURE() << "HttpClientFactory returned the wrong Windows transport";
+            return RequestOutcome{};
+        }
+        windowsClient->SetMsRootCheck(enforceMsRoot);
+
+        std::unique_ptr<IHttpRequest> request(client->CreateRequest());
+        request->SetMethod("POST");
+        request->SetUrl("https://mobile.events.data.microsoft.com/OneCollector/1.0/");
+        std::vector<uint8_t> body {'{', '}'};
+        request->SetBody(body);
+        client->SendRequestAsync(request.get(), &callback);
+
+        auto response = callback.WaitForResponse(std::chrono::seconds(10));
+        if (response == nullptr)
+        {
+            client->CancelAllRequests();
+            response = callback.WaitForResponse(std::chrono::seconds(2));
+        }
+        client.reset();
+        return RequestOutcome {std::move(response), callback.CallbackCount()};
+    };
+
+    // The negative case must execute first so its certificate decision is not
+    // preceded by a successful request to the same endpoint.
+    auto rejected = sendRequest(true);
+    ASSERT_NE(rejected.response, nullptr);
+    EXPECT_EQ(rejected.callbackCount, 1u);
+    EXPECT_EQ(rejected.response->GetResult(), HttpResult_NetworkFailure);
+    EXPECT_EQ(rejected.response->GetStatusCode(), 0u);
+
+    auto accepted = sendRequest(false);
+    ASSERT_NE(accepted.response, nullptr);
+    EXPECT_EQ(accepted.callbackCount, 1u);
+    EXPECT_EQ(accepted.response->GetResult(), HttpResult_OK);
+}
+
+/* This test verifies the certificate policy used by either Windows HTTP transport. */
 TEST(APITest, LogConfiguration_MsRoot_Check)
 {
     TestDebugEventListener debugListener;
@@ -1283,13 +1374,21 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
         debugListener.reset();
         addAllListeners(debugListener);
         logger->LogEvent("fooBar");
+        LogManager::UploadNow();
+        const auto deadline = PAL::getMonotonicTimeMs() + 10000;
+        while (PAL::getMonotonicTimeMs() < deadline &&
+               debugListener.numHttpOK.load() == 0 &&
+               debugListener.numHttpError.load() == 0)
+        {
+            PAL::sleep(50);
+        }
         LogManager::FlushAndTeardown();
         removeAllListeners(debugListener);
 
-        // Connection is a best-effort, occasionally we can't connect,
-        // but we MUST NOT connect to end-point that doesn't have the
-        // right cert.
-        EXPECT_LE(debugListener.numHttpOK, expectedHttpCount);
+        // The successful cases establish that the runner can reach both
+        // endpoints, so the rejected case cannot pass merely because external
+        // networking is unavailable.
+        EXPECT_EQ(debugListener.numHttpOK.load(), expectedHttpCount);
     }
 }
 #endif

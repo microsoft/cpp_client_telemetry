@@ -10,10 +10,14 @@
 #include "system/Route.hpp"
 #include "ILogManager.hpp"
 
-#include <list>
-#include <mutex>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 namespace MAT_NS_BEGIN
 {
@@ -46,6 +50,8 @@ class HttpClientManager
         }
 
         RouteSource<EventsUploadContextPtr const&> requestDone;
+        RouteSource<EventsUploadContextPtr const&> requestFailed;
+        RouteSource<EventsUploadContextPtr const&> requestFailureComplete;
 
         RouteSink<HttpClientManager, EventsUploadContextPtr const&> sendRequest
         {
@@ -54,27 +60,31 @@ class HttpClientManager
 
     protected:
         class HttpCallback;
-        friend class HttpCallback;
 
         void handleSendRequest(EventsUploadContextPtr const& ctx);
         virtual void scheduleOnHttpResponse(HttpCallback* callback);
+        void runScheduledHttpResponse(
+            std::shared_ptr<std::atomic<bool>> const& started,
+            HttpCallback* callback);
         void onHttpResponse(HttpCallback* callback);
+        void notifyRequestFailure(EventsUploadContextPtr const& ctx) noexcept;
         void cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());
         void cancelTrackedRequestsAsync();
 
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;
         ITaskDispatcher&          m_taskDispatcher;
-        mutable std::recursive_mutex m_httpCallbacksMtx;
+        mutable std::mutex           m_httpCallbacksMtx;
         std::list<HttpCallback*>  m_httpCallbacks;
+        std::map<HttpCallback*, std::thread::id> m_activeHttpCallbacks;
         // Signaled from onHttpResponse when a callback is removed, so cancelAllRequests
         // can drain via a condition variable instead of a poll loop.
-        std::condition_variable_any m_httpCallbacksCV;
-        // Upper bound on how long cancelAllRequests waits for callbacks to drain. A
-        // last-resort safety valve so a stalled dispatcher/HTTP stack can never make
-        // the drain spin or block forever. Adjustable so tests can
-        // exercise the timeout path without a long wait.
-        std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::seconds(30)};
+        std::condition_variable      m_httpCallbacksCV;
+        // Configured soft cap on the best-effort pause drain. One native handle
+        // close already in progress may finish after it. Non-reentrant full
+        // shutdown remains a lifetime barrier and waits for every accepted
+        // request's terminal callback.
+        std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::milliseconds::zero()};
 };
 
 } MAT_NS_END

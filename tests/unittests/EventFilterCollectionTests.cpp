@@ -34,6 +34,23 @@ public:
     bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return CanEventPropertiesBeSentReturnValue; }
 };
 
+class UnregisteringEventFilter : public IEventFilter
+{
+public:
+    explicit UnregisteringEventFilter(EventFilterCollection& collection) noexcept
+        : Collection(collection) { }
+
+    const char* GetName() const noexcept override { return "UnregisteringEventFilter"; }
+    bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override
+    {
+        Collection.UnregisterAllFilters();
+        return true;
+    }
+
+private:
+    EventFilterCollection& Collection;
+};
+
 TEST(EventFilterCollectionTests, Constructor_DefaultConstructed_NoRegisteredFilters)
 {
     TestEventFilterCollection collection;
@@ -173,4 +190,14 @@ TEST(EventFilterCollectionTests, CanEventPropertiesBeSent_TwoRegisteredFiltersOn
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter(true)));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter(false)));
     EXPECT_FALSE(collection.CanEventPropertiesBeSent(EventProperties{}));
+}
+
+TEST(EventFilterCollectionTests, CanEventPropertiesBeSent_FilterUnregistersAll_DoesNotDeadlock)
+{
+    TestEventFilterCollection collection;
+    collection.RegisterEventFilter(
+        std::unique_ptr<IEventFilter>(new UnregisteringEventFilter(collection)));
+
+    EXPECT_TRUE(collection.CanEventPropertiesBeSent(EventProperties{}));
+    EXPECT_TRUE(collection.Empty());
 }

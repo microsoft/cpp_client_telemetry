@@ -152,7 +152,9 @@ namespace MAT_NS_BEGIN {
         // TODO: [MG] - this works, but may not play nicely with several LogManager instances
         // static SqliteStatement sql_insert(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data);
 
-        if (record.id.empty() || record.tenantToken.empty() || static_cast<int>(record.latency) < 0 || record.timestamp <= 0) {
+        if (record.id.empty() || record.tenantToken.empty()
+            || record.latency < EventLatency_Off || record.latency > EventLatency_Max
+            || record.timestamp <= 0) {
             LOG_ERROR("Failed to store event %s:%s: Invalid parameters",
                 tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
             m_observer->OnStorageFailed("Invalid parameters");
@@ -177,7 +179,12 @@ namespace MAT_NS_BEGIN {
                 return false;
             }
 #endif
-            SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob);
+            if (!SqliteStatement(*m_db, m_stmtInsertEvent_id_tenant_prio_ts_data).execute(record.id, record.tenantToken, static_cast<int>(record.latency), static_cast<int>(record.persistence), record.timestamp, record.blob))
+            {
+                LOG_ERROR("Failed to store event %s:%s: Database error", tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                m_observer->OnStorageFailed("Database error");
+                return false;
+            }
             m_DbSizeEstimate += record.id.size() + record.tenantToken.size() + record.blob.size();
         }
 
@@ -825,19 +832,8 @@ namespace MAT_NS_BEGIN {
             if (!stmt.select() || !stmt.getRow(m_pageSize)) { return false; }
         }
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable:4296) // expression always false.
-#elif defined( __clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtype-limits" // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"  // error: comparison of unsigned expression < 0 is always false [-Werror=type-limits]
-#endif
-
 #define PREPARE_SQL(var_, stmt_) \
-    if ((var_ = m_db->prepare(stmt_)) < 0) { return false; }
+    if ((var_ = m_db->prepare(stmt_)) == 0) { return false; }
 
 #ifdef ENABLE_LOCKING
         PREPARE_SQL(m_stmtBeginTransaction,
@@ -922,14 +918,6 @@ namespace MAT_NS_BEGIN {
         Execute("DELETE FROM " TABLE_NAME_PACKAGES);
 
 #undef PREPARE_SQL
-
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#elif defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 
         ResizeDb();
         return true;
@@ -1064,4 +1052,3 @@ namespace MAT_NS_BEGIN {
     
 } MAT_NS_END
 #endif
-

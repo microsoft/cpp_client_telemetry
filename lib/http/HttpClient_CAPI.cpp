@@ -11,16 +11,33 @@
 
 namespace MAT_NS_BEGIN {
 
+    class HttpClient_CAPI_State
+    {
+    public:
+        explicit HttpClient_CAPI_State(uint64_t id)
+            : ownerId(id)
+        {
+        }
+
+        uint64_t const ownerId;
+        std::mutex requestsMutex;
+    };
+
     // Represents a single in-flight, cancellable HTTP operation
     class HttpClient_Operation
     {
     public:
-        HttpClient_Operation(SimpleHttpRequest* request, IHttpResponseCallback* callback, http_cancel_fn_t cancelFn)
-          : m_request(request),
+        HttpClient_Operation(
+            uint64_t ownerId,
+            std::string requestId,
+            IHttpResponseCallback* callback,
+            http_cancel_fn_t cancelFn)
+          : m_requestId(std::move(requestId)),
+            m_ownerId(ownerId),
             m_callback(callback),
             m_cancelFn(cancelFn)
         {
-            if ((m_request == nullptr) || (callback == nullptr) || (cancelFn == nullptr))
+            if (m_requestId.empty() || (callback == nullptr) || (cancelFn == nullptr))
             {
                 MATSDK_THROW(std::invalid_argument("Created HttpClient_Operation with invalid parameters"));
             }
@@ -28,24 +45,70 @@ namespace MAT_NS_BEGIN {
 
         void Cancel()
         {
-            m_cancelFn(m_request->m_id.c_str());
+            m_cancelFn(m_requestId.c_str());
+        }
+
+        void CompleteAborted()
+        {
+            auto response = std::unique_ptr<SimpleHttpResponse>(
+                new SimpleHttpResponse(m_requestId));
+            response->m_result = HttpResult_Aborted;
+            OnResponse(response.release());
+        }
+
+        void BeginSendHandoff()
+        {
+            std::lock_guard<std::mutex> lock(m_completionMutex);
+            m_sendInProgress = true;
+        }
+
+        void FinishSendHandoff()
+        {
+            std::unique_ptr<IHttpResponse> deferredResponse;
+            {
+                std::lock_guard<std::mutex> lock(m_completionMutex);
+                m_sendInProgress = false;
+                deferredResponse = std::move(m_deferredResponse);
+            }
+            if (deferredResponse != nullptr)
+            {
+                m_callback->OnHttpResponse(deferredResponse.release());
+            }
         }
 
         void OnResponse(IHttpResponse* response)
         {
-            m_callback->OnHttpResponse(response);
+            std::unique_ptr<IHttpResponse> ownedResponse(response);
+            {
+                std::lock_guard<std::mutex> lock(m_completionMutex);
+                if (m_sendInProgress)
+                {
+                    m_deferredResponse = std::move(ownedResponse);
+                    return;
+                }
+            }
+            m_callback->OnHttpResponse(ownedResponse.release());
+        }
+
+        uint64_t OwnerId() const noexcept
+        {
+            return m_ownerId;
         }
 
     private:
-        SimpleHttpRequest*                  m_request;
-
+        std::string                         m_requestId;
+        uint64_t const                      m_ownerId;
         IHttpResponseCallback*              m_callback;
         http_cancel_fn_t                    m_cancelFn;
+        std::mutex                          m_completionMutex;
+        bool                                m_sendInProgress {false};
+        std::unique_ptr<IHttpResponse>       m_deferredResponse;
     };
 
 
     // Manage tracking of in-flight operations
     static std::mutex s_operationsLock;
+    static std::atomic<uint64_t> s_nextOwnerId{0};
 
     std::map<std::string, std::shared_ptr<HttpClient_Operation>>& GetPendingOperations()
     {
@@ -61,18 +124,42 @@ namespace MAT_NS_BEGIN {
     }
 
     // An operation is removed when a response has been received or the operation has been cancelled
-    std::shared_ptr<HttpClient_Operation> RemovePendingOperation(const std::string& requestId)
+    std::shared_ptr<HttpClient_Operation> RemovePendingOperation(
+        const std::string& requestId,
+        uint64_t ownerId = 0)
     {
         LOCKGUARD(s_operationsLock);
         std::shared_ptr<HttpClient_Operation> operation;
         auto itOperation = GetPendingOperations().find(requestId);
-        if (itOperation != GetPendingOperations().end())
+        if (itOperation != GetPendingOperations().end() &&
+            (ownerId == 0 || itOperation->second->OwnerId() == ownerId))
         {
             operation = itOperation->second;
             GetPendingOperations().erase(itOperation);
         }
 
         return operation;
+    }
+
+    std::vector<std::shared_ptr<HttpClient_Operation>>
+    RemovePendingOperations(uint64_t ownerId)
+    {
+        std::vector<std::shared_ptr<HttpClient_Operation>> operations;
+        LOCKGUARD(s_operationsLock);
+        for (auto it = GetPendingOperations().begin();
+             it != GetPendingOperations().end();)
+        {
+            if (it->second->OwnerId() == ownerId)
+            {
+                operations.push_back(it->second);
+                it = GetPendingOperations().erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        return operations;
     }
 
     // Callback invoked when a response is ready. The ID of the response will match the ID of the corresponding request.
@@ -127,12 +214,33 @@ namespace MAT_NS_BEGIN {
 
     HttpClient_CAPI::HttpClient_CAPI(http_send_fn_t sendFn, http_cancel_fn_t cancelFn)
       : m_sendFn(sendFn),
-        m_cancelFn(cancelFn)
+        m_cancelFn(cancelFn),
+        m_state(std::make_shared<HttpClient_CAPI_State>(++s_nextOwnerId))
     {
         if ((sendFn == nullptr) || (cancelFn == nullptr))
         {
             MATSDK_THROW(std::invalid_argument("Created HttpClient_CAPI with invalid parameters"));
         }
+    }
+
+    HttpClient_CAPI::~HttpClient_CAPI() noexcept
+    {
+#if HAVE_EXCEPTIONS
+        try
+        {
+            CancelAllRequests();
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("CAPI HTTP client teardown failed: %s", ex.what());
+        }
+        catch (...)
+        {
+            LOG_ERROR("CAPI HTTP client teardown failed with a non-standard exception");
+        }
+#else
+        CancelAllRequests();
+#endif
     }
 
     IHttpRequest* HttpClient_CAPI::CreateRequest()
@@ -148,7 +256,17 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_CAPI::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
-        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+        auto state = m_state;
+        auto sendFn = m_sendFn;
+        auto cancelFn = m_cancelFn;
+        // The external hook borrows pointers into the caller's request until it
+        // returns. Serialize this short handoff with cancellation so cancellation
+        // cannot terminally complete the request while the hook still copies them.
+        // Shared state pins the lock and owner identity if a synchronous callback
+        // destroys the HttpClient_CAPI facade before this method returns.
+        std::unique_lock<std::mutex> requestLock(state->requestsMutex);
+
+        // SendRequestAsync borrows the request; the caller retains ownership.
         auto simpleRequest = static_cast<SimpleHttpRequest*>(request);
         auto requestId = simpleRequest->m_id;
 
@@ -177,48 +295,157 @@ namespace MAT_NS_BEGIN {
         capiRequest.headersCount = static_cast<int32_t>(capiHeaders.size());
         capiRequest.headers = capiHeaders.data();
 
-        auto operation = std::make_shared<HttpClient_Operation>(simpleRequest, callback, m_cancelFn);
+        auto operation = std::make_shared<HttpClient_Operation>(
+            state->ownerId, requestId, callback, cancelFn);
         AddPendingOperation(requestId, operation);
 
-        m_sendFn(&capiRequest, &OnHttpResponse);
+        operation->BeginSendHandoff();
+#if HAVE_EXCEPTIONS
+        std::exception_ptr sendException;
+        try
+        {
+            sendFn(&capiRequest, &OnHttpResponse);
+        }
+        catch (...)
+        {
+            sendException = std::current_exception();
+        }
+        requestLock.unlock();
+        operation->FinishSendHandoff();
+
+        if (sendException != nullptr)
+        {
+            // A throwing send rejected the request. Retire the operation so a
+            // misbehaving hook cannot later call into a callback the manager has
+            // already completed synthetically.
+            auto rejectedOperation = RemovePendingOperation(
+                requestId, state->ownerId);
+            if (rejectedOperation == nullptr)
+            {
+                // The hook completed (or cancellation completed) the request
+                // synchronously before throwing. The terminal callback is the
+                // authoritative outcome; do not expose both completion and an
+                // exception to a direct CAPI client.
+                LOG_ERROR("CAPI HTTP send hook threw after completing request %s",
+                    requestId.c_str());
+                return;
+            }
+            std::rethrow_exception(sendException);
+        }
+#else
+        sendFn(&capiRequest, &OnHttpResponse);
+        requestLock.unlock();
+        operation->FinishSendHandoff();
+#endif
     }
 
     void HttpClient_CAPI::CancelRequestAsync(const std::string& id)
     {
+        auto state = m_state;
         LOG_TRACE("Cancelling CAPI HTTP request '%s'", id.c_str());
-        std::shared_ptr<HttpClient_Operation> operation(nullptr);
+        std::shared_ptr<HttpClient_Operation> operation;
         {
-            // Only lock mutex while actually reading/writing pending operations collection to prevent potential recursive deadlock
-            LOCKGUARD(s_operationsLock);
-            auto itOperation = GetPendingOperations().find(id);
-            if (itOperation != GetPendingOperations().end())
-            {
-                operation = itOperation->second;
-            }
+            // Wait for the external send hook to release request-backed
+            // pointers, then retire the operation before dropping the lock.
+            std::lock_guard<std::mutex> requestLock(
+                state->requestsMutex);
+            operation = RemovePendingOperation(id, state->ownerId);
         }
         
         if (operation != nullptr)
         {
-            operation->Cancel();// CodeQL [cpp/uninitializedptrfield] operation is explicitly constructed with nullptr so it will never hold garbage value
+#if HAVE_EXCEPTIONS
+            try
+            {
+                operation->Cancel();
+            }
+            catch (const std::exception& ex)
+            {
+                LOG_ERROR("CAPI HTTP cancellation failed for request %s: %s",
+                    id.c_str(), ex.what());
+            }
+            catch (...)
+            {
+                LOG_ERROR("CAPI HTTP cancellation failed for request %s",
+                    id.c_str());
+            }
+#else
+            operation->Cancel();
+#endif
+            // Cancellation is terminal from the adapter's perspective. The
+            // operation was removed first, so synchronous or late external
+            // completions are ignored and cannot double-complete the callback.
+#if HAVE_EXCEPTIONS
+            try
+            {
+                operation->CompleteAborted();
+            }
+            catch (const std::exception& ex)
+            {
+                LOG_ERROR("CAPI HTTP cancellation callback failed for request %s: %s",
+                    id.c_str(), ex.what());
+            }
+            catch (...)
+            {
+                LOG_ERROR("CAPI HTTP cancellation callback failed for request %s",
+                    id.c_str());
+            }
+#else
+            operation->CompleteAborted();
+#endif
         }
     }
 
     void HttpClient_CAPI::CancelAllRequests()
     {
+        auto state = m_state;
         LOG_TRACE("Cancelling all CAPI HTTP requests");
+        // Retire this client's full snapshot before invoking external
+        // cancellation. Other CAPI clients keep their independent operations.
         std::vector<std::shared_ptr<HttpClient_Operation>> operations;
         {
-            // Only lock mutex while actually reading/writing pending operations collection to prevent potential recursive deadlock
-            LOCKGUARD(s_operationsLock);
-            for (const auto& operation : GetPendingOperations())
-            {
-                operations.push_back(operation.second);
-            }
+            // Wait until any external send hook has released request-backed
+            // pointers. Do not hold this member lock across terminal callbacks:
+            // a direct callback is allowed to destroy the client.
+            std::lock_guard<std::mutex> requestLock(
+                state->requestsMutex);
+            operations = RemovePendingOperations(state->ownerId);
         }
 
         for (const auto& operation : operations)
         {
+#if HAVE_EXCEPTIONS
+            try
+            {
+                operation->Cancel();
+            }
+            catch (const std::exception& ex)
+            {
+                LOG_ERROR("CAPI HTTP cancellation failed: %s", ex.what());
+            }
+            catch (...)
+            {
+                LOG_ERROR("CAPI HTTP cancellation failed with a non-standard exception");
+            }
+#else
             operation->Cancel();
+#endif
+#if HAVE_EXCEPTIONS
+            try
+            {
+                operation->CompleteAborted();
+            }
+            catch (const std::exception& ex)
+            {
+                LOG_ERROR("CAPI HTTP cancellation callback failed: %s", ex.what());
+            }
+            catch (...)
+            {
+                LOG_ERROR("CAPI HTTP cancellation callback failed with a non-standard exception");
+            }
+#else
+            operation->CompleteAborted();
+#endif
         }
     }
 

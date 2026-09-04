@@ -18,8 +18,9 @@ namespace MAT_NS_BEGIN
         if (filter == nullptr)
             MATSDK_THROW(std::invalid_argument("filter"));
 
+        std::shared_ptr<IEventFilter> sharedFilter(std::move(filter));
         std::lock_guard<std::mutex> lock(m_filterLock);
-        m_filters.emplace_back(std::move(filter));
+        m_filters.emplace_back(std::move(sharedFilter));
         m_size = m_filters.size();
     }
 
@@ -31,7 +32,7 @@ namespace MAT_NS_BEGIN
         std::lock_guard<std::mutex> lock(m_filterLock);
         m_filters.erase(
             std::remove_if(m_filters.begin(), m_filters.end(), 
-                [filterName](const std::unique_ptr<IEventFilter>& filter) noexcept
+                [filterName](const std::shared_ptr<IEventFilter>& filter) noexcept
                 {
                     return strcmp(filter->GetName(), filterName) == 0;
                 }),
@@ -41,20 +42,23 @@ namespace MAT_NS_BEGIN
 
     void EventFilterCollection::UnregisterAllFilters() noexcept
     {
-        std::lock_guard<std::mutex> lock(m_filterLock);
-        std::vector<std::unique_ptr<IEventFilter>>{}.swap(m_filters);
-        m_size = 0;
+        std::vector<std::shared_ptr<IEventFilter>> removedFilters;
+        {
+            std::lock_guard<std::mutex> lock(m_filterLock);
+            removedFilters.swap(m_filters);
+            m_size = 0;
+        }
     }
 
     bool EventFilterCollection::CanEventPropertiesBeSent(const EventProperties& properties) const noexcept
     {
-        if (Empty())
+        std::vector<std::shared_ptr<IEventFilter>> filters;
         {
-            return true;
+            std::lock_guard<std::mutex> lock(m_filterLock);
+            filters = m_filters;
         }
-        std::lock_guard<std::mutex> lock(m_filterLock);
-        return std::all_of(m_filters.cbegin(), m_filters.cend(), 
-            [&properties](const std::unique_ptr<IEventFilter>& filter)
+        return std::all_of(filters.cbegin(), filters.cend(),
+            [&properties](const std::shared_ptr<IEventFilter>& filter)
             {
                 return filter->CanEventPropertiesBeSent(properties);
             });

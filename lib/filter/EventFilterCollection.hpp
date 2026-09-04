@@ -28,7 +28,7 @@ namespace MAT_NS_BEGIN
     protected:
         std::atomic<size_t> m_size { 0 };
         mutable std::mutex m_filterLock;
-        std::vector<std::unique_ptr<IEventFilter>> m_filters;
+        std::vector<std::shared_ptr<IEventFilter>> m_filters;
     };
 
 } MAT_NS_END

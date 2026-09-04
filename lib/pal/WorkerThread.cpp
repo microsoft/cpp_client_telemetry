@@ -37,6 +37,8 @@ namespace PAL_NS_BEGIN {
         std::list<MAT::Task*> m_timerQueue;
         Event                 m_event;
         MAT::Task*            m_itemInProgress;
+        uint64_t              m_itemInProgressGeneration = 0;
+        bool                  m_itemCancellationRequested = false;
         int count = 0;
 
     public:
@@ -95,23 +97,9 @@ namespace PAL_NS_BEGIN {
             m_event.post();
         }
 
-        // Cancel a task or wait for task completion for up to waitTime ms:
-        //
-        // - acquire the m_lock to prevent a new task from getting scheduled.
-        //   This may block the scheduling of a new task in queue for up to
-        //   waitTime in case if the task being canceled
-        //   is the one being executed right now.
-        //
-        // - if currently executing task is the one we are trying to cancel,
-        //   then verify for recursion: if the current thread is the same
-        //   we're waiting on, prevent the recursion (we can't cancel our own
-        //   thread task). If it's different thread, then idle-poll-wait for
-        //   task completion for up to waitTime ms. m_itemInProgress is nullptr
-        //   once the item is done executing. Method may fail and return if
-        //   waitTime given was insufficient to wait for completion.
-        //
-        // - if task being cancelled is not executing yet, then erase it from
-        //   timer queue without any wait.
+        // Lock rule: never wait for m_execution_mutex while holding m_lock.
+        // Task callbacks may call Queue(), which needs m_lock while the callback
+        // owns m_execution_mutex.
         //
         // TODO: current callers of this API do not check the status code.
         // Refactor this code to return the following cancellation status:
@@ -122,7 +110,8 @@ namespace PAL_NS_BEGIN {
         //
         bool Cancel(MAT::Task* item, uint64_t waitTime) override
         {
-            LOCKGUARD(m_lock);
+            MAT::Task* queuedItem = nullptr;
+            std::unique_lock<std::recursive_mutex> lock(m_lock);
             if (item == nullptr)
             {
                 return false;
@@ -131,36 +120,50 @@ namespace PAL_NS_BEGIN {
             if (m_itemInProgress == item)
             {
                 /* Can't recursively wait on completion of our own thread */
-                if (m_hThread.get_id() != std::this_thread::get_id())
-                {
-                    if (waitTime > 0 && m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime)))
-                    {
-                        m_itemInProgress = nullptr;
-                        m_execution_mutex.unlock();
-                    }
-                }
-                else
+                if (m_hThread.get_id() == std::this_thread::get_id())
                 {
                     // The SDK may attempt to cancel itself from within its own task.
                     // Return true and assume that the current task will finish, and therefore be cancelled.
                     return true;
                 }
 
-                /* Either waited long enough or the task is still executing. Return:
-                 *  true    - if item in progress is different than item (other task)
-                 *  false   - if item in progress is still the same (didn't wait long enough)
-                 */
-                return (m_itemInProgress != item);
+                if (waitTime == 0)
+                {
+                    return false;
+                }
+
+                const uint64_t generation = m_itemInProgressGeneration;
+                m_itemCancellationRequested = true;
+                lock.unlock();
+
+                const bool completed =
+                    m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime));
+                if (completed)
+                {
+                    m_execution_mutex.unlock();
+                }
+
+                lock.lock();
+                const bool sameItem =
+                    m_itemInProgress == item &&
+                    m_itemInProgressGeneration == generation;
+                if (completed && sameItem)
+                {
+                    m_itemInProgress = nullptr;
+                    m_itemCancellationRequested = false;
+                }
+
+                return completed || !sameItem;
             }
 
-            {
-                auto it = std::find(m_timerQueue.begin(), m_timerQueue.end(), item);
-                if (it != m_timerQueue.end()) {
-                    // Still in the queue
-                    m_timerQueue.erase(it);
-                    delete item;
-                }
+            auto it = std::find(m_timerQueue.begin(), m_timerQueue.end(), item);
+            if (it != m_timerQueue.end()) {
+                // Transfer ownership under m_lock, but destroy outside all worker locks.
+                queuedItem = *it;
+                m_timerQueue.erase(it);
             }
+            lock.unlock();
+            delete queuedItem;
 #if 0
             for (;;) {
                 {
@@ -219,6 +222,8 @@ namespace PAL_NS_BEGIN {
 
                     if (item) {
                         self->m_itemInProgress = item.get();
+                        ++self->m_itemInProgressGeneration;
+                        self->m_itemCancellationRequested = false;
                     }
                 }
 
@@ -229,16 +234,29 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (item->Type == MAT::Task::Shutdown) {
+                    {
+                        LOCKGUARD(self->m_lock);
+                        if (self->m_itemInProgress == item.get()) {
+                            self->m_itemInProgress = nullptr;
+                            self->m_itemCancellationRequested = false;
+                        }
+                    }
                     item.reset();
-                    self->m_itemInProgress = nullptr;
                     break;
                 }
 
                 {
                     std::lock_guard<std::timed_mutex> lock(self->m_execution_mutex);
 
-                    // Item wasn't cancelled before it could be executed
-                    if (self->m_itemInProgress != nullptr) {
+                    bool executeItem = false;
+                    {
+                        LOCKGUARD(self->m_lock);
+                        executeItem =
+                            self->m_itemInProgress == item.get() &&
+                            !self->m_itemCancellationRequested;
+                    }
+
+                    if (executeItem) {
                         LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
                         // A task can run arbitrary work (storage I/O, HTTP encode, and
                         // user DebugEventListener callbacks). An exception escaping here
@@ -248,19 +266,29 @@ namespace PAL_NS_BEGIN {
                             (*item)();
                         }
                         catch (const std::exception& ex) {
+                            UNREFERENCED_PARAMETER(ex);
                             LOG_ERROR("Unhandled exception in worker task: %s", ex.what());
                         }
                         catch (...) {
                             LOG_ERROR("Unhandled non-standard exception in worker task");
                         }
-                        self->m_itemInProgress = nullptr;
                     }
 
                     if (item) {
                         item->Type = MAT::Task::Done;
-                        item = nullptr;
                     }
                 }
+                {
+                    LOCKGUARD(self->m_lock);
+                    if (self->m_itemInProgress == item.get()) {
+                        self->m_itemInProgress = nullptr;
+                        self->m_itemCancellationRequested = false;
+                    }
+                }
+                // Task destruction may synchronize with a cancellation caller.
+                // Never run it while holding m_execution_mutex, which Cancel()
+                // waits on while that caller owns the task lifetime lock.
+                item = nullptr;
             }
         }
     };
@@ -275,4 +303,3 @@ namespace PAL_NS_BEGIN {
 } PAL_NS_END
 
 #endif
-

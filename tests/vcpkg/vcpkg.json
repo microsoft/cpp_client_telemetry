@@ -4,5 +4,19 @@
   "description": "Integration test for cpp-client-telemetry vcpkg port",
   "dependencies": [
     "cpp-client-telemetry"
-  ]
+  ],
+  "features": {
+    "wininet": {
+      "description": "Exercise the cpp-client-telemetry WinInet feature on Windows.",
+      "supports": "windows & !mingw",
+      "dependencies": [
+        {
+          "name": "cpp-client-telemetry",
+          "features": [
+            "wininet"
+          ]
+        }
+      ]
+    }
+  }
 }

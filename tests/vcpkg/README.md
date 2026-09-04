@@ -35,6 +35,12 @@ Best run from a **VS Developer Command Prompt** (ensures the same compiler versi
 .\tests\vcpkg\test-vcpkg-windows.ps1 -VcpkgRoot C:\path\to\vcpkg
 ```
 
+Use `-WinInet` to exercise the opt-in WinInet feature instead of the default
+WinHTTP transport:
+```powershell
+.\tests\vcpkg\test-vcpkg-windows.ps1 -VcpkgRoot C:\path\to\vcpkg -WinInet
+```
+
 > **Note:** Visual Studio's `vcvarsall.bat` overrides the `VCPKG_ROOT` environment variable.
 > Always pass `-VcpkgRoot` explicitly to point at your vcpkg installation.
 

@@ -10,13 +10,115 @@
 
 #include "ILogManager.hpp"
 #include <algorithm>
+#include <exception>
 #include <numeric>
 #include <set>
+#include <utility>
 
 namespace MAT_NS_BEGIN {
 
-
     MATSDK_LOG_INST_COMPONENT_CLASS(OfflineStorageHandler, "EventsSDK.StorageHandler", "Events telemetry client - OfflineStorageHandler class")
+
+    namespace
+    {
+        class ActivityGuard
+        {
+        public:
+            explicit ActivityGuard(ILogManager& logManager) :
+                m_logManager(logManager),
+                m_active(logManager.StartActivity())
+            {
+            }
+
+            ~ActivityGuard() noexcept
+            {
+                if (m_active)
+                {
+                    m_logManager.EndActivity();
+                }
+            }
+
+            bool IsActive() const noexcept
+            {
+                return m_active;
+            }
+
+        private:
+            ILogManager& m_logManager;
+            bool m_active;
+        };
+
+        template<typename TFunc>
+        class ScopeExit
+        {
+        public:
+            explicit ScopeExit(TFunc&& func) noexcept :
+                m_func(std::move(func)),
+                m_active(true)
+            {
+            }
+
+            ScopeExit(ScopeExit&& other) noexcept :
+                m_func(std::move(other.m_func)),
+                m_active(other.m_active)
+            {
+                other.m_active = false;
+            }
+
+            ScopeExit(const ScopeExit&) = delete;
+            ScopeExit& operator=(const ScopeExit&) = delete;
+            ScopeExit& operator=(ScopeExit&&) = delete;
+
+            ~ScopeExit() noexcept
+            {
+                if (m_active)
+                {
+                    m_func();
+                }
+            }
+
+        private:
+            TFunc m_func;
+            bool m_active;
+        };
+
+        template<typename TFunc>
+        ScopeExit<TFunc> MakeScopeExit(TFunc&& func)
+        {
+            return ScopeExit<TFunc>(std::forward<TFunc>(func));
+        }
+    }
+
+    class OfflineStorageHandler::OfflineStorageFlushTask final : public Task
+    {
+    public:
+        explicit OfflineStorageFlushTask(OfflineStorageHandler& handler) :
+            Task(),
+            m_handler(handler)
+        {
+            Type = Task::Call;
+            TargetTime = 0;
+            TypeName = "OfflineStorageFlushTask";
+        }
+
+        ~OfflineStorageFlushTask() noexcept override
+        {
+            if (!m_started)
+            {
+                m_handler.DropScheduledFlush();
+            }
+        }
+
+        void operator()() override
+        {
+            m_started = true;
+            m_handler.RunScheduledFlush();
+        }
+
+    private:
+        OfflineStorageHandler& m_handler;
+        bool m_started = false;
+    };
 
     OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher) :
         m_observer(nullptr),
@@ -25,12 +127,13 @@ namespace MAT_NS_BEGIN {
         m_taskDispatcher(taskDispatcher),
         m_killSwitchManager(),
         m_clockSkewManager(),
-        m_flushPending(false),
+        m_phase(StoragePhase::Stopped),
+        m_inFlight(0),
+        m_scheduled(false),
         m_offlineStorageMemory(nullptr),
         m_offlineStorageDisk(nullptr),
         m_readFromMemory(false),
         m_lastReadCount(0),
-        m_shutdownStarted(false),
         m_memoryDbSize(0),
         m_queryDbSize(0),
         m_cacheMemorySizeLimitInBytes(0),
@@ -57,27 +160,73 @@ namespace MAT_NS_BEGIN {
             /* slower */ m_killSwitchManager.isTokenBlocked(record.tenantToken));
     }
 
-    void OfflineStorageHandler::WaitForFlush()
+    bool OfflineStorageHandler::BeginOperation()
+    {
+        std::lock_guard<std::mutex> lock(m_stateMutex);
+        if (m_phase != StoragePhase::Accepting)
+        {
+            return false;
+        }
+        ++m_inFlight;
+        return true;
+    }
+
+    void OfflineStorageHandler::EndOperation()
     {
         {
-            LOCKGUARD(m_flushLock);
-            if (!m_flushPending)
-                return;
+            std::lock_guard<std::mutex> lock(m_stateMutex);
+            --m_inFlight;
         }
-        LOG_INFO("Waiting for pending Flush (%p) to complete...", m_flushHandle.m_task);
-        m_flushComplete.wait();
+        m_stateCV.notify_all();
+    }
+
+    void OfflineStorageHandler::DropScheduledFlush()
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_stateMutex);
+            if (!m_scheduled)
+            {
+                return;
+            }
+            m_scheduled = false;
+            --m_inFlight;
+        }
+        m_stateCV.notify_all();
+    }
+
+    bool OfflineStorageHandler::BeginTeardown()
+    {
+        std::unique_lock<std::mutex> lock(m_stateMutex);
+        if (m_phase != StoragePhase::Accepting)
+        {
+            m_stateCV.wait(lock, [this] { return m_phase == StoragePhase::Stopped; });
+            return false;
+        }
+        m_phase = StoragePhase::Draining;
+        m_stateCV.wait(lock, [this] { return m_inFlight == 0; });
+        m_phase = StoragePhase::TearingDown;
+        return true;
+    }
+
+    void OfflineStorageHandler::FinishTeardown()
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_stateMutex);
+            m_phase = StoragePhase::Stopped;
+        }
+        m_stateCV.notify_all();
     }
 
     OfflineStorageHandler::~OfflineStorageHandler()
     {
-        WaitForFlush();
-        if (nullptr != m_offlineStorageMemory)
+        if (BeginTeardown())
         {
-            m_offlineStorageMemory.reset();
-        }
-        if (nullptr != m_offlineStorageDisk)
-        {
-            m_offlineStorageDisk.reset();
+            {
+                std::lock_guard<std::mutex> lock(m_ioMutex);
+                m_offlineStorageMemory.reset();
+                m_offlineStorageDisk.reset();
+            }
+            FinishTeardown();
         }
     }
 
@@ -101,24 +250,56 @@ namespace MAT_NS_BEGIN {
             m_offlineStorageMemory->Initialize(*this);
         }
 
-        m_shutdownStarted = false;
+        std::lock_guard<std::mutex> lock(m_stateMutex);
+        if (m_phase == StoragePhase::Stopped)
+        {
+            m_phase = StoragePhase::Accepting;
+        }
         LOG_TRACE("Initializing offline storage handler");
     }
 
     void OfflineStorageHandler::Shutdown()
     {
         LOG_TRACE("Shutting down offline storage handler");
-        m_shutdownStarted = true;
-        WaitForFlush();
-        if (nullptr != m_offlineStorageMemory)
+        if (!BeginTeardown())
         {
-            m_offlineStorageMemory->ReleaseAllRecords();
-            Flush();
-            m_offlineStorageMemory->Shutdown();
+            return;
         }
-        if (nullptr != m_offlineStorageDisk)
+
+        auto finishTeardown = MakeScopeExit([this] { FinishTeardown(); });
+        size_t savedRecords = 0;
+        bool notifySaved = false;
         {
-            m_offlineStorageDisk->Shutdown();
+            std::lock_guard<std::mutex> lock(m_ioMutex);
+            if (m_offlineStorageMemory != nullptr)
+            {
+                m_offlineStorageMemory->ReleaseAllRecords();
+#if HAVE_EXCEPTIONS
+                try
+                {
+                    notifySaved = FlushImpl(savedRecords);
+                }
+                catch (const std::exception& ex)
+                {
+                    LOG_ERROR("Offline storage shutdown flush failed: %s", ex.what());
+                }
+                catch (...)
+                {
+                    LOG_ERROR("Offline storage shutdown flush failed");
+                }
+#else
+                notifySaved = FlushImpl(savedRecords);
+#endif
+                m_offlineStorageMemory->Shutdown();
+            }
+            if (m_offlineStorageDisk != nullptr)
+            {
+                m_offlineStorageDisk->Shutdown();
+            }
+        }
+        if (notifySaved)
+        {
+            OnStorageRecordsSaved(savedRecords);
         }
     }
 
@@ -163,43 +344,116 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorageHandler::Flush()
     {
-        if (!m_logManager.StartActivity()) {
+        if (!BeginOperation())
+        {
             return;
         }
-        // Flush could be executed from context of worker thread, as well as from TPM and
-        // after HTTP callback. Make sure it is atomic / thread-safe.
-        LOCKGUARD(m_flushLock);
+        auto completion = MakeScopeExit([this] { EndOperation(); });
+        ActivityGuard activity(m_logManager);
+        if (activity.IsActive())
+        {
+            size_t savedRecords = 0;
+            bool notifySaved;
+            {
+                std::lock_guard<std::mutex> lock(m_ioMutex);
+                notifySaved = FlushImpl(savedRecords);
+            }
+            if (notifySaved)
+            {
+                OnStorageRecordsSaved(savedRecords);
+            }
+        }
+    }
 
-        // If item isn't scheduled yet, it gets canceled, so that we don't do two flushes.
-        // If we are running that item right now (our thread), then nothing happens other
-        // than the handle gets replaced by nullptr in this DeferredCallbackHandle obj.
-        m_flushHandle.Cancel();
+    void OfflineStorageHandler::RunScheduledFlush()
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_stateMutex);
+            m_scheduled = false;
+        }
+        auto completion = MakeScopeExit([this] { EndOperation(); });
+        ActivityGuard activity(m_logManager);
+        if (activity.IsActive())
+        {
+            size_t savedRecords = 0;
+            bool notifySaved;
+            {
+                std::lock_guard<std::mutex> lock(m_ioMutex);
+                notifySaved = FlushImpl(savedRecords);
+            }
+            if (notifySaved)
+            {
+                OnStorageRecordsSaved(savedRecords);
+            }
+        }
+    }
 
+    bool OfflineStorageHandler::FlushImpl(size_t& savedRecords)
+    {
+        bool notifySaved = false;
         size_t dbSizeBeforeFlush = (m_offlineStorageMemory != nullptr) ? m_offlineStorageMemory->GetSize() : 0;
         if ((m_offlineStorageMemory) && (dbSizeBeforeFlush > 0) && (m_offlineStorageDisk))
         {
             // This will block on and then take a lock for the duration of this move, and
             // StoreRecord() will then block until the move completes.
-            auto records = m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
-            std::vector<StorageRecordId> ids;
+            auto memoryRecords =
+                m_offlineStorageMemory->GetRecords(false, EventLatency_Unspecified);
+            std::vector<StorageRecord> persistentRecords;
+            std::vector<StorageRecord> memoryOnlyRecords;
+            persistentRecords.reserve(memoryRecords.size());
+            memoryOnlyRecords.reserve(memoryRecords.size());
+            for (auto& record : memoryRecords)
+            {
+                if (record.persistence != EventPersistence_DoNotStoreOnDisk)
+                {
+                    persistentRecords.push_back(std::move(record));
+                }
+                else
+                {
+                    memoryOnlyRecords.push_back(std::move(record));
+                }
+            }
+            m_offlineStorageMemory->StoreRecords(memoryOnlyRecords);
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("BEGIN");
 
-            size_t totalSaved = m_offlineStorageDisk->StoreRecords(records);
+            // IOfflineStorage::StoreRecords accepts a mutable vector, so an
+            // external storage module may consume or reorder its input. Keep an
+            // untouched batch for exception and partial-write recovery.
+            auto recordsForRetry = persistentRecords;
+            size_t const recordsToSave = recordsForRetry.size();
+            size_t totalSaved = 0;
+#if HAVE_EXCEPTIONS
+            try
+            {
+                totalSaved = m_offlineStorageDisk->StoreRecords(persistentRecords);
+            }
+            catch (...)
+            {
+                // GetRecords() removes records from the RAM queue. Restore them
+                // before propagating so a transient disk failure cannot lose data.
+                m_offlineStorageMemory->StoreRecords(recordsForRetry);
+                throw;
+            }
+#else
+            totalSaved = m_offlineStorageDisk->StoreRecords(persistentRecords);
+#endif
 
             // TODO: [MG] - consider running the batch in transaction
             //            if (sqlite)
             //                sqlite->Execute("END");
 
-            // Delete records from reserved on flush
-            HttpHeaders dummy;
-            bool fromMemory = true;
-            m_offlineStorageMemory->DeleteRecords(ids, dummy, fromMemory);
+            if (totalSaved != recordsToSave)
+            {
+                // StoreRecords reports only a count, not the failed record IDs.
+                // Restore the complete batch to preserve at-least-once delivery.
+                m_offlineStorageMemory->StoreRecords(recordsForRetry);
+            }
 
-            // Notify event listener about the records cached
-            OnStorageRecordsSaved(totalSaved);
+            savedRecords = totalSaved;
+            notifySaved = true;
 
             if (m_offlineStorageMemory->GetSize() > dbSizeBeforeFlush)
             {
@@ -211,58 +465,61 @@ namespace MAT_NS_BEGIN {
         }
 
         // Checkpoint DB
-        if (m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) && m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH]) 
+        if (m_offlineStorageDisk != nullptr &&
+            m_config.HasConfig(CFG_BOOL_CHECKPOINT_DB_ON_FLUSH) &&
+            m_config[CFG_BOOL_CHECKPOINT_DB_ON_FLUSH])
         {
             m_offlineStorageDisk->Flush();
         }
 
         m_isStorageFullNotificationSend = false;
-
-        // Flush is done, notify the waiters
-        m_flushComplete.post();
-        m_flushPending = false;
-        m_logManager.EndActivity();
+        return notifySaved;
     }
 
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
-        // Don't discard on shutdown because the kill-switch may be temporary.
-        // Attempt to upload after restart.
-        if ((!m_shutdownStarted) && isKilled(record))
+        if (!BeginOperation())
         {
-            // Discard unwanted records associated with killed tenant, reporting events as dropped
+            return false;
+        }
+        auto completion = MakeScopeExit([this] { EndOperation(); });
+        if (isKilled(record))
+        {
             return false;
         }
 
-        // Cache size limit is per-instance config computed once in Initialize();
-        // it must NOT be a function-local static, which would share the first
-        // LogManager's value with every other LogManager instance.
         uint32_t cacheMemorySizeLimitInBytes = m_cacheMemorySizeLimitInBytes;
-
-        if (nullptr != m_offlineStorageMemory && !m_shutdownStarted)
+        if (nullptr != m_offlineStorageMemory)
         {
             auto memDbSize = m_offlineStorageMemory->GetSize();
-            {
-                // During flush, this will block on a mutex while records
-                // are selected and removed from the cache (but will
-                // not block for the subsequent handoff to persistent
-                // storage)
-                m_offlineStorageMemory->StoreRecord(record);
-            }
-
-            // Perform periodic flush to disk
+            m_offlineStorageMemory->StoreRecord(record);
             if (memDbSize > cacheMemorySizeLimitInBytes)
             {
-                if (m_flushLock.try_lock())
+                bool queueFlush = false;
                 {
-                    if (!m_flushPending)
+                    std::lock_guard<std::mutex> lock(m_stateMutex);
+                    if (m_phase == StoragePhase::Accepting && !m_scheduled)
                     {
-                        m_flushPending = true;
-                        m_flushComplete.Reset();
-                        m_flushHandle = PAL::scheduleTask(&m_taskDispatcher, 0, this, &OfflineStorageHandler::Flush);
-                        LOG_INFO("Requested Flush (%p)", m_flushHandle.m_task);
+                        m_scheduled = true;
+                        ++m_inFlight;
+                        queueFlush = true;
                     }
-                    m_flushLock.unlock();
+                }
+                if (queueFlush)
+                {
+#if HAVE_EXCEPTIONS
+                    try
+                    {
+                        m_taskDispatcher.Queue(new OfflineStorageFlushTask(*this));
+                    }
+                    catch (...)
+                    {
+                        DropScheduledFlush();
+                        throw;
+                    }
+#else
+                    m_taskDispatcher.Queue(new OfflineStorageFlushTask(*this));
+#endif
                 }
             }
         }
@@ -448,6 +705,11 @@ namespace MAT_NS_BEGIN {
             /* Since we got the ask for a new token kill, means we sent something we should now stop sending */
             LOG_TRACE("Scrub all pending events associated with killed token(s)");
             DeleteRecordsByKeys(m_killSwitchManager.getTokensList());
+        }
+
+        if (ids.empty())
+        {
+            return;
         }
 
         LOG_TRACE(" OfflineStorageHandler Deleting %u sent event(s) {%s%s}...",

@@ -42,6 +42,8 @@ option(MATSDK_BUILD_AZMON
   "Build Azure Monitor / Application Insights support" ON)
 option(MATSDK_BUILD_APPLE_HTTP
   "Build the Apple-native HTTP client" "${APPLE}")
+option(MATSDK_USE_WININET
+  "Use WinInet instead of WinHTTP as the Win32 desktop HTTP client" OFF)
 
 set(_matsdk_android_http_client_predefined OFF)
 if(DEFINED MATSDK_ANDROID_HTTP_CLIENT)

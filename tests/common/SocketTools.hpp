@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <thread>
+#include <atomic>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -229,11 +230,23 @@ class Socket
     Socket(Type sock = Invalid)
             : m_sock(sock)
     {
+#ifdef TARGET_OS_MAC
+        if (m_sock != Invalid)
+        {
+            setNoSigPipe();
+        }
+#endif
     }
 
     Socket(int af, int type, int proto)
     {
         m_sock = ::socket(af, type, proto);
+#ifdef TARGET_OS_MAC
+        if (m_sock != Invalid)
+        {
+            setNoSigPipe();
+        }
+#endif
     }
 
     ~Socket()
@@ -276,6 +289,15 @@ class Socket
         ::fcntl(m_sock, F_SETFL, flags | O_NONBLOCK);
 #endif
     }
+
+#ifdef TARGET_OS_MAC
+    bool setNoSigPipe()
+    {
+        assert(m_sock != Invalid);
+        int value = 1;
+        return (::setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value)) == 0);
+    }
+#endif
 
     bool setReuseAddr()
     {
@@ -409,7 +431,7 @@ class Thread
 {
  private:
     std::thread m_thread;
-    volatile bool m_terminate { false };
+    std::atomic<bool> m_terminate { false };
 
  protected:
     Thread()
@@ -437,7 +459,7 @@ class Thread
 
     bool shouldTerminate() const
     {
-        return m_terminate;
+        return m_terminate.load();
     }
 
     virtual void onThread() = 0;
@@ -465,5 +487,3 @@ struct SocketData
 
 }
 #endif
-
-

@@ -545,7 +545,7 @@ namespace
             {
                 auto element = env->GetObjectArrayElement(value, i);
                 rethrow(env);
-                array.emplace_back(std::move(translateVariant(element)));
+                array.emplace_back(translateVariant(element));
             }
         }
 

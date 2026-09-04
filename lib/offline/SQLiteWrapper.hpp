@@ -386,7 +386,7 @@ namespace MAT_NS_BEGIN {
         size_t prepare(char const* statement)
         {
             LOCKGUARD(m_lock);
-            sqlite3_stmt* stmt;
+            sqlite3_stmt* stmt = nullptr;
             int result = g_sqlite3Proxy->sqlite3_prepare_v2(m_db, statement, -1, &stmt, NULL);
             if (result != SQLITE_OK) {
                 std::string excerpt(statement);
@@ -865,4 +865,3 @@ namespace MAT_NS_BEGIN {
 
 } MAT_NS_END
 #endif
-

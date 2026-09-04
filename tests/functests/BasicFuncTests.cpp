@@ -128,6 +128,7 @@ class BasicFuncTests : public ::testing::Test,
 protected:
     std::mutex                       mtx_requests;
     std::vector<HttpServer::Request> receivedRequests;
+    std::string serverBaseAddress;
     std::string serverAddress;
     HttpServer server;
 
@@ -155,7 +156,8 @@ public:
         int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
         os << "127.0.0.1:" << port;
-        serverAddress = "http://" + os.str() + "/simple/";
+        serverBaseAddress = "http://" + os.str();
+        serverAddress = serverBaseAddress + "/simple/";
         server.setServerName(os.str());
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
@@ -833,9 +835,8 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         LogManager::SetTransmitProfile(TransmitProfile_RealTime);
         LogManager::UploadNow();
 
-        // 1st request for realtime event
-        waitForEvents(10, 5); // start, first_event, second_event, ongoing, stop, start, fooEvent
-        // we drop two of the events during pause, though.
+        // A graceful paused shutdown persists every pending event for restart.
+        waitForEvents(10, 7);
         EXPECT_GE(receivedRequests.size(), (size_t)1);
         if (receivedRequests.size() != 0)
         {
@@ -945,10 +946,10 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     LogManager::ResumeTransmission(); // ?
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    waitForEvents(5, 4); // (start + stop) + (2 events + start)
+    waitForEvents(5, 6);
 
     auto r2 = records();
-    ASSERT_GE(r2.size(), (size_t)4); // (start + stop) + (2 events + start)
+    ASSERT_GE(r2.size(), (size_t)6);
 
     for (const auto &evt : { event1, event2 })
     {
@@ -1260,6 +1261,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         myLogger->LogEvent(event2);
     }
     // Expect all events to be dropped
+    EXPECT_TRUE(listener.waitForAtLeast(listener.numDropped, 100, 10000));
     EXPECT_EQ(uint32_t { 100 }, listener.numDropped);
     LogManager::FlushAndTeardown();
 
@@ -1364,7 +1366,10 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
-        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        // Use the fixture's local slow endpoint so cancellation does not depend
+        // on how the CI runner handles connections to an unused port.
+        const std::string slowCollectorUrl = serverBaseAddress + "/slow/";
+        configuration[CFG_STR_COLLECTOR_URL] = slowCollectorUrl.c_str();
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
