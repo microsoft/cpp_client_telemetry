@@ -737,9 +737,9 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                     *static_cast<INTERNET_ASYNC_RESULT const*>(lpvStatusInformation);
                 if (result.dwError == ERROR_SUCCESS)
                 {
-                    // SENDING_REQUEST is the primary post-handshake hook. Check
-                    // again before processing a successful response so a missing
-                    // notification cannot bypass the optional root policy.
+                    // SENDING_REQUEST is the pre-transmission enforcement point. If a
+                    // successful operation arrives without that notification, fail closed
+                    // rather than accepting a response whose peer was never evaluated.
                     self->runMsRootCheckOnce();
                 }
                 self->onRequestComplete(result.dwError);
