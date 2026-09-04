@@ -285,13 +285,8 @@ public:
                 registered = [sessionDelegate registerTask:task handler:m_completionMethod];
                 if (!registered)
                 {
-                    bool cancelled = false;
-                    {
-                        std::lock_guard<std::mutex> lock(m_mutex);
-                        cancelled = m_cancelRequested;
-                    }
                     [task cancel];
-                    Complete(cancelled ? HttpResult_Aborted : HttpResult_LocalFailure);
+                    Complete(HttpResult_LocalFailure);
                     return;
                 }
 
@@ -313,11 +308,6 @@ public:
         @catch (NSException* exception)
         {
             LOG_WARN("HTTP request setup failed: %s", [[exception reason] UTF8String]);
-            bool cancelled = false;
-            {
-                std::lock_guard<std::mutex> lock(m_mutex);
-                cancelled = m_cancelRequested;
-            }
             if (registered)
             {
                 [task cancel];
@@ -327,7 +317,7 @@ public:
             {
                 [task cancel];
             }
-            Complete(cancelled ? HttpResult_Aborted : HttpResult_LocalFailure);
+            Complete(HttpResult_LocalFailure);
         }
     }
 
@@ -467,6 +457,10 @@ private:
             if (m_terminal)
             {
                 return;
+            }
+            if (m_cancelRequested)
+            {
+                result = HttpResult_Aborted;
             }
             m_terminal = true;
             callback = m_callback;
