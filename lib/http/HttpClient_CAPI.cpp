@@ -20,7 +20,7 @@ namespace MAT_NS_BEGIN {
         }
 
         uint64_t const ownerId;
-        std::recursive_mutex requestsMutex;
+        std::mutex requestsMutex;
     };
 
     // Represents a single in-flight, cancellable HTTP operation
@@ -264,7 +264,7 @@ namespace MAT_NS_BEGIN {
         // cannot terminally complete the request while the hook still copies them.
         // Shared state pins the lock and owner identity if a synchronous callback
         // destroys the HttpClient_CAPI facade before this method returns.
-        std::lock_guard<std::recursive_mutex> requestLock(state->requestsMutex);
+        std::unique_lock<std::mutex> requestLock(state->requestsMutex);
 
         // SendRequestAsync borrows the request; the caller retains ownership.
         auto simpleRequest = static_cast<SimpleHttpRequest*>(request);
@@ -310,6 +310,7 @@ namespace MAT_NS_BEGIN {
         {
             sendException = std::current_exception();
         }
+        requestLock.unlock();
         operation->FinishSendHandoff();
 
         if (sendException != nullptr)
@@ -333,6 +334,7 @@ namespace MAT_NS_BEGIN {
         }
 #else
         sendFn(&capiRequest, &OnHttpResponse);
+        requestLock.unlock();
         operation->FinishSendHandoff();
 #endif
     }
@@ -345,7 +347,7 @@ namespace MAT_NS_BEGIN {
         {
             // Wait for the external send hook to release request-backed
             // pointers, then retire the operation before dropping the lock.
-            std::lock_guard<std::recursive_mutex> requestLock(
+            std::lock_guard<std::mutex> requestLock(
                 state->requestsMutex);
             operation = RemovePendingOperation(id, state->ownerId);
         }
@@ -405,7 +407,7 @@ namespace MAT_NS_BEGIN {
             // Wait until any external send hook has released request-backed
             // pointers. Do not hold this member lock across terminal callbacks:
             // a direct callback is allowed to destroy the client.
-            std::lock_guard<std::recursive_mutex> requestLock(
+            std::lock_guard<std::mutex> requestLock(
                 state->requestsMutex);
             operations = RemovePendingOperations(state->ownerId);
         }

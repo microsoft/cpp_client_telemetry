@@ -57,6 +57,13 @@ class AsyncHttpClientManager4Test : public HttpClientManager {
     {
         m_cancelDrainTimeout = timeout;
     }
+
+    bool waitForRequestsToDrain(std::chrono::milliseconds timeout)
+    {
+        std::unique_lock<std::mutex> lock(m_httpCallbacksMtx);
+        return m_httpCallbacksCV.wait_for(
+            lock, timeout, [this]() { return m_httpCallbacks.empty(); });
+    }
 };
 
 class ReentrantAsyncCompletionReceiver {
@@ -492,6 +499,7 @@ TEST(HttpClientManagerAsyncTests, ReentrantCancelDoesNotBlockQueuedCallbacks)
             [&receiver]() { return receiver.completed == 2; }));
     }
     EXPECT_THAT(receiver.cancelDuration, Lt(std::chrono::milliseconds(500)));
+    ASSERT_TRUE(manager.waitForRequestsToDrain(std::chrono::seconds(5)));
     EXPECT_THAT(manager.requestCount(), 0u);
     EXPECT_TRUE(delivery.waitFor(2));
 }
