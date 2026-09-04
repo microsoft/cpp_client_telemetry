@@ -26,6 +26,7 @@
 #endif
 
 #include <utils/Utils.hpp>
+#include "callbacks/DebugSourceInternal.hpp"
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
@@ -399,6 +400,17 @@ namespace
         }
     }
 
+    bool TryJStringToStdString(JNIEnv* env, jstring value, std::string& result)
+    {
+        if (value == nullptr)
+        {
+            return false;
+        }
+
+        result = JStringToStdString(env, value);
+        return !env->ExceptionCheck();
+    }
+
     /**
 * Smart object to manage PushLocalFrame/PopLocalFrame
 */
@@ -578,10 +590,12 @@ namespace
                     continue;
                 }
                 auto key = static_cast<jstring>(k);
-                auto cstringKey = env->GetStringUTFChars(key, nullptr);
-                rethrow(env);
-                std::string stringKey(cstringKey);
-                env->ReleaseStringUTFChars(key, cstringKey);
+                std::string stringKey;
+                if (!TryJStringToStdString(env, key, stringKey))
+                {
+                    rethrow(env);
+                    throw std::runtime_error("Unable to convert configuration key");
+                }
                 auto value = env->CallObjectMethod(configuration, getMethod, key);
                 rethrow(env);
                 if (!value)
@@ -634,12 +648,12 @@ namespace
                     case ValueTypes::STRING:
                     {
                         auto s = static_cast<jstring>(value);
-                        auto cString = env->GetStringUTFChars(
-                            s,
-                            nullptr);
-                        rethrow(env);
-                        std::string cppString(cString);
-                        env->ReleaseStringUTFChars(s, cString);
+                        std::string cppString;
+                        if (!TryJStringToStdString(env, s, cppString))
+                        {
+                            rethrow(env);
+                            throw std::runtime_error("Unable to convert string value");
+                        }
                         return Variant(std::move(cppString));
                     }
                     case ValueTypes::VARIANT_MAP:
@@ -671,9 +685,12 @@ namespace
             auto jName =
                 static_cast<jstring>(env->CallObjectMethod(actual,
                                                            gnMethod));
-            auto cName = env->GetStringUTFChars(jName, nullptr);
-            std::string className(cName);
-            env->ReleaseStringUTFChars(jName, cName);
+            std::string className;
+            if (!TryJStringToStdString(env, jName, className))
+            {
+                rethrow(env);
+                throw std::runtime_error("Unable to convert class name");
+            }
             __android_log_print(ANDROID_LOG_ERROR,
                                 "MAE",
                                 "Unsupported class %s",
@@ -869,10 +886,11 @@ Java_com_microsoft_applications_events_LogManager_nativeInitializeConfig(JNIEnv*
     __android_log_print(ANDROID_LOG_INFO, "MAE", "Translated map: %s",
                         cereal.c_str());
 
-    auto tokenUTF = env->GetStringUTFChars(tenant_token, nullptr);
-    rethrow(env);
-    std::string token(tokenUTF);
-    env->ReleaseStringUTFChars(tenant_token, tokenUTF);
+    std::string token;
+    if (!TryJStringToStdString(env, tenant_token, token))
+    {
+        return 0;
+    }
     auto logger = WrapperLogManager::Initialize(token, logConfiguration);
     return reinterpret_cast<jlong>(logger);
 }
@@ -1012,15 +1030,15 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         if (!mc)
             return 0;
     }
-    auto tokenUtf = env->GetStringUTFChars(jToken, nullptr);
-    std::string token{tokenUtf};
-    env->ReleaseStringUTFChars(jToken, tokenUtf);
-    auto sourceUtf = env->GetStringUTFChars(jSource, nullptr);
-    std::string source{sourceUtf};
-    env->ReleaseStringUTFChars(jSource, sourceUtf);
-    auto scopeUtf = env->GetStringUTFChars(jScope, nullptr);
-    std::string scope{scopeUtf};
-    env->ReleaseStringUTFChars(jScope, scopeUtf);
+    std::string token;
+    std::string source;
+    std::string scope;
+    if (!TryJStringToStdString(env, jToken, token) ||
+        !TryJStringToStdString(env, jSource, source) ||
+        !TryJStringToStdString(env, jScope, scope))
+    {
+        return 0;
+    }
     return reinterpret_cast<jlong>(mc->manager->GetLogger(
         token,
         source,
@@ -1134,9 +1152,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto profile_string = env->GetStringUTFChars(profile, nullptr);
-    std::string stringyProfile(profile_string);
-    env->ReleaseStringUTFChars(profile, profile_string);
+    std::string stringyProfile;
+    if (!TryJStringToStdString(env, profile, stringyProfile))
+    {
+        return STATUS_EFAIL;
+    }
     return logManager->SetTransmitProfile(stringyProfile);
 }
 
@@ -1152,9 +1172,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto chars = env->GetStringUTFChars(json, nullptr);
-    std::string cppJson(chars);
-    env->ReleaseStringUTFChars(json, chars);
+    std::string cppJson;
+    if (!TryJStringToStdString(env, json, cppJson))
+    {
+        return STATUS_EFAIL;
+    }
     return logManager->LoadTransmitProfiles(cppJson);
 }
 
@@ -1215,12 +1237,13 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto chars = env->GetStringUTFChars(name, nullptr);
-    std::string cppName(chars);
-    env->ReleaseStringUTFChars(name, chars);
-    chars = env->GetStringUTFChars(value, nullptr);
-    std::string cppValue(chars);
-    env->ReleaseStringUTFChars(value, chars);
+    std::string cppName;
+    std::string cppValue;
+    if (!TryJStringToStdString(env, name, cppName) ||
+        !TryJStringToStdString(env, value, cppValue))
+    {
+        return STATUS_EFAIL;
+    }
 
     return logManager->SetContext(cppName, cppValue,
                                   static_cast<PiiKind>(pii_kind));
@@ -1240,9 +1263,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto chars = env->GetStringUTFChars(name, nullptr);
-    std::string cppName(chars);
-    env->ReleaseStringUTFChars(name, chars);
+    std::string cppName;
+    if (!TryJStringToStdString(env, name, cppName))
+    {
+        return STATUS_EFAIL;
+    }
     return logManager->SetContext(cppName, value,
                                   static_cast<PiiKind>(pii_kind));
 }
@@ -1261,9 +1286,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto chars = env->GetStringUTFChars(name, nullptr);
-    std::string cppName(chars);
-    env->ReleaseStringUTFChars(name, chars);
+    std::string cppName;
+    if (!TryJStringToStdString(env, name, cppName))
+    {
+        return STATUS_EFAIL;
+    }
     return logManager->SetContext(cppName, value,
                                   static_cast<PiiKind>(pii_kind));
 }
@@ -1282,9 +1309,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto chars = env->GetStringUTFChars(name, nullptr);
-    std::string cppName(chars);
-    env->ReleaseStringUTFChars(name, chars);
+    std::string cppName;
+    if (!TryJStringToStdString(env, name, cppName))
+    {
+        return STATUS_EFAIL;
+    }
     return logManager->SetContext(cppName, value,
                                   static_cast<PiiKind>(pii_kind));
 }
@@ -1303,9 +1332,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto chars = env->GetStringUTFChars(name, nullptr);
-    std::string cppName(chars);
-    env->ReleaseStringUTFChars(name, chars);
+    std::string cppName;
+    if (!TryJStringToStdString(env, name, cppName))
+    {
+        return STATUS_EFAIL;
+    }
     return logManager->SetContext(cppName, value,
                                   static_cast<PiiKind>(pii_kind));
 }
@@ -1324,9 +1355,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto chars = env->GetStringUTFChars(name, nullptr);
-    std::string cppName(chars);
-    env->ReleaseStringUTFChars(name, chars);
+    std::string cppName;
+    if (!TryJStringToStdString(env, name, cppName))
+    {
+        return STATUS_EFAIL;
+    }
     auto dateClass = env->GetObjectClass(value);
     auto getTimeID = env->GetMethodID(dateClass, "getTime", "()J");
     auto javaMilliseconds = env->CallLongMethod(value, getTimeID);
@@ -1351,14 +1384,15 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return STATUS_EFAIL;
     }
-    auto chars = env->GetStringUTFChars(name, nullptr);
-    std::string cppName(chars);
-    env->ReleaseStringUTFChars(name, chars);
-    chars = env->GetStringUTFChars(value, nullptr);
-    auto result = logManager->SetContext(cppName, value,
-                                         static_cast<PiiKind>(pii_kind));
-    env->ReleaseStringUTFChars(value, chars);
-    return result;
+    std::string cppName;
+    std::string cppValue;
+    if (!TryJStringToStdString(env, name, cppName) ||
+        !TryJStringToStdString(env, value, cppValue))
+    {
+        return STATUS_EFAIL;
+    }
+    return logManager->SetContext(cppName, GUID_t(cppValue.c_str()),
+                                  static_cast<PiiKind>(pii_kind));
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
@@ -1537,56 +1571,230 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 
 namespace
 {
-    struct JniDebugEventListener : DebugEventListener
+    struct JniDebugEventListener;
+    void ReleaseUnregisteredListener(
+        const std::shared_ptr<JniDebugEventListener>& listener);
+
+    struct JniDebugEventListener :
+        DebugEventListener,
+        std::enable_shared_from_this<JniDebugEventListener>
     {
+        struct Registration
+        {
+            enum class State
+            {
+                Adding,
+                Active,
+                Cancelled,
+                Removing
+            };
+
+            jlong logManager;
+            DebugEventType eventType;
+            State state;
+        };
+
         JavaVM* javaVm;
-        jobject javaListener;
+        jobject javaListener = nullptr;
+        jclass eventClass = nullptr;
+        jmethodID eventConstructor = nullptr;
+        jmethodID listenerMethod = nullptr;
+        std::vector<Registration> registrations;
 
         JniDebugEventListener() = delete;
 
-        JniDebugEventListener(JavaVM* _javaVm, jobject _javaListener) :
-            javaVm(_javaVm)
+        JniDebugEventListener(JNIEnv* env, JavaVM* vm, jobject listener) :
+            javaVm(vm)
         {
-            JNIEnv* env = nullptr;
-            _javaVm->AttachCurrentThread(&env, nullptr);
-            javaListener = env->NewGlobalRef(_javaListener);
+            auto localEventClass =
+                env->FindClass("com/microsoft/applications/events/DebugEvent");
+            rethrow(env);
+            eventConstructor = env->GetMethodID(
+                localEventClass, "<init>", "(JJJJJLjava/lang/Object;J)V");
+            rethrow(env);
+
+            auto localListenerClass = env->GetObjectClass(listener);
+            rethrow(env);
+            listenerMethod = env->GetMethodID(
+                localListenerClass,
+                "onDebugEvent",
+                "(Lcom/microsoft/applications/events/DebugEvent;)V");
+            rethrow(env);
+
+            eventClass = static_cast<jclass>(env->NewGlobalRef(localEventClass));
+            rethrow(env);
+            javaListener = env->NewGlobalRef(listener);
+            if (javaListener == nullptr)
+            {
+                env->DeleteGlobalRef(eventClass);
+                eventClass = nullptr;
+                rethrow(env);
+                throw std::runtime_error("Unable to retain debug event listener");
+            }
+
+            env->DeleteLocalRef(localListenerClass);
+            env->DeleteLocalRef(localEventClass);
         }
 
-        ~JniDebugEventListener()
+        ~JniDebugEventListener() override
         {
-            JNIEnv* env = nullptr;
-            javaVm->AttachCurrentThread(&env, nullptr);
+            bool detach = false;
+            auto env = GetEnv(detach);
+            if (env == nullptr)
+            {
+                return;
+            }
+
             env->DeleteGlobalRef(javaListener);
+            env->DeleteGlobalRef(eventClass);
+            if (detach)
+            {
+                javaVm->DetachCurrentThread();
+            }
         }
 
         void OnDebugEvent(DebugEvent& evt) override
         {
+            auto keepAlive = shared_from_this();
+            ReleaseUnregisteredListener(keepAlive);
+            bool detach = false;
+            auto env = GetEnv(detach);
+            if (env == nullptr)
+            {
+                return;
+            }
+
+            if (env->PushLocalFrame(1) == JNI_OK)
+            {
+                auto eventLocal = env->NewObject(
+                    eventClass,
+                    eventConstructor,
+                    static_cast<jlong>(evt.seq),
+                    static_cast<jlong>(evt.ts),
+                    static_cast<jlong>(evt.type),
+                    static_cast<jlong>(evt.param1),
+                    static_cast<jlong>(evt.param2),
+                    static_cast<jobject>(nullptr),
+                    static_cast<jlong>(evt.size));
+                if (eventLocal != nullptr && !env->ExceptionCheck())
+                {
+                    env->CallVoidMethod(javaListener, listenerMethod, eventLocal);
+                }
+                env->PopLocalFrame(nullptr);
+            }
+
+            if (env->ExceptionCheck())
+            {
+                env->ExceptionDescribe();
+                env->ExceptionClear();
+            }
+            if (detach)
+            {
+                keepAlive->javaVm->DetachCurrentThread();
+            }
+        }
+
+        bool IsSameListener(JNIEnv* env, jobject listener) const
+        {
+            return env->IsSameObject(javaListener, listener) == JNI_TRUE;
+        }
+
+        std::vector<Registration>::iterator FindRegistration(
+            jlong logManager,
+            DebugEventType eventType)
+        {
+            return std::find_if(
+                registrations.begin(),
+                registrations.end(),
+                [logManager, eventType](const Registration& registration) {
+                    return registration.logManager == logManager &&
+                           registration.eventType == eventType;
+                });
+        }
+
+        bool HasLiveRegistrations() const
+        {
+            return std::any_of(
+                registrations.begin(),
+                registrations.end(),
+                [](const Registration& registration) {
+                    return registration.state == Registration::State::Adding ||
+                           registration.state == Registration::State::Active;
+                });
+        }
+
+       private:
+        JNIEnv* GetEnv(bool& detach) const
+        {
+            detach = false;
             JNIEnv* env = nullptr;
-            javaVm->AttachCurrentThread(&env, nullptr);
-            auto eventClassId =
-                env->FindClass("com/microsoft/applications/events/DebugEvent");
-            auto constructorId = env->GetMethodID(eventClassId, "<init>",
-                                                  "(JJJJJLjava/lang/Object;J)V");
-            jobject eventLocal;
-            eventLocal = env->NewObject(eventClassId,
-                                        constructorId,
-                                        static_cast<jlong>(evt.seq),
-                                        static_cast<jlong>(evt.ts),
-                                        static_cast<jlong>(evt.type),
-                                        static_cast<jlong>(evt.param1),
-                                        static_cast<jlong>(evt.param2),
-                                        static_cast<jobject>(nullptr),
-                                        static_cast<jlong>(evt.size));
-            auto classId = env->GetObjectClass(javaListener);
-            auto methodId = env->GetMethodID(classId,
-                                             "onDebugEvent",
-                                             "(Lcom/microsoft/applications/events/DebugEvent;)V");
-            env->CallVoidMethod(javaListener, methodId, eventLocal);
+            auto status = javaVm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+            if (status == JNI_EDETACHED)
+            {
+                if (javaVm->AttachCurrentThread(&env, nullptr) != JNI_OK)
+                {
+                    return nullptr;
+                }
+                detach = true;
+            }
+            else if (status != JNI_OK)
+            {
+                return nullptr;
+            }
+
+            return env;
         }
     };
 
-    static std::vector<std::unique_ptr<JniDebugEventListener>> listeners;
+    static std::vector<std::shared_ptr<JniDebugEventListener>> listeners;
     static std::mutex listeners_mutex;
+
+    void ReleaseUnregisteredListener(
+        const std::shared_ptr<JniDebugEventListener>& listener)
+    {
+        std::lock_guard<std::mutex> lock(listeners_mutex);
+        if (!listener->registrations.empty() ||
+            IsDebugEventListenerPending(listener.get()))
+        {
+            return;
+        }
+
+        auto existing = std::find(listeners.begin(), listeners.end(), listener);
+        if (existing != listeners.end())
+        {
+            existing->reset();
+        }
+    }
+
+    void ReleasePendingJniDebugEventListener(
+        DebugEventListener* listener) noexcept
+    {
+        std::shared_ptr<JniDebugEventListener> callback;
+        {
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            auto existing = std::find_if(
+                listeners.begin(),
+                listeners.end(),
+                [listener](const std::shared_ptr<JniDebugEventListener>& value) {
+                    return value.get() == listener;
+                });
+            if (existing == listeners.end() || (*existing)->HasLiveRegistrations())
+            {
+                return;
+            }
+            callback = *existing;
+        }
+        ReleaseUnregisteredListener(callback);
+    }
+
+    void EnsurePendingReleaseCallbackRegistered()
+    {
+        static std::once_flag registerCallback;
+        std::call_once(registerCallback, [] {
+            SetDebugEventListenerPendingReleaseCallback(
+                ReleasePendingJniDebugEventListener);
+        });
+    }
 }  // anonymous namespace
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -1598,34 +1806,233 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jobject listener,
     jlong current_identity)
 {
-    JavaVM* vm;
-    env->GetJavaVM(&vm);
-    std::unique_ptr<JniDebugEventListener> callback = std::make_unique<JniDebugEventListener>(vm, listener);
     auto logManager = getLogManager(native_log_manager);
-    logManager->AddEventListener(static_cast<DebugEventType>(event_type), *callback);
-    if (current_identity >= 0) {
-        return current_identity;
+    if (logManager == nullptr || listener == nullptr)
+    {
+        return -1;
     }
-    std::lock_guard<std::mutex> l(listeners_mutex);
-    listeners.emplace_back(std::move(callback));
-    return listeners.size();
+
+    JavaVM* vm = nullptr;
+    if (env->GetJavaVM(&vm) != JNI_OK)
+    {
+        return -1;
+    }
+
+    try
+    {
+        EnsurePendingReleaseCallbackRegistered();
+
+        auto eventType = static_cast<DebugEventType>(event_type);
+        std::shared_ptr<JniDebugEventListener> callback;
+        jlong identity = -1;
+        {
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            if (current_identity >= 0 &&
+                current_identity < static_cast<jlong>(listeners.size()) &&
+                listeners[current_identity] &&
+                listeners[current_identity]->IsSameListener(env, listener))
+            {
+                callback = listeners[current_identity];
+                identity = current_identity;
+            }
+
+            if (!callback)
+            {
+                auto existing = std::find_if(
+                    listeners.begin(),
+                    listeners.end(),
+                    [env, listener](const std::shared_ptr<JniDebugEventListener>& value) {
+                        return value && value->IsSameListener(env, listener);
+                    });
+                if (existing != listeners.end())
+                {
+                    callback = *existing;
+                    identity = static_cast<jlong>(
+                        std::distance(listeners.begin(), existing));
+                }
+            }
+
+            if (!callback)
+            {
+                callback = std::make_shared<JniDebugEventListener>(env, vm, listener);
+                callback->registrations.push_back(
+                    {native_log_manager, eventType, JniDebugEventListener::Registration::State::Adding});
+
+                auto available = std::find(listeners.begin(), listeners.end(), nullptr);
+                if (available == listeners.end())
+                {
+                    identity = static_cast<jlong>(listeners.size());
+                    listeners.emplace_back(callback);
+                }
+                else
+                {
+                    identity = static_cast<jlong>(std::distance(listeners.begin(), available));
+                    *available = callback;
+                }
+            }
+            else if (callback->FindRegistration(native_log_manager, eventType) !=
+                     callback->registrations.end())
+            {
+                return identity;
+            }
+            else
+            {
+                callback->registrations.push_back(
+                    {native_log_manager, eventType, JniDebugEventListener::Registration::State::Adding});
+            }
+        }
+
+        try
+        {
+            logManager->AddEventListener(eventType, *callback);
+        }
+        catch (...)
+        {
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            auto registration =
+                callback->FindRegistration(native_log_manager, eventType);
+            if (registration != callback->registrations.end() &&
+                (registration->state ==
+                     JniDebugEventListener::Registration::State::Adding ||
+                 registration->state ==
+                     JniDebugEventListener::Registration::State::Cancelled))
+            {
+                callback->registrations.erase(registration);
+            }
+            if (callback->registrations.empty() &&
+                !IsDebugEventListenerPending(callback.get()))
+            {
+                auto existing = std::find(listeners.begin(), listeners.end(), callback);
+                if (existing != listeners.end())
+                {
+                    existing->reset();
+                }
+            }
+            throw;
+        }
+
+        bool removeCancelledRegistration = false;
+        {
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            auto registration =
+                callback->FindRegistration(native_log_manager, eventType);
+            if (registration == callback->registrations.end())
+            {
+                removeCancelledRegistration = true;
+            }
+            else if (registration->state ==
+                     JniDebugEventListener::Registration::State::Cancelled)
+            {
+                removeCancelledRegistration = true;
+            }
+            else
+            {
+                registration->state =
+                    JniDebugEventListener::Registration::State::Active;
+            }
+        }
+
+        if (removeCancelledRegistration)
+        {
+            logManager->RemoveEventListener(eventType, *callback);
+            std::lock_guard<std::mutex> lock(listeners_mutex);
+            auto registration =
+                callback->FindRegistration(native_log_manager, eventType);
+            if (registration != callback->registrations.end() &&
+                registration->state ==
+                    JniDebugEventListener::Registration::State::Cancelled)
+            {
+                callback->registrations.erase(registration);
+            }
+            if (callback->registrations.empty() &&
+                !IsDebugEventListenerPending(callback.get()))
+            {
+                listeners[identity].reset();
+            }
+        }
+        std::lock_guard<std::mutex> lock(listeners_mutex);
+        return callback->HasLiveRegistrations() ? identity : -1;
+    }
+    catch (const std::exception& e)
+    {
+        if (!env->ExceptionCheck())
+        {
+            auto exceptionClass = env->FindClass("java/lang/RuntimeException");
+            if (exceptionClass != nullptr)
+            {
+                env->ThrowNew(exceptionClass, e.what());
+                env->DeleteLocalRef(exceptionClass);
+            }
+        }
+        return -1;
+    }
 }
 
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jlong JNICALL
 Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRemoveEventListener(
     JNIEnv *env,
     jobject thiz,
     jlong native_log_manager,
     jlong eventType,
-    jlong identity) {
-    std::lock_guard<std::mutex> l(listeners_mutex);
-    if (identity < 0 || identity >= static_cast<jlong>(jniManagers.size()) || !listeners[identity])
-    {
-        return;
-    }
+    jlong identity,
+    jobject listener) {
     auto logManager = getLogManager(native_log_manager);
-    logManager->RemoveEventListener(static_cast<DebugEventType>(eventType), *listeners[identity]);
+    std::shared_ptr<JniDebugEventListener> callback;
+    auto event = static_cast<DebugEventType>(eventType);
+    {
+        std::lock_guard<std::mutex> lock(listeners_mutex);
+        if (identity < 0 ||
+            identity >= static_cast<jlong>(listeners.size()) ||
+            !listeners[identity] ||
+            !listeners[identity]->IsSameListener(env, listener))
+        {
+            return identity;
+        }
+
+        callback = listeners[identity];
+        auto registration =
+            callback->FindRegistration(native_log_manager, event);
+        if (registration == callback->registrations.end())
+        {
+            return callback->HasLiveRegistrations() ? identity : -1;
+        }
+        if (registration->state ==
+            JniDebugEventListener::Registration::State::Adding)
+        {
+            registration->state =
+                JniDebugEventListener::Registration::State::Cancelled;
+            return callback->HasLiveRegistrations() ? identity : -1;
+        }
+        if (registration->state !=
+            JniDebugEventListener::Registration::State::Active)
+        {
+            return callback->HasLiveRegistrations() ? identity : -1;
+        }
+        registration->state =
+            JniDebugEventListener::Registration::State::Removing;
+    }
+
+    if (logManager != nullptr)
+    {
+        logManager->RemoveEventListener(event, *callback);
+    }
+
+    std::lock_guard<std::mutex> lock(listeners_mutex);
+    auto registration = callback->FindRegistration(native_log_manager, event);
+    if (registration != callback->registrations.end() &&
+        registration->state ==
+            JniDebugEventListener::Registration::State::Removing)
+    {
+        callback->registrations.erase(registration);
+    }
+    if (listeners[identity] == callback &&
+        callback->registrations.empty() &&
+        !IsDebugEventListenerPending(callback.get()))
+    {
+        listeners[identity].reset();
+    }
+    return callback->HasLiveRegistrations() ? identity : -1;
 }
 
 extern "C"
