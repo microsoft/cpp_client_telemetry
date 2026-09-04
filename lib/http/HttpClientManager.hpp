@@ -10,11 +10,13 @@
 #include "system/Route.hpp"
 #include "ILogManager.hpp"
 
-#include <list>
-#include <mutex>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <list>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <thread>
 
 namespace MAT_NS_BEGIN
@@ -61,6 +63,9 @@ class HttpClientManager
 
         void handleSendRequest(EventsUploadContextPtr const& ctx);
         virtual void scheduleOnHttpResponse(HttpCallback* callback);
+        void runScheduledHttpResponse(
+            std::shared_ptr<std::atomic<bool>> const& started,
+            HttpCallback* callback);
         void onHttpResponse(HttpCallback* callback);
         void notifyRequestFailure(EventsUploadContextPtr const& ctx) noexcept;
         void cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());

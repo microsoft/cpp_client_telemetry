@@ -46,6 +46,13 @@ class AsyncHttpClientManager4Test : public HttpClientManager {
     {
     }
 
+    AsyncHttpClientManager4Test(
+        IHttpClient& httpClient,
+        ITaskDispatcher& taskDispatcher) :
+        HttpClientManager(dummyLogManager, httpClient, taskDispatcher)
+    {
+    }
+
     void setCancelDrainTimeout(std::chrono::milliseconds timeout)
     {
         m_cancelDrainTimeout = timeout;
@@ -130,6 +137,15 @@ class QueuedHttpResponseDelivery {
     size_t completed {0};
 };
 
+class HttpRequestDoneReceiver
+{
+   public:
+    MOCK_METHOD1(onRequestDone, void(EventsUploadContextPtr const&));
+
+    RouteSink<HttpRequestDoneReceiver, EventsUploadContextPtr const&>
+        sink{this, &HttpRequestDoneReceiver::onRequestDone};
+};
+
 class HttpClientManagerTests : public StrictMock<Test> {
   protected:
     MockIHttpClient        httpClientMock;
@@ -167,6 +183,42 @@ class ThrowingCancelAllHttpClient : public MockIHttpClient {
     }
 };
 
+#ifndef _WIN32
+class DroppingHttpResponseTaskDispatcher : public ITaskDispatcher
+{
+   public:
+    void Join() override
+    {
+    }
+    void Queue(Task* task) override
+    {
+        delete task;
+    }
+    bool Cancel(Task*, uint64_t = 0) override
+    {
+        return false;
+    }
+};
+
+#if HAVE_EXCEPTIONS
+class ThrowingHttpResponseTaskDispatcher : public ITaskDispatcher
+{
+   public:
+    void Join() override
+    {
+    }
+    void Queue(Task* task) override
+    {
+        delete task;
+        throw std::runtime_error("queue failed");
+    }
+    bool Cancel(Task*, uint64_t = 0) override
+    {
+        return false;
+    }
+};
+#endif
+#endif
 
 TEST_F(HttpClientManagerTests, HandlesRequestFlow)
 {
@@ -492,6 +544,54 @@ TEST(HttpClientManagerAsyncTests, DestructorWaitsForActiveCallback)
     EXPECT_TRUE(destructorReturned.load());
     EXPECT_TRUE(delivery.waitFor(1));
 }
+
+#ifndef _WIN32
+TEST(HttpClientManagerAsyncTests, DroppedResponseTaskCompletesInline)
+{
+    MockIHttpClient httpClient;
+    DroppingHttpResponseTaskDispatcher dispatcher;
+    AsyncHttpClientManager4Test manager(httpClient, dispatcher);
+    HttpRequestDoneReceiver receiver;
+    manager.requestDone >> receiver.sink;
+
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("dropped-response-task");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(httpClient, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    manager.sendRequest(ctx);
+
+    EXPECT_CALL(receiver, onRequestDone(ctx));
+    callback->OnHttpResponse(new SimpleHttpResponse(ctx->httpRequestId));
+
+    EXPECT_THAT(manager.requestCount(), 0u);
+}
+
+#if HAVE_EXCEPTIONS
+TEST(HttpClientManagerAsyncTests, ThrowingResponseQueueCompletesInline)
+{
+    MockIHttpClient httpClient;
+    ThrowingHttpResponseTaskDispatcher dispatcher;
+    AsyncHttpClientManager4Test manager(httpClient, dispatcher);
+    HttpRequestDoneReceiver receiver;
+    manager.requestDone >> receiver.sink;
+
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("throwing-response-queue");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(httpClient, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    manager.sendRequest(ctx);
+
+    EXPECT_CALL(receiver, onRequestDone(ctx));
+    callback->OnHttpResponse(new SimpleHttpResponse(ctx->httpRequestId));
+
+    EXPECT_THAT(manager.requestCount(), 0u);
+}
+#endif
+#endif
 
 // Regression test: cancelAllRequests() must not spin/hang forever
 // when an in-flight callback never drains (e.g. the dispatcher or HTTP stack is

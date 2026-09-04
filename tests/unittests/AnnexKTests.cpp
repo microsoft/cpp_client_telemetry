@@ -33,7 +33,8 @@ TEST(AnnexKTests, memcpy_s)
 
 TEST(AnnexKTests, memcpy_sAllowsAdjacentBuffers)
 {
-    char buffers[8] = {};
+    char buffers[12] = {};
 
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(buffers, 4, buffers + 4, 4), 0);
+    EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(buffers, 8, buffers + 8, 4), 0);
 }

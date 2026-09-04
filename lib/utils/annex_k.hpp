@@ -178,7 +178,8 @@ static errno_t oneds_memcpy_s( void *restrict dest, rsize_t destsz,
         return EINVAL;
     }
     // donot allow overflow
-    if (oneds_buffer_region_overlap((char *)dest, destsz, (char *)src, count)) {
+    if (oneds_buffer_region_overlap((char*)dest, count, (char*)src, count))
+    {
         memset(dest, 0, destsz);
         return EINVAL;
     }

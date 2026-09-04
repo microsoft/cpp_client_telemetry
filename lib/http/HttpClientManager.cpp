@@ -201,7 +201,49 @@ namespace MAT_NS_BEGIN {
 
     void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
     {
-        PAL::scheduleTask(&m_taskDispatcher, 0, this, &HttpClientManager::onHttpResponse, callback);
+        auto started = std::make_shared<std::atomic<bool>>(false);
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
+            auto task = PAL::scheduleTask(
+                &m_taskDispatcher, 0, this,
+                &HttpClientManager::runScheduledHttpResponse, started, callback);
+            if (task.GetTask() != nullptr ||
+                started->load(std::memory_order_acquire))
+            {
+                return;
+            }
+#if HAVE_EXCEPTIONS
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("Failed to schedule HTTP response callback: %s", ex.what());
+            if (started->load(std::memory_order_acquire))
+            {
+                return;
+            }
+        }
+        catch (...)
+        {
+            LOG_ERROR("Failed to schedule HTTP response callback with a non-standard exception");
+            if (started->load(std::memory_order_acquire))
+            {
+                return;
+            }
+        }
+#endif
+        // Some supported dispatchers synchronously destroy tasks they cannot
+        // accept. Complete inline so the claimed callback cannot remain tracked.
+        onHttpResponse(callback);
+    }
+
+    void HttpClientManager::runScheduledHttpResponse(
+        std::shared_ptr<std::atomic<bool>> const& started,
+        HttpCallback* callback)
+    {
+        started->store(true, std::memory_order_release);
+        onHttpResponse(callback);
     }
 
     /* This method may get executed synchronously on Windows from handleSendRequest in case of connection failure */
