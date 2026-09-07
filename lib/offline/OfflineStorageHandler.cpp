@@ -89,6 +89,36 @@ namespace MAT_NS_BEGIN {
         }
     }
 
+    class OfflineStorageHandler::OperationGuard final
+    {
+    public:
+        explicit OperationGuard(OfflineStorageHandler& handler) :
+            m_handler(handler),
+            m_active(handler.BeginOperation())
+        {
+        }
+
+        ~OperationGuard() noexcept
+        {
+            if (m_active)
+            {
+                m_handler.EndOperation();
+            }
+        }
+
+        explicit operator bool() const noexcept
+        {
+            return m_active;
+        }
+
+        OperationGuard(const OperationGuard&) = delete;
+        OperationGuard& operator=(const OperationGuard&) = delete;
+
+    private:
+        OfflineStorageHandler& m_handler;
+        bool m_active;
+    };
+
     class OfflineStorageHandler::OfflineStorageFlushTask final : public Task
     {
     public:
@@ -105,13 +135,15 @@ namespace MAT_NS_BEGIN {
         {
             if (!m_started)
             {
-                m_handler.DropScheduledFlush();
+                m_handler.AbandonScheduledFlush();
             }
         }
 
         void operator()() override
         {
             m_started = true;
+            m_handler.StartScheduledFlush();
+            auto completion = MakeScopeExit([this] { m_handler.EndOperation(); });
             m_handler.RunScheduledFlush();
         }
 
@@ -128,8 +160,8 @@ namespace MAT_NS_BEGIN {
         m_killSwitchManager(),
         m_clockSkewManager(),
         m_phase(StoragePhase::Stopped),
-        m_inFlight(0),
-        m_scheduled(false),
+        m_activeOperations(0),
+        m_flushQueued(false),
         m_offlineStorageMemory(nullptr),
         m_offlineStorageDisk(nullptr),
         m_readFromMemory(false),
@@ -167,7 +199,7 @@ namespace MAT_NS_BEGIN {
         {
             return false;
         }
-        ++m_inFlight;
+        ++m_activeOperations;
         return true;
     }
 
@@ -175,23 +207,66 @@ namespace MAT_NS_BEGIN {
     {
         {
             std::lock_guard<std::mutex> lock(m_stateMutex);
-            --m_inFlight;
+            --m_activeOperations;
         }
         m_stateCV.notify_all();
     }
 
-    void OfflineStorageHandler::DropScheduledFlush()
+    bool OfflineStorageHandler::ReserveScheduledFlush()
+    {
+        std::lock_guard<std::mutex> lock(m_stateMutex);
+        if (m_phase != StoragePhase::Accepting || m_flushQueued)
+        {
+            return false;
+        }
+        m_flushQueued = true;
+        ++m_activeOperations;
+        return true;
+    }
+
+    void OfflineStorageHandler::StartScheduledFlush()
+    {
+        std::lock_guard<std::mutex> lock(m_stateMutex);
+        m_flushQueued = false;
+    }
+
+    void OfflineStorageHandler::AbandonScheduledFlush()
     {
         {
             std::lock_guard<std::mutex> lock(m_stateMutex);
-            if (!m_scheduled)
+            if (!m_flushQueued)
             {
                 return;
             }
-            m_scheduled = false;
-            --m_inFlight;
+            m_flushQueued = false;
+            --m_activeOperations;
         }
         m_stateCV.notify_all();
+    }
+
+    void OfflineStorageHandler::QueueScheduledFlush()
+    {
+        if (!ReserveScheduledFlush())
+        {
+            return;
+        }
+
+#if HAVE_EXCEPTIONS
+        try
+        {
+            m_taskDispatcher.Queue(new OfflineStorageFlushTask(*this));
+        }
+        catch (...)
+        {
+            // Dispatchers own the task once Queue is called and may destroy it
+            // before throwing. This fallback is therefore intentionally
+            // idempotent.
+            AbandonScheduledFlush();
+            throw;
+        }
+#else
+        m_taskDispatcher.Queue(new OfflineStorageFlushTask(*this));
+#endif
     }
 
     bool OfflineStorageHandler::BeginTeardown()
@@ -203,7 +278,7 @@ namespace MAT_NS_BEGIN {
             return false;
         }
         m_phase = StoragePhase::Draining;
-        m_stateCV.wait(lock, [this] { return m_inFlight == 0; });
+        m_stateCV.wait(lock, [this] { return m_activeOperations == 0; });
         m_phase = StoragePhase::TearingDown;
         return true;
     }
@@ -344,11 +419,11 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorageHandler::Flush()
     {
-        if (!BeginOperation())
+        OperationGuard operation(*this);
+        if (!operation)
         {
             return;
         }
-        auto completion = MakeScopeExit([this] { EndOperation(); });
         ActivityGuard activity(m_logManager);
         if (activity.IsActive())
         {
@@ -367,11 +442,6 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorageHandler::RunScheduledFlush()
     {
-        {
-            std::lock_guard<std::mutex> lock(m_stateMutex);
-            m_scheduled = false;
-        }
-        auto completion = MakeScopeExit([this] { EndOperation(); });
         ActivityGuard activity(m_logManager);
         if (activity.IsActive())
         {
@@ -478,11 +548,11 @@ namespace MAT_NS_BEGIN {
 
     bool OfflineStorageHandler::StoreRecord(StorageRecord const& record)
     {
-        if (!BeginOperation())
+        OperationGuard operation(*this);
+        if (!operation)
         {
             return false;
         }
-        auto completion = MakeScopeExit([this] { EndOperation(); });
         if (isKilled(record))
         {
             return false;
@@ -495,32 +565,7 @@ namespace MAT_NS_BEGIN {
             m_offlineStorageMemory->StoreRecord(record);
             if (memDbSize > cacheMemorySizeLimitInBytes)
             {
-                bool queueFlush = false;
-                {
-                    std::lock_guard<std::mutex> lock(m_stateMutex);
-                    if (m_phase == StoragePhase::Accepting && !m_scheduled)
-                    {
-                        m_scheduled = true;
-                        ++m_inFlight;
-                        queueFlush = true;
-                    }
-                }
-                if (queueFlush)
-                {
-#if HAVE_EXCEPTIONS
-                    try
-                    {
-                        m_taskDispatcher.Queue(new OfflineStorageFlushTask(*this));
-                    }
-                    catch (...)
-                    {
-                        DropScheduledFlush();
-                        throw;
-                    }
-#else
-                    m_taskDispatcher.Queue(new OfflineStorageFlushTask(*this));
-#endif
-                }
+                QueueScheduledFlush();
             }
         }
         else

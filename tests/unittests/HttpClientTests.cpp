@@ -68,6 +68,8 @@ class HttpClientTests : public ::testing::Test,
     std::atomic<bool>                     _synchronizeCancelAllResponses {false};
     size_t                                _cancelAllResponsesEntered {0};
     std::atomic<bool>                     _sendRequestOnResponse {false};
+    std::atomic<int>                      _cookieRequestCount {0};
+    std::atomic<bool>                     _cookieHeaderSeen {false};
     bool                                  _destroyClientOnConnecting {false};
     std::string                           _lateRequestId;
 
@@ -103,9 +105,12 @@ class HttpClientTests : public ::testing::Test,
         _server.addHandler("/block/",  *this);
         _server.addHandler("/large/",  *this);
         _server.addHandler("/redirect/", *this);
+        _server.addHandler("/cookie/", *this);
         _server.addHandler("/query", *this);
         _server.start();
 
+        _cookieRequestCount = 0;
+        _cookieHeaderSeen = false;
         Clear();
     }
 
@@ -168,6 +173,15 @@ class HttpClientTests : public ::testing::Test,
         if (request.uri == "/redirect/") {
             inResponse.headers["Location"] = "http://" + _hostname + "/simple/200";
             return 302;
+        }
+
+        if (request.uri == "/cookie/") {
+            if (_cookieRequestCount.fetch_add(1) == 0) {
+                inResponse.headers["Set-Cookie"] = "mat-test=should-not-return";
+            } else {
+                _cookieHeaderSeen = request.headers.find("Cookie") != request.headers.end();
+            }
+            return 200;
         }
 
         if (request.uri.substr(0, 7) == "/large/") {
@@ -370,6 +384,35 @@ TEST_F(HttpClientTests, DisablesRedirectsWhenMicrosoftRootCheckIsEnabled)
     EXPECT_THAT(_responses[0]->GetResult(), HttpResult_OK);
     EXPECT_THAT(_responses[0]->GetStatusCode(), 302u);
 }
+
+#if defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+TEST_F(HttpClientTests, WinHttpDoesNotReplayResponseCookies)
+{
+    auto sendRequest = [this]()
+    {
+        std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+        request->SetUrl("http://" + _hostname + "/cookie/");
+        _client->SendRequestAsync(request.release(), this);
+    };
+
+    sendRequest();
+    {
+        std::unique_lock<std::mutex> lock(_lock);
+        ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+            [this]() { return _responses.size() >= 1; }));
+    }
+
+    sendRequest();
+    {
+        std::unique_lock<std::mutex> lock(_lock);
+        ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+            [this]() { return _responses.size() >= 2; }));
+    }
+
+    EXPECT_EQ(_cookieRequestCount.load(), 2);
+    EXPECT_FALSE(_cookieHeaderSeen.load());
+}
+#endif
 #endif
 
 TEST_F(HttpClientTests, HandlesSimpleRequest)

@@ -79,6 +79,7 @@ namespace MAT_NS_BEGIN {
         bool isKilled(StorageRecord const& record);
 
     private:
+        class OperationGuard;
         class OfflineStorageFlushTask;
 
         enum class StoragePhase { Accepting, Draining, TearingDown, Stopped };
@@ -86,8 +87,8 @@ namespace MAT_NS_BEGIN {
         std::mutex                             m_stateMutex;
         std::condition_variable                m_stateCV;
         StoragePhase                           m_phase;
-        size_t                                 m_inFlight;
-        bool                                   m_scheduled;
+        size_t                                 m_activeOperations;
+        bool                                   m_flushQueued;
         std::mutex                             m_ioMutex;
 
     protected:
@@ -109,7 +110,10 @@ namespace MAT_NS_BEGIN {
     private:
         bool BeginOperation();
         void EndOperation();
-        void DropScheduledFlush();
+        bool ReserveScheduledFlush();
+        void StartScheduledFlush();
+        void AbandonScheduledFlush();
+        void QueueScheduledFlush();
         bool BeginTeardown();
         void FinishTeardown();
         bool FlushImpl(size_t& savedRecords);

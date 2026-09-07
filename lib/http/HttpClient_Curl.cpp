@@ -295,20 +295,13 @@ namespace MAT_NS_BEGIN {
                 throw;
             }
 
-            try
-            {
-                return std::shared_ptr<CurlHttpOperation>(
-                    raw, [state](CurlHttpOperation* operation) noexcept {
-                        delete operation;
-                        state->noteOperationDestroyed();
-                    });
-            }
-            catch (...)
-            {
-                delete raw;
-                state->noteOperationDestroyed();
-                throw;
-            }
+            // If control-block allocation fails, shared_ptr invokes this
+            // deleter before propagating the exception.
+            return std::shared_ptr<CurlHttpOperation>(
+                raw, [state](CurlHttpOperation* operation) noexcept {
+                    delete operation;
+                    state->noteOperationDestroyed();
+                });
         }
     }
 
