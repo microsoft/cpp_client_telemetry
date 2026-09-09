@@ -131,7 +131,7 @@ target_link_libraries( # Specifies the target library.
         native-lib
         mat
         matsdk_internal_config
-        SQLite::SQLite3
+        SQLite3::SQLite3
         ZLIB::ZLIB
         # Links the target library to the log library
         # included in the NDK.

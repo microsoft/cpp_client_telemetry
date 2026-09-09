@@ -14,9 +14,10 @@ if(@MATSDK_CONFIG_STATIC_PACKAGE@)
   endif()
   matsdk_add_package_system_dependency(
     MSTelemetry::sqlite_dependency
-    SQLite::SQLite3
+    SQLite3::SQLite3
     "@MATSDK_SQLITE_PROVIDER_RESOLVED@"
     SQLite3
+    LEGACY_TARGET SQLite::SQLite3
     ${_matsdk_package_sqlite_args})
   matsdk_add_package_system_dependency(
     MSTelemetry::zlib_dependency

@@ -65,7 +65,7 @@ target_link_libraries(FuncTests PRIVATE
   gtest
   gmock)
 if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
-  target_link_libraries(FuncTests PRIVATE SQLite::SQLite3)
+  target_link_libraries(FuncTests PRIVATE SQLite3::SQLite3)
 endif()
 if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(FuncTests PRIVATE nlohmann_json::nlohmann_json)

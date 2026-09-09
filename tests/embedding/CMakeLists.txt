@@ -34,7 +34,7 @@ if(MATSDK_EMBEDDING_PRELOAD_CURL)
 endif()
 
 option(MATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS
-  "Pre-create SQLite::SQLite3/ZLIB::ZLIB and disable later discovery" OFF)
+  "Pre-create legacy SQLite::SQLite3 and ZLIB::ZLIB targets" OFF)
 if(MATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS)
   find_path(MATSDK_TEST_SQLITE_INCLUDE_DIR sqlite3.h)
   find_library(MATSDK_TEST_SQLITE_LIBRARY NAMES sqlite3)
