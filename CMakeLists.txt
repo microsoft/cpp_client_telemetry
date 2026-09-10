@@ -116,6 +116,10 @@ add_library(matsdk_internal_config INTERFACE)
 target_compile_definitions(matsdk_internal_config INTERFACE
   MATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1
   NOMINMAX)
+if(MATSDK_DISABLE_LOGGING)
+  target_compile_definitions(matsdk_internal_config INTERFACE
+    MATSDK_DISABLE_LOGGING)
+endif()
 
 option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
 if(GCC5_CXX11_ABI_WORKAROUND)

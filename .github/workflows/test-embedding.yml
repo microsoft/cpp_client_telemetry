@@ -31,18 +31,21 @@ jobs:
           fetchcontent: OFF
           preload-curl: ON
           preload-storage: ON
+          disable-logging: OFF
         - dependencies: system
           library-type: SHARED
           shared: ON
           fetchcontent: ON
           preload-curl: OFF
           preload-storage: OFF
+          disable-logging: OFF
         - dependencies: self-contained
           library-type: STATIC
           shared: OFF
           fetchcontent: ON
           preload-curl: OFF
           preload-storage: OFF
+          disable-logging: ON
     steps:
     - uses: actions/checkout@v4
     - name: Install system dependencies
@@ -59,6 +62,7 @@ jobs:
           -DMATSDK_EMBEDDING_USE_FETCHCONTENT=${{ matrix.fetchcontent }}
           -DMATSDK_EMBEDDING_PRELOAD_CURL=${{ matrix.preload-curl }}
           -DMATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS=${{ matrix.preload-storage }}
+          -DMATSDK_DISABLE_LOGGING=${{ matrix.disable-logging }}
           -DBUILD_SHARED_LIBS=${{ matrix.shared }}
         )
         if [[ "${{ matrix.dependencies }}" == "self-contained" ]]; then

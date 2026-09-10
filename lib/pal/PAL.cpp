@@ -183,6 +183,7 @@ namespace PAL_NS_BEGIN {
 #endif
 
 #if !defined(_WIN32) && defined(__linux__)
+#ifdef HAVE_MAT_LOGGING
         static std::mutex m;
         static std::map<std::thread::id, pid_t> threads;
         static long int gettid()
@@ -192,6 +193,7 @@ namespace PAL_NS_BEGIN {
             threads[std::this_thread::get_id()] = tid;
             return tid;
         }
+#endif
 #else
 #define     gettid()       std::this_thread::get_id()
 #endif
