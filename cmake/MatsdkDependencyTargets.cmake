@@ -20,7 +20,7 @@ function(matsdk_add_package_system_dependency dependency_target canonical_target
   endif()
 
   set(options APPLE_SYSTEM)
-  set(one_value_args APPLE_LIBRARY LEGACY_TARGET)
+  set(one_value_args APPLE_LIBRARY)
   cmake_parse_arguments(MATSDK_PACKAGE_DEP "${options}" "${one_value_args}" "" ${ARGN})
 
   if(MATSDK_PACKAGE_DEP_APPLE_SYSTEM)
@@ -33,20 +33,7 @@ function(matsdk_add_package_system_dependency dependency_target canonical_target
     matsdk_add_apple_system_library(
       "${canonical_target}" "${MATSDK_PACKAGE_DEP_APPLE_LIBRARY}")
   elseif(NOT TARGET "${canonical_target}")
-    if(DEFINED MATSDK_PACKAGE_DEP_LEGACY_TARGET
-       AND TARGET "${MATSDK_PACKAGE_DEP_LEGACY_TARGET}")
-      matsdk_add_interface_dependency(
-        "${canonical_target}" "${MATSDK_PACKAGE_DEP_LEGACY_TARGET}")
-    else()
-      find_dependency(${package_name})
-    endif()
-  endif()
-
-  if(NOT TARGET "${canonical_target}"
-     AND DEFINED MATSDK_PACKAGE_DEP_LEGACY_TARGET
-     AND TARGET "${MATSDK_PACKAGE_DEP_LEGACY_TARGET}")
-    matsdk_add_interface_dependency(
-      "${canonical_target}" "${MATSDK_PACKAGE_DEP_LEGACY_TARGET}")
+    find_dependency(${package_name})
   endif()
   if(NOT TARGET "${canonical_target}")
     message(FATAL_ERROR
