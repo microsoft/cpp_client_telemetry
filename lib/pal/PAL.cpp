@@ -50,7 +50,7 @@
 #include <windows.h>
 #endif
 
-#ifdef ANDROID
+#if defined(ANDROID) && defined(HAVE_MAT_LOGGING)
 #include <android/log.h>
 #endif
 
@@ -204,7 +204,7 @@ namespace PAL_NS_BEGIN {
 #endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
-#if defined(ANDROID) && !defined(ANDROID_SUPPRESS_LOGCAT)
+#if defined(ANDROID) && defined(HAVE_MAT_LOGGING) && !defined(ANDROID_SUPPRESS_LOGCAT)
             {
                 static android_LogPriority androidPriorities[] = {
                     ANDROID_LOG_UNKNOWN,
