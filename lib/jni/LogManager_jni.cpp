@@ -27,6 +27,7 @@
 
 #include <utils/Utils.hpp>
 #include "callbacks/DebugSourceInternal.hpp"
+#include "JavaDataViewerProxy.hpp"
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
@@ -34,6 +35,9 @@
 #include "android/log.h"
 #endif
 #include "config/RuntimeConfig_Default.hpp"
+
+#include <string>
+#include <unordered_map>
 
 using namespace MAT;
 
@@ -869,12 +873,16 @@ namespace
         ILogConfiguration config;
         ILogManager* manager;
         std::shared_ptr<DefaultDataViewer> ddv;
+        std::mutex javaDataViewersMutex;
+        std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> javaDataViewers;
     };
 #else
     struct ManagerAndConfig
     {
         ILogConfiguration config;
         ILogManager* manager;
+        std::mutex javaDataViewersMutex;
+        std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> javaDataViewers;
     };
 #endif
 
@@ -882,6 +890,53 @@ namespace
 
     static MCVector jniManagers;
     static std::mutex jniManagersMutex;
+
+    ManagerAndConfig* getManagerAndConfig(jlong nativeLogManager)
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        if (nativeLogManager < 0 ||
+            nativeLogManager >= static_cast<jlong>(jniManagers.size()))
+        {
+            return nullptr;
+        }
+        return jniManagers[nativeLogManager].get();
+    }
+
+    void closeJavaDataViewers(ManagerAndConfig& managerAndConfig)
+    {
+        ILogManager* manager;
+        std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> dataViewers;
+        {
+            std::lock_guard<std::mutex> lock(managerAndConfig.javaDataViewersMutex);
+            manager = managerAndConfig.manager;
+            {
+                std::lock_guard<std::mutex> managersLock(jniManagersMutex);
+                managerAndConfig.manager = nullptr;
+            }
+            dataViewers.swap(managerAndConfig.javaDataViewers);
+        }
+
+        if (manager == nullptr)
+        {
+            return;
+        }
+        for (const auto& dataViewer : dataViewers)
+        {
+            try
+            {
+                manager->GetDataViewerCollection().UnregisterViewer(dataViewer.first.c_str());
+            }
+            catch (const std::exception& exception)
+            {
+                __android_log_print(
+                    ANDROID_LOG_WARN,
+                    "MAE.JavaDataViewer",
+                    "Failed to unregister Java IDataViewer '%s': %s",
+                    dataViewer.first.c_str(),
+                    exception.what());
+            }
+        }
+    }
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -979,17 +1034,14 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jobject /* this */,
     jlong nativeLogManager)
 {
+    auto managerAndConfig = getManagerAndConfig(nativeLogManager);
+    if (managerAndConfig == nullptr)
     {
-        std::lock_guard<std::mutex> lock(jniManagersMutex);
-        if (nativeLogManager < 0 || nativeLogManager >= static_cast<jlong>(jniManagers.size()))
-        {
-            return;
-        }
-        // we reset the manager member of the ManagerAndConfig,
-        // but the ManagerAndConfig itself will survive until
-        // the static jniManagers array is destroyed.
-        jniManagers[nativeLogManager]->manager = nullptr;
+        return;
     }
+
+    // The ManagerAndConfig survives until the static jniManagers array is destroyed.
+    closeJavaDataViewers(*managerAndConfig);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -1524,6 +1576,121 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     return env->NewStringUTF("");
 #endif
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRegisterDataViewer(
+    JNIEnv* env,
+    jobject /* this */,
+    jlong native_log_manager,
+    jobject data_viewer)
+{
+    auto proxy = JavaDataViewerProxy::Create(env, data_viewer);
+    if (!proxy)
+    {
+        return false;
+    }
+
+    auto manager_and_config = getManagerAndConfig(native_log_manager);
+    if (manager_and_config == nullptr)
+    {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(manager_and_config->javaDataViewersMutex);
+    if (manager_and_config->manager == nullptr ||
+        manager_and_config->javaDataViewers.find(proxy->GetName()) !=
+            manager_and_config->javaDataViewers.end())
+    {
+        return false;
+    }
+
+    bool collectionRegistered = false;
+    try
+    {
+        manager_and_config->manager->GetDataViewerCollection().RegisterViewer(proxy);
+        collectionRegistered = true;
+        manager_and_config->javaDataViewers.emplace(proxy->GetName(), proxy);
+        return true;
+    }
+    catch (const std::exception& exception)
+    {
+        if (collectionRegistered)
+        {
+            try
+            {
+                manager_and_config->manager->GetDataViewerCollection().UnregisterViewer(
+                    proxy->GetName());
+            }
+            catch (const std::exception& rollbackException)
+            {
+                __android_log_print(
+                    ANDROID_LOG_ERROR,
+                    "MAE.JavaDataViewer",
+                    "Failed to roll back Java IDataViewer '%s': %s",
+                    proxy->GetName(),
+                    rollbackException.what());
+            }
+        }
+        __android_log_print(
+            ANDROID_LOG_WARN,
+            "MAE.JavaDataViewer",
+            "Failed to register Java IDataViewer '%s': %s",
+            proxy->GetName(),
+            exception.what());
+        return false;
+    }
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterDataViewer(
+    JNIEnv* env,
+    jobject /* this */,
+    jlong native_log_manager,
+    jstring viewer_name)
+{
+    std::string name;
+    if (!TryJStringToStdString(env, viewer_name, name) || name.empty())
+    {
+        return false;
+    }
+
+    auto manager_and_config = getManagerAndConfig(native_log_manager);
+    if (manager_and_config == nullptr)
+    {
+        return false;
+    }
+
+    ILogManager* manager;
+    std::shared_ptr<JavaDataViewerProxy> proxy;
+    {
+        std::lock_guard<std::mutex> lock(manager_and_config->javaDataViewersMutex);
+        auto viewer = manager_and_config->javaDataViewers.find(name);
+        if (manager_and_config->manager == nullptr ||
+            viewer == manager_and_config->javaDataViewers.end())
+        {
+            return false;
+        }
+        manager = manager_and_config->manager;
+        proxy = std::move(viewer->second);
+        manager_and_config->javaDataViewers.erase(viewer);
+    }
+
+    try
+    {
+        manager->GetDataViewerCollection().UnregisterViewer(name.c_str());
+        return true;
+    }
+    catch (const std::exception& exception)
+    {
+        __android_log_print(
+            ANDROID_LOG_WARN,
+            "MAE.JavaDataViewer",
+            "Failed to unregister Java IDataViewer '%s': %s",
+            name.c_str(),
+            exception.what());
+        return false;
+    }
 }
 
 extern "C" JNIEXPORT void JNICALL

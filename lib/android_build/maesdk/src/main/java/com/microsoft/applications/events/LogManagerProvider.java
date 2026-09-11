@@ -226,6 +226,28 @@ public class LogManagerProvider {
       return nativeGetCurrentEndpoint(nativeLogManager);
     }
 
+    protected native boolean nativeRegisterDataViewer(
+        long nativeLogManager, IDataViewer dataViewer);
+
+    @Override
+    public boolean registerDataViewer(IDataViewer dataViewer) {
+      if (dataViewer == null) {
+        return false;
+      }
+      return nativeRegisterDataViewer(nativeLogManager, dataViewer);
+    }
+
+    protected native boolean nativeUnregisterDataViewer(
+        long nativeLogManager, String viewerName);
+
+    @Override
+    public boolean unregisterDataViewer(String viewerName) {
+      if (viewerName == null || viewerName.isEmpty()) {
+        return false;
+      }
+      return nativeUnregisterDataViewer(nativeLogManager, viewerName);
+    }
+
     protected static class LogSessionDataImpl implements LogSessionData {
       @Keep
       private long m_first_time;
