@@ -90,7 +90,6 @@ namespace MAT_NS_BEGIN {
         // drain that observes zero here knows no curl handle is still live.
         size_t liveOperationCount {0};
         std::map<std::thread::id, size_t> callbacksByThread;
-        std::map<std::thread::id, size_t> workersByThread;
 
         std::atomic<bool> sslVerify {true};
         std::string sslCaInfo;      // guarded by mutex
@@ -179,32 +178,6 @@ namespace MAT_NS_BEGIN {
             cv.notify_all();
         }
 
-        void beginWorker()
-        {
-            {
-                std::lock_guard<std::mutex> lock(mutex);
-                ++workersByThread[std::this_thread::get_id()];
-            }
-            cv.notify_all();
-        }
-
-        void endWorker()
-        {
-            {
-                std::lock_guard<std::mutex> lock(mutex);
-                auto it = workersByThread.find(std::this_thread::get_id());
-                if (it == workersByThread.end() || it->second == 0)
-                {
-                    LOG_ERROR("curl worker thread was not registered");
-                }
-                else if (--it->second == 0)
-                {
-                    workersByThread.erase(it);
-                }
-            }
-            cv.notify_all();
-        }
-
         void noteOperationCreated()
         {
             std::lock_guard<std::mutex> lock(mutex);
@@ -280,10 +253,6 @@ namespace MAT_NS_BEGIN {
                     CurlHttpOperation::CallbackHooks {
                         [state]() { state->beginCallback(); },
                         [state]() { state->endCallback(); }
-                    },
-                    CurlHttpOperation::WorkerHooks {
-                        [state]() { state->beginWorker(); },
-                        [state]() { state->endWorker(); }
                     },
                     // Tracked operations defer OnCreated/OnCreateFailed until
                     // after registration so a reentrant cancel can find them.
@@ -552,28 +521,27 @@ namespace MAT_NS_BEGIN {
         const std::thread::id callerThread = std::this_thread::get_id();
 
         std::vector<std::shared_ptr<CurlHttpOperation>> initialOperations;
-        bool callerIsInsideTrackedCallbackOrWorker = false;
+        bool callerIsInsideTrackedCallback = false;
         {
             std::lock_guard<std::mutex> lock(state->mutex);
             for (auto const& item : state->operations)
             {
                 initialOperations.push_back(item.second);
             }
-            callerIsInsideTrackedCallbackOrWorker =
-                state->callbacksByThread.find(callerThread) != state->callbacksByThread.end() ||
-                state->workersByThread.find(callerThread) != state->workersByThread.end();
+            callerIsInsideTrackedCallback =
+                state->callbacksByThread.find(callerThread) != state->callbacksByThread.end();
         }
 
         // A reentrant cancellation must still abort all peers observed at entry.
         // It then ends its epoch and returns rather than waiting for its own
-        // callback or worker (or another simultaneously cancelling callback).
+        // callback (or another simultaneously cancelling callback).
         for (auto const& operation : initialOperations)
         {
             operation->Abort();
         }
         initialOperations.clear();
 
-        if (callerIsInsideTrackedCallbackOrWorker)
+        if (callerIsInsideTrackedCallback)
         {
             std::lock_guard<std::mutex> lock(state->mutex);
             cancelAllScope.finishLocked();

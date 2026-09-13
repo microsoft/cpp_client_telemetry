@@ -124,17 +124,11 @@ public:
         std::function<void()> end;
     };
 
-    struct WorkerHooks
-    {
-        std::function<void()> begin;
-        std::function<void()> end;
-    };
-
 private:
-    class CallbackScope
+    class HookScope
     {
     public:
-        explicit CallbackScope(CallbackHooks const& hooks)
+        explicit HookScope(CallbackHooks const& hooks)
             : m_hooks(hooks)
         {
             if (m_hooks.begin != nullptr)
@@ -144,7 +138,7 @@ private:
             }
         }
 
-        ~CallbackScope() noexcept
+        ~HookScope() noexcept
         {
             if (m_started && m_hooks.end != nullptr)
             {
@@ -158,46 +152,11 @@ private:
             }
         }
 
-        CallbackScope(CallbackScope const&) = delete;
-        CallbackScope& operator=(CallbackScope const&) = delete;
+        HookScope(HookScope const&) = delete;
+        HookScope& operator=(HookScope const&) = delete;
 
     private:
         CallbackHooks const& m_hooks;
-        bool m_started {false};
-    };
-
-    class WorkerScope
-    {
-    public:
-        explicit WorkerScope(WorkerHooks const& hooks)
-            : m_hooks(hooks)
-        {
-            if (m_hooks.begin != nullptr)
-            {
-                m_hooks.begin();
-                m_started = true;
-            }
-        }
-
-        ~WorkerScope() noexcept
-        {
-            if (m_started && m_hooks.end != nullptr)
-            {
-                try
-                {
-                    m_hooks.end();
-                }
-                catch (...)
-                {
-                }
-            }
-        }
-
-        WorkerScope(WorkerScope const&) = delete;
-        WorkerScope& operator=(WorkerScope const&) = delete;
-
-    private:
-        WorkerHooks const& m_hooks;
         bool m_started {false};
     };
 
@@ -206,7 +165,7 @@ public:
     {
         if (m_callback != nullptr)
         {
-            CallbackScope callbackScope(m_callbackHooks);
+            HookScope callbackScope(m_callbackHooks);
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
         }
     }
@@ -275,7 +234,6 @@ public:
             bool sslVerify                                           = true,
             const std::string& sslCaInfo                             = "",
             CallbackHooks callbackHooks                              = CallbackHooks(),
-            WorkerHooks workerHooks                                  = WorkerHooks(),
             // When true (client-created, tracked operations), the OnCreated /
             // OnCreateFailed state event is not dispatched during construction.
             // It is recorded and replayed later by DispatchDeferredCreationEvent()
@@ -294,7 +252,6 @@ public:
             m_url(url),
             m_sslCaInfo(sslCaInfo),
             m_callbackHooks(std::move(callbackHooks)),
-            m_workerHooks(std::move(workerHooks)),
             m_deferCreationEvent(deferCreationEvent),
 
             // Local vars
@@ -616,21 +573,18 @@ cleanup:
                     {
                         std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
                     }
+                    try
                     {
-                        WorkerScope workerScope(m_workerHooks);
-                        try
-                        {
-                            Send();
-                        }
-                        catch (...)
-                        {
-                            // std::async stored worker exceptions in its unobserved
-                            // future. A raw thread must contain them.
-                            m_transportError = CURLE_FAILED_INIT;
-                            m_setupError = CURLE_FAILED_INIT;
-                        }
-                        Complete(callback);
+                        Send();
                     }
+                    catch (...)
+                    {
+                        // std::async stored worker exceptions in its unobserved
+                        // future. A raw thread must contain them.
+                        m_transportError = CURLE_FAILED_INIT;
+                        m_setupError = CURLE_FAILED_INIT;
+                    }
+                    Complete(callback);
                 });
                 return;
             }
@@ -792,7 +746,6 @@ protected:
     std::string m_url;
     std::string m_sslCaInfo;
     CallbackHooks m_callbackHooks;
-    WorkerHooks m_workerHooks;
     // Deferred creation-event bookkeeping (see the deferCreationEvent ctor arg
     // and DispatchDeferredCreationEvent). m_deferCreationEvent is fixed at
     // construction; the pending fields are only touched on the caller thread
