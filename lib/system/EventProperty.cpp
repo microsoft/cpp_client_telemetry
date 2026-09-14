@@ -504,6 +504,11 @@ namespace MAT_NS_BEGIN {
     /// </summary>
     EventProperty& EventProperty::operator=(const EventProperty& source)
     {
+        if (this == &source)
+        {
+            return *this;
+        }
+
         clear();
         memcpy((void*)this, (void*)&source, sizeof(EventProperty));
         copydata(&source);
@@ -958,4 +963,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

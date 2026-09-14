@@ -511,6 +511,10 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
     ListenForFilter listener = new ListenForFilter();
     manager.addEventListener(DebugEventType.EVT_FILTERED, listener);
+    long listenerIdentity = listener.nativeIdentity;
+    assertThat(listenerIdentity, is(not(-1L)));
+    manager.addEventListener(DebugEventType.EVT_REJECTED, listener);
+    assertThat(listener.nativeIdentity, is(listenerIdentity));
     logger.logEvent("noprops");
     manager.uploadNow();
     try {
@@ -531,6 +535,9 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
       assertThat(listener.filteredCount, is(1L));
     }
     manager.removeEventListener(DebugEventType.EVT_FILTERED, listener);
+    assertThat(listener.nativeIdentity, is(listenerIdentity));
+    manager.removeEventListener(DebugEventType.EVT_REJECTED, listener);
+    assertThat(listener.nativeIdentity, is(-1L));
     int[] everything = { DiagLevel.DIAG_LEVEL_REQUIRED.value(), DiagLevel.DIAG_LEVEL_OPTIONAL.value() };
     manager.setLevelFilter(DiagLevel.DIAG_LEVEL_OPTIONAL.value(), everything);
   }

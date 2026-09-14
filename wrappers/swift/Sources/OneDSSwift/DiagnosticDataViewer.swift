@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+#if canImport(MATTelemetryObjC)
+import MATTelemetryObjC
+#else
 import ObjCModule
+#endif
 
 /// Wrapper class over `ODWDiagnosticDataViewer` representing Diagnostic Data Viewer Hook.
 public final class DiagnosticDataViewer {
