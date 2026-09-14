@@ -84,10 +84,19 @@ TEST_F(LogSessionDataFuncTests, Constructor_InMemoryCache_NoSessionFileCreated)
 {
     auto logSessionDataProvider = LogSessionDataProvider(":memory:");
     logSessionDataProvider.CreateLogSessionData();
-    ASSERT_NE(logSessionDataProvider.GetLogSessionData(), nullptr);
+    const auto* logSessionData = logSessionDataProvider.GetLogSessionData();
+    ASSERT_NE(logSessionData, nullptr);
+    EXPECT_GT(logSessionData->getSessionFirstTime(), 0ull);
+    EXPECT_FALSE(logSessionData->getSessionSDKUid().empty());
+    const auto sessionSDKUid = logSessionData->getSessionSDKUid();
     EXPECT_FALSE(MAT::FileExists(MemorySessionFile));
 
     logSessionDataProvider.ResetLogSessionData();
+    logSessionData = logSessionDataProvider.GetLogSessionData();
+    ASSERT_NE(logSessionData, nullptr);
+    EXPECT_GT(logSessionData->getSessionFirstTime(), 0ull);
+    EXPECT_FALSE(logSessionData->getSessionSDKUid().empty());
+    EXPECT_NE(logSessionData->getSessionSDKUid(), sessionSDKUid);
     EXPECT_FALSE(MAT::FileExists(MemorySessionFile));
     logSessionDataProvider.DeleteLogSessionData();
     EXPECT_FALSE(MAT::FileExists(MemorySessionFile));

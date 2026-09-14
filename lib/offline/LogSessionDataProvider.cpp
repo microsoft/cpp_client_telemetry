@@ -109,8 +109,8 @@ namespace MAT_NS_BEGIN
     {
         uint64_t sessionFirstTimeLaunch = 0;
         std::string sessionSDKUid;
-        std::string sessionPath =
-            (m_cacheFilePath.empty() || m_cacheFilePath == ":memory:") ? "" : m_cacheFilePath + ".ses";
+        const bool inMemory = m_cacheFilePath == ":memory:";
+        std::string sessionPath = (m_cacheFilePath.empty() || inMemory) ? "" : m_cacheFilePath + ".ses";
         if (!sessionPath.empty()) 
         {
             if (MAT::FileExists(sessionPath.c_str())) 
@@ -128,6 +128,11 @@ namespace MAT_NS_BEGIN
                 sessionSDKUid = PAL::generateUuidString();
                 writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
             }
+        }
+        else if (inMemory)
+        {
+            sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
+            sessionSDKUid = PAL::generateUuidString();
         }
         m_logSessionData.reset(new LogSessionData(sessionFirstTimeLaunch, sessionSDKUid));
     }
