@@ -14,14 +14,18 @@ using namespace MAT;
 
 const std::string SessionFileArgument = "test";
 const char* const SessionFile = "test.ses";
+const char* const MemorySessionFile = ":memory:.ses";
 
 class LogSessionDataFuncTests : public ::testing::Test
 {
     void CleanupLocalSessionFile()
     {
-        if (MAT::FileExists(SessionFile))
+        for (const auto* sessionFile : {SessionFile, MemorySessionFile})
         {
-            MAT::FileDelete(SessionFile);
+            if (MAT::FileExists(sessionFile))
+            {
+                MAT::FileDelete(sessionFile);
+            }
         }
     }
 
@@ -74,6 +78,19 @@ TEST_F(LogSessionDataFuncTests, Constructor_SessionFile_FileCreated)
     auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
     logSessionDataProvider.CreateLogSessionData();
     ASSERT_TRUE(MAT::FileExists(SessionFile));
+}
+
+TEST_F(LogSessionDataFuncTests, Constructor_InMemoryCache_NoSessionFileCreated)
+{
+    auto logSessionDataProvider = LogSessionDataProvider(":memory:");
+    logSessionDataProvider.CreateLogSessionData();
+    ASSERT_NE(logSessionDataProvider.GetLogSessionData(), nullptr);
+    EXPECT_FALSE(MAT::FileExists(MemorySessionFile));
+
+    logSessionDataProvider.ResetLogSessionData();
+    EXPECT_FALSE(MAT::FileExists(MemorySessionFile));
+    logSessionDataProvider.DeleteLogSessionData();
+    EXPECT_FALSE(MAT::FileExists(MemorySessionFile));
 }
 
 TEST_F(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToExistingFile)
