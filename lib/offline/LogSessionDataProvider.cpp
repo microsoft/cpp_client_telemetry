@@ -129,7 +129,7 @@ namespace MAT_NS_BEGIN
                 writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
             }
         }
-        else if (inMemory)
+        else if (m_cacheFilePath == ":memory:")
         {
             sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
             sessionSDKUid = PAL::generateUuidString();
