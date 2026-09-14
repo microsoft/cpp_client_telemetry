@@ -234,22 +234,23 @@ namespace MAT_NS_BEGIN {
         // handle is still alive.
         std::shared_ptr<CurlHttpOperation> MakeTrackedOperation(
             std::shared_ptr<CurlClientState> const& state,
-            std::string const& method,
-            std::string const& url,
+            std::string method,
+            std::string url,
             IHttpResponseCallback* callback,
-            std::map<std::string, std::string> const& requestHeaders,
-            std::vector<uint8_t> const& requestBody,
+            std::map<std::string, std::string> requestHeaders,
+            std::vector<uint8_t> requestBody,
             size_t httpConnTimeout,
             bool sslVerify,
-            std::string const& sslCaInfo)
+            std::string sslCaInfo)
         {
             state->noteOperationCreated();
             CurlHttpOperation* raw = nullptr;
             try
             {
                 raw = new CurlHttpOperation(
-                    method, url, callback, requestHeaders, requestBody,
-                    false, httpConnTimeout, sslVerify, sslCaInfo,
+                    std::move(method), std::move(url), callback,
+                    std::move(requestHeaders), std::move(requestBody),
+                    false, httpConnTimeout, sslVerify, std::move(sslCaInfo),
                     CurlHttpOperation::CallbackHooks {
                         [state]() { state->beginCallback(); },
                         [state]() { state->endCallback(); }
@@ -316,9 +317,9 @@ namespace MAT_NS_BEGIN {
         auto curlRequest = static_cast<CurlHttpRequest*>(request);
 
         const std::string requestId = curlRequest->GetId();
-        const std::string method = curlRequest->m_method;
-        const std::string url = curlRequest->m_url;
-        const std::vector<uint8_t> body = curlRequest->m_body;
+        std::string method = curlRequest->m_method;
+        std::string url = curlRequest->m_url;
+        std::vector<uint8_t> body = curlRequest->m_body;
         std::map<std::string, std::string> requestHeaders;
         for (const auto& header : curlRequest->m_headers) {
             requestHeaders[header.first] = header.second;
@@ -336,8 +337,9 @@ namespace MAT_NS_BEGIN {
         try
         {
             operation = MakeTrackedOperation(
-                state, method, url, callback, requestHeaders, body,
-                HTTP_CONN_TIMEOUT, sslVerify, sslCaInfo);
+                state, std::move(method), std::move(url), callback,
+                std::move(requestHeaders), std::move(body),
+                HTTP_CONN_TIMEOUT, sslVerify, std::move(sslCaInfo));
         }
         catch (const std::exception&)
         {

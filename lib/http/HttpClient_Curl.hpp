@@ -223,16 +223,16 @@ public:
             std::string method,
             std::string url,
             IHttpResponseCallback* callback,
-            // requestHeaders and requestBody are copied into operation-owned storage
-            // so the worker does not depend on the caller retaining the request.
-            const std::map<std::string, std::string>& requestHeaders,
-            const std::vector<uint8_t>& requestBody,
+            // Request data is copied or moved into operation-owned storage so
+            // the worker does not depend on the caller retaining the request.
+            std::map<std::string, std::string> requestHeaders,
+            std::vector<uint8_t> requestBody,
             // Default connectivity and response size options
             bool rawResponse                                         = false,
             size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
             // SSL certificate verification options
             bool sslVerify                                           = true,
-            const std::string& sslCaInfo                             = "",
+            std::string sslCaInfo                                    = "",
             CallbackHooks callbackHooks                              = CallbackHooks(),
             // When true (client-created, tracked operations), the OnCreated /
             // OnCreateFailed state event is not dispatched during construction.
@@ -248,14 +248,14 @@ public:
             httpConnTimeout(ClampConnectionTimeout(httpConnTimeout)),
 
             m_callback(callback),
-            m_method(method),
-            m_url(url),
-            m_sslCaInfo(sslCaInfo),
+            m_method(std::move(method)),
+            m_url(std::move(url)),
+            m_sslCaInfo(std::move(sslCaInfo)),
             m_callbackHooks(std::move(callbackHooks)),
             m_deferCreationEvent(deferCreationEvent),
 
             // Local vars
-            m_requestBody(requestBody)
+            m_requestBody(std::move(requestBody))
     {
         // sslVerify is retained for source compatibility. Disabling TLS
         // authentication is never permitted by the production transport.
