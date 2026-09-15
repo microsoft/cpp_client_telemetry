@@ -577,8 +577,8 @@ if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
       $<$<NOT:$<C_COMPILER_ID:AppleClang>>:-fdata-sections>)
   endif()
 endif()
-if(MATSDK_BUNDLE_SQLITE AND NOT TARGET SQLite::SQLite3)
-  add_library(SQLite::SQLite3 ALIAS sqlite3_bundled)
+if(MATSDK_BUNDLE_SQLITE AND NOT TARGET SQLite3::SQLite3)
+  add_library(SQLite3::SQLite3 ALIAS sqlite3_bundled)
 endif()
 
 if(MATSDK_BUNDLE_ZLIB AND NOT TARGET zlib_bundled)
@@ -626,9 +626,9 @@ if(MATSDK_BUNDLE_ZLIB AND NOT TARGET ZLIB::ZLIB)
 endif()
 
 if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE"
-   AND NOT TARGET SQLite::SQLite3)
+   AND NOT TARGET SQLite3::SQLite3)
   message(FATAL_ERROR
-    "SQLite::SQLite3 was not resolved for provider ${MATSDK_SQLITE_PROVIDER_RESOLVED}.")
+    "SQLite3::SQLite3 was not resolved for provider ${MATSDK_SQLITE_PROVIDER_RESOLVED}.")
 endif()
 if(NOT TARGET ZLIB::ZLIB)
   message(FATAL_ERROR
@@ -641,7 +641,7 @@ elseif(MATSDK_BUNDLE_SQLITE)
   target_link_libraries(mat PRIVATE sqlite3_bundled)
 else()
   matsdk_add_interface_dependency(
-    matsdk_sqlite_dependency SQLite::SQLite3)
+    matsdk_sqlite_dependency SQLite3::SQLite3)
   target_link_libraries(mat PRIVATE
     "$<BUILD_INTERFACE:matsdk_sqlite_dependency>"
     "$<INSTALL_INTERFACE:MSTelemetry::sqlite_dependency>")
