@@ -35,6 +35,10 @@ function(matsdk_add_package_system_dependency dependency_target canonical_target
   elseif(NOT TARGET "${canonical_target}")
     find_dependency(${package_name})
   endif()
+  if(NOT TARGET "${canonical_target}")
+    message(FATAL_ERROR
+      "${package_name} did not create the required ${canonical_target} target.")
+  endif()
 
   matsdk_add_interface_dependency("${dependency_target}" "${canonical_target}")
 endfunction()
