@@ -28,7 +28,9 @@
 #endif
 #define HAVE_MAT_JSONHPP
 #define HAVE_MAT_ZLIB
+#if !defined(MATSDK_DISABLE_LOGGING)
 #define HAVE_MAT_LOGGING
+#endif
 /* #define HAVE_MAT_WIN_LOG     */
 /* #define HAVE_MAT_EVT_TRACEID     */
 #define HAVE_MAT_STORAGE
@@ -51,4 +53,3 @@
 //#define HAVE_CS4
 //#define HAVE_CS4_FULL
 //#define HAVE_ONEDS_BOUNDCHECK_METHODS
-
