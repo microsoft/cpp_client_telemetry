@@ -91,6 +91,14 @@ class WinInetCallbackScope
 class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequestWrapper>
 {
   protected:
+    enum class PendingApi
+    {
+        None,
+        StagedHeaders,
+        StagedBody,
+        StagedEnd
+    };
+
     std::shared_ptr<WinInetClientState> m_clientState;
     std::string            m_id;
     IHttpResponseCallback* m_appCallback {nullptr};
@@ -101,6 +109,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     std::recursive_mutex    m_handleMutex;
     HINTERNET              m_hWinInetSession {nullptr};
     HINTERNET              m_hWinInetRequest {nullptr};
+    WinInetCallbackContext* m_callbackContext {nullptr};
     SimpleHttpRequest*     m_request;
     BYTE                   m_buffer[1024] {0};
     DWORD                  m_bufferUsed {0};
@@ -110,16 +119,12 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     std::atomic<bool>       m_isAborted {false};
     std::atomic<DWORD>      m_deferredError {ERROR_SUCCESS};
     bool                   m_msRootCheckRequired {false};
-    // HTTPS is latched from the cracked URL before the request handle exists, so
-    // the SENDING_REQUEST callback can tell HTTPS (subject to policy) from HTTP.
+    // HTTPS is latched before the request handle exists so the staged send can
+    // distinguish requests that require certificate-policy enforcement.
     bool                   m_isHttps {false};
     // The MS-root check runs at most once per request handle, on the first
-    // SENDING_REQUEST notification after the TLS handshake completes.
+    // staged-send completion after the TLS handshake completes.
     std::atomic<bool>       m_msRootChecked {false};
-    // Set when a confirmed non-MS-root rejection is detected from inside an async
-    // WinInet API frame; the issuing frame performs the handle close on unwind so
-    // we never close the request handle while that API is still on the stack.
-    bool                   m_msRootAbortClosePending {false};
     bool                   m_contextInstalled {false};
     bool                   m_sendIssued {false};
     bool                   m_setupActive {false};
@@ -130,6 +135,9 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     unsigned               m_asyncApiDepth {0};
     bool                   m_apiCompletionPending {false};
     DWORD                  m_apiCompletionError {ERROR_SUCCESS};
+    PendingApi             m_pendingApi {PendingApi::None};
+    size_t                 m_stagedBodyOffset {0};
+    DWORD                  m_stagedBytesWritten {0};
 
     class SetupGuard
     {
@@ -211,6 +219,202 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     {
         return m_isAborted.load(std::memory_order_acquire) ||
             m_terminalCallbackStarted.load(std::memory_order_acquire);
+    }
+
+    void handleWinInetCompletion(DWORD dwError)
+    {
+        PendingApi completedApi = PendingApi::None;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            if (m_asyncApiDepth != 0)
+            {
+                m_apiCompletionPending = true;
+                m_apiCompletionError = dwError;
+                return;
+            }
+            completedApi = m_pendingApi;
+            m_pendingApi = PendingApi::None;
+        }
+
+        if (completedApi == PendingApi::None)
+        {
+            onRequestComplete(dwError);
+            return;
+        }
+        continueStagedSend(completedApi, dwError);
+    }
+
+    void completeIssuedApi(BOOL result, DWORD error)
+    {
+        bool completionPending = false;
+        DWORD completionError = ERROR_SUCCESS;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            completionPending = m_apiCompletionPending;
+            completionError = m_apiCompletionError;
+            m_apiCompletionPending = false;
+            m_apiCompletionError = ERROR_SUCCESS;
+        }
+
+        if (completionPending)
+        {
+            handleWinInetCompletion(completionError);
+        }
+        else if (result)
+        {
+            handleWinInetCompletion(ERROR_SUCCESS);
+        }
+        else if (error != ERROR_IO_PENDING)
+        {
+            handleWinInetCompletion(error);
+        }
+    }
+
+    void issueStagedEnd()
+    {
+        BOOL result = FALSE;
+        DWORD error = ERROR_SUCCESS;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            if (m_hWinInetRequest == nullptr || shouldStopSetup())
+            {
+                error = ERROR_INTERNET_OPERATION_CANCELLED;
+            }
+            else
+            {
+                m_pendingApi = PendingApi::StagedEnd;
+                ++m_asyncApiDepth;
+                result = ::HttpEndRequestA(m_hWinInetRequest, nullptr, 0, 0);
+                error = result ? ERROR_SUCCESS : ::GetLastError();
+                --m_asyncApiDepth;
+            }
+        }
+        if (error == ERROR_INTERNET_OPERATION_CANCELLED)
+        {
+            onRequestComplete(error);
+            return;
+        }
+        completeIssuedApi(result, error);
+    }
+
+    void issueStagedBody()
+    {
+        size_t const bodySize = m_request->m_body.size();
+        if (m_stagedBodyOffset == bodySize)
+        {
+            issueStagedEnd();
+            return;
+        }
+
+        BOOL result = FALSE;
+        DWORD error = ERROR_SUCCESS;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            if (m_hWinInetRequest == nullptr || shouldStopSetup())
+            {
+                error = ERROR_INTERNET_OPERATION_CANCELLED;
+            }
+            else
+            {
+                size_t const remaining = bodySize - m_stagedBodyOffset;
+                m_stagedBytesWritten = 0;
+                m_pendingApi = PendingApi::StagedBody;
+                ++m_asyncApiDepth;
+                result = ::InternetWriteFile(
+                    m_hWinInetRequest,
+                    m_request->m_body.data() + m_stagedBodyOffset,
+                    static_cast<DWORD>(remaining),
+                    &m_stagedBytesWritten);
+                error = result ? ERROR_SUCCESS : ::GetLastError();
+                --m_asyncApiDepth;
+            }
+        }
+        if (error == ERROR_INTERNET_OPERATION_CANCELLED)
+        {
+            onRequestComplete(error);
+            return;
+        }
+        completeIssuedApi(result, error);
+    }
+
+    void continueStagedSend(PendingApi completedApi, DWORD dwError)
+    {
+        if (dwError != ERROR_SUCCESS)
+        {
+            DispatchEvent(OnSendFailed);
+            onRequestComplete(dwError);
+            return;
+        }
+
+        switch (completedApi)
+        {
+            case PendingApi::StagedHeaders:
+                runMsRootCheckOnce();
+                dwError = m_deferredError.load(std::memory_order_acquire);
+                if (dwError != ERROR_SUCCESS)
+                {
+                    onRequestComplete(dwError);
+                    return;
+                }
+                issueStagedBody();
+                return;
+
+            case PendingApi::StagedBody:
+                if (m_stagedBytesWritten == 0 ||
+                    m_stagedBytesWritten >
+                        m_request->m_body.size() - m_stagedBodyOffset)
+                {
+                    LOG_ERROR("InternetWriteFile() returned an invalid byte count");
+                    DispatchEvent(OnSendFailed);
+                    onRequestComplete(ERROR_INTERNET_INTERNAL_ERROR);
+                    return;
+                }
+                m_stagedBodyOffset += m_stagedBytesWritten;
+                issueStagedBody();
+                return;
+
+            case PendingApi::StagedEnd:
+                onRequestComplete(ERROR_SUCCESS);
+                return;
+
+            case PendingApi::None:
+                onRequestComplete(ERROR_INTERNET_INTERNAL_ERROR);
+                return;
+        }
+    }
+
+    void issueStagedHeaders()
+    {
+        INTERNET_BUFFERSA buffers {};
+        buffers.dwStructSize = sizeof(buffers);
+        buffers.dwBufferTotal = static_cast<DWORD>(m_request->m_body.size());
+
+        BOOL result = FALSE;
+        DWORD error = ERROR_SUCCESS;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            if (m_hWinInetRequest == nullptr || shouldStopSetup())
+            {
+                error = ERROR_INTERNET_OPERATION_CANCELLED;
+            }
+            else
+            {
+                m_sendIssued = true;
+                m_pendingApi = PendingApi::StagedHeaders;
+                ++m_asyncApiDepth;
+                result = ::HttpSendRequestExA(
+                    m_hWinInetRequest, &buffers, nullptr, 0,
+                    reinterpret_cast<DWORD_PTR>(m_callbackContext));
+                error = result ? ERROR_SUCCESS : ::GetLastError();
+                --m_asyncApiDepth;
+            }
+        }
+        if (error == ERROR_INTERNET_OPERATION_CANCELLED)
+        {
+            onRequestComplete(error);
+            return;
+        }
+        completeIssuedApi(result, error);
     }
 
   public:
@@ -303,9 +507,9 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
      * platform-independent detail::EvaluateMsRootPolicy helper so it can be
      * reasoned about and unit-tested without a live connection.
      *
-     * Called from SENDING_REQUEST while m_handleMutex is held, so cancellation
-     * and terminal completion cannot close the request handle during the query,
-     * policy evaluation, or chain release.
+     * Called after HttpSendRequestEx completes and before InternetWriteFile, so
+     * cancellation and terminal completion cannot close the request handle
+     * during the query, policy evaluation, or chain release.
      */
     detail::MsRootPolicyDecision evaluateServerCertificatePolicyLocked()
     {
@@ -356,10 +560,9 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     }
 
     /**
-     * Run the MS-root certificate policy exactly once per request handle, from
-     * the SENDING_REQUEST notification. A confirmed non-MS-root rejection
-     * aborts the logical request and is reported as NetworkFailure/status 0.
-     * Inability to evaluate also rejects the request.
+     * Run the MS-root certificate policy exactly once per request handle after
+     * the staged headers establish TLS but before any request body is written.
+     * Rejection and inability to evaluate both fail closed.
      */
     void runMsRootCheckOnce()
     {
@@ -390,15 +593,8 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 m_deferredError.store(
                     ERROR_INTERNET_SEC_INVALID_CERT, std::memory_order_release);
                 m_isAborted.store(true, std::memory_order_release);
-                if (m_asyncApiDepth != 0)
-                {
-                    m_msRootAbortClosePending = true;
-                }
-                else
-                {
-                    requestToClose = m_hWinInetRequest;
-                    m_hWinInetRequest = nullptr;
-                }
+                requestToClose = m_hWinInetRequest;
+                m_hWinInetRequest = nullptr;
             }
         }
 
@@ -542,6 +738,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 }
                 else
                 {
+                    m_callbackContext = context.get();
                     context.release();
                     m_contextInstalled = true;
                 }
@@ -560,9 +757,9 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             return;
         }
 
-        // The MS-root certificate policy runs later, from the SENDING_REQUEST
-        // notification, once the TLS handshake has produced a server certificate
-        // chain to inspect. It cannot run here: no connection has been made yet.
+        // HTTPS requests with the optional policy use a staged send below:
+        // establish TLS and send headers, validate the negotiated chain, then
+        // write the body only after the policy allows the connection.
 
         std::ostringstream os;
         for (auto const& header : m_request->m_headers) {
@@ -619,10 +816,15 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             return;
         }
 
+        if (m_msRootCheckRequired && m_isHttps)
+        {
+            issueStagedHeaders();
+            return;
+        }
+
         BOOL sendResult = FALSE;
         bool completionPending = false;
         DWORD completionError = ERROR_SUCCESS;
-        bool abortClosePending = false;
         {
             std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
             if (m_hWinInetRequest == nullptr || shouldStopSetup())
@@ -646,19 +848,6 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 m_apiCompletionPending = false;
                 m_apiCompletionError = ERROR_SUCCESS;
             }
-            // A synchronously delivered SENDING_REQUEST may have rejected the
-            // certificate while HttpSendRequest was on the stack; it deferred the
-            // handle close to us. Perform it now that the API has returned.
-            abortClosePending = m_msRootAbortClosePending;
-            m_msRootAbortClosePending = false;
-        }
-
-        if (abortClosePending)
-        {
-            // A reject committed during SENDING_REQUEST closes after the issuing
-            // API frame returns. The deferred error maps terminal delivery to
-            // NetworkFailure/status 0.
-            closeRequestHandle();
         }
 
         if (completionPending)
@@ -670,7 +859,6 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         {
             // WinInet is permitted to finish an asynchronous-session request
             // synchronously. A TRUE return is success, not an error.
-            runMsRootCheckOnce();
             onRequestComplete(ERROR_SUCCESS);
             return;
         }
@@ -698,14 +886,8 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         // Go To Definition (F12) on INTERNET_STATUS_REQUEST_COMPLETE below to get to the right place of WinInet.h.
 
         switch (dwInternetStatus) {
-            case INTERNET_STATUS_SENDING_REQUEST: {
-                // Evaluate the certificate policy during SENDING_REQUEST. Retain
-                // ownership before calling into code that can close the handle;
-                // do not use context after this call.
-                auto self = context->request;
-                self->runMsRootCheckOnce();
+            case INTERNET_STATUS_SENDING_REQUEST:
                 return;
-            }
 
             case INTERNET_STATUS_REQUEST_SENT:
                 return;
@@ -715,6 +897,10 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 // registration. HANDLE_CLOSING is its final notification.
                 std::unique_ptr<WinInetCallbackContext> contextOwner(context);
                 auto self = contextOwner->request;
+                {
+                    std::lock_guard<std::recursive_mutex> lock(self->m_handleMutex);
+                    self->m_callbackContext = nullptr;
+                }
                 DWORD deferredError = self->m_deferredError.load(std::memory_order_acquire);
                 if (deferredError != ERROR_SUCCESS &&
                     !self->m_terminalCallbackStarted.load(std::memory_order_acquire))
@@ -735,14 +921,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 }
                 INTERNET_ASYNC_RESULT const& result =
                     *static_cast<INTERNET_ASYNC_RESULT const*>(lpvStatusInformation);
-                if (result.dwError == ERROR_SUCCESS)
-                {
-                    // SENDING_REQUEST is the pre-transmission enforcement point. If a
-                    // successful operation arrives without that notification, fail closed
-                    // rather than accepting a response whose peer was never evaluated.
-                    self->runMsRootCheckOnce();
-                }
-                self->onRequestComplete(result.dwError);
+                self->handleWinInetCompletion(result.dwError);
                 return;
             }
 
