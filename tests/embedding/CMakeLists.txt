@@ -34,7 +34,7 @@ if(MATSDK_EMBEDDING_PRELOAD_CURL)
 endif()
 
 option(MATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS
-  "Pre-create SQLite::SQLite3/ZLIB::ZLIB and disable later discovery" OFF)
+  "Pre-create SQLite3::SQLite3 and ZLIB::ZLIB targets" OFF)
 if(MATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS)
   find_path(MATSDK_TEST_SQLITE_INCLUDE_DIR sqlite3.h)
   find_library(MATSDK_TEST_SQLITE_LIBRARY NAMES sqlite3)
@@ -49,7 +49,7 @@ if(MATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS)
     "${MATSDK_TEST_SQLITE_INCLUDE_DIR}")
   target_link_libraries(matsdk_test_sqlite INTERFACE
     "${MATSDK_TEST_SQLITE_LIBRARY}")
-  add_library(SQLite::SQLite3 ALIAS matsdk_test_sqlite)
+  add_library(SQLite3::SQLite3 ALIAS matsdk_test_sqlite)
   add_library(matsdk_test_zlib INTERFACE)
   target_include_directories(matsdk_test_zlib INTERFACE
     "${MATSDK_TEST_ZLIB_INCLUDE_DIR}")

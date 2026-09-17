@@ -1,6 +1,5 @@
 plugins {
     id 'maven-publish'
-    id 'net.linguica.maven-settings' version '0.5'
 }
 
 apply plugin: 'com.android.library'
@@ -21,6 +20,8 @@ android {
                     args.add("-DBUILD_SHARED_LIBS=ON")
                     args.add("-DMATSDK_ANDROID_USE_ROOM=ON")
                     args.add("-DMATSDK_BUILD_JNI_WRAPPER=ON")
+                    String disableLogging = project.findProperty("MATSDK_DISABLE_LOGGING") ?: "OFF"
+                    args.add("-DMATSDK_DISABLE_LOGGING=" + disableLogging)
                     args.add("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
                     String linkerFlag = project.findProperty("CMAKE_SHARED_LINKER_FLAGS") ?: ""
                     linkerFlag = "-DCMAKE_SHARED_LINKER_FLAGS=" + linkerFlag

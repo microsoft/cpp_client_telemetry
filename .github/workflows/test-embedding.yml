@@ -31,20 +31,23 @@ jobs:
           fetchcontent: OFF
           preload-curl: ON
           preload-storage: ON
+          disable-logging: OFF
         - dependencies: system
           library-type: SHARED
           shared: ON
           fetchcontent: ON
           preload-curl: OFF
           preload-storage: OFF
+          disable-logging: OFF
         - dependencies: self-contained
           library-type: STATIC
           shared: OFF
           fetchcontent: ON
           preload-curl: OFF
           preload-storage: OFF
+          disable-logging: ON
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Install system dependencies
       if: matrix.dependencies == 'system'
       run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev ninja-build zlib1g-dev
@@ -59,6 +62,7 @@ jobs:
           -DMATSDK_EMBEDDING_USE_FETCHCONTENT=${{ matrix.fetchcontent }}
           -DMATSDK_EMBEDDING_PRELOAD_CURL=${{ matrix.preload-curl }}
           -DMATSDK_EMBEDDING_PRELOAD_STORAGE_DEPS=${{ matrix.preload-storage }}
+          -DMATSDK_DISABLE_LOGGING=${{ matrix.disable-logging }}
           -DBUILD_SHARED_LIBS=${{ matrix.shared }}
         )
         if [[ "${{ matrix.dependencies }}" == "self-contained" ]]; then
@@ -83,7 +87,7 @@ jobs:
   windows:
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Configure
       run: >
         cmake -S tests/embedding -B build-embedding -A x64
@@ -102,7 +106,7 @@ jobs:
       matrix:
         mode: [system, fetched]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Install system dependencies
       if: matrix.mode == 'system'
       run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
@@ -147,7 +151,7 @@ jobs:
   installed-package-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Configure, install, and consume
       run: |
         cmake -G Ninja -S . -B build-package \
@@ -175,7 +179,7 @@ jobs:
       matrix:
         architectures: [arm64, "arm64;x86_64"]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Configure
       run: >
         cmake -G Ninja -S tests/embedding -B build-embedding
@@ -199,7 +203,7 @@ jobs:
           sqlite-provider: VENDORED
           zlib-provider: VENDORED
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Configure
       run: >
         cmake -G Xcode -S tests/embedding -B build-embedding
@@ -218,7 +222,7 @@ jobs:
   android:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Configure
       run: >
         cmake -G Ninja -S tests/embedding -B build-embedding

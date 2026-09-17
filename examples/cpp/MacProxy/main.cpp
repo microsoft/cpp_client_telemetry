@@ -58,6 +58,8 @@ std::string GetProxyForURL(const std::string& url)
     urlProxArrayRef = CFNetworkCopyProxiesForURL(urlRef, proxyDicRef);
     if (!urlProxArrayRef)
         goto cleanup;
+    if (CFArrayGetCount(urlProxArrayRef) == 0)
+        goto cleanup;
 
     defProxyDic = (CFDictionaryRef)CFArrayGetValueAtIndex(urlProxArrayRef, 0);
     if (!defProxyDic)
@@ -82,11 +84,6 @@ std::string GetProxyForURL(const std::string& url)
 
 cleanup:
 
-    if (hostNameRef)
-    {
-        CFRelease(hostNameRef);
-        hostNameRef = NULL;
-    }
     if (urlProxArrayRef)
     {
         CFRelease(urlProxArrayRef);

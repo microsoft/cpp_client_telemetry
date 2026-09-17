@@ -272,11 +272,13 @@ public class LogManagerProvider {
       listener.nativeIdentity = nativeAddEventListener(nativeLogManager, eventType.value(), listener, listener.nativeIdentity);
     }
 
-    public native void nativeRemoveEventListener(long nativeLogManager, long eventType, long identity);
+    public native long nativeRemoveEventListener(
+        long nativeLogManager, long eventType, long identity, DebugEventListener listener);
 
     @Override
     public void removeEventListener(DebugEventType eventType, DebugEventListener listener) {
-      nativeRemoveEventListener(nativeLogManager, eventType.value(), listener.nativeIdentity);
+      listener.nativeIdentity = nativeRemoveEventListener(
+          nativeLogManager, eventType.value(), listener.nativeIdentity, listener);
     }
 
     private native boolean nativeRegisterPrivacyGuard(long nativeLogManager);

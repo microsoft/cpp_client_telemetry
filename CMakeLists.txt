@@ -116,6 +116,10 @@ add_library(matsdk_internal_config INTERFACE)
 target_compile_definitions(matsdk_internal_config INTERFACE
   MATSDK_PAL_${PAL_IMPLEMENTATION_UPPER}=1
   NOMINMAX)
+if(MATSDK_DISABLE_LOGGING)
+  target_compile_definitions(matsdk_internal_config INTERFACE
+    MATSDK_DISABLE_LOGGING)
+endif()
 
 option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
 if(GCC5_CXX11_ABI_WORKAROUND)
@@ -234,32 +238,27 @@ endif()
 ################################################################################################
 # Canonical dependency targets
 ################################################################################################
-if(TARGET SQLite3::SQLite3 AND NOT TARGET SQLite::SQLite3)
-  add_library(SQLite::SQLite3 ALIAS SQLite3::SQLite3)
+if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
+  matsdk_add_interface_dependency(SQLite3::SQLite3 SQLite::SQLite3)
 endif()
-if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite::SQLite3)
+if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite3::SQLite3)
   if(APPLE AND NOT MATSDK_USING_VCPKG)
-    matsdk_add_apple_system_library(SQLite::SQLite3 sqlite3)
+    matsdk_add_apple_system_library(SQLite3::SQLite3 sqlite3)
   else()
     find_package(SQLite3 QUIET)
-    if(NOT TARGET SQLite::SQLite3 AND MATSDK_USING_VCPKG)
+    if(NOT TARGET SQLite3::SQLite3 AND TARGET SQLite::SQLite3)
+      matsdk_add_interface_dependency(SQLite3::SQLite3 SQLite::SQLite3)
+    endif()
+    if(NOT TARGET SQLite3::SQLite3 AND MATSDK_USING_VCPKG)
       find_package(unofficial-sqlite3 CONFIG REQUIRED)
       matsdk_add_interface_dependency(
-        SQLite::SQLite3 unofficial::sqlite3::sqlite3)
+        SQLite3::SQLite3 unofficial::sqlite3::sqlite3)
     endif()
-    if(NOT TARGET SQLite::SQLite3)
+    if(NOT TARGET SQLite3::SQLite3)
       message(FATAL_ERROR
-        "MATSDK_SQLITE_PROVIDER=SYSTEM requires SQLite::SQLite3. Install SQLite, "
+        "MATSDK_SQLITE_PROVIDER=SYSTEM requires SQLite3::SQLite3. Install SQLite, "
         "define the canonical target before adding 1DS, or choose MINIMAL/VENDORED.")
     endif()
-  endif()
-endif()
-if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
-  get_target_property(_matsdk_sqlite_target SQLite::SQLite3 ALIASED_TARGET)
-  if(_matsdk_sqlite_target)
-    add_library(SQLite3::SQLite3 ALIAS ${_matsdk_sqlite_target})
-  else()
-    add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
   endif()
 endif()
 

@@ -51,7 +51,7 @@
 #include <windows.h>
 #endif
 
-#ifdef ANDROID
+#if defined(ANDROID) && defined(HAVE_MAT_LOGGING)
 #include <android/log.h>
 #endif
 
@@ -229,6 +229,7 @@ namespace PAL_NS_BEGIN {
 #endif
 
 #if !defined(_WIN32) && defined(__linux__)
+#ifdef HAVE_MAT_LOGGING
         static std::mutex m;
         static std::map<std::thread::id, pid_t> threads;
         static long int gettid()
@@ -238,13 +239,14 @@ namespace PAL_NS_BEGIN {
             threads[std::this_thread::get_id()] = tid;
             return tid;
         }
+#endif
 #else
 #define     gettid()       std::this_thread::get_id()
 #endif
 
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
-#if defined(ANDROID) && !defined(ANDROID_SUPPRESS_LOGCAT)
+#if defined(ANDROID) && defined(HAVE_MAT_LOGGING) && !defined(ANDROID_SUPPRESS_LOGCAT)
             {
                 static android_LogPriority androidPriorities[] = {
                     ANDROID_LOG_UNKNOWN,
