@@ -45,7 +45,7 @@ namespace PAL_NS_BEGIN {
                     (*m_task)();
                 }
                 catch (const std::exception& ex) {
-                    UNREFERENCED_PARAMETER(ex);
+                    (void)ex;
                     LOG_ERROR("Unhandled exception in CAPI task: %s", ex.what());
                 }
                 catch (...) {

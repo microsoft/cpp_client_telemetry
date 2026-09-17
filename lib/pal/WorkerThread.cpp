@@ -266,7 +266,7 @@ namespace PAL_NS_BEGIN {
                             (*item)();
                         }
                         catch (const std::exception& ex) {
-                            UNREFERENCED_PARAMETER(ex);
+                            (void)ex;
                             LOG_ERROR("Unhandled exception in worker task: %s", ex.what());
                         }
                         catch (...) {
