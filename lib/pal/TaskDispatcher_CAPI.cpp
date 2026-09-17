@@ -72,13 +72,21 @@ namespace PAL_NS_BEGIN {
                     LOG_ERROR("Unhandled non-standard exception in CAPI task");
                 }
             }
+            std::unique_ptr<Task> completedTask;
             {
                 std::lock_guard<std::mutex> lock(m_stateLock);
-                ReleaseItem();
+                if (m_task)
+                {
+                    m_task->Type = Task::Done;
+                    completedTask = std::move(m_task);
+                }
                 m_running = false;
                 m_done = true;
             }
             m_doneCv.notify_all();
+            // Task destruction can acquire the DeferredCallbackHandle lifetime
+            // lock held by a concurrent Cancel(). Keep it outside m_stateLock so
+            // Cancel() can observe completion and release that lifetime lock.
         }
 
         bool RequestCancel()

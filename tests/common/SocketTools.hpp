@@ -290,15 +290,6 @@ class Socket
 #endif
     }
 
-#ifdef TARGET_OS_MAC
-    bool setNoSigPipe()
-    {
-        assert(m_sock != Invalid);
-        int value = 1;
-        return (::setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value)) == 0);
-    }
-#endif
-
     bool setReuseAddr()
     {
         assert(m_sock != Invalid);
