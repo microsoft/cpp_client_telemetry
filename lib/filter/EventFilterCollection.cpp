@@ -28,7 +28,6 @@ namespace MAT_NS_BEGIN
             std::atomic_store(
                 &m_filters,
                 std::shared_ptr<const FilterList>(std::move(updated)));
-            m_size.store(current == nullptr ? 1 : current->size() + 1);
         }
     }
 
@@ -60,7 +59,6 @@ namespace MAT_NS_BEGIN
             }
 
             removedFilters = std::move(current);
-            m_size.store(updated->size());
             std::atomic_store(
                 &m_filters,
                 updated->empty()
@@ -76,17 +74,11 @@ namespace MAT_NS_BEGIN
             std::lock_guard<std::mutex> lock(m_filterLock);
             removedFilters = std::atomic_exchange(
                 &m_filters, std::shared_ptr<const FilterList>{});
-            m_size.store(0);
         }
     }
 
     bool EventFilterCollection::CanEventPropertiesBeSent(const EventProperties& properties) const noexcept
     {
-        if (Empty())
-        {
-            return true;
-        }
-
         auto filters = std::atomic_load(&m_filters);
         return filters == nullptr || std::all_of(filters->cbegin(), filters->cend(),
             [&properties](const std::shared_ptr<IEventFilter>& filter)
@@ -97,12 +89,13 @@ namespace MAT_NS_BEGIN
 
     size_t EventFilterCollection::Size() const noexcept
     {
-        return m_size.load();
+        auto filters = std::atomic_load(&m_filters);
+        return filters == nullptr ? 0 : filters->size();
     }
 
     bool EventFilterCollection::Empty() const noexcept
     {
-        return (Size() == 0);
+        return std::atomic_load(&m_filters) == nullptr;
     }
 
 } MAT_NS_END

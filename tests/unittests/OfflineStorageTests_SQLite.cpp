@@ -1152,6 +1152,23 @@ TEST_F(OfflineStorageTests_SQLite, SqliteDbInstancesAreCounted)
     EXPECT_EQ(offlineStorage->GetDbInstanceCount(), 0);
 }
 
+TEST_F(OfflineStorageTests_SQLite, DestructionWithoutShutdownClosesDatabase)
+{
+    initializeStorage();
+    EXPECT_EQ(OfflineStorage_SQLiteNoAutoCommit::GetDbInstanceCount(), 1);
+
+    storageInitialized = false;
+    offlineStorage.reset();
+
+    EXPECT_EQ(OfflineStorage_SQLiteNoAutoCommit::GetDbInstanceCount(), 0);
+    EXPECT_THAT(fileExists(storageFilename), true);
+    ::remove(storageFilename.c_str());
+    for (const char* suffix : { "-wal", "-shm", "-journal" })
+    {
+        ::remove((storageFilename + suffix).c_str());
+    }
+}
+
 #if !defined(_WIN32)
 // SECURITY: the offline cache buffers pending telemetry/audit events, so it must
 // not be world-readable. SQLite creates the file 0644 by default; SQLiteWrapper

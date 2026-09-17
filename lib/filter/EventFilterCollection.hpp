@@ -11,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <atomic>
 
 namespace MAT_NS_BEGIN
 {
@@ -28,7 +27,6 @@ namespace MAT_NS_BEGIN
     protected:
         using FilterList = std::vector<std::shared_ptr<IEventFilter>>;
 
-        std::atomic<size_t> m_size { 0 };
         mutable std::mutex m_filterLock;
         std::shared_ptr<const FilterList> m_filters;
     };

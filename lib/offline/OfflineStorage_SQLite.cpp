@@ -142,10 +142,7 @@ namespace MAT_NS_BEGIN {
         }
     }
 
-    OfflineStorage_SQLite::~OfflineStorage_SQLite()
-    {
-        assert(!m_db);
-    }
+    OfflineStorage_SQLite::~OfflineStorage_SQLite() = default;
 
     void OfflineStorage_SQLite::Initialize(IOfflineStorageObserver& observer)
     {

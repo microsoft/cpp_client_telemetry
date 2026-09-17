@@ -34,7 +34,7 @@ exit /b 1
 call tools\gen-version.cmd
 
 set NET40_MD_TARGETS=,net40:Rebuild
-set NET40_SAMPLE_TARGETS=,Samples\cs\SampleCsNet40:Rebuild
+set NET40_SAMPLE_TARGETS=,Samples\cs\SampleCsNet48:Rebuild
 if DEFINED SKIP_NET40_BUILD (
   echo Skipping legacy .NET Framework 4.0 targets.
   set NET40_MD_TARGETS=

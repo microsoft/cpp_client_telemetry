@@ -87,7 +87,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleCpp", "..\examples\cp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleCppUWP", "..\examples\cpp\SampleCppUWP\SampleCppUWP.vcxproj", "{39DBD601-4D79-49F9-AD18-065404DBA273}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleCsNet40", "..\examples\cs\SampleCsNet40\SampleCsNet40.csproj", "{65AFA0E2-F9A2-4309-87E7-E419D59583C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleCsNet48", "..\examples\cs\SampleCsNet48\SampleCsNet48.csproj", "{65AFA0E2-F9A2-4309-87E7-E419D59583C1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleCsUWP", "..\examples\cs\SampleCsUWP\SampleCsUWP.csproj", "{F797B22C-A1C4-4136-9DCC-0682A183A4DA}"
 EndProject
