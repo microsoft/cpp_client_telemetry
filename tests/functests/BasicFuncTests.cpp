@@ -122,6 +122,47 @@ public:
         };
     };
 };
+
+class DroppedEventListener : public DebugEventListener
+{
+public:
+    void OnDebugEvent(DebugEvent& evt) override
+    {
+        if (evt.type == EVT_DROPPED)
+        {
+            if (evt.param2 == static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW))
+            {
+                overflowDrops += evt.param1;
+            }
+            else if (evt.param2 == static_cast<size_t>(DROPPED_REASON_RETRY_EXCEEDED))
+            {
+                retryExceededDrops += evt.param1;
+            }
+        }
+        else if (evt.type == EVT_SEND_RETRY)
+        {
+            sendRetries++;
+        }
+    }
+
+    bool waitForAtLeast(
+        std::atomic<size_t> const& counter,
+        size_t expected,
+        unsigned timeoutMs) const
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (counter.load() < expected && PAL::getMonotonicTimeMs() < deadline)
+        {
+            PAL::sleep(10);
+        }
+        return counter.load() >= expected;
+    }
+
+    std::atomic<size_t> overflowDrops { 0 };
+    std::atomic<size_t> retryExceededDrops { 0 };
+    std::atomic<size_t> sendRetries { 0 };
+};
+
 class BasicFuncTests : public ::testing::Test,
     public HttpServer::Callback
 {
@@ -193,7 +234,9 @@ public:
 
     virtual void Initialize(
         int64_t maxTeardownUploadTimeInSec = 2,
-        int64_t cacheFileSize = 4096 * 1024)
+        int64_t cacheFileSize = 4096 * 1024,
+        int64_t maxRetryCount = 5,
+        std::string const& retryBackoff = "E,500,5000,2,1")
     {
         {
             LOCKGUARD(mtx_requests);
@@ -217,7 +260,8 @@ public:
         configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 5000; // default 5s
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
-        configuration[CFG_MAP_TPM][CFG_STR_TPM_BACKOFF] = "E,500,5000,2,1"; // faster retry for localhost tests
+        configuration[CFG_MAP_TPM][CFG_INT_TPM_MAX_RETRY] = maxRetryCount;
+        configuration[CFG_MAP_TPM][CFG_STR_TPM_BACKOFF] = retryBackoff;
         configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 30 * 60;   // 30 mins
         configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;            // opt in to stats (disabled by default)
 
@@ -911,6 +955,8 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 
     auto& configuration = LogManager::GetLogConfiguration();
     configuration[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = true;
+    DroppedEventListener listener;
+    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
     std::string savedAddress = serverAddress;
     serverAddress = serverBaseAddress + "/slow/";
     {
@@ -924,8 +970,6 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
             event.SetProperty("big_data", std::string(ONE_EVENT_SIZE, '\42'));
             logger->LogEvent(event);
         }
-        // Check meta stats after restart. Because of their high priority, they will
-        // be sent alone in the very first request regardless of other events.
         FlushAndTeardown();
 
         std::string fileName = MAT::GetTempDirectory();
@@ -933,7 +977,9 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
         fileName += TEST_STORAGE_FILENAME;
         size_t fileSize = getFileSize(fileName);
         EXPECT_LE(fileSize, (size_t)(MAX_FILE_SIZE + ALLOWED_OVERFLOW));
+        EXPECT_GT(listener.overflowDrops.load(), size_t { 0 });
     }
+    LogManager::RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
     configuration[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = false;
 }
 
@@ -1589,5 +1635,38 @@ TEST_F(BasicFuncTests, deleteEvents)
     }
 }
 #endif
+
+TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
+{
+    CleanStorage();
+
+    DroppedEventListener listener;
+    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
+
+    Initialize();
+    LogManager::PauseTransmission();
+
+    EventProperties event("event");
+    event.SetLatency(EventLatency_RealTime);
+    event.SetPersistence(EventPersistence_Critical);
+    event.SetProperty("property", "value");
+    logger->LogEvent(event);
+    FlushAndTeardown();
+
+    std::string savedAddress = serverAddress;
+    serverAddress = serverBaseAddress + "/503/";
+    Initialize(2, 4096 * 1024, 1, "E,50,100,2,1");
+    serverAddress = savedAddress;
+    LogManager::UploadNow();
+
+    EXPECT_TRUE(listener.waitForAtLeast(listener.sendRetries, 2, 10000));
+    EXPECT_TRUE(listener.waitForAtLeast(listener.retryExceededDrops, 1, 5000));
+    EXPECT_GT(listener.retryExceededDrops.load(), size_t { 0 });
+
+    FlushAndTeardown();
+    LogManager::RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_SEND_RETRY, listener);
+}
 
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
