@@ -343,6 +343,85 @@ TEST(OfflineStorageHandlerFlushTests, BatchingOptOutUsesPerRecordDiskStores)
     handler.Flush();
 }
 
+TEST(OfflineStorageHandlerFlushTests, BatchedFlushKeepsMemoryOnlyRecordsOffDisk)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*memory, Initialize(Ref(handler))).WillOnce(Return());
+    EXPECT_CALL(*disk, Initialize(Ref(handler))).WillOnce(Return());
+    handler.Initialize(observer);
+
+    std::vector<StorageRecord> records;
+    records.push_back(StorageRecord("persisted", "tenant-token",
+                                    EventLatency_Normal, EventPersistence_Normal, 1, std::vector<uint8_t>{'x'}));
+    records.push_back(StorageRecord("memory-only", "tenant-token",
+                                    EventLatency_Normal, EventPersistence_DoNotStoreOnDisk, 1, std::vector<uint8_t>{'y'}));
+
+    EXPECT_CALL(*memory, GetSize())
+        .WillOnce(Return(records.size()))
+        .WillOnce(Return(static_cast<size_t>(1)));
+    EXPECT_CALL(*memory, GetRecordCount(EventLatency_Unspecified))
+        .WillOnce(Return(records.size()));
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
+        .WillOnce(Return(records));
+    EXPECT_CALL(*memory, StoreRecord(Field(&StorageRecord::id, "memory-only")))
+        .WillOnce(Return(true));
+    EXPECT_CALL(*disk, StoreRecord(_)).Times(0);
+    EXPECT_CALL(*disk, StoreRecords(_)).WillOnce(Return(1));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(1));
+
+    handler.Flush();
+}
+
+TEST(OfflineStorageHandlerFlushTests, PerRecordFlushKeepsMemoryOnlyRecordsOffDisk)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = false;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
+
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*memory, Initialize(Ref(handler))).WillOnce(Return());
+    EXPECT_CALL(*disk, Initialize(Ref(handler))).WillOnce(Return());
+    handler.Initialize(observer);
+
+    std::vector<StorageRecord> records;
+    records.push_back(StorageRecord("persisted", "tenant-token",
+                                    EventLatency_Normal, EventPersistence_Normal, 1, std::vector<uint8_t>{'x'}));
+    records.push_back(StorageRecord("memory-only", "tenant-token",
+                                    EventLatency_Normal, EventPersistence_DoNotStoreOnDisk, 1, std::vector<uint8_t>{'y'}));
+
+    EXPECT_CALL(*memory, GetSize())
+        .WillOnce(Return(records.size()))
+        .WillOnce(Return(static_cast<size_t>(1)));
+    EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 0))
+        .WillOnce(Return(records));
+    EXPECT_CALL(*memory, StoreRecord(Field(&StorageRecord::id, "memory-only")))
+        .WillOnce(Return(true));
+    EXPECT_CALL(*disk, StoreRecords(_)).Times(0);
+    EXPECT_CALL(*disk, StoreRecord(Field(&StorageRecord::id, "persisted")))
+        .WillOnce(Return(true));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(1));
+
+    handler.Flush();
+}
+
 TEST(OfflineStorageHandlerFlushTests, BatchedFlushLimitsEachDiskWrite)
 {
     NullLogManager logManager;

@@ -55,7 +55,7 @@ namespace CLI
             for (int i = 0; i < 999; i++)
             {
                 EventProperties props2 = new EventProperties("EventSimpleFromCSharpApp");
-                props.SetProperty("EventSeqNum", Convert.ToString(i));
+                props2.SetProperty("EventSeqNum", Convert.ToString(i));
                 logger.LogEvent(props2);
             }
 

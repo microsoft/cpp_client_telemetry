@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <exception>
+#include <iterator>
 #include <limits>
 #include <numeric>
 #include <set>
@@ -36,8 +37,7 @@ namespace MAT_NS_BEGIN {
     {
     }
 
-    OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig,
-        ITaskDispatcher& taskDispatcher, std::shared_ptr<IOfflineStorageProvider> storageProvider) :
+    OfflineStorageHandler::OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher, std::shared_ptr<IOfflineStorageProvider> storageProvider) :
         m_observer(nullptr),
         m_logManager(logManager),
         m_config(runtimeConfig),
@@ -58,7 +58,7 @@ namespace MAT_NS_BEGIN {
     {
         if (!m_storageProvider)
         {
-            throw std::invalid_argument("OfflineStorageHandler requires a storage provider");
+            MATSDK_THROW(std::invalid_argument("OfflineStorageHandler requires a storage provider"));
         }
 
         // TODO: [MG] - OfflineStorage_SQLite.cpp is performing similar checks
@@ -107,15 +107,11 @@ namespace MAT_NS_BEGIN {
         {
             if (m_active)
             {
-                try
+                MATSDK_TRY
                 {
                     m_logManager.EndActivity();
                 }
-                catch (const std::exception& e)
-                {
-                    std::fprintf(stderr, "Failed to end telemetry activity: %s\n", e.what());
-                }
-                catch (...)
+                MATSDK_CATCH(...)
                 {
                     std::fputs("Failed to end telemetry activity\n", stderr);
                 }
@@ -262,7 +258,7 @@ namespace MAT_NS_BEGIN {
             return;
         }
         std::vector<StorageRecord> recordsToRecover;
-        try
+        MATSDK_TRY
         {
             // Flush could be executed from context of worker thread, as well as from TPM and
             // after HTTP callback. Make sure it is atomic / thread-safe.
@@ -293,14 +289,29 @@ namespace MAT_NS_BEGIN {
 
                         const size_t drainedBatchSize = recordsToRecover.size();
                         recordsRemaining -= std::min(recordsRemaining, drainedBatchSize);
-                        const size_t batchSaved = m_offlineStorageDisk->StoreRecords(recordsToRecover);
+
+                        auto memoryOnlyBegin = std::partition(
+                            recordsToRecover.begin(), recordsToRecover.end(),
+                            [](StorageRecord const& record)
+                            {
+                                return record.persistence != EventPersistence_DoNotStoreOnDisk;
+                            });
+                        std::vector<StorageRecord> memoryOnlyRecords(
+                            std::make_move_iterator(memoryOnlyBegin),
+                            std::make_move_iterator(recordsToRecover.end()));
+                        recordsToRecover.erase(memoryOnlyBegin, recordsToRecover.end());
+                        ReturnRecordsToMemory(memoryOnlyRecords);
+
+                        const size_t batchSaved = recordsToRecover.empty()
+                                                      ? 0
+                                                      : m_offlineStorageDisk->StoreRecords(recordsToRecover);
                         // StoreRecords() removes permanently-invalid records before
                         // returning, so compare against the remaining valid records.
                         const size_t validBatchSize = recordsToRecover.size();
                         if (batchSaved != validBatchSize)
                         {
                             LOG_WARN("Flush: disk store failed for the batch of %zu records; returning it to the queue for retry",
-                                validBatchSize);
+                                     validBatchSize);
                             ReturnRecordsToMemory(recordsToRecover);
                             recordsToRecover.clear();
                             break;
@@ -342,21 +353,18 @@ namespace MAT_NS_BEGIN {
             m_flushComplete.post();
             m_flushPending = false;
         }
-        catch (...)
+        MATSDK_CATCH(...)
         {
+#if HAVE_EXCEPTIONS
             std::exception_ptr failure = std::current_exception();
-            try
+            MATSDK_TRY
             {
                 if (m_offlineStorageMemory && !recordsToRecover.empty())
                 {
                     ReturnRecordsToMemory(recordsToRecover);
                 }
             }
-            catch (const std::exception& e)
-            {
-                std::fprintf(stderr, "Failed to recover records after flush failure: %s\n", e.what());
-            }
-            catch (...)
+            MATSDK_CATCH(...)
             {
                 std::fputs("Failed to recover records after flush failure\n", stderr);
             }
@@ -364,6 +372,7 @@ namespace MAT_NS_BEGIN {
             m_flushComplete.post();
             m_flushPending = false;
             std::rethrow_exception(failure);
+#endif
         }
     }
 
@@ -461,7 +470,7 @@ namespace MAT_NS_BEGIN {
     {
         (void)record;
         LOG_ERROR("Flush: dropping event %s:%s: Invalid parameters",
-            tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                  tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
         OnStorageFailed("Invalid parameters");
     }
 
@@ -469,13 +478,20 @@ namespace MAT_NS_BEGIN {
     {
         size_t totalSaved = 0;
         std::vector<StorageRecord> recordsToRetry;
+        std::vector<StorageRecord> memoryOnlyRecords;
         size_t nextRecord = 0;
 
-        try
+        MATSDK_TRY
         {
             for (; nextRecord < records.size(); ++nextRecord)
             {
                 auto const& record = records[nextRecord];
+                if (record.persistence == EventPersistence_DoNotStoreOnDisk)
+                {
+                    memoryOnlyRecords.push_back(record);
+                    continue;
+                }
+
                 if (!IsValidDiskStorageRecord(record))
                 {
                     ReportInvalidDiskRecord(record);
@@ -503,8 +519,9 @@ namespace MAT_NS_BEGIN {
                 break;
             }
         }
-        catch (...)
+        MATSDK_CATCH(...)
         {
+#if HAVE_EXCEPTIONS
             recordsToRetry.clear();
             for (size_t retryIndex = nextRecord; retryIndex < records.size(); ++retryIndex)
             {
@@ -514,14 +531,17 @@ namespace MAT_NS_BEGIN {
                 }
             }
             records.clear();
+            ReturnRecordsToMemory(memoryOnlyRecords);
             ReturnRecordsToMemory(recordsToRetry);
-            throw;
+            std::rethrow_exception(std::current_exception());
+#endif
         }
 
+        ReturnRecordsToMemory(memoryOnlyRecords);
         if (!recordsToRetry.empty())
         {
             LOG_WARN("Flush: per-record disk store failed after saving %zu of %zu records; returning %zu records to the queue for retry",
-                totalSaved, records.size(), recordsToRetry.size());
+                     totalSaved, records.size(), recordsToRetry.size());
             ReturnRecordsToMemory(recordsToRetry);
         }
 
@@ -535,7 +555,7 @@ namespace MAT_NS_BEGIN {
 
         for (auto const& record : records)
         {
-            try
+            MATSDK_TRY
             {
                 if (m_offlineStorageMemory && m_offlineStorageMemory->StoreRecord(record))
                 {
@@ -543,14 +563,10 @@ namespace MAT_NS_BEGIN {
                     continue;
                 }
                 LOG_ERROR("Flush: failed to return event %s:%s to memory queue after disk store failure; dropping record",
-                    tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
+                          tenantTokenToId(record.tenantToken).c_str(), record.id.c_str());
                 dropped[record.tenantToken]++;
             }
-            catch (const std::exception& e)
-            {
-                std::fprintf(stderr, "Failed to recover a record after flush failure: %s\n", e.what());
-            }
-            catch (...)
+            MATSDK_CATCH(...)
             {
                 std::fputs("Failed to recover a record after flush failure\n", stderr);
             }
@@ -558,15 +574,11 @@ namespace MAT_NS_BEGIN {
 
         if (!dropped.empty())
         {
-            try
+            MATSDK_TRY
             {
                 OnStorageRecordsDropped(dropped);
             }
-            catch (const std::exception& e)
-            {
-                std::fprintf(stderr, "Failed to report dropped records after flush failure: %s\n", e.what());
-            }
-            catch (...)
+            MATSDK_CATCH(...)
             {
                 std::fputs("Failed to report dropped records after flush failure\n", stderr);
             }
