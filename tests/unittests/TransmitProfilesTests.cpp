@@ -375,6 +375,24 @@ R"([{
     ASSERT_TRUE(TransmitProfiles::load(badRule));
 }
 
+TEST_F(TransmitProfilesTests, load_Json_RuleWithLowBatteryPowerState_MapsToPowerSourceLowBattery)
+{
+    // A rule using the "low_battery" powerState must map to PowerSource_LowBattery
+    // rather than silently falling back to the default PowerSource_Any.
+    const std::string profile =
+R"([{
+         "name": "LowBatteryProfile",
+         "rules": [
+             { "powerState": "low_battery", "timers": [ 8, 4, 2 ] }
+         ]
+}])";
+
+    ASSERT_TRUE(TransmitProfiles::load(profile));
+    const auto& rules = TransmitProfiles::profiles[std::string{"LowBatteryProfile"}].rules;
+    ASSERT_EQ(rules.size(), size_t{1});
+    ASSERT_EQ(rules[0].powerState, PowerSource_LowBattery);
+}
+
 /*
    The following tests probably should not pass.
    But they do.

@@ -159,6 +159,27 @@ namespace PAL_NS_BEGIN {
         MAT::ITaskDispatcher* m_taskDispatcher = nullptr;
     };
 
+    inline DeferredCallbackHandle scheduleTask(
+        MAT::ITaskDispatcher* taskDispatcher,
+        unsigned delayMs,
+        std::function<void()> call)
+    {
+        auto taskLifetime = std::make_shared<detail::TaskLifetimeState>();
+        auto task = new detail::TaskCall<std::function<void()>>(
+            call,
+            getMonotonicTimeMs() + static_cast<int64_t>(delayMs),
+            taskLifetime);
+        taskDispatcher->Queue(task);
+        {
+            std::lock_guard<std::recursive_mutex> lock(taskLifetime->mutex);
+            if (taskLifetime->task == nullptr)
+            {
+                return DeferredCallbackHandle();
+            }
+        }
+        return DeferredCallbackHandle(taskLifetime, taskDispatcher);
+    }
+
     template<typename TObject, typename... TFuncArgs, typename... TPassedArgs>
     void dispatchTask(MAT::ITaskDispatcher* taskDispatcher, TObject* obj, void (TObject::*func)(TFuncArgs...), TPassedArgs&&... args)
     {

@@ -161,6 +161,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\LogSessionDataProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IOfflineStorageProvider.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\SQLiteWrapper.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.hpp" />

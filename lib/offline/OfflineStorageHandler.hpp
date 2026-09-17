@@ -8,15 +8,15 @@
 
 #include "pal/PAL.hpp"
 #include "IOfflineStorage.hpp"
+#include "IOfflineStorageProvider.hpp"
 
 #include "api/IRuntimeConfig.hpp"
 #include "ILogManager.hpp"
 #include "pal/TaskDispatcher.hpp"
 
 #include <memory>
-#include <condition_variable>
+#include <atomic>
 #include <list>
-#include <mutex>
 #include <string>
 
 #include "KillSwitchManager.hpp"
@@ -28,6 +28,8 @@ namespace MAT_NS_BEGIN {
     {
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
+        OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig,
+            ITaskDispatcher& taskDispatcher, std::shared_ptr<IOfflineStorageProvider> storageProvider);
         virtual ~OfflineStorageHandler() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
         virtual void Shutdown() override;
@@ -72,32 +74,25 @@ namespace MAT_NS_BEGIN {
         std::string                 m_databasePath;
         IRuntimeConfig&             m_config;
         ITaskDispatcher&            m_taskDispatcher;
+        std::shared_ptr<IOfflineStorageProvider> m_storageProvider;
         
         KillSwitchManager           m_killSwitchManager;
         ClockSkewManager            m_clockSkewManager;
 
         bool isKilled(StorageRecord const& record);
 
-    private:
-        class OperationGuard;
-        class OfflineStorageFlushTask;
+        std::mutex                             m_flushLock;
+        bool                                   m_flushPending;
+        PAL::DeferredCallbackHandle            m_flushHandle;
+        PAL::Event                             m_flushComplete;
 
-        enum class StoragePhase { Accepting, Draining, TearingDown, Stopped };
-
-        std::mutex                             m_stateMutex;
-        std::condition_variable                m_stateCV;
-        StoragePhase                           m_phase;
-        size_t                                 m_activeOperations;
-        bool                                   m_flushQueued;
-        std::mutex                             m_ioMutex;
-
-    protected:
-        std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
+        std::shared_ptr<IOfflineStorage>       m_offlineStorageMemory;
         std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
-        bool                                   m_readFromMemory;
-        unsigned                               m_lastReadCount;
+        std::atomic<bool>                      m_readFromMemory;
+        std::atomic<unsigned>                  m_lastReadCount;
 
+        bool                                   m_shutdownStarted;
         unsigned                               m_memoryDbSize;
         unsigned                               m_memoryDbSizeNotificationLimit;
         unsigned                               m_queryDbSize;
@@ -108,16 +103,11 @@ namespace MAT_NS_BEGIN {
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
-        bool BeginOperation();
-        void EndOperation();
-        bool ReserveScheduledFlush();
-        void StartScheduledFlush();
-        void AbandonScheduledFlush();
-        void QueueScheduledFlush();
-        bool BeginTeardown();
-        void FinishTeardown();
-        bool FlushImpl(size_t& savedRecords);
-        void RunScheduledFlush();
+        void WaitForFlush();
+        bool IsBatchedStorageFlushEnabled();
+        void ReportInvalidDiskRecord(StorageRecord const& record);
+        size_t StoreRecordsIndividually(std::vector<StorageRecord>& records);
+        size_t ReturnRecordsToMemory(std::vector<StorageRecord> const& records);
 
     };
 
