@@ -26,6 +26,9 @@ SDK-specific behavior continues to use namespaced `MATSDK_*` options.
 targets and never propagates to the parent consumer or vendored dependencies.
 Set it explicitly to `ON` in consumer CI to test new toolchains strictly.
 
+Set `MATSDK_DISABLE_LOGGING=ON` to compile the SDK's internal diagnostic
+logging out. This does not disable telemetry event collection or upload.
+
 ## SQLite and zlib providers
 
 Source builds can select dependency modes without patching 1DS sources:
