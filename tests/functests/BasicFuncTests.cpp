@@ -1633,6 +1633,7 @@ TEST_F(BasicFuncTests, deleteEvents)
     for (const auto &e: events2) {
         verifyEvent(e, find(e.GetName()));
     }
+    FlushAndTeardown();
 }
 #endif
 

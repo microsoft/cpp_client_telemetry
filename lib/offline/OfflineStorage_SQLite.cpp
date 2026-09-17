@@ -364,7 +364,7 @@ namespace MAT_NS_BEGIN {
                 return 0;
             }
 #endif
-            try
+            MATSDK_TRY
             {
                 for (auto const& r : records) {
                     if (insertRecordUnsafe(r)) {
@@ -376,7 +376,8 @@ namespace MAT_NS_BEGIN {
                     }
                 }
             }
-            catch (...)
+#if HAVE_EXCEPTIONS
+            MATSDK_CATCH(...)
             {
 #ifdef ENABLE_LOCKING
                 // DbTransaction commits on destruction by default for legacy
@@ -387,8 +388,9 @@ namespace MAT_NS_BEGIN {
                 // insertRecordUnsafe updates the estimate before the
                 // transaction commits; undo inserts that will be rolled back.
                 m_DbSizeEstimate -= std::min(m_DbSizeEstimate.load(), addedSize);
-                throw;
+                MATSDK_THROW;
             }
+#endif
 
 #ifdef ENABLE_LOCKING
             if (allInserted) {
