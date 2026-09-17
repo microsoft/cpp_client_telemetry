@@ -75,10 +75,10 @@ namespace PAL_NS_BEGIN {
             jmethodID getDefaultLocaleMid = pEnv->GetStaticMethodID(localeClass, "getDefault", "()Ljava/util/Locale;");
          
             // public abstract Resources getResources ()
-            jmethodID getResourceMid = pEnv->GetMethodID(contextClass, "getResources", "()Landroid/content/res/Resources");
+            jmethodID getResourceMid = pEnv->GetMethodID(contextClass, "getResources", "()Landroid/content/res/Resources;");
 
             // public abstract Configuration getConfiguration ()
-            jmethodID getConfigurationMid = pEnv->GetMethodID(resourcesClass, "getConfiguration", "()Landroid/content/res/Configuration");
+            jmethodID getConfigurationMid = pEnv->GetMethodID(resourcesClass, "getConfiguration", "()Landroid/content/res/Configuration;");
 
             // public abstract boolean isLayoutSizeAtLeast (int layoutSize)
             jmethodID isLayoutSizeAtLeastMid = pEnv->GetMethodID(configurationClass, "isLayoutSizeAtLeast", "(I)Z");

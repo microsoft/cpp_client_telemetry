@@ -626,10 +626,7 @@ TEST(OfflineStorageHandlerFlushTests, EventLatencyOffIsDroppedWithoutReportingSt
 
     ON_CALL(config, GetOfflineStorageMaximumSizeBytes()).WillByDefault(Return(32 * 4096));
 
-    std::ostringstream dbPath;
-    dbPath << GetTempDirectory() << "LatencyOff-" << PAL::getUtcSystemTimeMs() << ".db";
-    RemoveDbFiles(dbPath.str());
-    config[CFG_STR_CACHE_FILE_PATH] = dbPath.str();
+    config[CFG_STR_CACHE_FILE_PATH] = ":memory:";
     config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;  // enable the in-memory queue
 
     OfflineStorageHandler handler(logManager, config, dispatcher);
@@ -643,7 +640,6 @@ TEST(OfflineStorageHandlerFlushTests, EventLatencyOffIsDroppedWithoutReportingSt
     EXPECT_EQ(handler.GetRecordCount(), static_cast<size_t>(0));
 
     handler.Shutdown();
-    RemoveDbFiles(dbPath.str());
 }
 
 // Regression test: a permanently-invalid record (rejected by the disk backend's

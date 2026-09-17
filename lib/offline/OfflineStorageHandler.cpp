@@ -302,16 +302,26 @@ namespace MAT_NS_BEGIN {
                         recordsToRecover.erase(memoryOnlyBegin, recordsToRecover.end());
                         ReturnRecordsToMemory(memoryOnlyRecords);
 
+                        recordsToRecover.erase(
+                            std::remove_if(recordsToRecover.begin(), recordsToRecover.end(),
+                                [this](StorageRecord const& record)
+                                {
+                                    if (IsValidDiskStorageRecord(record))
+                                    {
+                                        return false;
+                                    }
+                                    ReportInvalidDiskRecord(record);
+                                    return true;
+                                }),
+                            recordsToRecover.end());
+
                         const size_t batchSaved = recordsToRecover.empty()
                                                       ? 0
                                                       : m_offlineStorageDisk->StoreRecords(recordsToRecover);
-                        // StoreRecords() removes permanently-invalid records before
-                        // returning, so compare against the remaining valid records.
-                        const size_t validBatchSize = recordsToRecover.size();
-                        if (batchSaved != validBatchSize)
+                        if (batchSaved != recordsToRecover.size())
                         {
                             LOG_WARN("Flush: disk store failed for the batch of %zu records; returning it to the queue for retry",
-                                     validBatchSize);
+                                     recordsToRecover.size());
                             ReturnRecordsToMemory(recordsToRecover);
                             recordsToRecover.clear();
                             break;

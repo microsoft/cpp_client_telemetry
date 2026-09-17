@@ -294,6 +294,11 @@ namespace MAT_NS_BEGIN
         if (m_httpClient == nullptr)
         {
             m_httpClient = HttpClientFactory::Create();
+            if (m_httpClient == nullptr)
+            {
+                LOG_ERROR("The default HTTP client has not been initialized.");
+                MATSDK_THROW(std::invalid_argument("configuration"));
+            }
             m_httpClient->ApplySettings(m_logConfiguration);
         }
         else

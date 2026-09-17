@@ -209,13 +209,12 @@ class HttpClientTests : public ::testing::Test,
      */
     virtual SimpleHttpResponse* clone(IHttpResponse* inResponse)
     {
-        SimpleHttpResponse *src = static_cast<SimpleHttpResponse*>(inResponse);
         SimpleHttpResponse *dst = new SimpleHttpResponse("");
-        dst->m_id = src->m_id;
-        dst->m_result = src->m_result;
-        dst->m_statusCode = src->m_statusCode;
-        dst->m_headers = src->m_headers;
-        dst->m_body = src->m_body;
+        dst->m_id = inResponse->GetId();
+        dst->m_result = inResponse->GetResult();
+        dst->m_statusCode = inResponse->GetStatusCode();
+        dst->m_headers = inResponse->GetHeaders();
+        dst->m_body = inResponse->GetBody();
         return dst;
     }
 
@@ -266,8 +265,9 @@ class HttpClientTests : public ::testing::Test,
                 });
             }
         }
+        std::unique_ptr<IHttpResponse> response(inResponse);
         std::lock_guard<std::mutex> lock(_lock);
-        _responses.push_back(clone(inResponse));
+        _responses.push_back(clone(response.get()));
         _responseCv.notify_all();
     }
 
