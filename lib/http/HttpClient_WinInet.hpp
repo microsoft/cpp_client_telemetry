@@ -10,6 +10,7 @@
 #include "IHttpClient.hpp"
 #include "IBoundedHttpClientCancel.hpp"
 #include "pal/PAL.hpp"
+#include <cstddef>
 
 #include "ILogManager.hpp"
 
@@ -21,6 +22,7 @@ namespace MAT_NS_BEGIN {
 #ifndef _WININET_
 typedef void* HINTERNET;
 #endif
+#define CERTIFICATE_THUMBPRINT_SHA256_SIZE 32
 
 class WinInetRequestWrapper;
 
@@ -41,7 +43,14 @@ class HttpClient_WinInet : public IHttpClient, public IBoundedHttpClientCancel {
     void SetMsRootCheck(bool enforceMsRoot);
     bool IsMsRootCheckRequired();
 
-  protected:
+    void SetCustomRootCheck(bool enforceCustomRoot);
+    bool IsCustomRootCheckRequired();
+    bool AddCustomRootCertSHA256Thumbprint(std::array<std::byte, CERTIFICATE_THUMBPRINT_SHA256_SIZE>& aCertThumbprint);
+    bool IsTrustedRootCert(std::array<std::byte, CERTIFICATE_THUMBPRINT_SHA256_SIZE>& aCertThumbprint);
+    bool AddCustomTrustedSubjectOrg(std::string& aTrustedOrg);
+    bool IsTrustedSubjectOrg(char* aTrustedOrg);
+
+   protected:
     void erase(std::string const& id);
 
   protected:
@@ -53,6 +62,9 @@ class HttpClient_WinInet : public IHttpClient, public IBoundedHttpClientCancel {
     std::condition_variable_any                                      m_requestsCV;
     static unsigned                                                  s_nextRequestId;
     bool                                                             m_msRootCheck;
+    bool                                                             m_fcustomRootCheck;
+    std::vector<std::array<std::byte, CERTIFICATE_THUMBPRINT_SHA256_SIZE>> m_customRootCerts;
+    std::vector<std::string>                                         m_customTrustedSubjectOrgs;
     friend class WinInetRequestWrapper;
 };
 
