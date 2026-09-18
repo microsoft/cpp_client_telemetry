@@ -21,6 +21,28 @@ namespace MAT_NS_BEGIN
 {
     namespace Windows {
 
+        NetworkCost MapNetworkCost(
+            NetworkCostType costType,
+            boolean roaming,
+            boolean overDataLimit,
+            boolean approachingDataLimit)
+        {
+            if (roaming || overDataLimit || approachingDataLimit) {
+                return NetworkCost_Roaming;
+            }
+
+            switch (costType) {
+            case NetworkCostType_Unrestricted:
+                return NetworkCost_Unmetered;
+            case NetworkCostType_Fixed:
+            case NetworkCostType_Variable:
+                return NetworkCost_Metered;
+            case NetworkCostType_Unknown:
+            default:
+                return NetworkCost_Unknown;
+            }
+        }
+
         NetworkCost NetworkDetector::GetNetworkCost() {
             return m_currentNetworkCost.load(std::memory_order_relaxed);
         }
@@ -102,24 +124,7 @@ namespace MAT_NS_BEGIN
                 return result;
             }
 
-            if (roaming || overDataLimit || approachingDataLimit) {
-                return NetworkCost_Roaming;
-            }
-
-            switch (costType) {
-            case NetworkCostType_Unrestricted:
-                result = NetworkCost_Unmetered;
-                break;
-            case NetworkCostType_Fixed:
-            case NetworkCostType_Variable:
-                result = NetworkCost_Metered;
-                break;
-            case NetworkCostType_Unknown:
-            default:
-                break;
-            }
-
-            return result;
+            return MapNetworkCost(costType, roaming, overDataLimit, approachingDataLimit);
         }
 
         /// <summary>

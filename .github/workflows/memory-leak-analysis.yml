@@ -64,7 +64,6 @@ jobs:
         /p:BuildProjectReferences=true
         /p:Configuration=Debug
         /p:Platform=x64
-        /p:MATSDK_USE_WININET=false
         /maxcpucount:2
 
     - name: Download Dr. Memory

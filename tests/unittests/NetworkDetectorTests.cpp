@@ -8,6 +8,21 @@
 using namespace MAT;
 using namespace testing;
 
+TEST(NetworkDetectorTests, MapsWinRTNetworkCosts)
+{
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, false, false), NetworkCost_Unmetered);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Fixed, false, false, false), NetworkCost_Metered);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Variable, false, false, false), NetworkCost_Metered);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unknown, false, false, false), NetworkCost_Unknown);
+}
+
+TEST(NetworkDetectorTests, MapsRestrictiveWinRTNetworkStates)
+{
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, true, false, false), NetworkCost_Roaming);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, true, false), NetworkCost_Roaming);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, false, true), NetworkCost_Roaming);
+}
+
 TEST(NetworkDetectorTests, StartsReadsCostAndStopsWithoutNetworkListManager)
 {
     ASSERT_EQ(GetModuleHandleW(L"netprofm.dll"), nullptr);
@@ -23,6 +38,7 @@ TEST(NetworkDetectorTests, StartsReadsCostAndStopsWithoutNetworkListManager)
         Eq(NetworkCost_Unmetered),
         Eq(NetworkCost_Metered),
         Eq(NetworkCost_Roaming)));
+    EXPECT_EQ(detector.GetNetworkCost(), cost);
 
     detector.Stop();
     EXPECT_FALSE(detector.isUp());

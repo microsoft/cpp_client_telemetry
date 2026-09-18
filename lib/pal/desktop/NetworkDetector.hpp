@@ -36,6 +36,12 @@ namespace MAT_NS_BEGIN
 {
             namespace Windows {
 
+                NetworkCost MapNetworkCost(
+                    NetworkCostType costType,
+                    boolean roaming,
+                    boolean overDataLimit,
+                    boolean approachingDataLimit);
+
                 class NetworkDetector {
 
                 private:
