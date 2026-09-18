@@ -29,7 +29,7 @@ If your project requires the Universal Telemetry Client (a.k.a. UTC) to send tel
 
 The version-specific scripts set `VSTOOLS_VERSION` and `PlatformToolset` before calling `build-all-windows.bat`, which builds the Windows Visual Studio solution matrix. `build-all.bat` remains as a compatibility wrapper for existing automation; if you call either script directly, set both values yourself so `tools\vcvars.cmd` selects the same Visual Studio installation as your requested toolset.
 
-Visual Studio 2022 and newer may report the legacy .NET Framework 4.0 wrapper project (`net40`) as unsupported. It is only needed by .NET Framework consumers such as `SampleCsNet48`; the VS2022 and VS2026 command-line wrappers skip those projects, and you can unload them in the IDE when building the native SDK.
+The Windows solution includes the .NET Framework 4.8 wrapper (`net48`) and C# sample (`SampleCsNet48`). Install the .NET Framework 4.8 SDK and targeting pack through the Visual Studio Installer to build these projects. Set `SKIP_NET48_BUILD=1` before running a command-line build only when you want to build the native SDK without the managed wrapper and sample.
 
 If your build fails, then you most likely missing the following optional Visual Studio components:
 

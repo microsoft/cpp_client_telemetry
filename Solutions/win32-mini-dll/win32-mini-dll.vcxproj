@@ -28,10 +28,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\net40\dllmain.cpp" />
+    <ClCompile Include="..\net48\dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\net40\targetver.h" />
+    <ClInclude Include="..\net48\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(ProjectDir)..\VersionInfo.rc">

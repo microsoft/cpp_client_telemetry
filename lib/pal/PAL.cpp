@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <new>
 #include <chrono>
 #include <mutex>
 #include <thread>
@@ -103,11 +104,12 @@ namespace PAL_NS_BEGIN {
         // is destroyed first, shutdown() releases shared_ptr members of an
         // already-destroyed object (a downstream consumer observed this as
         // intermittent EXC_BAD_ACCESS in ~shared_ptr<ISystemInformation> at
-        // process exit). Leaking one fixed-size object avoids the ordering
-        // hazard entirely: shutdown() already performs the real resource
-        // teardown explicitly, and the OS reclaims the object at process exit.
-        static PlatformAbstractionLayer& pal = *new PlatformAbstractionLayer();
-        return pal;
+        // process exit). Static storage avoids that ordering hazard without a
+        // process-lifetime heap allocation; shutdown() performs the resource
+        // teardown explicitly.
+        alignas(PlatformAbstractionLayer) static unsigned char storage[sizeof(PlatformAbstractionLayer)];
+        static PlatformAbstractionLayer* pal = ::new (storage) PlatformAbstractionLayer();
+        return *pal;
     }
 
 	 MATSDK_LOG_INST_COMPONENT_CLASS(PlatformAbstractionLayer, "MATSDK.PAL", "MSTel client - platform abstraction layer")
