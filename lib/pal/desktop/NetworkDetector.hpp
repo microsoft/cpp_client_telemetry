@@ -22,6 +22,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -46,12 +47,15 @@ namespace MAT_NS_BEGIN
 
                 private:
 
+                    struct CallbackState;
+
                     /// <summary>
                     /// Current network info stats
                     /// </summary>
                     ComPtr<INetworkInformationStatics>  networkInfoStats;
                     ComPtr<INetworkStatusChangedEventHandler> networkStatusChangedHandler;
                     EventRegistrationToken              networkStatusChangedToken{};
+                    std::shared_ptr<CallbackState>       networkStatusCallbackState;
 
 
                     /// <summary>

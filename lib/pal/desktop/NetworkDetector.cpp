@@ -21,6 +21,64 @@ namespace MAT_NS_BEGIN
 {
     namespace Windows {
 
+        struct NetworkDetector::CallbackState {
+            explicit CallbackState(NetworkDetector& owner) :
+                detector(&owner)
+            {
+            }
+
+            class Invocation {
+            public:
+                explicit Invocation(std::shared_ptr<CallbackState> state) :
+                    callbackState(state)
+                {
+                    std::lock_guard<std::mutex> lock(callbackState->mutex);
+                    if (callbackState->acceptCallbacks) {
+                        detector = callbackState->detector;
+                        ++callbackState->activeCallbacks;
+                    }
+                }
+
+                ~Invocation()
+                {
+                    if (detector != nullptr) {
+                        std::lock_guard<std::mutex> lock(callbackState->mutex);
+                        --callbackState->activeCallbacks;
+                        callbackState->cv.notify_all();
+                    }
+                }
+
+                Invocation(Invocation const&) = delete;
+                Invocation& operator=(Invocation const&) = delete;
+
+                NetworkDetector* GetDetector() const
+                {
+                    return detector;
+                }
+
+            private:
+                std::shared_ptr<CallbackState> callbackState;
+                NetworkDetector* detector = nullptr;
+            };
+
+            void StopAndWait()
+            {
+                std::unique_lock<std::mutex> lock(mutex);
+                acceptCallbacks = false;
+                cv.wait(lock, [this]() { return activeCallbacks == 0; });
+                detector = nullptr;
+            }
+
+        private:
+            std::mutex mutex;
+            std::condition_variable cv;
+            NetworkDetector* detector;
+            size_t activeCallbacks = 0;
+            bool acceptCallbacks = true;
+
+            friend class Invocation;
+        };
+
         NetworkCost MapNetworkCost(
             NetworkCostType costType,
             boolean roaming,
@@ -144,13 +202,20 @@ namespace MAT_NS_BEGIN
 
         bool NetworkDetector::RegisterAndListen() noexcept
         {
+            networkStatusCallbackState = std::make_shared<CallbackState>(*this);
+            const auto callbackState = networkStatusCallbackState;
             networkStatusChangedHandler = Callback<INetworkStatusChangedEventHandler>(
-                [this](IInspectable*) -> HRESULT {
-                    GetCurrentNetworkCost();
+                [callbackState](IInspectable*) -> HRESULT {
+                    CallbackState::Invocation invocation(callbackState);
+                    if (auto detector = invocation.GetDetector()) {
+                        detector->GetCurrentNetworkCost();
+                    }
                     return S_OK;
                 });
             if (networkStatusChangedHandler == nullptr) {
                 LOG_ERROR("Unable to create network status handler.");
+                networkStatusCallbackState->StopAndWait();
+                networkStatusCallbackState.reset();
                 return false;
             }
 
@@ -159,6 +224,8 @@ namespace MAT_NS_BEGIN
                 &networkStatusChangedToken);
             if (FAILED(hr)) {
                 LOG_ERROR("Unable to subscribe to network status changes.");
+                networkStatusCallbackState->StopAndWait();
+                networkStatusCallbackState.reset();
                 networkStatusChangedHandler.Reset();
                 return false;
             }
@@ -188,12 +255,17 @@ namespace MAT_NS_BEGIN
         /// </summary>
         void NetworkDetector::Reset()
         {
+            if (networkStatusCallbackState != nullptr)
+            {
+                networkStatusCallbackState->StopAndWait();
+            }
             if (networkStatusChangedToken.value != 0 && networkInfoStats != nullptr)
             {
                 networkInfoStats->remove_NetworkStatusChanged(networkStatusChangedToken);
                 networkStatusChangedToken.value = 0;
             }
             networkStatusChangedHandler.Reset();
+            networkStatusCallbackState.reset();
             networkInfoStats.Reset();
         }
 
