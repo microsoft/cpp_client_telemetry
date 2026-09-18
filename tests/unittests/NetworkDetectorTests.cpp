@@ -2,7 +2,7 @@
 
 #include "common/Common.hpp"
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(HAVE_MAT_NETDETECT)
 #include "pal/desktop/NetworkDetector.hpp"
 
 using namespace MAT;
