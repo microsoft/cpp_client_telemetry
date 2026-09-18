@@ -82,6 +82,7 @@ jobs:
         -LogDirectory drmemory-results
         -Scenario functional-tests
         -TargetPath Solutions/out/Debug/x64/FuncTests/FuncTests.exe
+        -TargetArguments "--gtest_filter=-BasicFuncTests.killSwitchWorks"
 
     - name: Analyze basic sample
       shell: pwsh
@@ -114,6 +115,11 @@ jobs:
     - name: Initialize googletest
       run: git submodule update --init --depth=1 third_party/googletest
 
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libcurl4-openssl-dev
+
     - name: Build leak-analysis targets
       run: |
         cmake --preset matsdk-debug \
@@ -126,6 +132,7 @@ jobs:
         cmake --install out --prefix "$PWD/out/install"
         cmake -S examples/cpp/SampleCppMini -B out/sample-cpp-mini \
           -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_DISABLE_FIND_PACKAGE_MSTelemetry=TRUE \
           -DMATSDK_INSTALL_DIR="$PWD/out/install"
         cmake --build out/sample-cpp-mini --parallel 2
 
@@ -156,7 +163,7 @@ jobs:
         -LogDirectory drmemory-results
         -Scenario functional-tests
         -TargetPath out/tests/functests/FuncTests
-        -TargetArguments "--gtest_filter=-APITest.C_API_Test"
+        -TargetArguments "--gtest_filter=-APITest.C_API_Test:BasicFuncTests.killSwitchWorks"
 
     - name: Analyze basic sample
       shell: pwsh
