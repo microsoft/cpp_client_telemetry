@@ -225,20 +225,20 @@ namespace MAT_NS_BEGIN
 #pragma warning(disable:6320)
         void NetworkDetector::run()
         {
-            bool isCoInitialized = false;
+            bool isRoInitialized = false;
 
             __try
             {
                 __try
                 {
-                    HRESULT hr = CoInitialize(nullptr);
+                    HRESULT hr = RoInitialize(RO_INIT_MULTITHREADED);
                     if (FAILED(hr))
                     {
-                        LOG_ERROR("CoInitialize Failed.");
+                        LOG_ERROR("RoInitialize failed.");
                         return;
                     }
 
-                    isCoInitialized = true;
+                    isRoInitialized = true;
                     if (GetNetworkInfoStats())
                     {
                         GetCurrentNetworkCost();
@@ -256,9 +256,9 @@ namespace MAT_NS_BEGIN
                 LOG_ERROR("Handled exception in Windows Runtime network cost detection.");
             }
 
-            if (isCoInitialized)
+            if (isRoInitialized)
             {
-                CoUninitialize();
+                RoUninitialize();
             }
 
         }
