@@ -189,7 +189,7 @@ jobs:
         -LogDirectory drmemory-results
         -Scenario functional-tests
         -TargetPath out/tests/functests/FuncTests
-        -TargetArguments "--gtest_filter=-APITest.C_API_Test:BasicFuncTests.killSwitchWorks"
+        -TargetArguments "--gtest_filter=-BasicFuncTests.killSwitchWorks"
 
     - name: Analyze basic sample
       shell: pwsh

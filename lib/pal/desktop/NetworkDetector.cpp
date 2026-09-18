@@ -92,14 +92,16 @@ namespace MAT_NS_BEGIN
 
             boolean roaming = false;
             boolean overDataLimit = false;
+            boolean approachingDataLimit = false;
             NetworkCostType costType = NetworkCostType_Unknown;
             if (FAILED(connectionCost->get_Roaming(&roaming)) ||
                 FAILED(connectionCost->get_OverDataLimit(&overDataLimit)) ||
+                FAILED(connectionCost->get_ApproachingDataLimit(&approachingDataLimit)) ||
                 FAILED(connectionCost->get_NetworkCostType(&costType))) {
                 return result;
             }
 
-            if (roaming || overDataLimit) {
+            if (roaming || overDataLimit || approachingDataLimit) {
                 return NetworkCost_Roaming;
             }
 

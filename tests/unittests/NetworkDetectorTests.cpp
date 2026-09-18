@@ -15,6 +15,7 @@ TEST(NetworkDetectorTests, StartsReadsCostAndStopsWithoutNetworkListManager)
     MATW::NetworkDetector detector;
     ASSERT_TRUE(detector.Start());
     EXPECT_TRUE(detector.isUp());
+    EXPECT_EQ(GetModuleHandleW(L"netprofm.dll"), nullptr);
 
     const auto cost = detector.GetCurrentNetworkCost();
     EXPECT_THAT(cost, AnyOf(
