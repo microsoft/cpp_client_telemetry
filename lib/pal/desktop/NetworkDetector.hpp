@@ -94,6 +94,8 @@ namespace MAT_NS_BEGIN
                     /// Current network info stats
                     /// </summary>
                     ComPtr<INetworkInformationStatics>  networkInfoStats;
+                    ComPtr<INetworkStatusChangedEventHandler> networkStatusChangedHandler;
+                    EventRegistrationToken              networkStatusChangedToken{};
 
 
                     /// <summary>

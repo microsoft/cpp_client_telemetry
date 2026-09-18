@@ -141,46 +141,51 @@ namespace MAT_NS_BEGIN
             NetworkCost result = NetworkCost_Unknown;
             LOG_TRACE("get network cost...\n");
 
-            if (pNlm == NULL) {
-                LOG_WARN("INetworkCostManager is unavailable!");
+            if (networkInfoStats == nullptr) {
+                LOG_WARN("Windows network information is unavailable!");
                 return result;
             }
 
-            HRESULT hr;
-
-            DWORD dwCost = NLM_CONNECTION_COST_UNKNOWN;
-            INetworkCostManager* pNetworkCostManager = NULL;
-
-            hr = pNlm->QueryInterface(IID_INetworkCostManager2, (void**)&pNetworkCostManager);
-            if (hr != S_OK) {
+            ComPtr<IConnectionProfile> connectionProfile;
+            HRESULT hr = networkInfoStats->GetInternetConnectionProfile(&connectionProfile);
+            if (FAILED(hr) || connectionProfile == nullptr) {
                 return result;
             }
 
-            hr = pNetworkCostManager->GetCost(&dwCost, NULL);
-            if (hr == S_OK) {
-                switch (dwCost) {
-                case NLM_CONNECTION_COST_UNRESTRICTED:  // The connection is unlimited and is considered to be unrestricted of usage charges and capacity constraints.
-                    result = NetworkCost_Unmetered;
-                    break;
-                case NLM_CONNECTION_COST_FIXED:         // The use of this connection is unrestricted up to a specific data transfer limit.
-                case NLM_CONNECTION_COST_VARIABLE:      // This connection is regulated on a per byte basis.
-                    result = NetworkCost_Metered;
-                    break;
-                case NLM_CONNECTION_COST_OVERDATALIMIT: // The connection is currently in an OverDataLimit state as it has exceeded the carrier specified data transfer limit.
-                case NLM_CONNECTION_COST_CONGESTED:     // The network is experiencing high traffic load and is congested.
-                case NLM_CONNECTION_COST_ROAMING:       // The connection is roaming outside the network and affiliates of the home provider.
-                case NLM_CONNECTION_COST_APPROACHINGDATALIMIT:  // The connection is approaching the data limit specified by the carrier.
-                    result = NetworkCost_Roaming;
-                    break;
-                case NLM_CONNECTION_COST_UNKNOWN:
-                default:
-                    result = NetworkCost_Unknown;       // The cost is unknown.
-                    break;
-                }
+            ComPtr<IConnectionCost> connectionCost;
+            hr = connectionProfile->GetConnectionCost(&connectionCost);
+            if (FAILED(hr) || connectionCost == nullptr) {
+                return result;
+            }
+
+            boolean roaming = false;
+            boolean overDataLimit = false;
+            NetworkCostType costType = NetworkCostType_Unknown;
+            if (FAILED(connectionCost->get_Roaming(&roaming)) ||
+                FAILED(connectionCost->get_OverDataLimit(&overDataLimit)) ||
+                FAILED(connectionCost->get_NetworkCostType(&costType))) {
+                return result;
+            }
+
+            if (roaming || overDataLimit) {
+                return NetworkCost_Roaming;
+            }
+
+            switch (costType) {
+            case NetworkCostType_Unrestricted:
+                result = NetworkCost_Unmetered;
+                break;
+            case NetworkCostType_Fixed:
+            case NetworkCostType_Variable:
+                result = NetworkCost_Metered;
+                break;
+            case NetworkCostType_Unknown:
+            default:
+                break;
             }
 
             return result;
-}
+        }
 
         /// <summary>
         /// Get adapter id for IConnectionProfile
@@ -359,51 +364,23 @@ namespace MAT_NS_BEGIN
 
         bool NetworkDetector::RegisterAndListen() noexcept
         {
-            // ???
-            HRESULT hr = pNlm->QueryInterface(IID_IUnknown, (void**)&pSink);
-            if (FAILED(hr))
-            {
-                LOG_ERROR("cannot query IID_IUnknown!!!");
+            networkStatusChangedHandler = Callback<INetworkStatusChangedEventHandler>(
+                [this](IInspectable*) -> HRESULT {
+                    GetCurrentNetworkCost();
+                    return S_OK;
+                });
+            if (networkStatusChangedHandler == nullptr) {
+                LOG_ERROR("Unable to create network status handler.");
                 return false;
             }
 
-            pSink = (INetworkEvents*)this;
-
-            hr = pNlm->QueryInterface(IID_IConnectionPointContainer, (void**)&pCpc);
-            if (FAILED(hr))
-            {
-                LOG_ERROR("Unable to QueryInterface IID_IConnectionPointContainer!");
+            HRESULT hr = networkInfoStats->add_NetworkStatusChanged(
+                networkStatusChangedHandler.Get(),
+                &networkStatusChangedToken);
+            if (FAILED(hr)) {
+                LOG_ERROR("Unable to subscribe to network status changes.");
+                networkStatusChangedHandler.Reset();
                 return false;
-            }
-
-            hr = pCpc->FindConnectionPoint(IID_INetworkConnectionEvents, &m_pc1);
-            if (SUCCEEDED(hr))
-            {
-                hr = m_pc1->Advise(
-                    pSink.Get(),
-                    &m_dwCookie_INetworkConnectionEvents);
-                LOG_INFO("listening to INetworkConnectionEvents... %s",
-                    (SUCCEEDED(hr)) ? "OK" : "FAILED");
-            }
-
-            hr = pCpc->FindConnectionPoint(IID_INetworkEvents, &m_pc2);
-            if (SUCCEEDED(hr))
-            {
-                hr = m_pc2->Advise(
-                    pSink.Get(),
-                    &m_dwCookie_INetworkEvents);
-                LOG_INFO("listening to INetworkEvents... %s",
-                    (SUCCEEDED(hr)) ? "OK" : "FAILED");
-            }
-
-            hr = pCpc->FindConnectionPoint(IID_INetworkListManagerEvents, &m_pc3);
-            if (SUCCEEDED(hr))
-            {
-                hr = m_pc3->Advise(
-                    pSink.Get(),
-                    &m_dwCookie_INetworkListManagerEvents);
-                LOG_INFO("listening to INetworkListManagerEvents... %s",
-                    (SUCCEEDED(hr)) ? "OK" : "FAILED");
             }
 
             MSG msg;
@@ -431,6 +408,13 @@ namespace MAT_NS_BEGIN
         /// </summary>
         void NetworkDetector::Reset()
         {
+            if (networkStatusChangedToken.value != 0 && networkInfoStats != nullptr)
+            {
+                networkInfoStats->remove_NetworkStatusChanged(networkStatusChangedToken);
+                networkStatusChangedToken.value = 0;
+            }
+            networkStatusChangedHandler.Reset();
+
             if (m_pc1 != nullptr)
             {
                 m_pc1->Unadvise(m_dwCookie_INetworkConnectionEvents);
@@ -498,24 +482,9 @@ namespace MAT_NS_BEGIN
                 isCoInitialized = true;
                 if (GetNetworkInfoStats())
                 {
-                    LOG_INFO("create network list manager...");
-                    hr = CoCreateInstance(
-                        CLSID_NetworkListManager,
-                        nullptr,
-                        CLSCTX_ALL,
-                        IID_INetworkListManager,
-                        (void**)&pNlm);
-                    if (FAILED(hr))
-                    {
-                        LOG_ERROR("Unable to CoCreateInstance for CLSID_NetworkListManager!");
-                    }
-                    else
-                    {
-                        GetCurrentNetworkCost();
-                        LOG_TRACE("start listening to events...");
-                        RegisterAndListen(); // we block here to process COM events
-                    }
-                    // Once we are done OR cannot init NLM, we must perform the clean-up
+                    GetCurrentNetworkCost();
+                    LOG_TRACE("start listening to events...");
+                    RegisterAndListen();
                     Reset();
                 }
             }

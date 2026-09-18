@@ -93,6 +93,16 @@ jobs:
         -Scenario sample-cpp-mini
         -TargetPath Solutions/out/Debug/x64/SampleCppMini/SampleCppMini.exe
 
+    - name: Verify Network List Manager is not loaded
+      shell: pwsh
+      run: |
+        $matches = Get-ChildItem drmemory-results -Filter *.txt -File -Recurse |
+          Select-String -Pattern 'netprofm\.dll'
+        if ($matches) {
+          $matches | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): $($_.Line)" }
+          throw "Network detection loaded netprofm.dll."
+        }
+
     - name: Upload Windows reports
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
