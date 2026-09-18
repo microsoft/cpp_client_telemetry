@@ -88,6 +88,7 @@ jobs:
         -LogDirectory drmemory-results
         -Scenario unit-tests
         -TargetPath Solutions/out/Debug/x64/UnitTests/UnitTests.exe
+        -TargetArguments "--gtest_filter=-OfflineStorageTests_SQLite.StoreThousandEventsTakesLessThanASecond"
 
     - name: Analyze functional tests
       shell: pwsh
