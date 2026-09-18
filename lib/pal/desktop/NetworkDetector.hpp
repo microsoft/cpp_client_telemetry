@@ -20,6 +20,7 @@
 #include <windows.foundation.h>
 #include <windows.networking.connectivity.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -61,7 +62,7 @@ namespace MAT_NS_BEGIN
 
                     std::mutex                          m_lock;
                     std::condition_variable             cv;
-                    bool                                isRunning = false;
+                    std::atomic<bool>                   isRunning{ false };
                     std::thread                         netDetectThread;
 
                     /// <summary>
@@ -82,14 +83,14 @@ namespace MAT_NS_BEGIN
                     /// </summary>
                     void Reset();
 
-                    NetworkCost                         m_currentNetworkCost = NetworkCost_Unknown;
+                    std::atomic<NetworkCost>            m_currentNetworkCost{ NetworkCost_Unknown };
 
                 public:
 
                     /// <summary>
                     /// 
                     /// </summary>
-                    bool isUp() { return isRunning; };
+                    bool isUp() { return isRunning.load(std::memory_order_relaxed); };
 
                     /// <summary>
                     /// Createa network status listener
@@ -122,7 +123,7 @@ namespace MAT_NS_BEGIN
                     /// Get last cached network cost
                     /// </summary>
                     /// <returns></returns>
-                    NetworkCost const& GetNetworkCost();
+                    NetworkCost GetNetworkCost();
 
                 };
 

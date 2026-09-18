@@ -21,8 +21,8 @@ namespace MAT_NS_BEGIN
 {
     namespace Windows {
 
-        NetworkCost const& NetworkDetector::GetNetworkCost() {
-            return m_currentNetworkCost;
+        NetworkCost NetworkDetector::GetNetworkCost() {
+            return m_currentNetworkCost.load(std::memory_order_relaxed);
         }
 
         /// <summary>
@@ -34,9 +34,9 @@ namespace MAT_NS_BEGIN
 #pragma warning(disable: 6320)
         int NetworkDetector::GetCurrentNetworkCost()
         {
-            m_currentNetworkCost = NetworkCost_Unknown;
+            NetworkCost currentNetworkCost = NetworkCost_Unknown;
             __try {
-                m_currentNetworkCost = _GetCurrentNetworkCost();
+                currentNetworkCost = _GetCurrentNetworkCost();
             }
             //******************************************************************************************************************************
             // This code is required as a workaround for an issue in Visual Studio debug host mode: crash in W.N.C.dll
@@ -50,17 +50,18 @@ namespace MAT_NS_BEGIN
             __except (EXCEPTION_EXECUTE_HANDLER)
             {
                 LOG_ERROR("Unable to obtain network state!");
-                m_currentNetworkCost = NetworkCost_Unknown;
             }
+
+            m_currentNetworkCost.store(currentNetworkCost, std::memory_order_relaxed);
 
             // Notify the app about current network cost change
             DebugEvent evt;
             evt.type = DebugEventType::EVT_NET_CHANGED;
-            evt.param1 = m_currentNetworkCost;
+            evt.param1 = currentNetworkCost;
             evt.param2 = false;
             ILogManager::DispatchEventBroadcast(evt);
 
-            return m_currentNetworkCost;
+            return currentNetworkCost;
         }
 #pragma warning(pop)
 
@@ -280,7 +281,10 @@ namespace MAT_NS_BEGIN
                         LOG_TRACE("NetworkDetector starting up... [%u]", retry);
                         retry++;
                     }
-                    LOG_TRACE("NetworkDetector tid=%p running=%u", m_listener_tid, isRunning);
+                    LOG_TRACE(
+                        "NetworkDetector tid=%p running=%u",
+                        m_listener_tid,
+                        isRunning.load(std::memory_order_relaxed));
                 }
             }
             else
@@ -290,7 +294,7 @@ namespace MAT_NS_BEGIN
                 isRunning = false;
             }
 
-            return isRunning;
+            return isRunning.load(std::memory_order_relaxed);
         };
 
         /// <summary>
