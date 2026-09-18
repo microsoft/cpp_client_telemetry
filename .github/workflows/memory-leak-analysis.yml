@@ -2,6 +2,12 @@ name: Periodic memory leak analysis
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+    - main
+    paths:
+    - .github/scripts/run-drmemory.ps1
+    - .github/workflows/memory-leak-analysis.yml
   schedule:
   - cron: 0 5 * * 1
 
