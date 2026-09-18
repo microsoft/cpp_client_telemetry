@@ -66,7 +66,7 @@ if ($targetExitCode -ne 0) {
 
 $resultFiles = @(Get-ChildItem -LiteralPath $scenarioDirectory -Filter results.txt -File -Recurse)
 $resultFiles = @($resultFiles | Where-Object {
-    Select-String -LiteralPath $_.FullName -Pattern '^ERRORS FOUND:\r?$' -Quiet
+    Select-String -LiteralPath $_.FullName -Pattern '^(?:NO )?ERRORS FOUND:\r?$' -Quiet
 })
 if ($resultFiles.Count -ne 1) {
     throw "Expected one completed Dr. Memory results.txt for $Scenario, found $($resultFiles.Count)."
