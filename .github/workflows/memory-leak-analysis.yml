@@ -115,9 +115,11 @@ jobs:
       run: git submodule update --init --depth=1 third_party/googletest
 
     - name: Build leak-analysis targets
-      env:
-        CMAKE_OPTS: -DMATSDK_BUILD_UNIT_TESTS=ON -DMATSDK_BUILD_FUNC_TESTS=ON
-      run: ./build.sh debug
+      run: |
+        cmake --preset matsdk-debug \
+          -DMATSDK_BUILD_UNIT_TESTS=ON \
+          -DMATSDK_BUILD_FUNC_TESTS=ON
+        cmake --build --preset matsdk-debug --parallel 2
 
     - name: Build basic sample
       run: |

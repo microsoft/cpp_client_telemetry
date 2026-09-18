@@ -32,7 +32,7 @@ function Get-LeakCount {
     )
 
     $escapedCategory = [regex]::Escape($Category)
-    $pattern = "(?m)^\s*~~Dr\.M~~\s+([\d,]+) unique,\s+([\d,]+) total,\s+([\d,]+) byte\(s\) of $escapedCategory\r?$"
+    $pattern = "(?m)^\s*(?:~~Dr\.M~~\s+)?([\d,]+) unique,\s+([\d,]+) total,\s+([\d,]+) byte\(s\) of $escapedCategory\r?$"
     $match = [regex]::Match($Results, $pattern)
     if (-not $match.Success) {
         throw "Dr. Memory results do not contain the '$Category' summary."
@@ -65,8 +65,11 @@ if ($targetExitCode -ne 0) {
 }
 
 $resultFiles = @(Get-ChildItem -LiteralPath $scenarioDirectory -Filter results.txt -File -Recurse)
+$resultFiles = @($resultFiles | Where-Object {
+    Select-String -LiteralPath $_.FullName -Pattern '^ERRORS FOUND:\r?$' -Quiet
+})
 if ($resultFiles.Count -ne 1) {
-    throw "Expected one Dr. Memory results.txt for $Scenario, found $($resultFiles.Count)."
+    throw "Expected one completed Dr. Memory results.txt for $Scenario, found $($resultFiles.Count)."
 }
 
 $results = Get-Content -LiteralPath $resultFiles[0].FullName -Raw
