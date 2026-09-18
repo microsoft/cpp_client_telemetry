@@ -59,12 +59,6 @@ namespace MAT_NS_BEGIN
 
 
                     /// <summary>
-                    /// Obtain network cost RO. This function does not handle potential exceptions and must only be called from GetNetworkCost()
-                    /// </summary>
-                    /// <returns></returns>
-                    NetworkCost _GetCurrentNetworkCost();
-
-                    /// <summary>
                     /// Get instance of network info stats
                     /// </summary>
                     /// <returns></returns>
@@ -93,7 +87,9 @@ namespace MAT_NS_BEGIN
                     /// </summary>
                     void Reset();
 
-                    std::atomic<NetworkCost>            m_currentNetworkCost{ NetworkCost_Unknown };
+                    std::shared_ptr<std::atomic<NetworkCost>> m_currentNetworkCost{
+                        std::make_shared<std::atomic<NetworkCost>>(NetworkCost_Unknown)
+                    };
 
                 public:
 

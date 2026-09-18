@@ -22,61 +22,7 @@ namespace MAT_NS_BEGIN
     namespace Windows {
 
         struct NetworkDetector::CallbackState {
-            explicit CallbackState(NetworkDetector& owner) :
-                detector(&owner)
-            {
-            }
-
-            class Invocation {
-            public:
-                explicit Invocation(std::shared_ptr<CallbackState> state) :
-                    callbackState(state)
-                {
-                    std::lock_guard<std::mutex> lock(callbackState->mutex);
-                    if (callbackState->acceptCallbacks) {
-                        detector = callbackState->detector;
-                        ++callbackState->activeCallbacks;
-                    }
-                }
-
-                ~Invocation()
-                {
-                    if (detector != nullptr) {
-                        std::lock_guard<std::mutex> lock(callbackState->mutex);
-                        --callbackState->activeCallbacks;
-                        callbackState->cv.notify_all();
-                    }
-                }
-
-                Invocation(Invocation const&) = delete;
-                Invocation& operator=(Invocation const&) = delete;
-
-                NetworkDetector* GetDetector() const
-                {
-                    return detector;
-                }
-
-            private:
-                std::shared_ptr<CallbackState> callbackState;
-                NetworkDetector* detector = nullptr;
-            };
-
-            void StopAndWait()
-            {
-                std::unique_lock<std::mutex> lock(mutex);
-                acceptCallbacks = false;
-                cv.wait(lock, [this]() { return activeCallbacks == 0; });
-                detector = nullptr;
-            }
-
-        private:
-            std::mutex mutex;
-            std::condition_variable cv;
-            NetworkDetector* detector;
-            size_t activeCallbacks = 0;
-            bool acceptCallbacks = true;
-
-            friend class Invocation;
+            std::atomic<bool> acceptCallbacks{ true };
         };
 
         NetworkCost MapNetworkCost(
@@ -101,55 +47,7 @@ namespace MAT_NS_BEGIN
             }
         }
 
-        NetworkCost NetworkDetector::GetNetworkCost() {
-            return m_currentNetworkCost.load(std::memory_order_relaxed);
-        }
-
-        /// <summary>
-        /// Get current realtime network cost synchronously.
-        /// This function provides an SEH handler for Windows Runtime failures.
-        /// </summary>
-        /// <returns></returns>
-#pragma warning(push)
-#pragma warning(disable: 6320)
-        int NetworkDetector::GetCurrentNetworkCost()
-        {
-            NetworkCost currentNetworkCost = NetworkCost_Unknown;
-            __try {
-                currentNetworkCost = _GetCurrentNetworkCost();
-            }
-            //******************************************************************************************************************************
-            // This code is required as a workaround for an issue in Visual Studio debug host mode: crash in W.N.C.dll
-            //
-            // onecoreuap\net\netprofiles\winrt\networkinformation\lib\handlemanager.cpp(132)\Windows.Networking.Connectivity.dll!0FBCFB9E:
-            // (caller: 0FBCEE2C) ReturnHr(1) tid(4584) 80070426 The service has not been started.
-            //
-            // Exception thrown at XXX (KernelBase.dll) in YYY : The binding handle is invalid.
-            // If there is a handler for this exception, the program may be safely continued.
-            //*******************************************************************************************************************************
-            __except (EXCEPTION_EXECUTE_HANDLER)
-            {
-                LOG_ERROR("Unable to obtain network state!");
-            }
-
-            m_currentNetworkCost.store(currentNetworkCost, std::memory_order_relaxed);
-
-            // Notify the app about current network cost change
-            DebugEvent evt;
-            evt.type = DebugEventType::EVT_NET_CHANGED;
-            evt.param1 = currentNetworkCost;
-            evt.param2 = false;
-            ILogManager::DispatchEventBroadcast(evt);
-
-            return currentNetworkCost;
-        }
-#pragma warning(pop)
-
-        /// <summary>
-        /// Internal implementation
-        /// </summary>
-        /// <returns></returns>
-        NetworkCost NetworkDetector::_GetCurrentNetworkCost()
+        static NetworkCost QueryCurrentNetworkCost(INetworkInformationStatics* networkInfoStats)
         {
             NetworkCost result = NetworkCost_Unknown;
             LOG_TRACE("get network cost...\n");
@@ -186,6 +84,55 @@ namespace MAT_NS_BEGIN
         }
 
         /// <summary>
+        /// Get current realtime network cost synchronously.
+        /// This function provides an SEH handler for Windows Runtime failures.
+        /// </summary>
+#pragma warning(push)
+#pragma warning(disable: 6320)
+        static int RefreshNetworkCost(
+            INetworkInformationStatics* networkInfoStats,
+            std::atomic<NetworkCost>& currentNetworkCostState)
+        {
+            NetworkCost currentNetworkCost = NetworkCost_Unknown;
+            __try {
+                currentNetworkCost = QueryCurrentNetworkCost(networkInfoStats);
+            }
+            //******************************************************************************************************************************
+            // This code is required as a workaround for an issue in Visual Studio debug host mode: crash in W.N.C.dll
+            //
+            // onecoreuap\net\netprofiles\winrt\networkinformation\lib\handlemanager.cpp(132)\Windows.Networking.Connectivity.dll!0FBCFB9E:
+            // (caller: 0FBCEE2C) ReturnHr(1) tid(4584) 80070426 The service has not been started.
+            //
+            // Exception thrown at XXX (KernelBase.dll) in YYY : The binding handle is invalid.
+            // If there is a handler for this exception, the program may be safely continued.
+            //*******************************************************************************************************************************
+            __except (EXCEPTION_EXECUTE_HANDLER)
+            {
+                LOG_ERROR("Unable to obtain network state!");
+            }
+
+            currentNetworkCostState.store(currentNetworkCost, std::memory_order_relaxed);
+
+            DebugEvent evt;
+            evt.type = DebugEventType::EVT_NET_CHANGED;
+            evt.param1 = currentNetworkCost;
+            evt.param2 = false;
+            ILogManager::DispatchEventBroadcast(evt);
+
+            return currentNetworkCost;
+        }
+#pragma warning(pop)
+
+        NetworkCost NetworkDetector::GetNetworkCost() {
+            return m_currentNetworkCost->load(std::memory_order_relaxed);
+        }
+
+        int NetworkDetector::GetCurrentNetworkCost()
+        {
+            return RefreshNetworkCost(networkInfoStats.Get(), *m_currentNetworkCost);
+        }
+
+        /// <summary>
         /// Get activation factory and look-up network info statistics
         /// </summary>
         /// <returns></returns>
@@ -202,19 +149,20 @@ namespace MAT_NS_BEGIN
 
         bool NetworkDetector::RegisterAndListen() noexcept
         {
-            networkStatusCallbackState = std::make_shared<CallbackState>(*this);
+            networkStatusCallbackState = std::make_shared<CallbackState>();
             const auto callbackState = networkStatusCallbackState;
+            const auto currentNetworkCost = m_currentNetworkCost;
+            const auto networkInformation = networkInfoStats;
             networkStatusChangedHandler = Callback<INetworkStatusChangedEventHandler>(
-                [callbackState](IInspectable*) -> HRESULT {
-                    CallbackState::Invocation invocation(callbackState);
-                    if (auto detector = invocation.GetDetector()) {
-                        detector->GetCurrentNetworkCost();
+                [callbackState, currentNetworkCost, networkInformation](IInspectable*) -> HRESULT {
+                    if (callbackState->acceptCallbacks.load(std::memory_order_acquire)) {
+                        RefreshNetworkCost(networkInformation.Get(), *currentNetworkCost);
                     }
                     return S_OK;
                 });
             if (networkStatusChangedHandler == nullptr) {
                 LOG_ERROR("Unable to create network status handler.");
-                networkStatusCallbackState->StopAndWait();
+                networkStatusCallbackState->acceptCallbacks.store(false, std::memory_order_release);
                 networkStatusCallbackState.reset();
                 return false;
             }
@@ -224,7 +172,7 @@ namespace MAT_NS_BEGIN
                 &networkStatusChangedToken);
             if (FAILED(hr)) {
                 LOG_ERROR("Unable to subscribe to network status changes.");
-                networkStatusCallbackState->StopAndWait();
+                networkStatusCallbackState->acceptCallbacks.store(false, std::memory_order_release);
                 networkStatusCallbackState.reset();
                 networkStatusChangedHandler.Reset();
                 return false;
@@ -257,15 +205,16 @@ namespace MAT_NS_BEGIN
         {
             if (networkStatusCallbackState != nullptr)
             {
-                networkStatusCallbackState->StopAndWait();
-            }
-            if (networkStatusChangedToken.value != 0 && networkInfoStats != nullptr)
-            {
-                networkInfoStats->remove_NetworkStatusChanged(networkStatusChangedToken);
-                networkStatusChangedToken.value = 0;
+                networkStatusCallbackState->acceptCallbacks.store(false, std::memory_order_release);
             }
             networkStatusChangedHandler.Reset();
             networkStatusCallbackState.reset();
+            if (networkStatusChangedToken.value != 0 && networkInfoStats != nullptr)
+            {
+                const auto token = networkStatusChangedToken;
+                networkStatusChangedToken.value = 0;
+                networkInfoStats->remove_NetworkStatusChanged(token);
+            }
             networkInfoStats.Reset();
         }
 
@@ -280,19 +229,25 @@ namespace MAT_NS_BEGIN
 
             __try
             {
-                HRESULT hr = CoInitialize(nullptr);
-                if (FAILED(hr))
+                __try
                 {
-                    LOG_ERROR("CoInitialize Failed.");
-                    return;
-                }
+                    HRESULT hr = CoInitialize(nullptr);
+                    if (FAILED(hr))
+                    {
+                        LOG_ERROR("CoInitialize Failed.");
+                        return;
+                    }
 
-                isCoInitialized = true;
-                if (GetNetworkInfoStats())
+                    isCoInitialized = true;
+                    if (GetNetworkInfoStats())
+                    {
+                        GetCurrentNetworkCost();
+                        LOG_TRACE("start listening to events...");
+                        RegisterAndListen();
+                    }
+                }
+                __finally
                 {
-                    GetCurrentNetworkCost();
-                    LOG_TRACE("start listening to events...");
-                    RegisterAndListen();
                     Reset();
                 }
             }
