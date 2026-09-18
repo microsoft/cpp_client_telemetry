@@ -95,7 +95,7 @@ namespace MAT_NS_BEGIN
 
     bool EventFilterCollection::Empty() const noexcept
     {
-        return std::atomic_load(&m_filters) == nullptr;
+        return Size() == 0;
     }
 
 } MAT_NS_END
