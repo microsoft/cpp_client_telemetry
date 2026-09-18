@@ -153,8 +153,8 @@ TEST_F(TransmissionPolicyManagerTests, IncomingEventDoesNothingWhenPaused)
 {
     tpm.paused(true);
 
-    auto event = new IncomingEventContext();
-    tpm.eventArrived(event);
+    IncomingEventContext event;
+    tpm.eventArrived(&event);
 }
 
 TEST_F(TransmissionPolicyManagerTests, IncomingEventSchedulesUpload)
@@ -174,13 +174,13 @@ TEST_F(TransmissionPolicyManagerTests, IncomingEventSchedulesUpload)
     EXPECT_TRUE(TransmitProfiles::load(customProfile));
     EXPECT_TRUE(TransmitProfiles::setProfile("Fred"));
 
-    auto event = new IncomingEventContext();
-    event->record.latency = EventLatency_Normal;
+    IncomingEventContext event;
+    event.record.latency = EventLatency_Normal;
 
     
     EXPECT_CALL(tpm, scheduleUpload(std::chrono::milliseconds { 1000 }, EventLatency_Normal, true))
         .WillOnce(Return());
-    tpm.eventArrived(event);
+    tpm.eventArrived(&event);
 }
 
 TEST_F(TransmissionPolicyManagerTests, ProfileAffectsSchedule)
@@ -200,10 +200,10 @@ TEST_F(TransmissionPolicyManagerTests, ProfileAffectsSchedule)
     EXPECT_TRUE(TransmitProfiles::load(customProfile));
     EXPECT_TRUE(TransmitProfiles::setProfile("Fred"));
 
-    auto event = new IncomingEventContext();
-    event->record.latency = EventLatency_Normal;
+    IncomingEventContext event;
+    event.record.latency = EventLatency_Normal;
     EXPECT_CALL(tpm, scheduleUpload(_, _, _)).Times(0);
-    tpm.eventArrived(event);
+    tpm.eventArrived(&event);
     TransmitProfiles::reset();
 }
 
@@ -224,10 +224,10 @@ TEST_F(TransmissionPolicyManagerTests, NoUploadForNegative)
     EXPECT_TRUE(TransmitProfiles::load(customProfile));
     EXPECT_TRUE(TransmitProfiles::setProfile("Fred"));
 
-    auto event = new IncomingEventContext();
-    event->record.latency = EventLatency_Normal;
+    IncomingEventContext event;
+    event.record.latency = EventLatency_Normal;
     EXPECT_CALL(tpm, scheduleUpload(_, _, _)).Times(0);
-    tpm.eventArrived(event);
+    tpm.eventArrived(&event);
     EXPECT_CALL(tpm, uploadAsync(_)).Times(0);
     tpm.scheduleUploadParent(std::chrono::milliseconds{-1000}, EventLatency_RealTime, true);
     TransmitProfiles::reset();
@@ -237,12 +237,12 @@ TEST_F(TransmissionPolicyManagerTests, ImmediateIncomingEventStartsUploadImmedia
 {
     tpm.paused(false);
 
-    auto event = new IncomingEventContext();
-    event->record.latency = EventLatency_Max;
+    IncomingEventContext event;
+    event.record.latency = EventLatency_Max;
     EventsUploadContextPtr upload;
     EXPECT_CALL(*this, resultInitiateUpload(_))
         .WillOnce(SaveArg<0>(&upload));
-    tpm.eventArrived(event);
+    tpm.eventArrived(&event);
 
     ASSERT_THAT(upload, NotNull());
     EXPECT_THAT(upload->requestedMinLatency, EventLatency_Max);
@@ -491,11 +491,11 @@ TEST_F(TransmissionPolicyManagerTests, FredProfile)
     EXPECT_TRUE(TransmitProfiles::setProfile("Fred_Profile"));
     tpm.paused(false);
 
-    auto event = new IncomingEventContext();
-    event->record.latency = EventLatency_Normal;
+    IncomingEventContext event;
+    event.record.latency = EventLatency_Normal;
     EXPECT_CALL(tpm, scheduleUpload(_, _, _))
         .Times(0);
-    tpm.eventArrived(event);
+    tpm.eventArrived(&event);
 }
 
 TEST_F(TransmissionPolicyManagerTests, Constructor_IsPaused_True)
