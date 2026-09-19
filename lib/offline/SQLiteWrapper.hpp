@@ -213,6 +213,24 @@ namespace MAT_NS_BEGIN {
 
     class SqliteDB {
         std::mutex m_lock;
+
+        void releaseTempDirectoryAfterShutdown(int shutdownResult)
+        {
+            if (shutdownResult == SQLITE_OK)
+            {
+                if (m_ownsTempDirectory != nullptr && *m_ownsTempDirectory)
+                {
+                    ::sqlite3_free(sqlite3_temp_directory);
+                    sqlite3_temp_directory = nullptr;
+                    *m_ownsTempDirectory = false;
+                }
+            }
+            else
+            {
+                LOG_WARN("Failed to shut down SQLite (%d); retaining the temp directory", shutdownResult);
+            }
+        }
+
     public:
         SqliteDB(bool skipInitAndShutdown,
                  std::mutex* initAndShutdownLock = nullptr,
@@ -273,10 +291,8 @@ namespace MAT_NS_BEGIN {
                     if (result != SQLITE_OK &&
                         m_ownsTempDirectory != nullptr &&
                         *m_ownsTempDirectory) {
-                        ::sqlite3_free(sqlite3_temp_directory);
-                        sqlite3_temp_directory = nullptr;
-                        *m_ownsTempDirectory = false;
-                        g_sqlite3Proxy->sqlite3_shutdown();
+                        const int shutdownResult = g_sqlite3Proxy->sqlite3_shutdown();
+                        releaseTempDirectoryAfterShutdown(shutdownResult);
                     }
                 } else {
                     result = g_sqlite3Proxy->sqlite3_initialize();
@@ -392,12 +408,8 @@ namespace MAT_NS_BEGIN {
                         *m_instanceCount -= 1;
                     } else if (*m_instanceCount == 1) {
                         *m_instanceCount = 0;
-                        if (m_ownsTempDirectory != nullptr && *m_ownsTempDirectory) {
-                            ::sqlite3_free(sqlite3_temp_directory);
-                            sqlite3_temp_directory = nullptr;
-                            *m_ownsTempDirectory = false;
-                        }
-                        g_sqlite3Proxy->sqlite3_shutdown();
+                        const int shutdownResult = g_sqlite3Proxy->sqlite3_shutdown();
+                        releaseTempDirectoryAfterShutdown(shutdownResult);
                     }
                 } else
                 {

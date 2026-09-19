@@ -44,6 +44,18 @@ class OfflineStorage_SQLiteNoAutoCommit : public OfflineStorage_SQLite
       return m_instanceCount;
     }
 
+    static bool OwnsTempDirectory()
+    {
+        std::lock_guard<std::mutex> lock(m_initAndShutdownLock);
+        return m_ownsTempDirectory;
+    }
+
+    static void SetOwnsTempDirectory(bool owns)
+    {
+        std::lock_guard<std::mutex> lock(m_initAndShutdownLock);
+        m_ownsTempDirectory = owns;
+    }
+
     virtual void scheduleAutoCommitTransaction()
     {
     }
@@ -64,6 +76,7 @@ class FaultInjectingSqlite3Proxy : public ISqlite3Proxy
 
     bool failCachedStatementPrepare = false;
     bool failNextInsertStep = false;
+    bool failNextShutdown = false;
 
     int sqlite3_bind_blob(sqlite3_stmt* stmt, int idx, void const* value, int size, void (* d)(void*)) override { return m_delegate.sqlite3_bind_blob(stmt, idx, value, size, d); }
     int sqlite3_bind_int(sqlite3_stmt* stmt, int idx, int value) override { return m_delegate.sqlite3_bind_int(stmt, idx, value); }
@@ -110,7 +123,15 @@ class FaultInjectingSqlite3Proxy : public ISqlite3Proxy
     void sqlite3_result_null(sqlite3_context* ctx) override { m_delegate.sqlite3_result_null(ctx); }
     void sqlite3_result_text(sqlite3_context* ctx, char const* value, int size, void (* d)(void*)) override { m_delegate.sqlite3_result_text(ctx, value, size, d); }
     void sqlite3_set_auxdata(sqlite3_context* ctx, int N, void* data, void (* d)(void*)) override { m_delegate.sqlite3_set_auxdata(ctx, N, data, d); }
-    int sqlite3_shutdown() override { return m_delegate.sqlite3_shutdown(); }
+    int sqlite3_shutdown() override
+    {
+        if (failNextShutdown)
+        {
+            failNextShutdown = false;
+            return SQLITE_BUSY;
+        }
+        return m_delegate.sqlite3_shutdown();
+    }
     int sqlite3_step(sqlite3_stmt* stmt) override
     {
         if (failNextInsertStep && stmt == m_insertStatement)
@@ -1167,6 +1188,32 @@ TEST_F(OfflineStorageTests_SQLite, DestructionWithoutShutdownClosesDatabase)
     {
         ::remove((storageFilename + suffix).c_str());
     }
+}
+
+TEST_F(OfflineStorageTests_SQLite, FailedShutdownRetainsOwnedTempDirectoryUntilRetry)
+{
+    ASSERT_EQ(nullptr, sqlite3_temp_directory);
+    sqlite3_temp_directory = sqlite3_mprintf("%s", MAT::GetAppLocalTempDirectory().c_str());
+    ASSERT_NE(nullptr, sqlite3_temp_directory);
+    char* const ownedTempDirectory = sqlite3_temp_directory;
+    OfflineStorage_SQLiteNoAutoCommit::SetOwnsTempDirectory(true);
+
+    FaultInjectingSqlite3Proxy proxy(*g_sqlite3Proxy);
+    Sqlite3ProxySwap proxySwap(proxy);
+    initializeStorage();
+    proxy.failNextShutdown = true;
+
+    shutdownAndRemoveFile();
+
+    EXPECT_EQ(0, OfflineStorage_SQLiteNoAutoCommit::GetDbInstanceCount());
+    EXPECT_TRUE(OfflineStorage_SQLiteNoAutoCommit::OwnsTempDirectory());
+    EXPECT_EQ(ownedTempDirectory, sqlite3_temp_directory);
+
+    initializeStorage();
+    shutdownAndRemoveFile();
+
+    EXPECT_FALSE(OfflineStorage_SQLiteNoAutoCommit::OwnsTempDirectory());
+    EXPECT_EQ(nullptr, sqlite3_temp_directory);
 }
 
 #if !defined(_WIN32)

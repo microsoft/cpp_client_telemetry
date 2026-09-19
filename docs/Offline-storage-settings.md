@@ -21,6 +21,8 @@ Set `skipSqliteInitAndShutdown` to `"true"` only when your application already o
 
 When this option is enabled, the application is responsible for calling `sqlite3_initialize()` before creating a `LogManager` that uses offline storage and for delaying `sqlite3_shutdown()` until all SDK offline storage instances have been released.
 
+This also applies when multiple libraries in one process each embed 1DS but link to the same system or shared SQLite runtime. Configure every 1DS copy to skip SQLite initialization and shutdown, and let the host own that shared runtime. No coordination is required when each library contains a genuinely private bundled SQLite copy; the bundled CMake target hides its SQLite symbols to preserve that isolation.
+
 ## Deprecated configurations
 
 | Configuration |
