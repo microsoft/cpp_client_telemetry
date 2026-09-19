@@ -12,6 +12,7 @@
 #endif
 #include "LogManagerImpl.hpp"
 #include <cstdio>
+#include "ctmacros.hpp"
 #include "mat/config.h"
 
 #include "offline/LogSessionDataProvider.hpp"
@@ -378,27 +379,31 @@ namespace MAT_NS_BEGIN
 
     LogManagerImpl::~LogManagerImpl() noexcept
     {
-        try
+        MATSDK_TRY
         {
             FlushAndTeardown();
         }
-        catch (const std::exception& e)
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(const std::exception& e)
         {
             std::fprintf(stderr, "Log manager teardown failed: %s\n", e.what());
         }
-        catch (...)
+        MATSDK_CATCH(...)
         {
             std::fputs("Log manager teardown failed with an unknown exception\n", stderr);
         }
-        try
+#endif
+        MATSDK_TRY
         {
             LOCKGUARD(ILogManagerInternal::managers_lock);
             ILogManagerInternal::managers.erase(this);
         }
-        catch (...)
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(...)
         {
             std::fputs("Log manager registry cleanup failed\n", stderr);
         }
+#endif
     }
 
     size_t LogManagerImpl::GetDeadLoggerCount()
@@ -989,7 +994,7 @@ namespace MAT_NS_BEGIN
 
     void LogManagerImpl::EndActivity() noexcept
     {
-        try
+        MATSDK_TRY
         {
             std::unique_lock<std::mutex> lock(m_pause_mutex);
             if (m_pause_active_count == 0) {
@@ -1004,14 +1009,16 @@ namespace MAT_NS_BEGIN
                 m_pause_cv.notify_all();
             }
         }
-        catch (const std::exception& e)
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(const std::exception& e)
         {
             std::fprintf(stderr, "Failed to end telemetry activity: %s\n", e.what());
         }
-        catch (...)
+        MATSDK_CATCH(...)
         {
             std::fputs("Failed to end telemetry activity\n", stderr);
         }
+#endif
     }
 }
 MAT_NS_END

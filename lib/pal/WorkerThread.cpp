@@ -5,6 +5,7 @@
 // clang-format off
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
+#include "ctmacros.hpp"
 
 #include <exception>
 #include <system_error>
@@ -389,16 +390,18 @@ namespace PAL_NS_BEGIN {
                         // user DebugEventListener callbacks). An exception escaping here
                         // would unwind out of the thread entry function and call
                         // std::terminate, killing the host process. Contain it.
-                        try {
+                        MATSDK_TRY {
                             (*item)();
                         }
-                        catch (const std::exception& ex) {
+#if HAVE_EXCEPTIONS
+                        MATSDK_CATCH(const std::exception& ex) {
                             (void)ex;
                             LOG_ERROR("Unhandled exception in worker task: %s", ex.what());
                         }
-                        catch (...) {
+                        MATSDK_CATCH(...) {
                             LOG_ERROR("Unhandled non-standard exception in worker task");
                         }
+#endif
                     }
 
                     if (item) {

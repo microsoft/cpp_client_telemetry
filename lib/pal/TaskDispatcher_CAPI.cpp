@@ -61,16 +61,18 @@ namespace PAL_NS_BEGIN {
                 // The task is host/user code running on the external dispatcher's
                 // thread; an exception escaping here would terminate the process.
                 // Log it (mirroring WorkerThread) instead of swallowing silently.
-                try {
+                MATSDK_TRY {
                     (*m_task)();
                 }
-                catch (const std::exception& ex) {
+#if HAVE_EXCEPTIONS
+                MATSDK_CATCH(const std::exception& ex) {
                     (void)ex;
                     LOG_ERROR("Unhandled exception in CAPI task: %s", ex.what());
                 }
-                catch (...) {
+                MATSDK_CATCH(...) {
                     LOG_ERROR("Unhandled non-standard exception in CAPI task");
                 }
+#endif
             }
             std::unique_ptr<Task> completedTask;
             {
