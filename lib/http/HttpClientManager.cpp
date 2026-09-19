@@ -176,6 +176,7 @@ namespace MAT_NS_BEGIN {
         }
         catch (const std::exception& ex)
         {
+            (void)ex;
             LOG_ERROR("HTTP client rejected request %s with an exception: %s",
                 completion->requestId.c_str(), ex.what());
             if (completion->TryStartTerminal())
@@ -218,6 +219,7 @@ namespace MAT_NS_BEGIN {
         }
         catch (const std::exception& ex)
         {
+            (void)ex;
             LOG_ERROR("Failed to schedule HTTP response callback: %s", ex.what());
             if (started->load(std::memory_order_acquire))
             {
@@ -283,6 +285,7 @@ namespace MAT_NS_BEGIN {
         }
         catch (const std::exception& ex)
         {
+            (void)ex;
             LOG_ERROR("Unhandled exception in HTTP response callback: %s", ex.what());
             notifyRequestFailure(ctx);
         }
@@ -318,6 +321,7 @@ namespace MAT_NS_BEGIN {
         }
         catch (const std::exception& ex)
         {
+            (void)ex;
             LOG_ERROR("Unhandled exception while releasing failed HTTP request: %s", ex.what());
         }
         catch (...)
@@ -331,6 +335,7 @@ namespace MAT_NS_BEGIN {
         }
         catch (const std::exception& ex)
         {
+            (void)ex;
             LOG_ERROR("Unhandled exception while completing failed HTTP request: %s", ex.what());
         }
         catch (...)
@@ -359,6 +364,7 @@ namespace MAT_NS_BEGIN {
                 }
                 catch (const std::exception& ex)
                 {
+                    (void)ex;
                     LOG_ERROR("HTTP client bounded cancellation failed: %s", ex.what());
                 }
                 catch (...)
@@ -383,6 +389,7 @@ namespace MAT_NS_BEGIN {
         }
         catch (const std::exception& ex)
         {
+            (void)ex;
             LOG_ERROR("HTTP client cancellation failed: %s", ex.what());
             cancelTrackedRequestsAsync();
         }
@@ -429,6 +436,7 @@ namespace MAT_NS_BEGIN {
             }
             catch (const std::exception& ex)
             {
+                (void)ex;
                 LOG_ERROR("HTTP client failed to cancel request %s: %s",
                     id.c_str(), ex.what());
             }

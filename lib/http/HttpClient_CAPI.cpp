@@ -232,6 +232,7 @@ namespace MAT_NS_BEGIN {
         }
         catch (const std::exception& ex)
         {
+            (void)ex;
             LOG_ERROR("CAPI HTTP client teardown failed: %s", ex.what());
         }
         catch (...)
@@ -361,6 +362,7 @@ namespace MAT_NS_BEGIN {
             }
             catch (const std::exception& ex)
             {
+                (void)ex;
                 LOG_ERROR("CAPI HTTP cancellation failed for request %s: %s",
                     id.c_str(), ex.what());
             }
@@ -382,6 +384,7 @@ namespace MAT_NS_BEGIN {
             }
             catch (const std::exception& ex)
             {
+                (void)ex;
                 LOG_ERROR("CAPI HTTP cancellation callback failed for request %s: %s",
                     id.c_str(), ex.what());
             }
@@ -421,6 +424,7 @@ namespace MAT_NS_BEGIN {
             }
             catch (const std::exception& ex)
             {
+                (void)ex;
                 LOG_ERROR("CAPI HTTP cancellation failed: %s", ex.what());
             }
             catch (...)
@@ -437,6 +441,7 @@ namespace MAT_NS_BEGIN {
             }
             catch (const std::exception& ex)
             {
+                (void)ex;
                 LOG_ERROR("CAPI HTTP cancellation callback failed: %s", ex.what());
             }
             catch (...)
