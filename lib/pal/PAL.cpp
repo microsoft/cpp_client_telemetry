@@ -271,6 +271,7 @@ namespace PAL_NS_BEGIN {
             }
 #endif
 #ifdef HAVE_MAT_LOGGING
+            std::lock_guard<std::recursive_mutex> lock(debugLogMutex);
             if (!isLoggingInited)
                 return;
 
@@ -297,14 +298,12 @@ namespace PAL_NS_BEGIN {
             buffer[std::min<size_t>(len + 1, sizeof(buffer) - 1)] = '\0';
 #ifdef HAVE_MAT_WIN_LOG
             // Log to debug log file if enabled
-            debugLogMutex.lock();
-            if (debugLogStream->good())
+            if (debugLogStream && debugLogStream->good())
             {
                 (*debugLogStream) << buffer;
                 // flush is not very efficient, but needed to get realtime file updates
                 debugLogStream->flush();
             }
-            debugLogMutex.unlock();
 #else
             ::OutputDebugStringA(buffer);
 #endif //HAVE_MAT_WIN_LOG
@@ -342,14 +341,12 @@ namespace PAL_NS_BEGIN {
                 // Make sure all of our debug strings contain EOL
                 buffer[len] = '\n';
                 // Log to debug log file if enabled
-                debugLogMutex.lock();
-                if (debugLogStream->good())
+                if (debugLogStream && debugLogStream->good())
                 {
                     (*debugLogStream) << buffer;
                     // flush is not very efficient, but needed to get realtime file updates
                     debugLogStream->flush();
                 }
-                debugLogMutex.unlock();
             }
             va_end(ap);
 #endif
