@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15...3.31)
+cmake_minimum_required(VERSION 4.3...4.4)
 project(cpp-client-telemetry_embedding_test LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)

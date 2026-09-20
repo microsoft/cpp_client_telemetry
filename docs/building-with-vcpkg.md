@@ -201,7 +201,7 @@ The vcpkg port automatically resolves the following dependencies:
 
 | Dependency     | vcpkg Package   | CMake Target                      | Platforms          |
 | -------------- | --------------- | --------------------------------- | ------------------ |
-| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | Non-Apple (default; see `minimal-sqlite`). **macOS/iOS link the system `libsqlite3`** (`SQLite::SQLite3`) |
+| SQLite3        | `sqlite3`       | `unofficial::sqlite3::sqlite3`    | Non-Apple (default; see `minimal-sqlite`). **macOS/iOS link the system `libsqlite3`** (`SQLite3::SQLite3`) |
 | zlib           | `zlib`          | `ZLIB::ZLIB`                      | Non-Apple. **macOS/iOS link the system `libz`** |
 | nlohmann JSON  | `nlohmann-json` | `nlohmann_json::nlohmann_json`    | All                |
 | libcurl        | `curl[openssl]` or `curl[mbedtls]` | `CURL::libcurl`          | Linux by default; Android only when `android-curl-openssl` or `android-curl-mbedtls` is selected |

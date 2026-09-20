@@ -1,0 +1,10 @@
+name: Set up CMake
+description: Install the repository's required CMake release.
+runs:
+  using: composite
+  steps:
+  - name: Install CMake 4.4.2
+    shell: pwsh
+    run: |
+      python -m pip install --disable-pip-version-check --upgrade "cmake==4.4.2"
+      cmake --version

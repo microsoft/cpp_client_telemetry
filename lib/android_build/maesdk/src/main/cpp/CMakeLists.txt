@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15...3.31)
+cmake_minimum_required(VERSION 4.1...4.4)
 project(MaesdkAndroid LANGUAGES C CXX)
 
 get_filename_component(SDK_ROOT

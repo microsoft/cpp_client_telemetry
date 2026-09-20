@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15...3.31)
+cmake_minimum_required(VERSION 4.3...4.4)
 project(cpp-client-telemetry_vcpkg_test LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 11)

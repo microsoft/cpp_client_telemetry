@@ -130,6 +130,12 @@ jobs:
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics
 
+      - name: Set up CMake
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        run: |
+          python3 -m pip install --disable-pip-version-check --upgrade "cmake==4.4.2"
+          cmake --version
+
       - name: Update port REF, SHA512 and version
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |

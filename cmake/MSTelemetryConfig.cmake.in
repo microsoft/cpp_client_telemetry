@@ -1,5 +1,9 @@
 @PACKAGE_INIT@
 
+if(CMAKE_VERSION VERSION_LESS 4.3)
+  message(FATAL_ERROR "MSTelemetry requires CMake 4.3 or newer.")
+endif()
+
 include(CMakeFindDependencyMacro)
 include("${CMAKE_CURRENT_LIST_DIR}/MatsdkDependencyTargets.cmake")
 
@@ -17,7 +21,6 @@ if(@MATSDK_CONFIG_STATIC_PACKAGE@)
     SQLite3::SQLite3
     "@MATSDK_SQLITE_PROVIDER_RESOLVED@"
     SQLite3
-    LEGACY_TARGET SQLite::SQLite3
     ${_matsdk_package_sqlite_args})
   matsdk_add_package_system_dependency(
     MSTelemetry::zlib_dependency

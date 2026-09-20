@@ -84,6 +84,9 @@ jobs:
           # port (the optional modules are excluded there too).
           submodules: false
 
+      - uses: ./.github/actions/setup-cmake
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+
       - name: Skip if this SPM version is already published
         id: pub
         if: ${{ steps.ver.outputs.skip != 'true' }}
