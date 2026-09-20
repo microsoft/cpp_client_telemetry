@@ -36,7 +36,6 @@ function(matsdk_fetch_curl out_target)
       INSTALL_MBEDTLS_HEADERS
       MBEDTLS_FATAL_WARNINGS
       USE_SHARED_MBEDTLS_LIBRARY
-      LINK_WITH_PTHREAD
       BUILD_CURL_EXE
       BUILD_EXAMPLES
       BUILD_LIBCURL_DOCS
@@ -83,6 +82,7 @@ function(matsdk_fetch_curl out_target)
   endforeach()
 
   if(MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS")
+    set(LINK_WITH_PTHREAD ON)
     set(USE_STATIC_MBEDTLS_LIBRARY ON)
     set(CURL_USE_MBEDTLS ON)
     set(MBEDTLS_CONFIG_FILE "")
@@ -96,6 +96,9 @@ function(matsdk_fetch_curl out_target)
 
     foreach(target mbedtls mbedx509 mbedcrypto)
       matsdk_configure_fetched_static_target("${target}")
+      target_compile_definitions("${target}" PRIVATE
+        MBEDTLS_THREADING_C
+        MBEDTLS_THREADING_PTHREAD)
     endforeach()
 
     set(MBEDTLS_INCLUDE_DIR "${matsdk_mbedtls_SOURCE_DIR}/include")

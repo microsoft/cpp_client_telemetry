@@ -40,9 +40,30 @@ set(MATSDK_ZLIB_PROVIDER VENDORED CACHE STRING "" FORCE)  # SYSTEM or VENDORED
 
 `MINIMAL` builds the feature-stripped SQLite amalgamation. `VENDORED` builds the
 unstripped vendored dependency. `SYSTEM` consumes the canonical
-`SQLite::SQLite3` / `ZLIB::ZLIB` targets or uses `find_package()`. `AUTO`
-preserves platform defaults: system dependencies on desktop/Apple source builds
+`SQLite3::SQLite3` / `ZLIB::ZLIB` targets or uses `find_package()`. `AUTO`
+preserves platform defaults: system dependencies on Linux/Apple source builds
 and vendored dependencies on Windows/Android source builds.
+
+Recommended packaged-library policy:
+
+| Platform | SQLite | zlib | HTTP/TLS |
+| --- | --- | --- | --- |
+| macOS/iOS | `SYSTEM` (`libsqlite3`) | `SYSTEM` (`libz`) | Apple-native HTTP |
+| Linux, self-contained | `MINIMAL` | `VENDORED` | `FETCH` + `MBEDTLS` |
+| Linux, host-managed | host-selected | host-selected | `SYSTEM`; the host selects curl's TLS backend |
+| Windows | `MINIMAL` | `VENDORED` | WinHTTP |
+| Android | `MINIMAL`, or `NONE` with Room | `VENDORED` | Java/JNI by default |
+
+Apple's SQLite and zlib entries are system libraries: consumers link them but
+do not ship private copies. A Linux host such as Foundry Local that already
+standardizes on libcurl/OpenSSL should provide `CURL::libcurl` and select
+`MATSDK_CURL_PROVIDER=SYSTEM`; other self-contained Linux consumers can use the
+SDK's pinned curl/mbedTLS build.
+
+When multiple embedded SDK copies use the same system SQLite runtime, each
+consumer must set `skipSqliteInitAndShutdown` to `"true"` and leave SQLite's
+process-wide lifetime to the host. This is the required configuration for
+coexisting Apple libraries that all link the system `libsqlite3`.
 
 ## Non-vcpkg dependency selection
 
