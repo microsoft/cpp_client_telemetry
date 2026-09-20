@@ -7,4 +7,6 @@ runs:
     shell: pwsh
     run: |
       python -m pip install --disable-pip-version-check --upgrade "cmake==4.4.2"
-      cmake --version
+      $cmakeBin = python -c "import cmake; print(cmake.CMAKE_BIN_DIR)"
+      $cmakeBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      & (Join-Path $cmakeBin "cmake") --version
