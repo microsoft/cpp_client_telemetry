@@ -14,8 +14,7 @@
 #include "DebugEvents.hpp"
 #include "pal/PAL.hpp"
 
-#define NETDETECTOR_STOP                WM_USER+1
-#define NETDETECTOR_REFRESH             WM_USER+2
+#define NETDETECTOR_REFRESH             WM_USER+1
 
 namespace MAT_NS_BEGIN
 {
@@ -224,21 +223,41 @@ namespace MAT_NS_BEGIN
                 cv.notify_all();
             }
 
-            while (GetMessage(&msg, NULL, 0, 0) > 0)
+            while (true)
             {
+                const DWORD waitResult = MsgWaitForMultipleObjects(
+                    1,
+                    &stopEvent,
+                    FALSE,
+                    INFINITE,
+                    QS_ALLINPUT);
+                if (waitResult == WAIT_OBJECT_0)
+                {
+                    break;
+                }
+                if (waitResult == WAIT_FAILED)
+                {
+                    LOG_ERROR("Unable to wait for network detector events.");
+                    return false;
+                }
+                if (!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+                {
+                    continue;
+                }
+                if (msg.message == WM_QUIT)
+                {
+                    break;
+                }
+
                 switch (msg.message)
                 {
                 case NETDETECTOR_REFRESH:
                     GetCurrentNetworkCost();
                     break;
-                case NETDETECTOR_STOP:
-                    PostQuitMessage(0);
-                    break;
                 default:
-                    break;
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
                 }
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
             }
             return true;
         }
@@ -337,6 +356,14 @@ namespace MAT_NS_BEGIN
                 startupState = StartupState::Starting;
                 stopRequested = false;
                 networkStatusCallbackState = std::make_shared<CallbackState>();
+                stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+                if (stopEvent == nullptr)
+                {
+                    LOG_ERROR("Unable to create the network detector stop event.");
+                    startupState = StartupState::Failed;
+                    networkStatusCallbackState.reset();
+                    return false;
+                }
                 isRunning = true;
             }
 
@@ -382,6 +409,13 @@ namespace MAT_NS_BEGIN
                 {
                     netDetectThread.join();
                 }
+                if (!started)
+                {
+                    std::lock_guard<std::mutex> lock(m_lock);
+                    CloseHandle(stopEvent);
+                    stopEvent = nullptr;
+                    networkStatusCallbackState.reset();
+                }
                 return started;
             }
         };
@@ -400,16 +434,17 @@ namespace MAT_NS_BEGIN
                     {
                         networkStatusCallbackState->listenerThreadId.store(0, std::memory_order_release);
                     }
-                    if (startupState == StartupState::Ready &&
-                        !PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL))
+                    if (!SetEvent(stopEvent))
                     {
-                        LOG_WARN("NetworkDetector stop message could not be posted.");
+                        LOG_ERROR("Unable to signal the network detector stop event.");
                     }
                 }
 
                 netDetectThread.join();
 
                 std::lock_guard<std::mutex> lock(m_lock);
+                CloseHandle(stopEvent);
+                stopEvent = nullptr;
                 startupState = StartupState::Stopped;
                 stopRequested = false;
                 networkStatusCallbackState.reset();

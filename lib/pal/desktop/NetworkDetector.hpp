@@ -72,14 +72,15 @@ namespace MAT_NS_BEGIN
                     bool GetNetworkInfoStats();
 
                     std::mutex                          m_lock;
-                    std::condition_variable             cv;
-                    std::atomic<bool>                   isRunning{ false };
-                    std::thread                         netDetectThread;
+                    std::condition_variable cv;
+                    std::atomic<bool> isRunning{false};
+                    std::thread netDetectThread;
                     StartupState startupState = StartupState::Stopped;
                     bool stopRequested = false;
+                    HANDLE stopEvent = nullptr;
 
                     /// <summary>
-                    /// 
+                    ///
                     /// </summary>
                     void run();
 
