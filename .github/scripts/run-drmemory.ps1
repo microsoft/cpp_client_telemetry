@@ -143,9 +143,9 @@ if ($BaselinePath) {
 }
 
 $markdown = @"
-| Scenario | Unique leaks | Total leaks | Leak bytes | Unique possible | Possible bytes | Unique reachable | Reachable bytes | Baseline |
-|---|---:|---:|---:|---:|---:|---:|---:|---|
-| $Scenario | $($leaks.Unique) | $($leaks.Total) | $($leaks.Bytes) | $($possibleLeaks.Unique) | $($possibleLeaks.Bytes) | $($reachable.Unique) | $($reachable.Bytes) | $baselineStatus |
+| Scenario | Unique leaks | Total leaks | Leak bytes | Unique possible | Total possible | Possible bytes | Unique reachable | Total reachable | Reachable bytes | Baseline |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| $Scenario | $($leaks.Unique) | $($leaks.Total) | $($leaks.Bytes) | $($possibleLeaks.Unique) | $($possibleLeaks.Total) | $($possibleLeaks.Bytes) | $($reachable.Unique) | $($reachable.Total) | $($reachable.Bytes) | $baselineStatus |
 "@
 Write-Host $markdown
 if ($env:GITHUB_STEP_SUMMARY) {

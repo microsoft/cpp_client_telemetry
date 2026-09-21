@@ -64,4 +64,26 @@ TEST(NetworkDetectorTests, QueuedNetworkCallbackRaceDoesNotOutliveStop)
     keepQueuing.store(false, std::memory_order_release);
     callbackThread.join();
 }
+
+TEST(NetworkDetectorTests, ConcurrentStopWaitsForStartupPublication)
+{
+    for (int iteration = 0; iteration < 20; ++iteration)
+    {
+        MATW::NetworkDetector detector;
+        std::atomic<bool> startReturned{false};
+        std::thread startThread([&]()
+                                {
+            detector.Start();
+            startReturned.store(true, std::memory_order_release); });
+
+        while (!detector.isUp() && !startReturned.load(std::memory_order_acquire))
+        {
+            std::this_thread::yield();
+        }
+
+        detector.Stop();
+        startThread.join();
+        EXPECT_FALSE(detector.isUp());
+    }
+}
 #endif

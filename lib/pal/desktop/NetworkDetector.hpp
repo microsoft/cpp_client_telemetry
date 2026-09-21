@@ -59,11 +59,10 @@ namespace MAT_NS_BEGIN
                     /// <summary>
                     /// Current network info stats
                     /// </summary>
-                    ComPtr<INetworkInformationStatics>  networkInfoStats;
+                    ComPtr<INetworkInformationStatics> networkInfoStats;
                     ComPtr<INetworkStatusChangedEventHandler> networkStatusChangedHandler;
-                    EventRegistrationToken              networkStatusChangedToken{};
-                    std::shared_ptr<CallbackState>       networkStatusCallbackState;
-
+                    EventRegistrationToken networkStatusChangedToken{};
+                    std::shared_ptr<CallbackState> networkStatusCallbackState;
 
                     /// <summary>
                     /// Get instance of network info stats
@@ -71,7 +70,8 @@ namespace MAT_NS_BEGIN
                     /// <returns></returns>
                     bool GetNetworkInfoStats();
 
-                    std::mutex                          m_lock;
+                    std::mutex m_lifecycleLock;
+                    std::mutex m_lock;
                     std::condition_variable cv;
                     std::atomic<bool> isRunning{false};
                     std::thread netDetectThread;
@@ -84,7 +84,7 @@ namespace MAT_NS_BEGIN
                     /// </summary>
                     void run();
 
-                    DWORD                               m_listener_tid = 0;
+                    DWORD m_listener_tid = 0;
 
                     /// <summary>
                     /// Register and listen to network state notifications

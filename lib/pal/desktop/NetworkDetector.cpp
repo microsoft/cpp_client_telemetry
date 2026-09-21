@@ -333,6 +333,7 @@ namespace MAT_NS_BEGIN
         /// <returns>true - if start is successful, false - otherwise</returns>
         bool NetworkDetector::Start()
         {
+            std::lock_guard<std::mutex> lifecycleLock(m_lifecycleLock);
             {
                 std::unique_lock<std::mutex> lock(m_lock);
                 if (startupState == StartupState::Starting)
@@ -425,6 +426,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         void NetworkDetector::Stop()
         {
+            std::lock_guard<std::mutex> lifecycleLock(m_lifecycleLock);
             if (netDetectThread.joinable())
             {
                 {
