@@ -11,7 +11,9 @@ import androidx.annotation.Keep;
  *
  * <p>Implementations must return a stable, unique name for the lifetime of the registration.
  * Callbacks can occur on an SDK worker thread and should return promptly. Implementations must not
- * register or unregister viewers from within a callback.
+ * reenter the SDK from within a callback: do not register or unregister viewers, and do not close
+ * the owning {@link ILogManager}, because closing unregisters every viewer while the callback is
+ * still in progress.
  */
 @Keep
 public interface IDataViewer {

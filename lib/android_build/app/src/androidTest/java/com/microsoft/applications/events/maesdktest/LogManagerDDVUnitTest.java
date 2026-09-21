@@ -252,7 +252,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
   }
 
   @Test
-  public void registerDataViewer_whenCallbackThrows_continuesDispatchAndSupportsUnregister()
+  public void registerDataViewer_whenCallbackThrows_continuesDispatchAndStopsAfterUnregister()
       throws Exception {
     System.loadLibrary("maesdk");
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -273,10 +273,13 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     ILogManager manager = LogManagerProvider.createLogManager(custom);
     CountDownLatch receivedPacket = new CountDownLatch(1);
     AtomicInteger receivedByteCount = new AtomicInteger();
+    AtomicInteger receivingViewerCalls = new AtomicInteger();
+    AtomicInteger throwingViewerCalls = new AtomicInteger();
     IDataViewer throwingViewer =
         new IDataViewer() {
           @Override
           public void receiveData(byte[] packetData) {
+            throwingViewerCalls.incrementAndGet();
             throw new IllegalStateException("Expected callback failure");
           }
 
@@ -299,6 +302,7 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
         new IDataViewer() {
           @Override
           public void receiveData(byte[] packetData) {
+            receivingViewerCalls.incrementAndGet();
             receivedByteCount.set(packetData.length);
             receivedPacket.countDown();
           }
@@ -330,8 +334,30 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
 
       assertThat(receivedPacket.await(5, TimeUnit.SECONDS), is(true));
       assertThat(receivedByteCount.get(), greaterThan(0));
+
       assertThat(manager.unregisterDataViewer("receiving-viewer"), is(true));
       assertThat(manager.unregisterDataViewer("receiving-viewer"), is(false));
+
+      // Unregistering must actually stop callbacks, not merely drop the bookkeeping entry: a
+      // bridge that left the proxy in the native DataViewerCollection would still pass the
+      // assertions above. Drive a second dispatch and use the still-registered throwing viewer
+      // as the witness that one really occurred, then assert the unregistered viewer was not
+      // called again.
+      final int receivingCallsAtUnregister = receivingViewerCalls.get();
+      final int throwingCallsAtUnregister = throwingViewerCalls.get();
+
+      logger.logEvent("javaDataViewerCallbackAfterUnregister");
+      manager.uploadNow();
+
+      final long deadline = System.currentTimeMillis() + 10000;
+      while (throwingViewerCalls.get() <= throwingCallsAtUnregister
+          && System.currentTimeMillis() < deadline) {
+        Thread.sleep(50);
+      }
+
+      assertThat(throwingViewerCalls.get(), greaterThan(throwingCallsAtUnregister));
+      assertThat(receivingViewerCalls.get(), is(receivingCallsAtUnregister));
+
       assertThat(manager.unregisterDataViewer("throwing-viewer"), is(true));
     } finally {
       manager.close();
