@@ -10,17 +10,18 @@ using namespace testing;
 
 TEST(NetworkDetectorTests, MapsWinRTNetworkCosts)
 {
-    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, false, false), NetworkCost_Unmetered);
-    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Fixed, false, false, false), NetworkCost_Metered);
-    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Variable, false, false, false), NetworkCost_Metered);
-    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unknown, false, false, false), NetworkCost_Unknown);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, false, false, false), NetworkCost_Unmetered);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Fixed, false, false, false, false), NetworkCost_Metered);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Variable, false, false, false, false), NetworkCost_Metered);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unknown, false, false, false, false), NetworkCost_Unknown);
 }
 
 TEST(NetworkDetectorTests, MapsRestrictiveWinRTNetworkStates)
 {
-    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, true, false, false), NetworkCost_Roaming);
-    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, true, false), NetworkCost_Roaming);
-    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, false, true), NetworkCost_Roaming);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, true, false, false, false), NetworkCost_Roaming);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, true, false, false), NetworkCost_Roaming);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, false, true, false), NetworkCost_Roaming);
+    EXPECT_EQ(MATW::MapNetworkCost(NetworkCostType_Unrestricted, false, false, false, true), NetworkCost_Roaming);
 }
 
 TEST(NetworkDetectorTests, StartsReadsCostAndStopsWithoutNetworkListManager)
@@ -34,14 +35,33 @@ TEST(NetworkDetectorTests, StartsReadsCostAndStopsWithoutNetworkListManager)
 
     const auto cost = detector.GetCurrentNetworkCost();
     EXPECT_THAT(cost, AnyOf(
-        Eq(NetworkCost_Unknown),
-        Eq(NetworkCost_Unmetered),
-        Eq(NetworkCost_Metered),
-        Eq(NetworkCost_Roaming)));
+                          Eq(NetworkCost_Unknown),
+                          Eq(NetworkCost_Unmetered),
+                          Eq(NetworkCost_Metered),
+                          Eq(NetworkCost_Roaming)));
     EXPECT_EQ(detector.GetNetworkCost(), cost);
 
     detector.Stop();
     EXPECT_FALSE(detector.isUp());
+    EXPECT_FALSE(detector.QueueNetworkCostRefresh());
     EXPECT_EQ(GetModuleHandleW(L"netprofm.dll"), nullptr);
+}
+
+TEST(NetworkDetectorTests, QueuedNetworkCallbackRaceDoesNotOutliveStop)
+{
+    MATW::NetworkDetector detector;
+    ASSERT_TRUE(detector.Start());
+
+    std::atomic<bool> keepQueuing{true};
+    std::thread callbackThread([&]()
+                               {
+        while (keepQueuing.load(std::memory_order_acquire)) {
+            detector.QueueNetworkCostRefresh();
+        } });
+
+    detector.Stop();
+    EXPECT_FALSE(detector.QueueNetworkCostRefresh());
+    keepQueuing.store(false, std::memory_order_release);
+    callbackThread.join();
 }
 #endif

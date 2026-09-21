@@ -15,27 +15,37 @@
 #include "pal/PAL.hpp"
 
 #define NETDETECTOR_STOP                WM_USER+1
-#define NETDETECTOR_START_TIMEOUT_MS    1000
+#define NETDETECTOR_REFRESH             WM_USER+2
 
 namespace MAT_NS_BEGIN
 {
     namespace Windows {
 
         struct NetworkDetector::CallbackState {
-            std::atomic<bool> acceptCallbacks{ true };
+            std::atomic<DWORD> listenerThreadId{0};
+
+            bool QueueRefresh() const
+            {
+                const auto threadId = listenerThreadId.load(std::memory_order_acquire);
+                return threadId != 0 &&
+                       PostThreadMessage(threadId, NETDETECTOR_REFRESH, 0, NULL) != FALSE;
+            }
         };
 
         NetworkCost MapNetworkCost(
             NetworkCostType costType,
             boolean roaming,
             boolean overDataLimit,
-            boolean approachingDataLimit)
+            boolean approachingDataLimit,
+            boolean backgroundDataUsageRestricted)
         {
-            if (roaming || overDataLimit || approachingDataLimit) {
+            if (roaming || overDataLimit || approachingDataLimit || backgroundDataUsageRestricted)
+            {
                 return NetworkCost_Roaming;
             }
 
-            switch (costType) {
+            switch (costType)
+            {
             case NetworkCostType_Unrestricted:
                 return NetworkCost_Unmetered;
             case NetworkCostType_Fixed:
@@ -72,15 +82,29 @@ namespace MAT_NS_BEGIN
             boolean roaming = false;
             boolean overDataLimit = false;
             boolean approachingDataLimit = false;
+            boolean backgroundDataUsageRestricted = false;
             NetworkCostType costType = NetworkCostType_Unknown;
             if (FAILED(connectionCost->get_Roaming(&roaming)) ||
                 FAILED(connectionCost->get_OverDataLimit(&overDataLimit)) ||
                 FAILED(connectionCost->get_ApproachingDataLimit(&approachingDataLimit)) ||
-                FAILED(connectionCost->get_NetworkCostType(&costType))) {
+                FAILED(connectionCost->get_NetworkCostType(&costType)))
+            {
                 return result;
             }
 
-            return MapNetworkCost(costType, roaming, overDataLimit, approachingDataLimit);
+            ComPtr<IConnectionCost2> connectionCost2;
+            if (SUCCEEDED(connectionCost.As(&connectionCost2)) &&
+                FAILED(connectionCost2->get_BackgroundDataUsageRestricted(&backgroundDataUsageRestricted)))
+            {
+                return result;
+            }
+
+            return MapNetworkCost(
+                costType,
+                roaming,
+                overDataLimit,
+                approachingDataLimit,
+                backgroundDataUsageRestricted);
         }
 
         /// <summary>
@@ -132,6 +156,16 @@ namespace MAT_NS_BEGIN
             return RefreshNetworkCost(networkInfoStats.Get(), *m_currentNetworkCost);
         }
 
+        bool NetworkDetector::QueueNetworkCostRefresh()
+        {
+            std::shared_ptr<CallbackState> callbackState;
+            {
+                std::lock_guard<std::mutex> lock(m_lock);
+                callbackState = networkStatusCallbackState;
+            }
+            return callbackState != nullptr && callbackState->QueueRefresh();
+        }
+
         /// <summary>
         /// Get activation factory and look-up network info statistics
         /// </summary>
@@ -149,43 +183,54 @@ namespace MAT_NS_BEGIN
 
         bool NetworkDetector::RegisterAndListen() noexcept
         {
-            networkStatusCallbackState = std::make_shared<CallbackState>();
+            MSG msg;
+            PeekMessage(&msg, nullptr, WM_USER, WM_USER, PM_NOREMOVE);
+
             const auto callbackState = networkStatusCallbackState;
-            const auto currentNetworkCost = m_currentNetworkCost;
-            const auto networkInformation = networkInfoStats;
+            callbackState->listenerThreadId.store(GetCurrentThreadId(), std::memory_order_release);
             networkStatusChangedHandler = Callback<INetworkStatusChangedEventHandler>(
-                [callbackState, currentNetworkCost, networkInformation](IInspectable*) -> HRESULT {
-                    if (callbackState->acceptCallbacks.load(std::memory_order_acquire)) {
-                        RefreshNetworkCost(networkInformation.Get(), *currentNetworkCost);
-                    }
+                [callbackState](IInspectable*) -> HRESULT
+                {
+                    callbackState->QueueRefresh();
                     return S_OK;
                 });
-            if (networkStatusChangedHandler == nullptr) {
+            if (networkStatusChangedHandler == nullptr)
+            {
                 LOG_ERROR("Unable to create network status handler.");
-                networkStatusCallbackState->acceptCallbacks.store(false, std::memory_order_release);
-                networkStatusCallbackState.reset();
+                callbackState->listenerThreadId.store(0, std::memory_order_release);
                 return false;
             }
 
             HRESULT hr = networkInfoStats->add_NetworkStatusChanged(
                 networkStatusChangedHandler.Get(),
                 &networkStatusChangedToken);
-            if (FAILED(hr)) {
+            if (FAILED(hr))
+            {
                 LOG_ERROR("Unable to subscribe to network status changes.");
-                networkStatusCallbackState->acceptCallbacks.store(false, std::memory_order_release);
-                networkStatusCallbackState.reset();
+                callbackState->listenerThreadId.store(0, std::memory_order_release);
                 networkStatusChangedHandler.Reset();
                 return false;
             }
 
-            MSG msg;
-            PeekMessage(&msg, nullptr, WM_USER, WM_USER, PM_NOREMOVE);
-            cv.notify_all();
+            {
+                std::lock_guard<std::mutex> lock(m_lock);
+                if (stopRequested)
+                {
+                    startupState = StartupState::Failed;
+                    cv.notify_all();
+                    return false;
+                }
+                startupState = StartupState::Ready;
+                cv.notify_all();
+            }
 
             while (GetMessage(&msg, NULL, 0, 0) > 0)
             {
                 switch (msg.message)
                 {
+                case NETDETECTOR_REFRESH:
+                    GetCurrentNetworkCost();
+                    break;
                 case NETDETECTOR_STOP:
                     PostQuitMessage(0);
                     break;
@@ -199,22 +244,21 @@ namespace MAT_NS_BEGIN
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         void NetworkDetector::Reset()
         {
             if (networkStatusCallbackState != nullptr)
             {
-                networkStatusCallbackState->acceptCallbacks.store(false, std::memory_order_release);
+                networkStatusCallbackState->listenerThreadId.store(0, std::memory_order_release);
             }
-            networkStatusChangedHandler.Reset();
-            networkStatusCallbackState.reset();
             if (networkStatusChangedToken.value != 0 && networkInfoStats != nullptr)
             {
                 const auto token = networkStatusChangedToken;
                 networkStatusChangedToken.value = 0;
                 networkInfoStats->remove_NetworkStatusChanged(token);
             }
+            networkStatusChangedHandler.Reset();
             networkInfoStats.Reset();
         }
 
@@ -271,18 +315,34 @@ namespace MAT_NS_BEGIN
         bool NetworkDetector::Start()
         {
             {
-                std::lock_guard<std::mutex> lk(m_lock);
-                if (isRunning)
+                std::unique_lock<std::mutex> lock(m_lock);
+                if (startupState == StartupState::Starting)
+                {
+                    cv.wait(lock, [this]()
+                            { return startupState != StartupState::Starting; });
+                }
+                if (startupState == StartupState::Ready)
                 {
                     LOG_TRACE("NetworkDetector tid=%p is already running", m_listener_tid);
                     return true;
                 }
+
+                lock.unlock();
+                if (netDetectThread.joinable())
+                {
+                    netDetectThread.join();
+                }
+                lock.lock();
+
+                startupState = StartupState::Starting;
+                stopRequested = false;
+                networkStatusCallbackState = std::make_shared<CallbackState>();
                 isRunning = true;
             }
 
             // Start a new thread. Notify waiters on exit.
             netDetectThread = std::thread([this]()
-            {
+                                          {
                 {
                     std::lock_guard<std::mutex> lk(m_lock);
                     m_listener_tid = GetCurrentThreadId();
@@ -293,40 +353,37 @@ namespace MAT_NS_BEGIN
                     std::lock_guard<std::mutex> lk(m_lock);
                     m_listener_tid = 0;
                     isRunning = false;
+                    if (startupState == StartupState::Starting)
+                    {
+                        startupState = StartupState::Failed;
+                    }
+                    else if (startupState == StartupState::Ready)
+                    {
+                        startupState = StartupState::Stopped;
+                    }
                     cv.notify_all();
-                }
-            });
+                } });
 
-            if (netDetectThread.joinable())
             {
                 LOG_TRACE("NetworkDetector is starting...");
+                bool started;
                 {
                     std::unique_lock<std::mutex> lock(m_lock);
-                    // Wait for up to NETDETECTOR_START_TIMEOUT_MS ms until:
-                    // - the listener is subscribed; OR
-                    // - Windows Runtime network information is unavailable
-                    int retry = 1;
-                    constexpr int max_retries = 2;
-                    while (isRunning && cv.wait_for(lock, std::chrono::milliseconds(NETDETECTOR_START_TIMEOUT_MS))
-                           == std::cv_status::timeout && (retry < max_retries))
-                    {
-                        LOG_TRACE("NetworkDetector starting up... [%u]", retry);
-                        retry++;
-                    }
+                    cv.wait(lock, [this]()
+                            { return startupState != StartupState::Starting; });
+                    started = startupState == StartupState::Ready;
                     LOG_TRACE(
                         "NetworkDetector tid=%p running=%u",
                         m_listener_tid,
-                        isRunning.load(std::memory_order_relaxed));
+                        started);
                 }
-            }
-            else
-            {
-                std::lock_guard<std::mutex> lk(m_lock);
-                LOG_WARN("NetworkDetector thread can't be started!");
-                isRunning = false;
-            }
 
-            return isRunning.load(std::memory_order_relaxed);
+                if (!started && netDetectThread.joinable())
+                {
+                    netDetectThread.join();
+                }
+                return started;
+            }
         };
 
         /// <summary>
@@ -336,31 +393,27 @@ namespace MAT_NS_BEGIN
         {
             if (netDetectThread.joinable())
             {
-                std::unique_lock<std::mutex> lk(m_lock);
-                try {
-                    if (!isRunning || m_listener_tid == 0 ||
+                {
+                    std::lock_guard<std::mutex> lock(m_lock);
+                    stopRequested = true;
+                    if (networkStatusCallbackState != nullptr)
+                    {
+                        networkStatusCallbackState->listenerThreadId.store(0, std::memory_order_release);
+                    }
+                    if (startupState == StartupState::Ready &&
                         !PostThreadMessage(m_listener_tid, NETDETECTOR_STOP, 0, NULL))
                     {
-                        // Without detaching, we risk throwing an exception in the destructor.
-                        // There is a chance that our code has finished, but the thread
-                        // hasn't fully terminated, or the thread has already exited and
-                        // isRunning is false. Alternatively, we may have never gotten
-                        // a thread_id.
-                        netDetectThread.detach();
-                        LOG_WARN("NetworkDetector thread unable to be shut down.");
-                    }
-                    else
-                    {
-                        lk.unlock();
-                        netDetectThread.join();
-                        LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
+                        LOG_WARN("NetworkDetector stop message could not be posted.");
                     }
                 }
-                catch (std::system_error &ex)
-                {
-                    UNREFERENCED_PARAMETER(ex);
-                    LOG_WARN("NetworkDetector tid=%p is already stopped.", m_listener_tid);
-                }
+
+                netDetectThread.join();
+
+                std::lock_guard<std::mutex> lock(m_lock);
+                startupState = StartupState::Stopped;
+                stopRequested = false;
+                networkStatusCallbackState.reset();
+                LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
             }
         };
 

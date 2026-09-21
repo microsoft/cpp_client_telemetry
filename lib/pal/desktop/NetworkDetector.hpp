@@ -41,13 +41,20 @@ namespace MAT_NS_BEGIN
                     NetworkCostType costType,
                     boolean roaming,
                     boolean overDataLimit,
-                    boolean approachingDataLimit);
+                    boolean approachingDataLimit,
+                    boolean backgroundDataUsageRestricted);
 
-                class NetworkDetector {
-
-                private:
-
+                class NetworkDetector
+                {
+                   private:
                     struct CallbackState;
+                    enum class StartupState
+                    {
+                        Stopped,
+                        Starting,
+                        Ready,
+                        Failed
+                    };
 
                     /// <summary>
                     /// Current network info stats
@@ -68,6 +75,8 @@ namespace MAT_NS_BEGIN
                     std::condition_variable             cv;
                     std::atomic<bool>                   isRunning{ false };
                     std::thread                         netDetectThread;
+                    StartupState startupState = StartupState::Stopped;
+                    bool stopRequested = false;
 
                     /// <summary>
                     /// 
@@ -131,8 +140,11 @@ namespace MAT_NS_BEGIN
                     /// <returns></returns>
                     NetworkCost GetNetworkCost();
 
+                    /// <summary>
+                    /// Queue the same refresh performed by a WinRT network status callback.
+                    /// </summary>
+                    bool QueueNetworkCostRefresh();
                 };
-
             }
 } MAT_NS_END
 

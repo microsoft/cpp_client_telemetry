@@ -16,7 +16,9 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$TargetPath,
 
-    [string[]]$TargetArguments = @()
+    [string[]]$TargetArguments = @(),
+
+    [string]$BaselinePath
 )
 
 Set-StrictMode -Version Latest
@@ -100,10 +102,50 @@ else {
 }
 $summaries | Export-Csv -LiteralPath $summaryPath -NoTypeInformation
 
+$baselineStatus = "Not compared"
+if ($BaselinePath) {
+    $resolvedBaselinePath = (Resolve-Path -LiteralPath $BaselinePath).Path
+    $baselineRows = @(Import-Csv -LiteralPath $resolvedBaselinePath | Where-Object {
+        $_.Platform -eq $summary.Platform -and $_.Scenario -eq $summary.Scenario
+    })
+    if ($baselineRows.Count -ne 1) {
+        throw "Expected one baseline for $($summary.Platform)/$Scenario, found $($baselineRows.Count)."
+    }
+
+    $regressions = @()
+    foreach ($metric in @(
+        "UniqueLeaks",
+        "TotalLeaks",
+        "LeakBytes",
+        "UniquePossibleLeaks",
+        "TotalPossibleLeaks",
+        "PossibleLeakBytes",
+        "UniqueReachable",
+        "TotalReachable",
+        "ReachableBytes"
+    )) {
+        $currentValue = [int64]$summary.$metric
+        $baselineValue = [int64]$baselineRows[0].$metric
+        if ($currentValue -gt $baselineValue) {
+            $regressions += "$metric increased from $baselineValue to $currentValue"
+        }
+    }
+
+    if ($regressions.Count -eq 0) {
+        $baselineStatus = "At or below baseline"
+    }
+    else {
+        $baselineStatus = "$($regressions.Count) increase(s)"
+        foreach ($regression in $regressions) {
+            Write-Host "::warning title=Dr. Memory regression ($($summary.Platform)/$Scenario)::$regression"
+        }
+    }
+}
+
 $markdown = @"
-| Scenario | Unique leaks | Total leaks | Leak bytes | Unique possible | Possible bytes | Unique reachable | Reachable bytes |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| $Scenario | $($leaks.Unique) | $($leaks.Total) | $($leaks.Bytes) | $($possibleLeaks.Unique) | $($possibleLeaks.Bytes) | $($reachable.Unique) | $($reachable.Bytes) |
+| Scenario | Unique leaks | Total leaks | Leak bytes | Unique possible | Possible bytes | Unique reachable | Reachable bytes | Baseline |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| $Scenario | $($leaks.Unique) | $($leaks.Total) | $($leaks.Bytes) | $($possibleLeaks.Unique) | $($possibleLeaks.Bytes) | $($reachable.Unique) | $($reachable.Bytes) | $baselineStatus |
 "@
 Write-Host $markdown
 if ($env:GITHUB_STEP_SUMMARY) {

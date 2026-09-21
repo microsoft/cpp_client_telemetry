@@ -2,11 +2,14 @@ name: Memory leak analysis
 
 on:
   workflow_dispatch:
+  schedule:
+  - cron: 0 8 * * 1
   push:
     branches:
     - main
     paths:
     - .github/scripts/run-drmemory.ps1
+    - .github/memory-leak-baseline.csv
     - .github/workflows/memory-leak-analysis.yml
     - CMakeLists.txt
     - CMakePresets.json
@@ -25,6 +28,7 @@ on:
     - main
     paths:
     - .github/scripts/run-drmemory.ps1
+    - .github/memory-leak-baseline.csv
     - .github/workflows/memory-leak-analysis.yml
 
 permissions:
@@ -88,6 +92,7 @@ jobs:
         -LogDirectory drmemory-results
         -Scenario unit-tests
         -TargetPath Solutions/out/Debug/x64/UnitTests/UnitTests.exe
+        -BaselinePath .github/memory-leak-baseline.csv
         -TargetArguments "--gtest_filter=-OfflineStorageTests_SQLite.StoreThousandEventsTakesLessThanASecond"
 
     - name: Analyze functional tests
@@ -98,6 +103,7 @@ jobs:
         -LogDirectory drmemory-results
         -Scenario functional-tests
         -TargetPath Solutions/out/Debug/x64/FuncTests/FuncTests.exe
+        -BaselinePath .github/memory-leak-baseline.csv
         -TargetArguments "--gtest_filter=-BasicFuncTests.killSwitchWorks"
 
     - name: Analyze basic sample
@@ -107,6 +113,7 @@ jobs:
         -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Windows-$env:DRMEMORY_VERSION/bin64/drmemory.exe"
         -LogDirectory drmemory-results
         -Scenario sample-cpp-mini
+        -BaselinePath .github/memory-leak-baseline.csv
         -TargetPath Solutions/out/Debug/x64/SampleCppMini/SampleCppMini.exe
 
     - name: Verify Network List Manager is not loaded
@@ -186,6 +193,7 @@ jobs:
         -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Linux-$env:DRMEMORY_VERSION/bin64/drmemory"
         -LogDirectory drmemory-results
         -Scenario unit-tests
+        -BaselinePath .github/memory-leak-baseline.csv
         -TargetPath out/tests/unittests/UnitTests
 
     - name: Analyze functional tests
@@ -196,6 +204,7 @@ jobs:
         -LogDirectory drmemory-results
         -Scenario functional-tests
         -TargetPath out/tests/functests/FuncTests
+        -BaselinePath .github/memory-leak-baseline.csv
         -TargetArguments "--gtest_filter=-BasicFuncTests.killSwitchWorks"
 
     - name: Analyze basic sample
@@ -205,6 +214,7 @@ jobs:
         -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Linux-$env:DRMEMORY_VERSION/bin64/drmemory"
         -LogDirectory drmemory-results
         -Scenario sample-cpp-mini
+        -BaselinePath .github/memory-leak-baseline.csv
         -TargetPath out/sample-cpp-mini/SampleCppMini
 
     - name: Upload Linux reports
