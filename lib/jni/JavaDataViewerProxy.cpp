@@ -168,23 +168,31 @@ namespace MAT_NS_BEGIN
 
     const std::string& JavaDataViewerProxy::GetCurrentEndpoint() const noexcept
     {
-        std::lock_guard<std::mutex> lock(m_endpointMutex);
+        // IDataViewer returns the endpoint by reference, so the referent has to outlive the
+        // call and must not be mutated by a concurrent caller. A thread_local buffer gives
+        // each calling thread its own storage; a shared member guarded by a mutex would not,
+        // because the lock is released before the caller reads the reference.
+        static thread_local std::string currentEndpoint;
+
         bool attached = false;
         auto env = GetEnv(attached);
-        if (env != nullptr)
+        if (env == nullptr)
         {
-            std::string endpoint;
-            if (ReadString(env, m_getCurrentEndpoint, endpoint))
-            {
-                m_currentEndpoint = std::move(endpoint);
-            }
-            else
-            {
-                m_currentEndpoint.clear();
-            }
-            DetachIfNeeded(attached);
+            currentEndpoint.clear();
+            return currentEndpoint;
         }
-        return m_currentEndpoint;
+
+        std::string endpoint;
+        if (ReadString(env, m_getCurrentEndpoint, endpoint))
+        {
+            currentEndpoint = std::move(endpoint);
+        }
+        else
+        {
+            currentEndpoint.clear();
+        }
+        DetachIfNeeded(attached);
+        return currentEndpoint;
     }
 
     JNIEnv* JavaDataViewerProxy::GetEnv(bool& attached) const noexcept

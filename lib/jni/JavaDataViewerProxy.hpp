@@ -9,7 +9,6 @@
 
 #include <jni.h>
 #include <memory>
-#include <mutex>
 #include <string>
 
 namespace MAT_NS_BEGIN
@@ -41,8 +40,6 @@ namespace MAT_NS_BEGIN
         jmethodID m_isTransmissionEnabled = nullptr;
         jmethodID m_getCurrentEndpoint = nullptr;
         std::string m_name;
-        mutable std::mutex m_endpointMutex;
-        mutable std::string m_currentEndpoint;
     };
 
 } MAT_NS_END
