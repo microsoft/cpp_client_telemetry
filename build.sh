@@ -27,8 +27,6 @@ usage()
   exit 0
 }
 
-export PATH=/usr/local/bin:$PATH
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
@@ -162,6 +160,11 @@ if [ ! -f "$BUILD_TOOLS_MARKER" ]; then
   else
     matsdk_mark_buildtools_checked "$BUILD_TOOLS_MARKER"
   fi
+fi
+
+if ! command -v cmake >/dev/null 2>&1 || \
+   [ "$(printf '%s\n' 4.3 "$(cmake --version | head -1 | awk '{print $3}')" | sort -V | head -1)" != "4.3" ]; then
+  export PATH=/usr/local/bin:$PATH
 fi
 
 matsdk_print_compiler_versions
