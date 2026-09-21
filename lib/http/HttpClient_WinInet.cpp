@@ -679,6 +679,13 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         // Latch the scheme before the request handle exists: the SENDING_REQUEST
         // callback uses this to apply the MS-root policy to HTTPS only.
         m_isHttps = (urlc.nScheme == INTERNET_SCHEME_HTTPS);
+        if (m_msRootCheckRequired && m_isHttps)
+        {
+            LOG_ERROR("MS-root certificate policy requires WinHTTP; rejecting WinInet request before sending headers");
+            DispatchEvent(OnConnectFailed);
+            onRequestComplete(ERROR_INTERNET_SEC_INVALID_CERT);
+            return;
+        }
 
         DWORD dwError = ERROR_SUCCESS;
         {

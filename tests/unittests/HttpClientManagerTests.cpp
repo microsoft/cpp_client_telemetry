@@ -60,9 +60,10 @@ class AsyncHttpClientManager4Test : public HttpClientManager {
 
     bool waitForRequestsToDrain(std::chrono::milliseconds timeout)
     {
-        std::unique_lock<std::mutex> lock(m_httpCallbacksMtx);
-        return m_httpCallbacksCV.wait_for(
-            lock, timeout, [this]() { return m_httpCallbacks.empty(); });
+        auto registry = m_callbackRegistry;
+        std::unique_lock<std::mutex> lock(registry->mutex);
+        return registry->drained.wait_for(
+            lock, timeout, [registry]() { return registry->callbacks.empty(); });
     }
 };
 
@@ -151,6 +152,21 @@ class HttpRequestDoneReceiver
 
     RouteSink<HttpRequestDoneReceiver, EventsUploadContextPtr const&>
         sink{this, &HttpRequestDoneReceiver::onRequestDone};
+};
+
+class DestroyingHttpRequestDoneReceiver
+{
+public:
+    void onRequestDone(EventsUploadContextPtr const&)
+    {
+        manager->reset();
+        callbackReturned = true;
+    }
+
+    std::unique_ptr<HttpClientManager4Test>* manager {nullptr};
+    bool callbackReturned {false};
+    RouteSink<DestroyingHttpRequestDoneReceiver, EventsUploadContextPtr const&>
+        sink{this, &DestroyingHttpRequestDoneReceiver::onRequestDone};
 };
 
 class HttpClientManagerTests : public StrictMock<Test> {
@@ -553,6 +569,31 @@ TEST(HttpClientManagerAsyncTests, DestructorWaitsForActiveCallback)
     EXPECT_TRUE(delivery.waitFor(1));
 }
 
+TEST(HttpClientManagerTestsLifetime, RequestDoneCanDestroyManager)
+{
+    MockIHttpClient httpClient;
+    auto manager = std::make_unique<HttpClientManager4Test>(httpClient);
+    DestroyingHttpRequestDoneReceiver receiver;
+    receiver.manager = &manager;
+    manager->requestDone >> receiver.sink;
+
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("destroy-from-request-done");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(httpClient, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    manager->sendRequest(ctx);
+    ASSERT_THAT(callback, NotNull());
+
+    callback->OnHttpResponse(
+        new SimpleHttpResponse("destroy-from-request-done"));
+
+    EXPECT_TRUE(receiver.callbackReturned);
+    EXPECT_THAT(manager, IsNull());
+}
+
 #ifndef _WIN32
 TEST(HttpClientManagerAsyncTests, DroppedResponseTaskCompletesInline)
 {
@@ -622,7 +663,7 @@ TEST_F(HttpClientManagerTests, CancelAllRequests_TimesOutInsteadOfHanging)
     hcm.sendRequest(ctx);
     ASSERT_THAT(callback, NotNull());
 
-    // The response never arrives, so the callback never drains from m_httpCallbacks.
+    // The response never arrives, so the callback never drains from the registry.
     // The best-effort (pause) drain must still return, bounded by the drain timeout,
     // rather than block forever. MockIHttpClient does not implement the bounded
     // cancel capability, so HttpClientManager falls back to per-request async cancel

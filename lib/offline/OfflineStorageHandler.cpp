@@ -278,6 +278,7 @@ namespace MAT_NS_BEGIN {
                     // Drain only the records present when this flush started so
                     // producers cannot keep the flush alive indefinitely.
                     size_t recordsRemaining = m_offlineStorageMemory->GetRecordCount();
+                    std::vector<StorageRecord> memoryOnlyRecords;
                     while (recordsRemaining > 0)
                     {
                         recordsToRecover = m_offlineStorageMemory->GetRecords(
@@ -296,11 +297,11 @@ namespace MAT_NS_BEGIN {
                             {
                                 return record.persistence != EventPersistence_DoNotStoreOnDisk;
                             });
-                        std::vector<StorageRecord> memoryOnlyRecords(
+                        memoryOnlyRecords.insert(
+                            memoryOnlyRecords.end(),
                             std::make_move_iterator(memoryOnlyBegin),
                             std::make_move_iterator(recordsToRecover.end()));
                         recordsToRecover.erase(memoryOnlyBegin, recordsToRecover.end());
-                        ReturnRecordsToMemory(memoryOnlyRecords);
 
                         recordsToRecover.erase(
                             std::remove_if(recordsToRecover.begin(), recordsToRecover.end(),
@@ -330,6 +331,7 @@ namespace MAT_NS_BEGIN {
                         totalSaved += batchSaved;
                         recordsToRecover.clear();
                     }
+                    ReturnRecordsToMemory(memoryOnlyRecords);
                 }
                 else
                 {

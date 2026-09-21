@@ -142,13 +142,17 @@ private:
         {
             if (m_started && m_hooks.end != nullptr)
             {
+#if HAVE_EXCEPTIONS
                 try
                 {
+#endif
                     m_hooks.end();
+#if HAVE_EXCEPTIONS
                 }
                 catch (...)
                 {
                 }
+#endif
             }
         }
 
@@ -563,19 +567,24 @@ cleanup:
             std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
             if (m_sendAttempted)
             {
-                throw std::logic_error("CurlHttpOperation is single-use");
+                MATSDK_THROW(std::logic_error("CurlHttpOperation is single-use"));
             }
             m_sendAttempted = true;
 
+#if HAVE_EXCEPTIONS
             try
             {
+#endif
                 m_worker = std::thread([this, callback]() {
                     {
                         std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
                     }
+#if HAVE_EXCEPTIONS
                     try
                     {
+#endif
                         Send();
+#if HAVE_EXCEPTIONS
                     }
                     catch (...)
                     {
@@ -584,14 +593,17 @@ cleanup:
                         m_transportError = CURLE_FAILED_INIT;
                         m_setupError = CURLE_FAILED_INIT;
                     }
+#endif
                     Complete(callback);
                 });
                 return;
+#if HAVE_EXCEPTIONS
             }
             catch (...)
             {
                 // Callable allocation/copy or std::thread creation failed.
             }
+#endif
         }
 
         m_transportError = CURLE_FAILED_INIT;
@@ -814,14 +826,18 @@ protected:
     {
         if (!m_destroyEventDispatched.exchange(true, std::memory_order_acq_rel))
         {
+#if HAVE_EXCEPTIONS
             try
             {
+#endif
                 DispatchEvent(OnDestroy);
+#if HAVE_EXCEPTIONS
             }
             catch (...)
             {
                 // State observers must not terminate the worker or destructor.
             }
+#endif
         }
     }
 
@@ -837,17 +853,21 @@ protected:
         // The completion callback can release the last owner, so this must remain
         // the worker's final access to the operation.
         DispatchDestroyEvent();
+#if HAVE_EXCEPTIONS
         try
         {
+#endif
             if (callback != nullptr)
             {
                 callback(*this);
             }
+#if HAVE_EXCEPTIONS
         }
         catch (...)
         {
             // Match the old unobserved-future behavior at the thread boundary.
         }
+#endif
     }
 
     template <typename T>

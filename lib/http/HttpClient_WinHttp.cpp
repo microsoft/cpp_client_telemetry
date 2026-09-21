@@ -670,6 +670,10 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             return;
         }
 
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
         bool failed = false;
         DWORD dwError = ERROR_SUCCESS;
         {
@@ -686,6 +690,17 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
         // park the next step instead of issuing it while the setup lock was
         // still held. Run whatever it parked now that the lock is gone.
         runPump();
+#if HAVE_EXCEPTIONS
+        }
+        catch (...)
+        {
+            // Registration transferred callback responsibility to this wrapper.
+            // Convert every later setup exception into terminal completion so
+            // the caller never treats the callback as rejected while native
+            // state can still invoke it.
+            abortRequest(ERROR_NOT_ENOUGH_MEMORY);
+        }
+#endif
     }
 
     // Returns true if the request was handed off to WinHTTP asynchronously.

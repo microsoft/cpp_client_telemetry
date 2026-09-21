@@ -250,8 +250,12 @@ namespace PAL_NS_BEGIN {
             return false;
         }
 
+        if (!m_cancelFn(taskId.c_str()))
+        {
+            return false;
+        }
+
         const bool wasRunning = capiTask->RequestCancel();
-        m_cancelFn(taskId.c_str());
         if (!wasRunning)
         {
             LOCKGUARD(s_tasksLock);

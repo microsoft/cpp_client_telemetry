@@ -125,6 +125,14 @@ else()
 endif()
 
 file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_ROOT_CMAKE)
+if(VCPKG_TARGET_IS_WINDOWS
+   AND NOT MATSDK_ROOT_CMAKE MATCHES "MATSDK_USE_WININET")
+  message(FATAL_ERROR
+    "This port revision requires a cpp-client-telemetry source revision that "
+    "supports MATSDK_USE_WININET so the Windows transport selection is explicit. "
+    "Update this port's REF/SHA512 to a newer SDK release, or set "
+    "MATSDK_VCPKG_SOURCE_DIR to a local checkout containing that option.")
+endif()
 set(MATSDK_PINNED_SOURCE_OPTIONS)
 if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_USE_VCPKG_DEPS")
   list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_USE_VCPKG_DEPS=ON)

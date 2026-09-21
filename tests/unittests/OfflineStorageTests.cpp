@@ -489,6 +489,64 @@ TEST(OfflineStorageHandlerFlushTests, BatchedFlushLimitsEachDiskWrite)
     handler.Flush();
 }
 
+TEST(OfflineStorageHandlerFlushTests, BatchedFlushDefersMemoryOnlyRequeueUntilSnapshotIsDrained)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 5000;
+
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*memory, Initialize(Ref(handler))).WillOnce(Return());
+    EXPECT_CALL(*disk, Initialize(Ref(handler))).WillOnce(Return());
+    handler.Initialize(observer);
+
+    std::vector<StorageRecord> firstBatch;
+    std::vector<StorageRecord> secondBatch;
+    for (size_t i = 0; i < 4000; ++i)
+    {
+        StorageRecord record(
+            "memory-only-" + std::to_string(i), "tenant-token",
+            EventLatency_Normal, EventPersistence_DoNotStoreOnDisk, 1,
+            std::vector<uint8_t>{'x'});
+        (i < 2000 ? firstBatch : secondBatch).push_back(std::move(record));
+    }
+    std::vector<StorageRecord> finalBatch {
+        StorageRecord(
+            "persistent", "tenant-token", EventLatency_Normal,
+            EventPersistence_Normal, 1, std::vector<uint8_t>{'y'})
+    };
+
+    EXPECT_CALL(*memory, GetSize())
+        .WillOnce(Return(static_cast<size_t>(4001)))
+        .WillOnce(Return(static_cast<size_t>(4000)));
+    EXPECT_CALL(*memory, GetRecordCount(EventLatency_Unspecified))
+        .WillOnce(Return(static_cast<size_t>(4001)));
+
+    {
+        InSequence sequence;
+        EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
+            .WillOnce(Return(firstBatch));
+        EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
+            .WillOnce(Return(secondBatch));
+        EXPECT_CALL(*memory, GetRecords(false, EventLatency_Unspecified, 2000))
+            .WillOnce(Return(finalBatch));
+        EXPECT_CALL(*disk, StoreRecords(_)).WillOnce(Return(1));
+        EXPECT_CALL(*memory, StoreRecord(_))
+            .Times(4000)
+            .WillRepeatedly(Return(true));
+    }
+    EXPECT_CALL(observer, OnStorageRecordsSaved(1));
+
+    handler.Flush();
+}
+
 TEST(OfflineStorageHandlerFlushTests, FailedBatchRequeuesOnlyThatBatch)
 {
     NullLogManager logManager;

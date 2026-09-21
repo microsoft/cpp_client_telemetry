@@ -385,6 +385,26 @@ TEST_F(HttpClientTests, DisablesRedirectsWhenMicrosoftRootCheckIsEnabled)
     EXPECT_THAT(_responses[0]->GetStatusCode(), 302u);
 }
 
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+TEST_F(HttpClientTests, WinInetRejectsMicrosoftRootPolicyBeforeNetworkSend)
+{
+    auto windowsClient = dynamic_cast<HttpClient_WinInet*>(_client.get());
+    ASSERT_THAT(windowsClient, NotNull());
+    windowsClient->SetMsRootCheck(true);
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    request->SetUrl("https://" + _hostname + "/echo/");
+    request->GetHeaders().add("APIKey", "must-not-leave-process");
+    _client->SendRequestAsync(request.release(), this);
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(2),
+        [this]() { return !_responses.empty(); }));
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_NetworkFailure);
+}
+#endif
+
 #if defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
 TEST_F(HttpClientTests, WinHttpDoesNotReplayResponseCookies)
 {

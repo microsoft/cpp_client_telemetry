@@ -40,13 +40,9 @@ class HttpClientManager
 
         size_t requestCount() const
         {
-            // Access to m_httpCallbacks must be serialized via m_httpCallbacksMtx.
-            // Without the lock this is a std::list data race vs onHttpResponse,
-            // handleSendRequest, and cancelAllRequests (same UB class as the
-            // empty()-check bug fixed in cancelAllRequests). The mutex is
-            // declared mutable below so a const observer can take it.
-            LOCKGUARD(m_httpCallbacksMtx);
-            return m_httpCallbacks.size();
+            auto registry = m_callbackRegistry;
+            LOCKGUARD(registry->mutex);
+            return registry->callbacks.size();
         }
 
         RouteSource<EventsUploadContextPtr const&> requestDone;
@@ -60,6 +56,13 @@ class HttpClientManager
 
     protected:
         class HttpCallback;
+        struct CallbackRegistry
+        {
+            mutable std::mutex mutex;
+            std::list<HttpCallback*> callbacks;
+            std::map<HttpCallback*, std::thread::id> activeCallbacks;
+            std::condition_variable drained;
+        };
 
         void handleSendRequest(EventsUploadContextPtr const& ctx);
         virtual void scheduleOnHttpResponse(HttpCallback* callback);
@@ -74,12 +77,8 @@ class HttpClientManager
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;
         ITaskDispatcher&          m_taskDispatcher;
-        mutable std::mutex           m_httpCallbacksMtx;
-        std::list<HttpCallback*>  m_httpCallbacks;
-        std::map<HttpCallback*, std::thread::id> m_activeHttpCallbacks;
-        // Signaled from onHttpResponse when a callback is removed, so cancelAllRequests
-        // can drain via a condition variable instead of a poll loop.
-        std::condition_variable      m_httpCallbacksCV;
+        std::shared_ptr<CallbackRegistry> m_callbackRegistry {
+            std::make_shared<CallbackRegistry>()};
         // Configured soft cap on the best-effort pause drain. One native handle
         // close already in progress may finish after it. Non-reentrant full
         // shutdown remains a lifetime barrier and waits for every accepted

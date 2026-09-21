@@ -245,8 +245,10 @@ namespace MAT_NS_BEGIN {
         {
             state->noteOperationCreated();
             CurlHttpOperation* raw = nullptr;
+#if HAVE_EXCEPTIONS
             try
             {
+#endif
                 raw = new CurlHttpOperation(
                     std::move(method), std::move(url), callback,
                     std::move(requestHeaders), std::move(requestBody),
@@ -258,12 +260,14 @@ namespace MAT_NS_BEGIN {
                     // Tracked operations defer OnCreated/OnCreateFailed until
                     // after registration so a reentrant cancel can find them.
                     true);
+#if HAVE_EXCEPTIONS
             }
             catch (...)
             {
                 state->noteOperationDestroyed();
                 throw;
             }
+#endif
 
             // If control-block allocation fails, shared_ptr invokes this
             // deleter before propagating the exception.
@@ -334,12 +338,15 @@ namespace MAT_NS_BEGIN {
         }
 
         std::shared_ptr<CurlHttpOperation> operation;
+#if HAVE_EXCEPTIONS
         try
         {
+#endif
             operation = MakeTrackedOperation(
                 state, std::move(method), std::move(url), callback,
                 std::move(requestHeaders), std::move(body),
                 HTTP_CONN_TIMEOUT, sslVerify, std::move(sslCaInfo));
+#if HAVE_EXCEPTIONS
         }
         catch (const std::exception&)
         {
@@ -350,6 +357,7 @@ namespace MAT_NS_BEGIN {
             callback->OnHttpResponse(response.release());
             return;
         }
+#endif
 
         auto completion = [state, operation, callback, requestId](CurlHttpOperation& op) {
             // Account for this callback before anything else, so a drain that
@@ -399,8 +407,10 @@ namespace MAT_NS_BEGIN {
         // this operation, and it is accounted as a callback via the operation
         // hooks so a concurrent drain observes it.
         bool startWorker = false;
+#if HAVE_EXCEPTIONS
         try
         {
+#endif
             operation->DispatchDeferredCreationEvent();
 
             // Re-evaluate the send decision after the creation event. A fast
@@ -417,6 +427,7 @@ namespace MAT_NS_BEGIN {
                 // complete exactly one Aborted terminal, no worker, no socket.
                 operation->Abort();
             }
+#if HAVE_EXCEPTIONS
         }
         catch (...)
         {
@@ -424,6 +435,7 @@ namespace MAT_NS_BEGIN {
             operation->Abort();
             startWorker = false;
         }
+#endif
 
         if (!startWorker)
         {

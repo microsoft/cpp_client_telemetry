@@ -58,7 +58,10 @@ namespace MAT_NS_BEGIN {
             std::string const requestId;
         };
 
-        HttpCallback(HttpClientManager& hcm, EventsUploadContextPtr const& ctx)
+        HttpCallback(
+            HttpClientManager& hcm,
+            EventsUploadContextPtr const& ctx,
+            std::shared_ptr<CallbackRegistry> registry)
             : m_hcm(hcm),
             m_ctx(ctx),
             m_startTime(PAL::getMonotonicTimeMs()),
@@ -67,7 +70,8 @@ namespace MAT_NS_BEGIN {
                     ? ctx->httpRequestId
                     : (ctx->httpRequest != nullptr
                         ? ctx->httpRequest->GetId()
-                        : std::string())))
+                        : std::string()))),
+            m_registry(std::move(registry))
         {
         }
 
@@ -118,6 +122,7 @@ namespace MAT_NS_BEGIN {
         EventsUploadContextPtr  m_ctx;
         int64_t                 m_startTime;
         std::shared_ptr<CompletionState> m_completion;
+        std::shared_ptr<CallbackRegistry> m_registry;
     };
 
     //---
@@ -140,29 +145,17 @@ namespace MAT_NS_BEGIN {
 
     HttpClientManager::~HttpClientManager() noexcept
     {
-        // HttpCallback and scheduled response tasks retain a reference to this
-        // manager, so non-reentrant destruction must be a full callback lifetime
-        // barrier. Reentrant destruction is unsupported because the active
-        // callback itself must still unwind through this object.
-#ifndef NDEBUG
-        {
-            std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
-            for (auto const& active : m_activeHttpCallbacks)
-            {
-                assert(active.second != std::this_thread::get_id());
-            }
-        }
-#endif
         cancelAllRequests();
     }
 
     void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
     {
-        HttpCallback *callback = new HttpCallback(*this, ctx);
+        auto registry = m_callbackRegistry;
+        HttpCallback *callback = new HttpCallback(*this, ctx, registry);
         auto completion = callback->m_completion;
         {
-            LOCKGUARD(m_httpCallbacksMtx);
-            m_httpCallbacks.push_back(callback);
+            LOCKGUARD(registry->mutex);
+            registry->callbacks.push_back(callback);
         }
 
         LOG_INFO("Uploading %u event(s) of priority %d (%s) for %u tenant(s) in HTTP request %s (approx. %u bytes)...",
@@ -251,18 +244,20 @@ namespace MAT_NS_BEGIN {
     /* This method may get executed synchronously on Windows from handleSendRequest in case of connection failure */
     void HttpClientManager::onHttpResponse(HttpCallback* callback)
     {
+        auto registry = callback->m_registry;
         {
-            std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
-            auto z = std::find(m_httpCallbacks.cbegin(), m_httpCallbacks.cend(), callback);
-            if (z == m_httpCallbacks.end()) {
+            std::lock_guard<std::mutex> lock(registry->mutex);
+            auto z = std::find(
+                registry->callbacks.cbegin(), registry->callbacks.cend(), callback);
+            if (z == registry->callbacks.end()) {
                 LOG_ERROR("Ignoring untracked HTTP callback=%p", callback);
                 return;
             }
-            m_activeHttpCallbacks[callback] = std::this_thread::get_id();
-            m_httpCallbacksCV.notify_all();
+            registry->activeCallbacks[callback] = std::this_thread::get_id();
+            registry->drained.notify_all();
         }
 
-        EventsUploadContextPtr &ctx = callback->m_ctx;
+        EventsUploadContextPtr ctx = callback->m_ctx;
 
 #if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
         // Response may be null if request got aborted
@@ -274,7 +269,7 @@ namespace MAT_NS_BEGIN {
         }
 #endif
 
-        // Never hold m_httpCallbacksMtx while calling the transport or
+        // Never hold the callback-registry mutex while calling the transport or
         // dispatching requestDone(): either path may synchronously re-enter this
         // manager. Reentrant cancellation recognizes this callback as active
         // and does not wait for its own stack to unwind.
@@ -300,13 +295,11 @@ namespace MAT_NS_BEGIN {
         // request done should be handled by now
 
         {
-            std::lock_guard<std::mutex> lock(m_httpCallbacksMtx);
+            std::lock_guard<std::mutex> lock(registry->mutex);
             LOG_TRACE("HTTP remove callback=%p", callback);
-            m_httpCallbacks.remove(callback);
-            m_activeHttpCallbacks.erase(callback);
-            // Wake cancelAllRequests() waiting for the list to drain while the
-            // condition variable is still guaranteed to be alive.
-            m_httpCallbacksCV.notify_all();
+            registry->callbacks.remove(callback);
+            registry->activeCallbacks.erase(callback);
+            registry->drained.notify_all();
         }
 
         delete callback;
@@ -406,9 +399,10 @@ namespace MAT_NS_BEGIN {
     void HttpClientManager::cancelTrackedRequestsAsync()
     {
         std::vector<std::string> requestIds;
+        auto registry = m_callbackRegistry;
         {
-            LOCKGUARD(m_httpCallbacksMtx);
-            for (const auto& callback : m_httpCallbacks)
+            LOCKGUARD(registry->mutex);
+            for (const auto& callback : registry->callbacks)
             {
                 if (callback == nullptr || callback->m_ctx == nullptr)
                 {
@@ -461,17 +455,18 @@ namespace MAT_NS_BEGIN {
             cancelTrackedRequestsAsync();
             return;
         }
-        // Quiesce the transport before taking m_httpCallbacksMtx. Moving this
+        // Quiesce the transport before taking the callback-registry mutex. Moving this
         // call under the mutex deadlocks when a synchronous transport completion
         // re-enters onHttpResponse().
         const auto cancelStart = std::chrono::steady_clock::now();
         cancelAllRequestsAsync(bestEffort ? m_cancelDrainTimeout : std::chrono::milliseconds::zero());
 
         // Drain callbacks through the condition variable signaled by onHttpResponse.
-        std::unique_lock<std::mutex> lock(m_httpCallbacksMtx);
+        auto registry = m_callbackRegistry;
+        std::unique_lock<std::mutex> lock(registry->mutex);
         std::thread::id const callerThread = std::this_thread::get_id();
-        auto callbacksDrainedForCaller = [this, callerThread] {
-            for (auto const& active : m_activeHttpCallbacks)
+        auto callbacksDrainedForCaller = [registry, callerThread] {
+            for (auto const& active : registry->activeCallbacks)
             {
                 if (active.second == callerThread)
                 {
@@ -482,7 +477,7 @@ namespace MAT_NS_BEGIN {
                     return true;
                 }
             }
-            return m_httpCallbacks.empty();
+            return registry->callbacks.empty();
         };
         if (bestEffort)
         {
@@ -493,11 +488,11 @@ namespace MAT_NS_BEGIN {
                 std::chrono::steady_clock::now() - cancelStart);
             const auto remaining = (elapsed < m_cancelDrainTimeout)
                 ? (m_cancelDrainTimeout - elapsed) : std::chrono::milliseconds::zero();
-            if (!m_httpCallbacksCV.wait_for(
+            if (!registry->drained.wait_for(
                     lock, remaining, callbacksDrainedForCaller))
             {
                 LOG_WARN("cancelAllRequests: %zu callback(s) still draining after %lld ms (best-effort)",
-                         m_httpCallbacks.size(), static_cast<long long>(m_cancelDrainTimeout.count()));
+                         registry->callbacks.size(), static_cast<long long>(m_cancelDrainTimeout.count()));
             }
         }
         else
@@ -505,7 +500,7 @@ namespace MAT_NS_BEGIN {
             // Non-reentrant shutdown/cleanup is the lifetime barrier for callback
             // state. A callback re-entering cancellation must return so its own
             // stack can unwind; destroying the manager from that stack is unsupported.
-            m_httpCallbacksCV.wait(lock, callbacksDrainedForCaller);
+            registry->drained.wait(lock, callbacksDrainedForCaller);
         }
     }
 

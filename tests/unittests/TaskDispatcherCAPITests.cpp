@@ -293,6 +293,7 @@ namespace
         std::string taskId;
         task_callback_fn_t callback = nullptr;
         std::atomic<bool> cancelCalled{false};
+        bool cancelAccepted = true;
     };
 
     static std::unique_ptr<DeferredExecutionState> s_deferredExecutionState;
@@ -306,7 +307,8 @@ namespace
     bool EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherCancel(const char* taskId)
     {
         s_deferredExecutionState->cancelCalled.store(true, std::memory_order_release);
-        return (s_deferredExecutionState->taskId == taskId);
+        return s_deferredExecutionState->cancelAccepted &&
+            s_deferredExecutionState->taskId == taskId;
     }
 
     void EVTSDK_LIBABI_CDECL OnDeferredTaskDispatcherJoin()
@@ -379,6 +381,40 @@ TEST(TaskDispatcherCAPITests, CancelWaitsForCallbackAlreadyInProgress)
 
     EXPECT_TRUE(cancelWasWaiting);
     EXPECT_TRUE(cancelResult);
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    s_deferredExecutionState.reset();
+}
+
+TEST(TaskDispatcherCAPITests, RejectedCancellationLeavesTaskRunnable)
+{
+    TaskDispatcher_CAPI taskDispatcher(
+        &OnDeferredTaskDispatcherQueue,
+        &OnDeferredTaskDispatcherCancel,
+        &OnDeferredTaskDispatcherJoin);
+    s_deferredExecutionState.reset(new DeferredExecutionState());
+    s_deferredExecutionState->cancelAccepted = false;
+
+    bool callbackRan = false;
+    class CallbackTarget
+    {
+    public:
+        explicit CallbackTarget(bool& callbackRan) : callbackRan(callbackRan) {}
+        void Callback(int, int) { callbackRan = true; }
+    private:
+        bool& callbackRan;
+    } target(callbackRan);
+
+    auto handle = scheduleTask(
+        &taskDispatcher, 100, &target, &CallbackTarget::Callback, 1, 2);
+
+    EXPECT_FALSE(handle.Cancel());
+    ASSERT_NE(handle.GetTask(), nullptr);
+    ASSERT_NE(s_deferredExecutionState->callback, nullptr);
+
+    s_deferredExecutionState->callback(
+        s_deferredExecutionState->taskId.c_str());
+
+    EXPECT_TRUE(callbackRan);
     EXPECT_EQ(handle.GetTask(), nullptr);
     s_deferredExecutionState.reset();
 }

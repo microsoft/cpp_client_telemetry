@@ -104,8 +104,17 @@ namespace PAL_NS_BEGIN {
     public:
         void Join() final
         {
-            LOCKGUARD(m_joinLock);
             std::thread::id this_id = std::this_thread::get_id();
+            {
+                LOCKGUARD(m_lock);
+                if (m_workerId == this_id)
+                {
+                    enqueueShutdownItemLocked();
+                    return;
+                }
+            }
+
+            LOCKGUARD(m_joinLock);
             std::thread threadToJoin;
             bool joined = false;
             {
@@ -114,12 +123,9 @@ namespace PAL_NS_BEGIN {
                 if (!m_hThread.joinable()) {
                     return;
                 }
-                if (m_hThread.get_id() == this_id) {
-                    m_hThread.detach();
-                } else {
-                    threadToJoin = std::move(m_hThread);
-                }
+                threadToJoin = std::move(m_hThread);
             }
+#if HAVE_EXCEPTIONS
             try {
                 if (threadToJoin.joinable()) {
                     threadToJoin.join();
@@ -136,11 +142,15 @@ namespace PAL_NS_BEGIN {
                 LOG_ERROR("Thread join/detach failed: %s", e.what());
                 std::terminate();
             }
+#else
+            if (threadToJoin.joinable()) {
+                threadToJoin.join();
+                joined = true;
+            }
+#endif
 
             // Clean up any tasks remaining in the queues after shutdown.
             // Only safe after join() — the thread has fully exited.
-            // After detach(), the thread still needs the shutdown item
-            // and may still be accessing the queues.
             if (joined) {
                 drainPendingTasks();
             }
@@ -163,6 +173,7 @@ namespace PAL_NS_BEGIN {
             {
                 enqueueShutdownItemLocked();
                 m_disposeFromThread.store(true, std::memory_order_release);
+#if HAVE_EXCEPTIONS
                 try {
                     if (m_hThread.joinable()) {
                         m_hThread.detach();
@@ -172,6 +183,11 @@ namespace PAL_NS_BEGIN {
                     (void)e;
                     LOG_ERROR("Worker self-detach failed: %s", e.what());
                 }
+#else
+                if (m_hThread.joinable()) {
+                    m_hThread.detach();
+                }
+#endif
                 return false;
             }
             return true;

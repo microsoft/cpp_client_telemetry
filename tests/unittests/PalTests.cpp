@@ -604,6 +604,69 @@ namespace
             done->store(true);
         }
     };
+
+    class SelfJoinTarget
+    {
+    public:
+        explicit SelfJoinTarget(ITaskDispatcher* dispatcher)
+            : m_dispatcher(dispatcher)
+        {
+        }
+
+        void Run()
+        {
+            {
+                std::unique_lock<std::mutex> lock(m_lock);
+                m_entered = true;
+                m_changed.notify_all();
+                m_changed.wait(lock, [this]() { return m_allowJoin; });
+            }
+
+            m_dispatcher->Join();
+
+            std::unique_lock<std::mutex> lock(m_lock);
+            m_joinReturned = true;
+            m_changed.notify_all();
+            m_changed.wait(lock, [this]() { return m_allowReturn; });
+        }
+
+        bool WaitUntilEntered()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            return m_changed.wait_for(
+                lock, std::chrono::seconds(5), [this]() { return m_entered; });
+        }
+
+        bool WaitUntilJoinReturns()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            return m_changed.wait_for(
+                lock, std::chrono::seconds(5), [this]() { return m_joinReturned; });
+        }
+
+        void AllowJoin()
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_allowJoin = true;
+            m_changed.notify_all();
+        }
+
+        void AllowReturn()
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_allowReturn = true;
+            m_changed.notify_all();
+        }
+
+    private:
+        ITaskDispatcher* m_dispatcher;
+        std::mutex m_lock;
+        std::condition_variable m_changed;
+        bool m_entered = false;
+        bool m_allowJoin = false;
+        bool m_joinReturned = false;
+        bool m_allowReturn = false;
+    };
 }
 
 TEST_F(PalTests, ScheduleTaskAfterWorkerThreadJoinReturnsNoOpHandle)
@@ -723,6 +786,54 @@ TEST_F(PalTests, WorkerThreadSelfDisposeOnOwnThreadIsSafe)
     ASSERT_TRUE(done.load());
 
     PAL::sleep(200);
+}
+
+TEST_F(PalTests, WorkerThreadSelfJoinDoesNotDeadlockExternalJoin)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    SelfJoinTarget target(dispatcher.get());
+    PAL::dispatchTask(dispatcher.get(), &target, &SelfJoinTarget::Run);
+    ASSERT_TRUE(target.WaitUntilEntered());
+
+    std::promise<void> externalJoinStarted;
+    auto externalJoinStartedFuture = externalJoinStarted.get_future();
+    std::thread externalJoiner([&]() {
+        externalJoinStarted.set_value();
+        dispatcher->Join();
+    });
+    ASSERT_EQ(
+        externalJoinStartedFuture.wait_for(std::chrono::seconds(2)),
+        std::future_status::ready);
+
+    PAL::sleep(50);
+    target.AllowJoin();
+    ASSERT_TRUE(target.WaitUntilJoinReturns());
+    target.AllowReturn();
+    externalJoiner.join();
+}
+
+TEST_F(PalTests, WorkerThreadSelfJoinSurvivesConcurrentFinalRelease)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    SelfJoinTarget target(dispatcher.get());
+    PAL::dispatchTask(dispatcher.get(), &target, &SelfJoinTarget::Run);
+    ASSERT_TRUE(target.WaitUntilEntered());
+
+    target.AllowJoin();
+    ASSERT_TRUE(target.WaitUntilJoinReturns());
+
+    std::atomic<bool> releaseReturned(false);
+    std::thread releaser(
+        [owner = std::move(dispatcher), &releaseReturned]() mutable {
+            owner.reset();
+            releaseReturned.store(true, std::memory_order_release);
+        });
+
+    PAL::sleep(100);
+    EXPECT_FALSE(releaseReturned.load(std::memory_order_acquire));
+    target.AllowReturn();
+    releaser.join();
+    EXPECT_TRUE(releaseReturned.load(std::memory_order_acquire));
 }
 
 #ifdef HAVE_MAT_LOGGING
