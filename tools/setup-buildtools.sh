@@ -19,7 +19,8 @@ aarch64|arm64)
   CMAKE_SHA256=9ca1aadb4451c5dcbdc67f9b4aff42dab52abbaebd8db9e2900026502dbed671
   ;;
 *)
-  echo "Unsupported architecture for prebuilt CMake: $(uname -m)" >&2
+  echo "No prebuilt CMake is configured for $(uname -m)." >&2
+  echo "Install CMake 4.3 or newer and rerun the build." >&2
   exit 1
   ;;
 esac
