@@ -125,8 +125,13 @@ else()
 endif()
 
 file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_ROOT_CMAKE)
+set(MATSDK_OPTION_SOURCE "${MATSDK_ROOT_CMAKE}")
+if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
+  file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake" MATSDK_OPTIONS_CMAKE)
+  string(APPEND MATSDK_OPTION_SOURCE "\n${MATSDK_OPTIONS_CMAKE}")
+endif()
 if(VCPKG_TARGET_IS_WINDOWS
-   AND NOT MATSDK_ROOT_CMAKE MATCHES "MATSDK_USE_WININET")
+   AND NOT MATSDK_OPTION_SOURCE MATCHES "MATSDK_USE_WININET")
   message(FATAL_ERROR
     "This port revision requires a cpp-client-telemetry source revision that "
     "supports MATSDK_USE_WININET so the Windows transport selection is explicit. "
