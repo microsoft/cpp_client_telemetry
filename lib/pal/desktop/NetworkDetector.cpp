@@ -225,12 +225,12 @@ namespace MAT_NS_BEGIN
 
             while (true)
             {
-                const DWORD waitResult = MsgWaitForMultipleObjects(
+                const DWORD waitResult = MsgWaitForMultipleObjectsEx(
                     1,
                     &stopEvent,
-                    FALSE,
                     INFINITE,
-                    QS_ALLINPUT);
+                    QS_ALLINPUT,
+                    MWMO_INPUTAVAILABLE);
                 if (waitResult == WAIT_OBJECT_0)
                 {
                     break;
