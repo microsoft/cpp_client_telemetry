@@ -61,11 +61,13 @@ jobs:
       run: bash tests/headers/check_public_headers.sh
 
   no-exceptions:
-    name: Linux library without C++ exceptions
+    name: Linux Curl without C++ exceptions
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Install Curl development package
+      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
     - name: Configure
       run: >-
         cmake -S . -B out-no-exceptions
@@ -74,7 +76,6 @@ jobs:
         -DMATSDK_BUILD_UNIT_TESTS=OFF
         -DMATSDK_BUILD_FUNC_TESTS=OFF
         -DMATSDK_BUILD_TEST_TOOL=OFF
-        -DMATSDK_BUILD_EXAMPLES=OFF
     - name: Compile Curl transport
       run: >-
         make -C out-no-exceptions
