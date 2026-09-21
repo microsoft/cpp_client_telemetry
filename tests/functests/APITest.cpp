@@ -1351,7 +1351,11 @@ TEST(APITest, LogConfiguration_MsRoot_Check)
     std::list<std::tuple<std::string, bool, unsigned>> testParams =
         {
             {"https://v10.events.data.microsoft.com/OneCollector/1.0/", false, 1},   // MS-Rooted, no MS-Root check:     post succeeds
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 0},    // WinInet cannot safely enforce the policy before sending
+#else
             {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 1},    // MS-Rooted, MS-Root check:        post succeeds
+#endif
             {"https://mobile.events.data.microsoft.com/OneCollector/1.0/", false, 1},  // Non-MS rooted, no MS-Root check: post succeeds
             {"https://mobile.events.data.microsoft.com/OneCollector/1.0/", true, 0}    // Non-MS rooted, MS-Root check:    post fails
         };
