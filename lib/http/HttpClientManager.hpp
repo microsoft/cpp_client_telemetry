@@ -67,7 +67,6 @@ class HttpClientManager
         };
 
         void handleSendRequest(EventsUploadContextPtr const& ctx);
-        void notifyRequestFailure(EventsUploadContextPtr const& ctx) noexcept;
         void cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());
         void cancelTrackedRequestsAsync();
         void detachCallbacks();

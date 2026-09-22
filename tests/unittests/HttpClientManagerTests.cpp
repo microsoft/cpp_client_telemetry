@@ -221,6 +221,39 @@ public:
         sink{this, &ConcurrentDestroyingHttpRequestDoneReceiver::onRequestDone};
 };
 
+#if HAVE_EXCEPTIONS
+class DestroyingFailureReceiver
+{
+   public:
+    void onRequestDone(EventsUploadContextPtr const&)
+    {
+        throw std::runtime_error("request done failed");
+    }
+
+    void onRequestFailed(EventsUploadContextPtr const&)
+    {
+        manager->reset();
+        failureReturned = true;
+    }
+
+    void onRequestFailureComplete(EventsUploadContextPtr const&)
+    {
+        failureCompleteCalled = true;
+    }
+
+    std::unique_ptr<HttpClientManager4Test>* manager{nullptr};
+    bool failureReturned{false};
+    bool failureCompleteCalled{false};
+    RouteSink<DestroyingFailureReceiver, EventsUploadContextPtr const&>
+        doneSink{this, &DestroyingFailureReceiver::onRequestDone};
+    RouteSink<DestroyingFailureReceiver, EventsUploadContextPtr const&>
+        failedSink{this, &DestroyingFailureReceiver::onRequestFailed};
+    RouteSink<DestroyingFailureReceiver, EventsUploadContextPtr const&>
+        failureCompleteSink{
+            this, &DestroyingFailureReceiver::onRequestFailureComplete};
+};
+#endif
+
 class HttpClientManagerTests : public StrictMock<Test> {
   protected:
     MockIHttpClient        httpClientMock;
@@ -645,6 +678,36 @@ TEST(HttpClientManagerTestsLifetime, RequestDoneCanDestroyManager)
     EXPECT_TRUE(receiver.callbackReturned);
     EXPECT_THAT(manager, IsNull());
 }
+
+#if HAVE_EXCEPTIONS
+TEST(HttpClientManagerTestsLifetime, RequestFailureCanDestroyManager)
+{
+    MockIHttpClient httpClient;
+    auto manager = std::make_unique<HttpClientManager4Test>(httpClient);
+    DestroyingFailureReceiver receiver;
+    receiver.manager = &manager;
+    manager->requestDone >> receiver.doneSink;
+    manager->requestFailed >> receiver.failedSink;
+    manager->requestFailureComplete >> receiver.failureCompleteSink;
+
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new SimpleHttpRequest("destroy-from-request-failure");
+    ctx->httpRequestId = ctx->httpRequest->GetId();
+
+    IHttpResponseCallback* callback = nullptr;
+    EXPECT_CALL(httpClient, SendRequestAsync(ctx->httpRequest, _))
+        .WillOnce(SaveArg<1>(&callback));
+    manager->sendRequest(ctx);
+    ASSERT_THAT(callback, NotNull());
+
+    EXPECT_NO_THROW(callback->OnHttpResponse(
+        new SimpleHttpResponse("destroy-from-request-failure")));
+
+    EXPECT_TRUE(receiver.failureReturned);
+    EXPECT_FALSE(receiver.failureCompleteCalled);
+    EXPECT_THAT(manager, IsNull());
+}
+#endif
 
 TEST(HttpClientManagerTestsLifetime, DestroyingManagerWaitsForPeerCallback)
 {

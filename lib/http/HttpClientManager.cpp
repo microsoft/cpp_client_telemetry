@@ -247,7 +247,7 @@ namespace MAT_NS_BEGIN {
                 LOG_ERROR("Unhandled exception in HTTP response callback: %s", ex.what());
                 if (managerUse.IsAttached())
                 {
-                    manager->notifyRequestFailure(ctx);
+                    NotifyRequestFailure(manager, managerUse, ctx);
                 }
             }
             catch (...)
@@ -255,7 +255,7 @@ namespace MAT_NS_BEGIN {
                 LOG_ERROR("Unhandled non-standard exception in HTTP response callback");
                 if (managerUse.IsAttached())
                 {
-                    manager->notifyRequestFailure(ctx);
+                    NotifyRequestFailure(manager, managerUse, ctx);
                 }
             }
 #else
@@ -263,6 +263,53 @@ namespace MAT_NS_BEGIN {
 #endif
 
             RemoveAndDelete(callback, registry);
+        }
+
+        static void NotifyRequestFailure(
+            HttpClientManager* manager,
+            ManagerUse const& managerUse,
+            EventsUploadContextPtr const& ctx) noexcept
+        {
+#if HAVE_EXCEPTIONS
+            try
+            {
+                manager->requestFailed(ctx);
+            }
+            catch (const std::exception& ex)
+            {
+                (void)ex;
+                LOG_ERROR("Unhandled exception while releasing failed HTTP request: %s", ex.what());
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled non-standard exception while releasing failed HTTP request");
+            }
+
+            if (!managerUse.IsAttached())
+            {
+                return;
+            }
+
+            try
+            {
+                manager->requestFailureComplete(ctx);
+            }
+            catch (const std::exception& ex)
+            {
+                (void)ex;
+                LOG_ERROR("Unhandled exception while completing failed HTTP request: %s", ex.what());
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled non-standard exception while completing failed HTTP request");
+            }
+#else
+            manager->requestFailed(ctx);
+            if (managerUse.IsAttached())
+            {
+                manager->requestFailureComplete(ctx);
+            }
+#endif
         }
 
         virtual ~HttpCallback()
@@ -359,42 +406,6 @@ namespace MAT_NS_BEGIN {
         }
 #else
         m_httpClient.SendRequestAsync(ctx->httpRequest, callback);
-#endif
-    }
-
-    void HttpClientManager::notifyRequestFailure(EventsUploadContextPtr const& ctx) noexcept
-    {
-#if HAVE_EXCEPTIONS
-        try
-        {
-            requestFailed(ctx);
-        }
-        catch (const std::exception& ex)
-        {
-            (void)ex;
-            LOG_ERROR("Unhandled exception while releasing failed HTTP request: %s", ex.what());
-        }
-        catch (...)
-        {
-            LOG_ERROR("Unhandled non-standard exception while releasing failed HTTP request");
-        }
-
-        try
-        {
-            requestFailureComplete(ctx);
-        }
-        catch (const std::exception& ex)
-        {
-            (void)ex;
-            LOG_ERROR("Unhandled exception while completing failed HTTP request: %s", ex.what());
-        }
-        catch (...)
-        {
-            LOG_ERROR("Unhandled non-standard exception while completing failed HTTP request");
-        }
-#else
-        requestFailed(ctx);
-        requestFailureComplete(ctx);
 #endif
     }
 

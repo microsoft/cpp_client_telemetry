@@ -149,9 +149,20 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             m_owner.m_setupActive = true;
         }
 
-        ~SetupGuard() noexcept(false)
+        ~SetupGuard() noexcept
         {
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
             m_owner.finishSetup();
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled exception while completing WinInet request setup");
+            }
+#endif
         }
 
         SetupGuard(SetupGuard const&) = delete;
@@ -172,9 +183,20 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         {
         }
 
-        ~StateCallbackGuard() noexcept(false)
+        ~StateCallbackGuard() noexcept
         {
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
             m_owner.finishStateCallback(m_callbackThread);
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled exception while completing a WinInet state callback");
+            }
+#endif
         }
 
         StateCallbackGuard(StateCallbackGuard const&) = delete;

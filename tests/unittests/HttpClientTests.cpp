@@ -73,6 +73,7 @@ class HttpClientTests : public ::testing::Test,
     std::atomic<bool>                     _cookieHeaderSeen {false};
     bool                                  _destroyClientOnConnecting {false};
     bool                                  _throwOnConnecting {false};
+    bool _cancelAndThrowOnConnecting{false};
     HttpStateEvent                        _stateEventToThrow {OnConnecting};
     std::string                           _lateRequestId;
 
@@ -277,6 +278,12 @@ class HttpClientTests : public ::testing::Test,
     virtual void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
     {
 #if HAVE_EXCEPTIONS
+        if (_cancelAndThrowOnConnecting && state == OnConnecting)
+        {
+            _cancelAndThrowOnConnecting = false;
+            _client->CancelAllRequests();
+            throw std::runtime_error("state callback failed after cancellation");
+        }
         if (_throwOnConnecting && state == _stateEventToThrow)
         {
             _throwOnConnecting = false;
@@ -702,6 +709,26 @@ TEST_F(HttpClientTests, ThrowingStateCallbackStillCompletesRequest)
         [this]() { return !_responses.empty(); }));
     EXPECT_THAT(_responses[0]->GetId(), requestId);
     EXPECT_THAT(_responses[0]->GetResult(), Ne(HttpResult_OK));
+}
+#endif
+
+#if HAVE_EXCEPTIONS && defined(HAVE_MAT_WININET_HTTP_CLIENT)
+TEST_F(HttpClientTests, CancellingAndThrowingStateCallbackStillCompletesRequest)
+{
+    _cancelAndThrowOnConnecting = true;
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    std::string requestId = request->GetId();
+    request->SetUrl("http://" + _hostname + "/echo/");
+    EXPECT_NO_THROW(_client->SendRequestAsync(request.release(), this));
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+                                     [this]()
+                                     { return !_responses.empty(); }));
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_THAT(_responses[0]->GetId(), requestId);
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_Aborted);
 }
 #endif
 
