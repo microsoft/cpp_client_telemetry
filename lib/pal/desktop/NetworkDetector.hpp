@@ -48,6 +48,7 @@ namespace MAT_NS_BEGIN
                 {
                    private:
                     struct CallbackState;
+                    struct EventDispatchState;
                     enum class StartupState
                     {
                         Stopped,
@@ -63,6 +64,7 @@ namespace MAT_NS_BEGIN
                     ComPtr<INetworkStatusChangedEventHandler> networkStatusChangedHandler;
                     EventRegistrationToken networkStatusChangedToken{};
                     std::shared_ptr<CallbackState> networkStatusCallbackState;
+                    std::shared_ptr<EventDispatchState> eventDispatchState;
 
                     /// <summary>
                     /// Get instance of network info stats

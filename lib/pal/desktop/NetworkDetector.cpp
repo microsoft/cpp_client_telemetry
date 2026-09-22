@@ -10,17 +10,21 @@
 
 #include "NetworkDetector.hpp"
 
-#include "ILogManager.hpp"
 #include "DebugEvents.hpp"
+#include "ILogManager.hpp"
 #include "pal/PAL.hpp"
 
-#define NETDETECTOR_REFRESH             WM_USER+1
+#define NETDETECTOR_REFRESH WM_USER + 1
 
 namespace MAT_NS_BEGIN
 {
-    namespace Windows {
+    namespace Windows
+    {
 
-        struct NetworkDetector::CallbackState {
+        static thread_local void* currentNetworkEventDispatch = nullptr;
+
+        struct NetworkDetector::CallbackState
+        {
             std::atomic<DWORD> listenerThreadId{0};
 
             bool QueueRefresh() const
@@ -29,6 +33,88 @@ namespace MAT_NS_BEGIN
                 return threadId != 0 &&
                        PostThreadMessage(threadId, NETDETECTOR_REFRESH, 0, NULL) != FALSE;
             }
+        };
+
+        struct NetworkDetector::EventDispatchState : std::enable_shared_from_this<NetworkDetector::EventDispatchState>
+        {
+            bool Queue(NetworkCost cost)
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                if (!acceptEvents)
+                {
+                    return false;
+                }
+
+                latestCost = cost;
+                eventPending = true;
+                if (workerScheduled)
+                {
+                    return true;
+                }
+
+                workerScheduled = true;
+                auto context = new (std::nothrow) std::shared_ptr<EventDispatchState>(shared_from_this());
+                if (context == nullptr ||
+                    !QueueUserWorkItem(DispatchPendingEvents, context, WT_EXECUTEDEFAULT))
+                {
+                    delete context;
+                    workerScheduled = false;
+                    return false;
+                }
+                return true;
+            }
+
+            void StopAndWait()
+            {
+                std::unique_lock<std::mutex> lock(mutex);
+                acceptEvents = false;
+                eventPending = false;
+                if (currentNetworkEventDispatch == this)
+                {
+                    return;
+                }
+                cv.wait(lock, [this]()
+                        { return !workerScheduled; });
+            }
+
+           private:
+            static DWORD CALLBACK DispatchPendingEvents(void* context)
+            {
+                std::shared_ptr<EventDispatchState> state =
+                    *static_cast<std::shared_ptr<EventDispatchState>*>(context);
+                delete static_cast<std::shared_ptr<EventDispatchState>*>(context);
+                currentNetworkEventDispatch = state.get();
+
+                while (true)
+                {
+                    NetworkCost cost;
+                    {
+                        std::lock_guard<std::mutex> lock(state->mutex);
+                        if (!state->acceptEvents || !state->eventPending)
+                        {
+                            state->workerScheduled = false;
+                            state->cv.notify_all();
+                            currentNetworkEventDispatch = nullptr;
+                            return 0;
+                        }
+                        cost = state->latestCost;
+                        state->eventPending = false;
+                    }
+
+                    DebugEvent evt;
+                    evt.type = DebugEventType::EVT_NET_CHANGED;
+                    evt.param1 = cost;
+                    evt.param2 = false;
+                    ILogManager::DispatchEventBroadcast(evt);
+                }
+            }
+
+            std::mutex mutex;
+            std::condition_variable cv;
+            NetworkCost latestCost = NetworkCost_Unknown;
+            bool acceptEvents = true;
+            bool eventPending = false;
+            bool workerScheduled = false;
         };
 
         NetworkCost MapNetworkCost(
@@ -61,20 +147,23 @@ namespace MAT_NS_BEGIN
             NetworkCost result = NetworkCost_Unknown;
             LOG_TRACE("get network cost...\n");
 
-            if (networkInfoStats == nullptr) {
+            if (networkInfoStats == nullptr)
+            {
                 LOG_WARN("Windows network information is unavailable!");
                 return result;
             }
 
             ComPtr<IConnectionProfile> connectionProfile;
             HRESULT hr = networkInfoStats->GetInternetConnectionProfile(&connectionProfile);
-            if (FAILED(hr) || connectionProfile == nullptr) {
+            if (FAILED(hr) || connectionProfile == nullptr)
+            {
                 return result;
             }
 
             ComPtr<IConnectionCost> connectionCost;
             hr = connectionProfile->GetConnectionCost(&connectionCost);
-            if (FAILED(hr) || connectionCost == nullptr) {
+            if (FAILED(hr) || connectionCost == nullptr)
+            {
                 return result;
             }
 
@@ -111,13 +200,14 @@ namespace MAT_NS_BEGIN
         /// This function provides an SEH handler for Windows Runtime failures.
         /// </summary>
 #pragma warning(push)
-#pragma warning(disable: 6320)
+#pragma warning(disable : 6320)
         static int RefreshNetworkCost(
             INetworkInformationStatics* networkInfoStats,
             std::atomic<NetworkCost>& currentNetworkCostState)
         {
             NetworkCost currentNetworkCost = NetworkCost_Unknown;
-            __try {
+            __try
+            {
                 currentNetworkCost = QueryCurrentNetworkCost(networkInfoStats);
             }
             //******************************************************************************************************************************
@@ -135,24 +225,29 @@ namespace MAT_NS_BEGIN
             }
 
             currentNetworkCostState.store(currentNetworkCost, std::memory_order_relaxed);
-
-            DebugEvent evt;
-            evt.type = DebugEventType::EVT_NET_CHANGED;
-            evt.param1 = currentNetworkCost;
-            evt.param2 = false;
-            ILogManager::DispatchEventBroadcast(evt);
-
             return currentNetworkCost;
         }
 #pragma warning(pop)
 
-        NetworkCost NetworkDetector::GetNetworkCost() {
+        NetworkCost NetworkDetector::GetNetworkCost()
+        {
             return m_currentNetworkCost->load(std::memory_order_relaxed);
         }
 
         int NetworkDetector::GetCurrentNetworkCost()
         {
-            return RefreshNetworkCost(networkInfoStats.Get(), *m_currentNetworkCost);
+            const auto currentNetworkCost =
+                RefreshNetworkCost(networkInfoStats.Get(), *m_currentNetworkCost);
+            std::shared_ptr<EventDispatchState> dispatchState;
+            {
+                std::lock_guard<std::mutex> lock(m_lock);
+                dispatchState = eventDispatchState;
+            }
+            if (dispatchState != nullptr && !dispatchState->Queue(static_cast<NetworkCost>(currentNetworkCost)))
+            {
+                LOG_WARN("Unable to queue network status event.");
+            }
+            return currentNetworkCost;
         }
 
         bool NetworkDetector::QueueNetworkCostRefresh()
@@ -222,6 +317,10 @@ namespace MAT_NS_BEGIN
                 startupState = StartupState::Ready;
                 cv.notify_all();
             }
+            if (!eventDispatchState->Queue(GetNetworkCost()))
+            {
+                LOG_WARN("Unable to queue initial network status event.");
+            }
 
             while (true)
             {
@@ -284,8 +383,8 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Register for Windows Runtime events and block-wait in RegisterAndListen
         /// </summary>
-#pragma warning( push )
-#pragma warning(disable:6320)
+#pragma warning(push)
+#pragma warning(disable : 6320)
         void NetworkDetector::run()
         {
             bool isRoInitialized = false;
@@ -304,7 +403,7 @@ namespace MAT_NS_BEGIN
                     isRoInitialized = true;
                     if (GetNetworkInfoStats())
                     {
-                        GetCurrentNetworkCost();
+                        RefreshNetworkCost(networkInfoStats.Get(), *m_currentNetworkCost);
                         LOG_TRACE("start listening to events...");
                         RegisterAndListen();
                     }
@@ -323,9 +422,8 @@ namespace MAT_NS_BEGIN
             {
                 RoUninitialize();
             }
-
         }
-#pragma warning( pop )
+#pragma warning(pop)
 
         /// <summary>
         /// Start network monitoring thread
@@ -357,12 +455,14 @@ namespace MAT_NS_BEGIN
                 startupState = StartupState::Starting;
                 stopRequested = false;
                 networkStatusCallbackState = std::make_shared<CallbackState>();
+                eventDispatchState = std::make_shared<EventDispatchState>();
                 stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
                 if (stopEvent == nullptr)
                 {
                     LOG_ERROR("Unable to create the network detector stop event.");
                     startupState = StartupState::Failed;
                     networkStatusCallbackState.reset();
+                    eventDispatchState.reset();
                     return false;
                 }
                 isRunning = true;
@@ -416,6 +516,8 @@ namespace MAT_NS_BEGIN
                     CloseHandle(stopEvent);
                     stopEvent = nullptr;
                     networkStatusCallbackState.reset();
+                    eventDispatchState->StopAndWait();
+                    eventDispatchState.reset();
                 }
                 return started;
             }
@@ -443,6 +545,7 @@ namespace MAT_NS_BEGIN
                 }
 
                 netDetectThread.join();
+                eventDispatchState->StopAndWait();
 
                 std::lock_guard<std::mutex> lock(m_lock);
                 CloseHandle(stopEvent);
@@ -450,6 +553,7 @@ namespace MAT_NS_BEGIN
                 startupState = StartupState::Stopped;
                 stopRequested = false;
                 networkStatusCallbackState.reset();
+                eventDispatchState.reset();
                 LOG_TRACE("NetworkDetector tid=%p has stopped.", m_listener_tid);
             }
         };
@@ -465,8 +569,9 @@ namespace MAT_NS_BEGIN
             LOG_TRACE("NetworkDetector done tid=%p", m_listener_tid);
         }
 
-    } // ::Windows
+    }  // ::Windows
 
-} MAT_NS_END
+}
+MAT_NS_END
 
 #endif

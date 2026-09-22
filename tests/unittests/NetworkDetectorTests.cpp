@@ -3,10 +3,41 @@
 #include "common/Common.hpp"
 
 #if defined(_WIN32) && defined(HAVE_MAT_NETDETECT)
+#include "api/LogManagerFactory.hpp"
 #include "pal/desktop/NetworkDetector.hpp"
+
+#include <future>
 
 using namespace MAT;
 using namespace testing;
+
+class StopDetectorOnNetworkChange : public DebugEventListener
+{
+   public:
+    explicit StopDetectorOnNetworkChange(MATW::NetworkDetector& detector) :
+        detector(detector)
+    {
+    }
+
+    void OnDebugEvent(DebugEvent& event) override
+    {
+        if (event.type == EVT_NET_CHANGED && !handled.exchange(true))
+        {
+            detector.Stop();
+            stopped.set_value();
+        }
+    }
+
+    std::future<void> GetStoppedFuture()
+    {
+        return stopped.get_future();
+    }
+
+   private:
+    MATW::NetworkDetector& detector;
+    std::atomic<bool> handled{false};
+    std::promise<void> stopped;
+};
 
 TEST(NetworkDetectorTests, MapsWinRTNetworkCosts)
 {
@@ -85,5 +116,24 @@ TEST(NetworkDetectorTests, ConcurrentStopWaitsForStartupPublication)
         startThread.join();
         EXPECT_FALSE(detector.isUp());
     }
+}
+
+TEST(NetworkDetectorTests, NetworkChangeListenerCanStopDetector)
+{
+    ILogConfiguration configuration;
+    configuration[CFG_BOOL_ENABLE_NET_DETECT] = false;
+    ILogManager* logManager = LogManagerFactory::Create(configuration);
+    ASSERT_NE(logManager, nullptr);
+    MATW::NetworkDetector detector;
+    StopDetectorOnNetworkChange listener(detector);
+    auto stopped = listener.GetStoppedFuture();
+    logManager->AddEventListener(EVT_NET_CHANGED, listener);
+
+    ASSERT_TRUE(detector.Start());
+    ASSERT_EQ(stopped.wait_for(std::chrono::seconds(5)), std::future_status::ready);
+    EXPECT_FALSE(detector.isUp());
+
+    logManager->RemoveEventListener(EVT_NET_CHANGED, listener);
+    EXPECT_EQ(LogManagerFactory::Destroy(logManager), STATUS_SUCCESS);
 }
 #endif
