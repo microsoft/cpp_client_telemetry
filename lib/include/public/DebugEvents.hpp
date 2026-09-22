@@ -167,8 +167,10 @@ namespace MAT_NS_BEGIN
     /// for debugging and unit testing (not recommended for use in a production environment).
     /// 
     /// Customers can implement this abstract class to track when certain events
-    /// happen under the hood in the Microsoft Telemetry SDK. The callback is synchronously executed
-    /// within the context of the Microsoft Telemetry worker thread.
+    /// happen under the hood in the Microsoft Telemetry SDK. The callback is synchronously
+    /// executed within the context of an SDK-owned thread. A listener must not synchronously
+    /// destroy the LogManager or call FlushAndTeardown(); defer teardown to an
+    /// application-owned thread after the callback returns instead.
     /// </summary>
     class MATSDK_LIBABI DebugEventListener
     {
@@ -247,4 +249,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
-

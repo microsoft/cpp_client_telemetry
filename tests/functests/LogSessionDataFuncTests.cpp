@@ -14,14 +14,18 @@ using namespace MAT;
 
 const std::string SessionFileArgument = "test";
 const char* const SessionFile = "test.ses";
+const char* const MemorySessionFile = ":memory:.ses";
 
 class LogSessionDataFuncTests : public ::testing::Test
 {
     void CleanupLocalSessionFile()
     {
-        if (MAT::FileExists(SessionFile))
+        for (const auto* sessionFile : {SessionFile, MemorySessionFile})
         {
-            MAT::FileDelete(SessionFile);
+            if (MAT::FileExists(sessionFile))
+            {
+                MAT::FileDelete(sessionFile);
+            }
         }
     }
 
@@ -74,6 +78,28 @@ TEST_F(LogSessionDataFuncTests, Constructor_SessionFile_FileCreated)
     auto logSessionDataProvider = LogSessionDataProvider(SessionFileArgument);
     logSessionDataProvider.CreateLogSessionData();
     ASSERT_TRUE(MAT::FileExists(SessionFile));
+}
+
+TEST_F(LogSessionDataFuncTests, Constructor_InMemoryCache_NoSessionFileCreated)
+{
+    auto logSessionDataProvider = LogSessionDataProvider(":memory:");
+    logSessionDataProvider.CreateLogSessionData();
+    const auto* logSessionData = logSessionDataProvider.GetLogSessionData();
+    ASSERT_NE(logSessionData, nullptr);
+    EXPECT_GT(logSessionData->getSessionFirstTime(), 0ull);
+    EXPECT_FALSE(logSessionData->getSessionSDKUid().empty());
+    const auto sessionSDKUid = logSessionData->getSessionSDKUid();
+    EXPECT_FALSE(MAT::FileExists(MemorySessionFile));
+
+    logSessionDataProvider.ResetLogSessionData();
+    logSessionData = logSessionDataProvider.GetLogSessionData();
+    ASSERT_NE(logSessionData, nullptr);
+    EXPECT_GT(logSessionData->getSessionFirstTime(), 0ull);
+    EXPECT_FALSE(logSessionData->getSessionSDKUid().empty());
+    EXPECT_NE(logSessionData->getSessionSDKUid(), sessionSDKUid);
+    EXPECT_FALSE(MAT::FileExists(MemorySessionFile));
+    logSessionDataProvider.DeleteLogSessionData();
+    EXPECT_FALSE(MAT::FileExists(MemorySessionFile));
 }
 
 TEST_F(LogSessionDataFuncTests, Constructor_ValidSessionFileExists_MembersSetToExistingFile)

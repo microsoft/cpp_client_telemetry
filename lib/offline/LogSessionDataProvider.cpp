@@ -97,7 +97,8 @@ namespace MAT_NS_BEGIN
 
     void LogSessionDataProvider::DeleteLogSessionDataFromFile()
     {
-        std::string sessionPath = m_cacheFilePath.empty() ? "" : (m_cacheFilePath + ".ses").c_str();
+        std::string sessionPath =
+            (m_cacheFilePath.empty() || m_cacheFilePath == ":memory:") ? "" : m_cacheFilePath + ".ses";
         if (!sessionPath.empty() && MAT::FileExists(sessionPath.c_str()))
         {
             MAT::FileDelete(sessionPath.c_str());
@@ -108,7 +109,8 @@ namespace MAT_NS_BEGIN
     {
         uint64_t sessionFirstTimeLaunch = 0;
         std::string sessionSDKUid;
-        std::string sessionPath = m_cacheFilePath.empty() ? "" : (m_cacheFilePath + ".ses").c_str();
+        std::string sessionPath =
+            (m_cacheFilePath.empty() || m_cacheFilePath == ":memory:") ? "" : m_cacheFilePath + ".ses";
         if (!sessionPath.empty()) 
         {
             if (MAT::FileExists(sessionPath.c_str())) 
@@ -126,6 +128,11 @@ namespace MAT_NS_BEGIN
                 sessionSDKUid = PAL::generateUuidString();
                 writeFileContents(sessionPath, sessionFirstTimeLaunch, sessionSDKUid);
             }
+        }
+        else if (m_cacheFilePath == ":memory:")
+        {
+            sessionFirstTimeLaunch = PAL::getUtcSystemTimeMs();
+            sessionSDKUid = PAL::generateUuidString();
         }
         m_logSessionData.reset(new LogSessionData(sessionFirstTimeLaunch, sessionSDKUid));
     }
@@ -209,4 +216,3 @@ namespace MAT_NS_BEGIN
     }
 }
 MAT_NS_END
-

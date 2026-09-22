@@ -11,9 +11,7 @@
 #include "http/HttpClient_WinRt.hpp"
 #include "utils/StringUtils.hpp"
 
-#include <algorithm>
 #include <memory>
-#include <sstream>
 #include <vector>
 
 #include <pplcancellation_token.h>
@@ -21,7 +19,6 @@
 #include <pplawait.h>
 #include <vccorlib.h>
 #include <Roapi.h>
-#include <WinInet.h>
 
 using namespace Windows::Foundation;
 using namespace Windows::Foundation::Collections;
@@ -371,7 +368,7 @@ namespace MAT_NS_BEGIN {
 
     void HttpClient_WinRt::SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback)
     {
-        // Note: 'request' is never owned by IHttpClient and gets deleted in EventsUploadContext.clear()
+        // SendRequestAsync borrows the request; the caller retains ownership.
         if (request==nullptr)
         {
             LOG_ERROR("request is null!");

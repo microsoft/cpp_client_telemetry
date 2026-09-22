@@ -44,7 +44,8 @@ public class MainActivity extends Activity {
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
         try {
-            Integer result = testStub.executorRun(dummyLogger);
+            Integer result =
+                    testStub.executorRun(dummyLogger, m_client, getApplicationContext());
             tv.setText(String.format(Locale.ROOT, "Tests returned %d", result));
         } catch (ExecutionException e) {
             tv.setText("Woopsy");
@@ -53,4 +54,3 @@ public class MainActivity extends Activity {
         }
     }
 }
-

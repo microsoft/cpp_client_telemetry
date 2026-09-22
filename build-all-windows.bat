@@ -33,12 +33,12 @@ exit /b 1
 :after_custom_props_validation
 call tools\gen-version.cmd
 
-set NET40_MD_TARGETS=,net40:Rebuild
-set NET40_SAMPLE_TARGETS=,Samples\cs\SampleCsNet40:Rebuild
-if DEFINED SKIP_NET40_BUILD (
-  echo Skipping legacy .NET Framework 4.0 targets.
-  set NET40_MD_TARGETS=
-  set NET40_SAMPLE_TARGETS=
+set NET48_MD_TARGETS=,net48:Rebuild
+set NET48_SAMPLE_TARGETS=,Samples\cs\SampleCsNet48:Rebuild
+if DEFINED SKIP_NET48_BUILD (
+  echo Skipping .NET Framework 4.8 targets.
+  set NET48_MD_TARGETS=
+  set NET48_SAMPLE_TARGETS=
 )
 
 echo Update all public submodules...
@@ -57,15 +57,15 @@ if NOT EXIST %GTEST_PATH%\CMakeLists.txt (
 if NOT DEFINED SKIP_MD_BUILD (
   REM DLL and static /MD build
   REM Release
-  call tools\RunMsBuild.bat Win32 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET40_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild%NET40_SAMPLE_TARGETS%" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat Win32 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET48_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild%NET48_SAMPLE_TARGETS%" %CUSTOM_PROPS%
   if errorlevel 1 exit /b 1
-  call tools\RunMsBuild.bat x64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET40_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild%NET40_SAMPLE_TARGETS%" %CUSTOM_PROPS%
+  call tools\RunMsBuild.bat x64 Release "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET48_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild%NET48_SAMPLE_TARGETS%" %CUSTOM_PROPS%
   if errorlevel 1 exit /b 1
   REM Debug
   if NOT DEFINED SKIP_DEBUG_BUILD (
-    call tools\RunMsBuild.bat Win32 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET40_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat Win32 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET48_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
     if errorlevel 1 exit /b 1
-    call tools\RunMsBuild.bat x64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET40_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
+    call tools\RunMsBuild.bat x64 Debug "sqlite:Rebuild,zlib:Rebuild,sqlite-uwp:Rebuild,win32-dll:Rebuild,win32-lib:Rebuild%NET48_MD_TARGETS%,win10-cs:Rebuild,win10-dll:Rebuild,win10-lib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild" %CUSTOM_PROPS%
     if errorlevel 1 exit /b 1
   )
 )

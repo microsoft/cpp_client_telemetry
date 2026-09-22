@@ -13,7 +13,16 @@ using namespace MAT;
 class TestEventFilterCollection : public EventFilterCollection
 {
 public:
-    using EventFilterCollection::m_filters;
+    size_t FilterCount() const
+    {
+        auto filters = std::atomic_load(&m_filters);
+        return filters == nullptr ? 0 : filters->size();
+    }
+
+    const char* FilterName(size_t index) const
+    {
+        return std::atomic_load(&m_filters)->at(index)->GetName();
+    }
 };
 
 const char DefaultTestEventFilterName[] = "TestEventFilter";
@@ -34,10 +43,27 @@ public:
     bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override { return CanEventPropertiesBeSentReturnValue; }
 };
 
+class UnregisteringEventFilter : public IEventFilter
+{
+public:
+    explicit UnregisteringEventFilter(EventFilterCollection& collection) noexcept
+        : Collection(collection) { }
+
+    const char* GetName() const noexcept override { return "UnregisteringEventFilter"; }
+    bool CanEventPropertiesBeSent(const EventProperties&) const noexcept override
+    {
+        Collection.UnregisterAllFilters();
+        return true;
+    }
+
+private:
+    EventFilterCollection& Collection;
+};
+
 TEST(EventFilterCollectionTests, Constructor_DefaultConstructed_NoRegisteredFilters)
 {
     TestEventFilterCollection collection;
-    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
+    EXPECT_EQ(collection.FilterCount(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, Empty_ZeroRegisteredFilters_ReturnsTrue)
@@ -62,7 +88,7 @@ TEST(EventFilterCollectionTests, RegisterEventFilter_ValidFilter_FilterSizeIsOne
 {
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
-    EXPECT_EQ(collection.m_filters.size(), size_t { 1 });
+    EXPECT_EQ(collection.FilterCount(), size_t { 1 });
 }
 
 TEST(EventFilterCollectionTests, RegisterEventFilter_TwoValidFiltersWithTheSameName_FilterSizeIsTwo)
@@ -70,7 +96,7 @@ TEST(EventFilterCollectionTests, RegisterEventFilter_TwoValidFiltersWithTheSameN
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
-    EXPECT_EQ(collection.m_filters.size(), size_t { 2 });
+    EXPECT_EQ(collection.FilterCount(), size_t { 2 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_NullptrName_ThrowsArgumentException)
@@ -84,7 +110,7 @@ TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameNotRegistered_Do
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.UnregisterEventFilter("NotTheDroidsYoureLookingFor");
-    EXPECT_EQ(collection.m_filters.size(), size_t { 1 });
+    EXPECT_EQ(collection.FilterCount(), size_t { 1 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameRegistered_ModifiesCollection)
@@ -92,7 +118,7 @@ TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameRegistered_Modif
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.UnregisterEventFilter(DefaultTestEventFilterName);
-    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
+    EXPECT_EQ(collection.FilterCount(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameRegisteredTwice_RemovesBoth)
@@ -101,7 +127,7 @@ TEST(EventFilterCollectionTests, UnregisterEventFilter_EventNameRegisteredTwice_
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.UnregisterEventFilter(DefaultTestEventFilterName);
-    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
+    EXPECT_EQ(collection.FilterCount(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterEventFilter_TwoDifferentlyNamedFilters_RemovesOne)
@@ -110,8 +136,8 @@ TEST(EventFilterCollectionTests, UnregisterEventFilter_TwoDifferentlyNamedFilter
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter("One")));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter("Two")));
     collection.UnregisterEventFilter("One");
-    EXPECT_EQ(collection.m_filters.size(), size_t { 1 });
-    EXPECT_EQ(strcmp(collection.m_filters[0]->GetName(), "Two"), 0);
+    EXPECT_EQ(collection.FilterCount(), size_t { 1 });
+    EXPECT_EQ(strcmp(collection.FilterName(0), "Two"), 0);
 }
 
 TEST(EventFilterCollectionTests, UnregisterAllFilters_OneRegistered_ModifiesCollection)
@@ -119,7 +145,7 @@ TEST(EventFilterCollectionTests, UnregisterAllFilters_OneRegistered_ModifiesColl
     TestEventFilterCollection collection;
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter()));
     collection.UnregisterAllFilters();
-    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
+    EXPECT_EQ(collection.FilterCount(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, UnregisterAllFilters_TwoRegistered_RemovesBoth)
@@ -128,7 +154,7 @@ TEST(EventFilterCollectionTests, UnregisterAllFilters_TwoRegistered_RemovesBoth)
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter("One")));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter("Two")));
     collection.UnregisterAllFilters();
-    EXPECT_EQ(collection.m_filters.size(), size_t { 0 });
+    EXPECT_EQ(collection.FilterCount(), size_t { 0 });
 }
 
 TEST(EventFilterCollectionTests, CanEventPropertiesBeSent_ZeroRegisteredFilters_ReturnsTrue)
@@ -173,4 +199,14 @@ TEST(EventFilterCollectionTests, CanEventPropertiesBeSent_TwoRegisteredFiltersOn
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter(true)));
     collection.RegisterEventFilter(std::unique_ptr<IEventFilter>(new TestEventFilter(false)));
     EXPECT_FALSE(collection.CanEventPropertiesBeSent(EventProperties{}));
+}
+
+TEST(EventFilterCollectionTests, CanEventPropertiesBeSent_FilterUnregistersAll_DoesNotDeadlock)
+{
+    TestEventFilterCollection collection;
+    collection.RegisterEventFilter(
+        std::unique_ptr<IEventFilter>(new UnregisteringEventFilter(collection)));
+
+    EXPECT_TRUE(collection.CanEventPropertiesBeSent(EventProperties{}));
+    EXPECT_TRUE(collection.Empty());
 }
