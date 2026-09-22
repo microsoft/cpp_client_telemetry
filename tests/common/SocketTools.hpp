@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <thread>
+#include <atomic>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -229,11 +230,23 @@ class Socket
     Socket(Type sock = Invalid)
             : m_sock(sock)
     {
+#ifdef TARGET_OS_MAC
+        if (m_sock != Invalid)
+        {
+            setNoSigPipe();
+        }
+#endif
     }
 
     Socket(int af, int type, int proto)
     {
         m_sock = ::socket(af, type, proto);
+#ifdef TARGET_OS_MAC
+        if (m_sock != Invalid)
+        {
+            setNoSigPipe();
+        }
+#endif
     }
 
     ~Socket()
@@ -288,6 +301,33 @@ class Socket
         return (::setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&value), sizeof(value)) == 0);
     }
 
+    /**
+     * Suppress SIGPIPE when writing to a socket whose peer has already gone away.
+     *
+     * The test HTTP server writes responses on the reactor thread. When a client
+     * (e.g. NSURLSession on Apple) cancels an in-flight upload during teardown, the
+     * connection can be reset before the response is flushed, so ::send() fails with
+     * EPIPE and raises SIGPIPE. The test process installs no SIGPIPE handler, so the
+     * default disposition terminates it - which surfaces as a silent, backtrace-less
+     * test-runner exit/restart rather than a normal test failure.
+     *
+     * Apple/BSD only supports this per-socket via SO_NOSIGPIPE; Linux uses the
+     * MSG_NOSIGNAL send() flag instead (see send() below).
+     */
+    bool setNoSigPipe()
+    {
+#ifdef SO_NOSIGPIPE
+        if (m_sock == Invalid)
+        {
+            return false;
+        }
+        int value = 1;
+        return (::setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value)) == 0);
+#else
+        return true;
+#endif
+    }
+
     bool setNoDelay()
     {
         assert(m_sock != Invalid);
@@ -326,7 +366,14 @@ class Socket
     int send(void const* buffer, unsigned size)
     {
         assert(m_sock != Invalid);
-        return static_cast<int>(::send(m_sock, reinterpret_cast<char const*>(buffer), size, 0));
+#if defined(MSG_NOSIGNAL)
+        // Linux: ask the kernel to return EPIPE instead of raising SIGPIPE.
+        int flags = MSG_NOSIGNAL;
+#else
+        // Apple/Windows: handled by SO_NOSIGPIPE / not applicable.
+        int flags = 0;
+#endif
+        return static_cast<int>(::send(m_sock, reinterpret_cast<char const*>(buffer), size, flags));
     }
 
     bool bind(SocketAddr const& addr)
@@ -361,6 +408,12 @@ class Socket
         socklen_t addrlen = sizeof(caddr);
 #endif
         csock = ::accept(m_sock, caddr, &addrlen);
+        if (!csock.invalid())
+        {
+            // Accepted connections are written to from the reactor thread; a peer
+            // that resets mid-response must not kill the test process via SIGPIPE.
+            csock.setNoSigPipe();
+        }
         return !csock.invalid();
     }
 
@@ -409,7 +462,7 @@ class Thread
 {
  private:
     std::thread m_thread;
-    volatile bool m_terminate { false };
+    std::atomic<bool> m_terminate { false };
 
  protected:
     Thread()
@@ -437,7 +490,7 @@ class Thread
 
     bool shouldTerminate() const
     {
-        return m_terminate;
+        return m_terminate.load();
     }
 
     virtual void onThread() = 0;
@@ -465,5 +518,3 @@ struct SocketData
 
 }
 #endif
-
-

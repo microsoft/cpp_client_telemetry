@@ -92,6 +92,7 @@ Other resources to learn how to setup the build system:
   | Ubuntu 20.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu 22.04.x LTS             | :white_check_mark: | :white_check_mark: |
   | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
+  | Windows 8.1                    | :white_check_mark: |                    |
   | Windows 10.x                   | :white_check_mark: |                    |
   | Windows 11                     | :white_check_mark: |                    |
   | Windows Server 2016            | :white_check_mark: |                    |
@@ -101,6 +102,9 @@ Other resources to learn how to setup the build system:
 * **Supported** - these platforms are known to work well with the SDK in
     production.
 * **Covered by CI** - these platforms are tested as part of CI.
+* Windows 7 and Windows 8 are not supported. Windows desktop builds target the
+  Windows 8.1 API floor in CI, although GitHub-hosted runners do not provide
+  Windows 8.1 runtime coverage.
 * For iOS simulator, CI covers representative supported simulator
   configurations on the current macOS runner images rather than every
   supported iOS 12+ runtime.
