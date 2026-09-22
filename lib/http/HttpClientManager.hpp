@@ -60,19 +60,17 @@ class HttpClientManager
         {
             mutable std::mutex mutex;
             std::list<HttpCallback*> callbacks;
-            std::map<HttpCallback*, std::thread::id> activeCallbacks;
+            std::map<std::thread::id, size_t> activeCalls;
             std::condition_variable drained;
+            HttpClientManager* manager {nullptr};
+            ITaskDispatcher* taskDispatcher {nullptr};
         };
 
         void handleSendRequest(EventsUploadContextPtr const& ctx);
-        virtual void scheduleOnHttpResponse(HttpCallback* callback);
-        void runScheduledHttpResponse(
-            std::shared_ptr<std::atomic<bool>> const& started,
-            HttpCallback* callback);
-        void onHttpResponse(HttpCallback* callback);
         void notifyRequestFailure(EventsUploadContextPtr const& ctx) noexcept;
         void cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());
         void cancelTrackedRequestsAsync();
+        void detachCallbacks();
 
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;

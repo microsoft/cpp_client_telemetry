@@ -30,6 +30,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <future>
+#include <stdexcept>
 #include <thread>
 
 using namespace testing;
@@ -71,6 +72,8 @@ class HttpClientTests : public ::testing::Test,
     std::atomic<int>                      _cookieRequestCount {0};
     std::atomic<bool>                     _cookieHeaderSeen {false};
     bool                                  _destroyClientOnConnecting {false};
+    bool                                  _throwOnConnecting {false};
+    HttpStateEvent                        _stateEventToThrow {OnConnecting};
     std::string                           _lateRequestId;
 
   public:
@@ -273,6 +276,13 @@ class HttpClientTests : public ::testing::Test,
 
     virtual void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
     {
+#if HAVE_EXCEPTIONS
+        if (_throwOnConnecting && state == _stateEventToThrow)
+        {
+            _throwOnConnecting = false;
+            throw std::runtime_error("state callback failed");
+        }
+#endif
         if (_destroyClientOnConnecting && state == OnConnecting)
         {
             _destroyClientOnConnecting = false;
@@ -676,6 +686,43 @@ TEST_F(HttpClientTests, HandlesCancellationFromStateEvent)
     EXPECT_THAT(response->GetId(), requestId);
     EXPECT_THAT(response->GetResult(), HttpResult_Aborted);
 }
+
+#if HAVE_EXCEPTIONS && (defined(HAVE_MAT_WINHTTP_HTTP_CLIENT) || defined(HAVE_MAT_WININET_HTTP_CLIENT))
+TEST_F(HttpClientTests, ThrowingStateCallbackStillCompletesRequest)
+{
+    _throwOnConnecting = true;
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    std::string requestId = request->GetId();
+    request->SetUrl("http://" + _hostname + "/echo/");
+    EXPECT_NO_THROW(_client->SendRequestAsync(request.release(), this));
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+        [this]() { return !_responses.empty(); }));
+    EXPECT_THAT(_responses[0]->GetId(), requestId);
+    EXPECT_THAT(_responses[0]->GetResult(), Ne(HttpResult_OK));
+}
+#endif
+
+#if HAVE_EXCEPTIONS && (defined(HAVE_MAT_WINHTTP_HTTP_CLIENT) || defined(HAVE_MAT_WININET_HTTP_CLIENT))
+TEST_F(HttpClientTests, ThrowingOnResponseStateStillDeliversResponse)
+{
+    _throwOnConnecting = true;
+    _stateEventToThrow = OnResponse;
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    std::string requestId = request->GetId();
+    request->SetUrl("http://" + _hostname + "/simple/200");
+    _client->SendRequestAsync(request.release(), this);
+
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(5),
+        [this]() { return !_responses.empty(); }));
+    EXPECT_THAT(_responses[0]->GetId(), requestId);
+    EXPECT_THAT(_responses[0]->GetResult(), HttpResult_OK);
+}
+#endif
 
 TEST_F(HttpClientTests, HandlesConcurrentCancellationDuringStateEvent)
 {

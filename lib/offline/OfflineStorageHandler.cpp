@@ -258,6 +258,7 @@ namespace MAT_NS_BEGIN {
             return;
         }
         std::vector<StorageRecord> recordsToRecover;
+        std::vector<StorageRecord> memoryOnlyRecords;
         MATSDK_TRY
         {
             // Flush could be executed from context of worker thread, as well as from TPM and
@@ -278,7 +279,6 @@ namespace MAT_NS_BEGIN {
                     // Drain only the records present when this flush started so
                     // producers cannot keep the flush alive indefinitely.
                     size_t recordsRemaining = m_offlineStorageMemory->GetRecordCount();
-                    std::vector<StorageRecord> memoryOnlyRecords;
                     while (recordsRemaining > 0)
                     {
                         recordsToRecover = m_offlineStorageMemory->GetRecords(
@@ -332,6 +332,7 @@ namespace MAT_NS_BEGIN {
                         recordsToRecover.clear();
                     }
                     ReturnRecordsToMemory(memoryOnlyRecords);
+                    memoryOnlyRecords.clear();
                 }
                 else
                 {
@@ -374,6 +375,10 @@ namespace MAT_NS_BEGIN {
                 if (m_offlineStorageMemory && !recordsToRecover.empty())
                 {
                     ReturnRecordsToMemory(recordsToRecover);
+                }
+                if (m_offlineStorageMemory && !memoryOnlyRecords.empty())
+                {
+                    ReturnRecordsToMemory(memoryOnlyRecords);
                 }
             }
             MATSDK_CATCH(...)

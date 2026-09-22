@@ -21,16 +21,31 @@ using namespace MAT;
 
 static NullLogManager dummyLogManager;
 
-class HttpClientManager4Test : public HttpClientManager {
+class InlineTaskDispatcher : public ITaskDispatcher {
   public:
-    HttpClientManager4Test(IHttpClient& httpClient)
-      : HttpClientManager(dummyLogManager, httpClient, *PAL::getDefaultTaskDispatcher())
+    void Join() override
     {
     }
 
-    virtual void scheduleOnHttpResponse(HttpCallback* callback) override
+    void Queue(Task* task) override
     {
-        onHttpResponse(callback);
+        std::unique_ptr<Task> owned(task);
+        (*task)();
+    }
+
+    bool Cancel(Task*, uint64_t = 0) override
+    {
+        return false;
+    }
+};
+
+static InlineTaskDispatcher inlineTaskDispatcher;
+
+class HttpClientManager4Test : public HttpClientManager {
+  public:
+    HttpClientManager4Test(IHttpClient& httpClient)
+      : HttpClientManager(dummyLogManager, httpClient, inlineTaskDispatcher)
+    {
     }
 
     void setCancelDrainTimeout(std::chrono::milliseconds t)
@@ -167,6 +182,43 @@ public:
     bool callbackReturned {false};
     RouteSink<DestroyingHttpRequestDoneReceiver, EventsUploadContextPtr const&>
         sink{this, &DestroyingHttpRequestDoneReceiver::onRequestDone};
+};
+
+class ConcurrentDestroyingHttpRequestDoneReceiver
+{
+public:
+    void onRequestDone(EventsUploadContextPtr const& ctx)
+    {
+        if (ctx->httpRequestId == "destroy-with-peer")
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            destroyStarted = true;
+            cv.notify_all();
+            cv.wait(lock, [this]() { return peerEntered; });
+            lock.unlock();
+            manager->reset();
+            lock.lock();
+            destroyReturned = true;
+            cv.notify_all();
+            return;
+        }
+
+        std::unique_lock<std::mutex> lock(mutex);
+        peerEntered = true;
+        cv.notify_all();
+        cv.wait(lock, [this]() { return releasePeer; });
+    }
+
+    std::unique_ptr<HttpClientManager4Test>* manager {nullptr};
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool destroyStarted {false};
+    bool destroyReturned {false};
+    bool peerEntered {false};
+    bool releasePeer {false};
+    RouteSink<ConcurrentDestroyingHttpRequestDoneReceiver,
+              EventsUploadContextPtr const&>
+        sink{this, &ConcurrentDestroyingHttpRequestDoneReceiver::onRequestDone};
 };
 
 class HttpClientManagerTests : public StrictMock<Test> {
@@ -591,6 +643,56 @@ TEST(HttpClientManagerTestsLifetime, RequestDoneCanDestroyManager)
         new SimpleHttpResponse("destroy-from-request-done"));
 
     EXPECT_TRUE(receiver.callbackReturned);
+    EXPECT_THAT(manager, IsNull());
+}
+
+TEST(HttpClientManagerTestsLifetime, DestroyingManagerWaitsForPeerCallback)
+{
+    MockIHttpClient httpClient;
+    auto manager = std::make_unique<HttpClientManager4Test>(httpClient);
+    ConcurrentDestroyingHttpRequestDoneReceiver receiver;
+    receiver.manager = &manager;
+    manager->requestDone >> receiver.sink;
+
+    std::vector<IHttpResponseCallback*> callbacks;
+    for (const char* id : {"destroy-with-peer", "active-peer"})
+    {
+        auto ctx = std::make_shared<EventsUploadContext>();
+        ctx->httpRequest = new SimpleHttpRequest(id);
+        ctx->httpRequestId = id;
+        IHttpResponseCallback* callback = nullptr;
+        EXPECT_CALL(httpClient, SendRequestAsync(ctx->httpRequest, _))
+            .WillOnce(SaveArg<1>(&callback));
+        manager->sendRequest(ctx);
+        ASSERT_THAT(callback, NotNull());
+        callbacks.push_back(callback);
+    }
+
+    std::thread peer([&callbacks]() {
+        callbacks[1]->OnHttpResponse(new SimpleHttpResponse("active-peer"));
+    });
+    {
+        std::unique_lock<std::mutex> lock(receiver.mutex);
+        ASSERT_TRUE(receiver.cv.wait_for(lock, std::chrono::seconds(5),
+            [&receiver]() { return receiver.peerEntered; }));
+    }
+
+    std::thread destroyer([&callbacks]() {
+        callbacks[0]->OnHttpResponse(
+            new SimpleHttpResponse("destroy-with-peer"));
+    });
+    {
+        std::unique_lock<std::mutex> lock(receiver.mutex);
+        ASSERT_TRUE(receiver.cv.wait_for(lock, std::chrono::seconds(5),
+            [&receiver]() { return receiver.destroyStarted; }));
+        EXPECT_FALSE(receiver.destroyReturned);
+        receiver.releasePeer = true;
+    }
+    receiver.cv.notify_all();
+
+    peer.join();
+    destroyer.join();
+    EXPECT_TRUE(receiver.destroyReturned);
     EXPECT_THAT(manager, IsNull());
 }
 

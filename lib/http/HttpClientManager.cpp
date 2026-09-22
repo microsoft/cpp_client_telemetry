@@ -41,6 +41,61 @@ namespace MAT_NS_BEGIN {
     class HttpClientManager::HttpCallback : public IHttpResponseCallback
     {
     public:
+        class ManagerUse
+        {
+        public:
+            ManagerUse(
+                std::shared_ptr<CallbackRegistry> registry,
+                HttpCallback* callback)
+                : m_registry(std::move(registry))
+            {
+                std::lock_guard<std::mutex> lock(m_registry->mutex);
+                auto found = std::find(
+                    m_registry->callbacks.cbegin(),
+                    m_registry->callbacks.cend(),
+                    callback);
+                if (found != m_registry->callbacks.end() &&
+                    m_registry->manager != nullptr)
+                {
+                    m_manager = m_registry->manager;
+                    ++m_registry->activeCalls[std::this_thread::get_id()];
+                }
+            }
+
+            ~ManagerUse()
+            {
+                if (m_manager == nullptr)
+                {
+                    return;
+                }
+                std::lock_guard<std::mutex> lock(m_registry->mutex);
+                auto active = m_registry->activeCalls.find(
+                    std::this_thread::get_id());
+                assert(active != m_registry->activeCalls.end());
+                if (active != m_registry->activeCalls.end() &&
+                    --active->second == 0)
+                {
+                    m_registry->activeCalls.erase(active);
+                }
+                m_registry->drained.notify_all();
+            }
+
+            HttpClientManager* Get() const noexcept
+            {
+                return m_manager;
+            }
+
+            bool IsAttached() const
+            {
+                std::lock_guard<std::mutex> lock(m_registry->mutex);
+                return m_registry->manager == m_manager;
+            }
+
+        private:
+            std::shared_ptr<CallbackRegistry> m_registry;
+            HttpClientManager* m_manager {nullptr};
+        };
+
         struct CompletionState
         {
             explicit CompletionState(std::string id)
@@ -59,11 +114,9 @@ namespace MAT_NS_BEGIN {
         };
 
         HttpCallback(
-            HttpClientManager& hcm,
             EventsUploadContextPtr const& ctx,
             std::shared_ptr<CallbackRegistry> registry)
-            : m_hcm(hcm),
-            m_ctx(ctx),
+            : m_ctx(ctx),
             m_startTime(PAL::getMonotonicTimeMs()),
             m_completion(std::make_shared<CompletionState>(
                 !ctx->httpRequestId.empty()
@@ -93,10 +146,10 @@ namespace MAT_NS_BEGIN {
             m_ctx->httpResponse = response;
 #ifdef USE_SYNC_HTTPRESPONSE_HANDLER // handle HTTP callback synchronously in context of a callback thread
             // We need to decide on pros and cons of synchronous vs. asynchronous callback
-            m_hcm.onHttpResponse(this);
+            ProcessResponse(this);
 #else
             // Handle HTTP response asynchronously
-            m_hcm.scheduleOnHttpResponse(this);
+            ScheduleResponse();
 #endif
         }
 
@@ -108,17 +161,130 @@ namespace MAT_NS_BEGIN {
             // indicate either success or failure.. But alternatively the callback might
             // as well pass the data back by updating the data structure.
             DebugEvent evt(EVT_HTTP_STATE, size_t(state), 0, data, size);
-            m_hcm.m_logManager.DispatchEvent(evt);
+            ManagerUse managerUse(m_registry, this);
+            HttpClientManager* manager = managerUse.Get();
+            if (manager != nullptr)
+            {
+                manager->m_logManager.DispatchEvent(evt);
+            }
         }
 
+        void ScheduleResponse()
+        {
+            auto started = std::make_shared<std::atomic<bool>>(false);
+            auto registry = m_registry;
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
+                auto task = PAL::scheduleTask(
+                    registry->taskDispatcher, 0,
+                    [started, registry, callback = this]()
+                    {
+                        started->store(true, std::memory_order_release);
+                        ProcessResponse(callback);
+                    });
+                if (task.GetTask() != nullptr ||
+                    started->load(std::memory_order_acquire))
+                {
+                    return;
+                }
+#if HAVE_EXCEPTIONS
+            }
+            catch (const std::exception& ex)
+            {
+                (void)ex;
+                LOG_ERROR("Failed to schedule HTTP response callback: %s", ex.what());
+                if (started->load(std::memory_order_acquire))
+                {
+                    return;
+                }
+            }
+            catch (...)
+            {
+                LOG_ERROR("Failed to schedule HTTP response callback with a non-standard exception");
+                if (started->load(std::memory_order_acquire))
+                {
+                    return;
+                }
+            }
+#endif
+            // Some supported dispatchers synchronously destroy tasks they cannot
+            // accept. Complete inline so the claimed callback cannot remain tracked.
+            ProcessResponse(this);
+        }
+
+        static void ProcessResponse(HttpCallback* callback)
+        {
+            auto registry = callback->m_registry;
+            ManagerUse managerUse(registry, callback);
+            HttpClientManager* manager = managerUse.Get();
+            if (manager == nullptr)
+            {
+                RemoveAndDelete(callback, registry);
+                return;
+            }
+
+            EventsUploadContextPtr ctx = callback->m_ctx;
+
+#if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
+            if (ctx->httpResponse != nullptr)
+            {
+                IHttpResponse const& response = (*ctx->httpResponse);
+                LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
+                    response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
+            }
+#endif
+
+#if HAVE_EXCEPTIONS
+            try
+            {
+                manager->requestDone(ctx);
+            }
+            catch (const std::exception& ex)
+            {
+                (void)ex;
+                LOG_ERROR("Unhandled exception in HTTP response callback: %s", ex.what());
+                if (managerUse.IsAttached())
+                {
+                    manager->notifyRequestFailure(ctx);
+                }
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled non-standard exception in HTTP response callback");
+                if (managerUse.IsAttached())
+                {
+                    manager->notifyRequestFailure(ctx);
+                }
+            }
+#else
+            manager->requestDone(ctx);
+#endif
+
+            RemoveAndDelete(callback, registry);
+        }
 
         virtual ~HttpCallback()
         {
             LOG_TRACE("destroy HTTP callback=%p ctx=%p", this, m_ctx.get());
         }
 
+    private:
+        static void RemoveAndDelete(
+            HttpCallback* callback,
+            std::shared_ptr<CallbackRegistry> const& registry)
+        {
+            {
+                std::lock_guard<std::mutex> lock(registry->mutex);
+                LOG_TRACE("HTTP remove callback=%p", callback);
+                registry->callbacks.remove(callback);
+                registry->drained.notify_all();
+            }
+            delete callback;
+        }
+
     public:
-        HttpClientManager&      m_hcm;
         EventsUploadContextPtr  m_ctx;
         int64_t                 m_startTime;
         std::shared_ptr<CompletionState> m_completion;
@@ -132,6 +298,8 @@ namespace MAT_NS_BEGIN {
         m_httpClient(httpClient),
         m_taskDispatcher(taskDispatcher)
     {
+        m_callbackRegistry->manager = this;
+        m_callbackRegistry->taskDispatcher = &taskDispatcher;
         int64_t configuredSeconds =
             logManager.GetLogConfiguration()[CFG_INT_MAX_TEARDOWN_TIME];
         if (configuredSeconds > 0)
@@ -146,12 +314,13 @@ namespace MAT_NS_BEGIN {
     HttpClientManager::~HttpClientManager() noexcept
     {
         cancelAllRequests();
+        detachCallbacks();
     }
 
     void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
     {
         auto registry = m_callbackRegistry;
-        HttpCallback *callback = new HttpCallback(*this, ctx, registry);
+        HttpCallback *callback = new HttpCallback(ctx, registry);
         auto completion = callback->m_completion;
         {
             LOCKGUARD(registry->mutex);
@@ -191,118 +360,6 @@ namespace MAT_NS_BEGIN {
 #else
         m_httpClient.SendRequestAsync(ctx->httpRequest, callback);
 #endif
-    }
-
-    void HttpClientManager::scheduleOnHttpResponse(HttpCallback* callback)
-    {
-        auto started = std::make_shared<std::atomic<bool>>(false);
-#if HAVE_EXCEPTIONS
-        try
-        {
-#endif
-            auto task = PAL::scheduleTask(
-                &m_taskDispatcher, 0, this,
-                &HttpClientManager::runScheduledHttpResponse, started, callback);
-            if (task.GetTask() != nullptr ||
-                started->load(std::memory_order_acquire))
-            {
-                return;
-            }
-#if HAVE_EXCEPTIONS
-        }
-        catch (const std::exception& ex)
-        {
-            (void)ex;
-            LOG_ERROR("Failed to schedule HTTP response callback: %s", ex.what());
-            if (started->load(std::memory_order_acquire))
-            {
-                return;
-            }
-        }
-        catch (...)
-        {
-            LOG_ERROR("Failed to schedule HTTP response callback with a non-standard exception");
-            if (started->load(std::memory_order_acquire))
-            {
-                return;
-            }
-        }
-#endif
-        // Some supported dispatchers synchronously destroy tasks they cannot
-        // accept. Complete inline so the claimed callback cannot remain tracked.
-        onHttpResponse(callback);
-    }
-
-    void HttpClientManager::runScheduledHttpResponse(
-        std::shared_ptr<std::atomic<bool>> const& started,
-        HttpCallback* callback)
-    {
-        started->store(true, std::memory_order_release);
-        onHttpResponse(callback);
-    }
-
-    /* This method may get executed synchronously on Windows from handleSendRequest in case of connection failure */
-    void HttpClientManager::onHttpResponse(HttpCallback* callback)
-    {
-        auto registry = callback->m_registry;
-        {
-            std::lock_guard<std::mutex> lock(registry->mutex);
-            auto z = std::find(
-                registry->callbacks.cbegin(), registry->callbacks.cend(), callback);
-            if (z == registry->callbacks.end()) {
-                LOG_ERROR("Ignoring untracked HTTP callback=%p", callback);
-                return;
-            }
-            registry->activeCallbacks[callback] = std::this_thread::get_id();
-            registry->drained.notify_all();
-        }
-
-        EventsUploadContextPtr ctx = callback->m_ctx;
-
-#if !defined(NDEBUG) && defined(HAVE_MAT_LOGGING)
-        // Response may be null if request got aborted
-        if (ctx->httpResponse != nullptr)
-        {
-            IHttpResponse const& response = (*ctx->httpResponse);
-            LOG_TRACE("HTTP response %s: result=%u, status=%u, body=%u bytes",
-                response.GetId().c_str(), response.GetResult(), response.GetStatusCode(), static_cast<unsigned>(response.GetBody().size()));
-        }
-#endif
-
-        // Never hold the callback-registry mutex while calling the transport or
-        // dispatching requestDone(): either path may synchronously re-enter this
-        // manager. Reentrant cancellation recognizes this callback as active
-        // and does not wait for its own stack to unwind.
-#if HAVE_EXCEPTIONS
-        try
-        {
-            requestDone(ctx);
-        }
-        catch (const std::exception& ex)
-        {
-            (void)ex;
-            LOG_ERROR("Unhandled exception in HTTP response callback: %s", ex.what());
-            notifyRequestFailure(ctx);
-        }
-        catch (...)
-        {
-            LOG_ERROR("Unhandled non-standard exception in HTTP response callback");
-            notifyRequestFailure(ctx);
-        }
-#else
-        requestDone(ctx);
-#endif
-        // request done should be handled by now
-
-        {
-            std::lock_guard<std::mutex> lock(registry->mutex);
-            LOG_TRACE("HTTP remove callback=%p", callback);
-            registry->callbacks.remove(callback);
-            registry->activeCallbacks.erase(callback);
-            registry->drained.notify_all();
-        }
-
-        delete callback;
     }
 
     void HttpClientManager::notifyRequestFailure(EventsUploadContextPtr const& ctx) noexcept
@@ -466,18 +523,9 @@ namespace MAT_NS_BEGIN {
         std::unique_lock<std::mutex> lock(registry->mutex);
         std::thread::id const callerThread = std::this_thread::get_id();
         auto callbacksDrainedForCaller = [registry, callerThread] {
-            for (auto const& active : registry->activeCallbacks)
-            {
-                if (active.second == callerThread)
-                {
-                    // A completion running on a single-thread dispatcher cannot
-                    // wait for peer completions queued behind itself. Returning
-                    // from reentrant cancellation lets this callback unwind and
-                    // the dispatcher drain the remaining work.
-                    return true;
-                }
-            }
-            return registry->callbacks.empty();
+            return registry->activeCalls.find(callerThread) !=
+                       registry->activeCalls.end() ||
+                   registry->callbacks.empty();
         };
         if (bestEffort)
         {
@@ -502,6 +550,25 @@ namespace MAT_NS_BEGIN {
             // stack can unwind; destroying the manager from that stack is unsupported.
             registry->drained.wait(lock, callbacksDrainedForCaller);
         }
+    }
+
+    void HttpClientManager::detachCallbacks()
+    {
+        auto registry = m_callbackRegistry;
+        std::unique_lock<std::mutex> lock(registry->mutex);
+        std::thread::id const callerThread = std::this_thread::get_id();
+        registry->drained.wait(lock, [registry, callerThread] {
+            for (auto const& active : registry->activeCalls)
+            {
+                if (active.first != callerThread)
+                {
+                    return false;
+                }
+            }
+            return true;
+        });
+        registry->manager = nullptr;
+        registry->drained.notify_all();
     }
 
     // start async cancellation

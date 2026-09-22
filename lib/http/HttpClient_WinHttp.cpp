@@ -596,48 +596,85 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     {
         if (m_appCallback != nullptr && !isCallbackCalled)
         {
+            class StateCallbackGuard
+            {
+            public:
+                StateCallbackGuard(
+                    WinHttpRequestWrapper& owner,
+                    std::unique_lock<std::mutex>& lock)
+                    : m_owner(owner),
+                      m_lock(lock),
+                      m_threadId(std::this_thread::get_id())
+                {
+                    ++m_owner.m_stateCallbackDepth;
+                    ++m_owner.m_stateCallbacksByThread[m_threadId];
+                    m_owner.m_clientState->beginCallbackLocked();
+                    m_lock.unlock();
+                }
+
+                ~StateCallbackGuard() noexcept
+                {
+                    bool complete = false;
+                    DWORD completionError = ERROR_SUCCESS;
+                    m_lock.lock();
+                    assert(m_owner.m_stateCallbackDepth != 0);
+                    --m_owner.m_stateCallbackDepth;
+                    auto stateCallback =
+                        m_owner.m_stateCallbacksByThread.find(m_threadId);
+                    assert(stateCallback !=
+                           m_owner.m_stateCallbacksByThread.end());
+                    if (stateCallback !=
+                            m_owner.m_stateCallbacksByThread.end() &&
+                        --stateCallback->second == 0)
+                    {
+                        m_owner.m_stateCallbacksByThread.erase(stateCallback);
+                    }
+                    if (m_owner.m_stateCallbackDepth == 0 &&
+                        m_owner.m_stateCompletionPending)
+                    {
+                        complete = true;
+                        completionError = m_owner.m_stateCompletionError;
+                        m_owner.m_stateCompletionPending = false;
+                        m_owner.m_stateCompletionError = ERROR_SUCCESS;
+                    }
+                    if (complete)
+                    {
+                        m_lock.unlock();
+#if HAVE_EXCEPTIONS
+                        try
+                        {
+#endif
+                            m_owner.onRequestComplete(completionError);
+#if HAVE_EXCEPTIONS
+                        }
+                        catch (...)
+                        {
+                            LOG_ERROR("Unhandled exception while completing a WinHTTP state callback");
+                        }
+#endif
+                    }
+                }
+
+            private:
+                WinHttpRequestWrapper& m_owner;
+                std::unique_lock<std::mutex>& m_lock;
+                std::thread::id m_threadId;
+            };
+
             void* handle = static_cast<void*>(m_hRequest);
             IHttpResponseCallback* callback = m_appCallback;
-            auto state = m_clientState;
-            ++m_stateCallbackDepth;
-            ++m_stateCallbacksByThread[std::this_thread::get_id()];
-            state->beginCallbackLocked();
-            lock.unlock();
             {
+                StateCallbackGuard callbackGuard(*this, lock);
                 WinHttpCallbackScope callbackScope(
-                    state, WinHttpCallbackAlreadyStarted {});
+                    m_clientState, WinHttpCallbackAlreadyStarted {});
                 callback->OnHttpStateEvent(type, handle, 0);
             }
 
-            bool complete = false;
-            DWORD completionError = ERROR_SUCCESS;
+            if (!lock.owns_lock())
             {
-                lock.lock();
-                assert(m_stateCallbackDepth != 0);
-                --m_stateCallbackDepth;
-                auto stateCallback = m_stateCallbacksByThread.find(
-                    std::this_thread::get_id());
-                assert(stateCallback != m_stateCallbacksByThread.end());
-                if (stateCallback != m_stateCallbacksByThread.end() &&
-                    --stateCallback->second == 0)
-                {
-                    m_stateCallbacksByThread.erase(stateCallback);
-                }
-                if (m_stateCallbackDepth == 0 && m_stateCompletionPending)
-                {
-                    complete = true;
-                    completionError = m_stateCompletionError;
-                    m_stateCompletionPending = false;
-                    m_stateCompletionError = ERROR_SUCCESS;
-                }
-            }
-            if (complete)
-            {
-                // Terminal delivery may free the application callback. Leave the
-                // setup lock released, matching the existing DispatchEvent
-                // contract when a state callback synchronously completes.
-                lock.unlock();
-                onRequestComplete(completionError);
+                // Pending terminal delivery may free the application callback.
+                // Preserve the existing contract for sendLocked().
+                return;
             }
         }
     }
@@ -1285,7 +1322,18 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 // terminal delivery begins, so do not expose a stale handle.
                 if (receivedResponse)
                 {
+#if HAVE_EXCEPTIONS
+                    try
+                    {
+#endif
                     callback->OnHttpStateEvent(OnResponse, nullptr, 0);
+#if HAVE_EXCEPTIONS
+                    }
+                    catch (...)
+                    {
+                        LOG_ERROR("Unhandled exception in WinHTTP OnResponse state callback");
+                    }
+#endif
                 }
                 callback->OnHttpResponse(response.release());
             }

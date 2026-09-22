@@ -161,6 +161,30 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
         WinInetRequestWrapper& m_owner;
     };
 
+    class StateCallbackGuard
+    {
+      public:
+        StateCallbackGuard(
+            WinInetRequestWrapper& owner,
+            std::thread::id callbackThread) noexcept
+            : m_owner(owner),
+              m_callbackThread(callbackThread)
+        {
+        }
+
+        ~StateCallbackGuard() noexcept(false)
+        {
+            m_owner.finishStateCallback(m_callbackThread);
+        }
+
+        StateCallbackGuard(StateCallbackGuard const&) = delete;
+        StateCallbackGuard& operator=(StateCallbackGuard const&) = delete;
+
+      private:
+        WinInetRequestWrapper& m_owner;
+        std::thread::id m_callbackThread;
+    };
+
     void finishSetup()
     {
         bool complete = false;
@@ -172,6 +196,35 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             completionError = m_setupCompletionError;
             m_setupCompletionPending = false;
             m_setupCompletionError = ERROR_SUCCESS;
+        }
+        if (complete)
+        {
+            onRequestComplete(completionError);
+        }
+    }
+
+    void finishStateCallback(std::thread::id callbackThread)
+    {
+        bool complete = false;
+        DWORD completionError = ERROR_SUCCESS;
+        {
+            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+            assert(m_stateCallbackDepth != 0);
+            --m_stateCallbackDepth;
+            auto it = m_stateCallbacksByThread.find(callbackThread);
+            assert(it != m_stateCallbacksByThread.end());
+            if (it != m_stateCallbacksByThread.end() && --it->second == 0)
+            {
+                m_stateCallbacksByThread.erase(it);
+            }
+            if (m_stateCallbackDepth == 0 && !m_setupActive &&
+                m_setupCompletionPending)
+            {
+                complete = true;
+                completionError = m_setupCompletionError;
+                m_setupCompletionPending = false;
+                m_setupCompletionError = ERROR_SUCCESS;
+            }
         }
         if (complete)
         {
@@ -635,6 +688,10 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             return;
         }
 
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
         if (shouldStopSetup())
         {
             DispatchEvent(OnConnectFailed);
@@ -876,6 +933,16 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             onRequestComplete(dwError);
             return;
         }
+#if HAVE_EXCEPTIONS
+        }
+        catch (...)
+        {
+            // Registration transferred callback responsibility to this wrapper.
+            // Convert setup callback failures into terminal completion.
+            cancel();
+            onRequestComplete(ERROR_INTERNET_OPERATION_CANCELLED);
+        }
+#endif
     }
 
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
@@ -954,16 +1021,8 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             ++m_stateCallbackDepth;
             ++m_stateCallbacksByThread[callbackThread];
         }
+        StateCallbackGuard callbackGuard(*this, callbackThread);
         callback->OnHttpStateEvent(type, static_cast<void*>(request), 0);
-        {
-            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
-            --m_stateCallbackDepth;
-            auto it = m_stateCallbacksByThread.find(callbackThread);
-            if (it != m_stateCallbacksByThread.end() && --it->second == 0)
-            {
-                m_stateCallbacksByThread.erase(it);
-            }
-        }
     }
 
     void onRequestComplete(DWORD dwError)
@@ -1221,7 +1280,18 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             {
                 // The implementation-specific handle is no longer valid once
                 // terminal delivery begins, so do not expose a stale handle.
+#if HAVE_EXCEPTIONS
+                try
+                {
+#endif
                 callback->OnHttpStateEvent(OnResponse, nullptr, 0);
+#if HAVE_EXCEPTIONS
+                }
+                catch (...)
+                {
+                    LOG_ERROR("Unhandled exception in WinInet OnResponse state callback");
+                }
+#endif
             }
             callback->OnHttpResponse(response.release());
         }
