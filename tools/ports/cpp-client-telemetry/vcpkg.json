@@ -67,7 +67,7 @@
       ]
     },
     "curl-openssl": {
-      "description": "Built-in libcurl HTTP client with the OpenSSL TLS backend (default). Affects Linux only; Android uses the Java/JNI bridge unless an android-curl-* feature is selected, Windows uses WinInet, and Apple uses NSURLSession.",
+      "description": "Built-in libcurl HTTP client with the OpenSSL TLS backend (default). Affects Linux only; Android uses the Java/JNI bridge unless an android-curl-* feature is selected, Windows uses WinHTTP by default, and Apple uses NSURLSession.",
       "dependencies": [
         {
           "name": "curl",
@@ -91,6 +91,10 @@
           "platform": "!osx & !ios"
         }
       ]
+    },
+    "wininet": {
+      "description": "On Windows, explicitly use WinInet instead of the default WinHTTP transport for IE-integrated proxy or cookie behavior.",
+      "supports": "windows & !mingw"
     }
   }
 }

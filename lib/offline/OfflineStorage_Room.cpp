@@ -289,7 +289,6 @@ namespace MAT_NS_BEGIN
             auto room_class = env->GetObjectClass(m_room);
             auto method = env->GetMethodID(room_class, "deleteById", "([J)J");
             ThrowLogic(env, "Unable to get deleteById method");
-            size_t index = 0;
 
             /* Convert string identifiers to int64_t */
 
@@ -506,9 +505,9 @@ namespace MAT_NS_BEGIN
                                                                               record,
                                                                               latency_id))));
                     ThrowLogic(env, "get latency");
-                    auto persistence = static_cast<EventPersistence>(std::max(latency_lb,
+                    auto persistence = static_cast<EventPersistence>(std::max(persist_lb,
                                                                               std::min<int>(
-                                                                                  latency_ub,
+                                                                                  persist_ub,
                                                                                   env->GetIntField(
                                                                                       record,
                                                                                       persistence_id))));
@@ -852,8 +851,6 @@ namespace MAT_NS_BEGIN
                 return 0;
             }
 
-            static constexpr char newRecordSignature[] =
-                "(JIIJIJ[B)Lcom/microsoft/applications/events/StorageRecord;";
             if (!m_room)
             {
                 return 0;
@@ -1321,7 +1318,7 @@ namespace MAT_NS_BEGIN
             ThrowRuntime(env, "call getRecords");
             auto result_count = env->GetArrayLength(java_records);
             records.reserve(result_count);
-            for (size_t record_index = 0; record_index < result_count; ++record_index)
+            for (jsize record_index = 0; record_index < result_count; ++record_index)
             {
                 env.pushLocalFrame(64);
                 auto record = env->GetObjectArrayElement(java_records, record_index);

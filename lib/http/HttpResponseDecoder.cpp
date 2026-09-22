@@ -67,13 +67,11 @@ namespace MAT_NS_BEGIN {
             break;
 
         case HttpResult_Aborted:
-            ctx->httpResponse = nullptr;
             outcome = Abort;
             break;
 
         case HttpResult_LocalFailure:
         case HttpResult_NetworkFailure:
-            ctx->httpResponse = nullptr;
             outcome = RetryNetwork;
             break;
         }
@@ -132,7 +130,6 @@ namespace MAT_NS_BEGIN {
                 evt.param2 = ctx->recordIdsAndTenantIds.size();
                 DispatchEvent(evt);
             }
-            ctx->httpResponse = nullptr;
             // eventsRejected(ctx); // FIXME: [MG] - investigate why ctx gets corrupt after eventsRejected
             requestAborted(ctx);
             break;

@@ -10,10 +10,14 @@
 #include "system/Route.hpp"
 #include "ILogManager.hpp"
 
-#include <list>
-#include <mutex>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 namespace MAT_NS_BEGIN
 {
@@ -36,16 +40,14 @@ class HttpClientManager
 
         size_t requestCount() const
         {
-            // Access to m_httpCallbacks must be serialized via m_httpCallbacksMtx.
-            // Without the lock this is a std::list data race vs onHttpResponse,
-            // handleSendRequest, and cancelAllRequests (same UB class as the
-            // empty()-check bug fixed in cancelAllRequests). The mutex is
-            // declared mutable below so a const observer can take it.
-            LOCKGUARD(m_httpCallbacksMtx);
-            return m_httpCallbacks.size();
+            auto registry = m_callbackRegistry;
+            LOCKGUARD(registry->mutex);
+            return registry->callbacks.size();
         }
 
         RouteSource<EventsUploadContextPtr const&> requestDone;
+        RouteSource<EventsUploadContextPtr const&> requestFailed;
+        RouteSource<EventsUploadContextPtr const&> requestFailureComplete;
 
         RouteSink<HttpClientManager, EventsUploadContextPtr const&> sendRequest
         {
@@ -54,27 +56,31 @@ class HttpClientManager
 
     protected:
         class HttpCallback;
-        friend class HttpCallback;
+        struct CallbackRegistry
+        {
+            mutable std::mutex mutex;
+            std::list<HttpCallback*> callbacks;
+            std::map<std::thread::id, size_t> activeCalls;
+            std::condition_variable drained;
+            HttpClientManager* manager {nullptr};
+            ITaskDispatcher* taskDispatcher {nullptr};
+        };
 
         void handleSendRequest(EventsUploadContextPtr const& ctx);
-        virtual void scheduleOnHttpResponse(HttpCallback* callback);
-        void onHttpResponse(HttpCallback* callback);
         void cancelAllRequestsAsync(std::chrono::milliseconds bestEffortTimeout = std::chrono::milliseconds::zero());
         void cancelTrackedRequestsAsync();
+        void detachCallbacks();
 
         ILogManager&              m_logManager;
         IHttpClient&              m_httpClient;
         ITaskDispatcher&          m_taskDispatcher;
-        mutable std::recursive_mutex m_httpCallbacksMtx;
-        std::list<HttpCallback*>  m_httpCallbacks;
-        // Signaled from onHttpResponse when a callback is removed, so cancelAllRequests
-        // can drain via a condition variable instead of a poll loop.
-        std::condition_variable_any m_httpCallbacksCV;
-        // Upper bound on how long cancelAllRequests waits for callbacks to drain. A
-        // last-resort safety valve so a stalled dispatcher/HTTP stack can never make
-        // the drain spin or block forever. Adjustable so tests can
-        // exercise the timeout path without a long wait.
-        std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::seconds(30)};
+        std::shared_ptr<CallbackRegistry> m_callbackRegistry {
+            std::make_shared<CallbackRegistry>()};
+        // Configured soft cap on the best-effort pause drain. One native handle
+        // close already in progress may finish after it. Non-reentrant full
+        // shutdown remains a lifetime barrier and waits for every accepted
+        // request's terminal callback.
+        std::chrono::milliseconds m_cancelDrainTimeout{std::chrono::milliseconds::zero()};
 };
 
 } MAT_NS_END

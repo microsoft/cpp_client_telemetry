@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);CONFIG_CUSTOM_H="config-net40.h"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);CONFIG_CUSTOM_H="config-net48.h"</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
 </Project>

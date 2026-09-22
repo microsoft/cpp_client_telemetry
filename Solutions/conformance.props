@@ -2,7 +2,7 @@
   <!--
     MSVC conformance mode (/permissive-) for the native SDK library projects
     that import this file (win32-lib, win32-dll, win32-mini-lib, win32-mini-dll,
-    net40), so non-standard constructs are caught at build time. See issue #255.
+    net48), so non-standard constructs are caught at build time. See issue #255.
 
     This is imported explicitly per-project rather than from the shared
     Solutions/build.props, because build.props is also pulled in by vendored
