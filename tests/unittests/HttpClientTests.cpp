@@ -402,6 +402,38 @@ TEST_F(HttpClientTests, DisablesRedirectsWhenMicrosoftRootCheckIsEnabled)
     EXPECT_THAT(_responses[0]->GetStatusCode(), 302u);
 }
 
+#if HAVE_EXCEPTIONS
+TEST_F(HttpClientTests, TerminalFinalizationExceptionDoesNotStrandRequest)
+{
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+    auto windowsClient = dynamic_cast<HttpClient_WinInet*>(_client.get());
+#elif defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+    auto windowsClient = dynamic_cast<HttpClient_WinHttp*>(_client.get());
+#else
+#error A Windows HTTP transport must be selected.
+#endif
+    ASSERT_THAT(windowsClient, NotNull());
+    windowsClient->SetTerminalFinalizationFaultForTests(true);
+
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    request->SetUrl("http://" + _hostname + "/simple/200");
+    _client->SendRequestAsync(request.release(), this);
+
+    for (int i = 0;
+         i < 500 && !windowsClient->WasTerminalFinalizationFaultInjectedForTests();
+         ++i)
+    {
+        PAL::sleep(10);
+    }
+    ASSERT_TRUE(windowsClient->WasTerminalFinalizationFaultInjectedForTests());
+
+    auto cancel = std::async(std::launch::async, [this]()
+                             { _client->CancelAllRequests(); });
+    ASSERT_EQ(cancel.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    cancel.get();
+}
+#endif
+
 #if defined(HAVE_MAT_WININET_HTTP_CLIENT)
 TEST_F(HttpClientTests, WinInetRejectsMicrosoftRootPolicyBeforeNetworkSend)
 {

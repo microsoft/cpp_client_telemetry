@@ -18,6 +18,7 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -27,6 +28,13 @@
 #pragma comment(lib, "wininet.lib")
 
 namespace MAT_NS_BEGIN {
+
+namespace {
+
+std::atomic<bool> g_terminalFinalizationFaultForTests {false};
+std::atomic<bool> g_terminalFinalizationFaultInjectedForTests {false};
+
+} // namespace
 
 class WinInetRequestWrapper;
 
@@ -205,6 +213,75 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
       private:
         WinInetRequestWrapper& m_owner;
         std::thread::id m_callbackThread;
+    };
+
+    class TerminalFinalizationGuard
+    {
+       public:
+        TerminalFinalizationGuard(
+            WinInetRequestWrapper& owner,
+            std::shared_ptr<WinInetClientState> state,
+            std::string const& requestId) noexcept
+            : m_owner(owner),
+              m_state(std::move(state)),
+              m_requestId(requestId)
+        {
+        }
+
+        ~TerminalFinalizationGuard() noexcept
+        {
+            Finalize();
+        }
+
+        void Finalize() noexcept
+        {
+            if (!m_active)
+            {
+                return;
+            }
+            m_active = false;
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
+                m_owner.closeRequestHandle();
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled exception while closing a completed WinInet request");
+            }
+            try
+            {
+#endif
+                m_owner.closeSessionHandle();
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled exception while closing a completed WinInet session");
+            }
+            try
+            {
+#endif
+                m_state->eraseRequest(m_requestId);
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled exception while removing a completed WinInet request");
+            }
+#endif
+        }
+
+        TerminalFinalizationGuard(TerminalFinalizationGuard const&) = delete;
+        TerminalFinalizationGuard& operator=(TerminalFinalizationGuard const&) = delete;
+
+       private:
+        WinInetRequestWrapper& m_owner;
+        std::shared_ptr<WinInetClientState> m_state;
+        std::string const& m_requestId;
+        bool m_active{true};
     };
 
     void finishSetup()
@@ -1049,6 +1126,10 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
 
     void onRequestComplete(DWORD dwError)
     {
+        auto keepAlive = shared_from_this();
+        auto state = m_clientState;
+        auto callback = m_appCallback;
+        auto requestId = m_id;
         {
             std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
             if (m_stateCallbackDepth != 0 || m_setupActive)
@@ -1091,7 +1172,8 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             }
             else
             {
-                auto appendReadBuffer = [this]() -> bool {
+                auto appendReadBuffer = [this]() -> bool
+                {
                     if (m_bodyBuffer.size() > MAX_HTTP_RESPONSE_SIZE ||
                         m_bufferUsed > MAX_HTTP_RESPONSE_SIZE - m_bodyBuffer.size())
                     {
@@ -1179,73 +1261,84 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
             }
         }
 
-        std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
-        if (dwError == ERROR_SUCCESS)
+        TerminalFinalizationGuard terminalFinalization(*this, state, requestId);
+#if HAVE_EXCEPTIONS
+        try
         {
-            response->m_body = std::move(m_bodyBuffer);
-
-            uint32_t statusCode = 0;
-            DWORD statusBytes = sizeof(statusCode);
+            if (g_terminalFinalizationFaultForTests.exchange(false))
             {
-                std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
-                if (!::HttpQueryInfoA(
-                        request, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER,
-                        &statusCode, &statusBytes, nullptr))
-                {
-                    dwError = ::GetLastError();
-                    LOG_WARN("HttpQueryInfo(STATUS_CODE) failed: %d", dwError);
-                }
+                g_terminalFinalizationFaultInjectedForTests.store(true);
+                throw std::runtime_error("injected WinInet terminal finalization failure");
             }
-            response->m_statusCode = statusCode;
-
+#endif
+            std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
             if (dwError == ERROR_SUCCESS)
             {
-                response->m_result = HttpResult_OK;
+                response->m_body = std::move(m_bodyBuffer);
 
-                DWORD headerBytes = 0;
-                BOOL headersQueried = FALSE;
-                DWORD headerError = ERROR_SUCCESS;
+                uint32_t statusCode = 0;
+                DWORD statusBytes = sizeof(statusCode);
                 {
                     std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
-                    headersQueried = ::HttpQueryInfoA(
-                        request, HTTP_QUERY_RAW_HEADERS_CRLF, nullptr,
-                        &headerBytes, nullptr);
-                    headerError = headersQueried ? ERROR_SUCCESS : ::GetLastError();
+                    if (!::HttpQueryInfoA(
+                            request, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER,
+                            &statusCode, &statusBytes, nullptr))
+                    {
+                        dwError = ::GetLastError();
+                        LOG_WARN("HttpQueryInfo(STATUS_CODE) failed: %d", dwError);
+                    }
                 }
-                if (!headersQueried &&
-                    headerError == ERROR_INSUFFICIENT_BUFFER &&
-                    headerBytes > 0 &&
-                    headerBytes < std::numeric_limits<DWORD>::max())
+                response->m_statusCode = statusCode;
+
+                if (dwError == ERROR_SUCCESS)
                 {
-                    std::vector<char> headers(static_cast<size_t>(headerBytes) + 1, '\0');
-                    DWORD bufferBytes = headerBytes;
+                    response->m_result = HttpResult_OK;
+
+                    DWORD headerBytes = 0;
+                    BOOL headersQueried = FALSE;
+                    DWORD headerError = ERROR_SUCCESS;
                     {
                         std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
                         headersQueried = ::HttpQueryInfoA(
-                            request, HTTP_QUERY_RAW_HEADERS_CRLF, headers.data(),
-                            &bufferBytes, nullptr);
+                            request, HTTP_QUERY_RAW_HEADERS_CRLF, nullptr,
+                            &headerBytes, nullptr);
                         headerError = headersQueried ? ERROR_SUCCESS : ::GetLastError();
                     }
-                    if (headersQueried)
+                    if (!headersQueried &&
+                        headerError == ERROR_INSUFFICIENT_BUFFER &&
+                        headerBytes > 0 &&
+                        headerBytes < std::numeric_limits<DWORD>::max())
                     {
-                        headers.back() = '\0';
-                        parseHeaders(std::string(headers.data()), *response);
+                        std::vector<char> headers(static_cast<size_t>(headerBytes) + 1, '\0');
+                        DWORD bufferBytes = headerBytes;
+                        {
+                            std::lock_guard<std::recursive_mutex> lock(m_handleMutex);
+                            headersQueried = ::HttpQueryInfoA(
+                                request, HTTP_QUERY_RAW_HEADERS_CRLF, headers.data(),
+                                &bufferBytes, nullptr);
+                            headerError = headersQueried ? ERROR_SUCCESS : ::GetLastError();
+                        }
+                        if (headersQueried)
+                        {
+                            headers.back() = '\0';
+                            parseHeaders(std::string(headers.data()), *response);
+                        }
+                        else
+                        {
+                            LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed twice: %d", headerError);
+                        }
                     }
-                    else
+                    else if (!headersQueried && headerError != ERROR_SUCCESS)
                     {
-                        LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed twice: %d", headerError);
+                        LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed: %d", headerError);
                     }
-                }
-                else if (!headersQueried && headerError != ERROR_SUCCESS)
-                {
-                    LOG_WARN("HttpQueryInfo(RAW_HEADERS) failed: %d", headerError);
                 }
             }
-        }
 
-        if (dwError != ERROR_SUCCESS)
-        {
-            switch (dwError) {
+            if (dwError != ERROR_SUCCESS)
+            {
+                switch (dwError)
+                {
                 case ERROR_INTERNET_OPERATION_CANCELLED:
                     response->m_result = HttpResult_Aborted;
                     break;
@@ -1280,43 +1373,42 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
                 default:
                     response->m_result = HttpResult_LocalFailure;
                     break;
+                }
             }
-        }
 
-        auto keepAlive = shared_from_this();
-        auto callback = m_appCallback;
-        auto requestId = m_id;
+            WinInetCallbackScope callbackScope(state);
+            // Closing first guarantees WinInet no longer owns the caller's request
+            // body before OnHttpResponse allows that request to be destroyed.
+            terminalFinalization.Finalize();
 
-        // Closing first guarantees WinInet no longer owns the caller's request
-        // body before OnHttpResponse allows that request to be destroyed.
-        closeRequestHandle();
-        closeSessionHandle();
-        WinInetCallbackScope callbackScope(m_clientState);
-        // Remove the request before application code so a callback may safely
-        // cancel all requests or tear the client down synchronously.
-        m_clientState->eraseRequest(requestId);
-
-        if (callback != nullptr)
-        {
-            if (dwError == ERROR_SUCCESS)
+            if (callback != nullptr)
             {
-                // The implementation-specific handle is no longer valid once
-                // terminal delivery begins, so do not expose a stale handle.
-#if HAVE_EXCEPTIONS
-                try
+                if (dwError == ERROR_SUCCESS)
                 {
-#endif
-                callback->OnHttpStateEvent(OnResponse, nullptr, 0);
+                    // The implementation-specific handle is no longer valid once
+                    // terminal delivery begins, so do not expose a stale handle.
 #if HAVE_EXCEPTIONS
-                }
-                catch (...)
-                {
-                    LOG_ERROR("Unhandled exception in WinInet OnResponse state callback");
-                }
+                    try
+                    {
 #endif
+                        callback->OnHttpStateEvent(OnResponse, nullptr, 0);
+#if HAVE_EXCEPTIONS
+                    }
+                    catch (...)
+                    {
+                        LOG_ERROR("Unhandled exception in WinInet OnResponse state callback");
+                    }
+#endif
+                }
+                callback->OnHttpResponse(response.release());
             }
-            callback->OnHttpResponse(response.release());
+#if HAVE_EXCEPTIONS
         }
+        catch (...)
+        {
+            LOG_ERROR("Unhandled exception while finalizing a WinInet request");
+        }
+#endif
     }
 
     static void parseHeaders(std::string const& raw, SimpleHttpResponse& response)
@@ -1642,6 +1734,17 @@ void HttpClient_WinInet::SetMsRootCheck(bool enforceMsRoot)
 bool HttpClient_WinInet::IsMsRootCheckRequired()
 {
     return m_state->msRootCheck.load(std::memory_order_acquire);
+}
+
+void HttpClient_WinInet::SetTerminalFinalizationFaultForTests(bool enabled)
+{
+    g_terminalFinalizationFaultInjectedForTests.store(false);
+    g_terminalFinalizationFaultForTests.store(enabled);
+}
+
+bool HttpClient_WinInet::WasTerminalFinalizationFaultInjectedForTests()
+{
+    return g_terminalFinalizationFaultInjectedForTests.load();
 }
 
 } MAT_NS_END

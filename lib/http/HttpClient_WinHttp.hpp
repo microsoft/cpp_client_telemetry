@@ -51,6 +51,8 @@ class HttpClient_WinHttp : public IHttpClient, public IBoundedHttpClientCancel {
     // Methods unique to WinHttp implementation.
     void SetMsRootCheck(bool enforceMsRoot);
     bool IsMsRootCheckRequired();
+    static void SetTerminalFinalizationFaultForTests(bool enabled);
+    static bool WasTerminalFinalizationFaultInjectedForTests();
 
   protected:
     std::shared_ptr<WinHttpClientState> m_state;

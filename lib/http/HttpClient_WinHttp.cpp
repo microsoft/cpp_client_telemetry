@@ -17,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -29,6 +30,8 @@ namespace MAT_NS_BEGIN {
 namespace {
 
 constexpr DWORD DEFAULT_MAX_CONNECTIONS_PER_SERVER = 4;
+std::atomic<bool> g_terminalFinalizationFaultForTests {false};
+std::atomic<bool> g_terminalFinalizationFaultInjectedForTests {false};
 
 void setConnectionLimits(HINTERNET session, DWORD maxConnections) noexcept
 {
@@ -183,10 +186,69 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
     // operation that acquires requestsMutex.
     std::mutex             m_pumpMutex;
     bool                   m_pumpActive {false};
-    NextOperation          m_nextOperation {NextOperation::None};
-    DWORD                  m_completionError {ERROR_SUCCESS};
+    NextOperation m_nextOperation{NextOperation::None};
+    DWORD m_completionError{ERROR_SUCCESS};
 
-  public:
+    class TerminalFinalizationGuard
+    {
+       public:
+        TerminalFinalizationGuard(
+            WinHttpRequestWrapper& owner,
+            std::shared_ptr<WinHttpClientState> state,
+            std::string const& requestId) noexcept
+            : m_owner(owner),
+              m_state(std::move(state)),
+              m_requestId(requestId)
+        {
+        }
+
+        ~TerminalFinalizationGuard() noexcept
+        {
+            Finalize();
+        }
+
+        void Finalize() noexcept
+        {
+            if (!m_active)
+            {
+                return;
+            }
+            m_active = false;
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
+                m_owner.closeRequestHandle();
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled exception while closing a completed WinHTTP request");
+            }
+            try
+            {
+#endif
+                m_state->eraseRequest(m_requestId);
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                LOG_ERROR("Unhandled exception while removing a completed WinHTTP request");
+            }
+#endif
+        }
+
+        TerminalFinalizationGuard(TerminalFinalizationGuard const&) = delete;
+        TerminalFinalizationGuard& operator=(TerminalFinalizationGuard const&) = delete;
+
+       private:
+        WinHttpRequestWrapper& m_owner;
+        std::shared_ptr<WinHttpClientState> m_state;
+        std::string const& m_requestId;
+        bool m_active{true};
+    };
+
+   public:
     WinHttpRequestWrapper(
         std::shared_ptr<WinHttpClientState> clientState,
         SimpleHttpRequest* request)
@@ -1186,8 +1248,12 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
     void onRequestComplete(DWORD dwError)
     {
+        auto keepAlive = shared_from_this();
+        auto state = m_clientState;
+        auto callback = m_appCallback;
+        auto requestId = m_id;
         {
-            std::lock_guard<std::mutex> lock(m_clientState->requestsMutex);
+            std::lock_guard<std::mutex> lock(state->requestsMutex);
             if (m_stateCallbackDepth != 0)
             {
                 m_stateCompletionPending = true;
@@ -1200,77 +1266,86 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
             }
         }
 
-        std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
-        // Closing the request handle below releases WinHTTP's callback context,
-        // and that context holds the strong reference that has been keeping
-        // this object alive. Hold one here so the rest of this method -- and
-        // the application callback it invokes -- cannot run on a freed object.
-        auto keepAlive = shared_from_this();
-        HINTERNET request = getRequestHandle();
-        if (dwError == ERROR_SUCCESS && request == nullptr)
+        TerminalFinalizationGuard terminalFinalization(*this, state, requestId);
+#if HAVE_EXCEPTIONS
+        try
         {
-            dwError = ERROR_WINHTTP_OPERATION_CANCELLED;
-        }
-        bool const receivedResponse = dwError == ERROR_SUCCESS;
-
-        if (dwError == ERROR_SUCCESS) {
-            response->m_body = std::move(m_bodyBuffer);
-            response->m_result = HttpResult_OK;
-
-            DWORD statusCode = 0;
-            DWORD dwSize = sizeof(statusCode);
-            if (!::WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
-                    WINHTTP_HEADER_NAME_BY_INDEX, &statusCode, &dwSize, WINHTTP_NO_HEADER_INDEX))
+            if (g_terminalFinalizationFaultForTests.exchange(false))
             {
-                LOG_WARN("WinHttpQueryHeaders(STATUS_CODE) failed: %d", ::GetLastError());
-                response->m_result = HttpResult_NetworkFailure;
+                g_terminalFinalizationFaultInjectedForTests.store(true);
+                throw std::runtime_error("injected WinHTTP terminal finalization failure");
             }
-            response->m_statusCode = statusCode;
-
-            // Raw headers, as "Name: Value\r\n..." pairs -- the same shape WinInet
-            // hands back via HTTP_QUERY_RAW_HEADERS_CRLF.
-            DWORD headerBytes = 0;
-            BOOL headersQueried = ::WinHttpQueryHeaders(
-                request, WINHTTP_QUERY_RAW_HEADERS_CRLF,
-                WINHTTP_HEADER_NAME_BY_INDEX, WINHTTP_NO_OUTPUT_BUFFER, &headerBytes,
-                WINHTTP_NO_HEADER_INDEX);
-            DWORD headerErr = headersQueried ? ERROR_SUCCESS : ::GetLastError();
-            if (!headersQueried && headerErr == ERROR_INSUFFICIENT_BUFFER && headerBytes > 0)
+#endif
+            std::unique_ptr<SimpleHttpResponse> response(new SimpleHttpResponse(m_id));
+            HINTERNET request = getRequestHandle();
+            if (dwError == ERROR_SUCCESS && request == nullptr)
             {
-                if (headerBytes % sizeof(wchar_t) != 0)
+                dwError = ERROR_WINHTTP_OPERATION_CANCELLED;
+            }
+            bool const receivedResponse = dwError == ERROR_SUCCESS;
+
+            if (dwError == ERROR_SUCCESS)
+            {
+                response->m_body = std::move(m_bodyBuffer);
+                response->m_result = HttpResult_OK;
+
+                DWORD statusCode = 0;
+                DWORD dwSize = sizeof(statusCode);
+                if (!::WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+                                           WINHTTP_HEADER_NAME_BY_INDEX, &statusCode, &dwSize, WINHTTP_NO_HEADER_INDEX))
                 {
-                    LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) returned an invalid byte count: %lu", headerBytes);
+                    LOG_WARN("WinHttpQueryHeaders(STATUS_CODE) failed: %d", ::GetLastError());
+                    response->m_result = HttpResult_NetworkFailure;
                 }
-                else
+                response->m_statusCode = statusCode;
+
+                // Raw headers, as "Name: Value\r\n..." pairs -- the same shape WinInet
+                // hands back via HTTP_QUERY_RAW_HEADERS_CRLF.
+                DWORD headerBytes = 0;
+                BOOL headersQueried = ::WinHttpQueryHeaders(
+                    request, WINHTTP_QUERY_RAW_HEADERS_CRLF,
+                    WINHTTP_HEADER_NAME_BY_INDEX, WINHTTP_NO_OUTPUT_BUFFER, &headerBytes,
+                    WINHTTP_NO_HEADER_INDEX);
+                DWORD headerErr = headersQueried ? ERROR_SUCCESS : ::GetLastError();
+                if (!headersQueried && headerErr == ERROR_INSUFFICIENT_BUFFER && headerBytes > 0)
                 {
-                    std::wstring wHeaders(headerBytes / sizeof(wchar_t), L'\0');
-                    DWORD bufferBytes = headerBytes;
-                    if (::WinHttpQueryHeaders(
-                            request, WINHTTP_QUERY_RAW_HEADERS_CRLF,
-                            WINHTTP_HEADER_NAME_BY_INDEX, &wHeaders[0], &bufferBytes,
-                            WINHTTP_NO_HEADER_INDEX))
+                    if (headerBytes % sizeof(wchar_t) != 0)
                     {
-                        // WinHttpQueryHeaders includes the buffer's trailing NUL(s) in
-                        // the byte count; trim at the first one before converting.
-                        size_t nul = wHeaders.find(L'\0');
-                        if (nul != std::wstring::npos)
-                        {
-                            wHeaders.resize(nul);
-                        }
-                        parseHeaders(to_utf8_string(wHeaders), *response);
+                        LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) returned an invalid byte count: %lu", headerBytes);
                     }
                     else
                     {
-                        LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) failed twice: %d", ::GetLastError());
+                        std::wstring wHeaders(headerBytes / sizeof(wchar_t), L'\0');
+                        DWORD bufferBytes = headerBytes;
+                        if (::WinHttpQueryHeaders(
+                                request, WINHTTP_QUERY_RAW_HEADERS_CRLF,
+                                WINHTTP_HEADER_NAME_BY_INDEX, &wHeaders[0], &bufferBytes,
+                                WINHTTP_NO_HEADER_INDEX))
+                        {
+                            // WinHttpQueryHeaders includes the buffer's trailing NUL(s) in
+                            // the byte count; trim at the first one before converting.
+                            size_t nul = wHeaders.find(L'\0');
+                            if (nul != std::wstring::npos)
+                            {
+                                wHeaders.resize(nul);
+                            }
+                            parseHeaders(to_utf8_string(wHeaders), *response);
+                        }
+                        else
+                        {
+                            LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) failed twice: %d", ::GetLastError());
+                        }
                     }
                 }
+                else if (!headersQueried)
+                {
+                    LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) failed: %d", headerErr);
+                }
             }
-            else if (!headersQueried)
+            else
             {
-                LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) failed: %d", headerErr);
-            }
-        } else {
-            switch (dwError) {
+                switch (dwError)
+                {
                 case ERROR_WINHTTP_OPERATION_CANCELLED:
                     response->m_result = HttpResult_Aborted;
                     break;
@@ -1299,23 +1374,16 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 default:
                     response->m_result = HttpResult_LocalFailure;
                     break;
+                }
             }
-        }
 
-        {
-            auto state = m_clientState;
             WinHttpCallbackScope callbackScope(state);
-            auto callback = m_appCallback;
-            auto requestId = m_id;
             // Let go of the request handle before entering application code:
             // OnHttpResponse() is what allows the caller to destroy the request
             // object whose body buffer WinHTTP was given, so WinHTTP must be
             // done with this request first. Closing it is also what triggers
             // HANDLE_CLOSING, which releases the callback context.
-            closeRequestHandle();
-            // Remove the request before entering application code. The callback
-            // can synchronously tear down the client and destroy this wrapper.
-            state->eraseRequest(requestId);
+            terminalFinalization.Finalize();
             if (callback != nullptr)
             {
                 // The implementation-specific handle is no longer valid once
@@ -1326,7 +1394,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                     try
                     {
 #endif
-                    callback->OnHttpStateEvent(OnResponse, nullptr, 0);
+                        callback->OnHttpStateEvent(OnResponse, nullptr, 0);
 #if HAVE_EXCEPTIONS
                     }
                     catch (...)
@@ -1337,10 +1405,16 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 }
                 callback->OnHttpResponse(response.release());
             }
+#if HAVE_EXCEPTIONS
         }
+        catch (...)
+        {
+            LOG_ERROR("Unhandled exception while finalizing a WinHTTP request");
+        }
+#endif
     }
 
-  private:
+   private:
     // Parses "Name: Value\r\n"-formatted raw headers (as returned by
     // WINHTTP_QUERY_RAW_HEADERS_CRLF / HTTP_QUERY_RAW_HEADERS_CRLF) into an
     // HttpHeaders map. Shared shape with HttpClient_WinInet's inline parser.
@@ -1707,6 +1781,17 @@ void HttpClient_WinHttp::SetMsRootCheck(bool enforceMsRoot)
 bool HttpClient_WinHttp::IsMsRootCheckRequired()
 {
     return m_state->msRootCheck.load(std::memory_order_acquire);
+}
+
+void HttpClient_WinHttp::SetTerminalFinalizationFaultForTests(bool enabled)
+{
+    g_terminalFinalizationFaultInjectedForTests.store(false);
+    g_terminalFinalizationFaultForTests.store(enabled);
+}
+
+bool HttpClient_WinHttp::WasTerminalFinalizationFaultInjectedForTests()
+{
+    return g_terminalFinalizationFaultInjectedForTests.load();
 }
 
 } MAT_NS_END

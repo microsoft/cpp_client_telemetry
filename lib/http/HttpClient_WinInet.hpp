@@ -42,6 +42,8 @@ class HttpClient_WinInet : public IHttpClient, public IBoundedHttpClientCancel {
     // Methods unique to WinInet implementation.
     void SetMsRootCheck(bool enforceMsRoot);
     bool IsMsRootCheckRequired();
+    static void SetTerminalFinalizationFaultForTests(bool enabled);
+    static bool WasTerminalFinalizationFaultInjectedForTests();
 
   protected:
     std::shared_ptr<WinInetClientState>                              m_state;
