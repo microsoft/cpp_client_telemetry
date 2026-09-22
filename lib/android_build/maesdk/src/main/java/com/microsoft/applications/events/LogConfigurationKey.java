@@ -23,6 +23,9 @@ public enum LogConfigurationKey {
   /** Enable database compression. */
   CFG_BOOL_ENABLE_DB_COMPRESS("enableDBCompression", Boolean.class),
 
+  /** Batch records when flushing the RAM queue to disk storage. */
+  CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH("enableBatchedStorageFlush", Boolean.class),
+
   /** Enable WAL journal. */
   CFG_BOOL_ENABLE_WAL_JOURNAL("enableWALJournal", Boolean.class),
 
@@ -187,4 +190,3 @@ public enum LogConfigurationKey {
     return valueType;
   }
 }
-

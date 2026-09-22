@@ -6,6 +6,7 @@
 #define OFFLINESTORAGEFACTORY_HPP
 
 #include "IOfflineStorage.hpp"
+#include "IOfflineStorageProvider.hpp"
 #include "api/IRuntimeConfig.hpp"
 
 namespace MAT_NS_BEGIN
@@ -14,9 +15,9 @@ namespace MAT_NS_BEGIN
     {
        public:
         static std::shared_ptr<IOfflineStorage> Create(ILogManager& logManager, IRuntimeConfig& runtimeConfig);
+        static std::shared_ptr<IOfflineStorageProvider> GetDefaultProvider();
     };
 }
 MAT_NS_END
 
 #endif  // HTTPCLIENTFACTORY_HPP
-

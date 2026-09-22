@@ -125,6 +125,19 @@ else()
 endif()
 
 file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_ROOT_CMAKE)
+set(MATSDK_OPTION_SOURCE "${MATSDK_ROOT_CMAKE}")
+if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
+  file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake" MATSDK_OPTIONS_CMAKE)
+  string(APPEND MATSDK_OPTION_SOURCE "\n${MATSDK_OPTIONS_CMAKE}")
+endif()
+if(VCPKG_TARGET_IS_WINDOWS
+   AND NOT MATSDK_OPTION_SOURCE MATCHES "MATSDK_USE_WININET")
+  message(FATAL_ERROR
+    "This port revision requires a cpp-client-telemetry source revision that "
+    "supports MATSDK_USE_WININET so the Windows transport selection is explicit. "
+    "Update this port's REF/SHA512 to a newer SDK release, or set "
+    "MATSDK_VCPKG_SOURCE_DIR to a local checkout containing that option.")
+endif()
 set(MATSDK_PINNED_SOURCE_OPTIONS)
 if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_USE_VCPKG_DEPS")
   list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_USE_VCPKG_DEPS=ON)
@@ -134,6 +147,11 @@ if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_MINIMAL_SQLITE"
   list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_MINIMAL_SQLITE=ON)
 endif()
 
+set(MATSDK_USE_WININET OFF)
+if("wininet" IN_LIST FEATURES)
+  set(MATSDK_USE_WININET ON)
+endif()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
@@ -141,6 +159,7 @@ vcpkg_cmake_configure(
         -DMATSDK_SQLITE_PROVIDER=${MATSDK_VCPKG_SQLITE_PROVIDER}
         -DBUILD_SHARED_LIBS=${MATSDK_VCPKG_BUILD_SHARED_LIBS}
         -DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}
+        -DMATSDK_USE_WININET=${MATSDK_USE_WININET}
         -DMATSDK_BUILD_HEADERS=ON
         -DMATSDK_BUILD_LIBRARY=ON
         -DMATSDK_BUILD_TEST_TOOL=OFF

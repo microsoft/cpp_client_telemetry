@@ -16,6 +16,7 @@ namespace MAT_NS_BEGIN
         {CFG_BOOL_ENABLE_ANALYTICS, false},
         {CFG_INT_CACHE_FILE_SIZE, 3145728},
         {CFG_INT_RAM_QUEUE_SIZE, 524288},
+        {CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH, true},
         {CFG_BOOL_ENABLE_MULTITENANT, true},
         {CFG_BOOL_ENABLE_DB_DROP_IF_FULL, false},
         {CFG_INT_MAX_TEARDOWN_TIME, 1},
@@ -61,7 +62,7 @@ namespace MAT_NS_BEGIN
              {"contentEncoding", "deflate"},
              /* Optional parameter to require Microsoft Root CA */
              {CFG_BOOL_HTTP_MS_ROOT_CHECK, false},
-             /* Optional parameter for SSL certificate verification (curl) */
+             /* Compatibility parameter; curl verification cannot be disabled */
              {CFG_BOOL_HTTP_SSL_VERIFY, true},
              /* Optional CA bundle path for OpenSSL-backed curl */
              {CFG_STR_HTTP_SSL_CAINFO, ""}}},
@@ -233,4 +234,3 @@ namespace MAT_NS_BEGIN
 
 }
 MAT_NS_END
-

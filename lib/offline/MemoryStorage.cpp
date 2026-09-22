@@ -224,6 +224,16 @@ namespace MAT_NS_BEGIN {
 
     void MemoryStorage::DeleteRecords(const std::map<std::string, std::string> & whereFilter)
     {
+        // An empty filter matches every record. Never silently wipe the whole
+        // in-memory queue from a no-op predicate; callers must use
+        // DeleteAllRecords() for an intentional full clear. This mirrors the
+        // fail-closed behavior of OfflineStorage_SQLite::DeleteRecords.
+        if (whereFilter.empty())
+        {
+            LOG_WARN("DeleteRecords called with an empty filter; ignoring to avoid deleting all records.");
+            return;
+        }
+
         auto matcher = [&](const StorageRecord &r, const std::map<std::string, std::string> & whereFilter)
         {
             bool matched = true;

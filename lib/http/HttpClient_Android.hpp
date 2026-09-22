@@ -38,15 +38,7 @@ namespace MAT_NS_BEGIN
 
             HttpResult GetResult() const override
             {
-                switch (m_response)
-                {
-                case 0:
-                    return HttpResult_LocalFailure;
-                case -1:
-                    return HttpResult_NetworkFailure;
-                default:
-                    return HttpResult_OK;
-                }
+                return m_result;
             }
 
             unsigned int GetStatusCode() const override
@@ -67,6 +59,14 @@ namespace MAT_NS_BEGIN
             void SetResponse(int response)
             {
                 m_response = response;
+                m_result = response == 0
+                    ? HttpResult_LocalFailure
+                    : response == -1 ? HttpResult_NetworkFailure : HttpResult_OK;
+            }
+
+            void SetResult(HttpResult result)
+            {
+                m_result = result;
             }
 
             void AddHeader(std::string&& key, std::string&& value)
@@ -84,6 +84,7 @@ namespace MAT_NS_BEGIN
             HttpHeaders m_headers;
             std::vector<uint8_t, std::allocator<uint8_t>> m_body;
             int m_response = 0;
+            HttpResult m_result = HttpResult_LocalFailure;
         };
 
        public:
@@ -186,7 +187,7 @@ namespace MAT_NS_BEGIN
 
         static void CreateClientInstance(JNIEnv* env,
                                          jobject java_client);
-        static void DeleteClientInstance(JNIEnv* env);
+        static void DeleteClientInstance(JNIEnv* env, jobject java_client);
         static void SetCacheFilePath(std::string&& path);
         static const std::string& GetCacheFilePath();
         static std::shared_ptr<HttpClient_Android> GetClientInstance();
@@ -204,6 +205,7 @@ namespace MAT_NS_BEGIN
         jmethodID m_execute_id = nullptr;
         static JavaVM* s_java_vm;
         std::atomic<uint64_t> m_id;
+        static std::mutex s_clientMutex;
         static std::shared_ptr<HttpClient_Android> s_client;
         static std::string s_cache_file_path;
 

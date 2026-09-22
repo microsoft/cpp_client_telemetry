@@ -103,15 +103,30 @@ namespace MAT_NS_BEGIN {
         if (IsRunningInApp())
         {
             auto hr = RoInitialize(RO_INIT_MULTITHREADED);
-            /* Ignoring result from call to `RoInitialize` as either initialzation is successful, or else already
-             * initialized and it should be ok to proceed in both the scenarios */
-            UNREFERENCED_PARAMETER(hr);
+            // RoInitialize returns S_OK when it initializes the apartment and
+            // S_FALSE when it was already initialized on this thread; both add a
+            // reference that must be balanced with RoUninitialize. The RAII guard
+            // balances a successful init on every exit path, including if a WinRT
+            // call below throws. RPC_E_CHANGED_MODE and other failures did not
+            // initialize and are left unbalanced.
+            struct ApartmentGuard
+            {
+                HRESULT hr;
+                ~ApartmentGuard() { if (SUCCEEDED(hr)) { RoUninitialize(); } }
+            } apartmentGuard{hr};
 
-            ::Windows::Storage::StorageFolder ^ temp = ::Windows::Storage::ApplicationData::Current->TemporaryFolder;
-            // TODO: [MG]
-            // - verify that the path ends with a slash
-            // -- add exception handler in case if AppData temp folder is not accessible
-            return from_platform_string(temp->Path->ToString());
+            std::string tempPath;
+            {
+                // Release the WinRT StorageFolder before the guard runs (at the
+                // end of the enclosing scope) so the object is not destroyed in an
+                // uninitialized apartment.
+                ::Windows::Storage::StorageFolder ^ temp = ::Windows::Storage::ApplicationData::Current->TemporaryFolder;
+                // TODO: [MG]
+                // - verify that the path ends with a slash
+                // -- add exception handler in case if AppData temp folder is not accessible
+                tempPath = from_platform_string(temp->Path->ToString());
+            }
+            return tempPath;
         }
         else
         {
@@ -177,9 +192,6 @@ namespace MAT_NS_BEGIN {
 
     EventRejectedReason validateEventName(std::string const& name)
     {
-        // Data collector uses this regex (avoided here for code size reasons):
-        // ^[a-zA-Z0-9]([a-zA-Z0-9]|_){2,98}[a-zA-Z0-9]$
-
         if (name.length() < 1 + 2 + 1 || name.length() > 1 + 98 + 1) {
             LOG_ERROR("Invalid event name - \"%s\": must be between 4 and 100 characters long", name.c_str());
             return REJECTED_REASON_VALIDATION_FAILED;
@@ -190,13 +202,6 @@ namespace MAT_NS_BEGIN {
             LOG_ERROR("Invalid event name - \"%s\": must contain [0-9A-Za-z_] characters only", name.c_str());
             return REJECTED_REASON_VALIDATION_FAILED;
         }
-
-#if 0
-        if (name.front() == '_' || name.back() == '_') {
-            LOG_ERROR("Invalid event name - \"%s\": must not start or end with an underscore", name.c_str());
-            return REJECTED_REASON_VALIDATION_FAILED;
-        }
-#endif
 
         return REJECTED_REASON_OK;
     }
@@ -247,4 +252,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-
