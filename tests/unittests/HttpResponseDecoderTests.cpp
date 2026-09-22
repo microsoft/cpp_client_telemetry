@@ -88,20 +88,29 @@ TEST_F(HttpResponseDecoderTests, UnderstandsTemporaryServerFailures)
 TEST_F(HttpResponseDecoderTests, UnderstandsTemporaryNetworkFailures)
 {
     auto ctx = createContextWith(HttpResult_LocalFailure, -1, "");
-    EXPECT_CALL(*this, resultTemporaryNetworkFailure(ctx))
-        .WillOnce(Return());
+    EXPECT_CALL(*this, resultTemporaryNetworkFailure(ctx)).WillOnce(Invoke([](EventsUploadContextPtr const& routedCtx) {
+        ASSERT_THAT(routedCtx->httpResponse, NotNull());
+        EXPECT_THAT(routedCtx->httpResponse->GetResult(), HttpResult_LocalFailure);
+        EXPECT_THAT(routedCtx->httpResponse->GetStatusCode(), static_cast<unsigned>(-1));
+    }));
     decoder.decode(ctx);
 
     ctx = createContextWith(HttpResult_NetworkFailure, -1, "");
-    EXPECT_CALL(*this, resultTemporaryNetworkFailure(ctx))
-        .WillOnce(Return());
+    EXPECT_CALL(*this, resultTemporaryNetworkFailure(ctx)).WillOnce(Invoke([](EventsUploadContextPtr const& routedCtx) {
+        ASSERT_THAT(routedCtx->httpResponse, NotNull());
+        EXPECT_THAT(routedCtx->httpResponse->GetResult(), HttpResult_NetworkFailure);
+        EXPECT_THAT(routedCtx->httpResponse->GetStatusCode(), static_cast<unsigned>(-1));
+    }));
     decoder.decode(ctx);
 }
 
 TEST_F(HttpResponseDecoderTests, SkipsAbortedRequests)
 {
     auto ctx = createContextWith(HttpResult_Aborted, -1, "");
-    EXPECT_CALL(*this, resultRequestAborted(ctx))
-        .WillOnce(Return());
+    EXPECT_CALL(*this, resultRequestAborted(ctx)).WillOnce(Invoke([](EventsUploadContextPtr const& routedCtx) {
+        ASSERT_THAT(routedCtx->httpResponse, NotNull());
+        EXPECT_THAT(routedCtx->httpResponse->GetResult(), HttpResult_Aborted);
+        EXPECT_THAT(routedCtx->httpResponse->GetStatusCode(), static_cast<unsigned>(-1));
+    }));
     decoder.decode(ctx);
 }

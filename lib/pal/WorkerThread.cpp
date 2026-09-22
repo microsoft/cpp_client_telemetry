@@ -5,8 +5,12 @@
 // clang-format off
 #include "pal/WorkerThread.hpp"
 #include "pal/PAL.hpp"
+#include "ctmacros.hpp"
 
 #include <exception>
+#include <system_error>
+#include <atomic>
+#include <limits>
 
 #if defined(MATSDK_PAL_CPP11) || defined(MATSDK_PAL_WIN32)
 
@@ -29,6 +33,14 @@ namespace PAL_NS_BEGIN {
     {
     protected:
         std::thread           m_hThread;
+        // The worker thread's own id, captured under m_lock once threadFunc starts.
+        // onLastReferenceReleased() reads it (under m_lock) rather than m_hThread.get_id()
+        // to detect "am I running on my own worker thread?", because m_hThread.get_id()
+        // returns the default not-a-thread id after a detach() -- so this keeps
+        // self-dispose detection correct even if the thread was detached first. A plain
+        // std::thread::id guarded by m_lock is used rather than std::atomic<std::thread::id>,
+        // which is not portable (std::thread::id is not guaranteed trivially copyable).
+        std::thread::id       m_workerId;
 
         std::recursive_mutex  m_lock;
         std::timed_mutex      m_execution_mutex;
@@ -36,16 +48,23 @@ namespace PAL_NS_BEGIN {
         std::list<MAT::Task*> m_queue;
         std::list<MAT::Task*> m_timerQueue;
         Event                 m_event;
-        MAT::Task*            m_itemInProgress;
+        MAT::Task*            m_itemInProgress = nullptr;
+        uint64_t              m_itemInProgressGeneration = 0;
+        bool                  m_itemCancellationRequested = false;
         int count = 0;
+        bool                  m_shuttingDown = false;
+        std::mutex            m_joinLock;
+        // Set when the last reference is released by a task running on this worker
+        // thread, so threadFunc performs the final delete after its loop breaks
+        // (see onLastReferenceReleased() and WorkerThreadFactory::Create()).
+        std::atomic<bool>     m_disposeFromThread { false };
 
     public:
 
         WorkerThread()
         {
-            m_itemInProgress = nullptr;
             m_hThread = std::thread(WorkerThread::threadFunc, static_cast<void*>(this));
-            LOG_INFO("Started new thread %u", m_hThread.get_id());
+            LOG_INFO("Started new thread %zu", std::hash<std::thread::id>{}(m_hThread.get_id()));
         }
 
         ~WorkerThread()
@@ -53,65 +72,158 @@ namespace PAL_NS_BEGIN {
             Join();
         }
 
+    private:
+        void enqueueShutdownItemLocked()
+        {
+            if (!m_shuttingDown) {
+                m_shuttingDown = true;
+                m_queue.push_back(new WorkerThreadShutdownItem());
+                m_event.post();
+            }
+        }
+
+        void drainPendingTasks()
+        {
+            std::list<MAT::Task*> queue;
+            std::list<MAT::Task*> timerQueue;
+            {
+                LOCKGUARD(m_lock);
+                queue.splice(queue.end(), m_queue);
+                timerQueue.splice(timerQueue.end(), m_timerQueue);
+            }
+            if (!queue.empty()) {
+                LOG_WARN("Shutdown with %zu queued task(s) pending", queue.size());
+            }
+            if (!timerQueue.empty()) {
+                LOG_WARN("Shutdown with %zu timer(s) pending", timerQueue.size());
+            }
+            for (auto task : queue) { delete task; }
+            for (auto task : timerQueue) { delete task; }
+        }
+
+    public:
         void Join() final
         {
-            auto item = new WorkerThreadShutdownItem();
-            Queue(item);
             std::thread::id this_id = std::this_thread::get_id();
-            try {
-                if (m_hThread.joinable() && (m_hThread.get_id() != this_id))
-                    m_hThread.join();
-                else
-                    m_hThread.detach();
+            {
+                LOCKGUARD(m_lock);
+                if (m_workerId == this_id)
+                {
+                    enqueueShutdownItemLocked();
+                    return;
+                }
             }
-            catch (...) {};
 
-            // TODO: [MG] - investigate if we ever drop work items on shutdown.
-            if (!m_queue.empty())
+            LOCKGUARD(m_joinLock);
+            std::thread threadToJoin;
+            bool joined = false;
             {
-                LOG_WARN("m_queue is not empty!");
+                LOCKGUARD(m_lock);
+                enqueueShutdownItemLocked();
+                if (!m_hThread.joinable()) {
+                    return;
+                }
+                threadToJoin = std::move(m_hThread);
             }
-            if (!m_timerQueue.empty())
+#if HAVE_EXCEPTIONS
+            try {
+                if (threadToJoin.joinable()) {
+                    threadToJoin.join();
+                    joined = true;
+                }
+            }
+            catch (const std::system_error& e) {
+                (void)e;
+                LOG_ERROR("Thread join/detach failed: [%d] %s", e.code().value(), e.what());
+                std::terminate();
+            }
+            catch (const std::exception& e) {
+                (void)e;
+                LOG_ERROR("Thread join/detach failed: %s", e.what());
+                std::terminate();
+            }
+#else
+            if (threadToJoin.joinable()) {
+                threadToJoin.join();
+                joined = true;
+            }
+#endif
+
+            // Clean up any tasks remaining in the queues after shutdown.
+            // Only safe after join() — the thread has fully exited.
+            if (joined) {
+                drainPendingTasks();
+            }
+        }
+
+        // Invoked by the shared_ptr deleter when the last reference is released.
+        // Returns true if the caller should delete the object, false if deletion was
+        // deferred to the worker thread. The worker is shared process-wide, so the
+        // last reference can be dropped by a task running on the worker thread itself
+        // (e.g. a task that tears down its LogManager/PAL). In that case threadFunc is
+        // still on the stack below the task and keeps touching members after the task
+        // returns, so freeing the object here would be a use-after-free: instead
+        // detach, signal shutdown, mark the thread to delete itself once its loop
+        // breaks, and leave the object alive. On any other thread it is safe to delete
+        // immediately (~WorkerThread joins the worker first).
+        bool onLastReferenceReleased()
+        {
+            LOCKGUARD(m_lock);
+            if (m_workerId == std::this_thread::get_id())
             {
-                LOG_WARN("m_timerQueue is not empty!");
+                enqueueShutdownItemLocked();
+                m_disposeFromThread.store(true, std::memory_order_release);
+#if HAVE_EXCEPTIONS
+                try {
+                    if (m_hThread.joinable()) {
+                        m_hThread.detach();
+                    }
+                }
+                catch (const std::exception& e) {
+                    (void)e;
+                    LOG_ERROR("Worker self-detach failed: %s", e.what());
+                }
+#else
+                if (m_hThread.joinable()) {
+                    m_hThread.detach();
+                }
+#endif
+                return false;
             }
+            return true;
         }
 
         void Queue(MAT::Task* item) final
         {
-            LOG_INFO("queue item=%p", &item);
-            LOCKGUARD(m_lock);
-            if (item->Type == MAT::Task::TimedCall) {
-                auto it = m_timerQueue.begin();
-                while (it != m_timerQueue.end() && (*it)->TargetTime < item->TargetTime) {
-                    ++it;
+            LOG_INFO("queue item=%p", static_cast<void*>(item));
+            bool rejected = false;
+            {
+                LOCKGUARD(m_lock);
+                if (m_shuttingDown) {
+                    rejected = true;
                 }
-                m_timerQueue.insert(it, item);
+                else if (item->Type == MAT::Task::TimedCall) {
+                    auto it = m_timerQueue.begin();
+                    while (it != m_timerQueue.end() && (*it)->TargetTime < item->TargetTime) {
+                        ++it;
+                    }
+                    m_timerQueue.insert(it, item);
+                }
+                else {
+                    m_queue.push_back(item);
+                }
             }
-            else {
-                m_queue.push_back(item);
+            if (rejected) {
+                LOG_WARN("Dropping queued task %p during shutdown", static_cast<void*>(item));
+                delete item;
+                return;
             }
-            count++;
             m_event.post();
         }
 
-        // Cancel a task or wait for task completion for up to waitTime ms:
-        //
-        // - acquire the m_lock to prevent a new task from getting scheduled.
-        //   This may block the scheduling of a new task in queue for up to
-        //   waitTime in case if the task being canceled
-        //   is the one being executed right now.
-        //
-        // - if currently executing task is the one we are trying to cancel,
-        //   then verify for recursion: if the current thread is the same
-        //   we're waiting on, prevent the recursion (we can't cancel our own
-        //   thread task). If it's different thread, then idle-poll-wait for
-        //   task completion for up to waitTime ms. m_itemInProgress is nullptr
-        //   once the item is done executing. Method may fail and return if
-        //   waitTime given was insufficient to wait for completion.
-        //
-        // - if task being cancelled is not executing yet, then erase it from
-        //   timer queue without any wait.
+        // Lock rule: never wait for m_execution_mutex while holding m_lock.
+        // Task callbacks may call Queue(), which needs m_lock while the callback
+        // owns m_execution_mutex.
         //
         // TODO: current callers of this API do not check the status code.
         // Refactor this code to return the following cancellation status:
@@ -122,7 +234,8 @@ namespace PAL_NS_BEGIN {
         //
         bool Cancel(MAT::Task* item, uint64_t waitTime) override
         {
-            LOCKGUARD(m_lock);
+            MAT::Task* queuedItem = nullptr;
+            std::unique_lock<std::recursive_mutex> lock(m_lock);
             if (item == nullptr)
             {
                 return false;
@@ -131,36 +244,59 @@ namespace PAL_NS_BEGIN {
             if (m_itemInProgress == item)
             {
                 /* Can't recursively wait on completion of our own thread */
-                if (m_hThread.get_id() != std::this_thread::get_id())
-                {
-                    if (waitTime > 0 && m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime)))
-                    {
-                        m_itemInProgress = nullptr;
-                        m_execution_mutex.unlock();
-                    }
-                }
-                else
+                if (m_workerId == std::this_thread::get_id())
                 {
                     // The SDK may attempt to cancel itself from within its own task.
                     // Return true and assume that the current task will finish, and therefore be cancelled.
                     return true;
                 }
 
-                /* Either waited long enough or the task is still executing. Return:
-                 *  true    - if item in progress is different than item (other task)
-                 *  false   - if item in progress is still the same (didn't wait long enough)
-                 */
-                return (m_itemInProgress != item);
+                if (waitTime == 0)
+                {
+                    return false;
+                }
+
+                const uint64_t generation = m_itemInProgressGeneration;
+                m_itemCancellationRequested = true;
+                lock.unlock();
+
+                bool completed = false;
+                if (waitTime == std::numeric_limits<uint64_t>::max())
+                {
+                    m_execution_mutex.lock();
+                    completed = true;
+                }
+                else
+                {
+                    completed =
+                        m_execution_mutex.try_lock_for(std::chrono::milliseconds(waitTime));
+                }
+                if (completed)
+                {
+                    m_execution_mutex.unlock();
+                }
+
+                lock.lock();
+                const bool sameItem =
+                    m_itemInProgress == item &&
+                    m_itemInProgressGeneration == generation;
+                if (completed && sameItem)
+                {
+                    m_itemInProgress = nullptr;
+                    m_itemCancellationRequested = false;
+                }
+
+                return completed || !sameItem;
             }
 
-            {
-                auto it = std::find(m_timerQueue.begin(), m_timerQueue.end(), item);
-                if (it != m_timerQueue.end()) {
-                    // Still in the queue
-                    m_timerQueue.erase(it);
-                    delete item;
-                }
+            auto it = std::find(m_timerQueue.begin(), m_timerQueue.end(), item);
+            if (it != m_timerQueue.end()) {
+                // Transfer ownership under m_lock, but destroy outside all worker locks.
+                queuedItem = *it;
+                m_timerQueue.erase(it);
             }
+            lock.unlock();
+            delete queuedItem;
 #if 0
             for (;;) {
                 {
@@ -181,7 +317,11 @@ namespace PAL_NS_BEGIN {
             uint64_t wakeupCount = 0;
 
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
-            LOG_INFO("Running thread %u", std::this_thread::get_id());
+            {
+                LOCKGUARD(self->m_lock);
+                self->m_workerId = std::this_thread::get_id();
+            }
+            LOG_INFO("Running thread %zu", std::hash<std::thread::id>{}(std::this_thread::get_id()));
 
             for (;;) {
                 std::unique_ptr<MAT::Task> item = nullptr;
@@ -219,6 +359,8 @@ namespace PAL_NS_BEGIN {
 
                     if (item) {
                         self->m_itemInProgress = item.get();
+                        ++self->m_itemInProgressGeneration;
+                        self->m_itemCancellationRequested = false;
                     }
                 }
 
@@ -229,38 +371,79 @@ namespace PAL_NS_BEGIN {
                 }
 
                 if (item->Type == MAT::Task::Shutdown) {
+                    {
+                        LOCKGUARD(self->m_lock);
+                        if (self->m_itemInProgress == item.get()) {
+                            self->m_itemInProgress = nullptr;
+                            self->m_itemCancellationRequested = false;
+                        }
+                    }
                     item.reset();
-                    self->m_itemInProgress = nullptr;
+                    // Drop any tasks still queued behind the shutdown sentinel
+                    // (e.g. future-dated timers) before exiting. The owning thread
+                    // deletes these in Join() only after a successful join(); on the
+                    // self-Join path it detaches and skips that cleanup, so draining
+                    // here prevents leaking those tasks. This matches the join()-path
+                    // behavior of dropping un-run work at shutdown.
+                    self->drainPendingTasks();
                     break;
                 }
 
                 {
                     std::lock_guard<std::timed_mutex> lock(self->m_execution_mutex);
 
-                    // Item wasn't cancelled before it could be executed
-                    if (self->m_itemInProgress != nullptr) {
+                    bool executeItem = false;
+                    {
+                        LOCKGUARD(self->m_lock);
+                        executeItem =
+                            self->m_itemInProgress == item.get() &&
+                            !self->m_itemCancellationRequested;
+                    }
+
+                    if (executeItem) {
                         LOG_TRACE("%10llu Execute item=%p type=%s\n", wakeupCount, item.get(), item.get()->TypeName.c_str() );
                         // A task can run arbitrary work (storage I/O, HTTP encode, and
                         // user DebugEventListener callbacks). An exception escaping here
                         // would unwind out of the thread entry function and call
                         // std::terminate, killing the host process. Contain it.
-                        try {
+                        MATSDK_TRY {
                             (*item)();
                         }
-                        catch (const std::exception& ex) {
+#if HAVE_EXCEPTIONS
+                        MATSDK_CATCH(const std::exception& ex) {
+                            (void)ex;
                             LOG_ERROR("Unhandled exception in worker task: %s", ex.what());
                         }
-                        catch (...) {
+                        MATSDK_CATCH(...) {
                             LOG_ERROR("Unhandled non-standard exception in worker task");
                         }
-                        self->m_itemInProgress = nullptr;
+#endif
                     }
 
                     if (item) {
                         item->Type = MAT::Task::Done;
-                        item = nullptr;
                     }
                 }
+                {
+                    LOCKGUARD(self->m_lock);
+                    if (self->m_itemInProgress == item.get()) {
+                        self->m_itemInProgress = nullptr;
+                        self->m_itemCancellationRequested = false;
+                    }
+                }
+                // Task destruction may synchronize with a cancellation caller.
+                // Never run it while holding m_execution_mutex, which Cancel()
+                // waits on while that caller owns the task lifetime lock.
+                item = nullptr;
+            }
+
+            // The loop has broken on a Shutdown item. If the last reference was
+            // released by a task on this worker thread, onLastReferenceReleased()
+            // detached and deferred deletion to us; perform it now, after all member
+            // access is done, so the object outlives threadFunc rather than being
+            // freed underneath it.
+            if (self->m_disposeFromThread.load(std::memory_order_acquire)) {
+                delete self;
             }
         }
     };
@@ -268,11 +451,16 @@ namespace PAL_NS_BEGIN {
     namespace WorkerThreadFactory {
         std::shared_ptr<ITaskDispatcher> Create()
         {
-            return std::make_shared<WorkerThread>();
+            // Custom deleter so that a last-reference release happening on the worker
+            // thread itself defers destruction to the thread (see
+            // onLastReferenceReleased) instead of freeing the object underneath a
+            // still-running threadFunc.
+            return std::shared_ptr<WorkerThread>(
+                new WorkerThread(),
+                [](WorkerThread* self) { if (self->onLastReferenceReleased()) delete self; });
         }
     }
 
 } PAL_NS_END
 
 #endif
-

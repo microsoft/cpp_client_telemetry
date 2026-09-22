@@ -109,6 +109,9 @@ Other resources to learn how to setup the build system:
 * **Supported** - these platforms are known to work well with the SDK in
     production.
 * **Covered by CI** - these platforms are tested as part of CI.
+* Windows 7, Windows 8, and Windows 8.1 are not supported. Some project files
+  retain older target macros for binary compatibility, but those macros do not
+  extend the supported operating-system matrix above.
 * For iOS simulator, CI covers representative supported simulator
   configurations on the current macOS runner images rather than every
   supported iOS 12+ runtime.

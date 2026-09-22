@@ -58,6 +58,7 @@ static void initTransmitProfileFields()
     transmitProfilePowerState["unknown"] = (PowerSource_Unknown);
     transmitProfilePowerState["battery"] = (PowerSource_Battery);
     transmitProfilePowerState["charging"] = (PowerSource_Charging);
+    transmitProfilePowerState["low_battery"] = (PowerSource_LowBattery);
 };
 #endif
 
@@ -103,11 +104,14 @@ namespace MAT_NS_BEGIN {
             LOG_TRACE("name=%s", profile.name.c_str());
             size_t i = 0;
             for (auto &rule : profile.rules) {
-                LOG_TRACE("[%d] netCost=%2d, powState=%2d, timers=[%3d,%3d,%3d]",
+                // Custom profiles may supply fewer than three timers, so read
+                // out-of-range slots as 0 instead of indexing past the vector.
+                auto timerOrZero = [&rule](size_t idx) { return idx < rule.timers.size() ? rule.timers[idx] : 0; };
+                LOG_TRACE("[%zu] netCost=%2d, powState=%2d, timers=[%3d,%3d,%3d]",
                     i, rule.netCost, rule.powerState,
-                    rule.timers[0],
-                    rule.timers[1],
-                    rule.timers[2]);
+                    timerOrZero(0),
+                    timerOrZero(1),
+                    timerOrZero(2));
                 i++;
             }
         }
@@ -512,14 +516,17 @@ namespace MAT_NS_BEGIN {
         isTimerUpdated = true;
 #ifdef HAVE_MAT_LOGGING
         auto it = profiles.find(currProfileName);
-        if (it != profiles.end()) {
+        if (it != profiles.end() && currRule < it->second.rules.size()) {
             /* Debug routine to print the list of currently selected timers */
             TransmitProfileRule &rule = (it->second).rules[currRule];
+            // The rule may carry fewer than three timers, so read out-of-range
+            // slots as 0 instead of indexing past the vector.
+            auto timerOrZero = [&rule](size_t idx) { return idx < rule.timers.size() ? rule.timers[idx] : 0; };
             // Print just 3 timers for now because we support only 3
             LOG_INFO("timers=[%3d,%3d,%3d]",
-                rule.timers[0],
-                rule.timers[1],
-                rule.timers[2]);
+                timerOrZero(0),
+                timerOrZero(1),
+                timerOrZero(2));
         }
 #endif
     }

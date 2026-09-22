@@ -19,7 +19,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win10-cs", "win10-cs\win10-
 		{8FD826F8-3739-44E6-8CC8-997122E53B8D} = {8FD826F8-3739-44E6-8CC8-997122E53B8D}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "net40", "net40\net40.vcxproj", "{DC91621E-A203-42DF-8E03-3A23DD0602B1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "net48", "net48\net48.vcxproj", "{DC91621E-A203-42DF-8E03-3A23DD0602B1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{250EFB82-2F0E-4781-94BB-8313201ABDF0}"
 EndProject
@@ -87,7 +87,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleCpp", "..\examples\cp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleCppUWP", "..\examples\cpp\SampleCppUWP\SampleCppUWP.vcxproj", "{39DBD601-4D79-49F9-AD18-065404DBA273}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleCsNet40", "..\examples\cs\SampleCsNet40\SampleCsNet40.csproj", "{65AFA0E2-F9A2-4309-87E7-E419D59583C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleCsNet48", "..\examples\cs\SampleCsNet48\SampleCsNet48.csproj", "{65AFA0E2-F9A2-4309-87E7-E419D59583C1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleCsUWP", "..\examples\cs\SampleCsUWP\SampleCsUWP.csproj", "{F797B22C-A1C4-4136-9DCC-0682A183A4DA}"
 EndProject

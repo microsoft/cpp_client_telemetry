@@ -13,15 +13,11 @@
 
 MATSDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
 
-#include <winsock2.h>
 #include <iphlpapi.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <locale>
-#include <codecvt>
 
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "AdvAPI32.Lib")
@@ -149,4 +145,3 @@ namespace PAL_NS_BEGIN {
     }
 
 } PAL_NS_END
-

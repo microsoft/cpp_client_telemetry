@@ -7,7 +7,7 @@
 #define EVTSDK_VERSION_PREFIX "EVT"
 #if defined(_WIN32)
 #if defined __has_include
-#  if __has_include ("modules/azmon/AITelemetrySystem.hpp")
+#  if !defined(MATSDK_NO_AZMON) && !defined(HAVE_MAT_AI) && __has_include ("modules/azmon/AITelemetrySystem.hpp")
 #    define HAVE_MAT_AI
 #  endif
 #  if __has_include ("modules/utc/UtcTelemetrySystem.hpp")
@@ -43,4 +43,3 @@
 //#define HAVE_CS4
 //#define HAVE_CS4_FULL
 //#define HAVE_ONEDS_BOUNDCHECK_METHODS
-

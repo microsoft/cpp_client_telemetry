@@ -35,6 +35,7 @@ set(SRCS
   Main.cpp
   MemoryStorageTests.cpp
   MetaStatsTests.cpp
+  MsRootCertPolicyTests.cpp
   OacrTests.cpp
   OfflineStorageTests.cpp
   OfflineStorageTests_Room.cpp
@@ -132,7 +133,7 @@ target_link_libraries(UnitTests PRIVATE
   gtest
   gmock)
 if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
-  target_link_libraries(UnitTests PRIVATE SQLite::SQLite3)
+  target_link_libraries(UnitTests PRIVATE SQLite3::SQLite3)
 endif()
 if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(UnitTests PRIVATE nlohmann_json::nlohmann_json)

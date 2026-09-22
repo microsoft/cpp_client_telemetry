@@ -90,7 +90,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-compact.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-default.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-ikeys.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-net40.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-net48.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config-versionPrefix.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\config.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\include\mat\IBandwidthController.hpp" />
@@ -147,6 +147,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\MemoryStorage.hpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageFactory.cpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorageHandler.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\IOfflineStorageProvider.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\OfflineStorage_SQLite.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\SQLiteWrapper.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\lib\offline\StorageObserver.hpp" />

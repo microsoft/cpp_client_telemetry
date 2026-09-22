@@ -2,6 +2,18 @@
 cd %~dp0
 @setlocal ENABLEEXTENSIONS
 
+set TRANSPORT=%~4
+if not defined TRANSPORT set TRANSPORT=WinHTTP
+if /I "%TRANSPORT%"=="WinInet" (
+  set TRANSPORT_PROPERTY=/p:MATSDK_USE_WININET=true
+) else if /I "%TRANSPORT%"=="WinHTTP" (
+  set TRANSPORT_PROPERTY=/p:MATSDK_USE_WININET=false
+) else (
+  echo ERROR: Unknown HTTP transport "%TRANSPORT%". Expected WinHTTP or WinInet.
+  exit /b 2
+)
+echo HTTP transport: %TRANSPORT%
+
 set CUSTOM_PROPS=
 if not "%~3"=="" (
   if not exist "%~f3" (
@@ -52,11 +64,11 @@ set CONFIGURATION=%2
 set MAXCPUCOUNT=%NUMBER_OF_PROCESSORS%
 set SOLUTION=Solutions\MSTelemetrySDK.sln
 
-msbuild %SOLUTION% /target:sqlite:Rebuild,zlib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=%CONFIGURATION% /p:Platform=%PLAT% %CUSTOM_PROPS%
+msbuild %SOLUTION% /target:sqlite:Rebuild,zlib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild /p:BuildProjectReferences=true /maxcpucount:%MAXCPUCOUNT% /detailedsummary /p:Configuration=%CONFIGURATION% /p:Platform=%PLAT% %TRANSPORT_PROPERTY% %CUSTOM_PROPS%
 if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
-Solutions\out\%CONFIGURATION%\%PLAT%\UnitTests\UnitTests.exe
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .github\scripts\run-with-timeout.ps1 -FilePath Solutions\out\%CONFIGURATION%\%PLAT%\UnitTests\UnitTests.exe -TimeoutSeconds 600 -Label UnitTests-%CONFIGURATION%-%PLAT%-%TRANSPORT%
 if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
-Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .github\scripts\run-with-timeout.ps1 -FilePath Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe -TimeoutSeconds 600 -Label FuncTests-%CONFIGURATION%-%PLAT%-%TRANSPORT%
 if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$path = Join-Path (Get-Location) 'Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe'; $args = '--gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager'; $p1 = Start-Process -FilePath $path -ArgumentList $args -PassThru; $p2 = Start-Process -FilePath $path -ArgumentList $args -PassThru; $p1.WaitForExit(); $p2.WaitForExit(); if ($p1.ExitCode -ne 0 -or $p2.ExitCode -ne 0) { exit 1 }"
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .github\scripts\run-with-timeout.ps1 -FilePath Solutions\out\%CONFIGURATION%\%PLAT%\FuncTests\FuncTests.exe -ProcessArguments "--gtest_filter=MultipleLogManagersTests.MultiProcessesLogManager" -ProcessCount 2 -TimeoutSeconds 600 -Label FuncTests-concurrent-%CONFIGURATION%-%PLAT%-%TRANSPORT%
 if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%

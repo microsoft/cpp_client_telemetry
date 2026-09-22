@@ -2,11 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
-#ifdef _MSC_VER
-// evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
-#pragma warning(disable : 4459)
+#ifdef _WIN32
+// Include the SDK declaration before the telemetry Version symbol enters scope.
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#include <evntprov.h>
 #endif
 #include "LogManagerImpl.hpp"
+#include <cstdio>
+#include "ctmacros.hpp"
 #include "mat/config.h"
 
 #include "offline/LogSessionDataProvider.hpp"
@@ -289,6 +295,11 @@ namespace MAT_NS_BEGIN
         if (m_httpClient == nullptr)
         {
             m_httpClient = HttpClientFactory::Create();
+            if (m_httpClient == nullptr)
+            {
+                LOG_ERROR("The default HTTP client has not been initialized.");
+                MATSDK_THROW(std::invalid_argument("configuration"));
+            }
             m_httpClient->ApplySettings(m_logConfiguration);
         }
         else
@@ -368,9 +379,31 @@ namespace MAT_NS_BEGIN
 
     LogManagerImpl::~LogManagerImpl() noexcept
     {
-        FlushAndTeardown();
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        ILogManagerInternal::managers.erase(this);
+        MATSDK_TRY
+        {
+            FlushAndTeardown();
+        }
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(const std::exception& e)
+        {
+            std::fprintf(stderr, "Log manager teardown failed: %s\n", e.what());
+        }
+        MATSDK_CATCH(...)
+        {
+            std::fputs("Log manager teardown failed with an unknown exception\n", stderr);
+        }
+#endif
+        MATSDK_TRY
+        {
+            LOCKGUARD(ILogManagerInternal::managers_lock);
+            ILogManagerInternal::managers.erase(this);
+        }
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(...)
+        {
+            std::fputs("Log manager registry cleanup failed\n", stderr);
+        }
+#endif
     }
 
     size_t LogManagerImpl::GetDeadLoggerCount()
@@ -959,20 +992,33 @@ namespace MAT_NS_BEGIN
         return true;
     }
 
-    void LogManagerImpl::EndActivity()
+    void LogManagerImpl::EndActivity() noexcept
     {
-        std::unique_lock<std::mutex> lock(m_pause_mutex);
-        if (m_pause_active_count == 0) {
-            return;
+        MATSDK_TRY
+        {
+            std::unique_lock<std::mutex> lock(m_pause_mutex);
+            if (m_pause_active_count == 0) {
+                return;
+            }
+            m_pause_active_count -= 1;
+            if (m_pause_active_count > 0) {
+                return;
+            }
+            if (m_pause_state == PauseState::Pausing) {
+                m_pause_state = PauseState::Paused;
+                m_pause_cv.notify_all();
+            }
         }
-        m_pause_active_count -= 1;
-        if (m_pause_active_count > 0) {
-            return;
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(const std::exception& e)
+        {
+            std::fprintf(stderr, "Failed to end telemetry activity: %s\n", e.what());
         }
-        if (m_pause_state == PauseState::Pausing) {
-            m_pause_state = PauseState::Paused;
-            m_pause_cv.notify_all();
+        MATSDK_CATCH(...)
+        {
+            std::fputs("Failed to end telemetry activity\n", stderr);
         }
+#endif
     }
 }
 MAT_NS_END

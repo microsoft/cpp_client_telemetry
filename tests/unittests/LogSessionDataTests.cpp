@@ -18,8 +18,6 @@ public:
 };
 
 const char* const PathToTestSesFile = "";
-const char* const PathToNonEmptyTestSesFile = "sesfile";
-
 std::string sessionSDKUid;
 uint64_t sessionFirstTimeLaunch;
 
@@ -71,12 +69,16 @@ TEST(LogSessionDataTests, parse_ValidInput_ReturnsTrue)
 
 TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
 {
-   TestLogSessionDataProvider logSessionDataProvider1(PathToNonEmptyTestSesFile);
+   const std::string sessionFile =
+       GetTempDirectory() + "sesfile-" + std::to_string(PAL::getUtcSystemTimeMs());
+   std::remove(sessionFile.c_str());
+
+   TestLogSessionDataProvider logSessionDataProvider1(sessionFile);
    logSessionDataProvider1.CreateLogSessionData();
    const auto* logSessionData1 = logSessionDataProvider1.GetLogSessionData();
 
    // Create another provider instance and validate session data is not re-generated
-   TestLogSessionDataProvider logSessionDataProvider2(PathToNonEmptyTestSesFile);
+   TestLogSessionDataProvider logSessionDataProvider2(sessionFile);
    logSessionDataProvider2.CreateLogSessionData();
    const auto* logSessionData2 = logSessionDataProvider2.GetLogSessionData();
 
@@ -86,4 +88,3 @@ TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
    logSessionDataProvider1.DeleteLogSessionData();
    logSessionDataProvider2.DeleteLogSessionData();
 }
-

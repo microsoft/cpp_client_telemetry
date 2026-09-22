@@ -85,6 +85,8 @@ endif()
 # Support for Azure Monitor / Application Insights
 if(MATSDK_BUILD_AZMON)
   include(modules/azmon/CMakeLists.txt OPTIONAL)
+else()
+  target_compile_definitions(matsdk_internal_config INTERFACE MATSDK_NO_AZMON)
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/")
@@ -299,9 +301,24 @@ target_compile_definitions(matsdk_internal_config INTERFACE
   _USRDLL
   WINVER=_WIN32_WINNT_WIN7)
 target_compile_options(matsdk_internal_config INTERFACE /U_MBCS)
+if(MATSDK_USE_WININET)
+  target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_WININET_HTTP_CLIENT)
+else()
+  target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_WINHTTP_HTTP_CLIENT)
+endif()
+if(MATSDK_USE_WININET)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
+  )
+else()
+  list(APPEND SRCS
+    http/HttpClient_WinHttp.cpp
+    http/HttpClient_WinHttp.hpp
+    http/IBoundedHttpClientCancel.hpp
+  )
+endif()
+  list(APPEND SRCS
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
@@ -560,8 +577,8 @@ if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
       $<$<NOT:$<C_COMPILER_ID:AppleClang>>:-fdata-sections>)
   endif()
 endif()
-if(MATSDK_BUNDLE_SQLITE AND NOT TARGET SQLite::SQLite3)
-  add_library(SQLite::SQLite3 ALIAS sqlite3_bundled)
+if(MATSDK_BUNDLE_SQLITE AND NOT TARGET SQLite3::SQLite3)
+  add_library(SQLite3::SQLite3 ALIAS sqlite3_bundled)
 endif()
 
 if(MATSDK_BUNDLE_ZLIB AND NOT TARGET zlib_bundled)
@@ -609,9 +626,9 @@ if(MATSDK_BUNDLE_ZLIB AND NOT TARGET ZLIB::ZLIB)
 endif()
 
 if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE"
-   AND NOT TARGET SQLite::SQLite3)
+   AND NOT TARGET SQLite3::SQLite3)
   message(FATAL_ERROR
-    "SQLite::SQLite3 was not resolved for provider ${MATSDK_SQLITE_PROVIDER_RESOLVED}.")
+    "SQLite3::SQLite3 was not resolved for provider ${MATSDK_SQLITE_PROVIDER_RESOLVED}.")
 endif()
 if(NOT TARGET ZLIB::ZLIB)
   message(FATAL_ERROR
@@ -624,7 +641,7 @@ elseif(MATSDK_BUNDLE_SQLITE)
   target_link_libraries(mat PRIVATE sqlite3_bundled)
 else()
   matsdk_add_interface_dependency(
-    matsdk_sqlite_dependency SQLite::SQLite3)
+    matsdk_sqlite_dependency SQLite3::SQLite3)
   target_link_libraries(mat PRIVATE
     "$<BUILD_INTERFACE:matsdk_sqlite_dependency>"
     "$<INSTALL_INTERFACE:MSTelemetry::sqlite_dependency>")
@@ -662,11 +679,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
   if(CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
     target_link_libraries(mat PUBLIC atomic)
   endif()
-  if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+  if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND NOT MATSDK_DISABLE_LOGGING)
     target_link_libraries(mat PUBLIC log)
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
-  target_link_libraries(mat PUBLIC wininet crypt32 ws2_32)
+  if(MATSDK_USE_WININET)
+    target_link_libraries(mat PRIVATE wininet)
+  else()
+    target_link_libraries(mat PRIVATE winhttp)
+  endif()
+  target_link_libraries(mat PRIVATE crypt32)
 elseif(APPLE)
   target_link_libraries(mat PUBLIC
     "-framework CoreFoundation"

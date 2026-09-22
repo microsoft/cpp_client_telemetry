@@ -24,7 +24,11 @@ concurrency:
 jobs:
   windows:
     runs-on: windows-latest
-    name: Windows (x64-windows-static)
+    name: Windows (x64-windows-static, ${{ matrix.transport }})
+    strategy:
+      fail-fast: false
+      matrix:
+        transport: [WinHTTP, WinInet]
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
@@ -35,7 +39,12 @@ jobs:
       shell: pwsh
 
     - name: Run vcpkg port test
-      run: .\tests\vcpkg\test-vcpkg-windows.ps1 -VcpkgRoot "${{ runner.temp }}\vcpkg"
+      run: |
+        $arguments = @{ VcpkgRoot = "${{ runner.temp }}\vcpkg" }
+        if ("${{ matrix.transport }}" -eq "WinInet") {
+          $arguments.WinInet = $true
+        }
+        .\tests\vcpkg\test-vcpkg-windows.ps1 @arguments
       shell: pwsh
 
   linux:

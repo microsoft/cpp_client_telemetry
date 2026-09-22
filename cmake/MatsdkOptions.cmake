@@ -42,6 +42,10 @@ option(MATSDK_BUILD_AZMON
   "Build Azure Monitor / Application Insights support" ON)
 option(MATSDK_BUILD_APPLE_HTTP
   "Build the Apple-native HTTP client" "${APPLE}")
+option(MATSDK_USE_WININET
+  "Use WinInet instead of WinHTTP as the Win32 desktop HTTP client" OFF)
+option(MATSDK_DISABLE_LOGGING
+  "Compile internal SDK logging out" OFF)
 
 set(_matsdk_android_http_client_predefined OFF)
 if(DEFINED MATSDK_ANDROID_HTTP_CLIENT)
@@ -125,7 +129,7 @@ string(TOUPPER "${MATSDK_ZLIB_PROVIDER}" MATSDK_ZLIB_PROVIDER_RESOLVED)
 if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "AUTO")
   if(MATSDK_ANDROID_USE_ROOM AND CMAKE_SYSTEM_NAME STREQUAL "Android")
     set(MATSDK_SQLITE_PROVIDER_RESOLVED NONE)
-  elseif(TARGET SQLite::SQLite3 OR TARGET SQLite3::SQLite3)
+  elseif(TARGET SQLite3::SQLite3 OR TARGET SQLite::SQLite3)
     set(MATSDK_SQLITE_PROVIDER_RESOLVED SYSTEM)
   elseif(NOT MATSDK_USING_VCPKG
       AND (WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Android"))

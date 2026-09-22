@@ -30,7 +30,9 @@
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
+#ifdef HAVE_MAT_LOGGING
 #include "android/log.h"
+#endif
 #include "config/RuntimeConfig_Default.hpp"
 
 using namespace MAT;
@@ -545,7 +547,7 @@ namespace
             {
                 auto element = env->GetObjectArrayElement(value, i);
                 rethrow(env);
-                array.emplace_back(std::move(translateVariant(element)));
+                array.emplace_back(translateVariant(element));
             }
         }
 
@@ -578,15 +580,19 @@ namespace
                 rethrow(env);
                 if (k == nullptr)
                 {
+#ifdef HAVE_MAT_LOGGING
                     __android_log_print(ANDROID_LOG_ERROR,
                                         "MAE",
                                         "Null configuration key");
+#endif
                     continue;
                 }
                 if (!env->IsInstanceOf(k, stringClass))
                 {
+#ifdef HAVE_MAT_LOGGING
                     __android_log_print(ANDROID_LOG_ERROR, "MAE",
                                         "Configuration key is not a string");
+#endif
                     continue;
                 }
                 auto key = static_cast<jstring>(k);
@@ -600,11 +606,13 @@ namespace
                 rethrow(env);
                 if (!value)
                 {
+#ifdef HAVE_MAT_LOGGING
                     __android_log_print(
                         ANDROID_LOG_WARN,
                         "MAE",
                         "Null value for key %s in translateVariantMap",
                         stringKey.c_str());
+#endif
                 }
                 auto v = translateVariant(value);
                 auto emplace = variantMap.emplace(stringKey, std::move(v));
@@ -674,27 +682,31 @@ namespace
                     }
                 }  // if class matches
             }      // for (... classCache){
-            auto actual = env->GetObjectClass(value);
-            auto meta = env->GetObjectClass(actual);
-            rethrow(env);
-            auto gnMethod =
-                env->GetMethodID(meta,
-                                 "getName",
-                                 "()Ljava/lang/String;");
-            rethrow(env);
-            auto jName =
-                static_cast<jstring>(env->CallObjectMethod(actual,
-                                                           gnMethod));
-            std::string className;
-            if (!TryJStringToStdString(env, jName, className))
+#ifdef HAVE_MAT_LOGGING
             {
+                auto actual = env->GetObjectClass(value);
+                auto meta = env->GetObjectClass(actual);
                 rethrow(env);
-                throw std::runtime_error("Unable to convert class name");
+                auto gnMethod =
+                    env->GetMethodID(meta,
+                                     "getName",
+                                     "()Ljava/lang/String;");
+                rethrow(env);
+                auto jName =
+                    static_cast<jstring>(env->CallObjectMethod(actual,
+                                                               gnMethod));
+                std::string className;
+                if (!TryJStringToStdString(env, jName, className))
+                {
+                    rethrow(env);
+                    throw std::runtime_error("Unable to convert class name");
+                }
+                __android_log_print(ANDROID_LOG_ERROR,
+                                    "MAE",
+                                    "Unsupported class %s",
+                                    className.c_str());
             }
-            __android_log_print(ANDROID_LOG_ERROR,
-                                "MAE",
-                                "Unsupported class %s",
-                                className.c_str());
+#endif
             auto errorClass = env->FindClass("java/lang/Error");
             rethrow(env);
             env->ThrowNew(errorClass, "Unsupported class");
@@ -881,10 +893,12 @@ Java_com_microsoft_applications_events_LogManager_nativeInitializeConfig(JNIEnv*
     ILogConfiguration logConfiguration;
     VariantTranslator variantTranslator(env);
     variantTranslator.translateVariantMap(*logConfiguration, configuration);
+#ifdef HAVE_MAT_LOGGING
     std::string cereal;
     Variant::serialize(*logConfiguration, cereal);
     __android_log_print(ANDROID_LOG_INFO, "MAE", "Translated map: %s",
                         cereal.c_str());
+#endif
 
     std::string token;
     if (!TryJStringToStdString(env, tenant_token, token))
@@ -928,9 +942,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_nativeCreateLogManager
         jniManagers.emplace_back(std::move(mcPointer));
         return n;
     }
+#ifdef HAVE_MAT_LOGGING
     __android_log_print(ANDROID_LOG_ERROR,
                         "MAE",
                         "Failed to create log manager");
+#endif
     return -1;
 }
 

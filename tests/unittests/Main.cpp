@@ -52,4 +52,3 @@ int MAIN_CDECL main(int argc, char** argv)
 
     return result;
 }
-
