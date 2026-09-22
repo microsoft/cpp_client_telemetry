@@ -96,7 +96,7 @@ function(matsdk_fetch_curl out_target)
 
     foreach(target mbedtls mbedx509 mbedcrypto)
       matsdk_configure_fetched_static_target("${target}")
-      target_compile_definitions("${target}" PRIVATE
+      target_compile_definitions("${target}" PUBLIC
         MBEDTLS_THREADING_C
         MBEDTLS_THREADING_PTHREAD)
     endforeach()
