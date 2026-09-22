@@ -51,7 +51,7 @@ if errorlevel 1 (
 )
 
 REM /W4 /WX matches ORT; /external:W0 suppresses platform/STL warnings so only our headers gate.
-set "WINDOWS_API_FLOOR=/DWINVER=0x0603 /D_WIN32_WINNT=0x0603"
+set "WINDOWS_API_FLOOR=/DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00"
 set "CXX_COMMON=/nologo /permissive- /W4 /WX /EHsc /experimental:external /external:anglebrackets /external:W0 %WINDOWS_API_FLOOR%"
 set "C_COMMON=/nologo /std:c11 /TC /W4 /WX /experimental:external /external:anglebrackets /external:W0 %WINDOWS_API_FLOOR%"
 set "FAIL=0"

@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   test:
-    name: Windows 8.1 API floor ${{ matrix.arch }}-${{ matrix.build }}${{ matrix.transport == 'WinInet' && ' (WinInet)' || '' }}
+    name: Windows 10 API floor ${{ matrix.arch }}-${{ matrix.build }}${{ matrix.transport == 'WinInet' && ' (WinInet)' || '' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -76,7 +76,7 @@ jobs:
         retention-days: 7
 
   public-headers:
-    name: Public header gate (MSVC, Windows 8.1 API floor)
+    name: Public header gate (MSVC, Windows 10 API floor)
     runs-on: windows-2022
     steps:
     - name: Checkout

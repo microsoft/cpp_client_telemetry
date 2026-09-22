@@ -1532,8 +1532,7 @@ unsigned HttpClient_WinHttp::s_nextRequestId = 0;
 
 HttpClient_WinHttp::HttpClient_WinHttp()
 {
-    // WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY (Windows 8.1+) resolves the proxy
-    // without depending on a logged-on interactive user or that user's
+    // Resolve the proxy without depending on a logged-on interactive user or that user's
     // Internet Explorer settings -- unlike WinInet's
     // INTERNET_OPEN_TYPE_PRECONFIG, which requires one. This is why WinHTTP,
     // not WinInet, is Microsoft's documented recommendation for services and

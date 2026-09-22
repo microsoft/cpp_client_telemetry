@@ -8,9 +8,6 @@
 
 #pragma comment(lib, "runtimeobject.lib")
 
-// This macro is required for DEFINE_GUID below to declare a local instance of IID_INetworkCostManager GUID
-#define INITGUID
-
 #include "NetworkDetector.hpp"
 #include <algorithm>
 
@@ -18,12 +15,6 @@
 #include "DebugEvents.hpp"
 #include "utils/Utils.hpp"
 #include "pal/PAL.hpp"
-
-// Define a GUID that is only available in Windows 8.x+ SDK . We are using Windows 7.1A SDK for Win32 SDK build,
-// so we cannot easily add an extra dependency on Windows 8 or later functionality project-wide. It'd be error-prone,
-// because when we have all Windows 8+ features - we might fall into temptation of using that features that would
-// break Windows 7.1 compatibility. We cannot afford breaking Windows 7.1 compatibility at this time.
-DEFINE_GUID(IID_INetworkCostManager2, 0xdcb00008, 0x570f, 0x4a9b, 0x8d, 0x69, 0x19, 0x9f, 0xdb, 0xa5, 0x72, 0x3b);
 
 #define NETDETECTOR_START           WM_USER+1
 #define NETDETECTOR_STOP            WM_USER+2
@@ -151,7 +142,7 @@ namespace MAT_NS_BEGIN
             DWORD dwCost = NLM_CONNECTION_COST_UNKNOWN;
             INetworkCostManager* pNetworkCostManager = NULL;
 
-            hr = pNlm->QueryInterface(IID_INetworkCostManager2, (void**)&pNetworkCostManager);
+            hr = pNlm->QueryInterface(IID_INetworkCostManager, (void**)&pNetworkCostManager);
             if (hr != S_OK) {
                 return result;
             }
@@ -465,27 +456,8 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Register for COM events and block-wait in RegisterAndListen
         /// </summary>
-#pragma warning( push )
-#pragma warning(disable:28159)
-#pragma warning(disable:4996)
-#pragma warning(disable:6320)
-// We must use GetVersionEx to retain backwards compat with Win 7 SP1
         void NetworkDetector::run()
         {
-            // Check Windows version and if below Windows 8, then avoid running Network cost detection logic
-            OSVERSIONINFO osvi;
-            BOOL bIsWindows8orLater;
-            ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-            osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-            GetVersionEx(&osvi);
-            bIsWindows8orLater = ((osvi.dwMajorVersion >= 6) && (osvi.dwMinorVersion >= 2)) || (osvi.dwMajorVersion > 6);
-            // Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2)
-            if (!bIsWindows8orLater)
-            {
-                LOG_INFO("Running on Windows %d.%d without network detector...", osvi.dwMajorVersion, osvi.dwMinorVersion);
-                return;
-            }
-
             __try
             {
                 HRESULT hr = CoInitialize(nullptr);
@@ -519,9 +491,10 @@ namespace MAT_NS_BEGIN
                     Reset();
                 }
             }
+#pragma warning(suppress:6320) // The constant filter intentionally handles any SEH failure from the COM stack.
             __except (EXCEPTION_EXECUTE_HANDLER)
             {
-                LOG_ERROR("Handled exception in network cost detection (Windows 7?)");
+                LOG_ERROR("Handled exception in network cost detection");
             }
 
             if (isCoInitialized)
@@ -529,9 +502,7 @@ namespace MAT_NS_BEGIN
                 CoUninitialize();
                 isCoInitialized = false;
             }
-
         }
-#pragma warning( pop )
 
         /// <summary>
         /// Start network monitoring thread
