@@ -30,3 +30,11 @@ TEST(AnnexKTests, memcpy_s)
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(dest.get(), dest_len, src.get(), dest_len + 1), EINVAL);
     EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(dest.get(), dest_len, static_cast<char *>(dest.get()) + 1, src_len + 1), EINVAL);
 }
+
+TEST(AnnexKTests, memcpy_sAllowsAdjacentBuffers)
+{
+    char buffers[12] = {};
+
+    EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(buffers, 4, buffers + 4, 4), 0);
+    EXPECT_EQ(BoundCheckFunctions::oneds_memcpy_s(buffers, 8, buffers + 8, 4), 0);
+}

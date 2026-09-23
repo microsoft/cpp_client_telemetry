@@ -85,6 +85,8 @@ endif()
 # Support for Azure Monitor / Application Insights
 if(MATSDK_BUILD_AZMON)
   include(modules/azmon/CMakeLists.txt OPTIONAL)
+else()
+  target_compile_definitions(matsdk_internal_config INTERFACE MATSDK_NO_AZMON)
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/modules/exp/")
@@ -299,9 +301,24 @@ target_compile_definitions(matsdk_internal_config INTERFACE
   _USRDLL
   WINVER=_WIN32_WINNT_WIN7)
 target_compile_options(matsdk_internal_config INTERFACE /U_MBCS)
+if(MATSDK_USE_WININET)
+  target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_WININET_HTTP_CLIENT)
+else()
+  target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_WINHTTP_HTTP_CLIENT)
+endif()
+if(MATSDK_USE_WININET)
   list(APPEND SRCS
     http/HttpClient_WinInet.cpp
     http/HttpClient_WinInet.hpp
+  )
+else()
+  list(APPEND SRCS
+    http/HttpClient_WinHttp.cpp
+    http/HttpClient_WinHttp.hpp
+    http/IBoundedHttpClientCancel.hpp
+  )
+endif()
+  list(APPEND SRCS
     pal/desktop/WindowsDesktopDeviceInformationImpl.cpp
     pal/desktop/WindowsDesktopNetworkInformationImpl.cpp
     pal/desktop/WindowsDesktopSystemInformationImpl.cpp
@@ -666,7 +683,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     target_link_libraries(mat PUBLIC log)
   endif()
 elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
-  target_link_libraries(mat PUBLIC wininet crypt32 ws2_32)
+  if(MATSDK_USE_WININET)
+    target_link_libraries(mat PRIVATE wininet)
+  else()
+    target_link_libraries(mat PRIVATE winhttp)
+  endif()
+  target_link_libraries(mat PRIVATE crypt32)
 elseif(APPLE)
   target_link_libraries(mat PUBLIC
     "-framework CoreFoundation"

@@ -35,6 +35,7 @@ set(SRCS
   Main.cpp
   MemoryStorageTests.cpp
   MetaStatsTests.cpp
+  MsRootCertPolicyTests.cpp
   OacrTests.cpp
   OfflineStorageTests.cpp
   OfflineStorageTests_Room.cpp

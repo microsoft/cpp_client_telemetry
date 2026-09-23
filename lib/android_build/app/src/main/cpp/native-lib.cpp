@@ -10,6 +10,10 @@
 
 #include "LogManager.hpp"
 #include "api/LogManagerImpl.hpp"
+#include "config/RuntimeConfig_Default.hpp"
+#include "http/HttpClient_Android.hpp"
+#include "offline/OfflineStorage_Room.hpp"
+#include "pal/PAL.hpp"
 
 LOGMANAGER_INSTANCE
 
@@ -114,13 +118,14 @@ int RunTests::run_all_tests(JNIEnv* env, jobject java_logger)
 {
     int argc = 2;
     char command_name[] = "maesdk-test";
-    char filter[] = "--gtest_filter=*";
+    // Java HTTP callbacks target the AAR's shared SDK, not this test binary's
+    // private static SDK copy. Exercise that transport through instrumentation.
+    char filter[] = "--gtest_filter=-HttpClientTests.*";
     char* argv[] = {command_name, filter};
     ::testing::InitGoogleTest(&argc, argv);
     ::testing::TestEventListeners& listeners =
         ::testing::UnitTest::GetInstance()->listeners();
     listeners.Append(new AndroidLogger(env, java_logger));
-    auto logger = Microsoft::Applications::Events::LogManager::Initialize("0123456789abcdef0123456789abcdef-01234567-0123-0123-0123-0123456789ab-0123");
     return RUN_ALL_TESTS();
 }
 
@@ -129,9 +134,27 @@ extern "C" JNIEXPORT jint JNICALL
 Java_com_microsoft_applications_events_maesdktest_TestStub_runNativeTests(
     JNIEnv* env,
     jobject /* stub */,
-    jobject logger)
+    jobject logger,
+    jobject http_client,
+    jobject app_context,
+    jstring cache_file_path)
 {
-    return RunTests::run_all_tests(env, logger);
+    auto path = env->GetStringUTFChars(cache_file_path, nullptr);
+    Microsoft::Applications::Events::HttpClient_Android::SetCacheFilePath(path);
+    env->ReleaseStringUTFChars(cache_file_path, path);
+    Microsoft::Applications::Events::HttpClient_Android::CreateClientInstance(env, http_client);
+    Microsoft::Applications::Events::OfflineStorage_Room::ConnectJVM(env, app_context);
+
+    JavaVM* java_vm = nullptr;
+    env->GetJavaVM(&java_vm);
+    Microsoft::Applications::Events::ILogConfiguration pal_config;
+    pal_config[CFG_PTR_ANDROID_JVM] = static_cast<void*>(java_vm);
+    pal_config[CFG_JOBJECT_ANDROID_ACTIVITY] = reinterpret_cast<void*>(app_context);
+    Microsoft::Applications::Events::RuntimeConfig_Default runtime_config(pal_config);
+    PAL::GetPAL().initialize(runtime_config);
+    const int result = RunTests::run_all_tests(env, logger);
+    PAL::GetPAL().shutdown();
+    return result;
 }
 
 
@@ -154,4 +177,3 @@ Java_com_microsoft_applications_events_maesdktest_SDKUnitNativeTest_nativeGetDat
     auto property = GetEventProperty(env, jProperty);
     return static_cast<int>(property.dataCategory);
 }
-
