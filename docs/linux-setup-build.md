@@ -3,7 +3,6 @@
 ## Required dependencies
 
 - gcc-5+ or above
-- CMake 4.3 or newer
 - zlib
 - sqlite3
 - libcurl + openssl
@@ -12,7 +11,7 @@
 ### Installing dependencies as root
 
 ```console
-sudo apt-get install sqlite3 libsqlite3-dev libcurl4-openssl-dev libgtest-dev
+sudo apt-get install cmake3 sqlite3 libsqlite3-dev libcurl4-openssl-dev libgtest-dev
 ```
 
 There is a helper script in source code distribution that can be invoked as follows:
@@ -20,9 +19,6 @@ There is a helper script in source code distribution that can be invoked as foll
 ```console
 source tools/setup-buildtools.sh
 ```
-
-The helper installs the pinned CMake 4.4.2 binary distribution when the
-available CMake is older than 4.3.
 
 ### Debian 8.x Jesse (old stable) specific instructions
 

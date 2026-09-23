@@ -44,7 +44,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Initialize googletest
       run: git submodule update --init --depth=1 third_party/googletest
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
@@ -67,7 +66,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Install Curl development package
       run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
     - name: Configure

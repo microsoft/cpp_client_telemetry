@@ -1,11 +1,6 @@
-cmake_minimum_required(VERSION 4.1...4.4)
+cmake_minimum_required(VERSION 3.15...3.31)
 
 project(MSTelemetry LANGUAGES C CXX)
-if(CMAKE_VERSION VERSION_LESS 4.3 AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
-  message(FATAL_ERROR
-    "MSTelemetry requires CMake 4.3 or newer. Android source builds may use "
-    "the Android SDK's CMake 4.1.2 package.")
-endif()
 if(APPLE)
   set(MATSDK_BUILD_PLATFORM_APPLE TRUE)
 else()
@@ -243,11 +238,17 @@ endif()
 ################################################################################################
 # Canonical dependency targets
 ################################################################################################
+if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
+  matsdk_add_interface_dependency(SQLite3::SQLite3 SQLite::SQLite3)
+endif()
 if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite3::SQLite3)
   if(APPLE AND NOT MATSDK_USING_VCPKG)
     matsdk_add_apple_system_library(SQLite3::SQLite3 sqlite3)
   else()
     find_package(SQLite3 QUIET)
+    if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
+      matsdk_add_interface_dependency(SQLite3::SQLite3 SQLite::SQLite3)
+    endif()
     if(NOT TARGET SQLite3::SQLite3 AND MATSDK_USING_VCPKG)
       find_package(unofficial-sqlite3 CONFIG REQUIRED)
       matsdk_add_interface_dependency(
