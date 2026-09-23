@@ -689,7 +689,7 @@ elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
   else()
     target_link_libraries(mat PRIVATE winhttp)
   endif()
-  target_link_libraries(mat PRIVATE crypt32)
+  target_link_libraries(mat PRIVATE crypt32 uuid)
 elseif(APPLE)
   target_link_libraries(mat PUBLIC
     "-framework CoreFoundation"
