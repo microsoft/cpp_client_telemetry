@@ -38,6 +38,7 @@ if errorlevel 1 goto install_failed
 
 REM Use sdkmanager for additional deps
 pushd "%ANDROID_SDK_ROOT%\tools\bin"
+if errorlevel 1 goto install_failed
 echo y | call .\sdkmanager.bat --include_obsolete --verbose --sdk_root="%ANDROID_SDK_ROOT%" "platforms;android-28" "sources;android-28"
 if errorlevel 1 goto sdkmanager_failed
 echo y | call .\sdkmanager.bat --include_obsolete --verbose --sdk_root="%ANDROID_SDK_ROOT%" "platforms;android-29" "sources;android-29"
