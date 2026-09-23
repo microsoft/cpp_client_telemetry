@@ -41,7 +41,7 @@ set(MATSDK_ZLIB_PROVIDER VENDORED CACHE STRING "" FORCE)  # SYSTEM or VENDORED
 `MINIMAL` builds the feature-stripped SQLite amalgamation. `VENDORED` builds the
 unstripped vendored dependency. `SYSTEM` consumes the canonical
 `SQLite3::SQLite3` / `ZLIB::ZLIB` targets or uses `find_package()`. `AUTO`
-preserves platform defaults: system dependencies on Linux/Apple source builds
+preserves platform defaults: system dependencies on desktop/Apple source builds
 and vendored dependencies on Windows/Android source builds.
 
 Recommended packaged-library policy:
@@ -94,7 +94,7 @@ leaf consumer target, define the standard CMake targets before adding the SDK:
 # These may be real targets or aliases to targets owned by your superbuild.
 add_library(CURL::libcurl ALIAS my_curl_target)
 add_library(ZLIB::ZLIB ALIAS my_zlib_target)
-add_library(SQLite3::SQLite3 ALIAS my_sqlite_target)
+add_library(SQLite::SQLite3 ALIAS my_sqlite_target)
 add_subdirectory(cpp_client_telemetry)
 
 target_link_libraries(your_target PRIVATE MSTelemetry::mat)

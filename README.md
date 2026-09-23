@@ -59,9 +59,8 @@ Platform specific build instructions:
 
 Standard configure/build presets are listed with `cmake --list-presets`.
 `build.sh`, `build-ios.sh`, and `build-cmake.ps1` are thin compatibility
-wrappers around those presets. Builds and installed-package consumers require
-CMake 4.3 or newer. Android source builds may use the Android SDK's CMake 4.1.2
-package because Google does not currently publish CMake 4.3 through sdkmanager.
+wrappers around those presets. Presets require CMake 3.21+; direct CMake builds
+retain the project's CMake 3.15 floor.
 
 Other resources to learn how to setup the build system:
 

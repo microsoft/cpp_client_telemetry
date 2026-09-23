@@ -48,7 +48,6 @@ jobs:
           disable-logging: ON
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Install system dependencies
       if: matrix.dependencies == 'system'
       run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev ninja-build zlib1g-dev
@@ -89,7 +88,6 @@ jobs:
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Configure
       run: >
         cmake -S tests/embedding -B build-embedding -A x64
@@ -109,7 +107,6 @@ jobs:
         mode: [system, fetched]
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Install system dependencies
       if: matrix.mode == 'system'
       run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
@@ -155,7 +152,6 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Configure, install, and consume
       run: |
         cmake -G Ninja -S . -B build-package \
@@ -184,7 +180,6 @@ jobs:
         architectures: [arm64, "arm64;x86_64"]
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Configure
       run: >
         cmake -G Ninja -S tests/embedding -B build-embedding
@@ -209,7 +204,6 @@ jobs:
           zlib-provider: VENDORED
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Configure
       run: >
         cmake -G Xcode -S tests/embedding -B build-embedding
@@ -229,7 +223,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - uses: ./.github/actions/setup-cmake
     - name: Configure
       run: >
         cmake -G Ninja -S tests/embedding -B build-embedding

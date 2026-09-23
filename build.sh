@@ -27,6 +27,8 @@ usage()
   exit 0
 }
 
+export PATH=/usr/local/bin:$PATH
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Current directory: $DIR"
 cd $DIR
@@ -138,12 +140,9 @@ echo "macosx deployment target="$MACOSX_DEPLOYMENT_TARGET
 
 # Install build tools and recent sqlite3
 BUILD_TOOLS_MARKER=.buildtools
-BUILD_TOOLS_MARKER_VERSION=cmake-4.4.2
 OS_NAME=`uname -a`
 
-if [ ! -f "$BUILD_TOOLS_MARKER" ] || \
-   [ "$(cat "$BUILD_TOOLS_MARKER")" != "$BUILD_TOOLS_MARKER_VERSION" ]; then
-  rm -f "$BUILD_TOOLS_MARKER"
+if [ ! -f "$BUILD_TOOLS_MARKER" ]; then
   buildtools_cmd=()
   case "$OS_NAME" in
     *Darwin*) buildtools_cmd=(tools/setup-buildtools-apple.sh "$APPLE_ARCH") ;;
@@ -154,8 +153,8 @@ if [ ! -f "$BUILD_TOOLS_MARKER" ] || \
   if [[ ${#buildtools_cmd[@]} -gt 0 ]]; then
     if [[ -z "$NOROOT" ]]; then
       matsdk_try_buildtools_once "$BUILD_TOOLS_MARKER" \
-        "Build-tools installation failed." \
-        sudo "${buildtools_cmd[@]}" || exit 1
+        "No root: skipping build tools installation." \
+        sudo "${buildtools_cmd[@]}"
     else
       echo "No root: skipping build tools installation."
       matsdk_mark_buildtools_checked "$BUILD_TOOLS_MARKER"
@@ -163,12 +162,6 @@ if [ ! -f "$BUILD_TOOLS_MARKER" ] || \
   else
     matsdk_mark_buildtools_checked "$BUILD_TOOLS_MARKER"
   fi
-  printf '%s\n' "$BUILD_TOOLS_MARKER_VERSION" > "$BUILD_TOOLS_MARKER"
-fi
-
-if ! command -v cmake >/dev/null 2>&1 || \
-   [ "$(printf '%s\n' 4.3 "$(cmake --version | head -1 | awk '{print $3}')" | sort -V | head -1)" != "4.3" ]; then
-  export PATH=/usr/local/bin:$PATH
 fi
 
 matsdk_print_compiler_versions

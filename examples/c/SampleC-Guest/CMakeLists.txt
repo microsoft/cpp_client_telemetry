@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.3...4.4)
+cmake_minimum_required(VERSION 3.15...3.31)
 project(SampleC-Guest)
 
 # Uncomment for building i386 binary on x86_64 system
