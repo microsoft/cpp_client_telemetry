@@ -299,7 +299,8 @@ target_compile_definitions(matsdk_internal_config INTERFACE
   USE_BOND
   _WINDOWS
   _USRDLL
-  WINVER=_WIN32_WINNT_WIN7)
+  WINVER=_WIN32_WINNT_WIN10
+  _WIN32_WINNT=_WIN32_WINNT_WIN10)
 target_compile_options(matsdk_internal_config INTERFACE /U_MBCS)
 if(MATSDK_USE_WININET)
   target_compile_definitions(matsdk_internal_config INTERFACE HAVE_MAT_WININET_HTTP_CLIENT)
@@ -688,7 +689,7 @@ elseif(PAL_IMPLEMENTATION STREQUAL "WIN32")
   else()
     target_link_libraries(mat PRIVATE winhttp)
   endif()
-  target_link_libraries(mat PRIVATE crypt32)
+  target_link_libraries(mat PRIVATE crypt32 uuid)
 elseif(APPLE)
   target_link_libraries(mat PUBLIC
     "-framework CoreFoundation"

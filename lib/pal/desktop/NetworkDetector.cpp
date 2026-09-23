@@ -199,8 +199,6 @@ namespace MAT_NS_BEGIN
         /// Get current realtime network cost synchronously.
         /// This function provides an SEH handler for Windows Runtime failures.
         /// </summary>
-#pragma warning(push)
-#pragma warning(disable : 6320)
         static int RefreshNetworkCost(
             INetworkInformationStatics* networkInfoStats,
             std::atomic<NetworkCost>& currentNetworkCostState)
@@ -219,6 +217,7 @@ namespace MAT_NS_BEGIN
             // Exception thrown at XXX (KernelBase.dll) in YYY : The binding handle is invalid.
             // If there is a handler for this exception, the program may be safely continued.
             //*******************************************************************************************************************************
+#pragma warning(suppress : 6320)
             __except (EXCEPTION_EXECUTE_HANDLER)
             {
                 LOG_ERROR("Unable to obtain network state!");
@@ -227,8 +226,6 @@ namespace MAT_NS_BEGIN
             currentNetworkCostState.store(currentNetworkCost, std::memory_order_relaxed);
             return currentNetworkCost;
         }
-#pragma warning(pop)
-
         NetworkCost NetworkDetector::GetNetworkCost()
         {
             return m_currentNetworkCost->load(std::memory_order_relaxed);
@@ -383,8 +380,6 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Register for Windows Runtime events and block-wait in RegisterAndListen
         /// </summary>
-#pragma warning(push)
-#pragma warning(disable : 6320)
         void NetworkDetector::run()
         {
             bool isRoInitialized = false;
@@ -413,6 +408,7 @@ namespace MAT_NS_BEGIN
                     Reset();
                 }
             }
+#pragma warning(suppress : 6320)
             __except (EXCEPTION_EXECUTE_HANDLER)
             {
                 LOG_ERROR("Handled exception in Windows Runtime network cost detection.");
@@ -423,8 +419,6 @@ namespace MAT_NS_BEGIN
                 RoUninitialize();
             }
         }
-#pragma warning(pop)
-
         /// <summary>
         /// Start network monitoring thread
         /// </summary>
