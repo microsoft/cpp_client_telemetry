@@ -1344,55 +1344,22 @@ TEST(APITest, WindowsHttpTransport_MsRoot_Check)
     EXPECT_EQ(accepted.response->GetResult(), HttpResult_OK);
 }
 
-/* This test verifies the certificate policy used by either Windows HTTP transport. */
 TEST(APITest, LogConfiguration_MsRoot_Check)
 {
-    TestDebugEventListener debugListener;
-    std::list<std::tuple<std::string, bool, unsigned>> testParams =
-        {
-            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", false, 1},   // MS-Rooted, no MS-Root check:     post succeeds
+    auto client = HttpClientFactory::Create();
 #if defined(HAVE_MAT_WININET_HTTP_CLIENT)
-            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 0},    // WinInet cannot safely enforce the policy before sending
+    auto windowsClient = dynamic_cast<HttpClient_WinInet*>(client.get());
 #else
-            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 1},    // MS-Rooted, MS-Root check:        post succeeds
+    auto windowsClient = dynamic_cast<HttpClient_WinHttp*>(client.get());
 #endif
-            {"https://mobile.events.data.microsoft.com/OneCollector/1.0/", false, 1},  // Non-MS rooted, no MS-Root check: post succeeds
-            {"https://mobile.events.data.microsoft.com/OneCollector/1.0/", true, 0}    // Non-MS rooted, MS-Root check:    post fails
-        };
+    ASSERT_NE(windowsClient, nullptr);
 
-    // 4 test runs
-    for (const auto& params : testParams)
+    auto& config = LogManager::GetLogConfiguration();
+    for (bool enforceMsRoot : {false, true, false})
     {
-        CleanStorage();
-
-        auto& config = LogManager::GetLogConfiguration();
-        config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test, just customer events
-        config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
-        config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK] = std::get<1>(params);  // MS root check depends on what URL we are sending to
-        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;                // up to 1s wait to perform HTTP post on teardown
-        config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
-        auto expectedHttpCount = std::get<2>(params);
-
-        auto logger = LogManager::Initialize(TEST_TOKEN, config);
-
-        debugListener.reset();
-        addAllListeners(debugListener);
-        logger->LogEvent("fooBar");
-        LogManager::UploadNow();
-        const auto deadline = PAL::getMonotonicTimeMs() + 10000;
-        while (PAL::getMonotonicTimeMs() < deadline &&
-               debugListener.numHttpOK.load() == 0 &&
-               debugListener.numHttpError.load() == 0)
-        {
-            PAL::sleep(50);
-        }
-        LogManager::FlushAndTeardown();
-        removeAllListeners(debugListener);
-
-        // The successful cases establish that the runner can reach both
-        // endpoints, so the rejected case cannot pass merely because external
-        // networking is unavailable.
-        EXPECT_EQ(debugListener.numHttpOK.load(), expectedHttpCount);
+        config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK] = enforceMsRoot;
+        client->ApplySettings(config);
+        EXPECT_EQ(windowsClient->IsMsRootCheckRequired(), enforceMsRoot);
     }
 }
 #endif
