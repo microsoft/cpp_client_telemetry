@@ -61,4 +61,24 @@ using namespace Microsoft::Applications::Events;
     XCTAssertEqualObjects(config.host, @"testHost");
 }
 
+- (void)testConfigurationCopiesRemainIndependent {
+    ODWLogConfiguration *first = [ODWLogConfiguration getLogConfigurationCopy];
+    [first set:@"copyIsolation" withValue:@"first"];
+    [first setHost:@"firstHost"];
+
+    ODWLogConfiguration *second = [ODWLogConfiguration getLogConfigurationCopy];
+    [second set:@"copyIsolation" withValue:@"second"];
+    [second setHost:@"secondHost"];
+
+    XCTAssertEqualObjects([first valueForKey:@"copyIsolation"], @"first");
+    XCTAssertEqualObjects(first.host, @"firstHost");
+    XCTAssertEqualObjects([second valueForKey:@"copyIsolation"], @"second");
+    XCTAssertEqualObjects(second.host, @"secondHost");
+
+    ODWLogConfiguration *third = [ODWLogConfiguration getLogConfigurationCopy];
+    XCTAssertNil([third valueForKey:@"copyIsolation"]);
+    XCTAssertNotEqualObjects(third.host, @"firstHost");
+    XCTAssertNotEqualObjects(third.host, @"secondHost");
+}
+
 @end

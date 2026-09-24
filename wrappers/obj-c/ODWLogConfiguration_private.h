@@ -16,7 +16,7 @@ using namespace MAT;
 @interface ODWLogConfiguration (Private)
 
 /*!
- @brief Constructs an ODWLogConfiguration object, taking internal API config pointer. This method might be only used internally by wrapper.
+ @brief Constructs an ODWLogConfiguration object, taking ownership of the internal API config pointer. This method might be only used internally by wrapper.
  */
 -(instancetype)initWithILogConfiguration:(ILogConfiguration*)config;
 
