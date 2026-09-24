@@ -1188,9 +1188,11 @@ TEST_F(HttpClientTests, SurvivesManyRequests)
     Clear();
 
     size_t Count = 100;
+    std::vector<std::unique_ptr<IHttpRequest>> requests;
+    requests.reserve(Count);
     for (size_t i = 0; i < Count; i++) {
-        IHttpRequest* request = _client->CreateRequest();
-        // _requests.push_back(request);
+        requests.emplace_back(_client->CreateRequest());
+        IHttpRequest* request = requests.back().get();
         request->SetMethod("POST");
         request->GetHeaders().set("expect", "100-continue");
         request->GetHeaders().set("content-type", "application/octet-stream");
