@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
@@ -8,7 +9,22 @@
 #import "ODWLogConfiguration.h"
 #import "ODWSemanticContext.h"
 #import "ODWSemanticContext_private.h"
+
+#ifndef MATSDK_OBJC_PRIVACYGUARD_AVAILABLE
+#define MATSDK_OBJC_PRIVACYGUARD_AVAILABLE 0
+#endif
+
+#if MATSDK_OBJC_PRIVACYGUARD_AVAILABLE
 #import "ODWPrivacyGuard_private.h"
+#endif
+
+#ifndef MATSDK_OBJC_SANITIZER_AVAILABLE
+#define MATSDK_OBJC_SANITIZER_AVAILABLE 0
+#endif
+
+#if MATSDK_OBJC_SANITIZER_AVAILABLE
+#import "ODWSanitizer_private.h"
+#endif
 
 #include "EventProperties.hpp"
 
@@ -409,7 +425,35 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
 }
 
 -(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject
-{    
+{
+#if MATSDK_OBJC_PRIVACYGUARD_AVAILABLE
     [ODWPrivacyGuard initializePrivacyGuard:_wrappedLogger withODWPrivacyGuardInitConfig:initConfigObject];
+#else
+    (void)initConfigObject;
+    [ODWLogger traceException:"Privacy Guard is not available in this build."];
+#endif
+}
+
+-(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject
+{
+#if MATSDK_OBJC_SANITIZER_AVAILABLE
+    [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject];
+#else
+    (void)initConfigObject;
+    [ODWLogger traceException:"Sanitizer is not available in this build."];
+#endif
+}
+
+-(void)initializeSanitizerWithODWSanitizerInitConfig:(ODWSanitizerInitConfig *)initConfigObject urlDomains:(NSArray<NSString *> *)urlDomains emailDomains:(NSArray<NSString *> *)emailDomains analyzerOptions:(int)analyzerOptions
+{
+#if MATSDK_OBJC_SANITIZER_AVAILABLE
+    [ODWSanitizer initializeSanitizer:_wrappedLogger withODWSanitizerInitConfig:initConfigObject urlDomains:urlDomains emailDomains:emailDomains analyzerOptions:analyzerOptions];
+#else
+    (void)initConfigObject;
+    (void)urlDomains;
+    (void)emailDomains;
+    (void)analyzerOptions;
+    [ODWLogger traceException:"Sanitizer is not available in this build."];
+#endif
 }
 @end

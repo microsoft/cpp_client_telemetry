@@ -24,7 +24,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)LoggerCX.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerCX.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerEventReceiver.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LogManagerV1.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PageActionData.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PlatformHelpers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SchemaStub.hpp" />

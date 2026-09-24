@@ -16,7 +16,7 @@ namespace PAL_NS_BEGIN {
     {
     public:
 
-        virtual ~ISystemInformation() {};
+        virtual ~ISystemInformation() {}
 
         /// <summary>
         /// Gets the App ID.

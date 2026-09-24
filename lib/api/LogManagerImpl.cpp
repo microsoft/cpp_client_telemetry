@@ -2,11 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
-#ifdef _MSC_VER
-// evntprov.h(838) : warning C4459 : declaration of 'Version' hides global declaration
-#pragma warning(disable : 4459)
+#ifdef _WIN32
+// Include the SDK declaration before the telemetry Version symbol enters scope.
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#include <evntprov.h>
 #endif
 #include "LogManagerImpl.hpp"
+#include <cstdio>
+#include "ctmacros.hpp"
 #include "mat/config.h"
 
 #include "offline/LogSessionDataProvider.hpp"
@@ -85,6 +91,19 @@
 #endif
 #endif
 
+#ifdef HAVE_MAT_SANITIZER
+#if defined __has_include
+#if __has_include("modules/sanitizer/Sanitizer.hpp")
+#include "modules/sanitizer/Sanitizer.hpp"
+#else
+/* Compiling without Sanitizer support because Santizer private header is unavailable */
+#undef HAVE_MAT_SANITIZER
+#endif
+#else
+#include "modules/sanitizer/Sanitizer.hpp"
+#endif
+#endif
+
 namespace MAT_NS_BEGIN
 {
     void DeadLoggers::AddMap(LoggerMap&& source)
@@ -115,7 +134,7 @@ namespace MAT_NS_BEGIN
         return true;
     }
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Microsoft Telemetry Client - LogManager class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(LogManagerImpl, "EventsSDK.LogManager", "Microsoft Telemetry Client - LogManager class")
 
 #if 1
     // TODO: integrate Tracing API from v1
@@ -276,13 +295,12 @@ namespace MAT_NS_BEGIN
         if (m_httpClient == nullptr)
         {
             m_httpClient = HttpClientFactory::Create();
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-            HttpClient_WinInet* client = static_cast<HttpClient_WinInet*>(m_httpClient.get());
-            if (client != nullptr)
+            if (m_httpClient == nullptr)
             {
-                client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
+                LOG_ERROR("The default HTTP client has not been initialized.");
+                MATSDK_THROW(std::invalid_argument("configuration"));
             }
-#endif
+            m_httpClient->ApplySettings(m_logConfiguration);
         }
         else
         {
@@ -353,21 +371,39 @@ namespace MAT_NS_BEGIN
     /// </summary>
     void LogManagerImpl::Configure()
     {
-        // TODO: [maxgolov] - add other config params.
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-        HttpClient_WinInet* client = static_cast<HttpClient_WinInet*>(m_httpClient.get());
-        if (client != nullptr)
+        if (m_httpClient != nullptr)
         {
-            client->SetMsRootCheck(m_logConfiguration[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK]);
+            m_httpClient->ApplySettings(m_logConfiguration);
         }
-#endif
-    };
+    }
 
     LogManagerImpl::~LogManagerImpl() noexcept
     {
-        FlushAndTeardown();
-        LOCKGUARD(ILogManagerInternal::managers_lock);
-        ILogManagerInternal::managers.erase(this);
+        MATSDK_TRY
+        {
+            FlushAndTeardown();
+        }
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(const std::exception& e)
+        {
+            std::fprintf(stderr, "Log manager teardown failed: %s\n", e.what());
+        }
+        MATSDK_CATCH(...)
+        {
+            std::fputs("Log manager teardown failed with an unknown exception\n", stderr);
+        }
+#endif
+        MATSDK_TRY
+        {
+            LOCKGUARD(ILogManagerInternal::managers_lock);
+            ILogManagerInternal::managers.erase(this);
+        }
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(...)
+        {
+            std::fputs("Log manager registry cleanup failed\n", stderr);
+        }
+#endif
     }
 
     size_t LogManagerImpl::GetDeadLoggerCount()
@@ -528,7 +564,7 @@ namespace MAT_NS_BEGIN
     const std::string& LogManagerImpl::GetTransmitProfileName()
     {
         return TransmitProfiles::getProfile();
-    };
+    }
 
     ISemanticContext& LogManagerImpl::GetSemanticContext()
     {
@@ -686,7 +722,7 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::AddEventListener(DebugEventType type, DebugEventListener& listener)
     {
         m_debugEventSource.AddEventListener(type, listener);
-    };
+    }
 
     /// <summary>
     /// Removes the event listener.
@@ -696,7 +732,7 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::RemoveEventListener(DebugEventType type, DebugEventListener& listener)
     {
         m_debugEventSource.RemoveEventListener(type, listener);
-    };
+    }
 
     /// <summary>
     /// Dispatches the event.
@@ -706,7 +742,7 @@ namespace MAT_NS_BEGIN
     bool LogManagerImpl::DispatchEvent(DebugEvent evt)
     {
         return m_debugEventSource.DispatchEvent(std::move(evt));
-    };
+    }
 
     /// <summary>Attach cascaded DebugEventSource to forward all events to</summary>
     bool LogManagerImpl::AttachEventSource(DebugEventSource& other)
@@ -836,7 +872,7 @@ namespace MAT_NS_BEGIN
             return;
         }
 
-        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector)
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&dataInspector](const std::shared_ptr<IDataInspector>& currentInspector) noexcept
         {
             return strcmp(dataInspector->GetName(), currentInspector->GetName()) == 0;
         });
@@ -859,7 +895,7 @@ namespace MAT_NS_BEGIN
     void LogManagerImpl::RemoveDataInspector(const std::string& name)
     {
         LOCKGUARD(m_dataInspectorGuard);
-        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+        auto itDataInspector = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector) noexcept {
             return strcmp(inspector->GetName(), name.c_str()) == 0;
         });
 
@@ -872,7 +908,7 @@ namespace MAT_NS_BEGIN
     std::shared_ptr<IDataInspector> LogManagerImpl::GetDataInspector(const std::string& name) noexcept
     {
         LOCKGUARD(m_dataInspectorGuard);
-        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector){
+        auto it = std::find_if(m_dataInspectors.begin(), m_dataInspectors.end(), [&name](const std::shared_ptr<IDataInspector>& inspector) noexcept{
             return strcmp(inspector->GetName(), name.c_str()) == 0;
         });
 
@@ -941,7 +977,7 @@ namespace MAT_NS_BEGIN
         if (m_pause_state != PauseState::Pausing) {
             return;
         }
-        m_pause_cv.wait(lock, [this]() -> bool {
+        m_pause_cv.wait(lock, [this]() noexcept -> bool {
             return m_pause_state != PauseState::Pausing;
         });
     }
@@ -956,20 +992,33 @@ namespace MAT_NS_BEGIN
         return true;
     }
 
-    void LogManagerImpl::EndActivity()
+    void LogManagerImpl::EndActivity() noexcept
     {
-        std::unique_lock<std::mutex> lock(m_pause_mutex);
-        if (m_pause_active_count == 0) {
-            return;
+        MATSDK_TRY
+        {
+            std::unique_lock<std::mutex> lock(m_pause_mutex);
+            if (m_pause_active_count == 0) {
+                return;
+            }
+            m_pause_active_count -= 1;
+            if (m_pause_active_count > 0) {
+                return;
+            }
+            if (m_pause_state == PauseState::Pausing) {
+                m_pause_state = PauseState::Paused;
+                m_pause_cv.notify_all();
+            }
         }
-        m_pause_active_count -= 1;
-        if (m_pause_active_count > 0) {
-            return;
+#if HAVE_EXCEPTIONS
+        MATSDK_CATCH(const std::exception& e)
+        {
+            std::fprintf(stderr, "Failed to end telemetry activity: %s\n", e.what());
         }
-        if (m_pause_state == PauseState::Pausing) {
-            m_pause_state = PauseState::Paused;
-            m_pause_cv.notify_all();
+        MATSDK_CATCH(...)
+        {
+            std::fputs("Failed to end telemetry activity\n", stderr);
         }
+#endif
     }
 }
 MAT_NS_END

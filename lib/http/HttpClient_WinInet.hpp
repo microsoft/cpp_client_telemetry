@@ -8,9 +8,14 @@
 #ifdef HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #include "IHttpClient.hpp"
+#include "IBoundedHttpClientCancel.hpp"
 #include "pal/PAL.hpp"
 
 #include "ILogManager.hpp"
+
+#include <condition_variable>
+#include <memory>
+#include <mutex>
 
 namespace MAT_NS_BEGIN {
 
@@ -19,8 +24,9 @@ typedef void* HINTERNET;
 #endif
 
 class WinInetRequestWrapper;
+struct WinInetClientState;
 
-class HttpClient_WinInet : public IHttpClient {
+class HttpClient_WinInet : public IHttpClient, public IBoundedHttpClientCancel {
   public:
     // Common IHttpClient methods
     HttpClient_WinInet();
@@ -29,21 +35,19 @@ class HttpClient_WinInet : public IHttpClient {
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) final;
     virtual void CancelRequestAsync(std::string const& id) final;
     virtual void CancelAllRequests() final;
+    virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) final;
+
+    virtual void ApplySettings(ILogConfiguration& config) override;
 
     // Methods unique to WinInet implementation.
     void SetMsRootCheck(bool enforceMsRoot);
     bool IsMsRootCheckRequired();
+    static void SetTerminalFinalizationFaultForTests(bool enabled);
+    static bool WasTerminalFinalizationFaultInjectedForTests();
 
   protected:
-    void erase(std::string const& id);
-
-  protected:
-    HINTERNET                                                        m_hInternet;
-    std::recursive_mutex                                             m_requestsMutex;
-    std::map<std::string, WinInetRequestWrapper*>                    m_requests;
+    std::shared_ptr<WinInetClientState>                              m_state;
     static unsigned                                                  s_nextRequestId;
-    bool                                                             m_msRootCheck;
-    friend class WinInetRequestWrapper;
 };
 
 } MAT_NS_END
@@ -51,4 +55,3 @@ class HttpClient_WinInet : public IHttpClient {
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENT_WININET_HPP
-

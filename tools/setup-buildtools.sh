@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -f /bin/yum ]; then
 if [ `cat /etc/redhat-release | tr -dc '0-9.'|cut -d \. -f1` == "7" ]; then
@@ -30,11 +30,12 @@ echo "*********************************************************"
 exit 3
 fi
 
-if [ `cmake --version | grep 3` == "" ]; then
+if ! command -v cmake >/dev/null 2>&1 || \
+   [ "$(printf '%s\n' 3.21.7 "$(cmake --version | head -1 | awk '{print $3}')" | sort -V | head -1)" != "3.21.7" ]; then
 yum -y remove cmake
-wget https://cmake.org/files/v3.6/cmake-3.6.2.tar.gz
-tar -zxvf cmake-3.6.2.tar.gz
-cd cmake-3.6.2
+wget https://cmake.org/files/v3.21/cmake-3.21.7.tar.gz
+tar -zxvf cmake-3.21.7.tar.gz
+cd cmake-3.21.7
 ./bootstrap --prefix=/usr/local
 make
 make install
@@ -71,9 +72,6 @@ tar -xvf /tmp/sqlite-snapshot.tar.gz
 cd $SQLITE_PKG
 ./configure && make && make install
 cd ..
-
-## Build Google Test framework
-./build-gtest.sh
 
 ## Change owner from root to current dir owner
 chown -R `stat . -c %u:%g` *

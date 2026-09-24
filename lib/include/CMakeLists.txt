@@ -7,10 +7,28 @@ list(GET MATSDK_BUILD_VERSION_SPLIT 3 BUILD_NUMBER)
 #TODO: allow regeneration of Version.hpp using template
 #configure_file(public/Version.hpp.template "${CMAKE_CURRENT_SOURCE_DIR}/public/Version.hpp")
 
+set(MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
+  PATTERN "*.template" EXCLUDE
+)
+
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/filter")
+  list(APPEND MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
+    PATTERN "CompliantByDefaultFilterApi.hpp" EXCLUDE)
+endif()
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/exp")
+  list(APPEND MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
+    PATTERN "IAFDClient.hpp" EXCLUDE
+    PATTERN "IECSClient.hpp" EXCLUDE)
+endif()
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/cds")
+  list(APPEND MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES
+    PATTERN "ICdsFactory.hpp" EXCLUDE)
+endif()
+
 install(
   DIRECTORY
     public/
   DESTINATION
-    include/mat
-  PATTERN "public/*.template" EXCLUDE
+    ${CMAKE_INSTALL_INCLUDEDIR}/mat
+  ${MATSDK_PUBLIC_HEADER_INSTALL_EXCLUDES}
 )

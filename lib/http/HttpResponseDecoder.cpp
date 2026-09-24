@@ -11,7 +11,7 @@
 #include <cassert>
 
 #ifdef HAVE_MAT_JSONHPP
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 #endif
 
 namespace MAT_NS_BEGIN {
@@ -67,13 +67,11 @@ namespace MAT_NS_BEGIN {
             break;
 
         case HttpResult_Aborted:
-            ctx->httpResponse = nullptr;
             outcome = Abort;
             break;
 
         case HttpResult_LocalFailure:
         case HttpResult_NetworkFailure:
-            ctx->httpResponse = nullptr;
             outcome = RetryNetwork;
             break;
         }
@@ -91,6 +89,7 @@ namespace MAT_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_OK;
                 evt.param1 = response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 evt.data = static_cast<void *>(request.GetBody().data());
                 evt.size = request.GetBody().size();
                 DispatchEvent(evt);
@@ -112,6 +111,7 @@ namespace MAT_NS_BEGIN {
                 // This is to be addressed with ETW trace API that can send
                 // a detailed error context to ETW provider.
                 evt.param1 = response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 evt.data = static_cast<void *>(request.GetBody().data());
                 evt.size = request.GetBody().size();
                 DispatchEvent(evt);
@@ -127,9 +127,9 @@ namespace MAT_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
                 evt.param1 = 0; // response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 DispatchEvent(evt);
             }
-            ctx->httpResponse = nullptr;
             // eventsRejected(ctx); // FIXME: [MG] - investigate why ctx gets corrupt after eventsRejected
             requestAborted(ctx);
             break;
@@ -144,6 +144,7 @@ namespace MAT_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
                 evt.param1 = response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 DispatchEvent(evt);
             }
             temporaryServerFailure(ctx);
@@ -157,6 +158,7 @@ namespace MAT_NS_BEGIN {
                 DebugEvent evt;
                 evt.type = DebugEventType::EVT_HTTP_FAILURE;
                 evt.param1 = response.GetStatusCode();
+                evt.param2 = ctx->recordIdsAndTenantIds.size();
                 DispatchEvent(evt);
             }
             temporaryNetworkFailure(ctx);
@@ -169,72 +171,82 @@ namespace MAT_NS_BEGIN {
     {
 #ifdef HAVE_MAT_JSONHPP
         // TODO: [MG] - parse HTTP response without json.hpp library
-        nlohmann::json responseBody;
-        try
+        auto bodyBegin = response.GetBody().begin();
+        auto bodyEnd = response.GetBody().end();
+
+        // Handle empty body
+        if (bodyBegin == bodyEnd)
         {
-            std::string body(response.GetBody().begin(), response.GetBody().end());
-            responseBody = nlohmann::json::parse(body.c_str());
-            int accepted = 0;
-            auto acc = responseBody.find("acc");
-            if (responseBody.end() != acc)
-            {
-                if (acc.value().is_number())
-                {
-                    accepted = acc.value().get<int>();
-                }
-            }
+            LOG_ERROR("HTTP response: body is empty, skipping processing");
+            return;
+        }
 
-            int rejected = 0;
-            auto rej = responseBody.find("rej");
-            if (responseBody.end() != rej)
-            {
-                if (rej.value().is_number())
-                {
-                    rejected = rej.value().get<int>();
-                }
-            }
+        // Parse JSON with exceptions disabled (pass iterators directly to avoid copy)
+        nlohmann::json responseBody = nlohmann::json::parse(bodyBegin, bodyEnd, nullptr, false);
 
-            auto efi = responseBody.find("efi");
-            if (responseBody.end() != efi)
-            {
-                for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
-                {
-                    std::string efiKey(it.key());
-                    nlohmann::json val = it.value();
-                    if (val.is_array())
-                    {
-                        //std::vector<int> failureVector = val.get<std::vector<int>>();
-                        // eventsRejected(ctx);     with only the ids in the vector above
-                    }
-                    if (val.is_string())
-                    {
-                        if ("all" == val.get<std::string>())
-                        {
-                            result = Rejected;
-                        }
-                    }
-                }
-            }
+        // Check if parsing failed (returns discarded value for invalid JSON)
+        if (responseBody.is_discarded())
+        {
+            LOG_ERROR("HTTP response: body is not valid JSON, skipping processing");
+            return;
+        }
 
-            auto ticket = responseBody.find("TokenCrackingFailure");
-            if (responseBody.end() != ticket)
+        int accepted = 0;
+        auto acc = responseBody.find("acc");
+        if (responseBody.end() != acc)
+        {
+            if (acc.value().is_number())
             {
-                DebugEvent evt;
-                evt.type = DebugEventType::EVT_TICKET_EXPIRED;
-                DispatchEvent(evt);
-            }
-
-            if (result != Rejected)
-            {
-                LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
-            } else
-            {
-                LOG_TRACE("HTTP response: all rejected");
+                accepted = acc.value().get<int>();
             }
         }
-        catch (...)
+
+        int rejected = 0;
+        auto rej = responseBody.find("rej");
+        if (responseBody.end() != rej)
         {
-            LOG_ERROR("HTTP response: JSON parsing failed");
+            if (rej.value().is_number())
+            {
+                rejected = rej.value().get<int>();
+            }
+        }
+
+        auto efi = responseBody.find("efi");
+        if (responseBody.end() != efi)
+        {
+            for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
+            {
+                std::string efiKey(it.key());
+                nlohmann::json val = it.value();
+                if (val.is_array())
+                {
+                    //std::vector<int> failureVector = val.get<std::vector<int>>();
+                    // eventsRejected(ctx);     with only the ids in the vector above
+                }
+                if (val.is_string())
+                {
+                    if ("all" == val.get<std::string>())
+                    {
+                        result = Rejected;
+                    }
+                }
+            }
+        }
+
+        auto ticket = responseBody.find("TokenCrackingFailure");
+        if (responseBody.end() != ticket)
+        {
+            DebugEvent evt;
+            evt.type = DebugEventType::EVT_TICKET_EXPIRED;
+            DispatchEvent(evt);
+        }
+
+        if (result != Rejected)
+        {
+            LOG_TRACE("HTTP response: accepted=%d rejected=%d", accepted, rejected);
+        } else
+        {
+            LOG_TRACE("HTTP response: all rejected");
         }
 #else
         UNREFERENCED_PARAMETER(response);
@@ -243,4 +255,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

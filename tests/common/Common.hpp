@@ -75,9 +75,9 @@ namespace testing {
        LogMemUsage(label); \
        LogCpuUsage(label);
 
-    void LogMemUsage(const char* label);
+    void LogMemUsage(const char* label) noexcept;
 
-    void LogCpuUsage(const char* label);
+    void LogCpuUsage(const char* label) noexcept;
     void InflateVector(std::vector<uint8_t> &in, std::vector<uint8_t> &out, bool isGzip = false);
 
 } // namespace testing

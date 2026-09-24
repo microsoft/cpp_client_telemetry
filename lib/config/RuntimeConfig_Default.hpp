@@ -16,6 +16,7 @@ namespace MAT_NS_BEGIN
         {CFG_BOOL_ENABLE_ANALYTICS, false},
         {CFG_INT_CACHE_FILE_SIZE, 3145728},
         {CFG_INT_RAM_QUEUE_SIZE, 524288},
+        {CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH, true},
         {CFG_BOOL_ENABLE_MULTITENANT, true},
         {CFG_BOOL_ENABLE_DB_DROP_IF_FULL, false},
         {CFG_INT_MAX_TEARDOWN_TIME, 1},
@@ -33,6 +34,9 @@ namespace MAT_NS_BEGIN
          {/* Parameter that allows to split stats events by tenant */
           {"split", false},
           {"interval", 1800},
+          /* Stats are disabled by default for the built-in shared token
+             to reduce OneCollector load (see #1420). Set to true to opt in. */
+          {"enabled", false},
           {"tokenProd", STATS_TOKEN_PROD},
           {"tokenInt", STATS_TOKEN_INT}}},
         {"utc",
@@ -57,7 +61,11 @@ namespace MAT_NS_BEGIN
              ,
              {"contentEncoding", "deflate"},
              /* Optional parameter to require Microsoft Root CA */
-             {CFG_BOOL_HTTP_MS_ROOT_CHECK, false}}},
+             {CFG_BOOL_HTTP_MS_ROOT_CHECK, false},
+             /* Compatibility parameter; curl verification cannot be disabled */
+             {CFG_BOOL_HTTP_SSL_VERIFY, true},
+             /* Optional CA bundle path for OpenSSL-backed curl */
+             {CFG_STR_HTTP_SSL_CAINFO, ""}}},
         {CFG_MAP_TPM,
          {
              {CFG_INT_TPM_MAX_BLOB_BYTES, 2097152},
@@ -115,14 +123,14 @@ namespace MAT_NS_BEGIN
             UNREFERENCED_PARAMETER(extension);
             UNREFERENCED_PARAMETER(experimentationProject);
             UNREFERENCED_PARAMETER(eventName);
-        };
+        }
 
         virtual EventLatency GetEventLatency(std::string const& tenantId = std::string(), std::string const& eventName = std::string()) override
         {
             UNREFERENCED_PARAMETER(tenantId);
             UNREFERENCED_PARAMETER(eventName);
             return EventLatency_Normal;
-        };
+        }
 
         virtual std::string GetMetaStatsTenantToken() override
         {
@@ -134,7 +142,7 @@ namespace MAT_NS_BEGIN
                     return std::string(token);
             }
             return std::string(defaultToken);
-        };
+        }
 
         virtual unsigned GetMetaStatsSendIntervalSec() override
         {
@@ -144,7 +152,7 @@ namespace MAT_NS_BEGIN
         virtual unsigned GetOfflineStorageMaximumSizeBytes() override
         {
             return config[CFG_INT_CACHE_FILE_SIZE];
-        };
+        }
 
         virtual unsigned GetOfflineStorageResizeThresholdPct() override
         {
@@ -226,4 +234,3 @@ namespace MAT_NS_BEGIN
 
 }
 MAT_NS_END
-

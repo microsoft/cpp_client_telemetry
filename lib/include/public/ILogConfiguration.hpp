@@ -105,6 +105,16 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_ENABLE_NET_DETECT = "enableNetworkDetector";
 
     /// <summary>
+    /// Request collector-side scrubbing (obfuscation) of the client IP address.
+    /// Applied unless explicitly set to false (on by default; the key is not
+    /// present in the default configuration). Opt out when the client IP is
+    /// needed, e.g. for geo-location enrichment. Honored by the OneCollector
+    /// direct-upload path; in UTC mode client privacy is governed by the OS UTC
+    /// pipeline instead.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_IP_SCRUBBING = "enableIpScrubbing";
+
+    /// <summary>
     /// Parameter that allows to check if the SDK is running on UTC mode
     /// </summary>
     static constexpr const char* const CFG_BOOL_UTC_ENABLED = "enabled";
@@ -143,6 +153,12 @@ namespace MAT_NS_BEGIN
     /// The size of the RAM queue buffers, in bytes.
     /// </summary>
     static constexpr const char* const CFG_INT_RAM_QUEUE_BUFFERS = "maxDBFlushQueues";
+
+    /// <summary>
+    /// Batch records when flushing the RAM queue to disk storage.
+    /// Set to false to use per-record disk stores during flush.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH = "enableBatchedStorageFlush";
 
     /// <summary>
     /// SQLite DB will be checkpointed when flushing.
@@ -362,6 +378,18 @@ namespace MAT_NS_BEGIN
     static constexpr const char* const CFG_BOOL_HTTP_COMPRESSION = "compress";
 
     /// <summary>
+    /// HTTP configuration: SSL certificate verification (peer + host).
+    /// Retained for compatibility; the curl transport always verifies TLS and
+    /// ignores attempts to set this value to false.
+    /// </summary>
+    static constexpr const char* const CFG_BOOL_HTTP_SSL_VERIFY = "sslVerify";
+
+    /// <summary>
+    /// HTTP configuration: SSL CA bundle file path (for libcurl/OpenSSL)
+    /// </summary>
+    static constexpr const char* const CFG_STR_HTTP_SSL_CAINFO = "sslCaInfo";
+
+    /// <summary>
     /// TPM configuration map
     /// </summary>
     static constexpr const char* const CFG_MAP_TPM = "tpm";
@@ -461,4 +489,3 @@ namespace MAT_NS_BEGIN
 }
 MAT_NS_END
 #endif
-

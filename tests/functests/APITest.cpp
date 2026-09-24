@@ -15,7 +15,12 @@
 
 #include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <LogManager.hpp>
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 #include "PayloadDecoder.hpp"
 
@@ -23,7 +28,7 @@
 #include "IDecorator.hpp"
 
 #ifdef HAVE_MAT_JSONHPP
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 #endif
 
 #include "CorrelationVector.hpp"
@@ -210,6 +215,132 @@ public:
     }
 };
 
+class HttpResponseWaiter final : public IHttpResponseCallback {
+public:
+    void OnHttpResponse(IHttpResponse* response) override
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        ++m_callbackCount;
+        m_response.reset(response);
+        m_cv.notify_all();
+    }
+
+    void OnHttpStateEvent(HttpStateEvent, void*, size_t) override
+    {
+    }
+
+    std::unique_ptr<IHttpResponse> WaitForResponse(std::chrono::seconds timeout)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_cv.wait_for(lock, timeout, [this]() { return m_response != nullptr; });
+        return std::move(m_response);
+    }
+
+    size_t CallbackCount() const
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_callbackCount;
+    }
+
+private:
+    mutable std::mutex m_mutex;
+    std::condition_variable m_cv;
+    std::unique_ptr<IHttpResponse> m_response;
+    size_t m_callbackCount {0};
+};
+
+// Keep requests in flight until teardown cancels them, then simulate a connection
+// reset while honoring IHttpClient's exactly-once callback contract.
+class NetworkFailureHttpClient final : public IHttpClient
+{
+public:
+    IHttpRequest* CreateRequest() override
+    {
+        return new SimpleHttpRequest("bad-network-" + std::to_string(m_nextRequestId.fetch_add(1)));
+    }
+
+    void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_pending[request->GetId()] = callback;
+        m_sent.fetch_add(1);
+    }
+
+    void CancelRequestAsync(const std::string& id) override
+    {
+        IHttpResponseCallback* callback = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            auto it = m_pending.find(id);
+            if (it != m_pending.end())
+            {
+                callback = it->second;
+                m_pending.erase(it);
+            }
+        }
+        if (callback != nullptr)
+        {
+            m_cancelled.fetch_add(1);
+            CompleteWithNetworkFailure(id, callback);
+        }
+    }
+
+    void CancelAllRequests() override
+    {
+        std::map<std::string, IHttpResponseCallback*> pending;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            pending.swap(m_pending);
+        }
+        m_cancelled.fetch_add(static_cast<unsigned>(pending.size()));
+        for (const auto& request : pending)
+        {
+            CompleteWithNetworkFailure(request.first, request.second);
+        }
+    }
+
+    bool WaitForRequest(unsigned timeoutMs) const
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (SentCount() == 0 && PAL::getMonotonicTimeMs() < deadline)
+        {
+            PAL::sleep(10);
+        }
+        return SentCount() > 0;
+    }
+
+    unsigned SentCount() const
+    {
+        return m_sent.load();
+    }
+
+    unsigned CancelledCount() const
+    {
+        return m_cancelled.load();
+    }
+
+    unsigned CompletedCount() const
+    {
+        return m_completed.load();
+    }
+
+private:
+    void CompleteWithNetworkFailure(const std::string& id, IHttpResponseCallback* callback)
+    {
+        auto response = new SimpleHttpResponse("failure-" + id);
+        response->m_result = HttpResult_NetworkFailure;
+        callback->OnHttpResponse(response);
+        m_completed.fetch_add(1);
+    }
+
+    mutable std::mutex m_mutex;
+    std::map<std::string, IHttpResponseCallback*> m_pending;
+    std::atomic<unsigned> m_nextRequestId{0};
+    std::atomic<unsigned> m_sent{0};
+    std::atomic<unsigned> m_cancelled{0};
+    std::atomic<unsigned> m_completed{0};
+};
+
 /// <summary>
 /// Add all event listeners
 /// </summary>
@@ -302,7 +433,11 @@ static std::string GetStoragePath()
 
 static void CleanStorage()
 {
-    std::remove(GetStoragePath().c_str());
+    std::string path = GetStoragePath();
+    std::remove(path.c_str());
+    std::remove((path + "-wal").c_str());
+    std::remove((path + "-shm").c_str());
+    std::remove((path + "-journal").c_str());
 }
 
 #if 0
@@ -391,6 +526,10 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
             LogManager::GetLogger()->LogEvent(eventToLog);
         }
         LogManager::Flush();
+        // Storage-full callback fires asynchronously; give it time to arrive
+        for (int i = 0; i < 50 && debugListener.storageFullPct.load() < 100; i++) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
         EXPECT_GE(debugListener.storageFullPct.load(), (unsigned)100);
         LogManager::FlushAndTeardown();
 
@@ -404,8 +543,20 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     debugListener.numSent   = 0;
     debugListener.numLogged = 0;
 
-    CleanStorage();
+    // Use a unique DB path for Phase 2/3 on every invocation. The SDK
+    // closes SQLite with sqlite3_close_v2(), which defers file-descriptor
+    // cleanup when prepared statements linger.  If we reuse a fixed path
+    // and std::remove() the old files while deferred fds are still open,
+    // iOS emits "vnode unlinked while in use" and may invalidate the new
+    // DB's descriptors.  A fresh, never-before-seen path sidesteps the
+    // problem entirely — no stale files, no collisions, no sleep needed.
+    static std::atomic<int> s_phase2Counter{0};
+    std::string phase2Path = GetStoragePath() + ".phase2." +
+                             std::to_string(s_phase2Counter.fetch_add(1));
+    configuration[CFG_STR_CACHE_FILE_PATH] = phase2Path;
+    configuration[CFG_INT_CACHE_FILE_SIZE] = 0; // No size limit for phase 2
     ILogger *result = LogManager::Initialize(TEST_TOKEN, configuration);
+    LogManager::PauseTransmission();     // Pause before logging to avoid production uploads
 
     // Log some foo
     size_t numIterations = MAX_ITERATIONS;
@@ -416,10 +567,6 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     EXPECT_EQ(0u, debugListener.numDropped);
     EXPECT_EQ(0u, debugListener.numReject);
 
-    LogManager::UploadNow();             // Try to upload whatever we got
-    PAL::sleep(1000);                    // Give enough time to upload at least one event
-    EXPECT_NE(0u, debugListener.numSent); // Some posts must succeed within 500ms
-    LogManager::PauseTransmission();     // There could still be some pending at this point
     LogManager::Flush();                 // Save all pending to disk
 
     numIterations = MAX_ITERATIONS;
@@ -434,15 +581,27 @@ TEST(APITest, LogManager_Initialize_DebugEventListener)
     LogManager::Flush();
     EXPECT_EQ(MAX_ITERATIONS, debugListener.numCached);
 
+    // Phase 3: resume transmission and upload the cached events
     LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::ResumeTransmission();
+    LogManager::UploadNow();
+    PAL::sleep(10000);                    // Give enough time to upload
     LogManager::FlushAndTeardown();
 
     // Check that we sent all of logged + whatever left overs
     // prior to PauseTransmission
     EXPECT_GE(debugListener.numSent, debugListener.numLogged);
+
     debugListener.printStats();
     removeAllListeners(debugListener);
+
+    // Best-effort cleanup. Assertions have already passed, so if
+    // sqlite3_close_v2 deferred cleanup triggers a vnode warning here
+    // it is harmless.
+    std::remove(phase2Path.c_str());
+    std::remove((phase2Path + "-wal").c_str());
+    std::remove((phase2Path + "-shm").c_str());
+    std::remove((phase2Path + "-journal").c_str());
 }
 
 #ifdef _WIN32
@@ -553,38 +712,32 @@ constexpr static unsigned MAX_THREADS = 25;
 /// <param name="config">The configuration.</param>
 void StressUploadLockMultiThreaded(ILogConfiguration& config)
 {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     TestDebugEventListener debugListener;
 
     addAllListeners(debugListener);
     size_t numIterations = MAX_ITERATIONS_MT;
 
-    std::mutex m_threads_mtx;
-    std::atomic<unsigned> threadCount(0);
-
     while (numIterations--)
     {
         ILogger *result = LogManager::Initialize(TEST_TOKEN, config);
-        // Keep spawning UploadNow threads while the main thread is trying to perform
-        // Initialize and Teardown, but no more than MAX_THREADS at a time.
+        std::vector<std::thread> uploadThreads;
+        uploadThreads.reserve(MAX_THREADS);
         for (size_t i = 0; i < MAX_THREADS; i++)
         {
-            if (threadCount++ < MAX_THREADS)
+            uploadThreads.emplace_back([]()
             {
-                auto t = std::thread([&]()
-                {
-                    std::this_thread::yield();
-                    LogManager::UploadNow();
-                    const auto randTimeSub2ms = std::rand() % 2;
-                    PAL::sleep(randTimeSub2ms);
-                    threadCount--;
-                });
-                t.detach();
-            }
-        };
+                std::this_thread::yield();
+                LogManager::UploadNow();
+                PAL::sleep(0);
+            });
+        }
         EventProperties props = testing::CreateSampleEvent("event_name", EventPriority_Normal);
         result->LogEvent(props);
         LogManager::FlushAndTeardown();
+        for (auto& uploadThread : uploadThreads)
+        {
+            uploadThread.join();
+        }
     }
     removeAllListeners(debugListener);
 }
@@ -1132,83 +1285,124 @@ TEST(APITest, LogManager_BadStoragePath_Test)
 
 }
 
-#ifdef HAVE_MAT_WININET_HTTP_CLIENT
-/* This test requires WinInet HTTP client */
+#if defined(_WIN32) && defined(HAVE_MAT_DEFAULT_HTTP_CLIENT)
+TEST(APITest, WindowsHttpTransport_MsRoot_Check)
+{
+    struct RequestOutcome
+    {
+        std::unique_ptr<IHttpResponse> response;
+        size_t callbackCount {0};
+    };
+
+    auto sendRequest = [](bool enforceMsRoot) {
+        HttpResponseWaiter callback;
+        // A fresh client gives the checked request a cold transport session; do
+        // not warm this endpoint with an unchecked request first.
+        auto client = HttpClientFactory::Create();
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+        auto windowsClient = dynamic_cast<HttpClient_WinInet*>(client.get());
+#elif defined(HAVE_MAT_WINHTTP_HTTP_CLIENT)
+        auto windowsClient = dynamic_cast<HttpClient_WinHttp*>(client.get());
+#else
+#error A Windows HTTP transport must be selected.
+#endif
+        if (windowsClient == nullptr)
+        {
+            ADD_FAILURE() << "HttpClientFactory returned the wrong Windows transport";
+            return RequestOutcome{};
+        }
+        windowsClient->SetMsRootCheck(enforceMsRoot);
+
+        std::unique_ptr<IHttpRequest> request(client->CreateRequest());
+        request->SetMethod("POST");
+        request->SetUrl("https://mobile.events.data.microsoft.com/OneCollector/1.0/");
+        std::vector<uint8_t> body {'{', '}'};
+        request->SetBody(body);
+        client->SendRequestAsync(request.get(), &callback);
+
+        auto response = callback.WaitForResponse(std::chrono::seconds(10));
+        if (response == nullptr)
+        {
+            client->CancelAllRequests();
+            response = callback.WaitForResponse(std::chrono::seconds(2));
+        }
+        client.reset();
+        return RequestOutcome {std::move(response), callback.CallbackCount()};
+    };
+
+    // The negative case must execute first so its certificate decision is not
+    // preceded by a successful request to the same endpoint.
+    auto rejected = sendRequest(true);
+    ASSERT_NE(rejected.response, nullptr);
+    EXPECT_EQ(rejected.callbackCount, 1u);
+    EXPECT_EQ(rejected.response->GetResult(), HttpResult_NetworkFailure);
+    EXPECT_EQ(rejected.response->GetStatusCode(), 0u);
+
+    auto accepted = sendRequest(false);
+    ASSERT_NE(accepted.response, nullptr);
+    EXPECT_EQ(accepted.callbackCount, 1u);
+    EXPECT_EQ(accepted.response->GetResult(), HttpResult_OK);
+}
+
 TEST(APITest, LogConfiguration_MsRoot_Check)
 {
-    TestDebugEventListener debugListener;
-    std::list<std::tuple<std::string, bool, unsigned>> testParams =
-        {
-            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", false, 1},   // MS-Rooted, no MS-Root check:     post succeeds
-            {"https://v10.events.data.microsoft.com/OneCollector/1.0/", true, 1},    // MS-Rooted, MS-Root check:        post succeeds
-            {"https://mobile.events.data.microsoft.com/OneCollector/1.0/", false, 1},  // Non-MS rooted, no MS-Root check: post succeeds
-            {"https://mobile.events.data.microsoft.com/OneCollector/1.0/", true, 0}    // Non-MS rooted, MS-Root check:    post fails
-        };
+    auto client = HttpClientFactory::Create();
+#if defined(HAVE_MAT_WININET_HTTP_CLIENT)
+    auto windowsClient = dynamic_cast<HttpClient_WinInet*>(client.get());
+#else
+    auto windowsClient = dynamic_cast<HttpClient_WinHttp*>(client.get());
+#endif
+    ASSERT_NE(windowsClient, nullptr);
 
-    // 4 test runs
-    for (const auto& params : testParams)
+    auto& config = LogManager::GetLogConfiguration();
+    for (bool enforceMsRoot : {false, true, false})
     {
-        CleanStorage();
-
-        auto& config = LogManager::GetLogConfiguration();
-        config[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 0;  // avoid sending stats for this test, just customer events
-        config[CFG_STR_COLLECTOR_URL] = std::get<0>(params);
-        config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK] = std::get<1>(params);  // MS root check depends on what URL we are sending to
-        config[CFG_INT_MAX_TEARDOWN_TIME] = 1;                // up to 1s wait to perform HTTP post on teardown
-        config[CFG_STR_CACHE_FILE_PATH] = GetStoragePath();
-        auto expectedHttpCount = std::get<2>(params);
-
-        auto logger = LogManager::Initialize(TEST_TOKEN, config);
-
-        debugListener.reset();
-        addAllListeners(debugListener);
-        logger->LogEvent("fooBar");
-        LogManager::FlushAndTeardown();
-        removeAllListeners(debugListener);
-
-        // Connection is a best-effort, occasionally we can't connect,
-        // but we MUST NOT connect to end-point that doesn't have the
-        // right cert.
-        EXPECT_LE(debugListener.numHttpOK, expectedHttpCount);
+        config[CFG_MAP_HTTP][CFG_BOOL_HTTP_MS_ROOT_CHECK] = enforceMsRoot;
+        client->ApplySettings(config);
+        EXPECT_EQ(windowsClient->IsMsRootCheckRequired(), enforceMsRoot);
     }
 }
 #endif
 TEST(APITest, LogManager_BadNetwork_Test)
 {
     auto& config = LogManager::GetLogConfiguration();
-
-    // Clean temp file first
     const char *cacheFilePath = "bad-network.db";
     std::string fileName = MAT::GetTempDirectory();
-    fileName += "\\";
     fileName += cacheFilePath;
-    printf("remove %s\n", fileName.c_str());
     std::remove(fileName.c_str());
+    std::remove((fileName + "-wal").c_str());
+    std::remove((fileName + "-shm").c_str());
+    std::remove((fileName + "-journal").c_str());
 
-    for (auto url : {
-#if 0 /* [MG}: Temporary change to avoid GitHub Actions crash #92 */
-        "https://0.0.0.0/",
-        "https://127.0.0.1/",
-#endif
-        "https://mobile.events-sandbox.data.microsoft.com/OneCollector/1.0/",
-        "https://invalid.host.name.microsoft.com/"
-        })
-    {
-        printf("--- trying %s", url);
-        config[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
-        config[CFG_INT_TRACE_LEVEL_MASK] = 0;
-        config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
-        config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-        config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
-        config[CFG_STR_COLLECTOR_URL] = url;
-        size_t numIterations = 5;
-        while (numIterations--)
-        {
-            printf(".");
-            EXPECT_GE(StressSingleThreaded(config), MAX_ITERATIONS);
-        }
-        printf("\n");
-    }
+    auto httpClient = std::make_shared<NetworkFailureHttpClient>();
+    config.AddModule(CFG_MODULE_HTTP_CLIENT, httpClient);
+    config[CFG_STR_CACHE_FILE_PATH] = cacheFilePath;
+    config[CFG_INT_TRACE_LEVEL_MASK] = 0;
+    config[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
+    config[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
+    config[CFG_INT_MAX_TEARDOWN_TIME] = 0;
+    config[CFG_STR_COLLECTOR_URL] = "https://unused.invalid/";
+
+    TestDebugEventListener debugListener;
+    addAllListeners(debugListener);
+    LogManager::AddEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
+    auto logger = LogManager::Initialize(TEST_TOKEN, config);
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
+    logger->LogEvent("badNetworkEvent");
+    LogManager::UploadNow();
+
+    const bool requestStarted = httpClient->WaitForRequest(10000);
+    LogManager::FlushAndTeardown();
+    LogManager::RemoveEventListener(DebugEventType::EVT_HTTP_FAILURE, debugListener);
+    removeAllListeners(debugListener);
+    config.AddModule(CFG_MODULE_HTTP_CLIENT, nullptr);
+
+    EXPECT_TRUE(requestStarted);
+    EXPECT_GE(debugListener.numLogged.load(), 1u);
+    EXPECT_GE(debugListener.numHttpError.load(), 1u);
+    EXPECT_GE(httpClient->SentCount(), 1u);
+    EXPECT_EQ(httpClient->SentCount(), httpClient->CancelledCount());
+    EXPECT_EQ(httpClient->CancelledCount(), httpClient->CompletedCount());
 }
 
 TEST(APITest, LogManager_GetLoggerSameLoggerMultithreaded)
@@ -1455,4 +1649,3 @@ TEST(APITest, Custom_Decorator)
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 // TEST_PULL_ME_IN(APITest)
-

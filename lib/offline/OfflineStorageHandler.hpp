@@ -8,6 +8,7 @@
 
 #include "pal/PAL.hpp"
 #include "IOfflineStorage.hpp"
+#include "IOfflineStorageProvider.hpp"
 
 #include "api/IRuntimeConfig.hpp"
 #include "ILogManager.hpp"
@@ -23,10 +24,12 @@
 
 namespace MAT_NS_BEGIN {
 
-    class OfflineStorageHandler : public IOfflineStorage, public IOfflineStorageObserver
+    class OfflineStorageHandler final : public IOfflineStorage, public IOfflineStorageObserver
     {
     public:
         OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig, ITaskDispatcher& taskDispatcher);
+        OfflineStorageHandler(ILogManager& logManager, IRuntimeConfig& runtimeConfig,
+            ITaskDispatcher& taskDispatcher, std::shared_ptr<IOfflineStorageProvider> storageProvider);
         virtual ~OfflineStorageHandler() override;
         virtual void Initialize(IOfflineStorageObserver& observer) override;
         virtual void Shutdown() override;
@@ -50,6 +53,8 @@ namespace MAT_NS_BEGIN {
         virtual size_t GetSize() override;
         virtual size_t GetRecordCount(EventLatency latency = EventLatency_Unspecified) const override;
 
+        virtual size_t GetRemainingRecordCountForShutdown() const override;
+
         virtual std::vector<StorageRecord> GetRecords(bool shutdown, EventLatency minLatency = EventLatency_Unspecified, unsigned maxCount = 0) override;
         virtual bool ResizeDb() override;
 
@@ -62,34 +67,36 @@ namespace MAT_NS_BEGIN {
         virtual void OnStorageRecordsSaved(size_t numRecords) override;
 
     protected:
-        virtual void DeleteRecordsByKeys(const std::list<std::string> & keys);
+        void DeleteRecordsByKeys(const std::list<std::string> & keys);
 
         IOfflineStorageObserver   * m_observer;
         ILogManager &               m_logManager;
         std::string                 m_databasePath;
         IRuntimeConfig&             m_config;
         ITaskDispatcher&            m_taskDispatcher;
+        std::shared_ptr<IOfflineStorageProvider> m_storageProvider;
         
         KillSwitchManager           m_killSwitchManager;
         ClockSkewManager            m_clockSkewManager;
 
-        virtual bool isKilled(StorageRecord const& record);
+        bool isKilled(StorageRecord const& record);
 
         std::mutex                             m_flushLock;
         bool                                   m_flushPending;
         PAL::DeferredCallbackHandle            m_flushHandle;
         PAL::Event                             m_flushComplete;
 
-        std::unique_ptr<IOfflineStorage>       m_offlineStorageMemory;
+        std::shared_ptr<IOfflineStorage>       m_offlineStorageMemory;
         std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
 
-        bool                                   m_readFromMemory;
-        unsigned                               m_lastReadCount;
+        std::atomic<bool>                      m_readFromMemory;
+        std::atomic<unsigned>                  m_lastReadCount;
 
         bool                                   m_shutdownStarted;
         unsigned                               m_memoryDbSize;
         unsigned                               m_memoryDbSizeNotificationLimit;
         unsigned                               m_queryDbSize;
+        uint32_t                               m_cacheMemorySizeLimitInBytes;
         bool                                   m_isStorageFullNotificationSend;
 
     protected:
@@ -97,6 +104,10 @@ namespace MAT_NS_BEGIN {
 
     private:
         void WaitForFlush();
+        bool IsBatchedStorageFlushEnabled();
+        void ReportInvalidDiskRecord(StorageRecord const& record);
+        size_t StoreRecordsIndividually(std::vector<StorageRecord>& records);
+        size_t ReturnRecordsToMemory(std::vector<StorageRecord> const& records);
 
     };
 

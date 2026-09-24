@@ -1,6 +1,0 @@
---head
---overlay-ports=tools/ports
-mstelemetry
-sqlite3
-zlib
-nlohmann-json

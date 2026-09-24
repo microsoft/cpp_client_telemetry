@@ -1,4 +1,4 @@
-message("--- functests")
+message(STATUS "Building functests")
 
 set(SRCS
   APITest.cpp
@@ -7,125 +7,68 @@ set(SRCS
   Main.cpp
   MultipleLogManagersTests.cpp
 )
+set(MATSDK_FUNC_TEST_DEFINITIONS)
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/privacyguard/ AND BUILD_PRIVACYGUARD)
-  add_definitions(-DHAVE_MAT_PRIVACYGUARD)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/" AND MATSDK_BUILD_PRIVACYGUARD)
+  list(APPEND MATSDK_FUNC_TEST_DEFINITIONS HAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
-    PrivacyGuardFuncTests.cpp
+    "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/tests/functests/PrivacyGuardFuncTests.cpp"
   )
 endif()
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/" AND MATSDK_BUILD_SANITIZER)
   list(APPEND SRCS
-     ${CMAKE_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp
+    "${PROJECT_SOURCE_DIR}/lib/modules/sanitizer/tests/functests/SanitizerFuncTests.cpp"
   )
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/modules/liveeventinspector/ AND BUILD_LIVEEVENTINSPECTOR)
-  add_definitions(-DHAVE_MAT_LIVEEVENTINSPECTOR)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/dataviewer/")
   list(APPEND SRCS
-    LiveEventInspectorFuncTests.cpp
+     "${PROJECT_SOURCE_DIR}/lib/modules/dataviewer/tests/functests/DefaultDataViewerFuncTests.cpp"
   )
 endif()
 
-if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests)
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/liveeventinspector/" AND MATSDK_BUILD_LIVEEVENTINSPECTOR)
+  list(APPEND MATSDK_FUNC_TEST_DEFINITIONS HAVE_MAT_LIVEEVENTINSPECTOR)
+  list(APPEND SRCS
+    "${PROJECT_SOURCE_DIR}/lib/modules/liveeventinspector/tests/functests/LiveEventInspectorFuncTests.cpp"
+  )
+endif()
+
+if (EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests")
     list(APPEND SRCS
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp
-        ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp
+        "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientFuncTests.cpp"
+        "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSClientRealworldFuncTests.cpp"
+        "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/ECSConfigCacheFuncTests.cpp"
         )
-    if (EXISTS ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json)
-      file(COPY_FILE ${CMAKE_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json ${CMAKE_BINARY_DIR}/test.json)
+    if (EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json")
+      configure_file("${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/functests/test.json" "${PROJECT_BINARY_DIR}/test.json" COPYONLY)
     endif()
 endif()
 
 source_group(" "      REGULAR_EXPRESSION "")
 source_group("common" REGULAR_EXPRESSION "/tests/common/")
 
-if(BUILD_IOS)
+if(MATSDK_PLATFORM_IOS)
   add_library(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
 else()
   add_executable(FuncTests ${SRCS} ${TESTS_COMMON_SRCS})
 endif()
-
-if(PAL_IMPLEMENTATION STREQUAL "WIN32")
-  # Link against prebuilt libraries on Windows
-  message("--- WIN32: Linking against prebuilt libraries")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gtest")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/gmock") 
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/zlib")
-  message("--- WIN32: ... ${CMAKE_BINARY_DIR}/sqlite")
-  # link_directories(${CMAKE_BINARY_DIR}/gtest/ ${CMAKE_BINARY_DIR}/gmock/ ${CMAKE_BINARY_DIR}/zlib/ ${CMAKE_BINARY_DIR}/sqlite/) 
-  include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../../zlib )
-  target_link_libraries(FuncTests
-  	mat
-	wininet.lib
-	${CMAKE_BINARY_DIR}/gtest/gtest.lib
-	${CMAKE_BINARY_DIR}/gmock/gmock.lib
-	${CMAKE_BINARY_DIR}/zlib/zlib.lib
-	${CMAKE_BINARY_DIR}/sqlite/sqlite.lib
-  )
-else()
-
-  # Prefer linking to more recent local sqlite3
-  if(EXISTS "/usr/local/lib/libsqlite3.a")
-    set (SQLITE3_LIB "/usr/local/lib/libsqlite3.a")
-  elseif(EXISTS "/usr/local/opt/sqlite/lib/libsqlite3.a")
-    set (SQLITE3_LIB "/usr/local/opt/sqlite/lib/libsqlite3.a")
-  else()
-    set (SQLITE3_LIB "sqlite3")
-  endif()
-
-  # Find zlib
-  find_package( ZLIB REQUIRED )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
-
-  set (PLATFORM_LIBS "")
-  # Add flags for obtaining system UUID via IOKit
-  if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set (PLATFORM_LIBS "-framework CoreFoundation -framework Foundation")
-    if(BUILD_IOS)
-      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework UIKit -framework Network -framework SystemConfiguration")
-    else()
-      set (PLATFORM_LIBS "${PLATFORM_LIBS} -framework IOKit -framework Network -framework SystemConfiguration")
-    endif()
-  endif()
-
-  # Raspberry Pi 4 with gcc-8 on ARMv7l requires -latomic
-  if (CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7l")
-    set (PLATFORM_LIBS "atomic")
-  endif()
-
-  # Find libraries
-  message("--- Linking libraries! ")
-  message("Current Dir: ${CMAKE_CURRENT_SOURCE_DIR}")
-  message("Binary Dir: ${CMAKE_BINARY_DIR}")
-
-  find_file(LIBGTEST
-    NAMES libgtest.a
-    PATHS
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-  )
-
-  find_file(LIBGMOCK
-    NAMES libgmock.a
-    PATHS
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/googletest/build/lib/
-  )
-
-  target_link_libraries(FuncTests 
-    ${LIBGTEST}
-    ${LIBGMOCK}
-    mat
-    ${ZLIB_LIBRARIES}
-    ${SQLITE3_LIB}
-    ${PLATFORM_LIBS}
-    dl)
-
-  if(NOT BUILD_IOS)
-    target_link_libraries(FuncTests curl)
-  endif()
-
+target_link_libraries(FuncTests PRIVATE matsdk_test_config)
+if(MATSDK_FUNC_TEST_DEFINITIONS)
+  target_compile_definitions(FuncTests PRIVATE ${MATSDK_FUNC_TEST_DEFINITIONS})
 endif()
 
-add_test(FuncTests FuncTests "--gtest_output=xml:${CMAKE_BINARY_DIR}/test-reports/FuncTests.xml")
+target_link_libraries(FuncTests PRIVATE
+  mat
+  ZLIB::ZLIB
+  gtest
+  gmock)
+if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
+  target_link_libraries(FuncTests PRIVATE SQLite3::SQLite3)
+endif()
+if(TARGET nlohmann_json::nlohmann_json)
+  target_link_libraries(FuncTests PRIVATE nlohmann_json::nlohmann_json)
+endif()
+
+add_test(FuncTests FuncTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/FuncTests.xml")

@@ -182,7 +182,7 @@ namespace MAT_NS_BEGIN
         {
             const std::string val(value);
             return SetContext(name, val, piiKind);
-        };
+        }
 
         virtual inline status_t SetContext(const std::string& name, int8_t value, PiiKind piiKind = PiiKind_None) override
         {
@@ -306,7 +306,7 @@ namespace MAT_NS_BEGIN
         virtual void ResumeActivity() override;
         virtual void WaitPause() override;
         virtual bool StartActivity() override;
-        virtual void EndActivity() override;
+        virtual void EndActivity() noexcept override;
 
        protected:
         std::unique_ptr<ITelemetrySystem>& GetSystem();

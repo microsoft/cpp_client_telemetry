@@ -28,6 +28,19 @@ public:
     }
 };
 
+// NullLogManager hands out a single shared static ILogConfiguration, which would
+// leak configuration across tests. This subclass owns a per-instance configuration
+// so the IP-scrubbing opt-out can be exercised in isolation.
+class ConfigurableLogManager : public NullLogManager
+{
+public:
+    ILogConfiguration localConfig;
+    ILogConfiguration& GetLogConfiguration() override
+    {
+        return localConfig;
+    }
+};
+
 static std::unique_ptr<Record> PopulateRecordForDropPii()
 {
     auto record = std::unique_ptr<Record>(new Record{});
@@ -544,4 +557,42 @@ TEST(EventPropertiesDecoratorTests, DropPiiPartA_StripsValues)
     EXPECT_THAT(record->extSdk[0].epoch, Eq(""));
     EXPECT_THAT(record->extSdk[0].installId, Eq(""));
     EXPECT_THAT(record->cV, Eq(""));
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_ScrubIp_EnabledByDefault)
+{
+    ConfigurableLogManager logManager;  // CFG_BOOL_ENABLE_IP_SCRUBBING not set
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+    EXPECT_TRUE(record.flags & RECORD_FLAGS_EVENTTAG_SCRUB_IP);
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_ScrubIp_OptOutViaConfig)
+{
+    ConfigurableLogManager logManager;
+    logManager.localConfig[CFG_BOOL_ENABLE_IP_SCRUBBING] = false;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+    EXPECT_FALSE(record.flags & RECORD_FLAGS_EVENTTAG_SCRUB_IP);
+}
+
+TEST(EventPropertiesDecoratorTests, Decorate_ScrubIp_ExplicitlyEnabled)
+{
+    ConfigurableLogManager logManager;
+    logManager.localConfig[CFG_BOOL_ENABLE_IP_SCRUBBING] = true;
+    EventPropertiesDecorator decorator(logManager);
+    Record record;
+    EventProperties props {"TestEvent"};
+    EventLatency latency = EventLatency::EventLatency_Normal;
+
+    EXPECT_TRUE(decorator.decorate(record, latency, props));
+    EXPECT_TRUE(record.flags & RECORD_FLAGS_EVENTTAG_SCRUB_IP);
 }

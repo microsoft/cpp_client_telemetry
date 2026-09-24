@@ -62,6 +62,11 @@ namespace MAT_NS_BEGIN {
             return m_offlineStorage.GetRecordCount();
         }
 
+        size_t GetRemainingRecordCountForShutdown() const
+        {
+            return m_offlineStorage.GetRemainingRecordCountForShutdown();
+        }
+
         RoutePassThrough<StorageObserver>                                        start{ this, &StorageObserver::handleStart };
         RoutePassThrough<StorageObserver>                                        stop{ this, &StorageObserver::handleStop };
 

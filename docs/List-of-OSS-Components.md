@@ -6,7 +6,7 @@ These are the Open Source components used by Microsoft 1DS / C++ Client Telemetr
 
 ZLIB DATA COMPRESSION LIBRARY.
 
-SDK maintains its own snapshot of the mainline ZLib with some Intel architecture performance optimizations [here](../zlib). 
+SDK maintains its own snapshot of the mainline ZLib [here](../zlib).
 It is the responsibility of product teams to ensure that a snapshot of zlib they use meets their product security and licensing requirements.
 
 ## [SQLite](https://www.sqlite.org/index.html)
@@ -16,11 +16,13 @@ SQLite is a C-language library that implements a small, fast, self-contained, hi
 SDK maintains its own snapshot of the mainline SQLite, which is used for Windows builds [here](../sqlite). Other platforms use platform-provided SQLite.
 It is the responsibility of product teams to ensure that a snapshot of zlib they use meets their product security and licensing requirements.
 
+The SDK provides an option to use a secure version of the traditional `memset` function, which includes safety checks to prevent buffer overflows.
+
 ## [nlohmann/json](https://github.com/nlohmann/json)
 
 JSON for Modern C++.
 
-SDK maintains its own snapshot of the mainline `nlohmann/json` header-only library [here](../lib/include/mat/json.hpp).
+SDK maintains its own snapshot of the mainline `nlohmann/json` header-only library [here](../nlohmann/json.hpp).
 
 ## [libcurl](https://curl.haxx.se/libcurl/)
 
@@ -35,12 +37,6 @@ Google's C++ test framework. Used only for tests and not included in products.
 ## [Google Benchmark](https://github.com/google/benchmark)
 
 Google's C++ benchmarking framework. Used only for tests and not included in products.
-
-## [Tony Million Reachability Framework](https://github.com/tonymillion/Reachability)
-
-Reachability is a drop-in replacement for Apple's Reachability class. It is ARC-compatible, and it uses the new GCD methods to notify of network interface changes.
-SDK maintains its own snapshot of the mainline `tonymillion/Reachability` [here](../third_party/Reachability). This code is not used nor included in the build of non-Apple OS.
-Please note if customer product is adding dependency to this component, they should ensure it meets their product security and licensing requirements. 
 
 ## SHA-1 by Steve Reid
 

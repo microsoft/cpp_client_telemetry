@@ -17,17 +17,27 @@
 #include <sstream>
 #include <vector>
 #include <iterator>
+#include <map>
 
 #include <algorithm>
 #include <numeric>
-#include <future>
+#include <limits>
 #include <atomic>
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <thread>
+#include <mutex>
+#include <stdexcept>
+#include <utility>
 
+#include <poll.h>
 #include <curl/curl.h>
 
 #include <unistd.h>
 
 #include "IHttpClient.hpp"
+#include "IBoundedHttpClientCancel.hpp"
 #include "pal/PAL.hpp"
 
 #ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
@@ -44,9 +54,42 @@
 namespace MAT_NS_BEGIN {
 
 /**
+ * Perform libcurl's process-wide initialization exactly once.
+ *
+ * curl_global_init() is not thread-safe on the libcurl versions this SDK
+ * supports, and it must run before any other libcurl entry point. Every code
+ * path that can be the process's first libcurl user -- the HttpClient_Curl
+ * facade and a directly constructed CurlHttpOperation -- funnels through this
+ * function. The C++11 function-local static guarantees the initializer runs
+ * exactly once per process and that concurrent first callers block until it
+ * has completed, so overlapping client construction cannot race.
+ *
+ * There is deliberately no matching curl_global_cleanup() anywhere in the SDK.
+ * libcurl's global state is process-wide and shared with every other static
+ * libcurl user in the host process: the application itself, other SDKs, and
+ * plugins that may be loaded after this library. This SDK cannot observe those
+ * users, so it cannot know when the last one is finished, which makes teardown
+ * unknowable from here. Releasing the global state when a telemetry client is
+ * destroyed would pull it out from under an unrelated component (and, worse,
+ * out from under this SDK's own in-flight transfers). Leaving it initialized
+ * for the life of the process is the only correct choice for an embedded
+ * library; the host may still call curl_global_cleanup() itself at exit.
+ */
+inline void EnsureCurlGlobalInit() noexcept
+{
+    static const CURLcode initResult = curl_global_init(CURL_GLOBAL_ALL);
+    (void)initResult;
+}
+
+// Private per-client shared state. Defined in HttpClient_Curl.cpp: it owns the
+// operation registry, the drain bookkeeping and the SSL settings, and it
+// outlives the facade because every completion captures it by shared_ptr.
+struct CurlClientState;
+
+/**
  * Curl-based HTTP client
  */
-class HttpClient_Curl : public IHttpClient {
+class HttpClient_Curl : public IHttpClient, public IBoundedHttpClientCancel {
 public:
     HttpClient_Curl();
     virtual ~HttpClient_Curl();
@@ -55,25 +98,101 @@ public:
     virtual void SendRequestAsync(IHttpRequest* request, IHttpResponseCallback* callback) override;
     virtual void CancelRequestAsync(std::string const& id) override;
 
-private:
-    void EraseRequest(std::string const& id);
-    void AddRequest(IHttpRequest* request);
+    // Full drain: returns once every tracked operation has delivered its
+    // terminal callback and has been destroyed, unless the caller is itself
+    // running inside one of this client's callbacks (see the implementation).
+    virtual void CancelAllRequests() override;
+    // Soft-bounded drain: stops initiating further cancellations at the
+    // deadline and may return while an operation and the shared state are
+    // still alive.
+    virtual void CancelAllRequests(std::chrono::milliseconds bestEffortTimeout) override;
 
-    std::mutex m_requestsMtx;
-    std::map<std::string, IHttpRequest*> m_requests;
+    virtual void ApplySettings(ILogConfiguration& config) override;
+    // sslVerify is retained for source compatibility, but false is ignored:
+    // production transports always verify the peer certificate and hostname.
+    void SetSslVerification(bool sslVerify, const std::string& caInfo = "");
+
+private:
+    std::shared_ptr<CurlClientState> m_state;
 };
 
 class CurlHttpOperation {
 public:
+    struct CallbackHooks
+    {
+        std::function<void()> begin;
+        std::function<void()> end;
+    };
 
+private:
+    class HookScope
+    {
+    public:
+        explicit HookScope(CallbackHooks const& hooks)
+            : m_hooks(hooks)
+        {
+            if (m_hooks.begin != nullptr)
+            {
+                m_hooks.begin();
+                m_started = true;
+            }
+        }
+
+        ~HookScope() noexcept
+        {
+            if (m_started && m_hooks.end != nullptr)
+            {
+#if HAVE_EXCEPTIONS
+                try
+                {
+#endif
+                    m_hooks.end();
+#if HAVE_EXCEPTIONS
+                }
+                catch (...)
+                {
+                }
+#endif
+            }
+        }
+
+        HookScope(HookScope const&) = delete;
+        HookScope& operator=(HookScope const&) = delete;
+
+    private:
+        CallbackHooks const& m_hooks;
+        bool m_started {false};
+    };
+
+public:
     void DispatchEvent(HttpStateEvent type)
     {
-        if(m_callback != nullptr)
+        if (m_callback != nullptr)
+        {
+            HookScope callbackScope(m_callbackHooks);
             m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
+        }
+    }
+
+    // Replays the creation state event (OnCreated / OnCreateFailed) that
+    // construction deferred (see the deferCreationEvent constructor parameter).
+    // A no-op for a directly constructed operation, which dispatches its
+    // creation event during construction. Dispatching here -- after the caller
+    // has registered the operation -- is what lets a reentrant
+    // CancelRequestAsync/CancelAllRequests fired from the creation callback find
+    // and abort this operation before any network work starts. The dispatch is
+    // accounted through the operation's callback hooks, exactly like every other
+    // state event, so a concurrent drain sees it.
+    void DispatchDeferredCreationEvent()
+    {
+        if (m_hasPendingCreationEvent)
+        {
+            m_hasPendingCreationEvent = false;
+            DispatchEvent(m_pendingCreationEvent);
+        }
     }
 
     std::atomic<bool> isAborted { false };      // Set to 'true' when async callback is aborted
-
     /**
      * Create local CURL instance for url and body
      *
@@ -82,75 +201,142 @@ public:
      * @param httpConnTimeout   HTTP connection timeout in seconds
      * @param httpReadTimeout   HTTP read timeout in seconds
      */
+    // Selects HTTP/2 only when the libcurl we are actually linked against was
+    // built with HTTP/2 support. Setting CURLOPT_HTTP_VERSION to
+    // CURL_HTTP_VERSION_2_0 against a libcurl without HTTP/2 does not silently
+    // downgrade -- it fails the transfer with CURLE_UNSUPPORTED_PROTOCOL -- so
+    // the version has to be probed at runtime rather than assumed.
+    static long GetPreferredHttpVersion() noexcept
+    {
+        const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+        if (versionInfo != nullptr && (versionInfo->features & CURL_VERSION_HTTP2) != 0)
+        {
+            return CURL_HTTP_VERSION_2_0;
+        }
+        return CURL_HTTP_VERSION_1_1;
+    }
+
+    static long ClampConnectionTimeout(size_t timeout) noexcept
+    {
+        const long maxSeconds = std::numeric_limits<long>::max() / 1000L;
+        return static_cast<long>(std::min(
+            timeout, static_cast<size_t>(maxSeconds)));
+    }
+
     CurlHttpOperation(
             std::string method,
             std::string url,
             IHttpResponseCallback* callback,
-            // Default empty headers and empty request body
-            const std::map<std::string, std::string>& requestHeaders = std::map<std::string, std::string>(),
-            const std::vector<uint8_t>& requestBody                  = std::vector<uint8_t>(),
+            // Request data is copied or moved into operation-owned storage so
+            // the worker does not depend on the caller retaining the request.
+            std::map<std::string, std::string> requestHeaders,
+            std::vector<uint8_t> requestBody,
             // Default connectivity and response size options
             bool rawResponse                                         = false,
-            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT) :
+            size_t httpConnTimeout                                   = HTTP_CONN_TIMEOUT,
+            // SSL certificate verification options
+            bool sslVerify                                           = true,
+            std::string sslCaInfo                                    = "",
+            CallbackHooks callbackHooks                              = CallbackHooks(),
+            // When true (client-created, tracked operations), the OnCreated /
+            // OnCreateFailed state event is not dispatched during construction.
+            // It is recorded and replayed later by DispatchDeferredCreationEvent()
+            // once the operation has been registered, so a reentrant
+            // CancelRequestAsync/CancelAllRequests fired from that event can find
+            // the operation. A directly constructed operation keeps the historical
+            // immediate-dispatch behavior.
+            bool deferCreationEvent                                  = false) :
 
             // Optional connection params
             rawResponse(rawResponse),
-            httpConnTimeout(httpConnTimeout),
+            httpConnTimeout(ClampConnectionTimeout(httpConnTimeout)),
 
             m_callback(callback),
-            m_method(method),
-            m_url(url),
+            m_method(std::move(method)),
+            m_url(std::move(url)),
+            m_sslCaInfo(std::move(sslCaInfo)),
+            m_callbackHooks(std::move(callbackHooks)),
+            m_deferCreationEvent(deferCreationEvent),
 
             // Local vars
-            requestHeaders(requestHeaders),
-            requestBody(requestBody)
+            m_requestBody(std::move(requestBody))
     {
+        // sslVerify is retained for source compatibility. Disabling TLS
+        // authentication is never permitted by the production transport.
+        (void)sslVerify;
+
         TRACE("--------------------------------------------------------------------------------------------------\n");
         response.memory = nullptr;
         response.size = 0;
+
+        // A directly constructed operation may be the process's first libcurl
+        // user, so it shares the client's init-once rather than assuming an
+        // HttpClient_Curl was built first.
+        EnsureCurlGlobalInit();
 
         /* get a curl handle */
         curl = curl_easy_init();
         if(!curl)
         {
             TRACE("libcurl failed to init!\n");
-            res = CURLE_FAILED_INIT;
-            DispatchEvent(OnCreateFailed);
+            m_transportError = CURLE_FAILED_INIT;
+            m_setupError = CURLE_FAILED_INIT;
+            EmitCreationEvent(OnCreateFailed);
             return;
         }
 
-#if 0
-        // Be verbose
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#else
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
-#endif
-
-        // Specify target URL
-        curl_easy_setopt(curl, CURLOPT_URL, m_url.c_str());
-
-        // TODO: expose SSL cert verification opts via ILogConfiguration
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);      // 1L
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);      // 2L
-        // HTTP/2 please, fallback to HTTP/1.1 if not supported
-        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
-
-        // Specify our custom headers
-        for(auto &kv : this->requestHeaders)
+        if (!SetOption(CURLOPT_VERBOSE, 0L) ||
+            !SetOption(CURLOPT_URL, m_url.c_str()) ||
+            !SetOption(CURLOPT_SSL_VERIFYPEER, 1L) ||
+            !SetOption(CURLOPT_SSL_VERIFYHOST, 2L) ||
+            (!m_sslCaInfo.empty() && !SetOption(CURLOPT_CAINFO, m_sslCaInfo.c_str())) ||
+            // The worker is one thread of a host process this SDK does not own:
+            // never let libcurl install process-wide signal handlers or use
+            // SIGALRM-based timeouts.
+            !SetOption(CURLOPT_NOSIGNAL, 1L) ||
+            // Bound DNS, TCP, proxy, and TLS connection establishment before
+            // curl_easy_perform() returns the connected socket.
+            !SetOption(CURLOPT_CONNECTTIMEOUT, httpConnTimeout) ||
+            // The progress callback is the only cancellation channel that is
+            // safe to trigger from another thread: it runs on the worker,
+            // inside libcurl, and aborts the transfer in an orderly way.
+            !SetOption(CURLOPT_NOPROGRESS, 0L) ||
+            !SetAbortProgressOption() ||
+            // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
+            !SetOption(CURLOPT_HTTP_VERSION, GetPreferredHttpVersion()))
         {
-            std::string header = kv.first.c_str();
-            header += ": ";
-            header += kv.second.c_str();
-            m_headersChunk = curl_slist_append(m_headersChunk, header.c_str());
+            EmitCreationEvent(OnCreateFailed);
+            return;
         }
 
-        if(m_headersChunk != nullptr)
+        // With NOSIGNAL, a synchronous resolver may still prevent libcurl from
+        // enforcing a strict deadline until the resolver call returns.
+
+        // Headers are copied into m_headersChunk during construction and the
+        // curl_slist is kept alive until destruction, so the original map does
+        // not need operation-lifetime storage.
+        for (const auto& kv : requestHeaders)
         {
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_headersChunk);
+            std::string header = kv.first + ": " + kv.second;
+            curl_slist* appendedHeaders = curl_slist_append(m_headersChunk, header.c_str());
+            if (appendedHeaders == nullptr)
+            {
+                m_transportError = CURLE_OUT_OF_MEMORY;
+                m_setupError = CURLE_OUT_OF_MEMORY;
+                EmitCreationEvent(OnCreateFailed);
+                return;
+            }
+            m_headersChunk = appendedHeaders;
+        }
+
+        if (m_headersChunk != nullptr && !SetOption(CURLOPT_HTTPHEADER, m_headersChunk))
+        {
+            EmitCreationEvent(OnCreateFailed);
+            return;
         }
         TRACE("method=%s, url=%s\n", this->m_method.c_str(), this->m_url.c_str());
 
-        DispatchEvent(OnCreated);
+        EmitCreationEvent(OnCreated);
     }
 
     /**
@@ -158,35 +344,64 @@ public:
      */
     virtual ~CurlHttpOperation()
     {
-        // Given the request has not been aborted we should wait for completion here
-        // This guarantees the lifetime of this request.
-        if (result.valid())
+        if (m_worker.joinable())
         {
-            result.wait();
+            if (m_worker.get_id() == std::this_thread::get_id())
+            {
+                // The completion callback can release the owning request on this
+                // worker. Detach rather than joining the current thread; Send() has
+                // finished and the worker does not touch this operation afterward.
+                m_worker.detach();
+            }
+            else
+            {
+                m_worker.join();
+            }
         }
-        DispatchEvent(OnDestroy);
-        res = CURLE_OK;
-        curl_easy_cleanup(curl);
-        curl_slist_free_all(m_headersChunk);
+
+        DispatchDestroyEvent();
+        m_transportError = CURLE_OK;
+        if (curl != nullptr)
+        {
+            curl_easy_cleanup(curl);
+        }
+        if (m_headersChunk != nullptr)
+        {
+            curl_slist_free_all(m_headersChunk);
+        }
         ReleaseResponse();
     }
 
     /**
      * Send request synchronously
      */
-    long Send()
+    void Send()
     {
         TRACE("method=%s\n", this->m_method.c_str());
 
         ReleaseResponse();
         // Request buffer
-        const void *request  = (requestBody.empty())?NULL:&requestBody[0];
-        const size_t reqSize = requestBody.size();
+        const void *request  = m_requestBody.empty() ? nullptr : m_requestBody.data();
+        const size_t reqSize = m_requestBody.size();
+        long httpStatusCode = 0;
+        CURLcode infoResult = CURLE_OK;
 
         if(!curl)
         {
-            res = CURLE_FAILED_INIT;
+            m_transportError = CURLE_FAILED_INIT;
             DispatchEvent(OnSendFailed);
+            goto cleanup;
+        }
+        if (m_setupError != CURLE_OK)
+        {
+            DispatchEvent(OnSendFailed);
+            goto cleanup;
+        }
+        if (isAborted)
+        {
+            // Cancelled before the worker reached the network. Do not open a
+            // connection; the terminal result is Aborted either way.
+            m_transportError = CURLE_ABORTED_BY_CALLBACK;
             goto cleanup;
         }
 
@@ -194,13 +409,17 @@ public:
         // curl_easy_setopt(curl, CURLOPT_LOCALPORT, dcf_port);
 
         // Perform initial connect, handling the timeout if needed
-        curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
+        if (!SetOption(CURLOPT_CONNECT_ONLY, 1L))
+        {
+            DispatchEvent(OnConnectFailed);
+            goto cleanup;
+        }
         DispatchEvent(OnConnecting);
-        res = curl_easy_perform(curl);
-        if(CURLE_OK != res)
+        m_transportError = curl_easy_perform(curl);
+        if(CURLE_OK != m_transportError)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 1
-            TRACE("Error #1: %s\n", curl_easy_strerror(res));
+            TRACE("Error #1: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
 
@@ -210,50 +429,81 @@ public:
          */
 
 #if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
-        res = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
+        m_transportError = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
 #else
-        res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockextr);
+        {
+            long lastSocket = -1;
+            m_transportError = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
+            if (m_transportError == CURLE_OK)
+            {
+                sockextr = static_cast<curl_socket_t>(lastSocket);
+            }
+        }
 #endif
 
-        if(CURLE_OK != res)
+        if(CURLE_OK != m_transportError)
         {
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
-            TRACE("Error #2: %s\n", curl_easy_strerror(res));
+            TRACE("Error #2: %s\n", curl_easy_strerror(m_transportError));
+            goto cleanup;
+        }
+        if (sockextr == CURL_SOCKET_BAD)
+        {
+            m_transportError = CURLE_FAILED_INIT;
+            DispatchEvent(OnConnectFailed);     // couldn't connect - no socket
+            TRACE("Error #2: curl returned an invalid socket\n");
             goto cleanup;
         }
 
         /* wait for the socket to become ready for sending */
         sockfd = sockextr;
-        if( !WaitOnSocket(sockfd, 0, HTTP_CONN_TIMEOUT * 1000L) || isAborted)
+        if (WaitOnSocket(sockfd, 0, static_cast<long>(httpConnTimeout) * 1000L) <= 0 || isAborted)
         {
             TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
-            res = CURLE_OPERATION_TIMEDOUT;
+            m_transportError = CURLE_OPERATION_TIMEDOUT;
             DispatchEvent(OnConnectFailed);     // couldn't connect - stage 3
             goto cleanup;
         }
 
         // once connection is there - switch back to easy perform for HTTP post
-        curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0);
+        if (!SetOption(CURLOPT_CONNECT_ONLY, 0L))
+        {
+            DispatchEvent(OnSendFailed);
+            goto cleanup;
+        }
 
         // send all data to our callback function
         if (rawResponse)
         {
-            curl_easy_setopt(curl, CURLOPT_HEADER,        true);
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void *)&WriteMemoryCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA,     (void *)&response);
+            if (!SetOption(CURLOPT_HEADER, 1L) ||
+                !SetOption(CURLOPT_WRITEFUNCTION, &WriteMemoryCallback) ||
+                !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&response)))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
         } else {
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (void *)&WriteVectorCallback);
-            curl_easy_setopt(curl, CURLOPT_HEADERDATA,    (void *)&respHeaders);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA,     (void *)&respBody);
+            if (!SetOption(CURLOPT_HEADERFUNCTION, &WriteVectorCallback) ||
+                !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders)) ||
+                !SetOption(CURLOPT_WRITEFUNCTION, &WriteVectorCallback) ||
+                !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&respBody)))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
         }
 
         // TODO: only two methods supported for now - POST and GET
         if (m_method.compare("POST") == 0)
         {
             // POST
-            curl_easy_setopt(curl, CURLOPT_POST, true);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char *)request);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, reqSize);
+            if (!SetOption(CURLOPT_POST, 1L) ||
+                !SetOption(CURLOPT_POSTFIELDS, static_cast<const char*>(request)) ||
+                !SetOption(CURLOPT_POSTFIELDSIZE_LARGE, static_cast<curl_off_t>(reqSize)))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
         } else
         if (m_method.compare("GET") == 0)
         {
@@ -261,18 +511,22 @@ public:
         } else
         {
             TRACE("Error #4: unsupported method %s\n", m_method.c_str());
-            res = CURLE_UNSUPPORTED_PROTOCOL;
+            m_transportError = CURLE_UNSUPPORTED_PROTOCOL;
             goto cleanup;
         }
 
-        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
-        curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 4096);
-        DispatchEvent(OnSending);
-        res = curl_easy_perform(curl);
-        if(CURLE_OK != res)
+        if (!SetOption(CURLOPT_LOW_SPEED_TIME, 30L) ||
+            !SetOption(CURLOPT_LOW_SPEED_LIMIT, 4096L))
         {
             DispatchEvent(OnSendFailed);
-            TRACE("Error: %s\n", curl_easy_strerror(res));
+            goto cleanup;
+        }
+        DispatchEvent(OnSending);
+        m_transportError = curl_easy_perform(curl);
+        if(CURLE_OK != m_transportError)
+        {
+            DispatchEvent(OnSendFailed);
+            TRACE("Error: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
 
@@ -288,59 +542,131 @@ public:
          */
 
         /* libcurl is nice enough to parse the response code itself: */
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &res);
+        infoResult = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpStatusCode);
+        if (infoResult != CURLE_OK)
+        {
+            m_transportError = infoResult;
+            DispatchEvent(OnSendFailed);
+            TRACE("Error getting HTTP response code: %s\n", curl_easy_strerror(m_transportError));
+            goto cleanup;
+        }
+        m_httpStatusCode = httpStatusCode;
         // We got some response from server. Dump the contents.
-        TRACE("HTTP response code %d\n", res);
+        TRACE("HTTP response code %ld\n", httpStatusCode);
         DispatchEvent(OnResponse);
 
 cleanup:
-
-        // This function returns:
-        // - on success: HTTP status code.
-        // - on failure: CURL error code.
-        // The two sets of enums (CURLE, HTTP codes) - do not intersect, so we collapse them in one set.
-        return res;
+        return;
     }
 
-    std::future<long> & SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
-        result = std::async(std::launch::async, [this, callback] {
-            long result = Send();
-            if (callback!=nullptr)
-                callback(*this);
-            return result;
-        });
-        return result;
+    void SendAsync(std::function<void(CurlHttpOperation &)> callback = nullptr) {
+        // A newly created std::thread may run before it is assigned to m_worker.
+        // Hold this gate until the assignment completes so a fast failure cannot
+        // destroy the operation from its callback while SendAsync still uses it.
+        {
+            std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
+            if (m_sendAttempted)
+            {
+                MATSDK_THROW(std::logic_error("CurlHttpOperation is single-use"));
+            }
+            m_sendAttempted = true;
+
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
+                m_worker = std::thread([this, callback]() {
+                    {
+                        std::lock_guard<std::mutex> startGuard(m_workerStartMtx);
+                    }
+#if HAVE_EXCEPTIONS
+                    try
+                    {
+#endif
+                        Send();
+#if HAVE_EXCEPTIONS
+                    }
+                    catch (...)
+                    {
+                        // std::async stored worker exceptions in its unobserved
+                        // future. A raw thread must contain them.
+                        m_transportError = CURLE_FAILED_INIT;
+                        m_setupError = CURLE_FAILED_INIT;
+                    }
+#endif
+                    Complete(callback);
+                });
+                return;
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                // Callable allocation/copy or std::thread creation failed.
+            }
+#endif
+        }
+
+        m_transportError = CURLE_FAILED_INIT;
+        m_setupError = CURLE_FAILED_INIT;
+        CompleteWithoutSend(callback);
     }
 
-    /**
-     * Get HTTP response code. This function returns CURL error code if HTTP response code is invalid.
-     */
-    long GetResponseCode()
+    void CompleteWithoutSend(const std::function<void(CurlHttpOperation &)>& callback) noexcept
     {
-        return res;
+        Complete(callback);
+    }
+
+    CURLcode GetTransportError() const
+    {
+        return m_transportError;
+    }
+
+    long GetHttpStatusCode() const
+    {
+        return m_httpStatusCode;
     }
 
     /**
-     * Get whether or not response was programmatically aborted
+     * Get whether or not response was programmatically aborted.
+     *
+     * Once the outcome has been frozen (at the start of Complete, before the
+     * OnDestroy state event runs; see FreezeOutcome) this returns the latched
+     * classification rather than the live flag. That is what stops an Abort()
+     * triggered from an OnDestroy observer -- which is legitimately allowed to
+     * cancel *peers* -- from retroactively turning this operation's already
+     * finished, successful transfer into an Aborted one. A cancellation that
+     * won before the freeze is captured by the latch and still reported as
+     * Aborted.
      */
     bool WasAborted()
     {
+        if (m_outcomeFrozen.load(std::memory_order_acquire))
+        {
+            return m_frozenAborted.load(std::memory_order_relaxed);
+        }
         return isAborted.load();
     }
 
+    CURLcode GetSetupError() const
+    {
+        return m_setupError;
+    }
+
     /**
-     * Return a copy of resposne headers
+     * Return a copy of response headers
      *
      * @return
      */
     std::map<std::string, std::string> GetResponseHeaders()
     {
         std::map<std::string, std::string> result;
-        if (respHeaders.size() == 0)
+        if (respHeaders.empty())
+        {
             return result;
+        }
 
         std::stringstream ss;
-        std::string headers((const char *)&respHeaders[0], respHeaders.size());
+        std::string headers(reinterpret_cast<const char*>(respHeaders.data()), respHeaders.size());
         ss.str(headers);
 
         std::string header;
@@ -371,8 +697,11 @@ cleanup:
     std::vector<uint8_t> GetRawResponse()
     {
         std::vector<uint8_t> result;
-        if ((response.memory!=nullptr)&&(response.size!=0))
-            result.insert(result.end(), (const char *)response.memory, ((const char *)response.memory) + response.size);
+        if ((response.memory != nullptr) && (response.size != 0))
+        {
+            const auto* begin = reinterpret_cast<const uint8_t*>(response.memory);
+            result.insert(result.end(), begin, begin + response.size);
+        }
         return result;
     }
 
@@ -381,7 +710,7 @@ cleanup:
      */
     void ReleaseResponse()
     {
-        if (response.memory!=nullptr) {
+        if (response.memory != nullptr) {
             free(response.memory);
             response.memory = nullptr;
             response.size = 0;
@@ -391,19 +720,21 @@ cleanup:
     }
 
     /**
-     * Abort request in connecting or reading state.
+     * Request cancellation of a request that is connecting or transferring.
+     *
+     * This raises a flag and nothing else. It deliberately does not close the
+     * socket: the descriptor is owned by the worker thread and by libcurl, and
+     * closing it from another thread races with libcurl's own close. After that
+     * race the descriptor number can be handed straight back out by the kernel,
+     * so a late close tears down an unrelated connection somewhere else in the
+     * host process. The worker observes the flag from libcurl's progress
+     * callback and from its poll loop and unwinds the transfer on the thread
+     * that owns it. The terminal result stays Aborted because WasAborted()
+     * wins over whatever CURLcode the unwind produces.
      */
     void Abort()
     {
-        isAborted = true;
-        if (curl!=nullptr)
-        {
-            // Simply close the socket - connection reset by peer.. Ha-ha-ha-ha-ha!
-            if (sockfd) {
-                ::close(sockfd);
-                sockfd = 0;
-            }
-        }
+        isAborted.store(true, std::memory_order_release);
     }
 
     CURL *GetHandle()
@@ -413,18 +744,29 @@ cleanup:
 
 protected:
     const bool   rawResponse;       // Do not split response headers from response body
-    const size_t httpConnTimeout;   // Timeout for connect.  Default: 5s
+    const long   httpConnTimeout;   // Timeout for connect.  Default: 5s
 
     CURL *curl;                     // Local curl instance
-    CURLcode res = CURLE_OK;        // Curl result OR HTTP status code if successful
-    
+    CURLcode m_transportError = CURLE_OK;
+    CURLcode m_setupError = CURLE_OK;
+    long m_httpStatusCode = 0;
+
     IHttpResponseCallback* m_callback = nullptr;
 
     // Request values
     std::string m_method;
     std::string m_url;
-    const std::map<std::string, std::string>& requestHeaders;
-    const std::vector<uint8_t>& requestBody;
+    std::string m_sslCaInfo;
+    CallbackHooks m_callbackHooks;
+    // Deferred creation-event bookkeeping (see the deferCreationEvent ctor arg
+    // and DispatchDeferredCreationEvent). m_deferCreationEvent is fixed at
+    // construction; the pending fields are only touched on the caller thread
+    // before the worker exists, so they need no synchronization.
+    bool m_deferCreationEvent;
+    bool m_hasPendingCreationEvent {false};
+    HttpStateEvent m_pendingCreationEvent {OnCreated};
+    // Own the payload so operation lifetime is independent of CurlHttpRequest.
+    std::vector<uint8_t> m_requestBody;
     struct curl_slist *m_headersChunk = nullptr;
 
     // Processed response headers and body
@@ -432,49 +774,209 @@ protected:
     std::vector<uint8_t>        respBody;
 
     // Socket parameters
-    curl_socket_t sockfd = 0;
+    // Owned exclusively by the worker thread; CURL_SOCKET_BAD is the "no
+    // socket" sentinel (0 is a valid descriptor number).
+    curl_socket_t sockfd = CURL_SOCKET_BAD;
 
-    long sockextr   = 0;
+    curl_socket_t sockextr = CURL_SOCKET_BAD;
 
     curl_off_t nread = 0;
     size_t sendlen   = 0;        // # bytes sent by client
     size_t acklen    = 0;        // # bytes ack by server
 
-    std::future<long>       result;
+    std::mutex m_workerStartMtx;
+    bool m_sendAttempted = false;
+    std::thread m_worker;
+    std::atomic<bool> m_destroyEventDispatched { false };
 
-    /**
-     * Helper routine to wait for data on socket
-     *
-     * @param sockfd
-     * @param for_recv
-     * @param timeout_ms
-     * @return
-     */
-    static int WaitOnSocket(curl_socket_t sockfd, int for_recv, long timeout_ms)
+    // Latched cancellation classification. Frozen once, at the very start of
+    // completion, before the OnDestroy state event can run. Only the
+    // cancellation outcome is latched -- transport/setup/status fields stay
+    // live -- because those are already final by completion, while isAborted is
+    // the one input an OnDestroy observer can still legally flip (when it
+    // cancels peers) after this transfer has already succeeded.
+    std::atomic<bool> m_outcomeFrozen { false };
+    std::atomic<bool> m_frozenAborted { false };
+
+    // Snapshot the abort classification exactly once. After this returns,
+    // WasAborted() reports the latched value regardless of any later Abort().
+    void FreezeOutcome() noexcept
     {
-        struct timeval tv;
-        fd_set infd, outfd, errfd;
-        int res;
+        if (!m_outcomeFrozen.load(std::memory_order_acquire))
+        {
+            m_frozenAborted.store(isAborted.load(std::memory_order_acquire), std::memory_order_relaxed);
+            m_outcomeFrozen.store(true, std::memory_order_release);
+        }
+    }
 
-        tv.tv_sec = timeout_ms / 1000;
-        tv.tv_usec = (timeout_ms % 1000) * 1000;
+    // Dispatch the creation event immediately, or record it for later replay
+    // when the operation was constructed in deferred mode.
+    void EmitCreationEvent(HttpStateEvent type)
+    {
+        if (m_deferCreationEvent)
+        {
+            m_pendingCreationEvent = type;
+            m_hasPendingCreationEvent = true;
+            return;
+        }
+        DispatchEvent(type);
+    }
 
-        FD_ZERO(&infd);
-        FD_ZERO(&outfd);
-        FD_ZERO(&errfd);
+    void DispatchDestroyEvent() noexcept
+    {
+        if (!m_destroyEventDispatched.exchange(true, std::memory_order_acq_rel))
+        {
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
+                DispatchEvent(OnDestroy);
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                // State observers must not terminate the worker or destructor.
+            }
+#endif
+        }
+    }
 
-        FD_SET(sockfd, &errfd); /* always check for error */
+    void Complete(const std::function<void(CurlHttpOperation &)>& callback) noexcept
+    {
+        // Latch the cancellation outcome before the OnDestroy event fires. The
+        // operation is still in the registry here, so an OnDestroy observer may
+        // reenter CancelAllRequests/CancelRequestAsync and Abort() this object;
+        // freezing first guarantees response mapping sees the outcome as it was
+        // when the transfer actually finished, not as a late cancel rewrote it.
+        FreezeOutcome();
+        // Preserve the documented state event while m_callback is still valid.
+        // The completion callback can release the last owner, so this must remain
+        // the worker's final access to the operation.
+        DispatchDestroyEvent();
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
+            if (callback != nullptr)
+            {
+                callback(*this);
+            }
+#if HAVE_EXCEPTIONS
+        }
+        catch (...)
+        {
+            // Match the old unobserved-future behavior at the thread boundary.
+        }
+#endif
+    }
 
-        if(for_recv) {
-            FD_SET(sockfd, &infd);
-        } else {
-            FD_SET(sockfd, &outfd);
+    template <typename T>
+    bool SetOption(CURLoption option, T value)
+    {
+        if (curl == nullptr)
+        {
+            m_transportError = CURLE_FAILED_INIT;
+            m_setupError = CURLE_FAILED_INIT;
+            return false;
         }
 
-        /* select() returns the number of signalled sockets or -1 */
-        res = select((int)sockfd + 1, &infd, &outfd, &errfd, &tv);
-        return res;
+        const CURLcode optionResult = curl_easy_setopt(curl, option, value);
+        if (optionResult == CURLE_OK)
+        {
+            return true;
+        }
+
+        LOG_WARN("curl_easy_setopt(%d) failed: %s", static_cast<int>(option), curl_easy_strerror(optionResult));
+        m_transportError = optionResult;
+        m_setupError = optionResult;
+        return false;
     }
+
+    /**
+     * Helper routine to wait for data on socket.
+     *
+     * Polls in short slices instead of one long sleep so a cancellation flagged
+     * on another thread is observed within a bounded delay, without anybody
+     * closing the descriptor the worker owns.
+     *
+     * @param socket
+     * @param for_recv
+     * @param timeout_ms
+     * @return >0 when the socket is ready, 0 on timeout or cancellation, <0 on error
+     */
+    int WaitOnSocket(curl_socket_t socket, int for_recv, long timeout_ms)
+    {
+        // Cap timeout to max int value to avoid overflow in poll()
+        long remaining = std::min(std::max(timeout_ms, 0L), static_cast<long>(std::numeric_limits<int>::max()));
+        constexpr long sliceMs = 100;
+        for (;;)
+        {
+            if (isAborted.load(std::memory_order_acquire))
+            {
+                return 0;
+            }
+
+            const long slice = std::min(remaining, sliceMs);
+            struct pollfd pfd;
+            pfd.fd = socket;
+            pfd.events = for_recv ? POLLIN : POLLOUT;
+            pfd.revents = 0;
+            const int pollResult = poll(&pfd, 1, static_cast<int>(slice));
+            if (pollResult != 0)
+            {
+                // Ready, or a poll() error. Both are terminal, exactly as the
+                // single-shot poll() this replaced.
+                return pollResult;
+            }
+            if (remaining <= slice)
+            {
+                return 0;   // timed out
+            }
+            remaining -= slice;
+        }
+    }
+
+    /**
+     * Install the libcurl progress callback used to abort a transfer.
+     *
+     * XFERINFO supersedes PROGRESSFUNCTION in libcurl 7.32.0; keep the old
+     * option for builds pinned to an older libcurl.
+     */
+    bool SetAbortProgressOption()
+    {
+#if LIBCURL_VERSION_NUM >= 0x072000 // Version 7.32.0
+        return SetOption(CURLOPT_XFERINFOFUNCTION, &XferInfoAbortCallback) &&
+               SetOption(CURLOPT_XFERINFODATA, static_cast<void*>(this));
+#else
+        return SetOption(CURLOPT_PROGRESSFUNCTION, &ProgressAbortCallback) &&
+               SetOption(CURLOPT_PROGRESSDATA, static_cast<void*>(this));
+#endif
+    }
+
+#if LIBCURL_VERSION_NUM >= 0x072000 // Version 7.32.0
+    static int XferInfoAbortCallback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_off_t) noexcept
+    {
+        const auto* operation = static_cast<const CurlHttpOperation*>(clientp);
+        // Returning non-zero makes libcurl fail the transfer with
+        // CURLE_ABORTED_BY_CALLBACK, on the worker thread, with the socket and
+        // the easy handle still owned by their owner.
+        return (operation != nullptr && operation->isAborted.load(std::memory_order_acquire)) ? 1 : 0;
+    }
+#else
+    static int ProgressAbortCallback(void* clientp, double, double, double, double) noexcept
+    {
+        const auto* operation = static_cast<const CurlHttpOperation*>(clientp);
+        return (operation != nullptr && operation->isAborted.load(std::memory_order_acquire)) ? 1 : 0;
+    }
+#endif
+
+    // SECURITY: upper bound on the collector response the client will buffer. The
+    // OneCollector protocol responses (status, kill-switch tokens, retry-after, small
+    // config) are tiny, so this generous cap never rejects a legitimate response but
+    // stops a hostile or MITM'd collector from driving unbounded memory growth by
+    // returning an oversized body (a memory-amplification DoS of the embedding process).
+    // Exceeding it aborts the transfer, so the upload is treated as failed and retried.
+    static constexpr size_t kMaxResponseBytes = 16 * 1024 * 1024; // 16 MB
 
     // Raw response buffer
     struct MemoryStruct {
@@ -491,17 +993,30 @@ protected:
      * @param userp
      * @return
      */
-    static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+    static size_t WriteMemoryCallback(char* contents, size_t size, size_t nmemb, void* userp)
     {
+        // Guard the size * nmemb product against size_t overflow before using it.
+        if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
+            return 0;
+        }
         size_t realsize = size * nmemb;
-        struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+        auto* mem = static_cast<MemoryStruct*>(userp);
 
-        mem->memory = (char *)(realloc(mem->memory, mem->size + realsize + 1));
-        if(mem->memory == NULL) {
+        // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
+        // overflow-safely (mem->size is always <= kMaxResponseBytes here). Returning a
+        // short count aborts the transfer with CURLE_WRITE_ERROR.
+        if (realsize > kMaxResponseBytes - mem->size) {
+            TRACE("Response exceeds max buffered size (%zu bytes); aborting transfer\n", kMaxResponseBytes);
+            return 0;
+        }
+
+        auto* memory = static_cast<char*>(realloc(mem->memory, mem->size + realsize + 1));
+        if(memory == nullptr) {
           /* out of memory! */
           TRACE("not enough memory (realloc returned NULL)\n");
           return 0;
         }
+        mem->memory = memory;
 #ifdef HAVE_ONEDS_BOUNDCHECK_METHODS
         BoundCheckFunctions::oneds_memcpy_s(&(mem->memory[mem->size]), realsize, contents, realsize);
 #else
@@ -522,14 +1037,27 @@ protected:
      * @param data
      * @return
      */
-    static size_t WriteVectorCallback(void *ptr, size_t size, size_t nmemb, std::vector<uint8_t>* data)
+    static size_t WriteVectorCallback(char* ptr, size_t size, size_t nmemb, void* userp)
     {
-        if (data!=nullptr) {
-            const unsigned char * begin = (unsigned char *)(ptr);
-            const unsigned char * end   = begin + size * nmemb;
+        // Guard the size * nmemb product against size_t overflow before using it.
+        if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
+            return 0;
+        }
+        size_t realsize = size * nmemb;
+        auto* data = static_cast<std::vector<uint8_t>*>(userp);
+        if (data != nullptr) {
+            // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
+            // overflow-safely (data->size() is always <= kMaxResponseBytes here).
+            // Returning a short count aborts the transfer with CURLE_WRITE_ERROR.
+            if (realsize > kMaxResponseBytes - data->size()) {
+                TRACE("Response exceeds max buffered size (%zu bytes); aborting transfer\n", kMaxResponseBytes);
+                return 0;
+            }
+            const auto* begin = reinterpret_cast<const uint8_t*>(ptr);
+            const auto* end   = begin + realsize;
             data->insert( data->end(), begin, end);
         }
-        return size * nmemb;
+        return realsize;
     }
 
 };
@@ -539,4 +1067,3 @@ protected:
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT
 
 #endif // HTTPCLIENTCURL_HPP
-

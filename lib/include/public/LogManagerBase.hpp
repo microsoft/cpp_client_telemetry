@@ -132,22 +132,22 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// LogManagerBase constructor
         /// </summary>
-        LogManagerBase(){};
+        LogManagerBase(){}
 
         /// <summary>
         /// LogManager copy constructor
         /// </summary>
-        LogManagerBase(const LogManagerBase&){};
+        LogManagerBase(const LogManagerBase&){}
 
         /// <summary>
         /// [not implemented] LogManager assignment operator
         /// </summary>
-        LogManagerBase& operator=(const LogManagerBase&){};
+        LogManagerBase& operator=(const LogManagerBase&){}
 
         /// <summary>
         /// LogManager destructor
         /// </summary>
-        virtual ~LogManagerBase(){};
+        virtual ~LogManagerBase(){}
 
 #ifndef _MANAGED
         /// <summary>
@@ -418,7 +418,7 @@ namespace MAT_NS_BEGIN
         /// <summary>Get profile name based on built-in profile enum<summary>
         /// <param name="profile">Transmit profile</param>
         static std::string GetTransmitProfileName()
-            LM_SAFE_CALL_STR(GetTransmitProfileName);
+            LM_SAFE_CALL_STR(GetTransmitProfileName)
 
         /// <summary>
         /// Retrieve an ISemanticContext interface through which to specify context information
@@ -428,7 +428,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>ISemanticContext interface pointer</returns>
         static ISemanticContext* GetSemanticContext()
-            LM_SAFE_CALL_PTRREF(GetSemanticContext);
+            LM_SAFE_CALL_PTRREF(GetSemanticContext)
 
         /// <summary>
         /// Adds or overrides a property of the custom context for the telemetry logging system.
@@ -439,7 +439,7 @@ namespace MAT_NS_BEGIN
         /// <param name="value">Value of the context property</param>
         /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
         static status_t SetContext(const std::string& name, const std::string& value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, value, piiKind);
+            LM_SAFE_CALL(SetContext, name, value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the custom context for the telemetry logging system.
@@ -450,7 +450,7 @@ namespace MAT_NS_BEGIN
         /// <param name="value">Value of the context property</param>
         /// <param name='piiKind'>PIIKind of the context with PiiKind_None as the default</param>
         static status_t SetContext(const std::string& name, const char* value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, std::string(value), piiKind);
+            LM_SAFE_CALL(SetContext, name, std::string(value), piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.
@@ -458,7 +458,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">Double value of the property</param>
         static status_t SetContext(const std::string& name, double value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, value, piiKind);
+            LM_SAFE_CALL(SetContext, name, value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.
@@ -466,7 +466,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">64-bit Integer value of the property</param>
         static status_t SetContext(const std::string& name, int64_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, value, piiKind);
+            LM_SAFE_CALL(SetContext, name, value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.<br>
@@ -475,7 +475,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">8-bit Integer value of the property</param>
         static status_t SetContext(const std::string& name, int8_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.<br>
@@ -484,7 +484,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">16-bit Integer value of the property</param>
         static status_t SetContext(const std::string& name, int16_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.<br>
@@ -493,7 +493,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">32-bit Integer value of the property</param>
         static status_t SetContext(const std::string& name, int32_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.<br>
@@ -502,7 +502,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">8-bit unsigned integer value of the property</param>
         static status_t SetContext(const std::string& name, uint8_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.<br>
@@ -511,7 +511,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">16-bit unsigned integer value of the property</param>
         static status_t SetContext(const std::string& name, uint16_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.<br>
@@ -520,7 +520,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">32-bit unsigned integer value of the property</param>
         static status_t SetContext(const std::string& name, uint32_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.<br>
@@ -529,7 +529,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">64-bit unsigned integer value of the property</param>
         static status_t SetContext(const std::string& name, uint64_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind);
+            LM_SAFE_CALL(SetContext, name, (int64_t)value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.
@@ -537,7 +537,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">Boolean value of the property</param>
         static status_t SetContext(const std::string& name, bool value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, value, piiKind);
+            LM_SAFE_CALL(SetContext, name, value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.
@@ -545,7 +545,7 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">.NET time ticks</param>
         static status_t SetContext(const std::string& name, time_ticks_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, value, piiKind);
+            LM_SAFE_CALL(SetContext, name, value, piiKind)
 
         /// <summary>
         /// Adds or overrides a property of the global context.
@@ -553,14 +553,14 @@ namespace MAT_NS_BEGIN
         /// <param name="name">Name of the property</param>
         /// <param name="value">GUID</param>
         static status_t SetContext(const std::string& name, GUID_t value, PiiKind piiKind = PiiKind_None)
-            LM_SAFE_CALL(SetContext, name, value, piiKind);
+            LM_SAFE_CALL(SetContext, name, value, piiKind)
 
         /// <summary>
         /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
         /// </summary>
         /// <returns>Pointer to the Ilogger interface of an logger instance</returns>
         static ILogger* GetLogger()
-            LM_SAFE_CALL_PTR(GetLogger, GetPrimaryToken());
+            LM_SAFE_CALL_PTR(GetLogger, GetPrimaryToken())
 
         /// <summary>
         /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
@@ -568,7 +568,7 @@ namespace MAT_NS_BEGIN
         /// <param name="source">Source name of events sent by this logger instance</param>
         /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
         static ILogger* GetLogger(const std::string& source)
-            LM_SAFE_CALL_PTR(GetLogger, GetPrimaryToken(), source);
+            LM_SAFE_CALL_PTR(GetLogger, GetPrimaryToken(), source)
 
         /// <summary>
         /// Retrieves the ILogger interface of a Logger instance through which to log telemetry event.
@@ -577,13 +577,13 @@ namespace MAT_NS_BEGIN
         /// <param name="source">Source name of events sent by this logger instance</param>
         /// <returns>Pointer to the Ilogger interface of the logger instance</returns>
         static ILogger* GetLogger(const std::string& tenantToken, const std::string& source)
-            LM_SAFE_CALL_PTR(GetLogger, tenantToken, source);
+            LM_SAFE_CALL_PTR(GetLogger, tenantToken, source)
 
         /// <summary>
         /// Get Auth token controller
         /// </summary>
         static IAuthTokensController* GetAuthTokensController()
-            LM_SAFE_CALL_PTR(GetAuthTokensController);
+            LM_SAFE_CALL_PTR(GetAuthTokensController)
 
         /// <summary>
         ///Sets the ticket token with a value
@@ -653,7 +653,7 @@ namespace MAT_NS_BEGIN
         /// </summary>
         /// <returns>The log session data in a pointer to a LogSessionData object.</returns>
         static LogSessionData* GetLogSessionData()
-            LM_SAFE_CALL_PTR(GetLogSessionData);
+            LM_SAFE_CALL_PTR(GetLogSessionData)
 
         /// <summary>
         /// Sets the diagnostic level filter for the LogManager
@@ -662,7 +662,7 @@ namespace MAT_NS_BEGIN
         /// <param name="levelMin">Minimum level to be sent</param>
         /// <param name="levelMin">Maximum level to be sent</param>
         static void SetLevelFilter(uint8_t defaultLevel, uint8_t levelMin, uint8_t levelMax)
-            LM_SAFE_CALL_VOID(SetLevelFilter, defaultLevel, levelMin, levelMax);
+            LM_SAFE_CALL_VOID(SetLevelFilter, defaultLevel, levelMin, levelMax)
 
         /// <summary>
         /// Sets the diagnostic level filter for the LogManager
@@ -670,7 +670,7 @@ namespace MAT_NS_BEGIN
         /// <param name="defaultLevel">Diagnostic level for the LogManager</param>
         /// <param name="allowedLevels">Set with levels that are allowed to be sent</param>
         static void SetLevelFilter(uint8_t defaultLevel, const std::set<uint8_t>& allowedLevels)
-            LM_SAFE_CALL_VOID(SetLevelFilter, defaultLevel, allowedLevels);
+            LM_SAFE_CALL_VOID(SetLevelFilter, defaultLevel, allowedLevels)
 
         static ILogController* GetController()
         {
@@ -686,7 +686,7 @@ namespace MAT_NS_BEGIN
         /// Reserved for future use to notify SDK about ILogConfiguration & contents change.
         /// </summary>
         static status_t Configure()
-            LM_SAFE_CALL(Configure);
+            LM_SAFE_CALL(Configure)
 
         /// <summary>
         /// Obtain data viewer collection associated with this LogManager instance.

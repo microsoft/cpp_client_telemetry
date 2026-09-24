@@ -31,7 +31,7 @@ echo Windows 10 managed...
 call sku-create.cmd uap10                win10-cs
 
 echo Windows Desktop (win32) .NET 4.x...
-call sku-create.cmd win32-net40-vs2015   net40
+call sku-create.cmd win32-net48-vs2015   net48
 
 echo Windows Desktop (win32) .dll...
 call sku-create.cmd win32-dll-vs2015     win32-dll
@@ -50,4 +50,3 @@ echo "Copy Changelog.md"
 if exist "%ROOT%\CHANGELOG.md" (
   copy /Y %ROOT%\CHANGELOG.md %OUTDIR%\
 )
-

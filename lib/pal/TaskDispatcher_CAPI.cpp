@@ -6,10 +6,14 @@
 
 #include <algorithm>
 #include <atomic>
+#include <condition_variable>
+#include <exception>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <map>
 #include <sstream>
+#include <thread>
 
 #include "ctmacros.hpp"
 #include "pal/PAL.hpp"
@@ -31,15 +35,94 @@ namespace PAL_NS_BEGIN {
 
         Task* GetTask()
         {
+            std::lock_guard<std::mutex> lock(m_stateLock);
             return m_task.get();
+        }
+
+        bool BeginCallback()
+        {
+            std::lock_guard<std::mutex> lock(m_stateLock);
+            if (m_done || m_cancelled)
+            {
+                return false;
+            }
+            m_running = true;
+            m_callbackThread = std::this_thread::get_id();
+            return true;
         }
 
         void OnCallback()
         {
-            if (m_task) {
-                (*m_task)();
+            if (!BeginCallback())
+            {
+                return;
             }
-            ReleaseItem();
+            if (m_task) {
+                // The task is host/user code running on the external dispatcher's
+                // thread; an exception escaping here would terminate the process.
+                // Log it (mirroring WorkerThread) instead of swallowing silently.
+                MATSDK_TRY {
+                    (*m_task)();
+                }
+#if HAVE_EXCEPTIONS
+                MATSDK_CATCH(const std::exception& ex) {
+                    (void)ex;
+                    LOG_ERROR("Unhandled exception in CAPI task: %s", ex.what());
+                }
+                MATSDK_CATCH(...) {
+                    LOG_ERROR("Unhandled non-standard exception in CAPI task");
+                }
+#endif
+            }
+            std::unique_ptr<Task> completedTask;
+            {
+                std::lock_guard<std::mutex> lock(m_stateLock);
+                if (m_task)
+                {
+                    m_task->Type = Task::Done;
+                    completedTask = std::move(m_task);
+                }
+                m_running = false;
+                m_done = true;
+            }
+            m_doneCv.notify_all();
+            // Task destruction can acquire the DeferredCallbackHandle lifetime
+            // lock held by a concurrent Cancel(). Keep it outside m_stateLock so
+            // Cancel() can observe completion and release that lifetime lock.
+        }
+
+        bool RequestCancel()
+        {
+            std::lock_guard<std::mutex> lock(m_stateLock);
+            if (m_done)
+            {
+                return false;
+            }
+            m_cancelled = true;
+            if (!m_running)
+            {
+                m_done = true;
+                m_doneCv.notify_all();
+            }
+            return m_running;
+        }
+
+        bool WaitForCompletion(uint64_t waitTime)
+        {
+            std::unique_lock<std::mutex> lock(m_stateLock);
+            if (m_done || m_callbackThread == std::this_thread::get_id())
+            {
+                return true;
+            }
+            if (waitTime == std::numeric_limits<uint64_t>::max())
+            {
+                m_doneCv.wait(lock, [this] { return m_done; });
+            }
+            else if (waitTime > 0)
+            {
+                m_doneCv.wait_for(lock, std::chrono::milliseconds(waitTime), [this] { return m_done; });
+            }
+            return m_done;
         }
 
     private:
@@ -52,6 +135,12 @@ namespace PAL_NS_BEGIN {
         }
 
         std::unique_ptr<Task> m_task;
+        std::mutex m_stateLock;
+        std::condition_variable m_doneCv;
+        std::thread::id m_callbackThread;
+        bool m_running = false;
+        bool m_done = false;
+        bool m_cancelled = false;
     };
 
 
@@ -73,18 +162,26 @@ namespace PAL_NS_BEGIN {
     {
         std::shared_ptr<Task_CAPI> task;
 
-        // Find and remove pending task
+        // Keep the task discoverable while its callback is running so a
+        // concurrent cancellation can wait for completion.
         {
             LOCKGUARD(s_tasksLock);
             auto itTask = GetPendingTasks().find(taskId);
             if (itTask != GetPendingTasks().end()) {
                 task = itTask->second;
-                GetPendingTasks().erase(itTask);
             }
         }
 
         if (task)
+        {
             task->OnCallback();
+            LOCKGUARD(s_tasksLock);
+            auto itTask = GetPendingTasks().find(taskId);
+            if (itTask != GetPendingTasks().end() && itTask->second == task)
+            {
+                GetPendingTasks().erase(itTask);
+            }
+        }
     }
 
     TaskDispatcher_CAPI::TaskDispatcher_CAPI(task_dispatcher_queue_fn_t queueFn, task_dispatcher_cancel_fn_t cancelFn, task_dispatcher_join_fn_t joinFn)
@@ -129,10 +226,10 @@ namespace PAL_NS_BEGIN {
         m_queueFn(&capiTask, &OnAsyncTaskCallback);
     }
 
-    // TODO: currently shutdown wait on task cancellation is not implemented for C API Task Dispatcher
-    bool TaskDispatcher_CAPI::Cancel(Task* task, uint64_t)
+    bool TaskDispatcher_CAPI::Cancel(Task* task, uint64_t waitTime)
     {
         std::string taskId;
+        std::shared_ptr<Task_CAPI> capiTask;
 
         // Find and erase pending task
         {
@@ -144,12 +241,36 @@ namespace PAL_NS_BEGIN {
 
             if (itTask != GetPendingTasks().end()) {
                 taskId = itTask->first;
-                GetPendingTasks().erase(itTask);
+                capiTask = itTask->second;
             }
         }
 
-        return (!taskId.empty()) ? m_cancelFn(taskId.c_str()) : false;
+        if (taskId.empty())
+        {
+            return false;
+        }
+
+        if (!m_cancelFn(taskId.c_str()))
+        {
+            return false;
+        }
+
+        const bool wasRunning = capiTask->RequestCancel();
+        if (!wasRunning)
+        {
+            LOCKGUARD(s_tasksLock);
+            GetPendingTasks().erase(taskId);
+            return true;
+        }
+
+        if (capiTask->WaitForCompletion(waitTime))
+        {
+            LOCKGUARD(s_tasksLock);
+            GetPendingTasks().erase(taskId);
+            return true;
+        }
+
+        return false;
     }
 
 } PAL_NS_END
-

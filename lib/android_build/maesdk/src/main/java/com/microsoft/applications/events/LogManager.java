@@ -960,6 +960,18 @@ public class LogManager {
     return Signals.isInitialized() && nativeUnregisterSignalsOnDefaultLogManager();
   }
 
+  private static native boolean nativeRegisterSanitizerOnDefaultLogManager();
+
+  public static boolean registerSanitizer() {
+    return Sanitizer.isInitialized() && nativeRegisterSanitizerOnDefaultLogManager();
+  }
+
+  private static native boolean nativeUnregisterSanitizerOnDefaultLogManager();
+
+  public static boolean unregisterSanitizer() {
+    return Sanitizer.isInitialized() && nativeUnregisterSanitizerOnDefaultLogManager();
+  }
+
   public static native void pauseActivity();
   public static native void resumeActivity();
   public static native void waitPause();

@@ -12,7 +12,9 @@
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <new>
 #include <chrono>
+#include <mutex>
 #include <thread>
 
 #include <iostream>
@@ -47,9 +49,10 @@
 #include <Objbase.h>
 #pragma comment(lib, "Ole32.Lib")   /* CoCreateGuid */
 #include <oacr.h>
+#include <windows.h>
 #endif
 
-#ifdef ANDROID
+#if defined(ANDROID) && defined(HAVE_MAT_LOGGING)
 #include <android/log.h>
 #endif
 
@@ -57,10 +60,56 @@
 
 namespace PAL_NS_BEGIN {
 
+#if defined(_WIN32) || defined(_WIN64)
+    namespace
+    {
+        using GetSystemTimeAsFileTimeProc = VOID (WINAPI*)(LPFILETIME);
+
+        GetSystemTimeAsFileTimeProc getPreciseSystemTimeAsFileTime() noexcept
+        {
+            static std::once_flag once;
+            static GetSystemTimeAsFileTimeProc proc = nullptr;
+            std::call_once(once, [] {
+                HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
+                if (kernel32 != nullptr)
+                {
+                    proc = reinterpret_cast<GetSystemTimeAsFileTimeProc>(
+                        ::GetProcAddress(kernel32, "GetSystemTimePreciseAsFileTime"));
+                }
+            });
+            return proc;
+        }
+
+        void getSystemTimeAsFileTime(FILETIME& fileTime) noexcept
+        {
+            if (auto preciseProc = getPreciseSystemTimeAsFileTime())
+            {
+                preciseProc(&fileTime);
+            }
+            else
+            {
+                ::GetSystemTimeAsFileTime(&fileTime);
+            }
+        }
+    }
+#endif
+
     PlatformAbstractionLayer& GetPAL() noexcept
     {
-        static PlatformAbstractionLayer pal;
-        return pal;
+        // Deliberately never destroyed. PAL::shutdown() (called from
+        // LogManagerImpl::FlushAndTeardown()) must find this object's members
+        // still alive, but PAL is constructed lazily on first use, so whether
+        // this function-local static is destroyed before or after that
+        // teardown call depends on runtime timing, not source order -- if it
+        // is destroyed first, shutdown() releases shared_ptr members of an
+        // already-destroyed object (a downstream consumer observed this as
+        // intermittent EXC_BAD_ACCESS in ~shared_ptr<ISystemInformation> at
+        // process exit). Static storage avoids that ordering hazard without a
+        // process-lifetime heap allocation; shutdown() performs the resource
+        // teardown explicitly.
+        alignas(PlatformAbstractionLayer) static unsigned char storage[sizeof(PlatformAbstractionLayer)];
+        static PlatformAbstractionLayer* pal = ::new (storage) PlatformAbstractionLayer();
+        return *pal;
     }
 
 	 MATSDK_LOG_INST_COMPONENT_CLASS(PlatformAbstractionLayer, "MATSDK.PAL", "MSTel client - platform abstraction layer")
@@ -113,8 +162,27 @@ namespace PAL_NS_BEGIN {
                 return result;
             }
 
+            // Check if the path exists
+#if defined(_WIN32) || defined(_WIN64)
+            DWORD fileAttr = GetFileAttributesA(traceFolderPath.c_str());
+            bool pathExists = (fileAttr != INVALID_FILE_ATTRIBUTES && (fileAttr & FILE_ATTRIBUTE_DIRECTORY));
+#else
+            bool pathExists = (access(traceFolderPath.c_str(), F_OK) != -1);
+#endif
+            // Check if the path contains ".."
+            bool containsParentDirectory = (traceFolderPath.find("..") != std::string::npos);
+
+            if (!pathExists || containsParentDirectory)
+            {
+                return false;
+            }
+
             debugLogMutex.lock();
             debugLogPath = traceFolderPath;
+            if (debugLogPath.back() != '/' && debugLogPath.back() != '\\')
+            {
+                debugLogPath += "/";
+            }
             debugLogPath += "mat-debug-";
             debugLogPath += std::to_string(MAT::GetCurrentProcessId());
             debugLogPath += ".log";
@@ -129,6 +197,16 @@ namespace PAL_NS_BEGIN {
             }
             debugLogMutex.unlock();
             return result;
+        }
+
+        const std::unique_ptr<std::fstream>& getDebugLogStream() noexcept
+        {
+            return debugLogStream;
+        }
+
+        const std::string& getDebugLogPath() noexcept
+        {
+            return debugLogPath;
         }
 
         void log_done()
@@ -153,6 +231,7 @@ namespace PAL_NS_BEGIN {
 #endif
 
 #if !defined(_WIN32) && defined(__linux__)
+#ifdef HAVE_MAT_LOGGING
         static std::mutex m;
         static std::map<std::thread::id, pid_t> threads;
         static long int gettid()
@@ -162,17 +241,14 @@ namespace PAL_NS_BEGIN {
             threads[std::this_thread::get_id()] = tid;
             return tid;
         }
+#endif
 #else
 #define     gettid()       std::this_thread::get_id()
 #endif
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4996)
-#endif
         void log(LogLevel level, char const* component, char const* fmt, ...)
         {
-#if defined(ANDROID) && !defined(ANDROID_SUPPRESS_LOGCAT)
+#if defined(ANDROID) && defined(HAVE_MAT_LOGGING) && !defined(ANDROID_SUPPRESS_LOGCAT)
             {
                 static android_LogPriority androidPriorities[] = {
                     ANDROID_LOG_UNKNOWN,
@@ -195,6 +271,7 @@ namespace PAL_NS_BEGIN {
             }
 #endif
 #ifdef HAVE_MAT_LOGGING
+            std::lock_guard<std::recursive_mutex> lock(debugLogMutex);
             if (!isLoggingInited)
                 return;
 
@@ -221,14 +298,12 @@ namespace PAL_NS_BEGIN {
             buffer[std::min<size_t>(len + 1, sizeof(buffer) - 1)] = '\0';
 #ifdef HAVE_MAT_WIN_LOG
             // Log to debug log file if enabled
-            debugLogMutex.lock();
-            if (debugLogStream->good())
+            if (debugLogStream && debugLogStream->good())
             {
                 (*debugLogStream) << buffer;
                 // flush is not very efficient, but needed to get realtime file updates
                 debugLogStream->flush();
             }
-            debugLogMutex.unlock();
 #else
             ::OutputDebugStringA(buffer);
 #endif //HAVE_MAT_WIN_LOG
@@ -266,14 +341,12 @@ namespace PAL_NS_BEGIN {
                 // Make sure all of our debug strings contain EOL
                 buffer[len] = '\n';
                 // Log to debug log file if enabled
-                debugLogMutex.lock();
-                if (debugLogStream->good())
+                if (debugLogStream && debugLogStream->good())
                 {
                     (*debugLogStream) << buffer;
                     // flush is not very efficient, but needed to get realtime file updates
                     debugLogStream->flush();
                 }
-                debugLogMutex.unlock();
             }
             va_end(ap);
 #endif
@@ -283,9 +356,6 @@ namespace PAL_NS_BEGIN {
             (void)(fmt);
 #endif /* of #ifdef HAVE_MAT_LOGGING */
         }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     } // namespace detail
 
@@ -300,17 +370,16 @@ namespace PAL_NS_BEGIN {
         return m_taskDispatcher;
     }
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:6031)
-#endif
     std::string PlatformAbstractionLayer::generateUuidString() const
     {
 #ifdef _WIN32
         GUID uuid = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
-        auto hr = CoCreateGuid(&uuid);
-        /* CoCreateGuid` will possiblity never fail, so ignoring the result */
-        UNREFERENCED_PARAMETER(hr);
+        const HRESULT hr = CoCreateGuid(&uuid);
+        if (FAILED(hr))
+        {
+            LOG_ERROR("CoCreateGuid failed: 0x%08lx", static_cast<unsigned long>(hr));
+            return {};
+        }
         return MAT::to_string(uuid);
 #elif defined(__APPLE__)
         auto uuid {CFUUIDCreate(kCFAllocatorDefault)};
@@ -339,19 +408,32 @@ namespace PAL_NS_BEGIN {
 	std::transform(uuidStr.begin(), uuidStr.end(), uuidStr.begin(), ::tolower);
         return uuidStr;
 #else
-        static std::once_flag flag;
-        std::call_once(flag, [](){
-            auto now = std::chrono::high_resolution_clock::now();
-            auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
-            std::srand(static_cast<unsigned int>(std::time(0) ^ nanos));
-        });
+        // Use std::random_device -- a non-deterministic, CSPRNG-backed source on
+        // the platforms we target (glibc/bionic/libc++ draw from getrandom or
+        // /dev/urandom) -- instead of std::rand()/srand(time(0)), so the session
+        // and event identifiers built from it are not predictable. It is
+        // thread_local so the backing source is opened once per thread rather than
+        // on every call (generateUuidString is on the event logging hot path), and
+        // the 128 bits are drawn with four operator() calls instead of eleven
+        // (random_device::max() is guaranteed to span the full unsigned int range).
+        thread_local std::random_device rd;
 
         GUID_t uuid;
-        uuid.Data1 = (static_cast<uint16_t>(std::rand()) << 16) | static_cast<uint16_t>(std::rand());
-        uuid.Data2 = static_cast<uint16_t>(std::rand());
-        uuid.Data3 = static_cast<uint16_t>(std::rand());
-        for (size_t i = 0; i < sizeof(uuid.Data4); i++)
-            uuid.Data4[i] = static_cast<uint8_t>(std::rand());
+        const uint32_t r0 = rd();
+        const uint32_t r1 = rd();
+        const uint32_t r2 = rd();
+        const uint32_t r3 = rd();
+        uuid.Data1 = r0;
+        uuid.Data2 = static_cast<uint16_t>(r1);
+        uuid.Data3 = static_cast<uint16_t>(r1 >> 16);
+        uuid.Data4[0] = static_cast<uint8_t>(r2);
+        uuid.Data4[1] = static_cast<uint8_t>(r2 >> 8);
+        uuid.Data4[2] = static_cast<uint8_t>(r2 >> 16);
+        uuid.Data4[3] = static_cast<uint8_t>(r2 >> 24);
+        uuid.Data4[4] = static_cast<uint8_t>(r3);
+        uuid.Data4[5] = static_cast<uint8_t>(r3 >> 8);
+        uuid.Data4[6] = static_cast<uint8_t>(r3 >> 16);
+        uuid.Data4[7] = static_cast<uint8_t>(r3 >> 24);
 
         // TODO: [MG] - replace this sprintf by more robust GUID to string converter
         char buf[40] = { 0 };
@@ -363,15 +445,15 @@ namespace PAL_NS_BEGIN {
         return buf;
 #endif
     }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
     int64_t PlatformAbstractionLayer::getUtcSystemTimeMs() const
     {
 #ifdef _WIN32
+        FILETIME fileTime;
+        getSystemTimeAsFileTime(fileTime);
         ULARGE_INTEGER now;
-        ::GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&now));
+        now.LowPart = fileTime.dwLowDateTime;
+        now.HighPart = fileTime.dwHighDateTime;
         return (now.QuadPart - 116444736000000000ull) / 10000;
 #else
         return std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
@@ -387,7 +469,7 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef _WIN32
         FILETIME tocks;
-        ::GetSystemTimeAsFileTime(&tocks);
+        getSystemTimeAsFileTime(tocks);
         ULONGLONG ticks = (ULONGLONG(tocks.dwHighDateTime) << 32) | tocks.dwLowDateTime;
         // number of days from beginning to 1601 multiplied by ticks per day
         return ticks + 0x701ce1722770000ULL;
@@ -397,10 +479,9 @@ namespace PAL_NS_BEGIN {
         // This UTC epoch contract has been signed in blood since C++20
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         auto duration = now.time_since_epoch();
-        auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-        uint64_t ticks = millis;
-        ticks *= 10000; // convert millis to ticks (1 tick = 100ns)
-        ticks += 0x89F7FF5F7B58000ULL; // UTC time 0 in .NET ticks
+        auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+        int64_t ticks = nanos / 100; // convert nanoseconds to .NET ticks (1 tick = 100ns)
+        ticks += static_cast<int64_t>(0x89F7FF5F7B58000ULL); // UTC time 0 in .NET ticks
         return ticks;
 #endif
     }
@@ -409,49 +490,39 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef _WIN32
         __time64_t seconds = static_cast<__time64_t>(timestampMs / 1000);
-        int milliseconds = static_cast<int>(timestampMs % 1000);
-
-        tm tm;
-        if (::_gmtime64_s(&tm, &seconds) != 0)
+        tm timeParts;
+        if (::_gmtime64_s(&timeParts, &seconds) != 0)
         {
-            memset(&tm, 0, sizeof(tm));
+            return {};
         }
-
-        char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
-        ::_snprintf_s(buf, _TRUNCATE, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
-            1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
-            tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
 #else
         time_t seconds = static_cast<time_t>(timestampMs / 1000);
-        int milliseconds = static_cast<int>(timestampMs % 1000);
-
-        tm tm;
-        bool valid = (gmtime_r(&seconds, &tm) != NULL);
-
-        if (!valid)
+        tm timeParts;
+        if (gmtime_r(&seconds, &timeParts) == nullptr)
         {
-            memset(&tm, 0, sizeof(tm));
+            return {};
         }
+#endif
 
-        char buf[sizeof("YYYY-MM-DDTHH:MM:SS.sssZ") + 1] = { 0 };
-
-#if defined(__GNUC__) && !defined(__clang__)
-#include <features.h>
-#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"  // error: 'T' directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Werror=format-truncation=]
-#endif
-#endif
-        (void)snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
-                       1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
-                       tm.tm_hour, tm.tm_min, tm.tm_sec, milliseconds);
-#if defined(__GNUC__) && !defined(__clang__)
-#if __GNUC_PREREQ(7,0) // If  gcc_version >= 7.0 https://gcc.gnu.org/gcc-7/changes.html
-#pragma GCC diagnostic pop
-#endif
-#endif
-#endif
-        return buf;
+        const int milliseconds = static_cast<int>(timestampMs % 1000);
+        char buf[128] = { 0 };
+        const int length = snprintf(
+            buf,
+            sizeof(buf),
+            "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+            1900 + timeParts.tm_year,
+            1 + timeParts.tm_mon,
+            timeParts.tm_mday,
+            timeParts.tm_hour,
+            timeParts.tm_min,
+            timeParts.tm_sec,
+            milliseconds);
+        if (length < 0 || static_cast<size_t>(length) >= sizeof(buf))
+        {
+            LOG_ERROR("Failed to format UTC timestamp");
+            return {};
+        }
+        return std::string(buf, static_cast<size_t>(length));
     }
 
     /**
@@ -466,20 +537,27 @@ namespace PAL_NS_BEGIN {
     {
 #ifdef USE_WIN32_PERFCOUNTER
         /* Win32 API implementation */
-        static bool frequencyQueried = false;
-        static int64_t ticksPerMillisecond;
-        if (!frequencyQueried)
-        {
-            // There is no harm in querying twice in case of a race condition.
+        static std::once_flag frequencyOnce;
+        static int64_t frequency = 0;
+        std::call_once(frequencyOnce, [] {
             LARGE_INTEGER ticksInOneSecond;
-            ::QueryPerformanceFrequency(&ticksInOneSecond);
-            ticksPerMillisecond = ticksInOneSecond.QuadPart / 1000;
-            frequencyQueried = true;
-        }
+            if (::QueryPerformanceFrequency(&ticksInOneSecond))
+            {
+                frequency = ticksInOneSecond.QuadPart;
+            }
+        });
 
         LARGE_INTEGER now;
         ::QueryPerformanceCounter(&now);
-        return static_cast<uint64_t>(now.QuadPart / ticksPerMillisecond);
+        if (frequency <= 0)
+        {
+            return std::chrono::steady_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+        }
+
+        const int64_t wholeSeconds = now.QuadPart / frequency;
+        const int64_t remainder = now.QuadPart % frequency;
+        return static_cast<uint64_t>(wholeSeconds) * 1000u +
+            static_cast<uint64_t>((remainder * 1000) / frequency);
 #else
         /* Cross-platform C++11 implementation */
         return std::chrono::steady_clock::now().time_since_epoch() / std::chrono::milliseconds(1);

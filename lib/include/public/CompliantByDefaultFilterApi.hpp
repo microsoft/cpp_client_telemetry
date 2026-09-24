@@ -7,6 +7,7 @@
 
 #include "ctmacros.hpp"
 
+#include <cstdint>
 #include <vector>
 
 namespace MAT_NS_BEGIN { namespace Modules { namespace Filtering

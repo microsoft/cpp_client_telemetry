@@ -105,6 +105,11 @@ namespace Microsoft {
                 void ThrowPlatformInvalidArgumentException(String^ message);
                 void ThrowPlatformException(String^ message);
 
+                // Forward declaration so the FromPlatformMap templates below can
+                // resolve this helper under /permissive- two-phase name lookup
+                // (the definition appears later in this header).
+                std::string FromPlatformString(String^ platformString);
+
                 // Defining the template function in the header file eliminates the need in additional linker definitions.
                 // platformmaptype can be read-only or editable platform map.
                 template <typename K1, typename V1, typename K2, typename V2, template<typename, typename> class platformmaptype>

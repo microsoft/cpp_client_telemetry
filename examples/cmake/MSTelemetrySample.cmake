@@ -1,0 +1,67 @@
+set(MATSDK_INSTALL_DIR "$ENV{MATSDK_INSTALL_DIR}" CACHE PATH "MSTelemetry install prefix")
+if(MATSDK_INSTALL_DIR STREQUAL "")
+  set(MATSDK_INSTALL_DIR "/usr/local" CACHE PATH "MSTelemetry install prefix" FORCE)
+endif()
+set(MATSDK_INCLUDE_DIR "${MATSDK_INSTALL_DIR}/include/mat" CACHE PATH "MSTelemetry public headers")
+set(MATSDK_LIB_DIR "${MATSDK_INSTALL_DIR}/lib" CACHE PATH "MSTelemetry library directory")
+
+if(NOT EXISTS "${MATSDK_LIB_DIR}/libmat.a"
+   AND NOT EXISTS "${MATSDK_LIB_DIR}/libmat.dylib"
+   AND NOT EXISTS "${MATSDK_LIB_DIR}/libmat.so"
+   AND (EXISTS "${MATSDK_LIB_DIR}/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu/libmat.a"
+        OR EXISTS "${MATSDK_LIB_DIR}/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu/libmat.so"))
+  set(MATSDK_LIB_DIR "${MATSDK_LIB_DIR}/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu" CACHE PATH "MSTelemetry library directory" FORCE)
+endif()
+
+find_package(MSTelemetry CONFIG QUIET
+  PATHS "${MATSDK_INSTALL_DIR}/lib/cmake/MSTelemetry"
+  NO_DEFAULT_PATH)
+if(TARGET MSTelemetry::mat)
+  set(MATSDK_LIBRARY MSTelemetry::mat)
+  set(MATSDK_SAMPLE_DEPENDENCY_LIBS "")
+else()
+  find_library(MATSDK_LIBRARY NAMES mat HINTS "${MATSDK_LIB_DIR}" NO_DEFAULT_PATH)
+  if(NOT MATSDK_LIBRARY)
+    message(FATAL_ERROR "Could not find libmat under ${MATSDK_LIB_DIR}. Set MATSDK_INSTALL_DIR or MATSDK_LIB_DIR.")
+  endif()
+  find_package(ZLIB REQUIRED)
+  set(MATSDK_SAMPLE_DEPENDENCY_LIBS ZLIB::ZLIB)
+  if(NOT WIN32 AND NOT APPLE
+     AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
+    find_package(CURL REQUIRED)
+    list(APPEND MATSDK_SAMPLE_DEPENDENCY_LIBS CURL::libcurl)
+  endif()
+endif()
+
+if(NOT EXISTS "${MATSDK_INCLUDE_DIR}")
+  message(FATAL_ERROR "Could not find mat headers under ${MATSDK_INCLUDE_DIR}. Set MATSDK_INSTALL_DIR or MATSDK_INCLUDE_DIR.")
+endif()
+
+set(MATSDK_SAMPLE_INCLUDE_DIRS "${MATSDK_INCLUDE_DIR}")
+
+set(MATSDK_SAMPLE_PLATFORM_LIBS "")
+if(APPLE)
+  list(APPEND MATSDK_SAMPLE_PLATFORM_LIBS
+    "-framework CoreFoundation"
+    "-framework Foundation"
+    "-framework CFNetwork"
+    "-framework Network"
+    "-framework SystemConfiguration"
+  )
+  if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    list(APPEND MATSDK_SAMPLE_PLATFORM_LIBS "-framework UIKit")
+  else()
+    list(APPEND MATSDK_SAMPLE_PLATFORM_LIBS "-framework IOKit")
+  endif()
+endif()
+
+if(TARGET MSTelemetry::mat)
+  set(MATSDK_SQLITE3_LIB "")
+else()
+  find_library(MATSDK_SQLITE3_LIB NAMES sqlite3 sqlite3_bundled HINTS "${MATSDK_INSTALL_DIR}/lib" NO_DEFAULT_PATH)
+  if(NOT MATSDK_SQLITE3_LIB)
+    set(MATSDK_SQLITE3_LIB sqlite3)
+  endif()
+endif()
+
+mark_as_advanced(MATSDK_INSTALL_DIR MATSDK_INCLUDE_DIR MATSDK_LIB_DIR MATSDK_LIBRARY MATSDK_SQLITE3_LIB)

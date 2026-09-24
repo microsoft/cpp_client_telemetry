@@ -13,6 +13,11 @@ std::string JStringToStdString(JNIEnv* env, const jstring& jstr) {
 
     size_t jstr_length = env->GetStringUTFLength(jstr);
     auto jstr_utf = env->GetStringUTFChars(jstr, nullptr);
+    if (jstr_utf == nullptr) {
+        // Preserve the pending Java exception (typically an allocation failure)
+        // so the JNI caller observes the real failure instead of an empty value.
+        return "";
+    }
     std::string str(jstr_utf, jstr_utf + jstr_length);
     env->ReleaseStringUTFChars(jstr, jstr_utf);
     return str;
@@ -159,8 +164,17 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
         const jobjectArray& jEventPropertyStringKeyArray, const jobjectArray& jEventPropertyValueArray) {
     EventProperties eventProperties;
     eventProperties.SetName(JStringToStdString(env, jstrEventName));
-    if (jstrEventType != NULL)
-        eventProperties.SetType(JStringToStdString(env, jstrEventType));
+    if (jstrEventType != NULL) {
+        // An empty type means "unset" (the native default). Previously the
+        // Java getType() returned null for a default EventProperties, so this
+        // branch was skipped. getType() now returns "" to fix a Java-side NPE;
+        // forwarding SetType("") here would fail native event-name validation
+        // and broadcast a spurious EVT_REJECTED for every typeless event, so
+        // only set a non-empty type.
+        std::string eventType = JStringToStdString(env, jstrEventType);
+        if (!eventType.empty())
+            eventProperties.SetType(eventType);
+    }
     eventProperties.SetLatency(static_cast<EventLatency>(jEventLatency));
     eventProperties.SetPersistence(static_cast<EventPersistence>(jEventPersistence));
     eventProperties.SetPopsample(static_cast<double>(jEventPopSample));
@@ -182,12 +196,27 @@ EventProperties GetEventProperties(JNIEnv* env, const jstring& jstrEventName, co
 std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const jobjectArray& jArrayToConvert)
 {
     std::vector<std::string> stringVector;
-    stringVector.reserve(env->GetArrayLength(jArrayToConvert));
+    auto length = env->GetArrayLength(jArrayToConvert);
+    if (env->ExceptionCheck())
+    {
+        return stringVector;
+    }
+    stringVector.reserve(length);
 
-    for(int i = 0; i < env->GetArrayLength(jArrayToConvert); i++)
+    for(int i = 0; i < length; i++)
     {
         auto jStringValue = static_cast<jstring>(env->GetObjectArrayElement(jArrayToConvert, i));
+        if (env->ExceptionCheck())
+        {
+            env->DeleteLocalRef(jStringValue);
+            return stringVector;
+        }
         auto stringValue = JStringToStdString(env, jStringValue);
+        if (env->ExceptionCheck())
+        {
+            env->DeleteLocalRef(jStringValue);
+            return stringVector;
+        }
         if(!stringValue.empty())
         {
             stringVector.emplace_back(std::move(stringValue));
@@ -199,4 +228,3 @@ std::vector<std::string> ConvertJObjectArrayToStdStringVector(JNIEnv* env, const
 }
 
 } MAT_NS_END
-

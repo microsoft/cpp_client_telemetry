@@ -17,13 +17,20 @@
 #define adler32_z act_z_adler32_z
 #define compress act_z_compress
 #define compress2 act_z_compress2
+#define compress_z act_z_compress_z
+#define compress2_z act_z_compress2_z
 #define compressBound act_z_compressBound
+#define compressBound_z act_z_compressBound_z
 #define crc32 act_z_crc32
 #define crc32_combine act_z_crc32_combine
 #define crc32_combine64 act_z_crc32_combine64
+#define crc32_combine_gen act_z_crc32_combine_gen
+#define crc32_combine_gen64 act_z_crc32_combine_gen64
+#define crc32_combine_op act_z_crc32_combine_op
 #define crc32_z act_z_crc32_z
 #define deflate act_z_deflate
 #define deflateBound act_z_deflateBound
+#define deflateBound_z act_z_deflateBound_z
 #define deflateCopy act_z_deflateCopy
 #define deflateEnd act_z_deflateEnd
 #define deflateGetDictionary act_z_deflateGetDictionary
@@ -39,6 +46,7 @@
 #define deflateSetDictionary act_z_deflateSetDictionary
 #define deflateSetHeader act_z_deflateSetHeader
 #define deflateTune act_z_deflateTune
+#define deflateUsed act_z_deflateUsed
 #define deflate_copyright act_z_deflate_copyright
 #define get_crc_table act_z_get_crc_table
 #define gz_error act_z_gz_error
@@ -104,8 +112,11 @@
 #define inflate_copyright act_z_inflate_copyright
 #define inflate_fast act_z_inflate_fast
 #define inflate_table act_z_inflate_table
+#define inflate_fixed act_z_inflate_fixed
 #define uncompress act_z_uncompress
 #define uncompress2 act_z_uncompress2
+#define uncompress_z act_z_uncompress_z
+#define uncompress2_z act_z_uncompress2_z
 #define zError act_z_zError
 #define zcalloc act_z_zcalloc
 #define zcfree act_z_zcfree
@@ -135,17 +146,5 @@
 
 /* An exported symbol that isn't handled by Z_PREFIX in zconf.h */
 #define z_errmsg act_z_z_errmsg
-
-/* Symbols added in simd.patch */
-#define copy_with_crc act_z_copy_with_crc
-#define crc_finalize act_z_crc_finalize
-#define crc_fold_512to32 act_z_crc_fold_512to32
-#define crc_fold_copy act_z_crc_fold_copy
-#define crc_fold_init act_z_crc_fold_init
-#define crc_reset act_z_crc_reset
-#define fill_window_sse act_z_fill_window_sse
-#define read_buf act_z_read_buf
-#define x86_check_features act_z_x86_check_features
-#define x86_cpu_enable_simd act_z_x86_cpu_enable_simd
 
 #endif  /* ZLIB_NAMES_H_ */

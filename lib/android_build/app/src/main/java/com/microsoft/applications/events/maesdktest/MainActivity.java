@@ -27,7 +27,6 @@ public class MainActivity extends Activity {
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
-        System.loadLibrary("maesdk");
     }
 
     HttpClient m_client;
@@ -45,7 +44,8 @@ public class MainActivity extends Activity {
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
         try {
-            Integer result = testStub.executorRun(dummyLogger);
+            Integer result =
+                    testStub.executorRun(dummyLogger, m_client, getApplicationContext());
             tv.setText(String.format(Locale.ROOT, "Tests returned %d", result));
         } catch (ExecutionException e) {
             tv.setText("Woopsy");
@@ -54,4 +54,3 @@ public class MainActivity extends Activity {
         }
     }
 }
-

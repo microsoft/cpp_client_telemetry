@@ -1,7 +1,11 @@
 #!/bin/sh
-MATSDK_INSTALL_DIR=$1
+set -e
+
+MATSDK_INSTALL_DIR=${1:-/usr/local}
+if [ ! -f out/cmake_install.cmake ]; then
+  echo "ERROR: out/cmake_install.cmake not found; configure and build the SDK first." >&2
+  exit 1
+fi
+
 echo "Install SDK to $MATSDK_INSTALL_DIR"
-mkdir -p $MATSDK_INSTALL_DIR/lib
-cp out/lib/libmat.* $MATSDK_INSTALL_DIR/lib
-mkdir -p $MATSDK_INSTALL_DIR/include/mat
-cp lib/include/public/* $MATSDK_INSTALL_DIR/include/mat
+cmake --install out --prefix "$MATSDK_INSTALL_DIR"

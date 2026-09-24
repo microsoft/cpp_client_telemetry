@@ -20,6 +20,7 @@
 #include <functional>
 #include <string>
 #include <fstream>
+#include <set>
 #ifdef ANDROID
 #include <http/HttpClient_Android.hpp>
 #endif
@@ -525,6 +526,107 @@ TEST_P(OfflineStorageTestsRoom, ReleaseActuallyReleases) {
             },
             5000
             );
+}
+
+// Regression test for JNI stale local reference bug in GetAndReserveRecords,
+// GetRecords, and ReleaseRecords. Each per-record iteration uses
+// pushLocalFrame/popLocalFrame; the jclass obtained on iteration 0 must be a
+// global reference to remain valid on iteration 1+. Without the fix, ART's JNI
+// checker fires JniAbort (SIGABRT) on the second call to GetObjectClass /
+// GetFieldID with the stale local ref.
+TEST_P(OfflineStorageTestsRoom, MultiRecordIterationFieldIdValidity)
+{
+    auto now = PAL::getUtcSystemTimeMs();
+    StorageRecordVector input;
+    // Store 3 records: enough to exercise iterations 0, 1, and 2 of the per-record
+    // loop, covering both the "first time" (class lookup) and "subsequent" paths.
+    for (size_t i = 0; i < 3; ++i) {
+        auto id = "reg-" + std::to_string(i);
+        input.emplace_back(
+                id,
+                id,
+                EventLatency_Normal,
+                EventPersistence_Normal,
+                now,
+                StorageBlob {static_cast<unsigned char>(i + 1), 2, 3});
+    }
+    offlineStorage->StoreRecords(input);
+    ASSERT_EQ(size_t { 3 }, offlineStorage->GetRecordCount(EventLatency_Normal));
+
+    // GetAndReserveRecords: all 3 records must be returned with correct field values.
+    StorageRecordVector found;
+    EXPECT_TRUE(offlineStorage->GetAndReserveRecords(
+            [&found](StorageRecord && record) -> bool {
+                found.push_back(std::move(record));
+                return true;
+            }, 5000));
+    ASSERT_EQ(size_t { 3 }, found.size());
+    {
+        // Set-based check: return order is implementation-defined
+        // (SQLite/Room: insertion order; Memory: LIFO).
+        std::set<unsigned char> blob0_values;
+        for (auto const& r : found) {
+            EXPECT_EQ(EventLatency_Normal, r.latency);
+            EXPECT_EQ(EventPersistence_Normal, r.persistence);
+            ASSERT_EQ(size_t { 3 }, r.blob.size());
+            blob0_values.insert(r.blob[0]);
+        }
+        EXPECT_EQ((std::set<unsigned char>{1, 2, 3}), blob0_values);
+    }
+
+    // GetRecords: same 3 records readable via GetRecords (shutdown path).
+    // Memory's GetRecords delegates to GetAndReserveRecords, so it returns
+    // nothing when records are already reserved — skip that check for Memory.
+    if (implementation != StorageImplementation::Memory) {
+        auto shutdown_found = offlineStorage->GetRecords(true, EventLatency_Unspecified, 0);
+        ASSERT_EQ(size_t { 3 }, shutdown_found.size());
+        std::set<unsigned char> blob0_values;
+        for (auto const& r : shutdown_found) {
+            EXPECT_EQ(EventLatency_Normal, r.latency);
+            ASSERT_EQ(size_t { 3 }, r.blob.size());
+            blob0_values.insert(r.blob[0]);
+        }
+        EXPECT_EQ((std::set<unsigned char>{1, 2, 3}), blob0_values);
+    }
+
+    // Un-reserve without using a retry slot so the retry loop below can start fresh.
+    {
+        std::vector<StorageRecordId> initial_ids;
+        initial_ids.reserve(found.size());
+        for (auto const& r : found) {
+            initial_ids.push_back(r.id);
+        }
+        bool fromMemory = false;
+        offlineStorage->ReleaseRecords(initial_ids, false, HttpHeaders(), fromMemory);
+    }
+
+    // ReleaseRecords bt_class path: cycle GetAndReserveRecords + ReleaseRecords(true)
+    // GetMaximumRetryCount()+1 times. On the final cycle the Room impl drops the 3
+    // records and returns a non-empty byTenant array, exercising the bt_class loop.
+    // Without the global-ref fix, iteration 1+ of that loop produces a JNI abort.
+    auto retries = configMock.GetMaximumRetryCount() + 1;
+    if (implementation != StorageImplementation::Memory) {
+        EXPECT_CALL(observerMock, OnStorageRecordsDropped(SizeIs(3))).WillOnce(Return());
+    }
+    for (size_t retry = 0; retry < retries; ++retry) {
+        found.clear();
+        offlineStorage->GetAndReserveRecords(
+                [&found](StorageRecord && record) -> bool {
+                    found.push_back(std::move(record));
+                    return true;
+                }, 5000);
+        EXPECT_EQ(size_t { 3 }, found.size()) << "retry=" << retry;
+        std::vector<StorageRecordId> ids;
+        ids.reserve(found.size());
+        for (auto const& r : found) {
+            ids.push_back(r.id);
+        }
+        bool fromMemory = false;
+        offlineStorage->ReleaseRecords(ids, true, HttpHeaders(), fromMemory);
+    }
+    if (implementation != StorageImplementation::Memory) {
+        EXPECT_EQ(size_t { 0 }, offlineStorage->GetRecordCount(EventLatency_Normal));
+    }
 }
 
 TEST_P(OfflineStorageTestsRoom, DeleteByToken)

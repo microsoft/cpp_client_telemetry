@@ -7,7 +7,7 @@
 #define EVTSDK_VERSION_PREFIX "EVT"
 #if defined(_WIN32)
 #if defined __has_include
-#  if __has_include ("modules/azmon/AITelemetrySystem.hpp")
+#  if !defined(MATSDK_NO_AZMON) && !defined(HAVE_MAT_AI) && __has_include ("modules/azmon/AITelemetrySystem.hpp")
 #    define HAVE_MAT_AI
 #  endif
 #  if __has_include ("modules/utc/UtcTelemetrySystem.hpp")
@@ -25,8 +25,16 @@
 /* #define HAVE_MAT_EVT_TRACEID     */
 #define HAVE_MAT_STORAGE
 #define HAVE_MAT_DEFAULT_HTTP_CLIENT
+// The two macros below are also added on the command line by
+// tests/{functests,unittests}/CMakeLists.txt when BUILD_LIVEEVENTINSPECTOR
+// / BUILD_PRIVACYGUARD are ON. Guard against -Wmacro-redefined under
+// -Werror on Linux/macOS.
+#ifndef HAVE_MAT_LIVEEVENTINSPECTOR
 #define HAVE_MAT_LIVEEVENTINSPECTOR
+#endif
+#ifndef HAVE_MAT_PRIVACYGUARD
 #define HAVE_MAT_PRIVACYGUARD
+#endif
 //#define HAVE_MAT_DEFAULT_FILTER
 #if defined(_WIN32) && !defined(_WINRT_DLL)
 #define HAVE_MAT_NETDETECT
@@ -35,4 +43,3 @@
 //#define HAVE_CS4
 //#define HAVE_CS4_FULL
 //#define HAVE_ONEDS_BOUNDCHECK_METHODS
-

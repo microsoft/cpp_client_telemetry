@@ -122,12 +122,54 @@ public:
         };
     };
 };
+
+class DroppedEventListener : public DebugEventListener
+{
+public:
+    void OnDebugEvent(DebugEvent& evt) override
+    {
+        if (evt.type == EVT_DROPPED)
+        {
+            if (evt.param2 == static_cast<size_t>(DROPPED_REASON_OFFLINE_STORAGE_OVERFLOW))
+            {
+                overflowDrops += evt.param1;
+            }
+            else if (evt.param2 == static_cast<size_t>(DROPPED_REASON_RETRY_EXCEEDED))
+            {
+                retryExceededDrops += evt.param1;
+            }
+        }
+        else if (evt.type == EVT_SEND_RETRY)
+        {
+            sendRetries++;
+        }
+    }
+
+    bool waitForAtLeast(
+        std::atomic<size_t> const& counter,
+        size_t expected,
+        unsigned timeoutMs) const
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (counter.load() < expected && PAL::getMonotonicTimeMs() < deadline)
+        {
+            PAL::sleep(10);
+        }
+        return counter.load() >= expected;
+    }
+
+    std::atomic<size_t> overflowDrops { 0 };
+    std::atomic<size_t> retryExceededDrops { 0 };
+    std::atomic<size_t> sendRetries { 0 };
+};
+
 class BasicFuncTests : public ::testing::Test,
     public HttpServer::Callback
 {
 protected:
     std::mutex                       mtx_requests;
     std::vector<HttpServer::Request> receivedRequests;
+    std::string serverBaseAddress;
     std::string serverAddress;
     HttpServer server;
 
@@ -139,6 +181,9 @@ protected:
 
     std::condition_variable cv_gotEvents;
     std::mutex cv_m;
+    std::condition_variable cv_slowRequest;
+    std::mutex mtx_slowRequest;
+    bool slowRequestStarted = false;
 public:
 
     BasicFuncTests() :
@@ -154,8 +199,9 @@ public:
         }
         int port = server.addListeningPort(HTTP_PORT);
         std::ostringstream os;
-        os << "localhost:" << port;
-        serverAddress = "http://" + os.str() + "/simple/";
+        os << "127.0.0.1:" << port;
+        serverBaseAddress = "http://" + os.str();
+        serverAddress = serverBaseAddress + "/simple/";
         server.setServerName(os.str());
         server.addHandler("/simple/", *this);
         server.addHandler("/slow/", *this);
@@ -179,11 +225,23 @@ public:
         fileName += PATH_SEPARATOR_CHAR;
         fileName += TEST_STORAGE_FILENAME;
         std::remove(fileName.c_str());
+        // SQLite WAL mode creates companion journal files that must also
+        // be removed to avoid "vnode unlinked while in use" on iOS.
+        std::remove((fileName + "-wal").c_str());
+        std::remove((fileName + "-shm").c_str());
+        std::remove((fileName + "-journal").c_str());
     }
 
-    virtual void Initialize()
+    virtual void Initialize(
+        int64_t maxTeardownUploadTimeInSec = 2,
+        int64_t cacheFileSize = 4096 * 1024,
+        int64_t maxRetryCount = 5,
+        std::string const& retryBackoff = "E,500,5000,2,1")
     {
-        receivedRequests.clear();
+        {
+            LOCKGUARD(mtx_requests);
+            receivedRequests.clear();
+        }
         auto configuration = LogManager::GetLogConfiguration();
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
@@ -196,16 +254,23 @@ public:
 
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+        configuration[CFG_INT_CACHE_FILE_SIZE] = cacheFileSize;
+        configuration[CFG_INT_MAX_TEARDOWN_TIME] = maxTeardownUploadTimeInSec;
+        configuration[CFG_INT_STORAGE_FULL_PCT] = 75;   // default
+        configuration[CFG_INT_STORAGE_FULL_CHECK_TIME] = 5000; // default 5s
         configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
+        configuration[CFG_MAP_TPM][CFG_INT_TPM_MAX_RETRY] = maxRetryCount;
+        configuration[CFG_MAP_TPM][CFG_STR_TPM_BACKOFF] = retryBackoff;
         configuration[CFG_MAP_METASTATS_CONFIG][CFG_INT_METASTATS_INTERVAL] = 30 * 60;   // 30 mins
+        configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;            // opt in to stats (disabled by default)
 
         configuration["name"] = __FILE__;
         configuration["version"] = "1.0.0";
         configuration["config"] = { { "host", __FILE__ } }; // Host instance
 
         LogManager::Initialize(TEST_TOKEN, configuration);
+        LogManager::SetTransmitProfile(TransmitProfile_RealTime);
         LogManager::SetLevelFilter(DIAG_LEVEL_DEFAULT, { DIAG_LEVEL_DEFAULT_MIN, DIAG_LEVEL_DEFAULT_MAX });
         LogManager::ResumeTransmission();
 
@@ -226,6 +291,11 @@ public:
         }
 
         if (request.uri.compare(0, 6, "/slow/") == 0) {
+            {
+                std::lock_guard<std::mutex> lock(mtx_slowRequest);
+                slowRequestStarted = true;
+            }
+            cv_slowRequest.notify_all();
             PAL::sleep(static_cast<unsigned int>(request.content.size() / DELAY_FACTOR_FOR_SERVER));
         }
 
@@ -238,6 +308,15 @@ public:
         response.content = "{ \"status\": \"0\" }";
 
         return 200;
+    }
+
+    bool waitForSlowRequest(unsigned timeoutSec)
+    {
+        std::unique_lock<std::mutex> lock(mtx_slowRequest);
+        return cv_slowRequest.wait_for(
+            lock,
+            std::chrono::seconds(timeoutSec),
+            [this] { return slowRequestStarted; });
     }
 
     bool waitForRequests(unsigned timeOutSec, unsigned expected_count = 1)
@@ -257,15 +336,16 @@ public:
         size_t lastIdx = 0;
         while ( ((PAL::getUtcSystemTimeMs()-start)<(1000* timeOutSec)) && (receivedEvents!=expected_count) )
         {
-            /* Give time for our friendly HTTP server thread to process incoming request */
-            std::this_thread::yield();
+            /* Give time for HTTP server thread to process incoming request.
+             * sleep(10) instead of yield() reduces CPU contention on single-core
+             * iOS simulator runners and gives the network stack time to deliver. */
+            PAL::sleep(10);
             {
                 LOCKGUARD(mtx_requests);
                 if (receivedRequests.size())
                 {
                     size_t size = receivedRequests.size();
 
-                    //requests can come within 100 milisec sleep
                     for (size_t index = lastIdx; index < size; index++)
                     {
                         auto request = receivedRequests.at(index);
@@ -490,6 +570,7 @@ public:
 
     std::vector<CsProtocol::Record> records()
     {
+        LOCKGUARD(mtx_requests);
         std::vector<CsProtocol::Record> result;
         if (receivedRequests.size())
         {
@@ -509,6 +590,7 @@ public:
     // Find first matching event
     CsProtocol::Record find(const std::string& name)
     {
+        LOCKGUARD(mtx_requests);
         CsProtocol::Record result;
         result.name = "";
         if (receivedRequests.size())
@@ -528,6 +610,35 @@ public:
             }
         }
         return result;
+    }
+
+    bool waitForEvent(const std::string& name, unsigned timeoutMs, size_t& nextRequestIndex)
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (PAL::getMonotonicTimeMs() < deadline)
+        {
+            std::vector<HttpServer::Request> newRequests;
+            {
+                LOCKGUARD(mtx_requests);
+                while (nextRequestIndex < receivedRequests.size())
+                {
+                    newRequests.push_back(receivedRequests[nextRequestIndex]);
+                    ++nextRequestIndex;
+                }
+            }
+            for (const auto& request : newRequests)
+            {
+                for (const auto& record : decodeRequest(request, false))
+                {
+                    if (record.name == name)
+                    {
+                        return true;
+                    }
+                }
+            }
+            PAL::sleep(10);
+        }
+        return false;
     }
 };
 
@@ -553,6 +664,37 @@ TEST_F(BasicFuncTests, sendOneEvent_immediatelyStop)
     EXPECT_GE(receivedRequests.size(), (size_t)1); // at least 1 HTTP request with customer payload and stats
 }
 
+TEST_F(BasicFuncTests, teardownDuringInFlightUpload_ShutsDownCleanly)
+{
+    // Smoke test for teardown while an upload is in flight.
+    // Uploads target the /slow/ endpoint with large payloads and MAX_TEARDOWN_TIME
+    // is 0, so FlushAndTeardown() returns while an upload is still outstanding.
+    // Teardown must complete cleanly without touching freed SDK state; run under a
+    // sanitizer (ASan/TSan) this guards the teardown-vs-upload path.
+    CleanStorage();
+    static int64_t const ONE_EVENT_SIZE = 256 * 1024;
+
+    // Point Initialize() at the (slow) endpoint so uploads stay in flight.
+    std::string savedAddress = serverAddress;
+    serverAddress = serverBaseAddress + "/slow/";
+    Initialize(0);
+    serverAddress = savedAddress;
+
+    for (int i = 0; i < 20; ++i)
+    {
+        EventProperties event("teardown_event");
+        event.SetPriority(EventPriority_Normal);
+        event.SetProperty("big_data", std::string(static_cast<size_t>(ONE_EVENT_SIZE), 'x'));
+        logger->LogEvent(event);
+    }
+    LogManager::UploadNow();
+    ASSERT_TRUE(waitForSlowRequest(5))
+        << "Upload did not reach the /slow/ endpoint";
+    // Teardown with timeout 0 returns while the upload is still outstanding.
+    LogManager::FlushAndTeardown();
+    SUCCEED();
+}
+
 TEST_F(BasicFuncTests, sendNoPriorityEvents)
 {
     CleanStorage();
@@ -573,6 +715,7 @@ TEST_F(BasicFuncTests, sendNoPriorityEvents)
     event2.SetProperty("property2", "another value");
     logger->LogEvent(event2);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
     waitForEvents(1, 3);
     EXPECT_GE(receivedRequests.size(), (size_t)1);
@@ -671,6 +814,7 @@ TEST_F(BasicFuncTests, sendDifferentPriorityEvents)
 
     logger->LogEvent(event2);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
     // 2 x customer events + 1 x evt_stats on start
     waitForEvents(1, 3);
@@ -718,6 +862,7 @@ TEST_F(BasicFuncTests, sendMultipleTenantsTogether)
 
     logger2->LogEvent(event2);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
 
     // 2 x customer events + 1 x evt_stats on start
@@ -748,6 +893,7 @@ TEST_F(BasicFuncTests, configDecorations)
     EventProperties event4("4th_event");
     logger->LogEvent(event4);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
     waitForEvents(2, 5);
 
@@ -761,19 +907,20 @@ TEST_F(BasicFuncTests, configDecorations)
 
 TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
 {
+    EventProperties event1("first_event");
+    EventProperties event2("second_event");
+    event1.SetProperty("property1", "value1");
+    event2.SetProperty("property2", "value2");
+    event1.SetLatency(MAT::EventLatency::EventLatency_RealTime);
+    event1.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
+    event2.SetLatency(MAT::EventLatency::EventLatency_RealTime);
+    event2.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
+
     {
         CleanStorage();
         Initialize();
         // This code is a bit racy because ResumeTransmission is done in Initialize
         LogManager::PauseTransmission();
-        EventProperties event1("first_event");
-        EventProperties event2("second_event");
-        event1.SetProperty("property1", "value1");
-        event2.SetProperty("property2", "value2");
-        event1.SetLatency(MAT::EventLatency::EventLatency_RealTime);
-        event1.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
-        event2.SetLatency(MAT::EventLatency::EventLatency_RealTime);
-        event2.SetPersistence(MAT::EventPersistence::EventPersistence_Critical);
         logger->LogEvent(event1);
         logger->LogEvent(event2);
         FlushAndTeardown();
@@ -785,32 +932,19 @@ TEST_F(BasicFuncTests, restartRecoversEventsFromStorage)
         fooEvent.SetLatency(EventLatency_RealTime);
         fooEvent.SetPersistence(EventPersistence_Critical);
         LogManager::GetLogger()->LogEvent(fooEvent);
+        LogManager::SetTransmitProfile(TransmitProfile_RealTime);
         LogManager::UploadNow();
 
-        // 1st request for realtime event
-        waitForEvents(3, 5); // start, first_event, second_event, ongoing, stop, start, fooEvent
-        // we drop two of the events during pause, though.
-        EXPECT_GE(receivedRequests.size(), (size_t)1);
-        if (receivedRequests.size() != 0)
-        {
-            auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-        }
+        // The first manager persists both paused customer events and its lifecycle
+        // metastats; the second manager then uploads those plus its own start event.
+        waitForEvents(10, 7);
+        verifyEvent(event1, find(event1.GetName()));
+        verifyEvent(event2, find(event2.GetName()));
+        verifyEvent(fooEvent, find(fooEvent.GetName()));
         FlushAndTeardown();
     }
-
-    /*
-        ASSERT_THAT(receivedRequests, SizeIs(1));
-        auto payload = decodeRequest(receivedRequests[0], false);
-        ASSERT_THAT(payload.TokenToDataPackagesMap, Contains(Key("functests-tenant-token")));
-        ASSERT_THAT(payload.TokenToDataPackagesMap["functests-tenant-token"], SizeIs(1));
-        auto const& dp = payload.TokenToDataPackagesMap["functests-tenant-token"][0];
-        ASSERT_THAT(payload, SizeIs(2));
-        verifyEvent(event1, payload[0]);
-        verifyEvent(event2, payload[1]);
-        */
 }
 
-#if 0 // FIXME: 1445871 [v3][1DS] Offline storage size may exceed configured limit
 TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
 {
     CleanStorage();
@@ -819,15 +953,15 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
     static int64_t const MAX_FILE_SIZE = 8 * 1024 * 1024;
     static int64_t const ALLOWED_OVERFLOW = 10 * MAX_FILE_SIZE / 100;
 
-    auto &configuration = LogManager::GetLogConfiguration();
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 0;
-    configuration[CFG_INT_CACHE_FILE_SIZE] = MAX_FILE_SIZE;
-
-    std::string slowServiceUrl;
-    slowServiceUrl.insert(slowServiceUrl.find('/', sizeof("http://")) + 1, "slow/");
-    configuration[CFG_STR_COLLECTOR_URL] = slowServiceUrl.c_str();
+    auto& configuration = LogManager::GetLogConfiguration();
+    configuration[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = true;
+    DroppedEventListener listener;
+    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
+    std::string savedAddress = serverAddress;
+    serverAddress = serverBaseAddress + "/slow/";
     {
-        Initialize();
+        Initialize(0, MAX_FILE_SIZE);
+        serverAddress = savedAddress;
         LogManager::PauseTransmission();
         for (int i = 0; i < 50; i++) {
             EventProperties event("event" + toString(i));
@@ -836,43 +970,18 @@ TEST_F(BasicFuncTests, storageFileSizeDoesntExceedConfiguredSize)
             event.SetProperty("big_data", std::string(ONE_EVENT_SIZE, '\42'));
             logger->LogEvent(event);
         }
-        // Check meta stats after restart. Because of their high priority, they will
-        // be sent alone in the very first request regardless of other events.
         FlushAndTeardown();
 
         std::string fileName = MAT::GetTempDirectory();
-        fileName += "\\";
+        fileName += PATH_SEPARATOR_CHAR;
         fileName += TEST_STORAGE_FILENAME;
         size_t fileSize = getFileSize(fileName);
         EXPECT_LE(fileSize, (size_t)(MAX_FILE_SIZE + ALLOWED_OVERFLOW));
+        EXPECT_GT(listener.overflowDrops.load(), size_t { 0 });
     }
-
-    // Restore fast URL
-    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-
-    {
-        Initialize();
-        waitForEvents(2, 8);
-        if (receivedRequests.size())
-        {
-            auto payload = decodeRequest(receivedRequests[0], false);
-            /*    auto payload = decodeRequest(receivedRequests[0], false);
-                ASSERT_THAT(payload.TokenToDataPackagesMap["metastats-tenant-token"], SizeIs(1));
-                auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-                ASSERT_THAT(payload, SizeIs(2));
-                EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-                EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-                // The expected number of dropped events is hard to estimate because of database overhead,
-                // varying timing, some events have been sent etc. Just check that it's at least a quarter.
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_offline_storage_overflow", StrAsIntGt(50 / 4))));
-                */
-        }
-        FlushAndTeardown();
-    }
-
+    LogManager::RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
+    configuration[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = false;
 }
-#endif
 
 TEST_F(BasicFuncTests, sendMetaStatsOnStart)
 {
@@ -897,11 +1006,12 @@ TEST_F(BasicFuncTests, sendMetaStatsOnStart)
     // Check
     Initialize();
     LogManager::ResumeTransmission(); // ?
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    PAL::sleep(2000);
+    waitForEvents(5, 6); // Four lifecycle metastats plus the two persisted customer events.
 
     auto r2 = records();
-    ASSERT_GE(r2.size(), (size_t)4); // (start + stop) + (2 events + start)
+    ASSERT_EQ(r2.size(), (size_t)6);
 
     for (const auto &evt : { event1, event2 })
     {
@@ -927,8 +1037,9 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_OneEventWithoutLevelOneWithButNotAl
     eventWithAllowedLevel.SetLevel(DIAG_LEVEL_REQUIRED);
     logger->LogEvent(eventWithAllowedLevel);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    waitForEvents(1 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
+    waitForEvents(5 /*timeout*/, 2 /*expected count*/);  // Start and EventWithAllowedLevel
 
     ASSERT_EQ(records().size(), static_cast<size_t>(2)); // Start and EventWithAllowedLevel
 
@@ -970,8 +1081,9 @@ TEST_F(BasicFuncTests, DiagLevelRequiredOnly_SendTwoEventsUpdateAllowedLevelsSen
     LogManager::SetLevelFilter(DIAG_LEVEL_OPTIONAL, { DIAG_LEVEL_OPTIONAL, DIAG_LEVEL_REQUIRED });
     SendEventWithOptionalThenRequired(logger);
 
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
-    waitForEvents(2 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
+    waitForEvents(5 /*timeout*/, 4 /*expected count*/);    // Start and EventWithAllowedLevel
 
     auto sentRecords = records();
     ASSERT_EQ(sentRecords.size(), static_cast<size_t>(4)); // Start and EventWithAllowedLevel
@@ -1090,6 +1202,17 @@ public :
             break;
         };
     }
+
+    bool waitForAtLeast(const std::atomic<unsigned>& counter, unsigned expected, unsigned timeoutMs)
+    {
+        const auto deadline = PAL::getMonotonicTimeMs() + timeoutMs;
+        while (counter.load() < expected && PAL::getMonotonicTimeMs() < deadline)
+        {
+            PAL::sleep(10);
+        }
+        return counter.load() >= expected;
+    }
+
     void printStats(){
         std::cerr << "[          ] numLogged        = " << numLogged << std::endl;
         std::cerr << "[          ] numSent          = " << numSent << std::endl;
@@ -1140,6 +1263,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
     configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
     configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
+    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default)
 
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
@@ -1173,7 +1297,8 @@ TEST_F(BasicFuncTests, killSwitchWorks)
             myLogger->LogEvent(event2);
         }
     }
-    // Try to upload and wait for 2 seconds to complete
+    // Try to upload and wait for completion
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::UploadNow();
     PAL::sleep(2000);
 
@@ -1198,6 +1323,7 @@ TEST_F(BasicFuncTests, killSwitchWorks)
         myLogger->LogEvent(event2);
     }
     // Expect all events to be dropped
+    EXPECT_TRUE(listener.waitForAtLeast(listener.numDropped, 100, 10000));
     EXPECT_EQ(uint32_t { 100 }, listener.numDropped);
     LogManager::FlushAndTeardown();
 
@@ -1209,83 +1335,71 @@ TEST_F(BasicFuncTests, killSwitchWorks)
 TEST_F(BasicFuncTests, killIsTemporary)
 {
     CleanStorage();
-    // Create the configuration to send to fake server
     auto configuration = LogManager::GetLogConfiguration();
 
     configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
     configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
     configuration[CFG_INT_SDK_MODE] = SdkModeTypes::SdkModeTypes_CS;
-
     configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
     configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;   // 2 seconds wait on shutdown
+    configuration[CFG_INT_MAX_TEARDOWN_TIME] = 2;
     configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
     configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = false;      // disable compression for now
     configuration[CFG_MAP_METASTATS_CONFIG]["interval"] = 30 * 60;   // 30 mins
-
+    configuration[CFG_MAP_METASTATS_CONFIG]["enabled"] = true;        // opt in to stats (disabled by default)
     configuration["name"] = __FILE__;
     configuration["version"] = "1.0.0";
-    configuration["config"] = { { "host", __FILE__ } }; // Host instance
+    configuration["config"] = { { "host", __FILE__ } };
 
-    // set the killed token on the server
-    server.setKilledToken(KILLED_TOKEN, 10);
+    constexpr unsigned killDurationSec = 5;
+    server.setKilledToken(KILLED_TOKEN, killDurationSec);
     KillSwitchListener listener;
     addListeners(listener);
-    // Log 100 events from valid and invalid 4 times
-    int repetitions = 4;
-    for (int i = 0; i < repetitions; i++) {
-        // Initialize the logger for the valid token and log 100 events
-        LogManager::Initialize(TEST_TOKEN, configuration);
-        LogManager::ResumeTransmission();
-        auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
-        int numIterations = 100;
-        while (numIterations--) {
-            EventProperties event1("fooEvent");
-            event1.SetProperty("property", "value");
-            myLogger->LogEvent(event1);
-        }
-        // Initialize the logger for the killed token and log 100 events
-        LogManager::Initialize(KILLED_TOKEN, configuration);
-        LogManager::ResumeTransmission();
-        myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
-        numIterations = 100;
-        while (numIterations--) {
-            EventProperties event2("failEvent");
-            event2.SetProperty("property", "value");
-            myLogger->LogEvent(event2);
-        }
-    }
-    // Try and wait to upload
-    LogManager::UploadNow();
-    PAL::sleep(2000);
-    // Sleep for 11 seconds so the killed time has expired, clear the killed tokens on server
-    PAL::sleep(11000);
-    server.clearKilledTokens();
-    // Log 100 events with valid logger
-    LogManager::Initialize(TEST_TOKEN, configuration);
-    LogManager::ResumeTransmission();
-    auto myLogger = LogManager::GetLogger(TEST_TOKEN, "killed");
-    int numIterations = 100;
-    while (numIterations--) {
-        EventProperties event1("fooEvent");
-        event1.SetProperty("property", "value");
-        myLogger->LogEvent(event1);
-    }
 
     LogManager::Initialize(KILLED_TOKEN, configuration);
+    LogManager::SetTransmitProfile(TransmitProfile_RealTime);
     LogManager::ResumeTransmission();
-    myLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
-    numIterations = 100;
-    while (numIterations--) {
-        EventProperties event2("failEvent");
-        event2.SetProperty("property", "value");
-        myLogger->LogEvent(event2);
-    }
-    // Expect to 0 events to be dropped
-    EXPECT_EQ(uint32_t { 0 }, listener.numDropped);
-    LogManager::FlushAndTeardown();
 
-    listener.printStats();
+    auto killedLogger = LogManager::GetLogger(KILLED_TOKEN, "killed");
+    killedLogger->LogEvent("activateKillSwitch");
+    LogManager::UploadNow();
+
+    const bool killSwitchActivated = listener.waitForAtLeast(listener.numHttpOK, 1, 10000);
+    if (!killSwitchActivated)
+    {
+        LogManager::FlushAndTeardown();
+        removeListeners(listener);
+        server.clearKilledTokens();
+    }
+    ASSERT_TRUE(killSwitchActivated) << "Kill-switch response was not observed before timeout";
+    server.clearKilledTokens();
+
+    const unsigned droppedBeforeKill = listener.numDropped.load();
+    const auto activeDeadline = PAL::getMonotonicTimeMs() + 2000;
+    unsigned probe = 0;
+    while (listener.numDropped.load() == droppedBeforeKill
+        && PAL::getMonotonicTimeMs() < activeDeadline)
+    {
+        killedLogger->LogEvent("blockedWhileKillIsActive" + std::to_string(probe++));
+        PAL::sleep(20);
+    }
+    EXPECT_GT(listener.numDropped.load(), droppedBeforeKill);
+
+    // Poll until the kill-switch TTL expires and the SDK resumes sending.
+    // Budget: kill duration + 5 s headroom; the extra 100 ms absorbs any
+    // request that was dispatched just before the deadline fires.
+    const auto expiryDeadline = PAL::getMonotonicTimeMs() + (killDurationSec + 5) * 1000 + 100;
+    size_t nextRequestIndex = 0;
+    bool acceptedAfterKillExpires = false;
+    while (!acceptedAfterKillExpires && PAL::getMonotonicTimeMs() < expiryDeadline)
+    {
+        killedLogger->LogEvent("acceptedAfterKillExpires");
+        LogManager::UploadNow();
+        acceptedAfterKillExpires = waitForEvent("acceptedAfterKillExpires", 100, nextRequestIndex);
+    }
+    EXPECT_TRUE(acceptedAfterKillExpires);
+
+    LogManager::FlushAndTeardown();
     removeListeners(listener);
     server.clearKilledTokens();
 }
@@ -1314,7 +1428,10 @@ TEST_F(BasicFuncTests, sendManyRequestsAndCancel)
         configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
         configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = true;
-        configuration[CFG_STR_COLLECTOR_URL] = COLLECTOR_URL_PROD;
+        // Use the fixture's local slow endpoint so cancellation does not depend
+        // on how the CI runner handles connections to an unused port.
+        const std::string slowCollectorUrl = serverBaseAddress + "/slow/";
+        configuration[CFG_STR_COLLECTOR_URL] = slowCollectorUrl.c_str();
         configuration[CFG_INT_MAX_TEARDOWN_TIME] = (int64_t)(i % 2);
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0;
         configuration[CFG_INT_TRACE_LEVEL_MIN] = ACTTraceLevel_Warn;
@@ -1516,59 +1633,41 @@ TEST_F(BasicFuncTests, deleteEvents)
     for (const auto &e: events2) {
         verifyEvent(e, find(e.GetName()));
     }
+    FlushAndTeardown();
 }
 #endif
 
-#if 0 // TODO: [MG] - re-enable this long-haul test
 TEST_F(BasicFuncTests, serverProblemsDropEventsAfterMaxRetryCount)
 {
     CleanStorage();
 
-    auto &configuration = LogManager::GetLogConfiguration();
+    DroppedEventListener listener;
+    LogManager::AddEventListener(DebugEventType::EVT_DROPPED, listener);
+    LogManager::AddEventListener(DebugEventType::EVT_SEND_RETRY, listener);
 
-    std::string badServiceUrl;
-    badServiceUrl.insert(badServiceUrl.find('/', sizeof("http://")) + 1, "503/");
+    Initialize();
+    LogManager::PauseTransmission();
 
-    configuration[CFG_STR_COLLECTOR_URL] = badServiceUrl.c_str();
+    EventProperties event("event");
+    event.SetLatency(EventLatency_RealTime);
+    event.SetPersistence(EventPersistence_Critical);
+    event.SetProperty("property", "value");
+    logger->LogEvent(event);
+    FlushAndTeardown();
 
-    {
-        Initialize();
+    std::string savedAddress = serverAddress;
+    serverAddress = serverBaseAddress + "/503/";
+    Initialize(2, 4096 * 1024, 1, "E,50,100,2,1");
+    serverAddress = savedAddress;
+    LogManager::UploadNow();
 
-        EventProperties event("event");
-        event.SetProperty("property", "value");
+    EXPECT_TRUE(listener.waitForAtLeast(listener.sendRetries, 2, 10000));
+    EXPECT_TRUE(listener.waitForAtLeast(listener.retryExceededDrops, 1, 5000));
+    EXPECT_GT(listener.retryExceededDrops.load(), size_t { 0 });
 
-        logger->LogEvent(event);
-
-        // After initial delay of 2 seconds, the library will send a request, wait 3 seconds, send 1st retry and stop.
-        // 2nd retry after another 3 seconds (using the good URL again) should not come - wait 1 more second to be sure.
-        PAL::sleep(2000 + 2 * 3000 + 1000);
-        // EXPECT_THAT(receivedRequests, SizeIs(0));
-
-         // Check meta stats on restart (will be first request)
-        FlushAndTeardown();
-    }
-
-    // Restore fast URL
-    configuration[CFG_STR_COLLECTOR_URL] = serverAddress.c_str();
-
-    {
-        configuration[CFG_INT_RAM_QUEUE_SIZE] = 4096 * 20;
-        configuration[CFG_STR_CACHE_FILE_PATH] = TEST_STORAGE_FILENAME;
-        Initialize();
-        waitForEvents(5, 2);
-        if (receivedRequests.size())
-        {
-            auto payload = decodeRequest(receivedRequests[receivedRequests.size() - 1], false);
-            /*    auto const& dp = payload.TokenToDataPackagesMap["metastats-tenant-token"][0];
-                ASSERT_THAT(payload, SizeIs(1));
-                EXPECT_THAT(payload[0].Id, Not(IsEmpty()));
-                EXPECT_THAT(payload[0].Type, Eq("client_telemetry"));
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("stats_rollup_kind", "stop")));
-                EXPECT_THAT(payload[0].Extension, Contains(Pair("records_dropped_retry_exceeded", "2")));
-                */
-        }
-        FlushAndTeardown();
-    }
+    FlushAndTeardown();
+    LogManager::RemoveEventListener(DebugEventType::EVT_DROPPED, listener);
+    LogManager::RemoveEventListener(DebugEventType::EVT_SEND_RETRY, listener);
 }
-#endif
+
 #endif // HAVE_MAT_DEFAULT_HTTP_CLIENT

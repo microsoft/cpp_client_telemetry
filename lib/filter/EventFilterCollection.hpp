@@ -11,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <atomic>
 
 namespace MAT_NS_BEGIN
 {
@@ -26,9 +25,10 @@ namespace MAT_NS_BEGIN
         virtual bool Empty() const noexcept override;
 
     protected:
-        std::atomic<size_t> m_size { 0 };
+        using FilterList = std::vector<std::shared_ptr<IEventFilter>>;
+
         mutable std::mutex m_filterLock;
-        std::vector<std::unique_ptr<IEventFilter>> m_filters;
+        std::shared_ptr<const FilterList> m_filters;
     };
 
 } MAT_NS_END

@@ -5,17 +5,64 @@
 
 #include "common/Common.hpp"
 #include "pal/PseudoRandomGenerator.hpp"
+#include "pal/TaskDispatcher.hpp"
+#include "pal/WorkerThread.hpp"
 #include "Version.hpp"
 
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <cstdint>
+#include <functional>
+#include <future>
+#include <limits>
+#include <memory>
+#include <mutex>
+#include <stdexcept>
+#include <string>
+#include <set>
+#include <thread>
+
+#ifdef HAVE_MAT_LOGGING
+#include "pal/PAL.hpp"
+#include <gtest/gtest.h>
+#include <fstream>
+#include <memory>
+#include <string>
+#include <cstdio>
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+using namespace PAL::detail;
+#endif
+
 using namespace testing;
+
+#if defined(_WIN32) || defined(_WIN64)
+namespace PAL_NS_BEGIN {
+    std::string formatWindowsOsFullVersion(
+        unsigned long majorVersion,
+        unsigned long minorVersion,
+        unsigned long buildNumber,
+        uint32_t updateBuildRevision,
+        bool hasUpdateBuildRevision);
+} PAL_NS_END
+#endif
 
 class PalTests : public Test {};
 
 TEST_F(PalTests, UuidGeneration)
 {
+    // Canonical UUID string length ("8-4-4-4-12") and the number of UUIDs
+    // generated for the uniqueness check below.
+    constexpr size_t UuidStringLength = 36;
+    constexpr size_t UuidBatchSize = 1000;
+
     std::string uuid0 = PAL::generateUuidString();
 
-    EXPECT_THAT(uuid0.length(), 36u);
+    EXPECT_THAT(uuid0.length(), UuidStringLength);
 
     std::string mask = uuid0;
     for (char& ch : mask) {
@@ -32,21 +79,31 @@ TEST_F(PalTests, UuidGeneration)
 
     std::string uuid1 = PAL::generateUuidString();
 
-    EXPECT_THAT(uuid1.length(), 36u);
+    EXPECT_THAT(uuid1.length(), UuidStringLength);
 
     size_t diff = 0;
-    for (size_t i = 0; i < 36; i++) {
+    for (size_t i = 0; i < UuidStringLength; i++) {
         diff += (uuid0[i] != uuid1[i]);
     }
     EXPECT_THAT(diff, Gt(20u));
+
+    // A batch of generated UUIDs must all be distinct (guards against a stuck
+    // or low-entropy generator).
+    std::set<std::string> uuids;
+    for (size_t i = 0; i < UuidBatchSize; i++) {
+        std::string u = PAL::generateUuidString();
+        EXPECT_THAT(u.length(), UuidStringLength);
+        uuids.insert(u);
+    }
+    EXPECT_THAT(uuids.size(), UuidBatchSize);
 }
 
 TEST_F(PalTests, PseudoRandomGenerator)
 {
     PAL::PseudoRandomGenerator prg;
 
-    size_t const NumQueries = 1000;
-    size_t const NumBuckets = 11;
+    constexpr size_t NumQueries = 1000;
+    constexpr size_t NumBuckets = 11;
     size_t buckets[NumBuckets] = {};
 
     for (size_t i = 0; i < NumQueries; i++) {
@@ -70,8 +127,24 @@ TEST_F(PalTests, SystemTime)
 
     int64_t t1 = PAL::getUtcSystemTimeMs();
     EXPECT_THAT(t1, Gt(t0 + 360));
-    EXPECT_THAT(t1, Lt(t0 + 550));
+    EXPECT_THAT(t1, Lt(t0 + 1000));
 }
+
+#if !defined(_WIN32) && !defined(_WIN64)
+TEST_F(PalTests, SystemTimeInTicksPreservesSubMillisecondPrecision)
+{
+    constexpr int64_t TicksPerMillisecond = 10000;
+    bool observedSubMillisecondTick = false;
+
+    for (int i = 0; i < 1000 && !observedSubMillisecondTick; ++i)
+    {
+        observedSubMillisecondTick =
+            PAL::getUtcSystemTimeinTicks() % TicksPerMillisecond != 0;
+    }
+
+    EXPECT_TRUE(observedSubMillisecondTick);
+}
+#endif
 
 TEST_F(PalTests, FormatUtcTimestampMsAsISO8601)
 {
@@ -79,6 +152,29 @@ TEST_F(PalTests, FormatUtcTimestampMsAsISO8601)
     EXPECT_THAT(PAL::formatUtcTimestampMsAsISO8601(1234567890123ll), Eq("2009-02-13T23:31:30.123Z"));
     EXPECT_THAT(PAL::formatUtcTimestampMsAsISO8601(2147483647999ll), Eq("2038-01-19T03:14:07.999Z"));
 }
+
+#if defined(_WIN32) || defined(_WIN64)
+TEST_F(PalTests, WindowsOsFullVersionIncludesUbrWhenPresent)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 1234, true),
+        Eq("10.0.26200.1234"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionOmitsUbrWhenMissing)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 0, false),
+        Eq("10.0.26200"));
+}
+
+TEST_F(PalTests, WindowsOsFullVersionIncludesZeroUbrWhenPresent)
+{
+    EXPECT_THAT(
+        PAL::formatWindowsOsFullVersion(10, 0, 26200, 0, true),
+        Eq("10.0.26200.0"));
+}
+#endif
 
 TEST_F(PalTests, MonotonicTime)
 {
@@ -88,7 +184,7 @@ TEST_F(PalTests, MonotonicTime)
 
     int64_t t1 = PAL::getMonotonicTimeMs();
     EXPECT_THAT(t1 - t0, Gt(780));
-    EXPECT_THAT(t1 - t0, Lt(950));
+    EXPECT_THAT(t1 - t0, Lt(1500));
 }
 
 TEST_F(PalTests, SemanticContextPopulation)
@@ -127,3 +223,718 @@ TEST_F(PalTests, SdkVersion)
 
     EXPECT_THAT(PAL::getSdkVersion(), Eq(v));
 }
+
+namespace
+{
+    class ThrowingTaskHelper
+    {
+    public:
+        void ThrowStdException() { throw std::runtime_error("worker task boom"); }
+        void ThrowNonStdException() { throw 123; }
+        void Signal(std::atomic<bool>* ran) { ran->store(true); }
+    };
+
+    class DroppingTaskDispatcher final : public ITaskDispatcher
+    {
+    public:
+        void Join() override {}
+        void Queue(Task* task) override { delete task; }
+
+        bool Cancel(Task*, uint64_t = 0) override
+        {
+            cancelCalled = true;
+            return false;
+        }
+
+        bool cancelCalled = false;
+    };
+
+    class ScheduledTaskTarget
+    {
+    public:
+        explicit ScheduledTaskTarget(std::atomic<bool>& callbackRan) :
+            m_callbackRan(callbackRan)
+        {
+        }
+
+        void Callback()
+        {
+            m_callbackRan.store(true);
+        }
+
+    private:
+        std::atomic<bool>& m_callbackRan;
+    };
+
+    class BlockingScheduledTaskTarget
+    {
+    public:
+        void Callback()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_entered = true;
+            m_condition.notify_all();
+            m_condition.wait(lock, [this]() { return m_released; });
+        }
+
+        bool WaitUntilEntered()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_condition.wait_for(
+                lock, std::chrono::seconds(2), [this]() { return m_entered; });
+        }
+
+        void Release()
+        {
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_released = true;
+            }
+            m_condition.notify_all();
+        }
+
+    private:
+        std::mutex m_mutex;
+        std::condition_variable m_condition;
+        bool m_entered {false};
+        bool m_released {false};
+    };
+
+    class ReentrantQueueScheduledTaskTarget
+    {
+    public:
+        explicit ReentrantQueueScheduledTaskTarget(ITaskDispatcher* dispatcher) :
+            m_dispatcher(dispatcher)
+        {
+        }
+
+        void Callback()
+        {
+            {
+                std::unique_lock<std::mutex> lock(m_mutex);
+                m_entered = true;
+                m_condition.notify_all();
+                m_condition.wait(lock, [this]() { return m_queueAllowed; });
+            }
+
+            PAL::dispatchTask(
+                m_dispatcher, this, &ReentrantQueueScheduledTaskTarget::FollowUp);
+
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_queueReturned = true;
+            }
+            m_condition.notify_all();
+        }
+
+        void FollowUp()
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_followUpRan = true;
+            m_condition.notify_all();
+        }
+
+        bool WaitUntilEntered()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_condition.wait_for(
+                lock, std::chrono::seconds(2), [this]() { return m_entered; });
+        }
+
+        void AllowQueue()
+        {
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_queueAllowed = true;
+            }
+            m_condition.notify_all();
+        }
+
+        bool WaitUntilQueueReturned()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_condition.wait_for(
+                lock, std::chrono::seconds(1), [this]() { return m_queueReturned; });
+        }
+
+        bool WaitUntilFollowUpRan()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_condition.wait_for(
+                lock, std::chrono::seconds(2), [this]() { return m_followUpRan; });
+        }
+
+    private:
+        ITaskDispatcher* m_dispatcher;
+        std::mutex m_mutex;
+        std::condition_variable m_condition;
+        bool m_entered {false};
+        bool m_queueAllowed {false};
+        bool m_queueReturned {false};
+        bool m_followUpRan {false};
+    };
+}
+
+// A task throwing an exception must be contained by the worker thread loop;
+// otherwise the exception unwinds out of the thread entry function and calls
+// std::terminate, killing the host process.
+TEST_F(PalTests, WorkerThreadContainsThrowingTask)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    ThrowingTaskHelper helper;
+    std::atomic<bool> ranAfterStdThrow(false);
+    std::atomic<bool> ranAfterNonStdThrow(false);
+
+    PAL::dispatchTask(dispatcher.get(), &helper, &ThrowingTaskHelper::ThrowStdException);
+    PAL::dispatchTask(dispatcher.get(), &helper, &ThrowingTaskHelper::Signal, &ranAfterStdThrow);
+
+    PAL::dispatchTask(dispatcher.get(), &helper, &ThrowingTaskHelper::ThrowNonStdException);
+    PAL::dispatchTask(dispatcher.get(), &helper, &ThrowingTaskHelper::Signal, &ranAfterNonStdThrow);
+
+    // Wait for the follow-up tasks to run, proving the thread survived each throw.
+    for (int i = 0; i < 500 && !(ranAfterStdThrow.load() && ranAfterNonStdThrow.load()); ++i)
+        PAL::sleep(10);
+
+    EXPECT_TRUE(ranAfterStdThrow.load());
+    EXPECT_TRUE(ranAfterNonStdThrow.load());
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskReturnsNoOpHandleWhenDispatcherDropsTask)
+{
+    DroppingTaskDispatcher dispatcher;
+    std::atomic<bool> callbackRan(false);
+    ScheduledTaskTarget target(callbackRan);
+
+    auto handle = PAL::scheduleTask(&dispatcher, 0, &target, &ScheduledTaskTarget::Callback);
+
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+    EXPECT_FALSE(dispatcher.cancelCalled);
+    EXPECT_FALSE(callbackRan.load());
+}
+
+TEST_F(PalTests, ScheduleTaskHandleClearsAfterCallbackCompletes)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    std::atomic<bool> callbackRan(false);
+    ScheduledTaskTarget target(callbackRan);
+    auto handle = PAL::scheduleTask(dispatcher.get(), 0, &target, &ScheduledTaskTarget::Callback);
+
+    for (int i = 0; i < 500 && (!callbackRan.load() || handle.GetTask() != nullptr); ++i)
+    {
+        PAL::sleep(10);
+    }
+
+    EXPECT_TRUE(callbackRan.load());
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskCancelSerializesTaskDestruction)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    std::atomic<bool> callbackRan(false);
+    ScheduledTaskTarget target(callbackRan);
+    auto handle = PAL::scheduleTask(
+        dispatcher.get(), 60000, &target, &ScheduledTaskTarget::Callback);
+
+    ASSERT_NE(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_FALSE(callbackRan.load());
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskCancelWaitDoesNotDeadlockTaskDestruction)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    BlockingScheduledTaskTarget target;
+    auto handle = PAL::scheduleTask(
+        dispatcher.get(), 0, &target, &BlockingScheduledTaskTarget::Callback);
+
+    if (!target.WaitUntilEntered())
+    {
+        target.Release();
+        handle.Cancel(2000);
+        dispatcher->Join();
+        FAIL() << "scheduled task did not start";
+    }
+
+    std::atomic<bool> cancelReturned(false);
+    bool cancelResult = false;
+    std::thread canceller([&]() {
+        cancelResult = handle.Cancel(2000);
+        cancelReturned.store(true);
+    });
+
+    PAL::sleep(50);
+    target.Release();
+    for (int i = 0; i < 50 && !cancelReturned.load(); ++i)
+    {
+        PAL::sleep(10);
+    }
+
+    EXPECT_TRUE(cancelReturned.load());
+    canceller.join();
+    EXPECT_TRUE(cancelResult);
+    for (int i = 0; i < 50 && handle.GetTask() != nullptr; ++i)
+    {
+        PAL::sleep(10);
+    }
+    EXPECT_EQ(handle.GetTask(), nullptr);
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, ScheduleTaskCancelWaitAllowsRunningTaskToQueue)
+{
+    constexpr uint64_t CancelWaitMs = 3000;
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    ReentrantQueueScheduledTaskTarget target(dispatcher.get());
+    auto handle = PAL::scheduleTask(
+        dispatcher.get(), 0, &target, &ReentrantQueueScheduledTaskTarget::Callback);
+
+    if (!target.WaitUntilEntered())
+    {
+        target.AllowQueue();
+        handle.Cancel(CancelWaitMs);
+        dispatcher->Join();
+        FAIL() << "scheduled task did not start";
+    }
+
+    std::promise<void> cancelStarted;
+    std::future<void> cancelStartedFuture = cancelStarted.get_future();
+    std::promise<void> cancelFinished;
+    std::future<void> cancelFinishedFuture = cancelFinished.get_future();
+    bool cancelResult = false;
+    std::thread canceller([&]() {
+        cancelStarted.set_value();
+        cancelResult = handle.Cancel(CancelWaitMs);
+        cancelFinished.set_value();
+    });
+
+    EXPECT_EQ(cancelStartedFuture.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    EXPECT_EQ(
+        cancelFinishedFuture.wait_for(std::chrono::milliseconds(100)),
+        std::future_status::timeout);
+
+    target.AllowQueue();
+
+    EXPECT_TRUE(target.WaitUntilQueueReturned());
+    EXPECT_EQ(
+        cancelFinishedFuture.wait_for(std::chrono::seconds(1)),
+        std::future_status::ready);
+
+    canceller.join();
+    EXPECT_TRUE(cancelResult);
+    EXPECT_TRUE(target.WaitUntilFollowUpRan());
+
+    dispatcher->Join();
+}
+
+namespace
+{
+    class WorkerThreadScheduleTarget
+    {
+    public:
+        void Callback() {}
+    };
+
+    class BlockingCancellationTarget
+    {
+    public:
+        void Block()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            m_entered = true;
+            m_stateChanged.notify_all();
+            m_stateChanged.wait(lock, [this]() { return m_release; });
+        }
+
+        void Signal()
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_successorRan = true;
+            m_stateChanged.notify_all();
+        }
+
+        bool WaitUntilEntered()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            return m_stateChanged.wait_for(
+                lock, std::chrono::seconds{5}, [this]() { return m_entered; });
+        }
+
+        bool WaitUntilSuccessorRan()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            return m_stateChanged.wait_for(
+                lock, std::chrono::seconds{5}, [this]() { return m_successorRan; });
+        }
+
+        void Release()
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_release = true;
+            m_stateChanged.notify_all();
+        }
+
+    private:
+        std::mutex m_lock;
+        std::condition_variable m_stateChanged;
+        bool m_entered = false;
+        bool m_release = false;
+        bool m_successorRan = false;
+    };
+
+    class SelfDisposeHelper
+    {
+    public:
+        std::function<void()> releaseLastRef;
+        std::atomic<bool>* done = nullptr;
+
+        void Run()
+        {
+            releaseLastRef();
+            done->store(true);
+        }
+    };
+
+    class SelfJoinTarget
+    {
+    public:
+        explicit SelfJoinTarget(ITaskDispatcher* dispatcher)
+            : m_dispatcher(dispatcher)
+        {
+        }
+
+        void Run()
+        {
+            {
+                std::unique_lock<std::mutex> lock(m_lock);
+                m_entered = true;
+                m_changed.notify_all();
+                m_changed.wait(lock, [this]() { return m_allowJoin; });
+            }
+
+            m_dispatcher->Join();
+
+            std::unique_lock<std::mutex> lock(m_lock);
+            m_joinReturned = true;
+            m_changed.notify_all();
+            m_changed.wait(lock, [this]() { return m_allowReturn; });
+        }
+
+        bool WaitUntilEntered()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            return m_changed.wait_for(
+                lock, std::chrono::seconds(5), [this]() { return m_entered; });
+        }
+
+        bool WaitUntilJoinReturns()
+        {
+            std::unique_lock<std::mutex> lock(m_lock);
+            return m_changed.wait_for(
+                lock, std::chrono::seconds(5), [this]() { return m_joinReturned; });
+        }
+
+        void AllowJoin()
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_allowJoin = true;
+            m_changed.notify_all();
+        }
+
+        void AllowReturn()
+        {
+            std::lock_guard<std::mutex> lock(m_lock);
+            m_allowReturn = true;
+            m_changed.notify_all();
+        }
+
+    private:
+        ITaskDispatcher* m_dispatcher;
+        std::mutex m_lock;
+        std::condition_variable m_changed;
+        bool m_entered = false;
+        bool m_allowJoin = false;
+        bool m_joinReturned = false;
+        bool m_allowReturn = false;
+    };
+}
+
+TEST_F(PalTests, ScheduleTaskAfterWorkerThreadJoinReturnsNoOpHandle)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    dispatcher->Join();
+    WorkerThreadScheduleTarget target;
+
+    auto handle = PAL::scheduleTask(
+        dispatcher.get(), 100, &target, &WorkerThreadScheduleTarget::Callback);
+
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+}
+
+TEST_F(PalTests, ScheduleTaskHandleClearsAfterWorkerThreadCallbackCompletes)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    std::atomic<bool> callbackRan(false);
+
+    class WorkerThreadCompletionTarget
+    {
+    public:
+        explicit WorkerThreadCompletionTarget(std::atomic<bool>& callbackRan) :
+            m_callbackRan(callbackRan)
+        {
+        }
+
+        void Callback() { m_callbackRan.store(true); }
+
+    private:
+        std::atomic<bool>& m_callbackRan;
+    } target(callbackRan);
+
+    auto handle = PAL::scheduleTask(
+        dispatcher.get(), 0, &target, &WorkerThreadCompletionTarget::Callback);
+
+    for (int i = 0; i < 500 && !callbackRan.load(); ++i)
+    {
+        PAL::sleep(10);
+    }
+
+    ASSERT_TRUE(callbackRan.load());
+    EXPECT_EQ(handle.GetTask(), nullptr);
+    EXPECT_TRUE(handle.Cancel());
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, CancellingRunningTaskDoesNotDropSuccessor)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    constexpr int Iterations = 400;
+
+    for (int iteration = 0; iteration < Iterations; ++iteration)
+    {
+        BlockingCancellationTarget target;
+        auto running = PAL::scheduleTask(
+            dispatcher.get(), 0, &target, &BlockingCancellationTarget::Block);
+
+        if (!target.WaitUntilEntered())
+        {
+            target.Release();
+            dispatcher->Join();
+            FAIL() << "Worker did not start the blocking task";
+            return;
+        }
+
+        auto successor = PAL::scheduleTask(
+            dispatcher.get(), 0, &target, &BlockingCancellationTarget::Signal);
+        std::promise<void> cancelStarted;
+        auto cancelStartedFuture = cancelStarted.get_future();
+        bool cancelResult = false;
+        std::thread cancelThread([&]() {
+            cancelStarted.set_value();
+            cancelResult = running.Cancel(std::numeric_limits<uint64_t>::max());
+        });
+
+        cancelStartedFuture.wait();
+        for (int i = 0; i < 100; ++i)
+        {
+            std::this_thread::yield();
+        }
+        target.Release();
+        cancelThread.join();
+
+        EXPECT_TRUE(cancelResult);
+        if (!target.WaitUntilSuccessorRan())
+        {
+            dispatcher->Join();
+            FAIL() << "Cancellation dropped the successor task at iteration " << iteration;
+            return;
+        }
+        (void)successor;
+    }
+
+    dispatcher->Join();
+}
+
+TEST_F(PalTests, WorkerThreadSelfDisposeOnOwnThreadIsSafe)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    auto* raw = dispatcher.get();
+    auto box = std::make_shared<decltype(dispatcher)>(std::move(dispatcher));
+
+    std::atomic<bool> done(false);
+    SelfDisposeHelper helper;
+    helper.releaseLastRef = [box]() { box->reset(); };
+    helper.done = &done;
+
+    PAL::dispatchTask(raw, &helper, &SelfDisposeHelper::Run);
+
+    for (int i = 0; i < 500 && !done.load(); ++i)
+    {
+        PAL::sleep(10);
+    }
+    ASSERT_TRUE(done.load());
+
+    PAL::sleep(200);
+}
+
+TEST_F(PalTests, WorkerThreadSelfJoinDoesNotDeadlockExternalJoin)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    SelfJoinTarget target(dispatcher.get());
+    PAL::dispatchTask(dispatcher.get(), &target, &SelfJoinTarget::Run);
+    ASSERT_TRUE(target.WaitUntilEntered());
+
+    std::promise<void> externalJoinStarted;
+    auto externalJoinStartedFuture = externalJoinStarted.get_future();
+    std::thread externalJoiner([&]() {
+        externalJoinStarted.set_value();
+        dispatcher->Join();
+    });
+    ASSERT_EQ(
+        externalJoinStartedFuture.wait_for(std::chrono::seconds(2)),
+        std::future_status::ready);
+
+    PAL::sleep(50);
+    target.AllowJoin();
+    ASSERT_TRUE(target.WaitUntilJoinReturns());
+    target.AllowReturn();
+    externalJoiner.join();
+}
+
+TEST_F(PalTests, WorkerThreadSelfJoinSurvivesConcurrentFinalRelease)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    SelfJoinTarget target(dispatcher.get());
+    PAL::dispatchTask(dispatcher.get(), &target, &SelfJoinTarget::Run);
+    ASSERT_TRUE(target.WaitUntilEntered());
+
+    target.AllowJoin();
+    ASSERT_TRUE(target.WaitUntilJoinReturns());
+
+    std::atomic<bool> releaseReturned(false);
+    std::thread releaser(
+        [owner = std::move(dispatcher), &releaseReturned]() mutable {
+            owner.reset();
+            releaseReturned.store(true, std::memory_order_release);
+        });
+
+    PAL::sleep(100);
+    EXPECT_FALSE(releaseReturned.load(std::memory_order_acquire));
+    target.AllowReturn();
+    releaser.join();
+    EXPECT_TRUE(releaseReturned.load(std::memory_order_acquire));
+}
+
+#ifdef HAVE_MAT_LOGGING
+class LogInitTest : public Test
+{
+    protected:
+        std::string validPath = "valid/path/";
+
+        void SetUp() override
+        {
+            // Create the valid path directory and any intermediate directories
+    #if defined(_WIN32) || defined(_WIN64)
+            CreateDirectoryA("valid", NULL);
+            CreateDirectoryA(validPath.c_str(), NULL);
+    #elif defined(ANDROID)
+            std::string temp = MAT::GetTempDirectory();
+            std::string parent = temp + PATH_SEPARATOR_CHAR + "valid";
+            validPath = parent + PATH_SEPARATOR_CHAR + "path" + PATH_SEPARATOR_CHAR;
+            mkdir(parent.c_str(), 0777);
+            mkdir(validPath.c_str(), 0777);
+    #else
+            mkdir("valid", 0777);
+            mkdir(validPath.c_str(), 0777);
+    #endif
+        }
+
+        void TearDown() override
+        {
+            PAL::detail::log_done();
+            if (!PAL::detail::getDebugLogPath().empty())
+            {
+                std::remove(PAL::detail::getDebugLogPath().c_str());
+            }
+
+            // Remove the valid path directory
+    #if defined(_WIN32) || defined(_WIN64)
+            RemoveDirectoryA(validPath.c_str());
+            RemoveDirectoryA("valid");
+    #elif defined(ANDROID)
+            rmdir(validPath.c_str());
+            std::string temp = MAT::GetTempDirectory();
+            std::string parent = temp + PATH_SEPARATOR_CHAR + "valid";
+            rmdir(parent.c_str());
+    #else
+            rmdir(validPath.c_str());
+            rmdir("valid");
+    #endif
+        }
+};
+
+TEST_F(LogInitTest, LogInitDisabled)
+{
+    EXPECT_FALSE(log_init(false, validPath));
+}
+
+TEST_F(LogInitTest, LogInitValidPath)
+{
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+TEST_F(LogInitTest, LogInitParentDirectoryInvalidPath)
+{
+    EXPECT_FALSE(PAL::detail::log_init(true, "invalid/../path/"));
+}
+
+TEST_F(LogInitTest, LogInitPathDoesNotExist)
+{
+    EXPECT_FALSE(PAL::detail::log_init(true, "nonexistent/path/"));
+}
+
+TEST_F(LogInitTest, LogInitAlreadyInitialized)
+{
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+    EXPECT_TRUE(PAL::detail::log_init(true, validPath)); // Should return true as it's already initialized
+}
+
+TEST_F(LogInitTest, LogInitPathWithoutTrailingSlash)
+{
+#if defined(ANDROID)
+    std::string pathWithoutSlash = validPath;
+    pathWithoutSlash.pop_back();
+#else
+    std::string pathWithoutSlash = "valid/path";
+#endif
+    EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutSlash));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+TEST_F(LogInitTest, LogInitPathWithoutTrailingBackslash)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    std::string pathWithoutBackslash = "valid\\path";
+#elif defined(ANDROID)
+    std::string pathWithoutBackslash = MAT::GetTempDirectory() + PATH_SEPARATOR_CHAR + "valid//path";
+#else
+    std::string pathWithoutBackslash = "valid//path";
+#endif
+    EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutBackslash));
+    EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+#endif

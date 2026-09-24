@@ -35,21 +35,17 @@ If you do not have those credentials, generate them and use the username and pas
 
 ### 2. Run the file build.sh to build the SDK, this will build the SDK along with Unit and Functional Tests
 
-To disable building the tests go to the **CMakeLists.txt** file in the root of the SDK directory and change
+To disable tests without editing SDK sources, pass the namespaced CMake options:
 
-```console
-option(BUILD_UNIT_TESTS   "Build unit tests"        YES)
-option(BUILD_FUNC_TESTS   "Build functional tests"  YES)
-```
-
-to
-
-```console
-option(BUILD_UNIT_TESTS   "Build unit tests"        NO)
-option(BUILD_FUNC_TESTS   "Build functional tests"  NO)
+```sh
+CMAKE_OPTS="-DMATSDK_BUILD_UNIT_TESTS=OFF -DMATSDK_BUILD_FUNC_TESTS=OFF" ./build.sh
 ```
 
 _**Note:** In order to build from scratch all dependencies along with the SDK you need to run: `./build.sh clean`_
+
+For direct CMake builds, use `CMAKE_OSX_ARCHITECTURES` (`arm64`, `x86_64`, or
+`arm64;x86_64`) and `CMAKE_OSX_DEPLOYMENT_TARGET`. The SDK no longer injects
+global `-arch` or deployment-target flags.
 
 ### 3. The SDK will be installed under `usr/local/lib/libmat.a`
 

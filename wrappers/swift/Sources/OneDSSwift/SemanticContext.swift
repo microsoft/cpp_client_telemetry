@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+#if canImport(MATTelemetryObjC)
+import MATTelemetryObjC
+#else
 import ObjCModule
+#endif
 
 /// Wrapper over `ODWSemanticContext` class that manages the inclusion of semantic context values on logged events.
 public class SemanticContext {
@@ -49,11 +53,11 @@ public class SemanticContext {
 
     - Parameters:
         - userID: A `String` that contains the unique user identifier.
-        - withPiiKind: A PIIKind of the userID. Set it to PiiKind_None t odenote it as non-PII.
-            - Note: Default value is `ODWPiiKind.identity`.
+        - withPiiKind: A `PIIKind` for the userID. Set it to `PIIKind.none` to denote it as non-PII.
+            - Note: Default value is `PIIKind.identity`.
     */
-    public func setUserID(_ userID: String, withPiiKind piiKind: ODWPiiKind = ODWPiiKind.identity) {
-        odwSemanticContext.setUserId(userID)
+    public func setUserID(_ userID: String, withPiiKind piiKind: PIIKind = PIIKind.identity) {
+        odwSemanticContext.setUserId(userID, piiKind: piiKind)
     }
 
     /**
@@ -64,6 +68,30 @@ public class SemanticContext {
     */
     public func setDeviceID(_ deviceID: String) {
         odwSemanticContext.setDeviceId(deviceID)
+    }
+
+    /**
+    Set the operating system version context information of the telemetry event.
+
+    - Note: Overrides the OS version that the SDK populates automatically (the `DeviceInfo.OsVersion` field). In the CS3 schema `ext.os.ver` is populated from the OS build, not this field — use `setOsBuild(_:)` to override `ext.os.ver`.
+
+    - Parameters:
+        - osVersion: A `String` that contains the operating system version.
+    */
+    public func setOsVersion(_ osVersion: String) {
+        odwSemanticContext.setOsVersion(osVersion)
+    }
+
+    /**
+    Set the operating system build context information of the telemetry event.
+
+    - Note: In the CS3 schema the OS version field (`ext.os.ver`) is populated from the OS build, so set this if `setOsVersion(_:)` alone does not update `ext.os.ver`.
+
+    - Parameters:
+        - osBuild: A `String` that contains the operating system build.
+    */
+    public func setOsBuild(_ osBuild: String) {
+        odwSemanticContext.setOsBuild(osBuild)
     }
 
     /**

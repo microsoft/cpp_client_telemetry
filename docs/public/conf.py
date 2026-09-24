@@ -16,7 +16,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Microsoft C++ Client Telemetry SDK"'
+project = 'Microsoft C++ Client Telemetry SDK'
 copyright = 'Microsoft Corporation'
 author = 'Microsoft Corporation'
 
@@ -28,8 +28,6 @@ release = '1.0.0'
 # This is necessary so the readthedocs build works. It doesn't invoke the
 # Makefile, but just runs sphinx on this conf.py.
 import os
-import shutil
-import subprocess
 if not os.path.exists('doxyoutput'):
         os.makedirs('doxyoutput')
 
@@ -61,7 +59,7 @@ breathe_default_project = "Microsoft C++ Client Telemetry SDK"
 
 primary_domain = "cpp"
 
-higlight_language = "cpp"
+highlight_language = "cpp"
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -78,10 +76,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = "furo"
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []

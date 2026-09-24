@@ -12,7 +12,9 @@ You will ideally build the SDK using the same versions of the Android SDK, NDK, 
 
 The Gradle wrapper in ```android_build``` builds two modules, ```app``` and ```maesdk```. The ```maesdk``` module is the SDK packaged as an AAR, with both the Java and C++ components included. The AAR includes C++ shared libraries for four ABIs (two ARM ABIs for devices and two Intel ABIs for the emulator). Android Gradle (as usual) supports debug and release builds, and the Gradle task ```maesdk:assemble``` should build both flavors of AAR.
 
-On Android, there are two database implementations to choose from. By default (the main branch on Github), the SDK will use the Android-supported androidx.Room database package. This reduces APK size because we don't need to compile and link in a copy of SQLite in native code (SQLite is hundreds of kB per ABI of APK file size). Room does have a slight CPU performance disadvantage since database transactions cross the JNI boundary when native code uses it. If you wish to change from Room to the native SQLite implementation, you should change the two module ```build.gradle``` files (app and maesdk). In those files, you will see an argument to CMake to select Room: ```"-DUSE_ROOM=1"```. Change this to ```"-DUSE_ROOM=0``` to select the native SQLite.
+On Android, there are two database implementations to choose from. By default (the main branch on Github), the SDK will use the Android-supported androidx.Room database package. This reduces APK size because we don't need to compile and link in a copy of SQLite in native code (SQLite is hundreds of kB per ABI of APK file size). Room does have a slight CPU performance disadvantage since database transactions cross the JNI boundary when native code uses it. If you wish to change from Room to the native SQLite implementation, you should change the two module ```build.gradle``` files (app and maesdk). In those files, you will see an argument to CMake to select Room: ```"-DMATSDK_ANDROID_USE_ROOM=ON"```. Change this to ```"-DMATSDK_ANDROID_USE_ROOM=OFF``` to select the native SQLite.
+
+When using the Room implementation, the ```maesdk``` AAR brings ```androidx.room``` as a transitive dependency, pinned in ```lib/android_build/maesdk/build.gradle``` (currently ```2.8.4```). The SDK's native (JNI) code is compiled and tested against this version and the Room-generated schema. Because Gradle resolves a single ```androidx.room``` version for the entire app, if your app (or one of its dependencies) selects a different version, the SDK's native code runs against it. **Do not force ```androidx.room``` below the version the SDK is built against**, and prefer aligning your app on the bundled version (or a compatible newer one). A significantly different Room version can change the shape of query results that cross the JNI boundary and has historically caused native crashes in record retrieval (issue #1227); the SDK now guards against null results defensively, but version alignment avoids subtle behavior differences.
 
 The Room database implementation adds one additional initialization requirement, since it needs a pointer to the JVM and an object reference to the application context. See below (4.5) for the required call to either ```connectContext``` (in Java) or ```ConnectJVM``` (in C++) to set this up.
 
@@ -22,8 +24,8 @@ Default environment variables used by `build-android.cmd` script:
 
 ```console
 
-set "ANDROID_NDK_VERSION=21.4.7075529"
-set "ANDROID_CMAKE_VERSION=3.10.2.4988404"
+set "ANDROID_NDK_VERSION=27.0.12077973"
+set "ANDROID_CMAKE_VERSION=3.22.1"
 set "ANDROID_SDK_ROOT=C:\Android\android-sdk"
 set "ANDROID_HOME=%ANDROID_SDK_ROOT%"
 set "ANDROID_NDK=%ANDROID_SDK_ROOT%\ndk\%ANDROID_NDK_VERSION%"
@@ -33,7 +35,9 @@ set "ANDROID_NDK_HOME=%ANDROID_NDK%"
 
 You can specify your own versions of dependencies as needed.
 
->Note: Only Java JDKs 8-13 will work. Java JDK 14+ will fail to build, due to an issue with the version of Gradle currently in use.
+>Note: The SDK requires a minimum Android API level 23 (Android 6.0 Marshmallow).
+
+>Note: Java 17 or higher is required. The SDK uses Gradle 8.5, which requires Java 17 as a minimum version.
 
 ## 3. Integrate the SDK into your C++ project
 

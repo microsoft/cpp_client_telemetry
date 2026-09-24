@@ -44,7 +44,7 @@ MAT_NS_END
 #endif
 
 /* PayloadDecoder functionality requires json.hpp library */
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 /* Bond definition of CsProtocol::Record is auto-generated and could be different for each SDK version */
 #include "bond/All.hpp"
@@ -130,6 +130,12 @@ namespace clienttelemetry {
                 return true;
             }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4866) 
+// In C++17 left-to-right evaluation order for operands of operator[] is not guaranteed when the argument's copy constructor is run.
+// Evalutation order isn't not relied upon here, disabling warning.
+#endif // _MSC_VER
             void to_json(json& j, const Data& d)
             {
                 for (const auto &kv : d.properties)
@@ -230,6 +236,9 @@ namespace clienttelemetry {
                     }
                 }
             }
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif  // _MSC_VER
 
             void to_json(json& j, const Record& r)
             {
@@ -554,7 +563,12 @@ namespace MAT_NS_BEGIN {
 
             if (result)
             {
-                out = j.dump(2);
+                // Use error_handler_t::replace so that malformed UTF-8 in the
+                // decoded telemetry payload is replaced with U+FFFD instead of
+                // throwing nlohmann::json::type_error (id 316). Telemetry event
+                // strings can legitimately contain non-UTF-8 bytes; without this
+                // the unhandled C++ exception terminates the hosting process.
+                out = j.dump(2, ' ', false, json::error_handler_t::replace);
             }
 
             return result;
@@ -571,7 +585,9 @@ namespace MAT_NS_BEGIN {
 
             nlohmann::json j;
             to_json(j, in);
-            std::string s = j.dump(4);
+            // See DecodeRequest above: replace malformed UTF-8 rather than
+            // throwing so a bad record cannot terminate the process.
+            std::string s = j.dump(4, ' ', false, json::error_handler_t::replace);
             out.assign(s.begin(), s.end());
 
             return true;

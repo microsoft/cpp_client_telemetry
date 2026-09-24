@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(SolutionDir)\before.targets" Condition="Exists('$(SolutionDir)\before.targets')" />
   <ItemGroup Label="ProjectConfigurations">
@@ -104,6 +104,7 @@
     <Import Project="..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems" Condition="exists('..\..\lib\modules\liveeventinspector\liveeventinspector.vcxitems')" Label="Shared" />
     <Import Project="..\..\lib\modules\cds\cds.vcxitems" Condition="exists('..\..\lib\modules\cds\cds.vcxitems')" Label="Shared" />
     <Import Project="..\..\lib\modules\signals\signals.vcxitems" Condition="exists('..\..\lib\modules\signals\signals.vcxitems')" Label="Shared" />
+    <Import Project="..\..\lib\modules\sanitizer\sanitizer.vcxitems" Condition="exists('..\..\lib\modules\sanitizer\sanitizer.vcxitems')" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -414,7 +415,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\zlib\contrib\vstudio\vc14\zlibvc.vcxproj">
+    <ProjectReference Include="..\..\third_party\Solutions\zlib\vc14\zlibvc.vcxproj">
       <Project>{8FD826F8-3739-44E6-8CC8-997122E53B8D}</Project>
     </ProjectReference>
   </ItemGroup>

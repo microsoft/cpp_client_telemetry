@@ -50,7 +50,8 @@ public:
     StrictMock<MockIRuntimeConfig>  configMock;
     LogSessionDataProvider *logSessionDataProvider;
     std::ostringstream name;
-    unsigned long long now = PAL::getUtcSystemTimeMs(); 
+    uint64_t sessionCreationStart = 0;
+    uint64_t sessionCreationEnd = 0;
 
     virtual void SetUp() override
     {
@@ -67,11 +68,15 @@ public:
 		logSessionDataProvider = new  LogSessionDataProvider(offlineStorage.get());
         logSessionDataProvider->CreateLogSessionData();
         offlineStorage->Initialize(observerMock);
+        sessionCreationStart = PAL::getUtcSystemTimeMs();
         logSessionDataProvider->CreateLogSessionData();
+        sessionCreationEnd = PAL::getUtcSystemTimeMs();
     }
 
     virtual void TearDown() override
     {
+        delete logSessionDataProvider;
+        logSessionDataProvider = nullptr;
         std::remove(name.str().c_str());
         offlineStorage->Shutdown();
         offlineStorage.reset();
@@ -83,7 +88,7 @@ TEST_F(LogSessionDataDBTests, subTest) {
 #ifndef USE_ROOM
     logSessionData =  logSessionDataProvider->GetLogSessionData();
     auto sessionFirstTime= logSessionData->getSessionFirstTime();
-    EXPECT_IN_RANGE(sessionFirstTime, now , now + 1000);
+    EXPECT_IN_RANGE(sessionFirstTime, sessionCreationStart, sessionCreationEnd);
     auto sdkUid = logSessionData->getSessionSDKUid();
     EXPECT_TRUE(sdkUid.size());
 
@@ -97,4 +102,3 @@ TEST_F(LogSessionDataDBTests, subTest) {
     ASSERT_EQ(1, 1);
 #endif
 }
-

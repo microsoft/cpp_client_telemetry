@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+#if canImport(MATTelemetryObjC)
+import MATTelemetryObjC
+#else
 import ObjCModule
+#endif
 
 /// Wrapper class around ObjC Logger class `ODWLogger` used to events.
 public final class Logger {
@@ -137,10 +141,12 @@ public final class Logger {
 
     /**
     Initializes and gets an instance of Privacy Guard.
-    */
+     */
+    #if MATSDK_PRIVACYGUARD_AVAILABLE
     public func apply(config initConfigObject: PrivacyGuardInitConfig) {
         odwLogger.initializePrivacyGuard(with: initConfigObject.getODWPrivacyGuardInitConfig())
     }
+    #endif
 
     // MARK: Set Context methods
 

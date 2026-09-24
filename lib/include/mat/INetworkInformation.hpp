@@ -27,7 +27,7 @@ namespace PAL_NS_BEGIN {
     {
     public:
 
-        virtual ~INetworkInformation() {};
+        virtual ~INetworkInformation() {}
 
         /// <summary>
         /// Gets the current network provider for the device

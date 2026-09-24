@@ -14,10 +14,24 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <cstddef>
 
 ///@cond INTERNAL_DOCS
 namespace MAT_NS_BEGIN
 {
+    class ILogConfiguration;
+
+    /// <summary>
+    /// SECURITY: upper bound (in bytes) on an HTTP response body that a transport
+    /// will buffer. OneCollector protocol responses are small (status, kill-switch
+    /// tokens, retry-after, small config), so this generous cap never rejects a
+    /// legitimate response, but it stops a hostile or MITM'd collector from driving
+    /// unbounded memory growth by returning an oversized body (a memory-amplification
+    /// DoS of the embedding process). A transport that would exceed it refuses the
+    /// response and reports the request as a network failure so it is retried.
+    /// </summary>
+    static constexpr std::size_t MAX_HTTP_RESPONSE_SIZE = 16u * 1024u * 1024u; // 16 MB
+
     /// <summary>
     /// The HttpHeaders class contains a set of HTTP headers.
     /// </summary>
@@ -182,9 +196,9 @@ namespace MAT_NS_BEGIN
         virtual ~IHttpResponse() noexcept = default;
 
         /// <summary>
-        /// Gets the response ID.
+        /// Gets the ID of the request that produced this response.
         /// </summary>
-        /// <returns>A string that contains the response ID.</returns>
+        /// <returns>The same ID returned by the originating IHttpRequest::GetId().</returns>
         virtual const std::string& GetId() const = 0;
 
         /// <summary>
@@ -494,7 +508,7 @@ namespace MAT_NS_BEGIN
             std::ignore = state;
             std::ignore = data;
             std::ignore = size;
-        };
+        }
     };
 
     /// <summary>
@@ -507,25 +521,37 @@ namespace MAT_NS_BEGIN
 
         /// <summary>
         /// Creates an empty HTTP request object.
-        /// The created request object has only its ID prepopulated. Other fields
-        /// must be set by the caller. The request object can then be sent
-        /// using SendRequestAsync(). If you are not going to use the request object, 
-        /// then you can delete it safely using its virtual destructor.
+        /// The object has only its ID prepopulated; the caller must populate the
+        /// other fields before passing it to SendRequestAsync(). If the request is
+        /// never sent, delete it using its virtual destructor. Ownership after
+        /// SendRequestAsync() is implementation-specific for compatibility with
+        /// custom IHttpClient modules; see that implementation's contract.
         /// </summary>
         /// <returns>An HTTP request object for you to prepare.</returns>
         virtual IHttpRequest* CreateRequest() = 0;
 
         /// <summary>
         /// Begins an HTTP request.
-        /// The method takes ownership of the passed request, and can destroy it before
-        /// returning to the caller. Do not access the request object in any
-        /// way after this invocation, and do not delete it.
-        /// The callback object is always called, even if the request is 
-        /// cancelled, or if an error occurs immediately during sending. In the
-        /// latter case, the OnHttpResponse() callback is called before this
-        /// method returns. You must keep the callback object alive until its
-        /// OnHttpResponse() callback is called. It will never be used twice, so
-        /// after you use it - you can safely delete it.
+        /// The SDK-provided transports borrow the request object; they do not take
+        /// ownership and do not delete it. For those transports, keep the request
+        /// alive and do not modify it from the start of this call until the
+        /// request's terminal OnHttpResponse() callback begins. They finish their
+        /// last request access before invoking OnHttpResponse(), so the caller may
+        /// delete the request during that callback or any time after it returns.
+        ///
+        /// Custom IHttpClient modules are a legacy extension point and may retain
+        /// their own documented ownership behavior, including taking ownership.
+        /// Callers using a custom module must follow that module's contract.
+        ///
+        /// Every request accepted by an implementation must produce exactly one
+        /// terminal OnHttpResponse() callback, including after cancellation. If
+        /// this method throws, the request was not accepted: the implementation
+        /// must not invoke the callback before throwing or at any later time.
+        ///
+        /// On synchronous setup or validation failure, OnHttpResponse() may be
+        /// invoked before this method returns. Keep the callback object alive until
+        /// OnHttpResponse() returns. For portability, delete request objects created
+        /// by a client before destroying that client.
         /// </summary>
         /// <param name="request">The filled request object returned earlier by
         /// CreateRequest()</param>
@@ -535,14 +561,30 @@ namespace MAT_NS_BEGIN
         /// <summary>
         /// Cancels an HTTP request.
         /// The caller must provide a string ID returned earlier by request->GetId().
-        /// The request is cancelled asynchronously. The caller must still 
-        /// wait for the relevant OnHttpResponse() callback (it can just come
-        /// earlier with some "aborted" error status).
+        /// Cancellation is asynchronous. The built-in SDK transports still report
+        /// completion through the request's terminal OnHttpResponse() callback, so
+        /// the caller must keep the request alive and unchanged until that callback
+        /// begins.
         /// </summary>
         /// <param name="id">A string that contains the ID of the request to cancel.</param>
         virtual void CancelRequestAsync(std::string const& id) = 0;
 
-        virtual void CancelAllRequests() {};
+        /// <summary>
+        /// Cancels all pending requests, draining fully before returning when the
+        /// implementation owns a synchronous transport drain. This method is not a
+        /// universal terminal-callback barrier; callers must still observe the
+        /// relevant OnHttpResponse() callbacks unless their implementation documents
+        /// a stronger guarantee.
+        /// </summary>
+        virtual void CancelAllRequests() {}
+
+        /// <summary>
+        /// Apply HTTP settings from the log configuration.
+        /// Subclasses override to handle platform-specific options.
+        /// Default implementation is a no-op.
+        /// </summary>
+        /// <param name="config">The log configuration to read settings from.</param>
+        virtual void ApplySettings(ILogConfiguration& /*config*/) {}
     };
 
     /// @endcond
@@ -550,4 +592,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
-

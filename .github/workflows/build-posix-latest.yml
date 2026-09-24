@@ -19,10 +19,23 @@ on:
   schedule:
   - cron: 0 2 * * 1-5
 
+
+# Least-privilege GITHUB_TOKEN scope: this workflow only checks out source
+# and runs the Linux/Mac build matrix. Explicit block satisfies CodeQL rule
+# actions/missing-workflow-permissions if Actions analysis is enabled.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
 
     runs-on: ${{ matrix.os }}
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
     strategy:
       matrix:
         config: [release, debug]
@@ -30,7 +43,41 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
-      continue-on-error: true
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Initialize googletest
+      run: git submodule update --init --depth=1 third_party/googletest
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       run: ./build-tests.sh ${{ matrix.config }}
+
+  public-headers:
+    name: Public header gate (GCC/Clang)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Install clang
+      run: sudo apt-get update && sudo apt-get install -y clang
+    - name: Compile each public header standalone under strict flags
+      run: bash tests/headers/check_public_headers.sh
+
+  no-exceptions:
+    name: Linux Curl without C++ exceptions
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Install Curl development package
+      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+    - name: Configure
+      run: >-
+        cmake -S . -B out-no-exceptions
+        -DCMAKE_BUILD_TYPE=Debug
+        -DCMAKE_CXX_FLAGS=-fno-exceptions
+        -DMATSDK_BUILD_UNIT_TESTS=OFF
+        -DMATSDK_BUILD_FUNC_TESTS=OFF
+        -DMATSDK_BUILD_TEST_TOOL=OFF
+    - name: Compile Curl transport
+      run: >-
+        make -C out-no-exceptions
+        -f lib/CMakeFiles/mat.dir/build.make
+        lib/CMakeFiles/mat.dir/http/HttpClient_Curl.cpp.o

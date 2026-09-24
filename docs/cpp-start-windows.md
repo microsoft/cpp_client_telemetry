@@ -16,17 +16,24 @@ If your project requires the Universal Telemetry Client (a.k.a. UTC) to send tel
 
 ## **Windows prerequisites and dependencies for building from source**
 
-* Visual Studio 2017 or 2019 (2019 is recommended).
+* Visual Studio 2019, 2022, or 2026 (2022 or newer is recommended).
 * C++ Dev Tools
 
 ## **Option 1: Build the SDK from source using Visual Studio**
 
 * Open the *cpp_client_telemetry/Solutions/MSTelemetrySDK.sln* solution in Visual Studio.
-* Alternatively you can use *build-all.bat* located in workspace root folder to build from command line
+* Alternatively, build from the workspace root with the script that matches your Visual Studio toolset:
+  * Visual Studio 2019: `build-all-v142.bat`
+  * Visual Studio 2022: `build-all-v143.bat`
+  * Visual Studio 2026: `build-all-v145.bat`
+
+The version-specific scripts set `VSTOOLS_VERSION` and `PlatformToolset` before calling `build-all-windows.bat`, which builds the Windows Visual Studio solution matrix. `build-all.bat` remains as a compatibility wrapper for existing automation; if you call either script directly, set both values yourself so `tools\vcvars.cmd` selects the same Visual Studio installation as your requested toolset.
+
+The Windows solution includes the .NET Framework 4.8 wrapper (`net48`) and C# sample (`SampleCsNet48`). The managed wrapper now requires .NET Framework 4.8; applications targeting .NET Framework 4.0 through 4.7.2 cannot reference this assembly and must remain on an earlier SDK release or update their target framework. Install the .NET Framework 4.8 SDK and targeting pack through the Visual Studio Installer to build these projects. Set `SKIP_NET48_BUILD=1` before running a command-line build only when you want to build the native SDK without the managed wrapper and sample.
 
 If your build fails, then you most likely missing the following optional Visual Studio components:
 
-* ATL support
+* MFC/ATL support (for example, `SampleCppMini` uses static MFC in its Visual Studio project)
 * ARM64 support
 * Spectre mitigation libraries
 
@@ -58,11 +65,11 @@ Make sure you can build a simple "Hello World" using CMake before proceeding to 
 
 To build SDK using cmake with clang on Windows, run:
 
-```build-cmake-clang-vs2017.cmd```
+```build-cmake-clang-vs2019.cmd```
 
   or
 
-```build-cmake-clang-vs2019.cmd```
+```build-cmake-clang-vs2022.cmd```
 
 depending on what Visual Studio version you are using.
 
@@ -113,6 +120,6 @@ More examples can be found under *examples* folder.
 - [CMake Tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/index.html)
 - [Runtime Library Variants: static vs dynamic runtime](https://www.oreilly.com/library/view/c-cookbook/0596007612/ch01s24.html)
 
-If you encounter troubles building the project, please refer to our CI/Build pipeline settings [here](../.github/workflows/build-windows-vs2019.yaml). This pipeline runs on a standard GitHub image with a standard Visual Studio 2019 installation. If you are still stuck, please log your build question as [GitHub issue](https://github.com/microsoft/cpp_client_telemetry/issues) with labels `question` and `build infra`. We would be glad to help and adjust documentation accordingly.
+If you encounter troubles building the project, please refer to our CI/Build pipeline settings [here](../.github/workflows/build-windows-vs2022.yaml). This pipeline runs on a standard GitHub image with a standard Visual Studio 2022 installation. If you are still stuck, please log your build question as [GitHub issue](https://github.com/microsoft/cpp_client_telemetry/issues) with labels `question` and `build infra`. We would be glad to help and adjust documentation accordingly.
 
 If you find that some documentation is incorrect, please send a PR to fix it. We ❤️ community contributions!

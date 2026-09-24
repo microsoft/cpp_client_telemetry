@@ -14,10 +14,15 @@ on:
   schedule:
     - cron: '0 8 * * 1'
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   analyze:
     name: Analyze
-    runs-on: windows-2019
+    runs-on: windows-2022
     permissions:
       contents: read
       actions: read
@@ -34,12 +39,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       continue-on-error: true
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -47,19 +52,16 @@ jobs:
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+    # Autobuild attempts to build any compiled languages  (C/C++, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
-    # - name: Autobuild
-    #   uses: github/codeql-action/autobuild@v3
-    - name: Build
+    - name: Build C++
       env:
-        SKIP_ARM_BUILD: 1
-        SKIP_ARM64_BUILD: 1
-        PlatformToolset: v142
-        VSTOOLS_VERSION: vs2019
+        PlatformToolset: v143
+        VSTOOLS_VERSION: vs2022
+        WindowsSDKVersion: 10.0.22621.0
       shell: cmd
       if: matrix.language == 'cpp'
-      run: build-all.bat
+      run: build-codeql-cpp.bat
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -73,7 +75,28 @@ jobs:
     #   make release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+
+  analyze-csharp:
+    name: Analyze C#
+    runs-on: windows-2022
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+      with:
+        languages: csharp
+        build-mode: none
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
 
   analyze-java:
     name: Analyze Java
@@ -88,7 +111,7 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       continue-on-error: true
 
     - name: Update submodules
@@ -98,26 +121,25 @@ jobs:
         git -c protocol.version=2 submodule update --init --force --depth=1
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
       with:
         languages: java
 
     - name: Setup Java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
       with:
         distribution: 'adopt'
-        java-version: '11'
-    - name: Remove default github maven configuration
-      run: rm $Env:USERPROFILE\.m2\settings.xml
+        java-version: '17'
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+      with:
+        packages: platform-tools
     - name: Install NDK
       run: |
         java -version
         gci env:* | sort-object name
-        new-item "C:\Users\runneradmin\.android\repositories.cfg" -ItemType "file"
-        echo yes | .\sdkmanager.bat "ndk-bundle" "cmake;3.10.2.4988404" "ndk;21.4.7075529" --sdk_root=$Env:ANDROID_SDK_ROOT
-      working-directory: ${{ env.ANDROID_SDK_ROOT }}\cmdline-tools\7.0\bin
+        new-item "$Env:USERPROFILE\.android\repositories.cfg" -ItemType "file"
+        echo yes | sdkmanager "ndk-bundle" "cmake;3.22.1" "ndk;27.0.12077973" --sdk_root=$Env:ANDROID_SDK_ROOT
     - name: Chocolatey
       run: |
         choco install --no-progress -y ninja
@@ -138,4 +160,4 @@ jobs:
       working-directory: lib\android_build
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6

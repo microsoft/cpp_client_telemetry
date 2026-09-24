@@ -2,6 +2,9 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import Foundation
+
+let matsdkInstallDir = ProcessInfo.processInfo.environment["MATSDK_INSTALL_DIR"] ?? "/usr/local"
 
 let package = Package(
     name: "SamplePackage",
@@ -26,7 +29,7 @@ let package = Package(
                 .unsafeFlags(["-Xcc", "-I../../../wrappers/swift/Modules/"]),
             ],
             linkerSettings: [
-                .unsafeFlags(["-L/usr/local/lib"]),
+                .unsafeFlags(["-L\(matsdkInstallDir)/lib"]),
                 // Libs to be linked.
                 .linkedLibrary("mat"),
                 .linkedLibrary("sqlite3"),

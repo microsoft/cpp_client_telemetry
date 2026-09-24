@@ -1,6 +1,6 @@
 # Parse /etc/os-release to determine Linux distro
 
-if(EXISTS /etc/os-release)
+if(EXISTS "/etc/os-release")
 
 file(STRINGS /etc/os-release OS_RELEASE)
 foreach(NameAndValue ${OS_RELEASE})
@@ -13,7 +13,7 @@ foreach(NameAndValue ${OS_RELEASE})
   # Strip quotes from value
   string(REPLACE "\"" "" Value ${Value})
   # Set the variable
-  message("-- /etc/os_release : ${Name}=${Value}")
+  message(STATUS "/etc/os-release : ${Name}=${Value}")
   set("OS_RELEASE_${Name}" "${Value}")
 endforeach()
 

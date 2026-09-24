@@ -24,7 +24,7 @@ namespace MAT_NS_BEGIN
 
     public:
         BaseDecorator(ILogManager& owner);
-        virtual ~BaseDecorator() {};
+        virtual ~BaseDecorator() {}
         bool decorate(CsProtocol::Record& record);
 
     protected:

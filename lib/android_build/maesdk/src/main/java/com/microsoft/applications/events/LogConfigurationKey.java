@@ -23,11 +23,17 @@ public enum LogConfigurationKey {
   /** Enable database compression. */
   CFG_BOOL_ENABLE_DB_COMPRESS("enableDBCompression", Boolean.class),
 
+  /** Batch records when flushing the RAM queue to disk storage. */
+  CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH("enableBatchedStorageFlush", Boolean.class),
+
   /** Enable WAL journal. */
   CFG_BOOL_ENABLE_WAL_JOURNAL("enableWALJournal", Boolean.class),
 
   /** Enable network detector. */
   CFG_BOOL_ENABLE_NET_DETECT("enableNetworkDetector", Boolean.class),
+
+  /** Scrub (obfuscate) the client IP address at the collector. Applied unless explicitly set to false (on by default; not present in the default configuration). */
+  CFG_BOOL_ENABLE_IP_SCRUBBING("enableIpScrubbing", Boolean.class),
 
   CFG_BOOL_TPM_CLOCK_SKEW_ENABLED("clockSkewEnabled", Boolean.class),
 
@@ -184,4 +190,3 @@ public enum LogConfigurationKey {
     return valueType;
   }
 }
-

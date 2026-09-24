@@ -16,6 +16,11 @@
 #include <vector>
 #include <string>
 
+#if !defined(_WIN32)
+#include <sys/stat.h>
+#include <cerrno>
+#endif
+
 namespace MAT_NS_BEGIN {
 
     using SQLRecord = std::vector<std::string>;
@@ -208,18 +213,51 @@ namespace MAT_NS_BEGIN {
 
     class SqliteDB {
         std::mutex m_lock;
+
+        void releaseTempDirectoryAfterShutdown(int shutdownResult)
+        {
+            if (shutdownResult == SQLITE_OK)
+            {
+                if (m_ownsTempDirectory != nullptr && *m_ownsTempDirectory)
+                {
+                    ::sqlite3_free(sqlite3_temp_directory);
+                    sqlite3_temp_directory = nullptr;
+                    *m_ownsTempDirectory = false;
+                }
+            }
+            else
+            {
+                LOG_WARN("Failed to shut down SQLite (%d); retaining the temp directory", shutdownResult);
+            }
+        }
+
     public:
         SqliteDB(bool skipInitAndShutdown,
                  std::mutex* initAndShutdownLock = nullptr,
-                 int* instanceCount = nullptr)
+                 int* instanceCount = nullptr,
+                 bool* ownsTempDirectory = nullptr)
             : m_db(nullptr),
               m_skipInitAndShutdown(skipInitAndShutdown),
               m_initAndShutdownLock(initAndShutdownLock),
-              m_instanceCount(instanceCount)
+              m_instanceCount(instanceCount),
+              m_ownsTempDirectory(ownsTempDirectory)
         {
         }
 
-        bool initialize(std::string const& filename, bool deletePrevious, size_t maxHeapLimit = 0)
+        ~SqliteDB()
+        {
+            // Finalize prepared statements and close the database even if
+            // shutdown() was not called explicitly (e.g. the owning storage was
+            // destroyed without Shutdown()). shutdown() is idempotent -- it
+            // returns immediately once m_db is null -- so an earlier explicit
+            // shutdown() makes this a no-op.
+            shutdown();
+        }
+
+        bool initialize(std::string const& filename,
+                        bool deletePrevious,
+                        size_t maxHeapLimit = 0,
+                        std::string const& tempDirectory = {})
         {
             int result = SQLITE_OK;
 
@@ -230,10 +268,31 @@ namespace MAT_NS_BEGIN {
                     if (*m_instanceCount > 0) {
                         *m_instanceCount += 1;
                     } else {
+                        // Android and WinRT may require an explicit temp directory.
+                        // Configure SQLite's process-global value once, before the
+                        // first SQLite initialization, and release it with the last
+                        // connection. Other platforms pass an empty directory and
+                        // use SQLite's native temp-directory selection.
+                        if (!tempDirectory.empty() && sqlite3_temp_directory == nullptr) {
+                            sqlite3_temp_directory = ::sqlite3_mprintf("%s", tempDirectory.c_str());
+                            if (sqlite3_temp_directory == nullptr) {
+                                result = SQLITE_NOMEM;
+                            } else if (m_ownsTempDirectory != nullptr) {
+                                *m_ownsTempDirectory = true;
+                            }
+                        }
+                    }
+                    if (result == SQLITE_OK && *m_instanceCount == 0) {
                         result = g_sqlite3Proxy->sqlite3_initialize();
                         if (result == SQLITE_OK) {
                             *m_instanceCount = 1;
                         }
+                    }
+                    if (result != SQLITE_OK &&
+                        m_ownsTempDirectory != nullptr &&
+                        *m_ownsTempDirectory) {
+                        const int shutdownResult = g_sqlite3Proxy->sqlite3_shutdown();
+                        releaseTempDirectoryAfterShutdown(shutdownResult);
                     }
                 } else {
                     result = g_sqlite3Proxy->sqlite3_initialize();
@@ -249,14 +308,35 @@ namespace MAT_NS_BEGIN {
                 // We cannot call plain ::remove() here, filename is in UTF-8. Rather
                 // than adding a new set of functions to PAL, let's use SQLite VFS.
                 sqlite3_vfs* vfs = g_sqlite3Proxy->sqlite3_vfs_find(NULL);
-                result = (vfs != NULL) ? vfs->xDelete(vfs, filename.c_str(), 0) : SQLITE_ERROR;
-                if (result == SQLITE_OK) {
-                    LOG_INFO("Unusable existing database file was successfully deleted");
-                }
-                else if (result != SQLITE_IOERR_DELETE_NOENT) {
-                    LOG_WARN("Failed to delete unusable database file (%d)", result);
+                if (vfs == NULL) {
+                    LOG_ERROR("Failed to delete unusable database file: no SQLite VFS");
                     shutdown_sqlite();
                     return false;
+                }
+                // Delete the main database file plus any SQLite companion files
+                // (-journal/-wal/-shm) left behind by the failed open. A stale
+                // rollback journal or WAL can otherwise prevent the freshly created
+                // database below from opening cleanly (observed on iOS, where leaving
+                // the companions behind made the recreate() open fail). xDelete
+                // returns SQLITE_IOERR_DELETE_NOENT when a file is already absent,
+                // which is expected and not an error.
+                static const char* const companionSuffixes[] = { "", "-journal", "-wal", "-shm" };
+                for (const char* suffix : companionSuffixes) {
+                    const std::string companion = filename + suffix;
+                    result = vfs->xDelete(vfs, companion.c_str(), 0);
+                    if (result == SQLITE_OK) {
+                        LOG_INFO("Deleted unusable database file \"<db>%s\"", suffix);
+                    }
+                    else if (result != SQLITE_IOERR_DELETE_NOENT) {
+                        LOG_WARN("Failed to delete database file \"<db>%s\" (%d)", suffix, result);
+                        // Only the main database file is fatal here; a leftover
+                        // companion that cannot be removed must not by itself abort
+                        // the recreate, since the open below may still succeed.
+                        if (suffix[0] == '\0') {
+                            shutdown_sqlite();
+                            return false;
+                        }
+                    }
                 }
             }
 
@@ -278,6 +358,31 @@ namespace MAT_NS_BEGIN {
             }
 
             g_sqlite3Proxy->sqlite3_extended_result_codes(m_db, 1);
+
+            // SECURITY: the offline cache buffers pending telemetry/audit events
+            // (tenant ids, user identifiers, serialized event payloads). SQLite creates
+            // the database file with SQLITE_DEFAULT_FILE_PERMISSIONS -- 0644, i.e.
+            // world-readable -- so restrict it to owner read/write only (0600). This runs
+            // before WAL is enabled: SQLite derives the -wal/-journal permissions from the
+            // main database file (findCreateFileMode), so companions it creates inherit
+            // 0600. A cache created by an older SDK (before this fix) may already have
+            // companion files on disk with the old 0644 mode, so tighten any pre-existing
+            // ones too. POSIX only -- on Windows the Unix mode bits are meaningless (access
+            // is governed by NTFS ACLs). Best-effort: a failure (e.g. a filesystem that
+            // ignores chmod) must not fail the open, and a missing file -- ENOENT, e.g. an
+            // in-memory ":memory:" database, which has no file to secure -- is expected and
+            // silently ignored.
+#if !defined(_WIN32)
+            if (::chmod(filename.c_str(), S_IRUSR | S_IWUSR) != 0 && errno != ENOENT) {
+                LOG_WARN("Could not restrict database file permissions to 0600 (errno %d)", errno);
+            }
+            for (const char* suffix : { "-wal", "-shm", "-journal" }) {
+                std::string companion = filename + suffix;
+                if (::chmod(companion.c_str(), S_IRUSR | S_IWUSR) != 0 && errno != ENOENT) {
+                    LOG_WARN("Could not restrict %s file permissions to 0600 (errno %d)", suffix, errno);
+                }
+            }
+#endif
 
             if (!registerTokenizeFunction()) {
                 shutdown();
@@ -303,7 +408,8 @@ namespace MAT_NS_BEGIN {
                         *m_instanceCount -= 1;
                     } else if (*m_instanceCount == 1) {
                         *m_instanceCount = 0;
-                        g_sqlite3Proxy->sqlite3_shutdown();
+                        const int shutdownResult = g_sqlite3Proxy->sqlite3_shutdown();
+                        releaseTempDirectoryAfterShutdown(shutdownResult);
                     }
                 } else
                 {
@@ -335,7 +441,7 @@ namespace MAT_NS_BEGIN {
         size_t prepare(char const* statement)
         {
             LOCKGUARD(m_lock);
-            sqlite3_stmt* stmt;
+            sqlite3_stmt* stmt = nullptr;
             int result = g_sqlite3Proxy->sqlite3_prepare_v2(m_db, statement, -1, &stmt, NULL);
             if (result != SQLITE_OK) {
                 std::string excerpt(statement);
@@ -439,6 +545,13 @@ namespace MAT_NS_BEGIN {
             return isOK(sqlite3_exec("COMMIT;"));
         }
 
+        /**
+        * @brief   Roll back (discard) the current DB transaction.
+        */
+        bool rollback() {
+            return isOK(sqlite3_exec("ROLLBACK;"));
+        }
+
         bool lock() {
 #ifndef NDEBUG
             unsigned count = 0;
@@ -513,12 +626,13 @@ namespace MAT_NS_BEGIN {
         bool                       m_skipInitAndShutdown;
         std::mutex*                m_initAndShutdownLock;
         int*                       m_instanceCount;
+        bool*                      m_ownsTempDirectory;
 
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteDB, "EventsSDK.SQLiteDB", "Events telemetry client - SqliteDB class")
 
     //---
 
@@ -803,15 +917,14 @@ namespace MAT_NS_BEGIN {
         bool          m_error;
 
     public:
-        sqlite3_stmt * handle() { return m_stmt; };
+        sqlite3_stmt * handle() { return m_stmt; }
 
     private:
         MATSDK_LOG_DECL_COMPONENT_CLASS();
     };
 
-    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class");
+    MATSDK_LOG_INST_COMPONENT_CLASS(SqliteStatement, "EventsSDK.SQLiteStatement", "Events telemetry client - Sqlite statement class")
 
 
 } MAT_NS_END
 #endif
-

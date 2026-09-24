@@ -11,8 +11,6 @@
 
 namespace MAT_NS_BEGIN
 {
-    constexpr static auto Tag = "HttpClient_Android";
-
     HttpClient_Android::HttpRequest::~HttpRequest() noexcept
     {
         EraseFromParent();
@@ -285,6 +283,7 @@ namespace MAT_NS_BEGIN
         if (request->m_callback)
         {
             auto failure = new HttpResponse(request->m_id);
+            failure->SetResult(HttpResult_Aborted);
             request->m_callback->OnHttpResponse(failure);
         }
     }
@@ -443,9 +442,10 @@ namespace MAT_NS_BEGIN
                                                   jobject java_client)
     {
         auto client = std::make_shared<HttpClient_Android>();
-        s_client = client;
-
         client->SetClient(env, java_client);
+
+        std::lock_guard<std::mutex> lock(s_clientMutex);
+        s_client = std::move(client);
     }
 
     void HttpClient_Android::SetJavaVM(JavaVM* vm)
@@ -453,9 +453,16 @@ namespace MAT_NS_BEGIN
         HttpClient_Android::s_java_vm = vm;
     }
 
-    void HttpClient_Android::DeleteClientInstance(JNIEnv* env)
+    void HttpClient_Android::DeleteClientInstance(JNIEnv* env, jobject java_client)
     {
-        s_client.reset();
+        std::shared_ptr<HttpClient_Android> client;
+        {
+            std::lock_guard<std::mutex> lock(s_clientMutex);
+            if (s_client && env->IsSameObject(s_client->m_client, java_client))
+            {
+                client = std::move(s_client);
+            }
+        }
     }
 
     void HttpClient_Android::SetCacheFilePath(std::string&& path)
@@ -473,7 +480,8 @@ namespace MAT_NS_BEGIN
     std::shared_ptr<HttpClient_Android>
     HttpClient_Android::GetClientInstance()
     {
-        return std::shared_ptr<HttpClient_Android>(s_client);
+        std::lock_guard<std::mutex> lock(s_clientMutex);
+        return s_client;
     }
 
     bool HttpClient_Android::CheckException(JNIEnv* env, HttpRequest* request)
@@ -488,6 +496,7 @@ namespace MAT_NS_BEGIN
         return true;
     }
 
+    std::mutex HttpClient_Android::s_clientMutex;
     std::shared_ptr<HttpClient_Android> HttpClient_Android::s_client;
     std::string HttpClient_Android::s_cache_file_path;
 
@@ -506,9 +515,10 @@ extern "C" JNIEXPORT void
 extern "C" JNIEXPORT void
 
     JNICALL
-    Java_com_microsoft_applications_events_HttpClient_deleteClientInstance(JNIEnv* env)
+    Java_com_microsoft_applications_events_HttpClient_deleteClientInstance(JNIEnv* env,
+                                                                           jobject java_client)
 {
-    Microsoft::Applications::Events::HttpClient_Android::DeleteClientInstance(env);
+    Microsoft::Applications::Events::HttpClient_Android::DeleteClientInstance(env, java_client);
 }
 
 extern "C" JNIEXPORT void

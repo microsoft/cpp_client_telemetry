@@ -3,13 +3,87 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "mat/config.h"
+#include "callbacks/DebugSourceInternal.hpp"
 #include "DebugEvents.hpp"
 #include "utils/Utils.hpp"
 #include "pal/PAL.hpp"
 
 #include <atomic>
+#include <iterator>
 
 namespace MAT_NS_BEGIN {
+
+    namespace
+    {
+        thread_local std::vector<DebugEventListener*> pendingListeners;
+        std::atomic<DebugEventListenerPendingReleaseCallback>
+            pendingReleaseCallback{nullptr};
+
+        class PendingListenersScope
+        {
+        public:
+            explicit PendingListenersScope(const std::vector<DebugEventListener*>& listeners) :
+                remaining(listeners)
+            {
+                pendingListeners.insert(
+                    pendingListeners.end(),
+                    listeners.begin(),
+                    listeners.end());
+            }
+
+            ~PendingListenersScope()
+            {
+                for (auto listener : remaining)
+                {
+                    RemovePending(listener);
+                    auto callback = pendingReleaseCallback.load();
+                    if (callback != nullptr)
+                    {
+                        callback(listener);
+                    }
+                }
+            }
+
+            void BeginCallback(DebugEventListener* listener)
+            {
+                auto current = std::find(remaining.begin(), remaining.end(), listener);
+                if (current != remaining.end())
+                {
+                    remaining.erase(current);
+                }
+                RemovePending(listener);
+            }
+
+        private:
+            static void RemovePending(DebugEventListener* listener)
+            {
+                auto pending = std::find(
+                    pendingListeners.rbegin(),
+                    pendingListeners.rend(),
+                    listener);
+                if (pending != pendingListeners.rend())
+                {
+                    pendingListeners.erase(std::next(pending).base());
+                }
+            }
+
+            std::vector<DebugEventListener*> remaining;
+        };
+    }
+
+    bool IsDebugEventListenerPending(const DebugEventListener* listener) noexcept
+    {
+        return std::find(
+                   pendingListeners.begin(),
+                   pendingListeners.end(),
+                   listener) != pendingListeners.end();
+    }
+
+    void SetDebugEventListenerPendingReleaseCallback(
+        DebugEventListenerPendingReleaseCallback callback) noexcept
+    {
+        pendingReleaseCallback.store(callback);
+    }
 
     /// <summary>Add event listener for specific debug event type.</summary>
     void DebugEventSource::AddEventListener(DebugEventType type, DebugEventListener &listener)
@@ -45,8 +119,10 @@ namespace MAT_NS_BEGIN {
 
             if (listeners.size()) {
                 // Events filter handlers list
-                auto &v = listeners[evt.type];
-                for (auto listener : v) {
+                auto eventListeners = listeners[evt.type];
+                PendingListenersScope pendingScope(eventListeners);
+                for (auto listener : eventListeners) {
+                    pendingScope.BeginCallback(listener);
                     listener->OnDebugEvent(evt);
                     dispatched = true;
                 }
@@ -85,4 +161,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-
