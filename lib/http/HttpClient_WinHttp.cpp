@@ -1532,33 +1532,17 @@ unsigned HttpClient_WinHttp::s_nextRequestId = 0;
 
 HttpClient_WinHttp::HttpClient_WinHttp()
 {
-    // WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY (Windows 8.1+) resolves the proxy
-    // without depending on a logged-on interactive user or that user's
+    // Resolve the proxy without depending on a logged-on interactive user or that user's
     // Internet Explorer settings -- unlike WinInet's
     // INTERNET_OPEN_TYPE_PRECONFIG, which requires one. This is why WinHTTP,
     // not WinInet, is Microsoft's documented recommendation for services and
-    // other non-interactive processes. On an older OS that rejects this access
-    // type, fall back to the machine-wide WinHTTP proxy configuration. This is
-    // the documented pre-Windows-8.1 behavior and avoids bypassing enterprise
-    // proxies entirely. Only fall back for the compatibility error; other
-    // failures should not be hidden by a second, unrelated WinHttpOpen call.
+    // other non-interactive processes.
     HINTERNET session = ::WinHttpOpen(
         NULL, WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
         WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, WINHTTP_FLAG_ASYNC);
     if (session == nullptr)
     {
-        DWORD dwError = ::GetLastError();
-        if (dwError == ERROR_INVALID_PARAMETER)
-        {
-            LOG_WARN("WinHttpOpen(AUTOMATIC_PROXY) is unsupported; retrying with default proxy");
-            session = ::WinHttpOpen(
-                NULL, WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-                WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, WINHTTP_FLAG_ASYNC);
-        }
-        else
-        {
-            LOG_WARN("WinHttpOpen(AUTOMATIC_PROXY) failed: %lu", dwError);
-        }
+        LOG_WARN("WinHttpOpen(AUTOMATIC_PROXY) failed: %lu", ::GetLastError());
     }
     // WinHTTP otherwise permits an unlimited number of connections per origin.
     // Keep transport concurrency aligned with the SDK's default pending-upload

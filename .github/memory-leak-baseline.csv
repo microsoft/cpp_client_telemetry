@@ -1,0 +1,7 @@
+Platform,Scenario,UniqueLeaks,TotalLeaks,LeakBytes,UniquePossibleLeaks,TotalPossibleLeaks,PossibleLeakBytes,UniqueReachable,TotalReachable,ReachableBytes
+Windows,unit-tests,10,113,4256,14,15,7206,467,644,227717
+Windows,functional-tests,7,382,14072,7,3994,1038248411,1722,2823,725167
+Windows,sample-cpp-mini,0,0,0,0,0,0,973,1795,411008
+Linux,unit-tests,10,127,3730,5,7,3452,8,8,77045
+Linux,functional-tests,3,156,4694,1,1,4104,360,643,279619
+Linux,sample-cpp-mini,1,2,32,0,0,0,15,23,81130

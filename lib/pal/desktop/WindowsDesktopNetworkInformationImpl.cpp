@@ -89,7 +89,6 @@ namespace PAL_NS_BEGIN {
 #ifdef HAVE_MAT_NETDETECT
         if (m_isNetDetectEnabled) {
             networkDetector = std::unique_ptr<MATW::NetworkDetector>(new MATW::NetworkDetector());
-            networkDetector->AddRef();
             networkDetector->Start();
         }
 #endif
@@ -101,7 +100,6 @@ namespace PAL_NS_BEGIN {
 #ifdef HAVE_MAT_NETDETECT
         if (m_isNetDetectEnabled) {
             networkDetector->Stop();
-            networkDetector->Release();
         }
 #endif
     }
@@ -112,4 +110,3 @@ namespace PAL_NS_BEGIN {
     }
 } PAL_NS_END
 #endif
-
