@@ -323,7 +323,10 @@ hand-edit a version based on an outdated example.
    version.
 
 Do not move or force-update a published release tag. Correct a bad release with
-a new build/version component and release notes describing the correction.
+a new version and release notes describing the correction. If the correction
+must reach SPM, choose a new `X.Y.Z` in `Solutions/version.txt` and regenerate
+`Version.hpp` before tagging: changing only `W` produces the same SPM tag, so
+the SPM workflow skips it and leaves consumers on the earlier package.
 
 ### Verify downstream publication
 

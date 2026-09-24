@@ -37,7 +37,9 @@ tagging the release.
 
 Native SDK releases use a four-component `vX.Y.Z.W` tag. Swift Package Manager
 requires three-component semantic versions, so the SPM release workflow derives
-and publishes a parallel `X.Y.Z` tag for its binary package.
+and publishes a parallel `X.Y.Z` tag for its binary package. A hotfix that
+must reach SPM needs a new `X.Y.Z`: changing only `W` maps to the already
+published SPM tag and the workflow skips the new package.
 
 For the complete operational procedure, downstream package updates, validation,
 and recovery guidance, see
