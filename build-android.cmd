@@ -13,6 +13,7 @@ REM Consider using %ANDROID_NDK_ROOT% environment variable
 
 REM Install Android tools if necessary
 call tools\setup-buildtools-android.cmd
+if errorlevel 1 exit /b %ERRORLEVEL%
 
 set "PATH=%ANDROID_SDK_ROOT%\cmake\%ANDROID_CMAKE_VERSION%\bin;%ANDROID_NDK%;%PATH%"
 

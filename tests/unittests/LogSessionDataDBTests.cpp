@@ -75,6 +75,8 @@ public:
 
     virtual void TearDown() override
     {
+        delete logSessionDataProvider;
+        logSessionDataProvider = nullptr;
         std::remove(name.str().c_str());
         offlineStorage->Shutdown();
         offlineStorage.reset();

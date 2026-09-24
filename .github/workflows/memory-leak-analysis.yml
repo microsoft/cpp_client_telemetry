@@ -1,0 +1,227 @@
+name: Memory leak analysis
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: 0 8 * * 1
+  push:
+    branches:
+    - main
+    paths:
+    - .github/scripts/run-drmemory.ps1
+    - .github/memory-leak-baseline.csv
+    - .github/workflows/memory-leak-analysis.yml
+    - CMakeLists.txt
+    - CMakePresets.json
+    - Solutions/**
+    - cmake/**
+    - examples/cpp/SampleCppMini/**
+    - lib/**
+    - sqlite/**
+    - tests/**
+    - third_party/Solutions/zlib/**
+    - third_party/googletest
+    - tools/gen-version.cmd
+    - zlib/**
+  pull_request:
+    branches:
+    - main
+    paths:
+    - .github/scripts/run-drmemory.ps1
+    - .github/memory-leak-baseline.csv
+    - .github/workflows/memory-leak-analysis.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: memory-leak-analysis-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DRMEMORY_VERSION: 2.6.20434
+  DRMEMORY_TAG: cronbuild-2.6.20434
+
+jobs:
+  windows:
+    name: Dr. Memory on Windows
+    runs-on: windows-2022
+    timeout-minutes: 120
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+    - name: Initialize googletest
+      run: git submodule update --init --depth=1 third_party/googletest
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
+      with:
+        vs-version: '[17,)'
+
+    - name: Build leak-analysis targets
+      shell: cmd
+      run: >-
+        tools\gen-version.cmd &&
+        msbuild Solutions\MSTelemetrySDK.sln
+        /target:sqlite:Rebuild,zlib:Rebuild,Tests\gmock:Rebuild,Tests\gtest:Rebuild,Tests\UnitTests:Rebuild,Tests\FuncTests:Rebuild,Samples\cpp\SampleCppMini:Rebuild
+        /p:BuildProjectReferences=true
+        /p:Configuration=Debug
+        /p:Platform=x64
+        /maxcpucount:2
+
+    - name: Download Dr. Memory
+      shell: pwsh
+      env:
+        DRMEMORY_SHA256: ED9C0E3F1BDB7F8DB1ADC13531493FB1C451E15F375638592C01D8837825A73A
+      run: |
+        $archive = Join-Path $env:RUNNER_TEMP "DrMemory-Windows-$env:DRMEMORY_VERSION.zip"
+        $url = "https://github.com/DynamoRIO/drmemory/releases/download/$env:DRMEMORY_TAG/DrMemory-Windows-$env:DRMEMORY_VERSION.zip"
+        Invoke-WebRequest -Uri $url -OutFile $archive
+        $actualHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash
+        if ($actualHash -ne $env:DRMEMORY_SHA256) {
+          throw "Dr. Memory archive hash mismatch: expected $env:DRMEMORY_SHA256, got $actualHash."
+        }
+        Expand-Archive -LiteralPath $archive -DestinationPath $env:RUNNER_TEMP
+
+    - name: Analyze unit tests
+      shell: pwsh
+      run: >-
+        ./.github/scripts/run-drmemory.ps1
+        -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Windows-$env:DRMEMORY_VERSION/bin64/drmemory.exe"
+        -LogDirectory drmemory-results
+        -Scenario unit-tests
+        -TargetPath Solutions/out/Debug/x64/UnitTests/UnitTests.exe
+        -BaselinePath .github/memory-leak-baseline.csv
+        -TargetArguments "--gtest_filter=-OfflineStorageTests_SQLite.StoreThousandEventsTakesLessThanASecond"
+
+    - name: Analyze functional tests
+      shell: pwsh
+      run: >-
+        ./.github/scripts/run-drmemory.ps1
+        -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Windows-$env:DRMEMORY_VERSION/bin64/drmemory.exe"
+        -LogDirectory drmemory-results
+        -Scenario functional-tests
+        -TargetPath Solutions/out/Debug/x64/FuncTests/FuncTests.exe
+        -BaselinePath .github/memory-leak-baseline.csv
+        -TargetArguments "--gtest_filter=-BasicFuncTests.killSwitchWorks"
+
+    - name: Analyze basic sample
+      shell: pwsh
+      run: >-
+        ./.github/scripts/run-drmemory.ps1
+        -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Windows-$env:DRMEMORY_VERSION/bin64/drmemory.exe"
+        -LogDirectory drmemory-results
+        -Scenario sample-cpp-mini
+        -BaselinePath .github/memory-leak-baseline.csv
+        -TargetPath Solutions/out/Debug/x64/SampleCppMini/SampleCppMini.exe
+
+    - name: Verify Network List Manager is not loaded
+      shell: pwsh
+      run: |
+        $moduleLogs = @()
+        foreach ($scenario in @("unit-tests", "functional-tests", "sample-cpp-mini")) {
+          $scenarioLogs = @(Get-ChildItem "drmemory-results/$scenario" -Filter global.*.log -File -Recurse)
+          if ($scenarioLogs.Count -eq 0) {
+            throw "Dr. Memory did not produce a module log for $scenario."
+          }
+          $moduleLogs += $scenarioLogs
+        }
+        $matches = $moduleLogs | Select-String -Pattern 'module load event:\s+"netprofm\.dll"'
+        if ($matches) {
+          $matches | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): $($_.Line)" }
+          throw "Network detection loaded netprofm.dll."
+        }
+
+    - name: Upload Windows reports
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: drmemory-windows
+        path: drmemory-results
+        if-no-files-found: error
+        retention-days: 90
+
+  linux:
+    name: Dr. Memory on Linux
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+    - name: Initialize googletest
+      run: git submodule update --init --depth=1 third_party/googletest
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libcurl4-openssl-dev
+
+    - name: Build leak-analysis targets
+      run: |
+        cmake --preset matsdk-debug \
+          -DMATSDK_BUILD_UNIT_TESTS=ON \
+          -DMATSDK_BUILD_FUNC_TESTS=ON
+        cmake --build --preset matsdk-debug --parallel 2
+
+    - name: Build basic sample
+      run: |
+        cmake --install out --prefix "$PWD/out/install"
+        cmake -S examples/cpp/SampleCppMini -B out/sample-cpp-mini \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_DISABLE_FIND_PACKAGE_MSTelemetry=TRUE \
+          -DMATSDK_INSTALL_DIR="$PWD/out/install"
+        cmake --build out/sample-cpp-mini --parallel 2
+
+    - name: Download Dr. Memory
+      env:
+        DRMEMORY_SHA256: 79B7718C0040A68B4FCECD9BA1C422174350A5B3A40A8417047A9219E9C2F258
+      run: |
+        archive="$RUNNER_TEMP/DrMemory-Linux-$DRMEMORY_VERSION.tar.gz"
+        url="https://github.com/DynamoRIO/drmemory/releases/download/$DRMEMORY_TAG/DrMemory-Linux-$DRMEMORY_VERSION.tar.gz"
+        curl --fail --location --retry 3 --output "$archive" "$url"
+        echo "$DRMEMORY_SHA256  $archive" | sha256sum --check --strict
+        tar -xzf "$archive" -C "$RUNNER_TEMP"
+
+    - name: Analyze unit tests
+      shell: pwsh
+      run: >-
+        ./.github/scripts/run-drmemory.ps1
+        -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Linux-$env:DRMEMORY_VERSION/bin64/drmemory"
+        -LogDirectory drmemory-results
+        -Scenario unit-tests
+        -BaselinePath .github/memory-leak-baseline.csv
+        -TargetPath out/tests/unittests/UnitTests
+
+    - name: Analyze functional tests
+      shell: pwsh
+      run: >-
+        ./.github/scripts/run-drmemory.ps1
+        -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Linux-$env:DRMEMORY_VERSION/bin64/drmemory"
+        -LogDirectory drmemory-results
+        -Scenario functional-tests
+        -TargetPath out/tests/functests/FuncTests
+        -BaselinePath .github/memory-leak-baseline.csv
+        -TargetArguments "--gtest_filter=-BasicFuncTests.killSwitchWorks"
+
+    - name: Analyze basic sample
+      shell: pwsh
+      run: >-
+        ./.github/scripts/run-drmemory.ps1
+        -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Linux-$env:DRMEMORY_VERSION/bin64/drmemory"
+        -LogDirectory drmemory-results
+        -Scenario sample-cpp-mini
+        -BaselinePath .github/memory-leak-baseline.csv
+        -TargetPath out/sample-cpp-mini/SampleCppMini
+
+    - name: Upload Linux reports
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: drmemory-linux
+        path: drmemory-results
+        if-no-files-found: error
+        retention-days: 90

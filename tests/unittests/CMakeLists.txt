@@ -76,6 +76,10 @@ if (APPLE)
   endif()
 endif()
 
+if (WIN32)
+  list(APPEND SRCS NetworkDetectorTests.cpp)
+endif()
+
 if (EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests")
     list(APPEND SRCS
         "${PROJECT_SOURCE_DIR}/lib/modules/exp/tests/unittests/ECSConfigCacheTests.cpp"
