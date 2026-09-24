@@ -7,6 +7,7 @@
 #import "ODWLogConfiguration_private.h"
 #import "ODWLogger_private.h"
 #import "LogManager.hpp"
+#include <memory>
 
 using namespace Microsoft::Applications::Events;
 
@@ -293,24 +294,26 @@ NSString *const ODWCFG_BOOL_TPM_CLOCK_SKEW_ENABLED = @"clockSkewEnabled";
 NSString *const ODWCFG_BOOL_SESSION_RESET_ENABLED = @"sessionResetEnabled";
 
 @implementation ODWLogConfiguration
+{
+    std::unique_ptr<ILogConfiguration> _wrappedConfiguration;
+}
     static bool _enableTrace;
     static bool _enableConsoleLogging;
     static bool _enableSessionReset;
     static bool _surfaceCppExceptions;
-    ILogConfiguration* _wrappedConfiguration;
 
 -(instancetype)initWithILogConfiguration:(ILogConfiguration*)config
 {
     self = [super init];
     if(self) {
-        _wrappedConfiguration = config;
+        _wrappedConfiguration.reset(config);
     }
     return self;
 }
 
 -(nullable ILogConfiguration*)getWrappedConfiguration
 {
-    return _wrappedConfiguration;
+    return _wrappedConfiguration.get();
 }
 
 +(nullable ODWLogConfiguration *)getLogConfigurationCopy
