@@ -128,6 +128,11 @@ The default desktop transport is WinHTTP. It supports services and
 non-interactive processes; WinInet is retained for consumers that explicitly
 need its user-profile proxy or cookie behavior.
 
+The supported Windows floor is Windows 10 and Windows Server 2016. Windows 7,
+Windows 8, and Windows 8.1 are not supported; do not add compatibility paths
+solely for those older systems. The Windows CI builds target the Windows 10
+API floor.
+
 ### WSL and Linux
 
 From a WSL distribution with the compiler, CMake, and other documented
@@ -221,6 +226,27 @@ the changed code.
 Manual review and CI can be sufficient for a small, low-risk change. A larger
 change should use more independent environments. Record what was and was not
 tested in the PR so reviewers can assess residual risk.
+
+### Leak analysis
+
+The [memory leak analysis workflow](../.github/workflows/memory-leak-analysis.yml)
+runs Dr. Memory on Windows and Linux for unit tests, functional tests, and
+SampleCppMini. It runs weekly, on relevant changes pushed to `main`, and by
+manual dispatch. PRs trigger it only when the leak workflow, runner script, or
+baseline changes; other PRs should not assume leak analysis ran before merge.
+
+Review the job summaries and the Windows and Linux report artifacts (retained
+for 90 days) against [the leak baseline](../.github/memory-leak-baseline.csv).
+Leak-count increases produce warnings, not failures: a green job does not mean
+the change introduced no leaks. Instrumentation or target failures fail the
+job, and Windows also fails if `netprofm.dll` is loaded again.
+
+Two tests remain in normal CI but are excluded under instrumentation:
+`BasicFuncTests.killSwitchWorks` because Dr. Memory changes its asynchronous
+drop count, and
+`OfflineStorageTests_SQLite.StoreThousandEventsTakesLessThanASecond` on Windows
+because instrumentation invalidates its one-second timing limit. Reassess
+these exclusions when changing the affected code or test expectations.
 
 ## End-to-end telemetry validation
 
