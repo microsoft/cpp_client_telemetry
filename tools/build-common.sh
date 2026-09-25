@@ -34,7 +34,10 @@ matsdk_try_buildtools_once() {
 
   if [ ! -f "$marker_file" ]; then
     if [ $# -gt 0 ]; then
-      "$@" || echo "$failure_message"
+      if ! "$@"; then
+        echo "$failure_message"
+        return 1
+      fi
     fi
     matsdk_mark_buildtools_checked "$marker_file"
   fi

@@ -1,2 +1,3 @@
 #!/bin/sh
-node `dirname $0`/version-node.js
+CDPATH= cd -- "$(dirname -- "$0")" || exit 1
+exec node ./version-node.js

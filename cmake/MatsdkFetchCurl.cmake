@@ -36,7 +36,6 @@ function(matsdk_fetch_curl out_target)
       INSTALL_MBEDTLS_HEADERS
       MBEDTLS_FATAL_WARNINGS
       USE_SHARED_MBEDTLS_LIBRARY
-      LINK_WITH_PTHREAD
       BUILD_CURL_EXE
       BUILD_EXAMPLES
       BUILD_LIBCURL_DOCS
@@ -82,7 +81,12 @@ function(matsdk_fetch_curl out_target)
     set(${option} ON)
   endforeach()
 
+  set(CURL_CA_BUNDLE none)
+  set(CURL_CA_PATH none)
+  set(CURL_CA_EMBED "")
+
   if(MATSDK_CURL_TLS_BACKEND_UPPER STREQUAL "MBEDTLS")
+    set(LINK_WITH_PTHREAD ON)
     set(USE_STATIC_MBEDTLS_LIBRARY ON)
     set(CURL_USE_MBEDTLS ON)
     set(MBEDTLS_CONFIG_FILE "")
@@ -96,6 +100,9 @@ function(matsdk_fetch_curl out_target)
 
     foreach(target mbedtls mbedx509 mbedcrypto)
       matsdk_configure_fetched_static_target("${target}")
+      target_compile_definitions("${target}" PUBLIC
+        MBEDTLS_THREADING_C
+        MBEDTLS_THREADING_PTHREAD)
     endforeach()
 
     set(MBEDTLS_INCLUDE_DIR "${matsdk_mbedtls_SOURCE_DIR}/include")
@@ -124,6 +131,26 @@ function(matsdk_fetch_curl out_target)
   if(NOT TARGET CURL::libcurl OR NOT TARGET libcurl_static)
     message(FATAL_ERROR "The embedded static CURL::libcurl target was not created.")
   endif()
+
+  set(_matsdk_curl_config "${matsdk_curl_BINARY_DIR}/lib/curl_config.h")
+  if(NOT EXISTS "${_matsdk_curl_config}")
+    message(FATAL_ERROR
+      "The embedded curl configuration was not generated: ${_matsdk_curl_config}")
+  endif()
+  file(READ "${_matsdk_curl_config}" _matsdk_curl_config_contents)
+  foreach(definition CURL_CA_BUNDLE CURL_CA_PATH)
+    string(REGEX REPLACE
+      "#define ${definition} \"[^\"]*\""
+      "/* #undef ${definition} */"
+      _matsdk_curl_config_contents
+      "${_matsdk_curl_config_contents}")
+  endforeach()
+  if(_matsdk_curl_config_contents MATCHES
+      "#define CURL_CA_(BUNDLE|PATH)")
+    message(FATAL_ERROR
+      "Embedded curl retained a build-time certificate authority path.")
+  endif()
+  file(WRITE "${_matsdk_curl_config}" "${_matsdk_curl_config_contents}")
 
   matsdk_configure_fetched_static_target(libcurl_static)
 

@@ -246,7 +246,7 @@ if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite3::SQL
     matsdk_add_apple_system_library(SQLite3::SQLite3 sqlite3)
   else()
     find_package(SQLite3 QUIET)
-    if(NOT TARGET SQLite3::SQLite3 AND TARGET SQLite::SQLite3)
+    if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
       matsdk_add_interface_dependency(SQLite3::SQLite3 SQLite::SQLite3)
     endif()
     if(NOT TARGET SQLite3::SQLite3 AND MATSDK_USING_VCPKG)

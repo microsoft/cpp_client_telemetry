@@ -10,6 +10,7 @@
 
 #import <XCTest/XCTest.h>
 #import "ODWLogConfiguration.h"
+#import "ODWLogConfiguration_private.h"
 #include "LogManager.hpp"
 
 using namespace Microsoft::Applications::Events;
@@ -59,6 +60,24 @@ using namespace Microsoft::Applications::Events;
     XCTAssertNotNil(config);
     [config setHost:@"testHost"];
     XCTAssertEqualObjects(config.host, @"testHost");
+}
+
+- (void)testConfigurationCopiesRemainIndependent {
+    ODWLogConfiguration *first = [ODWLogConfiguration getLogConfigurationCopy];
+    [first set:@"copyIsolation" withValue:@"first"];
+    [first setHost:@"firstHost"];
+
+    ODWLogConfiguration *second = [ODWLogConfiguration getLogConfigurationCopy];
+    [second set:@"copyIsolation" withValue:@"second"];
+    [second setHost:@"secondHost"];
+
+    XCTAssertEqualObjects([first valueForKey:@"copyIsolation"], @"first");
+    XCTAssertEqualObjects(first.host, @"firstHost");
+    XCTAssertEqualObjects([second valueForKey:@"copyIsolation"], @"second");
+    XCTAssertEqualObjects(second.host, @"secondHost");
+
+    ODWLogConfiguration *third = [ODWLogConfiguration getLogConfigurationCopy];
+    XCTAssertFalse([third getWrappedConfiguration]->HasConfig("copyIsolation"));
 }
 
 @end
