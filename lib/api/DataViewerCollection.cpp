@@ -16,7 +16,14 @@ namespace MAT_NS_BEGIN {
             return;
 
         LOCKGUARD(m_dataViewerMapLock);
-        for(const auto& viewer : m_dataViewerCollection)
+        // Dispatch over a snapshot rather than the member directly. m_dataViewerMapLock is
+        // recursive, so a viewer that reenters the SDK from ReceiveData - for example by
+        // closing the owning LogManager, which unregisters every viewer - would otherwise
+        // erase from the very vector being iterated here and invalidate the iterator.
+        // Holding shared_ptr copies additionally keeps each viewer alive for the duration of
+        // its own callback, even if that callback drops the last other reference to it.
+        const auto viewers = m_dataViewerCollection;
+        for(const auto& viewer : viewers)
         {
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
             viewer->ReceiveData(packetData);

@@ -25,6 +25,7 @@ import com.microsoft.applications.events.DebugEventListener;
 import com.microsoft.applications.events.DebugEventType;
 import com.microsoft.applications.events.DiagLevel;
 import com.microsoft.applications.events.HttpClient;
+import com.microsoft.applications.events.IDataViewer;
 import com.microsoft.applications.events.ILogConfiguration;
 import com.microsoft.applications.events.ILogManager;
 import com.microsoft.applications.events.ILogger;
@@ -42,7 +43,10 @@ import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -245,6 +249,119 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
       secondaryManager.disableViewer();
     }
     LogManager.flushAndTeardown();
+  }
+
+  @Test
+  public void registerDataViewer_whenCallbackThrows_continuesDispatchAndStopsAfterUnregister()
+      throws Exception {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String factoryName = "JavaDataViewer" + System.nanoTime();
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, "https://viewer.contoso.com/");
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, factoryName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, factoryName);
+
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+    CountDownLatch receivedPacket = new CountDownLatch(1);
+    AtomicInteger receivedByteCount = new AtomicInteger();
+    AtomicInteger receivingViewerCalls = new AtomicInteger();
+    AtomicInteger throwingViewerCalls = new AtomicInteger();
+    IDataViewer throwingViewer =
+        new IDataViewer() {
+          @Override
+          public void receiveData(byte[] packetData) {
+            throwingViewerCalls.incrementAndGet();
+            throw new IllegalStateException("Expected callback failure");
+          }
+
+          @Override
+          public String getName() {
+            return "throwing-viewer";
+          }
+
+          @Override
+          public boolean isTransmissionEnabled() {
+            return true;
+          }
+
+          @Override
+          public String getCurrentEndpoint() {
+            return "";
+          }
+        };
+    IDataViewer receivingViewer =
+        new IDataViewer() {
+          @Override
+          public void receiveData(byte[] packetData) {
+            receivingViewerCalls.incrementAndGet();
+            receivedByteCount.set(packetData.length);
+            receivedPacket.countDown();
+          }
+
+          @Override
+          public String getName() {
+            return "receiving-viewer";
+          }
+
+          @Override
+          public boolean isTransmissionEnabled() {
+            return true;
+          }
+
+          @Override
+          public String getCurrentEndpoint() {
+            return "http://127.0.0.1";
+          }
+        };
+
+    try {
+      assertThat(manager.registerDataViewer(throwingViewer), is(true));
+      assertThat(manager.registerDataViewer(receivingViewer), is(true));
+      assertThat(manager.registerDataViewer(receivingViewer), is(false));
+
+      ILogger logger = manager.getLogger(token, "java-data-viewer-test", "");
+      logger.logEvent("javaDataViewerCallback");
+      manager.uploadNow();
+
+      assertThat(receivedPacket.await(5, TimeUnit.SECONDS), is(true));
+      assertThat(receivedByteCount.get(), greaterThan(0));
+
+      assertThat(manager.unregisterDataViewer("receiving-viewer"), is(true));
+      assertThat(manager.unregisterDataViewer("receiving-viewer"), is(false));
+
+      // Unregistering must actually stop callbacks, not merely drop the bookkeeping entry: a
+      // bridge that left the proxy in the native DataViewerCollection would still pass the
+      // assertions above. Drive a second dispatch and use the still-registered throwing viewer
+      // as the witness that one really occurred, then assert the unregistered viewer was not
+      // called again.
+      final int receivingCallsAtUnregister = receivingViewerCalls.get();
+      final int throwingCallsAtUnregister = throwingViewerCalls.get();
+
+      logger.logEvent("javaDataViewerCallbackAfterUnregister");
+      manager.uploadNow();
+
+      final long deadline = System.currentTimeMillis() + 10000;
+      while (throwingViewerCalls.get() <= throwingCallsAtUnregister
+          && System.currentTimeMillis() < deadline) {
+        Thread.sleep(50);
+      }
+
+      assertThat(throwingViewerCalls.get(), greaterThan(throwingCallsAtUnregister));
+      assertThat(receivingViewerCalls.get(), is(receivingCallsAtUnregister));
+
+      assertThat(manager.unregisterDataViewer("throwing-viewer"), is(true));
+    } finally {
+      manager.close();
+    }
   }
 
   /*

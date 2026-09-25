@@ -264,3 +264,65 @@ TEST(DataViewerCollectionTests, IsViewerEnabledNoParam_MultipleViewersRegistered
     ASSERT_TRUE(dataViewerCollection.IsViewerEnabled());
 }
 
+namespace
+{
+    // Mirrors a viewer that reenters the SDK from its own callback - for example a Java
+    // viewer that closes the owning LogManager from receiveData(), which unregisters every
+    // viewer. m_dataViewerMapLock is recursive, so the reentrant call is admitted while
+    // dispatch is still walking the collection.
+    class ReentrantUnregisteringDataViewer : public IDataViewer
+    {
+       public:
+
+        ReentrantUnregisteringDataViewer(const char* name, TestDataViewerCollection& collection) :
+            m_name(name), m_collection(collection) {}
+
+        void ReceiveData(const std::vector<uint8_t>&) noexcept override
+        {
+            callCount++;
+            m_collection.UnregisterAllViewers();
+        }
+
+        const char* GetName() const noexcept override
+        {
+            return m_name;
+        }
+
+        bool IsTransmissionEnabled() const noexcept override
+        {
+            return true;
+        }
+
+        const std::string& GetCurrentEndpoint() const noexcept override
+        {
+            return m_testEndpoint;
+        }
+
+        int callCount { 0 };
+        const char* m_name;
+        TestDataViewerCollection& m_collection;
+        const std::string m_testEndpoint { "TestEndpoint" };
+    };
+}
+
+TEST(DataViewerCollectionTests, DispatchDataViewerEvent_ViewerUnregistersAllFromCallback_DispatchCompletesSafely)
+{
+    TestDataViewerCollection dataViewerCollection { };
+    auto reentrantViewer = std::make_shared<ReentrantUnregisteringDataViewer>("ReentrantViewer", dataViewerCollection);
+    auto secondViewer = std::make_shared<MockIDataViewer>("SecondViewer", /*isTransmissionEnabled*/ true);
+
+    dataViewerCollection.RegisterViewer(reentrantViewer);
+    dataViewerCollection.RegisterViewer(secondViewer);
+
+    const std::vector<uint8_t> packetData { 1, 2, 3 };
+
+    // Dispatching over the member vector directly would erase it mid-iteration here and
+    // invalidate the iterator; dispatching over a snapshot completes and still delivers the
+    // in-flight packet to viewers that were registered when dispatch began.
+    dataViewerCollection.DispatchDataViewerEvent(packetData);
+
+    ASSERT_EQ(reentrantViewer->callCount, 1);
+    ASSERT_EQ(secondViewer->localPacketData, packetData);
+    ASSERT_TRUE(dataViewerCollection.GetCollection().empty());
+}
+

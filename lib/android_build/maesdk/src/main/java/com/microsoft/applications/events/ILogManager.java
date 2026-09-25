@@ -59,6 +59,34 @@ public interface ILogManager extends AutoCloseable {
 
   public String getCurrentEndpoint();
 
+  /**
+   * Registers a caller-provided data viewer with this LogManager.
+   *
+   * <p>This is an optional capability. The default implementation returns {@code false} so that
+   * existing implementations of this interface remain source compatible; implementations that
+   * support data viewers override it.
+   *
+   * @return {@code true} when the viewer was registered, {@code false} for invalid input, a
+   *     duplicate viewer name, or when the implementation does not support data viewers
+   */
+  default boolean registerDataViewer(IDataViewer dataViewer) {
+    return false;
+  }
+
+  /**
+   * Unregisters a caller-provided data viewer by its unique name.
+   *
+   * <p>This is an optional capability. The default implementation returns {@code false} so that
+   * existing implementations of this interface remain source compatible; implementations that
+   * support data viewers override it.
+   *
+   * @return {@code true} when the viewer was unregistered, {@code false} when it was not
+   *     registered, or when the implementation does not support data viewers
+   */
+  default boolean unregisterDataViewer(String viewerName) {
+    return false;
+  }
+
   public LogSessionData getLogSessionData();
 
   public void setLevelFilter(int defaultLevel, int[] allowedLevels);
