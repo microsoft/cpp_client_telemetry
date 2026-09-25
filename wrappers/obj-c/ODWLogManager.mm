@@ -122,11 +122,8 @@ static BOOL _initialized = false;
     ILogger* logger = nullptr;
     try
     {
-        static ILogConfiguration logManagerConfig;
-
-        // Initializing logManager config with default configuration
-        auto& defaultConfig = LogManager::GetLogConfiguration();
-        logManagerConfig = defaultConfig;
+        // Get reference to the default configuration
+        auto& logManagerConfig = LogManager::GetLogConfiguration();
 
         // Update logManager config when custom configuration is provided.
         if (config != nil && config.count > 0)
@@ -138,7 +135,7 @@ static BOOL _initialized = false;
             if (jsonData)
             {
                 NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-                logManagerConfig = MAT::FromJSON([jsonString UTF8String]);
+                MAT::MergeFromJSON(logManagerConfig, [jsonString UTF8String]);
             }
             else
             {
