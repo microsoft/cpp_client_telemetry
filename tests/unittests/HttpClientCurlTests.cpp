@@ -188,11 +188,13 @@ TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
     struct StateCallback : public IHttpResponseCallback
     {
         std::vector<HttpStateEvent> states;
+        std::vector<void*> handles;
 
         void OnHttpResponse(IHttpResponse* response) override { delete response; }
-        void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
+        void OnHttpStateEvent(HttpStateEvent state, void* handle, size_t) override
         {
             states.push_back(state);
+            handles.push_back(handle);
         }
     } callback;
 
@@ -212,6 +214,9 @@ TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
     EXPECT_EQ(responseHeaders.at("X-MAT-Test"), "header-value");
     EXPECT_EQ(std::string(responseBody.begin(), responseBody.end()), "body-value");
     EXPECT_EQ(callback.states, (std::vector<HttpStateEvent>{OnCreated, OnConnecting, OnSending, OnResponse}));
+    ASSERT_EQ(callback.handles.size(), 4u);
+    EXPECT_EQ(callback.handles[1], operation.GetHandle());
+    EXPECT_EQ(callback.handles[2], UsesPrereqCallback() ? nullptr : operation.GetHandle());
     EXPECT_EQ(m_server.acceptedConnections(), UsesPrereqCallback() ? 1u : 2u);
 }
 

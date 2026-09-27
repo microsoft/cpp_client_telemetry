@@ -170,7 +170,10 @@ public:
         if (m_callback != nullptr)
         {
             HookScope callbackScope(m_callbackHooks);
-            m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
+            // OnSending runs inside curl_easy_perform with the prereq callback.
+            // Do not expose a handle observers could mutate during that transfer.
+            void* handle = (m_usePrereqCallback && type == OnSending) ? nullptr : static_cast<void*>(curl);
+            m_callback->OnHttpStateEvent(type, handle, 0);
         }
     }
 
