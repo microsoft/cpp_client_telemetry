@@ -293,6 +293,19 @@ public:
             return;
         }
 
+#if LIBCURL_VERSION_NUM >= 0x075000
+        const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+        if (versionInfo == nullptr)
+        {
+            LOG_ERROR("libcurl version query failed");
+            m_transportError = CURLE_FAILED_INIT;
+            m_setupError = CURLE_FAILED_INIT;
+            EmitCreationEvent(OnCreateFailed);
+            return;
+        }
+        m_usePrereqCallback = versionInfo->version_num >= 0x075000;
+#endif
+
         if (!SetOption(CURLOPT_VERBOSE, 0L) ||
             !SetOption(CURLOPT_URL, m_url.c_str()) ||
             !SetOption(CURLOPT_SSL_VERIFYPEER, 1L) ||
@@ -311,8 +324,8 @@ public:
             !SetOption(CURLOPT_NOPROGRESS, 0L) ||
             !SetAbortProgressOption() ||
 #if LIBCURL_VERSION_NUM >= 0x075000 // libcurl 7.80.0
-            !SetOption(CURLOPT_PREREQFUNCTION, &OnConnectionReady) ||
-            !SetOption(CURLOPT_PREREQDATA, static_cast<void*>(this)) ||
+            (m_usePrereqCallback && (!SetOption(CURLOPT_PREREQFUNCTION, &OnConnectionReady) ||
+                                     !SetOption(CURLOPT_PREREQDATA, static_cast<void*>(this)))) ||
 #endif
             // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
             !SetOption(CURLOPT_HTTP_VERSION, GetPreferredHttpVersion()))
@@ -391,9 +404,7 @@ public:
     {
         TRACE("method=%s\n", this->m_method.c_str());
 
-#if LIBCURL_VERSION_NUM >= 0x075000
         m_connectionReady = false;
-#endif
         ReleaseResponse();
         // Request buffer
         const void *request  = m_requestBody.empty() ? nullptr : m_requestBody.data();
@@ -423,70 +434,70 @@ public:
         // TODO: should we control what local source port we use?
         // curl_easy_setopt(curl, CURLOPT_LOCALPORT, dcf_port);
 
-#if LIBCURL_VERSION_NUM < 0x075000 // Keep the connected-before-sending state event on older libcurl.
-        if (!SetOption(CURLOPT_CONNECT_ONLY, 1L))
+        if (!m_usePrereqCallback)
         {
-            DispatchEvent(OnConnectFailed);
-            goto cleanup;
-        }
-        DispatchEvent(OnConnecting);
-        m_transportError = curl_easy_perform(curl);
-        if(CURLE_OK != m_transportError)
-        {
-            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 1
-            TRACE("Error #1: %s\n", curl_easy_strerror(m_transportError));
-            goto cleanup;
-        }
+            if (!SetOption(CURLOPT_CONNECT_ONLY, 1L))
+            {
+                DispatchEvent(OnConnectFailed);
+                goto cleanup;
+            }
+            DispatchEvent(OnConnecting);
+            m_transportError = curl_easy_perform(curl);
+            if (CURLE_OK != m_transportError)
+            {
+                DispatchEvent(OnConnectFailed);  // couldn't connect - stage 1
+                TRACE("Error #1: %s\n", curl_easy_strerror(m_transportError));
+                goto cleanup;
+            }
 
-        /* Extract the socket from the curl handle - we'll need it for waiting.
-         * Note that this API takes a pointer to a 'long' while we use
-         * curl_socket_t for sockets otherwise.
-         */
+            /* Extract the socket from the curl handle - we'll need it for waiting.
+             * Note that this API takes a pointer to a 'long' while we use
+             * curl_socket_t for sockets otherwise.
+             */
 
 #if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
-        m_transportError = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
+            m_transportError = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
 #else
-        {
-            long lastSocket = -1;
-            m_transportError = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
-            if (m_transportError == CURLE_OK)
             {
-                sockextr = static_cast<curl_socket_t>(lastSocket);
+                long lastSocket = -1;
+                m_transportError = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
+                if (m_transportError == CURLE_OK)
+                {
+                    sockextr = static_cast<curl_socket_t>(lastSocket);
+                }
+            }
+#endif
+            if (CURLE_OK != m_transportError)
+            {
+                DispatchEvent(OnConnectFailed);  // couldn't connect - stage 2
+                TRACE("Error #2: %s\n", curl_easy_strerror(m_transportError));
+                goto cleanup;
+            }
+            if (sockextr == CURL_SOCKET_BAD)
+            {
+                m_transportError = CURLE_FAILED_INIT;
+                DispatchEvent(OnConnectFailed);  // couldn't connect - no socket
+                TRACE("Error #2: curl returned an invalid socket\n");
+                goto cleanup;
+            }
+
+            /* wait for the socket to become ready for sending */
+            sockfd = sockextr;
+            if (WaitOnSocket(sockfd, 0, static_cast<long>(httpConnTimeout) * 1000L) <= 0 || isAborted)
+            {
+                TRACE("Error #3: timeout, aborted=%u\n", isAborted.load());
+                m_transportError = CURLE_OPERATION_TIMEDOUT;
+                DispatchEvent(OnConnectFailed);  // couldn't connect - stage 3
+                goto cleanup;
+            }
+
+            // once connection is there - switch back to easy perform for HTTP post
+            if (!SetOption(CURLOPT_CONNECT_ONLY, 0L))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
             }
         }
-#endif
-
-        if(CURLE_OK != m_transportError)
-        {
-            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
-            TRACE("Error #2: %s\n", curl_easy_strerror(m_transportError));
-            goto cleanup;
-        }
-        if (sockextr == CURL_SOCKET_BAD)
-        {
-            m_transportError = CURLE_FAILED_INIT;
-            DispatchEvent(OnConnectFailed);     // couldn't connect - no socket
-            TRACE("Error #2: curl returned an invalid socket\n");
-            goto cleanup;
-        }
-
-        /* wait for the socket to become ready for sending */
-        sockfd = sockextr;
-        if (WaitOnSocket(sockfd, 0, static_cast<long>(httpConnTimeout) * 1000L) <= 0 || isAborted)
-        {
-            TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
-            m_transportError = CURLE_OPERATION_TIMEDOUT;
-            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 3
-            goto cleanup;
-        }
-
-        // once connection is there - switch back to easy perform for HTTP post
-        if (!SetOption(CURLOPT_CONNECT_ONLY, 0L))
-        {
-            DispatchEvent(OnSendFailed);
-            goto cleanup;
-        }
-#endif
 
         // send all data to our callback function
         if (rawResponse)
@@ -537,19 +548,11 @@ public:
             DispatchEvent(OnSendFailed);
             goto cleanup;
         }
-#if LIBCURL_VERSION_NUM >= 0x075000
-        DispatchEvent(OnConnecting);
-#else
-        DispatchEvent(OnSending);
-#endif
+        DispatchEvent(m_usePrereqCallback ? OnConnecting : OnSending);
         m_transportError = curl_easy_perform(curl);
         if(CURLE_OK != m_transportError)
         {
-#if LIBCURL_VERSION_NUM >= 0x075000
-            DispatchEvent(m_connectionReady ? OnSendFailed : OnConnectFailed);
-#else
-            DispatchEvent(OnSendFailed);
-#endif
+            DispatchEvent(!m_usePrereqCallback || m_connectionReady ? OnSendFailed : OnConnectFailed);
             TRACE("Error: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
@@ -804,9 +807,8 @@ protected:
 
     curl_socket_t sockextr = CURL_SOCKET_BAD;
 
-#if LIBCURL_VERSION_NUM >= 0x075000
-    bool m_connectionReady {false}; // Only accessed by the transfer's worker thread.
-#endif
+    bool m_usePrereqCallback{false};  // Chosen once from the loaded libcurl version.
+    bool m_connectionReady{false};    // Only accessed by the transfer's worker thread.
 
     curl_off_t nread = 0;
     size_t sendlen   = 0;        // # bytes sent by client

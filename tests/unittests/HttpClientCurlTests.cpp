@@ -136,6 +136,16 @@ private:
     std::condition_variable m_acceptedCv;
 };
 
+static bool UsesPrereqCallback()
+{
+#if LIBCURL_VERSION_NUM >= 0x075000
+    const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+    return versionInfo != nullptr && versionInfo->version_num >= 0x075000;
+#else
+    return false;
+#endif
+}
+
 class HttpClientCurlHeaderTests : public ::testing::Test,
                                   public HttpServer::Callback
 {
@@ -202,9 +212,7 @@ TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
     EXPECT_EQ(responseHeaders.at("X-MAT-Test"), "header-value");
     EXPECT_EQ(std::string(responseBody.begin(), responseBody.end()), "body-value");
     EXPECT_EQ(callback.states, (std::vector<HttpStateEvent>{OnCreated, OnConnecting, OnSending, OnResponse}));
-#if LIBCURL_VERSION_NUM >= 0x075000 // CURLOPT_PREREQFUNCTION is available since libcurl 7.80.0.
-    EXPECT_EQ(m_server.acceptedConnections(), 1u);
-#endif
+    EXPECT_EQ(m_server.acceptedConnections(), UsesPrereqCallback() ? 1u : 2u);
 }
 
 TEST_F(HttpClientCurlHeaderTests, SendsBinaryPostWithoutRedundantConnection)
@@ -222,14 +230,17 @@ TEST_F(HttpClientCurlHeaderTests, SendsBinaryPostWithoutRedundantConnection)
         EXPECT_EQ(m_requestMethod, "POST");
         EXPECT_EQ(m_requestContent, std::string(requestBody.begin(), requestBody.end()));
     }
-#if LIBCURL_VERSION_NUM >= 0x075000 // CURLOPT_PREREQFUNCTION is available since libcurl 7.80.0.
-    EXPECT_EQ(m_server.acceptedConnections(), 1u);
-#endif
+    EXPECT_EQ(m_server.acceptedConnections(), UsesPrereqCallback() ? 1u : 2u);
 }
 
 #if LIBCURL_VERSION_NUM >= 0x075000
 TEST_F(HttpClientCurlHeaderTests, AbortsWhenSendingStateCallbackThrows)
 {
+    if (!UsesPrereqCallback())
+    {
+        GTEST_SKIP() << "OnSending runs inside libcurl only on libcurl 7.80+";
+    }
+
     struct ThrowingCallback : public IHttpResponseCallback
     {
         void OnHttpResponse(IHttpResponse* response) override { delete response; }
