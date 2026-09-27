@@ -302,6 +302,10 @@ public:
             // inside libcurl, and aborts the transfer in an orderly way.
             !SetOption(CURLOPT_NOPROGRESS, 0L) ||
             !SetAbortProgressOption() ||
+#if LIBCURL_VERSION_NUM >= 0x075000 // libcurl 7.80.0
+            !SetOption(CURLOPT_PREREQFUNCTION, &OnConnectionReady) ||
+            !SetOption(CURLOPT_PREREQDATA, static_cast<void*>(this)) ||
+#endif
             // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
             !SetOption(CURLOPT_HTTP_VERSION, GetPreferredHttpVersion()))
         {
@@ -379,6 +383,9 @@ public:
     {
         TRACE("method=%s\n", this->m_method.c_str());
 
+#if LIBCURL_VERSION_NUM >= 0x075000
+        m_connectionReady = false;
+#endif
         ReleaseResponse();
         // Request buffer
         const void *request  = m_requestBody.empty() ? nullptr : m_requestBody.data();
@@ -408,7 +415,7 @@ public:
         // TODO: should we control what local source port we use?
         // curl_easy_setopt(curl, CURLOPT_LOCALPORT, dcf_port);
 
-        // Perform initial connect, handling the timeout if needed
+#if LIBCURL_VERSION_NUM < 0x075000 // Keep the connected-before-sending state event on older libcurl.
         if (!SetOption(CURLOPT_CONNECT_ONLY, 1L))
         {
             DispatchEvent(OnConnectFailed);
@@ -471,6 +478,7 @@ public:
             DispatchEvent(OnSendFailed);
             goto cleanup;
         }
+#endif
 
         // send all data to our callback function
         if (rawResponse)
@@ -521,11 +529,19 @@ public:
             DispatchEvent(OnSendFailed);
             goto cleanup;
         }
+#if LIBCURL_VERSION_NUM >= 0x075000
+        DispatchEvent(OnConnecting);
+#else
         DispatchEvent(OnSending);
+#endif
         m_transportError = curl_easy_perform(curl);
         if(CURLE_OK != m_transportError)
         {
+#if LIBCURL_VERSION_NUM >= 0x075000
+            DispatchEvent(m_connectionReady ? OnSendFailed : OnConnectFailed);
+#else
             DispatchEvent(OnSendFailed);
+#endif
             TRACE("Error: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
@@ -780,6 +796,10 @@ protected:
 
     curl_socket_t sockextr = CURL_SOCKET_BAD;
 
+#if LIBCURL_VERSION_NUM >= 0x075000
+    bool m_connectionReady {false}; // Only accessed by the transfer's worker thread.
+#endif
+
     curl_off_t nread = 0;
     size_t sendlen   = 0;        // # bytes sent by client
     size_t acklen    = 0;        // # bytes ack by server
@@ -952,6 +972,41 @@ protected:
                SetOption(CURLOPT_PROGRESSDATA, static_cast<void*>(this));
 #endif
     }
+
+#if LIBCURL_VERSION_NUM >= 0x075000
+    static int OnConnectionReady(void* clientp, char*, char*, int, int) noexcept
+    {
+        auto* operation = static_cast<CurlHttpOperation*>(clientp);
+        if (operation->isAborted.load(std::memory_order_acquire))
+        {
+            return CURL_PREREQFUNC_ABORT;
+        }
+
+        operation->m_connectionReady = true;
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
+            operation->DispatchEvent(OnSending);
+#if HAVE_EXCEPTIONS
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("HTTP sending state callback failed: %s", ex.what());
+            operation->m_setupError = CURLE_FAILED_INIT;
+            return CURL_PREREQFUNC_ABORT;
+        }
+        catch (...)
+        {
+            LOG_ERROR("HTTP sending state callback failed with a non-standard exception");
+            operation->m_setupError = CURLE_FAILED_INIT;
+            return CURL_PREREQFUNC_ABORT;
+        }
+#endif
+        return operation->isAborted.load(std::memory_order_acquire)
+            ? CURL_PREREQFUNC_ABORT : CURL_PREREQFUNC_OK;
+    }
+#endif
 
 #if LIBCURL_VERSION_NUM >= 0x072000 // Version 7.32.0
     static int XferInfoAbortCallback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_off_t) noexcept

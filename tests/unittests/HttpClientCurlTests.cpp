@@ -99,12 +99,38 @@ TEST(HttpClientCurlOperationTests, ClampsConnectionTimeoutBeforeMillisecondsConv
         std::numeric_limits<long>::max() / 1000L);
 }
 
+class CountingHttpServer : public HttpServer
+{
+public:
+    size_t acceptedConnections() const
+    {
+        return m_acceptedConnections.load();
+    }
+
+protected:
+    void onSocketAcceptable(Socket socket) override
+    {
+        const size_t previousCount = m_connections.size();
+        HttpServer::onSocketAcceptable(socket);
+        if (m_connections.size() > previousCount)
+        {
+            ++m_acceptedConnections;
+        }
+    }
+
+private:
+    std::atomic<size_t> m_acceptedConnections {0};
+};
+
 class HttpClientCurlHeaderTests : public ::testing::Test,
                                   public HttpServer::Callback
 {
 protected:
-    HttpServer m_server;
+    CountingHttpServer m_server;
     std::string m_url;
+    std::mutex m_requestMutex;
+    std::string m_requestMethod;
+    std::string m_requestContent;
 
     void SetUp() override
     {
@@ -122,8 +148,11 @@ protected:
         m_server.stop();
     }
 
-    int onHttpRequest(HttpServer::Request const&, HttpServer::Response& response) override
+    int onHttpRequest(HttpServer::Request const& request, HttpServer::Response& response) override
     {
+        std::lock_guard<std::mutex> lock(m_requestMutex);
+        m_requestMethod = request.method;
+        m_requestContent = request.content;
         response.headers["X-MAT-Test"] = "header-value";
         response.content = "body-value";
         return 200;
@@ -132,11 +161,22 @@ protected:
 
 TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
 {
+    struct StateCallback : public IHttpResponseCallback
+    {
+        std::vector<HttpStateEvent> states;
+
+        void OnHttpResponse(IHttpResponse* response) override { delete response; }
+        void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
+        {
+            states.push_back(state);
+        }
+    } callback;
+
     const std::map<std::string, std::string> requestHeaders;
     const std::vector<uint8_t> requestBody;
     const HttpClient_Curl client;
     (void)client; // Initialize curl globally before constructing the operation.
-    CurlHttpOperation operation("GET", m_url, nullptr, requestHeaders, requestBody);
+    CurlHttpOperation operation("GET", m_url, &callback, requestHeaders, requestBody);
 
     operation.Send();
     ASSERT_EQ(operation.GetTransportError(), CURLE_OK);
@@ -147,7 +187,58 @@ TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
     ASSERT_EQ(responseHeaders.count("X-MAT-Test"), 1u);
     EXPECT_EQ(responseHeaders.at("X-MAT-Test"), "header-value");
     EXPECT_EQ(std::string(responseBody.begin(), responseBody.end()), "body-value");
+    EXPECT_EQ(callback.states, (std::vector<HttpStateEvent>{OnCreated, OnConnecting, OnSending, OnResponse}));
+#if LIBCURL_VERSION_NUM >= 0x075000 // CURLOPT_PREREQFUNCTION is available since libcurl 7.80.0.
+    EXPECT_EQ(m_server.acceptedConnections(), 1u);
+#endif
 }
+
+TEST_F(HttpClientCurlHeaderTests, SendsBinaryPostWithoutRedundantConnection)
+{
+    const std::map<std::string, std::string> requestHeaders;
+    const std::vector<uint8_t> requestBody {'a', '\0', 'b'};
+    CurlHttpOperation operation("POST", m_url, nullptr, requestHeaders, requestBody);
+
+    operation.Send();
+
+    ASSERT_EQ(operation.GetTransportError(), CURLE_OK);
+    ASSERT_EQ(operation.GetHttpStatusCode(), 200L);
+    {
+        std::lock_guard<std::mutex> lock(m_requestMutex);
+        EXPECT_EQ(m_requestMethod, "POST");
+        EXPECT_EQ(m_requestContent, std::string(requestBody.begin(), requestBody.end()));
+    }
+#if LIBCURL_VERSION_NUM >= 0x075000 // CURLOPT_PREREQFUNCTION is available since libcurl 7.80.0.
+    EXPECT_EQ(m_server.acceptedConnections(), 1u);
+#endif
+}
+
+#if LIBCURL_VERSION_NUM >= 0x075000
+TEST_F(HttpClientCurlHeaderTests, AbortsWhenSendingStateCallbackThrows)
+{
+    struct ThrowingCallback : public IHttpResponseCallback
+    {
+        void OnHttpResponse(IHttpResponse* response) override { delete response; }
+        void OnHttpStateEvent(HttpStateEvent state, void*, size_t) override
+        {
+            if (state == OnSending)
+            {
+                throw std::runtime_error("state callback failed");
+            }
+        }
+    } callback;
+
+    const std::map<std::string, std::string> requestHeaders;
+    const std::vector<uint8_t> requestBody;
+    CurlHttpOperation operation("GET", m_url, &callback, requestHeaders, requestBody);
+
+    operation.Send();
+
+    EXPECT_EQ(operation.GetTransportError(), CURLE_ABORTED_BY_CALLBACK);
+    EXPECT_EQ(operation.GetSetupError(), CURLE_FAILED_INIT);
+    EXPECT_EQ(m_server.acceptedConnections(), 1u);
+}
+#endif
 
 // --- ILogConfiguration integration ---
 
@@ -657,6 +748,28 @@ TEST_F(HttpClientCurlLifetimeTests, InternalRegistryDoesNotDereferenceDeletedReq
     // Cancelling a retired id is a no-op and must not produce a second callback.
     m_client.CancelRequestAsync(id);
     EXPECT_EQ(callback.responses(), 1u);
+}
+
+TEST_F(HttpClientCurlLifetimeTests, CancelFromOnSendingAbortsTheTransfer)
+{
+    RecordingCallback callback;
+    std::unique_ptr<IHttpRequest> request(m_client.CreateRequest());
+    request->SetUrl(m_endpoint.url());
+    const std::string id = request->GetId();
+    callback.setStateHook([this, id](HttpStateEvent state) {
+        if (state == OnSending)
+        {
+            m_client.CancelRequestAsync(id);
+        }
+    });
+
+    m_client.SendRequestAsync(request.get(), &callback);
+
+    ASSERT_TRUE(callback.waitForResponses(1, kTerminalTimeout));
+    m_client.CancelAllRequests();
+    EXPECT_EQ(callback.responses(), 1u);
+    EXPECT_EQ(callback.responsesWithResult(HttpResult_Aborted), 1u);
+    EXPECT_EQ(callback.stateCount(OnSending), 1u);
 }
 
 // A full drain returns only when every operation has completed and been
