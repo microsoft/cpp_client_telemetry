@@ -51,6 +51,7 @@ protected:
 
 TEST_F(HttpClientCurlTests, SslVerification_DefaultsToTrue)
 {
+    ASSERT_EQ(EnsureCurlGlobalInit(), CURLE_OK);
     CurlHttpOperation op("GET", "https://example.com", nullptr, m_headers, m_body);
     ASSERT_NE(op.GetHandle(), nullptr);
 }
@@ -107,6 +108,13 @@ public:
         return m_acceptedConnections.load();
     }
 
+    bool waitForConnections(size_t count)
+    {
+        std::unique_lock<std::mutex> lock(m_acceptedMutex);
+        return m_acceptedCv.wait_for(lock, std::chrono::seconds(2),
+            [this, count] { return acceptedConnections() >= count; });
+    }
+
 protected:
     void onSocketAcceptable(Socket socket) override
     {
@@ -114,12 +122,18 @@ protected:
         HttpServer::onSocketAcceptable(socket);
         if (m_connections.size() > previousCount)
         {
-            ++m_acceptedConnections;
+            {
+                std::lock_guard<std::mutex> lock(m_acceptedMutex);
+                ++m_acceptedConnections;
+            }
+            m_acceptedCv.notify_all();
         }
     }
 
 private:
     std::atomic<size_t> m_acceptedConnections {0};
+    std::mutex m_acceptedMutex;
+    std::condition_variable m_acceptedCv;
 };
 
 class HttpClientCurlHeaderTests : public ::testing::Test,
@@ -236,6 +250,7 @@ TEST_F(HttpClientCurlHeaderTests, AbortsWhenSendingStateCallbackThrows)
 
     EXPECT_EQ(operation.GetTransportError(), CURLE_ABORTED_BY_CALLBACK);
     EXPECT_EQ(operation.GetSetupError(), CURLE_FAILED_INIT);
+    ASSERT_TRUE(m_server.waitForConnections(1));
     EXPECT_EQ(m_server.acceptedConnections(), 1u);
 }
 #endif

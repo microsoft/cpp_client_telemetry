@@ -75,10 +75,10 @@ namespace MAT_NS_BEGIN {
  * for the life of the process is the only correct choice for an embedded
  * library; the host may still call curl_global_cleanup() itself at exit.
  */
-inline void EnsureCurlGlobalInit() noexcept
+inline CURLcode EnsureCurlGlobalInit() noexcept
 {
     static const CURLcode initResult = curl_global_init(CURL_GLOBAL_ALL);
-    (void)initResult;
+    return initResult;
 }
 
 // Private per-client shared state. Defined in HttpClient_Curl.cpp: it owns the
@@ -272,7 +272,15 @@ public:
         // A directly constructed operation may be the process's first libcurl
         // user, so it shares the client's init-once rather than assuming an
         // HttpClient_Curl was built first.
-        EnsureCurlGlobalInit();
+        const CURLcode initResult = EnsureCurlGlobalInit();
+        if (initResult != CURLE_OK)
+        {
+            LOG_ERROR("libcurl global initialization failed: %d", static_cast<int>(initResult));
+            m_transportError = initResult;
+            m_setupError = initResult;
+            EmitCreationEvent(OnCreateFailed);
+            return;
+        }
 
         /* get a curl handle */
         curl = curl_easy_init();
@@ -762,7 +770,7 @@ protected:
     const bool   rawResponse;       // Do not split response headers from response body
     const long   httpConnTimeout;   // Timeout for connect.  Default: 5s
 
-    CURL *curl;                     // Local curl instance
+    CURL *curl = nullptr;           // Local curl instance
     CURLcode m_transportError = CURLE_OK;
     CURLcode m_setupError = CURLE_OK;
     long m_httpStatusCode = 0;
@@ -1092,7 +1100,7 @@ protected:
      * @param data
      * @return
      */
-    static size_t WriteVectorCallback(char* ptr, size_t size, size_t nmemb, void* userp)
+    static size_t WriteVectorCallback(char* ptr, size_t size, size_t nmemb, void* userp) noexcept
     {
         // Guard the size * nmemb product against size_t overflow before using it.
         if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
@@ -1110,7 +1118,19 @@ protected:
             }
             const auto* begin = reinterpret_cast<const uint8_t*>(ptr);
             const auto* end   = begin + realsize;
-            data->insert( data->end(), begin, end);
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
+                data->insert(data->end(), begin, end);
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                // A short write reports CURLE_WRITE_ERROR without unwinding through libcurl.
+                return 0;
+            }
+#endif
         }
         return realsize;
     }
