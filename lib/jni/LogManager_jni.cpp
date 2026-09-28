@@ -928,12 +928,16 @@ namespace
             }
             catch (const std::exception& exception)
             {
+#ifdef HAVE_MAT_LOGGING
                 __android_log_print(
                     ANDROID_LOG_WARN,
                     "MAE.JavaDataViewer",
                     "Failed to unregister Java IDataViewer '%s': %s",
                     dataViewer.first.c_str(),
                     exception.what());
+#else
+                (void)exception;
+#endif
             }
         }
     }
@@ -1624,20 +1628,28 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
             }
             catch (const std::exception& rollbackException)
             {
+#ifdef HAVE_MAT_LOGGING
                 __android_log_print(
                     ANDROID_LOG_ERROR,
                     "MAE.JavaDataViewer",
                     "Failed to roll back Java IDataViewer '%s': %s",
                     proxy->GetName(),
                     rollbackException.what());
+#else
+                (void)rollbackException;
+#endif
             }
         }
+#ifdef HAVE_MAT_LOGGING
         __android_log_print(
             ANDROID_LOG_WARN,
             "MAE.JavaDataViewer",
             "Failed to register Java IDataViewer '%s': %s",
             proxy->GetName(),
             exception.what());
+#else
+        (void)exception;
+#endif
         return false;
     }
 }
@@ -1683,12 +1695,16 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     catch (const std::exception& exception)
     {
+#ifdef HAVE_MAT_LOGGING
         __android_log_print(
             ANDROID_LOG_WARN,
             "MAE.JavaDataViewer",
             "Failed to unregister Java IDataViewer '%s': %s",
             name.c_str(),
             exception.what());
+#else
+        (void)exception;
+#endif
         return false;
     }
 }

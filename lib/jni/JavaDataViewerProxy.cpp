@@ -4,16 +4,26 @@
 //
 #include "JavaDataViewerProxy.hpp"
 
+#if defined __has_include
+#if __has_include("mat/config.h")
+#include "mat/config.h"
+#endif
+#endif
+
+#ifdef HAVE_MAT_LOGGING
 #include <android/log.h>
+#endif
 #include <limits>
 #include <utility>
 
 namespace MAT_NS_BEGIN
 {
+#ifdef HAVE_MAT_LOGGING
     namespace
     {
         constexpr const char* LOG_TAG = "MAE.JavaDataViewer";
     }
+#endif
 
     std::shared_ptr<JavaDataViewerProxy> JavaDataViewerProxy::Create(
         JNIEnv* env,
@@ -108,7 +118,9 @@ namespace MAT_NS_BEGIN
     {
         if (packetData.size() > static_cast<size_t>(std::numeric_limits<jsize>::max()))
         {
+#ifdef HAVE_MAT_LOGGING
             __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Packet is too large for a Java byte array");
+#endif
             return;
         }
 
@@ -238,11 +250,15 @@ namespace MAT_NS_BEGIN
             return false;
         }
         env->ExceptionClear();
+#ifdef HAVE_MAT_LOGGING
         __android_log_print(
             ANDROID_LOG_ERROR,
             LOG_TAG,
             "Java IDataViewer callback failed: %s",
             methodName);
+#else
+        (void)methodName;
+#endif
         return true;
     }
 
