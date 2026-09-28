@@ -134,6 +134,21 @@ TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameIsRegistered_Unregist
     ASSERT_TRUE(dataViewerCollection.GetCollection().empty());
 }
 
+TEST(DataViewerCollectionTests, UnregisterViewer_ViewerNameMatchesByValue_UnregistersCorrectly)
+{
+    std::shared_ptr<IDataViewer> viewer = std::make_shared<MockIDataViewer>("sharedName", /*isTransmissionEnabled*/ false);
+    TestDataViewerCollection dataViewerCollection { };
+    dataViewerCollection.GetCollection().push_back(viewer);
+
+    // An equal name held at a different address: the collection must match on the characters,
+    // not on the pointer the viewer happens to return from GetName().
+    const std::string equalName { "sharedName" };
+    ASSERT_NE(equalName.c_str(), viewer->GetName());
+
+    ASSERT_NO_THROW(dataViewerCollection.UnregisterViewer(equalName.c_str()));
+    ASSERT_TRUE(dataViewerCollection.GetCollection().empty());
+}
+
 TEST(DataViewerCollectionTests, UnregisterAllViewers_NoViewersRegistered_UnregisterCallSuccessful)
 {
     TestDataViewerCollection dataViewerCollection { };

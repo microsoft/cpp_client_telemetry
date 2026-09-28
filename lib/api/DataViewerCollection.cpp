@@ -4,6 +4,7 @@
 //
 #include "DataViewerCollection.hpp"
 #include <algorithm>
+#include <cstring>
 #include <mutex>
 
 namespace MAT_NS_BEGIN {
@@ -67,7 +68,7 @@ namespace MAT_NS_BEGIN {
         LOCKGUARD(m_dataViewerMapLock);
         auto toErase = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
             {
-                return viewer->GetName() == viewerName;
+                return strcmp(viewer->GetName(), viewerName) == 0;
             });
         
         if (toErase == m_dataViewerCollection.end())
