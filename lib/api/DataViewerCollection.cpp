@@ -15,14 +15,22 @@ namespace MAT_NS_BEGIN {
         if (IsViewerEnabled() == false)
             return;
 
-        LOCKGUARD(m_dataViewerMapLock);
-        // Dispatch over a snapshot rather than the member directly. m_dataViewerMapLock is
-        // recursive, so a viewer that reenters the SDK from ReceiveData - for example by
-        // closing the owning LogManager, which unregisters every viewer - would otherwise
-        // erase from the very vector being iterated here and invalidate the iterator.
-        // Holding shared_ptr copies additionally keeps each viewer alive for the duration of
-        // its own callback, even if that callback drops the last other reference to it.
-        const auto viewers = m_dataViewerCollection;
+        // Dispatch over a snapshot taken under the lock, and release the lock before invoking any
+        // viewer. Iterating m_dataViewerCollection directly is unsafe because m_dataViewerMapLock
+        // is recursive: a viewer that reenters the SDK from ReceiveData - for example by closing
+        // the owning LogManager, which unregisters every viewer - would erase from the very vector
+        // being iterated here and invalidate the iterator. Holding the lock across a callback is
+        // unsafe for a second reason: registration acquires the JNI viewer mutex and then this
+        // lock, so a callback that reenters registration closes a lock cycle, and any slow callback
+        // would stall registration, unregistration and LogManager close until it returned.
+        // The shared_ptr copies keep each viewer alive for the duration of its own callback, even
+        // if it is unregistered - or loses its last other reference - while dispatch is running.
+        std::vector<std::shared_ptr<IDataViewer>> viewers;
+        {
+            LOCKGUARD(m_dataViewerMapLock);
+            viewers = m_dataViewerCollection;
+        }
+
         for(const auto& viewer : viewers)
         {
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
