@@ -120,8 +120,12 @@ namespace MAT_NS_BEGIN
         }
 
         auto packet = env->NewByteArray(static_cast<jsize>(packetData.size()));
-        if (packet == nullptr || ClearPendingException(env, "receiveData allocation"))
+        if (ClearPendingException(env, "receiveData allocation") || packet == nullptr)
         {
+            if (packet != nullptr)
+            {
+                env->DeleteLocalRef(packet);
+            }
             DetachIfNeeded(attached);
             return;
         }
