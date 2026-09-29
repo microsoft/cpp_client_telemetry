@@ -29,19 +29,22 @@ namespace MAT_NS_BEGIN {
             viewers = m_dataViewerCollection;
         }
 
-        // The enabled check runs on this same snapshot, outside the lock, for two reasons.
-        // IsTransmissionEnabled() is a viewer callback - a JNI call for Java viewers - and must not
-        // run under m_dataViewerMapLock for the reasons above. Reusing the one snapshot also means
-        // the set of viewers this decision is made about is the set that is dispatched to; calling
-        // IsViewerEnabled() first would lock a second time and could decide on a different set.
-        // Keep this predicate in sync with IsViewerEnabled().
-        const bool anyEnabled = std::any_of(viewers.cbegin(), viewers.cend(),
-            [](const std::shared_ptr<IDataViewer>& viewer) { return viewer->IsTransmissionEnabled(); });
-        if (!anyEnabled)
-            return;
-
+        // Gate each viewer individually. The previous collection-wide check was only a
+        // short-circuit: DefaultDataViewer re-checks IsTransmissionEnabled() at the top of its own
+        // ReceiveData, so a disabled viewer discarded the packet itself. JavaDataViewerProxy cannot
+        // do that cheaply - it would have to cross into the JVM a second time - and
+        // IDataViewer.isTransmissionEnabled() documents per-viewer suppression, so a disabled Java
+        // viewer would otherwise be handed encoded telemetry whenever any other viewer was enabled.
+        // Checking here is also cheaper than it looks: it replaces the collection-wide scan rather
+        // than adding to it, and it skips the byte array allocation and JNI call for viewers that
+        // are not accepting data.
         for(const auto& viewer : viewers)
         {
+            if (!viewer->IsTransmissionEnabled())
+            {
+                continue;
+            }
+
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
             viewer->ReceiveData(packetData);
         }
@@ -108,7 +111,6 @@ namespace MAT_NS_BEGIN {
         // m_dataViewerMapLock is held: registration takes the JNI viewer mutex and then this lock,
         // so a callback that reenters the SDK would close a lock cycle, and a slow callback would
         // stall registration, unregistration and LogManager close.
-        // Keep this predicate in sync with DispatchDataViewerEvent().
         std::vector<std::shared_ptr<IDataViewer>> viewers;
         {
             LOCKGUARD(m_dataViewerMapLock);

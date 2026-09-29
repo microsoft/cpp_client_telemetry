@@ -1140,6 +1140,20 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return;
     }
     logManager->FlushAndTeardown();
+
+    // FlushAndTeardown is terminal: LogManagerImpl sets m_alive to false and GetLogger() returns
+    // nullptr from then on, and nothing sets it back, so no further viewer callback can occur.
+    // It does not unregister data viewers, so without this the proxies stay in the native
+    // collection and in the javaDataViewers map, and their JNI global references pin the
+    // application's IDataViewer objects - and everything those reference - until close() or
+    // process exit. Release them here as well; closeJavaDataViewers clears its bookkeeping under
+    // the lock and returns early once the manager pointer is null, so a later close() is a safe
+    // no-op. Ordered after the teardown so viewers still observe packets from the final flush.
+    auto managerAndConfig = getManagerAndConfig(nativeLogManager);
+    if (managerAndConfig != nullptr)
+    {
+        closeJavaDataViewers(*managerAndConfig);
+    }
 }
 
 extern "C" JNIEXPORT jint JNICALL

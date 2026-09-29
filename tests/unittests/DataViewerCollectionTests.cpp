@@ -341,3 +341,35 @@ TEST(DataViewerCollectionTests, DispatchDataViewerEvent_ViewerUnregistersAllFrom
     ASSERT_TRUE(dataViewerCollection.GetCollection().empty());
 }
 
+TEST(DataViewerCollectionTests, DispatchDataViewerEvent_MixedEnabledAndDisabledViewers_DispatchesOnlyToEnabled)
+{
+    TestDataViewerCollection dataViewerCollection { };
+    auto enabledViewer = std::make_shared<MockIDataViewer>("EnabledViewer", /*isTransmissionEnabled*/ true);
+    auto disabledViewer = std::make_shared<MockIDataViewer>("DisabledViewer", /*isTransmissionEnabled*/ false);
+
+    dataViewerCollection.RegisterViewer(enabledViewer);
+    dataViewerCollection.RegisterViewer(disabledViewer);
+
+    const std::vector<uint8_t> packetData { 1, 2, 3 };
+    dataViewerCollection.DispatchDataViewerEvent(packetData);
+
+    // Gating is per viewer: one enabled viewer must not cause delivery to a disabled one.
+    ASSERT_EQ(enabledViewer->localPacketData, packetData);
+    ASSERT_TRUE(disabledViewer->localPacketData.empty());
+}
+
+TEST(DataViewerCollectionTests, DispatchDataViewerEvent_NoViewerEnabled_DispatchesToNobody)
+{
+    TestDataViewerCollection dataViewerCollection { };
+    auto firstViewer = std::make_shared<MockIDataViewer>("FirstViewer", /*isTransmissionEnabled*/ false);
+    auto secondViewer = std::make_shared<MockIDataViewer>("SecondViewer", /*isTransmissionEnabled*/ false);
+
+    dataViewerCollection.RegisterViewer(firstViewer);
+    dataViewerCollection.RegisterViewer(secondViewer);
+
+    dataViewerCollection.DispatchDataViewerEvent(std::vector<uint8_t> { 1, 2, 3 });
+
+    ASSERT_TRUE(firstViewer->localPacketData.empty());
+    ASSERT_TRUE(secondViewer->localPacketData.empty());
+}
+

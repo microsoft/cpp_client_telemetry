@@ -24,7 +24,12 @@ public interface IDataViewer {
   /** Returns the stable, unique name used to register this viewer. */
   String getName();
 
-  /** Returns whether this viewer is currently accepting packet callbacks. */
+  /**
+   * Returns whether this viewer is currently accepting packet callbacks.
+   *
+   * <p>The SDK queries this before every dispatch and does not call {@link #receiveData} while it
+   * returns {@code false}, even when another registered viewer is enabled.
+   */
   boolean isTransmissionEnabled();
 
   /** Returns the endpoint currently used by this viewer, or an empty string when disabled. */

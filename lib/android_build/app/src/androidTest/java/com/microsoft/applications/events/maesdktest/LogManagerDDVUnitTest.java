@@ -364,6 +364,152 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
     }
   }
 
+  @Test
+  public void flushAndTeardown_withRegisteredDataViewer_releasesViewerWithoutClose()
+      throws Exception {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String factoryName = "JavaDataViewerTeardown" + System.nanoTime();
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, "https://viewer.contoso.com/");
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, factoryName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, factoryName);
+
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+    IDataViewer viewer =
+        new IDataViewer() {
+          @Override
+          public void receiveData(byte[] packetData) {}
+
+          @Override
+          public String getName() {
+            return "teardown-viewer";
+          }
+
+          @Override
+          public boolean isTransmissionEnabled() {
+            return true;
+          }
+
+          @Override
+          public String getCurrentEndpoint() {
+            return "";
+          }
+        };
+
+    try {
+      assertThat(manager.registerDataViewer(viewer), is(true));
+
+      // flushAndTeardown is terminal - the native LogManagerImpl clears m_alive and never
+      // revives - so the viewer must be released here rather than held until close(). If the
+      // proxy and its JNI global reference were retained, the viewer would still be registered
+      // and this unregister would succeed.
+      manager.flushAndTeardown();
+
+      assertThat(manager.unregisterDataViewer("teardown-viewer"), is(false));
+    } finally {
+      manager.close();
+    }
+  }
+
+  @Test
+  public void registerDataViewer_whenOneViewerDisabled_dispatchesOnlyToEnabledViewer()
+      throws Exception {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String factoryName = "JavaDataViewerGating" + System.nanoTime();
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, "https://viewer.contoso.com/");
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, factoryName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, factoryName);
+
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+    CountDownLatch enabledReceived = new CountDownLatch(1);
+    AtomicInteger enabledCalls = new AtomicInteger();
+    AtomicInteger disabledCalls = new AtomicInteger();
+    IDataViewer enabledViewer =
+        new IDataViewer() {
+          @Override
+          public void receiveData(byte[] packetData) {
+            enabledCalls.incrementAndGet();
+            enabledReceived.countDown();
+          }
+
+          @Override
+          public String getName() {
+            return "enabled-viewer";
+          }
+
+          @Override
+          public boolean isTransmissionEnabled() {
+            return true;
+          }
+
+          @Override
+          public String getCurrentEndpoint() {
+            return "http://127.0.0.1";
+          }
+        };
+    IDataViewer disabledViewer =
+        new IDataViewer() {
+          @Override
+          public void receiveData(byte[] packetData) {
+            disabledCalls.incrementAndGet();
+          }
+
+          @Override
+          public String getName() {
+            return "disabled-viewer";
+          }
+
+          @Override
+          public boolean isTransmissionEnabled() {
+            return false;
+          }
+
+          @Override
+          public String getCurrentEndpoint() {
+            return "";
+          }
+        };
+
+    try {
+      assertThat(manager.registerDataViewer(enabledViewer), is(true));
+      assertThat(manager.registerDataViewer(disabledViewer), is(true));
+
+      ILogger logger = manager.getLogger(token, "java-data-viewer-gating", "");
+      logger.logEvent("javaDataViewerGating");
+      manager.uploadNow();
+
+      // The enabled viewer is the witness that a dispatch really happened; the disabled viewer
+      // must not be handed telemetry just because another viewer is enabled.
+      assertThat(enabledReceived.await(5, TimeUnit.SECONDS), is(true));
+      assertThat(enabledCalls.get(), greaterThan(0));
+      assertThat(disabledCalls.get(), is(0));
+
+      assertThat(manager.unregisterDataViewer("enabled-viewer"), is(true));
+      assertThat(manager.unregisterDataViewer("disabled-viewer"), is(true));
+    } finally {
+      manager.close();
+    }
+  }
+
   /*
   Disabling this test since it requires private modules.
 
