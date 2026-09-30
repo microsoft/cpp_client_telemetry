@@ -23,6 +23,11 @@ namespace MAT_NS_BEGIN
         /// Dispatch a Data Viewer Event to all viewers in the collection.
         /// </summary>
         /// <param name="packetData">Data packet to be passed to all viewers.</param>
+        /// <remarks>
+        /// Viewers are invoked without holding the collection lock: implementations must be
+        /// thread-safe, and a viewer unregistered concurrently may still receive that packet.
+        /// The collection holds a shared_ptr for the duration of each callback.
+        /// </remarks>
         virtual void DispatchDataViewerEvent(const std::vector<uint8_t>& packetData) const noexcept = 0;
 
         /// <summary>
@@ -37,11 +42,19 @@ namespace MAT_NS_BEGIN
         /// <param name="viewerName">
         /// Unique Name to identify the viewer that should be unregistered from the IDataViewerCollection.
         /// </param>
+        /// <remarks>
+        /// Does not wait for callbacks already in progress; a viewer may observe one more packet
+        /// after this returns.
+        /// </remarks>
         virtual void UnregisterViewer(const char* viewerName) = 0;
 
         /// <summary>
         /// Unregister all registered IDataViewers.
         /// </summary>
+        /// <remarks>
+        /// Does not wait for callbacks already in progress; a viewer may observe one more packet
+        /// after this returns.
+        /// </remarks>
         virtual void UnregisterAllViewers() = 0;
 
         /// <summary>

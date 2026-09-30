@@ -23,6 +23,13 @@ namespace MAT_NS_BEGIN {
         // would stall registration, unregistration and LogManager close until it returned.
         // The shared_ptr copies keep each viewer alive for the duration of its own callback, even
         // if it is unregistered - or loses its last other reference - while dispatch is running.
+        //
+        // Removal is deliberately not coordinated with in-flight dispatch: a viewer unregistered
+        // after this snapshot is taken still receives this packet. Do not "fix" that by making
+        // UnregisterViewer wait for outstanding callbacks - that reinstates the cycle this
+        // snapshot exists to break, because the unregistering thread would block on a callback
+        // that may in turn be waiting on a lock that thread holds. IDataViewer documents the
+        // resulting contract for consumers.
         std::vector<std::shared_ptr<IDataViewer>> viewers;
         {
             LOCKGUARD(m_dataViewerMapLock);

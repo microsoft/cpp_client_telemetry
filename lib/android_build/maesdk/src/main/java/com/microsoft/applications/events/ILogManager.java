@@ -13,6 +13,12 @@ public interface ILogManager extends AutoCloseable {
 
   public ILogConfiguration getLogConfigurationCopy();
 
+  /**
+   * Flushes pending telemetry and tears down this LogManager.
+   *
+   * <p>Stops the telemetry pipeline before releasing registered data viewers, so no viewer
+   * callback is left outstanding and a separate {@link #close} is not needed to release them.
+   */
   public void flushAndTeardown();
 
   public Status flush();
@@ -79,6 +85,8 @@ public interface ILogManager extends AutoCloseable {
    * <p>This is an optional capability. The default implementation returns {@code false} so that
    * existing implementations of this interface remain source compatible; implementations that
    * support data viewers override it.
+   *
+   * <p>Does not wait for a callback already in progress; see {@link IDataViewer}.
    *
    * @return {@code true} when the viewer was unregistered, {@code false} when it was not
    *     registered, or when the implementation does not support data viewers
