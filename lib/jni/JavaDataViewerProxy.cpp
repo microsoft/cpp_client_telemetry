@@ -14,6 +14,7 @@
 #include <android/log.h>
 #endif
 #include <limits>
+#include <new>
 #include <utility>
 
 namespace MAT_NS_BEGIN
@@ -34,7 +35,24 @@ namespace MAT_NS_BEGIN
             return nullptr;
         }
 
-        auto proxy = std::shared_ptr<JavaDataViewerProxy>(new JavaDataViewerProxy());
+        // Create() is noexcept because it runs on a JNI entry path, so neither the object
+        // allocation nor the shared_ptr control block may propagate. nothrow new covers the
+        // first even when exceptions are disabled; the guard covers the second.
+        auto raw = new (std::nothrow) JavaDataViewerProxy();
+        if (raw == nullptr)
+        {
+            return nullptr;
+        }
+        std::shared_ptr<JavaDataViewerProxy> proxy;
+        MATSDK_TRY
+        {
+            proxy.reset(raw);
+        }
+        MATSDK_CATCH(...)
+        {
+            delete raw;
+            return nullptr;
+        }
         if (env->GetJavaVM(&proxy->m_javaVm) != JNI_OK)
         {
             return nullptr;
@@ -280,9 +298,23 @@ namespace MAT_NS_BEGIN
             env->DeleteLocalRef(javaValue);
             return false;
         }
-        value.assign(chars);
+        // ReadString is reached from noexcept callers, so the string allocation must not escape.
+        bool assigned = false;
+        MATSDK_TRY
+        {
+            value.assign(chars);
+            assigned = true;
+        }
+        MATSDK_CATCH(...)
+        {
+            assigned = false;
+        }
         env->ReleaseStringUTFChars(javaValue, chars);
         env->DeleteLocalRef(javaValue);
+        if (!assigned)
+        {
+            return false;
+        }
         return !ClearPendingException(env, "string conversion");
     }
 

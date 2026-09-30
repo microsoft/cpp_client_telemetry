@@ -1091,16 +1091,21 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         env->ExceptionDescribe();
         return 0;
     }
-    ManagerAndConfig* mc;
+    // Capture the manager under the lock rather than dereferencing the ManagerAndConfig later:
+    // close() and flushAndTeardown() both null it out while the Java handle stays usable, so an
+    // unguarded mc->manager->GetLogger() would fault. Returning 0 here surfaces as the
+    // NullPointerException that LogManagerImpl.getLogger() already raises for a null handle.
+    ILogManager* manager = nullptr;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
         if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= static_cast<jlong>(jniManagers.size()))
         {
             return 0;
         }
-        mc = jniManagers[nativeLogManagerIndex].get();
-        if (!mc)
+        auto mc = jniManagers[nativeLogManagerIndex].get();
+        if (!mc || mc->manager == nullptr)
             return 0;
+        manager = mc->manager;
     }
     std::string token;
     std::string source;
@@ -1111,7 +1116,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return 0;
     }
-    return reinterpret_cast<jlong>(mc->manager->GetLogger(
+    return reinterpret_cast<jlong>(manager->GetLogger(
         token,
         source,
         scope));
