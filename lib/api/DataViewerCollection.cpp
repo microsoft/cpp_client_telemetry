@@ -11,6 +11,26 @@ namespace MAT_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(DataViewerCollection, "EventsSDK.DataViewerCollection", "Microsoft Telemetry Client - DataViewerCollection class")
 
+    bool DataViewerCollection::TrySnapshotViewers(std::vector<std::shared_ptr<IDataViewer>>& viewers) const noexcept
+    {
+        // Both callers are noexcept, and copying the collection allocates. An uncaught bad_alloc
+        // - or a system_error from the lock - would terminate the process rather than cost one
+        // packet of diagnostic data, so report failure and let the caller skip instead. Nothing
+        // is logged from the failure path: under memory pressure the log call could throw in
+        // turn, which is the outcome this guard exists to prevent.
+        MATSDK_TRY
+        {
+            LOCKGUARD(m_dataViewerMapLock);
+            viewers = m_dataViewerCollection;
+        }
+        MATSDK_CATCH(...)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     void DataViewerCollection::DispatchDataViewerEvent(const std::vector<uint8_t>& packetData) const noexcept
     {
         // Dispatch over a snapshot taken under the lock, and release the lock before invoking any
@@ -31,9 +51,9 @@ namespace MAT_NS_BEGIN {
         // that may in turn be waiting on a lock that thread holds. IDataViewer documents the
         // resulting contract for consumers.
         std::vector<std::shared_ptr<IDataViewer>> viewers;
+        if (!TrySnapshotViewers(viewers))
         {
-            LOCKGUARD(m_dataViewerMapLock);
-            viewers = m_dataViewerCollection;
+            return;
         }
 
         // Gate each viewer individually. The previous collection-wide check was only a
@@ -119,9 +139,9 @@ namespace MAT_NS_BEGIN {
         // so a callback that reenters the SDK would close a lock cycle, and a slow callback would
         // stall registration, unregistration and LogManager close.
         std::vector<std::shared_ptr<IDataViewer>> viewers;
+        if (!TrySnapshotViewers(viewers))
         {
-            LOCKGUARD(m_dataViewerMapLock);
-            viewers = m_dataViewerCollection;
+            return false;
         }
 
         return std::any_of(viewers.cbegin(), viewers.cend(),

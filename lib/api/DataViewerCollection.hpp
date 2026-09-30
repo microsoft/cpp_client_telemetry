@@ -37,6 +37,13 @@ namespace MAT_NS_BEGIN {
 
         mutable std::recursive_mutex m_dataViewerMapLock;
 
+        /// <summary>
+        /// Copy the registered viewers under the lock, for callers that must invoke viewers
+        /// without holding it.
+        /// </summary>
+        /// <returns>false when the snapshot could not be taken; viewers is then unusable.</returns>
+        bool TrySnapshotViewers(std::vector<std::shared_ptr<IDataViewer>>& viewers) const noexcept;
+
     protected:
         std::shared_ptr<IDataViewer> GetViewerFromCollection(const char* viewerName) const;
         std::vector<std::shared_ptr<IDataViewer>> m_dataViewerCollection;
