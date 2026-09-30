@@ -2273,7 +2273,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_PG
     auto logManager = getLogManager(native_log_manager);
     auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
-    if(pg != nullptr) {
+    if(logManager != nullptr && pg != nullptr) {
         logManager->SetDataInspector(pg);
         return true;
     }
@@ -2290,7 +2290,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SS
     auto logManager = getLogManager(native_log_manager);
     auto ss = SignalsHelper::GetSignalsInspector();
-    if(ss != nullptr) {
+    if(logManager != nullptr && ss != nullptr) {
         logManager->SetDataInspector(ss);
         return true;
     }
@@ -2307,7 +2307,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SAN
     auto logManager = getLogManager(native_log_manager);
     auto sa = SanitizerHelper::GetSanitizerPtr();
-    if (sa != nullptr) {
+    if (logManager != nullptr && sa != nullptr) {
         logManager->SetDataInspector(sa);
         return true;
     }
@@ -2384,7 +2384,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_PG
     auto logManager = getLogManager(native_log_manager);
     auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
-    if(pg != nullptr) {
+    if(logManager != nullptr && pg != nullptr) {
         logManager->RemoveDataInspector(pg->GetName());
         return true;
     }
@@ -2401,7 +2401,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SS
     auto logManager = getLogManager(native_log_manager);
     auto ss = SignalsHelper::GetSignalsInspector();
-    if(ss != nullptr) {
+    if(logManager != nullptr && ss != nullptr) {
         logManager->RemoveDataInspector(ss->GetName());
         return true;
     }
@@ -2418,7 +2418,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SAN
     auto logManager = getLogManager(native_log_manager);
     auto sa = SanitizerHelper::GetSanitizerPtr();
-    if (sa != nullptr) {
+    if (logManager != nullptr && sa != nullptr) {
         logManager->RemoveDataInspector(sa->GetName());
         return true;
     }

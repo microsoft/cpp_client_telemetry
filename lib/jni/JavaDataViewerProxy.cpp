@@ -14,7 +14,6 @@
 #include <android/log.h>
 #endif
 #include <limits>
-#include <new>
 #include <utility>
 
 namespace MAT_NS_BEGIN
@@ -35,22 +34,19 @@ namespace MAT_NS_BEGIN
             return nullptr;
         }
 
-        // Create() is noexcept because it runs on a JNI entry path, so neither the object
-        // allocation nor the shared_ptr control block may propagate. nothrow new covers the
-        // first even when exceptions are disabled; the guard covers the second.
-        auto raw = new (std::nothrow) JavaDataViewerProxy();
-        if (raw == nullptr)
-        {
-            return nullptr;
-        }
+        // Create() is noexcept, so the allocation must not propagate. reset() takes
+        // ownership immediately: if the control block allocation throws, it deletes the
+        // object itself, so there is nothing to release here - and an explicit delete
+        // would be a double free. Past the guard proxy is non-null, because the throwing
+        // form of new never returns null; a nothrow new here would need a null check
+        // before the dereference below.
         std::shared_ptr<JavaDataViewerProxy> proxy;
         MATSDK_TRY
         {
-            proxy.reset(raw);
+            proxy.reset(new JavaDataViewerProxy());
         }
         MATSDK_CATCH(...)
         {
-            delete raw;
             return nullptr;
         }
         if (env->GetJavaVM(&proxy->m_javaVm) != JNI_OK)
