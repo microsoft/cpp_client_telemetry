@@ -45,6 +45,7 @@ cc_library_shared {
         "lib/http/HttpClientManager.cpp",
         "lib/http/HttpRequestEncoder.cpp",
         "lib/http/HttpResponseDecoder.cpp",
+        "lib/jni/JavaDataViewerProxy.cpp",
         "lib/jni/JniConvertors.cpp",
         "lib/jni/LogManager_jni.cpp",
         "lib/jni/Logger_jni.cpp",
