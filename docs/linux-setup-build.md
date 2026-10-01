@@ -88,9 +88,9 @@ cmake --build out-no-exceptions --target mat --parallel 2
 ```
 
 Select Clang with `CC=clang CXX=clang++` when configuring a fresh build
-directory. CI initializes the submodules and builds the full `mat` target
-with both compilers, rather than
-compiling only the Curl transport object. Exception handlers are retained in
+directory. CI builds the full public SDK `mat` target with both compilers,
+rather than compiling only the Curl transport object. It does not clone the
+private optional-modules repository. Exception handlers are retained in
 exception-enabled builds and omitted when exceptions are disabled. Numeric
 validation does not rely on throwing conversions, and payload expansion
 reports buffer-allocation failure through its existing `false` result.
