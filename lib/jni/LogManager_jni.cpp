@@ -902,16 +902,26 @@ namespace
         return jniManagers[nativeLogManager].get();
     }
 
-    void closeJavaDataViewers(ManagerAndConfig& managerAndConfig)
+    // retireManager distinguishes the two callers: close() retires the handle, flushAndTeardown()
+    // does not. Retirement must happen here rather than in a separate critical section, because
+    // nativeRegisterDataViewer checks manager and inserts into javaDataViewers while holding only
+    // javaDataViewersMutex. Nulling manager outside that lock lets a registration land between the
+    // map handoff and the retirement, leaving a viewer registered in the native collection with no
+    // bookkeeping entry - it would keep its JNI global reference and keep receiving callbacks
+    // after close() returned.
+    void closeJavaDataViewers(ManagerAndConfig& managerAndConfig, bool retireManager)
     {
         ILogManager* manager;
         std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> dataViewers;
         {
             std::lock_guard<std::mutex> lock(managerAndConfig.javaDataViewersMutex);
-            manager = managerAndConfig.manager;
             {
                 std::lock_guard<std::mutex> managersLock(jniManagersMutex);
-                managerAndConfig.manager = nullptr;
+                manager = managerAndConfig.manager;
+                if (retireManager)
+                {
+                    managerAndConfig.manager = nullptr;
+                }
             }
             dataViewers.swap(managerAndConfig.javaDataViewers);
         }
@@ -1044,8 +1054,9 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return;
     }
 
-    // The ManagerAndConfig survives until the static jniManagers array is destroyed.
-    closeJavaDataViewers(*managerAndConfig);
+    // The ManagerAndConfig survives until the static jniManagers array is destroyed. Retiring the
+    // manager is what makes every other native entry point on this LogManager fail or no-op.
+    closeJavaDataViewers(*managerAndConfig, /* retireManager */ true);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -1092,8 +1103,8 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return 0;
     }
     // Capture the manager under the lock rather than dereferencing the ManagerAndConfig later:
-    // close() and flushAndTeardown() both null it out while the Java handle stays usable, so an
-    // unguarded mc->manager->GetLogger() would fault. Returning 0 here surfaces as the
+    // close() retires it while the Java handle stays usable, so an unguarded
+    // mc->manager->GetLogger() would fault. Returning 0 here surfaces as the
     // NullPointerException that LogManagerImpl.getLogger() already raises for a null handle.
     ILogManager* manager = nullptr;
     {
@@ -1151,13 +1162,15 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     // It does not unregister data viewers, so without this the proxies stay in the native
     // collection and in the javaDataViewers map, and their JNI global references pin the
     // application's IDataViewer objects - and everything those reference - until close() or
-    // process exit. Release them here as well; closeJavaDataViewers clears its bookkeeping under
-    // the lock and returns early once the manager pointer is null, so a later close() is a safe
-    // no-op. Ordered after the teardown so viewers still observe packets from the final flush.
+    // process exit. Release them here as well; closeJavaDataViewers swaps out its bookkeeping
+    // under the lock, so a later close() finds nothing left to do. retireManager is false because
+    // teardown must not retire the handle - doing so would make the still-open Java LogManager
+    // hand out a SemanticContext wrapping pointer 0 and would silently skip RemoveEventListener.
+    // Ordered after the teardown so viewers still observe packets from the final flush.
     auto managerAndConfig = getManagerAndConfig(nativeLogManager);
     if (managerAndConfig != nullptr)
     {
-        closeJavaDataViewers(*managerAndConfig);
+        closeJavaDataViewers(*managerAndConfig, /* retireManager */ false);
     }
 }
 
@@ -1620,8 +1633,12 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return false;
     }
 
+    // Capture the manager once under javaDataViewersMutex. closeJavaDataViewers retires it and
+    // swaps the map while holding that same lock, so this check and the registration below cannot
+    // interleave with a close().
     std::lock_guard<std::mutex> lock(manager_and_config->javaDataViewersMutex);
-    if (manager_and_config->manager == nullptr ||
+    ILogManager* manager = manager_and_config->manager;
+    if (manager == nullptr ||
         manager_and_config->javaDataViewers.find(proxy->GetName()) !=
             manager_and_config->javaDataViewers.end())
     {
@@ -1631,7 +1648,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     bool collectionRegistered = false;
     try
     {
-        manager_and_config->manager->GetDataViewerCollection().RegisterViewer(proxy);
+        manager->GetDataViewerCollection().RegisterViewer(proxy);
         collectionRegistered = true;
         manager_and_config->javaDataViewers.emplace(proxy->GetName(), proxy);
         return true;
@@ -1642,7 +1659,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         {
             try
             {
-                manager_and_config->manager->GetDataViewerCollection().UnregisterViewer(
+                manager->GetDataViewerCollection().UnregisterViewer(
                     proxy->GetName());
             }
             catch (const std::exception& rollbackException)

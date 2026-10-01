@@ -421,6 +421,74 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
   }
 
   @Test
+  public void flushAndTeardown_withRegisteredDataViewer_keepsManagerApisUsableUntilClose()
+      throws Exception {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String factoryName = "JavaDataViewerTeardownApis" + System.nanoTime();
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, "https://viewer.contoso.com/");
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, factoryName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, factoryName);
+
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+    IDataViewer viewer =
+        new IDataViewer() {
+          @Override
+          public void receiveData(byte[] packetData) {}
+
+          @Override
+          public String getName() {
+            return "teardown-apis-viewer";
+          }
+
+          @Override
+          public boolean isTransmissionEnabled() {
+            return true;
+          }
+
+          @Override
+          public String getCurrentEndpoint() {
+            return "";
+          }
+        };
+
+    try {
+      assertThat(manager.registerDataViewer(viewer), is(true));
+
+      manager.flushAndTeardown();
+
+      // Releasing the viewers must not retire the LogManager handle - only close() does that.
+      // getSemanticContext() wraps whatever the native layer returns, and every method on that
+      // wrapper dereferences the pointer without checking it, so a handle retired here would
+      // hand back a wrapper around 0 that faults natively on first use.
+      assertThat(manager.getSemanticContext(), is(notNullValue()));
+
+      // The viewer is still released by teardown, as the sibling test asserts.
+      assertThat(manager.unregisterDataViewer("teardown-apis-viewer"), is(false));
+    } finally {
+      manager.close();
+    }
+
+    // close() does retire the handle, and the Java layer surfaces that as an exception rather
+    // than wrapping the null native pointer.
+    try {
+      manager.getSemanticContext();
+      fail("getSemanticContext() should throw once the LogManager is closed");
+    } catch (NullPointerException expected) {
+      // expected
+    }
+  }
+
+  @Test
   public void registerDataViewer_whenOneViewerDisabled_dispatchesOnlyToEnabledViewer()
       throws Exception {
     System.loadLibrary("maesdk");

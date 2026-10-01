@@ -132,7 +132,11 @@ public class LogManagerProvider {
 
     @Override
     public ISemanticContext getSemanticContext() {
-      return new SemanticContext(nativeGetSemanticContext(nativeLogManager));
+      long nativeSemanticContext = nativeGetSemanticContext(nativeLogManager);
+      if (nativeSemanticContext == 0) {
+        throw new NullPointerException("Null native semantic context pointer");
+      }
+      return new SemanticContext(nativeSemanticContext);
     }
 
     protected native int nativeSetContextString(
