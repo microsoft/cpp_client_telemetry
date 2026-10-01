@@ -61,13 +61,28 @@ jobs:
       run: bash tests/headers/check_public_headers.sh
 
   no-exceptions:
-    name: Linux Curl without C++ exceptions
+    name: Full Linux SDK without C++ exceptions (${{ matrix.compiler }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        include:
+        - compiler: gcc
+          cc: gcc
+          cxx: g++
+        - compiler: clang
+          cc: clang
+          cxx: clang++
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - name: Install Curl development package
-      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+      with:
+        submodules: true
+    - name: Install build dependencies
+      run: sudo apt-get update && sudo apt-get install -y clang libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
     - name: Configure
       run: >-
         cmake -S . -B out-no-exceptions
@@ -76,8 +91,6 @@ jobs:
         -DMATSDK_BUILD_UNIT_TESTS=OFF
         -DMATSDK_BUILD_FUNC_TESTS=OFF
         -DMATSDK_BUILD_TEST_TOOL=OFF
-    - name: Compile Curl transport
+    - name: Compile full SDK
       run: >-
-        make -C out-no-exceptions
-        -f lib/CMakeFiles/mat.dir/build.make
-        lib/CMakeFiles/mat.dir/http/HttpClient_Curl.cpp.o
+        cmake --build out-no-exceptions --target mat --parallel 2

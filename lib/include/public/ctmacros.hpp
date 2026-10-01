@@ -5,6 +5,10 @@
 #ifndef CTMACROS_HPP
 #define CTMACROS_HPP
 
+#ifdef __cplusplus
+#include <cstdlib>
+#endif
+
 #ifdef  HAVE_MAT_SHORT_NS
 #define MAT_NS_BEGIN  MAT
 #define MAT_NS_END

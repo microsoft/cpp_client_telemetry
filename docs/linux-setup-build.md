@@ -72,3 +72,28 @@ make
 ```
 
 Package for your platform is going to be created and placed in ./out directory.
+
+### Building without C++ exceptions
+
+GCC and Clang can compile the complete SDK with `-fno-exceptions`:
+
+```console
+cmake -S . -B out-no-exceptions \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_CXX_FLAGS=-fno-exceptions \
+  -DMATSDK_BUILD_UNIT_TESTS=OFF \
+  -DMATSDK_BUILD_FUNC_TESTS=OFF \
+  -DMATSDK_BUILD_TEST_TOOL=OFF
+cmake --build out-no-exceptions --target mat --parallel 2
+```
+
+Select Clang with `CC=clang CXX=clang++` when configuring a fresh build
+directory. CI initializes the submodules and builds the full `mat` target
+with both compilers, rather than
+compiling only the Curl transport object. Exception handlers are retained in
+exception-enabled builds and omitted when exceptions are disabled. Numeric
+validation does not rely on throwing conversions, and payload expansion
+reports buffer-allocation failure through its existing `false` result.
+Disabling exceptions does not make every standard-library allocation
+recoverable; operations without an explicit non-throwing failure path can
+still terminate on allocation failure.

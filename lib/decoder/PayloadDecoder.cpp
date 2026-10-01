@@ -34,6 +34,7 @@ MAT_NS_END
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <new>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -472,31 +473,26 @@ namespace clienttelemetry {
                 // Allocate memory for the new uncompressed buffer
                 if (destLen > 0)
                 {
-                    try
-                    {
-                        char* decompBody = new char[destLen];
-                        if (source != NULL)
-                        {
-                            // Inflate
-                            uLongf len = (uLongf)destLen;
-                            int res = uncompress((Bytef *)decompBody, &len, (const Bytef *)(source + reserved), (uLong)(sourceLen - reserved));
-                            if ((res != Z_OK) || (len != destLen))
-                            {
-                                TEST_LOG_ERROR("Decompression failed, error=%d, len=%u, destLen=%u", res, static_cast<unsigned int>(len), static_cast<unsigned int>(destLen));
-                                delete[] decompBody;
-                                return false;
-                            }
-                            *dest = decompBody;
-                            destLen = len;
-                            return true;
-                        }
-                    }
-                    catch (std::bad_alloc&)
+                    char* decompBody = new (std::nothrow) char[destLen];
+                    if (decompBody == nullptr)
                     {
                         TEST_LOG_ERROR("Decompression failed (out of memory): destLen=%zu", destLen);
-                        dest = NULL;
                         destLen = 0;
+                        return false;
                     }
+
+                    // Inflate
+                    uLongf len = (uLongf)destLen;
+                    int res = uncompress((Bytef *)decompBody, &len, (const Bytef *)(source + reserved), (uLong)(sourceLen - reserved));
+                    if ((res != Z_OK) || (len != destLen))
+                    {
+                        TEST_LOG_ERROR("Decompression failed, error=%d, len=%u, destLen=%u", res, static_cast<unsigned int>(len), static_cast<unsigned int>(destLen));
+                        delete[] decompBody;
+                        return false;
+                    }
+                    *dest = decompBody;
+                    destLen = len;
+                    return true;
                 }
 
                 // OOM

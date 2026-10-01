@@ -191,7 +191,9 @@ namespace MAT_NS_BEGIN {
         std::vector<TransmitProfileRules> newProfiles;
 
         using nlohmann::json;
+#if HAVE_EXCEPTIONS
         try
+#endif
         {
             json temp = json::parse(profiles_json.c_str());
 
@@ -272,10 +274,12 @@ namespace MAT_NS_BEGIN {
                 }
             }
         }
+#if HAVE_EXCEPTIONS
         catch (...)
         {
             LOG_ERROR("JSON parsing failed miserably! Please check your config to fix above errors.");
         }
+#endif
 
         numProfilesParsed = newProfiles.size();
         UpdateProfiles(newProfiles);

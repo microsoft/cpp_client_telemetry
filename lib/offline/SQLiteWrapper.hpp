@@ -492,12 +492,16 @@ namespace MAT_NS_BEGIN {
         {
             UNREFERENCED_PARAMETER(p_col_names);
             SQLRecords* records = static_cast<SQLRecords*>(p_data);
+#if HAVE_EXCEPTIONS
             try {
+#endif
                 records->emplace_back(p_fields, p_fields + num_fields);
+#if HAVE_EXCEPTIONS
             }
             catch (...) {
                 return 1;
             }
+#endif
             return 0;
         }
         

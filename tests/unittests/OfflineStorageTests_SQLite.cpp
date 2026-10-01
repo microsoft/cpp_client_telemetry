@@ -533,7 +533,13 @@ TEST_F(OfflineStorageTests_SQLite, DeleteRecordsInvalidNumericFilterDeletesNothi
     // be rejected as an invalid filter, not coerced to 0 and used to match rows.
     // Both stored records have retry_count = 0, so a coerced "0" would wrongly
     // delete them; fail-closed behavior leaves both intact.
-    offlineStorage->DeleteRecords({{"retry_count", "0 OR 1=1"}});
+    for (const std::string& invalid : {
+        std::string("0 OR 1=1"), std::string("9223372036854775808"),
+        std::string("-9223372036854775809"), std::string(" "),
+        std::string(""), std::string("0\0trailing", 10)})
+    {
+        offlineStorage->DeleteRecords({{"retry_count", invalid}});
+    }
 
     TestRecordConsumer consumer;
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);

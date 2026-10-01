@@ -11,9 +11,10 @@
 #include "StorageRecordValidation.hpp"
 #include "utils/StringUtils.hpp"
 #include <algorithm>
+#include <cerrno>
+#include <cstdlib>
 #include <numeric>
 #include <set>
-#include <stdexcept>
 
 namespace MAT_NS_BEGIN {
 
@@ -671,20 +672,13 @@ namespace MAT_NS_BEGIN {
                 }
                 else
                 {
-                    int64_t numeric = 0;
-                    size_t consumed = 0;
-                    try
-                    {
-                        numeric = static_cast<int64_t>(std::stoll(value, &consumed));
-                    }
-                    catch (const std::exception&)
-                    {
-                        consumed = 0;
-                    }
+                    char* end = nullptr;
+                    errno = 0;
+                    const int64_t numeric = static_cast<int64_t>(std::strtoll(value.c_str(), &end, 10));
                     // Treat a non-numeric value for an integer column as an invalid
                     // filter and abort, rather than coercing to 0 and deleting rows
                     // that happen to match 0.
-                    if (value.empty() || consumed != value.size())
+                    if (value.empty() || errno == ERANGE || end != value.c_str() + value.size())
                     {
                         LOG_WARN("DeleteRecords: invalid numeric filter value for column '%s'; nothing deleted",
                             it->first.c_str());

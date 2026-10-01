@@ -4,6 +4,17 @@
 //
 #include "common/Common.hpp"
 #include "PayloadDecoder.hpp"
+#include <limits>
+
+#if defined(HAVE_MAT_ZLIB) && defined(HAVE_MAT_JSONHPP)
+namespace clienttelemetry {
+    namespace data {
+        namespace v3 {
+            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex);
+        }
+    }
+}
+#endif
 
 using namespace testing;
 using namespace MAT;
@@ -84,3 +95,15 @@ TEST(PayloadDecoderTests, DecodeRecord_ValidUtf8_IsPreserved)
             << "Valid UTF-8 must not be altered";
     }
 }
+
+#if defined(HAVE_MAT_ZLIB) && defined(HAVE_MAT_JSONHPP)
+TEST(PayloadDecoderTests, Expand_AllocationFailureClearsOutput)
+{
+    const char source[] = "invalid";
+    char* output = nullptr;
+    size_t outputSize = std::numeric_limits<size_t>::max();
+    EXPECT_FALSE(clienttelemetry::data::v3::Expand(source, sizeof(source), &output, outputSize, false));
+    EXPECT_EQ(output, nullptr);
+    EXPECT_EQ(outputSize, 0u);
+}
+#endif

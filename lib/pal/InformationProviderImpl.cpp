@@ -61,7 +61,9 @@ namespace PAL_NS_BEGIN {
 
     void InformatonProviderImpl::OnChanged(std::string const& propertyName, std::string const& propertyValue)
     {
+#if HAVE_EXCEPTIONS
         try {
+#endif
             // OnChange shouldn't block new callbacks to be registered.
             // However, those newly registered callbacks are not called by
             // this current notification.
@@ -91,12 +93,13 @@ namespace PAL_NS_BEGIN {
                     cur_callback->OnChanged(propertyName, propertyValue);
                 }
             }
+#if HAVE_EXCEPTIONS
         }
         catch (...)
         {
 
         }
+#endif
     }
 
 } PAL_NS_END
-
