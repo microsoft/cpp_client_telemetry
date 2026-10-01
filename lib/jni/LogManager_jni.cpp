@@ -875,6 +875,10 @@ namespace
         std::shared_ptr<DefaultDataViewer> ddv;
         std::mutex javaDataViewersMutex;
         std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> javaDataViewers;
+        // Set once the viewers have been released, by either close() or the terminal
+        // flushAndTeardown(). Registration is refused from then on: teardown deliberately leaves
+        // manager non-null, so the manager pointer alone is no longer a liveness check.
+        bool viewersClosed = false;
     };
 #else
     struct ManagerAndConfig
@@ -883,6 +887,8 @@ namespace
         ILogManager* manager;
         std::mutex javaDataViewersMutex;
         std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> javaDataViewers;
+        // See the HAS_DDV definition above.
+        bool viewersClosed = false;
     };
 #endif
 
@@ -903,12 +909,15 @@ namespace
     }
 
     // retireManager distinguishes the two callers: close() retires the handle, flushAndTeardown()
-    // does not. Retirement must happen here rather than in a separate critical section, because
-    // nativeRegisterDataViewer checks manager and inserts into javaDataViewers while holding only
-    // javaDataViewersMutex. Nulling manager outside that lock lets a registration land between the
-    // map handoff and the retirement, leaving a viewer registered in the native collection with no
-    // bookkeeping entry - it would keep its JNI global reference and keep receiving callbacks
-    // after close() returned.
+    // does not. Both close registration permanently via viewersClosed - neither call has a
+    // counterpart that revives the manager, and leaving registration open after teardown would
+    // let a viewer be added after this final cleanup pass and leak its JNI global reference, and
+    // the Java object graph behind it, until close() or process exit.
+    //
+    // Both flags are set inside the javaDataViewersMutex critical section that hands off the
+    // viewer map, because nativeRegisterDataViewer checks them and inserts while holding only
+    // that lock. Updating them outside it would let a registration land between the handoff and
+    // the update, leaving a viewer registered in the native collection with no bookkeeping entry.
     void closeJavaDataViewers(ManagerAndConfig& managerAndConfig, bool retireManager)
     {
         ILogManager* manager;
@@ -923,6 +932,7 @@ namespace
                     managerAndConfig.manager = nullptr;
                 }
             }
+            managerAndConfig.viewersClosed = true;
             dataViewers.swap(managerAndConfig.javaDataViewers);
         }
 
@@ -1163,10 +1173,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     // collection and in the javaDataViewers map, and their JNI global references pin the
     // application's IDataViewer objects - and everything those reference - until close() or
     // process exit. Release them here as well; closeJavaDataViewers swaps out its bookkeeping
-    // under the lock, so a later close() finds nothing left to do. retireManager is false because
-    // teardown must not retire the handle - doing so would make the still-open Java LogManager
-    // hand out a SemanticContext wrapping pointer 0 and would silently skip RemoveEventListener.
-    // Ordered after the teardown so viewers still observe packets from the final flush.
+    // under the lock and closes registration permanently, so no viewer can be added after this
+    // pass and a later close() finds nothing left to do. retireManager is false because teardown
+    // must not retire the handle - doing so would make the still-open Java LogManager hand out a
+    // SemanticContext wrapping pointer 0 and would silently skip RemoveEventListener. Ordered
+    // after the teardown so viewers still observe packets from the final flush.
     auto managerAndConfig = getManagerAndConfig(nativeLogManager);
     if (managerAndConfig != nullptr)
     {
@@ -1633,12 +1644,14 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return false;
     }
 
-    // Capture the manager once under javaDataViewersMutex. closeJavaDataViewers retires it and
-    // swaps the map while holding that same lock, so this check and the registration below cannot
-    // interleave with a close().
+    // Capture the manager once under javaDataViewersMutex. closeJavaDataViewers sets viewersClosed
+    // and swaps the map while holding that same lock, so this check and the registration below
+    // cannot interleave with a close() or a flushAndTeardown(). viewersClosed, not the manager
+    // pointer, is the liveness check: teardown leaves the manager non-null on purpose.
     std::lock_guard<std::mutex> lock(manager_and_config->javaDataViewersMutex);
     ILogManager* manager = manager_and_config->manager;
     if (manager == nullptr ||
+        manager_and_config->viewersClosed ||
         manager_and_config->javaDataViewers.find(proxy->GetName()) !=
             manager_and_config->javaDataViewers.end())
     {

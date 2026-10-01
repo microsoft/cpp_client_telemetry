@@ -489,6 +489,60 @@ public class LogManagerDDVUnitTest extends MaeUnitLogger {
   }
 
   @Test
+  public void registerDataViewer_afterFlushAndTeardown_isRejected() throws Exception {
+    System.loadLibrary("maesdk");
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    if (s_client == null) {
+      s_client = new MockHttpClient(appContext);
+    }
+    OfflineRoom.connectContext(appContext);
+
+    final String token =
+        "0123456789abcdef9123456789abcdef-01234567-0123-0123-0123-0123456789ab-0124";
+    final String factoryName = "JavaDataViewerPostTeardown" + System.nanoTime();
+    ILogConfiguration custom = LogManager.logConfigurationFactory();
+    custom.set(LogConfigurationKey.CFG_STR_PRIMARY_TOKEN, token);
+    custom.set(LogConfigurationKey.CFG_STR_COLLECTOR_URL, "https://viewer.contoso.com/");
+    custom.set(LogConfigurationKey.CFG_STR_FACTORY_NAME, factoryName);
+    custom.set(LogConfigurationKey.CFG_STR_CACHE_FILE_PATH, factoryName);
+
+    ILogManager manager = LogManagerProvider.createLogManager(custom);
+    IDataViewer viewer =
+        new IDataViewer() {
+          @Override
+          public void receiveData(byte[] packetData) {}
+
+          @Override
+          public String getName() {
+            return "post-teardown-viewer";
+          }
+
+          @Override
+          public boolean isTransmissionEnabled() {
+            return true;
+          }
+
+          @Override
+          public String getCurrentEndpoint() {
+            return "";
+          }
+        };
+
+    try {
+      manager.flushAndTeardown();
+
+      // flushAndTeardown releases the registered viewers and is terminal, so registration has to
+      // stay closed afterwards. The manager pointer deliberately stays non-null across teardown,
+      // so it cannot serve as the liveness check: a viewer accepted here would hold its JNI
+      // global reference - and the Java object graph behind it - until close() or process exit,
+      // which is exactly what releasing viewers at teardown is meant to avoid.
+      assertThat(manager.registerDataViewer(viewer), is(false));
+    } finally {
+      manager.close();
+    }
+  }
+
+  @Test
   public void registerDataViewer_whenOneViewerDisabled_dispatchesOnlyToEnabledViewer()
       throws Exception {
     System.loadLibrary("maesdk");
