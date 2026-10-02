@@ -27,6 +27,7 @@
 
 #include <utils/Utils.hpp>
 #include "callbacks/DebugSourceInternal.hpp"
+#include "JavaDataViewerProxy.hpp"
 #include "JniConvertors.hpp"
 #include "LogManagerBase.hpp"
 #include "WrapperLogManager.hpp"
@@ -34,6 +35,9 @@
 #include "android/log.h"
 #endif
 #include "config/RuntimeConfig_Default.hpp"
+
+#include <string>
+#include <unordered_map>
 
 using namespace MAT;
 
@@ -869,12 +873,22 @@ namespace
         ILogConfiguration config;
         ILogManager* manager;
         std::shared_ptr<DefaultDataViewer> ddv;
+        std::mutex javaDataViewersMutex;
+        std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> javaDataViewers;
+        // Set once the viewers have been released, by either close() or the terminal
+        // flushAndTeardown(). Registration is refused from then on: teardown deliberately leaves
+        // manager non-null, so the manager pointer alone is no longer a liveness check.
+        bool viewersClosed = false;
     };
 #else
     struct ManagerAndConfig
     {
         ILogConfiguration config;
         ILogManager* manager;
+        std::mutex javaDataViewersMutex;
+        std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> javaDataViewers;
+        // See the HAS_DDV definition above.
+        bool viewersClosed = false;
     };
 #endif
 
@@ -882,6 +896,71 @@ namespace
 
     static MCVector jniManagers;
     static std::mutex jniManagersMutex;
+
+    ManagerAndConfig* getManagerAndConfig(jlong nativeLogManager)
+    {
+        std::lock_guard<std::mutex> lock(jniManagersMutex);
+        if (nativeLogManager < 0 ||
+            nativeLogManager >= static_cast<jlong>(jniManagers.size()))
+        {
+            return nullptr;
+        }
+        return jniManagers[nativeLogManager].get();
+    }
+
+    // retireManager distinguishes the two callers: close() retires the handle, flushAndTeardown()
+    // does not. Both close registration permanently via viewersClosed - neither call has a
+    // counterpart that revives the manager, and leaving registration open after teardown would
+    // let a viewer be added after this final cleanup pass and leak its JNI global reference, and
+    // the Java object graph behind it, until close() or process exit.
+    //
+    // Both flags are set inside the javaDataViewersMutex critical section that hands off the
+    // viewer map, because nativeRegisterDataViewer checks them and inserts while holding only
+    // that lock. Updating them outside it would let a registration land between the handoff and
+    // the update, leaving a viewer registered in the native collection with no bookkeeping entry.
+    void closeJavaDataViewers(ManagerAndConfig& managerAndConfig, bool retireManager)
+    {
+        ILogManager* manager;
+        std::unordered_map<std::string, std::shared_ptr<JavaDataViewerProxy>> dataViewers;
+        {
+            std::lock_guard<std::mutex> lock(managerAndConfig.javaDataViewersMutex);
+            {
+                std::lock_guard<std::mutex> managersLock(jniManagersMutex);
+                manager = managerAndConfig.manager;
+                if (retireManager)
+                {
+                    managerAndConfig.manager = nullptr;
+                }
+            }
+            managerAndConfig.viewersClosed = true;
+            dataViewers.swap(managerAndConfig.javaDataViewers);
+        }
+
+        if (manager == nullptr)
+        {
+            return;
+        }
+        for (const auto& dataViewer : dataViewers)
+        {
+            try
+            {
+                manager->GetDataViewerCollection().UnregisterViewer(dataViewer.first.c_str());
+            }
+            catch (const std::exception& exception)
+            {
+#ifdef HAVE_MAT_LOGGING
+                __android_log_print(
+                    ANDROID_LOG_WARN,
+                    "MAE.JavaDataViewer",
+                    "Failed to unregister Java IDataViewer '%s': %s",
+                    dataViewer.first.c_str(),
+                    exception.what());
+#else
+                (void)exception;
+#endif
+            }
+        }
+    }
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -979,17 +1058,15 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     jobject /* this */,
     jlong nativeLogManager)
 {
+    auto managerAndConfig = getManagerAndConfig(nativeLogManager);
+    if (managerAndConfig == nullptr)
     {
-        std::lock_guard<std::mutex> lock(jniManagersMutex);
-        if (nativeLogManager < 0 || nativeLogManager >= static_cast<jlong>(jniManagers.size()))
-        {
-            return;
-        }
-        // we reset the manager member of the ManagerAndConfig,
-        // but the ManagerAndConfig itself will survive until
-        // the static jniManagers array is destroyed.
-        jniManagers[nativeLogManager]->manager = nullptr;
+        return;
     }
+
+    // The ManagerAndConfig survives until the static jniManagers array is destroyed. Retiring the
+    // manager is what makes every other native entry point on this LogManager fail or no-op.
+    closeJavaDataViewers(*managerAndConfig, /* retireManager */ true);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -1035,16 +1112,21 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         env->ExceptionDescribe();
         return 0;
     }
-    ManagerAndConfig* mc;
+    // Capture the manager under the lock rather than dereferencing the ManagerAndConfig later:
+    // close() retires it while the Java handle stays usable, so an unguarded
+    // mc->manager->GetLogger() would fault. Returning 0 here surfaces as the
+    // NullPointerException that LogManagerImpl.getLogger() already raises for a null handle.
+    ILogManager* manager = nullptr;
     {
         std::lock_guard<std::mutex> lock(jniManagersMutex);
         if (nativeLogManagerIndex < 0 || nativeLogManagerIndex >= static_cast<jlong>(jniManagers.size()))
         {
             return 0;
         }
-        mc = jniManagers[nativeLogManagerIndex].get();
-        if (!mc)
+        auto mc = jniManagers[nativeLogManagerIndex].get();
+        if (!mc || mc->manager == nullptr)
             return 0;
+        manager = mc->manager;
     }
     std::string token;
     std::string source;
@@ -1055,7 +1137,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     {
         return 0;
     }
-    return reinterpret_cast<jlong>(mc->manager->GetLogger(
+    return reinterpret_cast<jlong>(manager->GetLogger(
         token,
         source,
         scope));
@@ -1084,6 +1166,23 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return;
     }
     logManager->FlushAndTeardown();
+
+    // FlushAndTeardown is terminal: LogManagerImpl sets m_alive to false and GetLogger() returns
+    // nullptr from then on, and nothing sets it back, so no further viewer callback can occur.
+    // It does not unregister data viewers, so without this the proxies stay in the native
+    // collection and in the javaDataViewers map, and their JNI global references pin the
+    // application's IDataViewer objects - and everything those reference - until close() or
+    // process exit. Release them here as well; closeJavaDataViewers swaps out its bookkeeping
+    // under the lock and closes registration permanently, so no viewer can be added after this
+    // pass and a later close() finds nothing left to do. retireManager is false because teardown
+    // must not retire the handle - doing so would make the still-open Java LogManager hand out a
+    // SemanticContext wrapping pointer 0 and would silently skip RemoveEventListener. Ordered
+    // after the teardown so viewers still observe packets from the final flush.
+    auto managerAndConfig = getManagerAndConfig(nativeLogManager);
+    if (managerAndConfig != nullptr)
+    {
+        closeJavaDataViewers(*managerAndConfig, /* retireManager */ false);
+    }
 }
 
 extern "C" JNIEXPORT jint JNICALL
@@ -1524,6 +1623,139 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     return env->NewStringUTF("");
 #endif
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeRegisterDataViewer(
+    JNIEnv* env,
+    jobject /* this */,
+    jlong native_log_manager,
+    jobject data_viewer)
+{
+    auto proxy = JavaDataViewerProxy::Create(env, data_viewer);
+    if (!proxy)
+    {
+        return false;
+    }
+
+    auto manager_and_config = getManagerAndConfig(native_log_manager);
+    if (manager_and_config == nullptr)
+    {
+        return false;
+    }
+
+    // Capture the manager once under javaDataViewersMutex. closeJavaDataViewers sets viewersClosed
+    // and swaps the map while holding that same lock, so this check and the registration below
+    // cannot interleave with a close() or a flushAndTeardown(). viewersClosed, not the manager
+    // pointer, is the liveness check: teardown leaves the manager non-null on purpose.
+    std::lock_guard<std::mutex> lock(manager_and_config->javaDataViewersMutex);
+    ILogManager* manager = manager_and_config->manager;
+    if (manager == nullptr ||
+        manager_and_config->viewersClosed ||
+        manager_and_config->javaDataViewers.find(proxy->GetName()) !=
+            manager_and_config->javaDataViewers.end())
+    {
+        return false;
+    }
+
+    bool collectionRegistered = false;
+    try
+    {
+        manager->GetDataViewerCollection().RegisterViewer(proxy);
+        collectionRegistered = true;
+        manager_and_config->javaDataViewers.emplace(proxy->GetName(), proxy);
+        return true;
+    }
+    catch (const std::exception& exception)
+    {
+        if (collectionRegistered)
+        {
+            try
+            {
+                manager->GetDataViewerCollection().UnregisterViewer(
+                    proxy->GetName());
+            }
+            catch (const std::exception& rollbackException)
+            {
+#ifdef HAVE_MAT_LOGGING
+                __android_log_print(
+                    ANDROID_LOG_ERROR,
+                    "MAE.JavaDataViewer",
+                    "Failed to roll back Java IDataViewer '%s': %s",
+                    proxy->GetName(),
+                    rollbackException.what());
+#else
+                (void)rollbackException;
+#endif
+            }
+        }
+#ifdef HAVE_MAT_LOGGING
+        __android_log_print(
+            ANDROID_LOG_WARN,
+            "MAE.JavaDataViewer",
+            "Failed to register Java IDataViewer '%s': %s",
+            proxy->GetName(),
+            exception.what());
+#else
+        (void)exception;
+#endif
+        return false;
+    }
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeUnregisterDataViewer(
+    JNIEnv* env,
+    jobject /* this */,
+    jlong native_log_manager,
+    jstring viewer_name)
+{
+    std::string name;
+    if (!TryJStringToStdString(env, viewer_name, name) || name.empty())
+    {
+        return false;
+    }
+
+    auto manager_and_config = getManagerAndConfig(native_log_manager);
+    if (manager_and_config == nullptr)
+    {
+        return false;
+    }
+
+    ILogManager* manager;
+    std::shared_ptr<JavaDataViewerProxy> proxy;
+    {
+        std::lock_guard<std::mutex> lock(manager_and_config->javaDataViewersMutex);
+        auto viewer = manager_and_config->javaDataViewers.find(name);
+        if (manager_and_config->manager == nullptr ||
+            viewer == manager_and_config->javaDataViewers.end())
+        {
+            return false;
+        }
+        manager = manager_and_config->manager;
+        proxy = std::move(viewer->second);
+        manager_and_config->javaDataViewers.erase(viewer);
+    }
+
+    try
+    {
+        manager->GetDataViewerCollection().UnregisterViewer(name.c_str());
+        return true;
+    }
+    catch (const std::exception& exception)
+    {
+#ifdef HAVE_MAT_LOGGING
+        __android_log_print(
+            ANDROID_LOG_WARN,
+            "MAE.JavaDataViewer",
+            "Failed to unregister Java IDataViewer '%s': %s",
+            name.c_str(),
+            exception.what());
+#else
+        (void)exception;
+#endif
+        return false;
+    }
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -2071,7 +2303,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_PG
     auto logManager = getLogManager(native_log_manager);
     auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
-    if(pg != nullptr) {
+    if(logManager != nullptr && pg != nullptr) {
         logManager->SetDataInspector(pg);
         return true;
     }
@@ -2088,7 +2320,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SS
     auto logManager = getLogManager(native_log_manager);
     auto ss = SignalsHelper::GetSignalsInspector();
-    if(ss != nullptr) {
+    if(logManager != nullptr && ss != nullptr) {
         logManager->SetDataInspector(ss);
         return true;
     }
@@ -2105,7 +2337,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SAN
     auto logManager = getLogManager(native_log_manager);
     auto sa = SanitizerHelper::GetSanitizerPtr();
-    if (sa != nullptr) {
+    if (logManager != nullptr && sa != nullptr) {
         logManager->SetDataInspector(sa);
         return true;
     }
@@ -2182,7 +2414,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_PG
     auto logManager = getLogManager(native_log_manager);
     auto pg = PrivacyGuardHelper::GetPrivacyGuardPtr();
-    if(pg != nullptr) {
+    if(logManager != nullptr && pg != nullptr) {
         logManager->RemoveDataInspector(pg->GetName());
         return true;
     }
@@ -2199,7 +2431,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SS
     auto logManager = getLogManager(native_log_manager);
     auto ss = SignalsHelper::GetSignalsInspector();
-    if(ss != nullptr) {
+    if(logManager != nullptr && ss != nullptr) {
         logManager->RemoveDataInspector(ss->GetName());
         return true;
     }
@@ -2216,7 +2448,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #if HAS_SAN
     auto logManager = getLogManager(native_log_manager);
     auto sa = SanitizerHelper::GetSanitizerPtr();
-    if (sa != nullptr) {
+    if (logManager != nullptr && sa != nullptr) {
         logManager->RemoveDataInspector(sa->GetName());
         return true;
     }
