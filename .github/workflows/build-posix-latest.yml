@@ -9,6 +9,7 @@ on:
     - dev/*
     - release/*
     - buildme/*
+    - fix/*
 
   pull_request:
     branches:
@@ -61,16 +62,21 @@ jobs:
       run: bash tests/headers/check_public_headers.sh
 
   no-exceptions:
-    name: Full Linux SDK without C++ exceptions (${{ matrix.compiler }})
-    runs-on: ubuntu-latest
+    name: Full SDK without C++ exceptions (${{ matrix.os }}, ${{ matrix.compiler }})
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        compiler: [gcc, clang]
         include:
-        - compiler: gcc
+        - os: ubuntu-latest
+          compiler: gcc
           cc: gcc
           cxx: g++
-        - compiler: clang
+        - os: ubuntu-latest
+          compiler: clang
+          cc: clang
+          cxx: clang++
+        - os: macos-latest
+          compiler: appleclang
           cc: clang
           cxx: clang++
     env:
@@ -80,12 +86,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Install build dependencies
+      if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt-get install -y clang libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
     - name: Configure
       run: >-
         cmake -S . -B out-no-exceptions
         -DCMAKE_BUILD_TYPE=Debug
         -DCMAKE_CXX_FLAGS=-fno-exceptions
+        -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
         -DMATSDK_BUILD_UNIT_TESTS=OFF
         -DMATSDK_BUILD_FUNC_TESTS=OFF
         -DMATSDK_BUILD_TEST_TOOL=OFF

@@ -6,6 +6,7 @@ on:
     - master
     - main
     - dev
+    - fix/*
 
   pull_request:
     branches:
@@ -20,6 +21,41 @@ permissions:
   contents: read
 
 jobs:
+  no-exceptions:
+    name: Windows without C++ exceptions (${{ matrix.compiler }}, WinInet=${{ matrix.wininet }})
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        compiler: [msvc, clang-cl]
+        wininet: [OFF, ON]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Configure full SDK
+      shell: pwsh
+      run: |
+        $options = @(
+          '-S', '.', '-B', 'out-no-exceptions', '-A', 'x64',
+          '-DMATSDK_BUILD_UNIT_TESTS=OFF',
+          '-DMATSDK_BUILD_FUNC_TESTS=OFF',
+          '-DMATSDK_BUILD_TEST_TOOL=OFF',
+          '-DMATSDK_BUILD_PACKAGE=OFF',
+          '-DMATSDK_USE_WININET=${{ matrix.wininet }}'
+        )
+        $flags = '/DWIN32 /D_WINDOWS /EHs-c- /D_HAS_EXCEPTIONS=0'
+        if ('${{ matrix.compiler }}' -eq 'clang-cl') {
+          $options += @('-T', 'ClangCL')
+          $flags += ' /clang:-fno-exceptions'
+        }
+        cmake @options "-DCMAKE_CXX_FLAGS=$flags"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    - name: Compile full SDK
+      run: cmake --build out-no-exceptions --config Debug --target mat --parallel 2
+    - name: Public headers and exception macro regression
+      if: matrix.compiler == 'msvc' && matrix.wininet == 'OFF'
+      shell: cmd
+      run: tests\headers\check_public_headers.cmd
+
   build:
 
     runs-on: windows-2022

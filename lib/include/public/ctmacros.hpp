@@ -125,7 +125,7 @@
 #endif
 
 /* Exceptions support is optional */
-#if (__cpp_exceptions) || defined(__EXCEPTIONS)
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
 #define HAVE_EXCEPTIONS 1
 #else
 #define HAVE_EXCEPTIONS 0

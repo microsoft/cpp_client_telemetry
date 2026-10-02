@@ -9,6 +9,7 @@ on:
     - dev/*
     - release/*
     - buildme/*
+    - fix/*
 
   pull_request:
     branches:
@@ -31,6 +32,35 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  no-exceptions:
+    name: iOS without C++ exceptions (${{ matrix.sdk }})
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        sdk: [iphoneos, iphonesimulator]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Configure SDK and Objective-C wrappers
+      run: >-
+        cmake -S . -B out-no-exceptions -G Xcode
+        -DCMAKE_SYSTEM_NAME=iOS
+        -DCMAKE_OSX_SYSROOT=${{ matrix.sdk }}
+        -DCMAKE_OSX_ARCHITECTURES=arm64
+        -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0
+        -DCMAKE_CXX_FLAGS=-fno-exceptions
+        -DCMAKE_XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS=NO
+        -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+        -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO
+        -DMATSDK_BUILD_OBJC_WRAPPER=ON
+        -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
+        -DMATSDK_BUILD_UNIT_TESTS=OFF
+        -DMATSDK_BUILD_FUNC_TESTS=OFF
+        -DMATSDK_BUILD_TEST_TOOL=OFF
+        -DMATSDK_BUILD_PACKAGE=OFF
+    - name: Compile full SDK
+      run: cmake --build out-no-exceptions --config Debug --target mat --parallel 2
+
   build:
     strategy:
       matrix:

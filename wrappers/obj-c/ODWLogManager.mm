@@ -37,10 +37,11 @@ static BOOL _initialized = false;
     std::string strToken = std::string([tenantToken UTF8String]);
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = nullptr;
-    try
+    MATSDK_TRY
     {
         logger = LogManager::GetLogger(strToken, strSource);
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
@@ -49,6 +50,7 @@ static BOOL _initialized = false;
         }
         [ODWLogger traceException: e.what()];
     }
+#endif
 
     if(!logger) return nil;
 
@@ -82,10 +84,11 @@ static BOOL _initialized = false;
         std::string strToken = std::string([tenantToken UTF8String]);
         std::string strSource = std::string([source UTF8String]);
         ILogger* logger = nullptr;
-        try
+        MATSDK_TRY
         {
             logger = manager->GetLogger(strToken, strSource);
         }
+#if HAVE_EXCEPTIONS
         catch (const std::exception &e)
         {
             if ([ODWLogConfiguration surfaceCppExceptions])
@@ -94,6 +97,7 @@ static BOOL _initialized = false;
             }
             [ODWLogger traceException: e.what()];
         }
+#endif
 
         if(!logger) return nil;
 
@@ -120,7 +124,7 @@ static BOOL _initialized = false;
 +(nullable ILogger *)initializeLogManager:(nonnull NSString *)tenantToken withConfig:(nullable NSDictionary *)config
 {
     ILogger* logger = nullptr;
-    try
+    MATSDK_TRY
     {
         static ILogConfiguration logManagerConfig;
 
@@ -202,6 +206,7 @@ static BOOL _initialized = false;
         semanticContext->SetAppLanguage(strBundleLocale);
         semanticContext->SetUserLanguage(strUserLocale);
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
@@ -210,6 +215,7 @@ static BOOL _initialized = false;
         }
         [ODWLogger traceException: e.what()];
     }
+#endif
 
     _initialized = logger != NULL;
     return logger;
@@ -219,10 +225,11 @@ static BOOL _initialized = false;
 {
     std::string strSource = std::string([source UTF8String]);
     ILogger* logger = nullptr;
-    try
+    MATSDK_TRY
     {
         logger = LogManager::GetLogger(strSource);
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
@@ -231,6 +238,7 @@ static BOOL _initialized = false;
         }
         [ODWLogger traceException: e.what()];
     }
+#endif
 
     if(!logger) return nil;
     return [[ODWLogger alloc] initWithILogger: logger];
@@ -245,10 +253,11 @@ static BOOL _initialized = false;
 
 +(ODWStatus)flush
 {
-    try
+    MATSDK_TRY
     {
         return ((ODWStatus)LogManager::Flush());
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
          if ([ODWLogConfiguration surfaceCppExceptions])
@@ -258,14 +267,16 @@ static BOOL _initialized = false;
         [ODWLogger traceException: e.what()];
         return ODWEfail;
     }
+#endif
 }
 
 +(ODWStatus)flushAndTeardown
 {
-    try
+    MATSDK_TRY
     {
         return ((ODWStatus)LogManager::FlushAndTeardown());
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
          if ([ODWLogConfiguration surfaceCppExceptions])
@@ -275,6 +286,7 @@ static BOOL _initialized = false;
         [ODWLogger traceException: e.what()];
         return ODWEfail;
     }
+#endif
 }
 
 +(void)setTransmissionProfile:(ODWTransmissionProfile)profile
@@ -286,10 +298,11 @@ static BOOL _initialized = false;
 
 +(void)pauseTransmission
 {
-    try
+    MATSDK_TRY
     {
         LogManager::PauseTransmission();
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
@@ -298,6 +311,7 @@ static BOOL _initialized = false;
         }
         [ODWLogger traceException: e.what()];
     }
+#endif
 }
 
 +(void)resumeTransmission

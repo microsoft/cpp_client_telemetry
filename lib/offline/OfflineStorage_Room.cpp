@@ -4,13 +4,35 @@
 //
 #include "OfflineStorage_Room.hpp"
 #include "pal/PAL.hpp"
+#include <cerrno>
 #include <cmath>
+#include <cstdlib>
 #include <exception>
 #include <jni.h>
 
 namespace
 {
     static constexpr bool s_throwExceptions = true;
+
+    void AppendRoomId(const std::string& id, std::vector<jlong>& ids,
+                      MAT::IOfflineStorageObserver& observer)
+    {
+        char* end = nullptr;
+        errno = 0;
+        const long long value = std::strtoll(id.c_str(), &end, 10);
+        if (errno == ERANGE)
+        {
+            observer.OnStorageFailed("ID out of range");
+        }
+        else if (end == id.c_str())
+        {
+            observer.OnStorageFailed("Empty ID");
+        }
+        else if (value > 0)
+        {
+            ids.push_back(value);
+        }
+    }
 
     // RAII guard that deletes a JNI global class reference on all exit paths,
     // including std::logic_error (ThrowLogic) and std::runtime_error (ThrowRuntime).
@@ -111,7 +133,7 @@ namespace MAT_NS_BEGIN
     void
     OfflineStorage_Room::ConnectedEnv::popLocalFrame()
     {
-        try
+        MATSDK_TRY
         {
             if (push_count > 0)
             {
@@ -119,10 +141,12 @@ namespace MAT_NS_BEGIN
                 --push_count;
             }
         }
-        catch (std::exception e)
+#if HAVE_EXCEPTIONS
+        catch (const std::exception&)
         {
             LOG_ERROR("Exception in popLocalFrame");
         }
+#endif
     }
 
     /**
@@ -156,7 +180,7 @@ namespace MAT_NS_BEGIN
     {
         if (s_vm && m_room)
         {
-            try
+            MATSDK_TRY
             {
                 ConnectedEnv env(s_vm);
 
@@ -181,10 +205,12 @@ namespace MAT_NS_BEGIN
                 env->DeleteGlobalRef(m_room);
                 env->ExceptionClear();
             }
-            catch (std::logic_error& e)
+#if HAVE_EXCEPTIONS
+            catch (std::logic_error&)
             {
                 // just swallow the error
             }
+#endif
             m_room = nullptr;
         }
     }
@@ -205,7 +231,7 @@ namespace MAT_NS_BEGIN
             s_vm = nullptr;
             env->ExceptionDescribe();
             env->ExceptionClear();
-            throw std::runtime_error("Unable to acquire JavaVM pointer");
+            MATSDK_THROW(std::runtime_error("Unable to acquire JavaVM pointer"));
             return;
         }
         s_context = env->NewGlobalRef(appContext);
@@ -270,7 +296,7 @@ namespace MAT_NS_BEGIN
         HttpHeaders,
         bool& fromMemory)
     {
-        try
+        MATSDK_TRY
         {
             fromMemory = false;
             if (ids.empty())
@@ -297,23 +323,7 @@ namespace MAT_NS_BEGIN
             roomIds.reserve(ids.size());
             for (auto& id : ids)
             {
-                long long n = 0;
-                try
-                {
-                    n = std::stoll(id);
-                    if (n > 0)
-                    {
-                        roomIds.push_back(n);
-                    }
-                }
-                catch (std::out_of_range e)
-                {
-                    m_observer->OnStorageFailed("ID out of range");
-                }
-                catch (std::invalid_argument e)
-                {
-                    m_observer->OnStorageFailed("Empty ID");
-                }
+                AppendRoomId(id, roomIds, *m_observer);
             }
             if (roomIds.empty())
             {
@@ -327,6 +337,7 @@ namespace MAT_NS_BEGIN
             env->CallLongMethod(m_room, method, ids_java);
             ThrowRuntime(env, "deleteById");
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -337,6 +348,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in DeleteRecords: %s", what);
             // do nothing more; no recovery
         }
+#endif
     }
 
     /**
@@ -381,7 +393,7 @@ namespace MAT_NS_BEGIN
     {
         constexpr int64_t chunkSize = 1024;
         int64_t requested = maxCount ? maxCount : INT64_MAX;
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -567,6 +579,7 @@ namespace MAT_NS_BEGIN
             m_lastReadCount.store(std::min(collected, static_cast<int64_t>(INT32_MAX)));
             return collected > 0;
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& e)
         {
             auto what = e.what();
@@ -577,6 +590,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in GetAndReserveRecords: %s", what);
             return false;
         }
+#endif
     }
 
     /**
@@ -594,7 +608,7 @@ namespace MAT_NS_BEGIN
         static constexpr char k_init_string[] = "Room/Init";
 
         m_observer = &observer;
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -623,6 +637,7 @@ namespace MAT_NS_BEGIN
             ThrowRuntime(env, "Exception creating global ref to OfflineRoom");
             m_observer->OnStorageOpened(k_init_string);
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -632,6 +647,7 @@ namespace MAT_NS_BEGIN
             }
             LOG_ERROR("Exception in Initialize: %s", what);
         }
+#endif
     }
 
     /**
@@ -668,7 +684,7 @@ namespace MAT_NS_BEGIN
         {
             return;
         }
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -694,22 +710,7 @@ namespace MAT_NS_BEGIN
             roomIds.reserve(ids.size());
             for (auto const& id : ids)
             {
-                try
-                {
-                    long long roomId = std::stoll(id);
-                    if (roomId > 0)
-                    {
-                        roomIds.push_back(roomId);
-                    }
-                }
-                catch (std::out_of_range e)
-                {
-                    m_observer->OnStorageFailed("id out of range");
-                }
-                catch (std::invalid_argument e)
-                {
-                    m_observer->OnStorageFailed("id empty");
-                }
+                AppendRoomId(id, roomIds, *m_observer);
             }
             if (roomIds.empty())
             {
@@ -789,6 +790,7 @@ namespace MAT_NS_BEGIN
                 m_observer->OnStorageRecordsDropped(dropped);
             }
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -796,8 +798,9 @@ namespace MAT_NS_BEGIN
             {
                 what = "*nothing*";
             }
-            LOG_ERROR("Exception in ReleaseRecords", what);
+            LOG_ERROR("Exception in ReleaseRecords: %s", what);
         }
+#endif
     }
 
     /**
@@ -843,7 +846,7 @@ namespace MAT_NS_BEGIN
             return 0;
         }
 
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -962,6 +965,7 @@ namespace MAT_NS_BEGIN
             }
             return count;
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -972,6 +976,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in StoreRecords: %s", what);
             return 0;
         }
+#endif
     }
 
     /**
@@ -982,7 +987,7 @@ namespace MAT_NS_BEGIN
 
     bool OfflineStorage_Room::DeleteSetting(std::string const& name)
     {
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -1003,6 +1008,7 @@ namespace MAT_NS_BEGIN
             ThrowLogic(env, "exception in delete setting");
             return true;
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -1013,6 +1019,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in DeleteSetting: %s", what);
             return false;
         }
+#endif
     }
 
     /**
@@ -1030,7 +1037,7 @@ namespace MAT_NS_BEGIN
         {
             return DeleteSetting(name);
         }
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -1057,6 +1064,7 @@ namespace MAT_NS_BEGIN
             ThrowRuntime(env, "Exception StoreSetting");
             return (count == 1);
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -1067,6 +1075,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in StoreSetting: %s", what);
             return false;
         }
+#endif
     }
 
     /**
@@ -1085,7 +1094,7 @@ namespace MAT_NS_BEGIN
         {
             return "";
         }
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -1115,6 +1124,7 @@ namespace MAT_NS_BEGIN
             }
             return result;
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -1125,6 +1135,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in GetSetting: %s", what);
             return "";
         }
+#endif
     }
 
     /**
@@ -1133,7 +1144,7 @@ namespace MAT_NS_BEGIN
 
     size_t OfflineStorage_Room::GetSize()
     {
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -1142,6 +1153,7 @@ namespace MAT_NS_BEGIN
             }
             return GetSizeInternal(env);
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -1152,6 +1164,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in GetSetting: %s", what);
             return 0;
         }
+#endif
     }
 
     /**
@@ -1184,7 +1197,7 @@ namespace MAT_NS_BEGIN
 
     size_t OfflineStorage_Room::GetRecordCount(EventLatency latency) const
     {
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -1201,6 +1214,7 @@ namespace MAT_NS_BEGIN
             auto count = env->CallLongMethod(m_room, count_id, static_cast<int>(latency));
             return count;
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -1211,11 +1225,12 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in GetRecordCount: %s", what);
             return 0;
         }
+#endif
     }
 
     bool OfflineStorage_Room::ResizeDb()
     {
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
             if (!env)
@@ -1225,6 +1240,7 @@ namespace MAT_NS_BEGIN
             bool result = ResizeDbInternal(env);
             return result;
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -1235,6 +1251,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in ResizeDb: %s", what);
             return false;
         }
+#endif
     }
 
     bool OfflineStorage_Room::ResizeDbInternal(ConnectedEnv& env)
@@ -1280,7 +1297,7 @@ namespace MAT_NS_BEGIN
         }
         StorageRecordVector records;
 
-        try
+        MATSDK_TRY
         {
             ConnectedEnv env(s_vm);
 
@@ -1393,6 +1410,7 @@ namespace MAT_NS_BEGIN
             }
             return records;
         }
+#if HAVE_EXCEPTIONS
         catch (const std::runtime_error& error)
         {
             auto what = error.what();
@@ -1403,6 +1421,7 @@ namespace MAT_NS_BEGIN
             LOG_ERROR("Exception in GetRecords: %s", what);
             return records;
         }
+#endif
     }
 
     void

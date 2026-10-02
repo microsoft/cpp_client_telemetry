@@ -9,6 +9,7 @@ on:
     - dev/*
     - release/*
     - buildme/*
+    - fix/*
     - maharrim/*
 
   pull_request:
@@ -30,6 +31,34 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  no-exceptions:
+    name: Android without C++ exceptions (${{ matrix.abi }}, Room=${{ matrix.room }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: [armeabi-v7a, arm64-v8a, x86, x86_64]
+        room: [OFF, ON]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Configure full JNI SDK
+      run: >-
+        cmake -S . -B out-no-exceptions -G Ninja
+        -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"
+        -DANDROID_ABI=${{ matrix.abi }}
+        -DANDROID_PLATFORM=android-24
+        -DCMAKE_BUILD_TYPE=Debug
+        -DCMAKE_CXX_FLAGS=-fno-exceptions
+        -DMATSDK_BUILD_JNI_WRAPPER=ON
+        -DMATSDK_ANDROID_USE_ROOM=${{ matrix.room }}
+        -DMATSDK_DISABLE_LOGGING=${{ matrix.room }}
+        -DMATSDK_BUILD_UNIT_TESTS=OFF
+        -DMATSDK_BUILD_FUNC_TESTS=OFF
+        -DMATSDK_BUILD_TEST_TOOL=OFF
+        -DMATSDK_BUILD_PACKAGE=OFF
+    - name: Compile full SDK
+      run: cmake --build out-no-exceptions --target mat --parallel 2
+
   build:
     runs-on: windows-latest
     name: Build for Android

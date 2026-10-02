@@ -97,3 +97,25 @@ reports buffer-allocation failure through its existing `false` result.
 Disabling exceptions does not make every standard-library allocation
 recoverable; operations without an explicit non-throwing failure path can
 still terminate on allocation failure.
+
+The same flag applies to Android NDK and Apple Clang builds, including the
+JNI and Objective-C wrappers. For Android, also pass
+`-DMATSDK_BUILD_JNI_WRAPPER=ON`; both SQLite and
+`-DMATSDK_ANDROID_USE_ROOM=ON` storage builds are covered. For Apple builds,
+disable the independent Swift build with `-DMATSDK_BUILD_SWIFT_WRAPPER=OFF`.
+With the Xcode generator, also set
+`-DCMAKE_XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS=NO`.
+
+For native Windows MSVC builds, configure a fresh directory with
+`"-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHs-c- /D_HAS_EXCEPTIONS=0"`.
+For clang-cl, append `/clang:-fno-exceptions` to those flags. CI covers both
+WinHTTP and WinInet transports, macOS, iOS device/simulator, and all four
+Android ABIs with both storage backends. Managed C++/CLI and C++/CX wrappers
+require their platform exception machinery and are not exception-free native
+build targets.
+
+The existing `MATSDK_THROW` policy is unchanged: when C++ exceptions are
+disabled, paths that would explicitly throw terminate via `std::abort()`,
+including unrecoverable JNI/Room errors. Room record-ID validation instead
+uses a non-throwing conversion and reports invalid or overflowing IDs through
+the storage observer.
