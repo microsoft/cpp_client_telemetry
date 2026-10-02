@@ -132,7 +132,11 @@ public class LogManagerProvider {
 
     @Override
     public ISemanticContext getSemanticContext() {
-      return new SemanticContext(nativeGetSemanticContext(nativeLogManager));
+      long nativeSemanticContext = nativeGetSemanticContext(nativeLogManager);
+      if (nativeSemanticContext == 0) {
+        throw new NullPointerException("Null native semantic context pointer");
+      }
+      return new SemanticContext(nativeSemanticContext);
     }
 
     protected native int nativeSetContextString(
@@ -224,6 +228,28 @@ public class LogManagerProvider {
     @Override
     public String getCurrentEndpoint() {
       return nativeGetCurrentEndpoint(nativeLogManager);
+    }
+
+    protected native boolean nativeRegisterDataViewer(
+        long nativeLogManager, IDataViewer dataViewer);
+
+    @Override
+    public boolean registerDataViewer(IDataViewer dataViewer) {
+      if (dataViewer == null) {
+        return false;
+      }
+      return nativeRegisterDataViewer(nativeLogManager, dataViewer);
+    }
+
+    protected native boolean nativeUnregisterDataViewer(
+        long nativeLogManager, String viewerName);
+
+    @Override
+    public boolean unregisterDataViewer(String viewerName) {
+      if (viewerName == null || viewerName.isEmpty()) {
+        return false;
+      }
+      return nativeUnregisterDataViewer(nativeLogManager, viewerName);
     }
 
     protected static class LogSessionDataImpl implements LogSessionData {

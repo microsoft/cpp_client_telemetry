@@ -45,6 +45,7 @@ cc_library_shared {
         "lib/http/HttpClientManager.cpp",
         "lib/http/HttpRequestEncoder.cpp",
         "lib/http/HttpResponseDecoder.cpp",
+        "lib/jni/JavaDataViewerProxy.cpp",
         "lib/jni/JniConvertors.cpp",
         "lib/jni/LogManager_jni.cpp",
         "lib/jni/Logger_jni.cpp",
@@ -115,5 +116,14 @@ android_library {
         "-Aroom.schemaLocation=lib/android_build/maesdk/schemas",
         "-Aroom.incremental=true",
         "-Aroom.expandProjection=true"
-    ]
+    ],
+    // Soong equivalent of the consumerProguardFiles entry in maesdk/build.gradle. IDataViewer
+    // implementations are reached only through JNI GetMethodID, so R8 in a consuming app would
+    // otherwise be free to rename or strip receiveData/getName and break viewer registration.
+    // export_proguard_flags_files is what propagates the rules to consumers; without it they
+    // would apply only to this module.
+    optimize: {
+        proguard_flags_files: ["lib/android_build/maesdk/consumer-rules.pro"],
+        export_proguard_flags_files: true
+    }
 }
