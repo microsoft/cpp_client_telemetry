@@ -4,20 +4,74 @@
 //
 #include "DataViewerCollection.hpp"
 #include <algorithm>
+#include <cstring>
 #include <mutex>
 
 namespace MAT_NS_BEGIN {
 
     MATSDK_LOG_INST_COMPONENT_CLASS(DataViewerCollection, "EventsSDK.DataViewerCollection", "Microsoft Telemetry Client - DataViewerCollection class")
 
+    bool DataViewerCollection::TrySnapshotViewers(std::vector<std::shared_ptr<IDataViewer>>& viewers) const noexcept
+    {
+        // Both callers are noexcept, and copying the collection allocates. An uncaught bad_alloc
+        // - or a system_error from the lock - would terminate the process rather than cost one
+        // packet of diagnostic data, so report failure and let the caller skip instead. Nothing
+        // is logged from the failure path: under memory pressure the log call could throw in
+        // turn, which is the outcome this guard exists to prevent.
+        MATSDK_TRY
+        {
+            LOCKGUARD(m_dataViewerMapLock);
+            viewers = m_dataViewerCollection;
+        }
+        MATSDK_CATCH(...)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     void DataViewerCollection::DispatchDataViewerEvent(const std::vector<uint8_t>& packetData) const noexcept
     {
-        if (IsViewerEnabled() == false)
-            return;
-
-        LOCKGUARD(m_dataViewerMapLock);
-        for(const auto& viewer : m_dataViewerCollection)
+        // Dispatch over a snapshot taken under the lock, and release the lock before invoking any
+        // viewer. Iterating m_dataViewerCollection directly is unsafe because m_dataViewerMapLock
+        // is recursive: a viewer that reenters the SDK from ReceiveData - for example by closing
+        // the owning LogManager, which unregisters every viewer - would erase from the very vector
+        // being iterated here and invalidate the iterator. Holding the lock across a callback is
+        // unsafe for a second reason: registration acquires the JNI viewer mutex and then this
+        // lock, so a callback that reenters registration closes a lock cycle, and any slow callback
+        // would stall registration, unregistration and LogManager close until it returned.
+        // The shared_ptr copies keep each viewer alive for the duration of its own callback, even
+        // if it is unregistered - or loses its last other reference - while dispatch is running.
+        //
+        // Removal is deliberately not coordinated with in-flight dispatch: a viewer unregistered
+        // after this snapshot is taken still receives this packet. Do not "fix" that by making
+        // UnregisterViewer wait for outstanding callbacks - that reinstates the cycle this
+        // snapshot exists to break, because the unregistering thread would block on a callback
+        // that may in turn be waiting on a lock that thread holds. IDataViewer documents the
+        // resulting contract for consumers.
+        std::vector<std::shared_ptr<IDataViewer>> viewers;
+        if (!TrySnapshotViewers(viewers))
         {
+            return;
+        }
+
+        // Gate each viewer individually. The previous collection-wide check was only a
+        // short-circuit: DefaultDataViewer re-checks IsTransmissionEnabled() at the top of its own
+        // ReceiveData, so a disabled viewer discarded the packet itself. JavaDataViewerProxy cannot
+        // do that cheaply - it would have to cross into the JVM a second time - and
+        // IDataViewer.isTransmissionEnabled() documents per-viewer suppression, so a disabled Java
+        // viewer would otherwise be handed encoded telemetry whenever any other viewer was enabled.
+        // Checking here is also cheaper than it looks: it replaces the collection-wide scan rather
+        // than adding to it, and it skips the byte array allocation and JNI call for viewers that
+        // are not accepting data.
+        for(const auto& viewer : viewers)
+        {
+            if (!viewer->IsTransmissionEnabled())
+            {
+                continue;
+            }
+
             // Task 3568800: Integrate ThreadPool to IDataViewerCollection
             viewer->ReceiveData(packetData);
         }
@@ -52,7 +106,7 @@ namespace MAT_NS_BEGIN {
         LOCKGUARD(m_dataViewerMapLock);
         auto toErase = std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [&viewerName](std::shared_ptr<IDataViewer> viewer)
             {
-                return viewer->GetName() == viewerName;
+                return strcmp(viewer->GetName(), viewerName) == 0;
             });
         
         if (toErase == m_dataViewerCollection.end())
@@ -79,9 +133,19 @@ namespace MAT_NS_BEGIN {
 
     bool DataViewerCollection::IsViewerEnabled() const noexcept
     {
-        LOCKGUARD(m_dataViewerMapLock);
-        return !m_dataViewerCollection.empty() &&
-               std::find_if(m_dataViewerCollection.begin(), m_dataViewerCollection.end(), [](std::shared_ptr<IDataViewer> viewer) { return viewer->IsTransmissionEnabled(); }) != m_dataViewerCollection.end();
+        // Evaluate over a snapshot taken under the lock. IsTransmissionEnabled() is a viewer
+        // callback - for Java viewers it crosses into the JVM - and must not run while
+        // m_dataViewerMapLock is held: registration takes the JNI viewer mutex and then this lock,
+        // so a callback that reenters the SDK would close a lock cycle, and a slow callback would
+        // stall registration, unregistration and LogManager close.
+        std::vector<std::shared_ptr<IDataViewer>> viewers;
+        if (!TrySnapshotViewers(viewers))
+        {
+            return false;
+        }
+
+        return std::any_of(viewers.cbegin(), viewers.cend(),
+            [](const std::shared_ptr<IDataViewer>& viewer) { return viewer->IsTransmissionEnabled(); });
     }
 
     bool DataViewerCollection::IsViewerRegistered(const char* viewerName) const

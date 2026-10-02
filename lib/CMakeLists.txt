@@ -60,6 +60,7 @@ endif()
 
 if(MATSDK_BUILD_JNI_WRAPPER)
   list(APPEND SRCS
+    jni/JavaDataViewerProxy.cpp
     jni/JniConvertors.cpp
     jni/LogManager_jni.cpp
     jni/Logger_jni.cpp
