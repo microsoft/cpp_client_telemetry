@@ -36,9 +36,11 @@ namespace
 int main(int argc, char** argv)
 {
     if (argc != 3 || (std::strcmp(argv[2], "idle") != 0 &&
-                     std::strcmp(argv[2], "dispatch") != 0))
+                     std::strcmp(argv[2], "dispatch") != 0 &&
+                     std::strcmp(argv[2], "network-native") != 0 &&
+                     std::strcmp(argv[2], "network-legacy") != 0))
     {
-        std::fprintf(stderr, "Usage: debug-listener-unload-test <DLL> <idle|dispatch>\n");
+        std::fprintf(stderr, "Usage: debug-listener-unload-test <DLL> <idle|dispatch|network-native|network-legacy>\n");
         return 1;
     }
 #ifndef _DEBUG
@@ -57,7 +59,26 @@ int main(int argc, char** argv)
         std::fprintf(stderr, "LoadLibrary failed: %lu\n", GetLastError());
         return 1;
     }
-    auto exercise = reinterpret_cast<Exercise>(GetProcAddress(module, "ExerciseDebugListeners"));
+    const char* entry = "ExerciseDebugListeners";
+    if (std::strcmp(argv[2], "network-native") == 0)
+    {
+        entry = "ExerciseNetworkDetector";
+    }
+    else if (std::strcmp(argv[2], "network-legacy") == 0)
+    {
+        entry = "ExerciseLegacyNetworkDetector";
+    }
+    if (std::strcmp(argv[2], "network-native") == 0 ||
+        std::strcmp(argv[2], "network-legacy") == 0)
+    {
+        auto hasDetector = reinterpret_cast<Exercise>(GetProcAddress(module, "HasNetworkDetector"));
+        if (hasDetector != nullptr && !hasDetector())
+        {
+            std::printf("Network detection is disabled in this SDK SKU.\n");
+            return FreeLibrary(module) ? 77 : 1;
+        }
+    }
+    auto exercise = reinterpret_cast<Exercise>(GetProcAddress(module, entry));
     if (exercise == nullptr)
     {
         std::fprintf(stderr, "GetProcAddress failed: %lu\n", GetLastError());
@@ -73,7 +94,7 @@ int main(int argc, char** argv)
     {
         workers[i].exit = exit;
         workers[i].ready = CreateEventW(nullptr, TRUE, FALSE, nullptr);
-        workers[i].exercise = std::strcmp(argv[2], "dispatch") == 0 ? exercise : nullptr;
+        workers[i].exercise = std::strcmp(argv[2], "idle") != 0 ? exercise : nullptr;
         if (workers[i].ready == nullptr)
         {
             succeeded = false;
@@ -95,6 +116,11 @@ int main(int argc, char** argv)
         else
         {
             std::fprintf(stderr, "FreeLibrary failed: %lu\n", GetLastError());
+        }
+        if (GetModuleHandleA(argv[1]) != nullptr)
+        {
+            std::fprintf(stderr, "The SDK DLL is still loaded.\n");
+            succeeded = false;
         }
         for (auto thread : threads)
         {

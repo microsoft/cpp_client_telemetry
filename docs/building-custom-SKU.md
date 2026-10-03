@@ -28,11 +28,32 @@ Build recipe must contain the following preprocessor definitions:
 | HAVE_MAT_WIN_LOG | off | Will log statements to disk on windows if trace enabled and HAVE_MAT_LOGGING defined |
 | HAVE_MAT_EVT_TRACEID  | off | Enable event tracking by adding trace-id to http request header on Windows. This is for debugging purpose, and not recommended to be enabled in production. The collector doesn't parse/read this header. As of now, this is meant to be used through the capi, where the http-send handler should remove this header from the event data before sending it to collector. |
 | HAVE_MAT_STORAGE | on | Enable SQLite persistent offline storage |
-| HAVE_MAT_NETDETECT | on | _Win32 Desktop only_: Use Windows Runtime APIs for network cost detection on Windows 10+ |
+| HAVE_MAT_NETDETECT | on | _Win32 Desktop only_: Use IP Helper connectivity hints on Windows 10 version 2004+; use native Network List Manager COM APIs on older supported Windows versions |
 | HAVE_MAT_SHORT_NS | off | Use short "MAT::" namespace instead of "Microsoft::Applications::Events::" to reduce the .DLL size |
 | HAVE_CS4 | off | Build with Common Schema 4.0 support. Current default is `off`, i.e. building with Common Schema 3.0 support |
 | HAVE_CS4_FULL | off | Enable additional Common Schema 4.0 protocol features needed by server / services SDK |
 | COMPACT_SDK | off | Built-in build recipe for smallest possible SDK. Turns most features off. Includes_mat/config-compact.h_ |
+
+### Windows desktop network cost lifecycle
+
+Build with a Windows SDK that declares `NL_NETWORK_CONNECTIVITY_HINT` in `nldef.h`.
+
+The IP Helper APIs are resolved at runtime, preserving the existing Windows 10
+and Windows Server 2016 minimum rather than adding newer loader imports. The
+modern backend reports aggregate connectivity hints, not just the WinRT Internet
+connection profile. Roaming and approaching/exceeded data limits map to the
+restrictive `NetworkCost_Roaming` category. Connectivity hints do not expose
+WinRT's separate background-data restriction flag.
+
+Older supported Windows uses `INetworkCostManager` on a private SDK-owned STA,
+with cost and connectivity event subscriptions. This fallback loads
+`netprofm.dll`; the modern backend does not. Subscription teardown, interface
+release, and balanced COM shutdown happen before joining the listener thread.
+The host does not need to initialize COM or retain an MTA across SDK DLL reloads.
+Callback dispatch is drained on external stop; a reentrant stop does not wait on
+itself. Restart and subsequent external stops still drain the previous callback.
+An unexpected failure to cancel native notifications or disconnect the COM sink
+is logged and terminates the process rather than unloading code with live callbacks.
 
 ## Building custom SDK SKU: MSBuild example
 
