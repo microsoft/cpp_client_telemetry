@@ -45,15 +45,31 @@ connection profile. Roaming and approaching/exceeded data limits map to the
 restrictive `NetworkCost_Roaming` category. Connectivity hints do not expose
 WinRT's separate background-data restriction flag.
 
-Older supported Windows uses `INetworkCostManager` on a private SDK-owned STA,
-with cost and connectivity event subscriptions. This fallback loads
-`netprofm.dll`; the modern backend does not. Subscription teardown, interface
+The fallback activates `INetworkListManager` on a private SDK-owned STA and
+preserves the three original event families: network-list connectivity, network
+properties, and connection properties. `INetworkCostManager` is queried only
+as an optional capability. An unsupported cost interface reports
+`NetworkCost_Unknown` while connectivity/property monitoring remains active,
+matching the behavior before the WinRT-only detector change. It is not a startup
+failure and is not treated as an unmetered connection. No cost-specific event
+interface is required.
+
+Base NLM is documented for Windows Vista/Server 2008 onward; cost querying is
+documented for Windows 8 clients with no supported Server versions. The fallback
+therefore does not require Windows 8 cost support or WinRT on Windows 7 SP1 or
+Server 2008 R2. This describes detector API coverage, not a change to the SDK's
+overall support policy or compiler/runtime requirements.
+
+This fallback loads `netprofm.dll`; the modern backend does not. Subscription teardown, interface
 release, and balanced COM shutdown happen before joining the listener thread.
 The host does not need to initialize COM or retain an MTA across SDK DLL reloads.
 Callback dispatch is drained on external stop; a reentrant stop does not wait on
 itself. Restart and subsequent external stops still drain the previous callback.
-An unexpected failure to cancel native notifications or disconnect the COM sink
-is logged and terminates the process rather than unloading code with live callbacks.
+Explicit COM disconnection failures are logged, and the non-agile sink's owning
+STA still completes `CoUninitialize`, which closes its RPC connections, before
+the thread is joined. This does not terminate the host. Native notification
+cancellation failure remains fatal because there is no COM apartment rundown
+to provide that safety guarantee.
 
 ## Building custom SDK SKU: MSBuild example
 

@@ -241,6 +241,10 @@ namespace MAT_NS_BEGIN
                 return MapNetworkCost(hint.ConnectivityCost, hint.Roaming != FALSE,
                                       hint.OverDataLimit != FALSE, hint.ApproachingDataLimit != FALSE);
             }
+            if (networkCostManager == nullptr)
+            {
+                return NetworkCost_Unknown;
+            }
             DWORD cost = NLM_CONNECTION_COST_UNKNOWN;
             const auto hr = networkCostManager->GetCost(&cost, nullptr);
             if (FAILED(hr))
@@ -252,22 +256,43 @@ namespace MAT_NS_BEGIN
         }
 
         struct NetworkDetector::NetworkStatusChangedSink :
-            RuntimeClass<RuntimeClassFlags<ClassicCom>, INetworkCostManagerEvents, INetworkListManagerEvents>
+            RuntimeClass<RuntimeClassFlags<ClassicCom>, INetworkListManagerEvents,
+                         INetworkEvents, INetworkConnectionEvents>
         {
             explicit NetworkStatusChangedSink(std::shared_ptr<CallbackState> state) : state(std::move(state))
             {
             }
-            HRESULT STDMETHODCALLTYPE CostChanged(DWORD, NLM_SOCKADDR*) override
-            {
-                state->QueueRefresh();
-                return S_OK;
-            }
-            HRESULT STDMETHODCALLTYPE DataPlanStatusChanged(NLM_SOCKADDR*) override
-            {
-                state->QueueRefresh();
-                return S_OK;
-            }
             HRESULT STDMETHODCALLTYPE ConnectivityChanged(NLM_CONNECTIVITY) override
+            {
+                state->QueueRefresh();
+                return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE NetworkAdded(GUID) override
+            {
+                state->QueueRefresh();
+                return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE NetworkDeleted(GUID) override
+            {
+                state->QueueRefresh();
+                return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE NetworkConnectivityChanged(GUID, NLM_CONNECTIVITY) override
+            {
+                state->QueueRefresh();
+                return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE NetworkPropertyChanged(GUID, NLM_NETWORK_PROPERTY_CHANGE) override
+            {
+                state->QueueRefresh();
+                return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE NetworkConnectionConnectivityChanged(GUID, NLM_CONNECTIVITY) override
+            {
+                state->QueueRefresh();
+                return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE NetworkConnectionPropertyChanged(GUID, NLM_CONNECTION_PROPERTY_CHANGE) override
             {
                 state->QueueRefresh();
                 return S_OK;
@@ -345,14 +370,32 @@ namespace MAT_NS_BEGIN
             {
                 return true;
             }
-            const auto hr = CoCreateInstance(CLSID_NetworkListManager, nullptr, CLSCTX_INPROC_SERVER,
-                                             IID_PPV_ARGS(networkCostManager.GetAddressOf()));
+            auto hr = CoCreateInstance(CLSID_NetworkListManager, nullptr, CLSCTX_ALL,
+                                        IID_PPV_ARGS(networkListManager.GetAddressOf()));
             if (FAILED(hr))
             {
-                LOG_ERROR("Unable to initialize the legacy network cost manager: 0x%08lx.", hr);
+                LOG_ERROR("Unable to initialize the legacy network list manager: 0x%08lx.", hr);
                 return false;
             }
+            hr = queryLegacyCost(networkListManager.Get(), networkCostManager.GetAddressOf());
+            if (FAILED(hr))
+            {
+                networkCostManager.Reset();
+                LOG_WARN("Legacy network cost information is unavailable (0x%08lx); monitoring connectivity with Unknown cost.", hr);
+            }
             return true;
+        }
+
+        HRESULT WINAPI NetworkDetector::QueryLegacyCostInterface(
+            INetworkListManager* manager, INetworkCostManager** cost)
+        {
+            return manager->QueryInterface(IID_PPV_ARGS(cost));
+        }
+
+        HRESULT WINAPI NetworkDetector::FindLegacyConnectionPoint(
+            IConnectionPointContainer* container, REFIID iid, IConnectionPoint** point)
+        {
+            return container->FindConnectionPoint(iid, point);
         }
 
         bool NetworkDetector::RegisterAndListen() noexcept
@@ -384,30 +427,32 @@ namespace MAT_NS_BEGIN
                 ComPtr<IConnectionPointContainer> container;
                 if (SUCCEEDED(hr))
                 {
-                    hr = networkCostManager.As(&container);
-                }
-                if (SUCCEEDED(hr))
-                {
-                    hr = container->FindConnectionPoint(__uuidof(INetworkCostManagerEvents), &costConnectionPoint);
-                }
-                if (SUCCEEDED(hr))
-                {
-                    hr = costConnectionPoint->Advise(networkStatusChangedHandler.Get(), &costCookie);
-                    costSubscribed = SUCCEEDED(hr);
-                }
-                if (SUCCEEDED(hr))
-                {
-                    hr = container->FindConnectionPoint(__uuidof(INetworkListManagerEvents), &connectivityConnectionPoint);
-                }
-                if (SUCCEEDED(hr))
-                {
-                    hr = connectivityConnectionPoint->Advise(networkStatusChangedHandler.Get(), &connectivityCookie);
-                    connectivitySubscribed = SUCCEEDED(hr);
+                    hr = networkListManager.As(&container);
                 }
                 if (FAILED(hr))
                 {
-                    LOG_ERROR("Unable to subscribe to legacy network changes: 0x%08lx.", hr);
+                    LOG_ERROR("Unable to obtain the legacy network event container: 0x%08lx.", hr);
                     return false;
+                }
+                const IID interfaces[] = {
+                    __uuidof(INetworkListManagerEvents),
+                    __uuidof(INetworkEvents),
+                    __uuidof(INetworkConnectionEvents)
+                };
+                for (size_t index = 0; index < legacySubscriptions.size(); ++index)
+                {
+                    auto& subscription = legacySubscriptions[index];
+                    hr = findLegacyPoint(container.Get(), interfaces[index], subscription.point.GetAddressOf());
+                    if (SUCCEEDED(hr))
+                    {
+                        hr = subscription.point->Advise(networkStatusChangedHandler.Get(), &subscription.cookie);
+                        subscription.subscribed = SUCCEEDED(hr);
+                    }
+                    if (FAILED(hr))
+                    {
+                        LOG_ERROR("Unable to subscribe to legacy network event %zu: 0x%08lx.", index, hr);
+                        return false;
+                    }
                 }
             }
 
@@ -485,37 +530,34 @@ namespace MAT_NS_BEGIN
                 }
                 networkStatusNotification = nullptr;
             }
-            if (costSubscribed)
+            for (auto& subscription : legacySubscriptions)
             {
-                const auto hr = costConnectionPoint->Unadvise(costCookie);
-                if (FAILED(hr))
+                if (subscription.subscribed)
                 {
-                    LOG_ERROR("Unable to unsubscribe from legacy network cost changes: 0x%08lx.", hr);
+                    const auto hr = subscription.point->Unadvise(subscription.cookie);
+                    if (FAILED(hr))
+                    {
+                        LOG_ERROR("Unable to unsubscribe from legacy network changes: 0x%08lx.", hr);
+                    }
+                    subscription.subscribed = false;
                 }
-                costSubscribed = false;
-            }
-            if (connectivitySubscribed)
-            {
-                const auto hr = connectivityConnectionPoint->Unadvise(connectivityCookie);
-                if (FAILED(hr))
-                {
-                    LOG_ERROR("Unable to unsubscribe from legacy network connectivity changes: 0x%08lx.", hr);
-                }
-                connectivitySubscribed = false;
             }
             if (networkStatusChangedHandler != nullptr)
             {
-                const auto hr = CoDisconnectObject(networkStatusChangedHandler.Get(), 0);
+                const auto hr = disconnectLegacyHandler(networkStatusChangedHandler.Get(), 0);
                 if (FAILED(hr))
                 {
                     LOG_ERROR("Unable to disconnect the legacy network handler: 0x%08lx.", hr);
-                    std::terminate();
                 }
             }
+            // The non-agile sink also disconnects when the owning STA completes CoUninitialize.
             networkStatusChangedHandler.Reset();
-            costConnectionPoint.Reset();
-            connectivityConnectionPoint.Reset();
+            for (auto& subscription : legacySubscriptions)
+            {
+                subscription.point.Reset();
+            }
             networkCostManager.Reset();
+            networkListManager.Reset();
         }
 
         /// <summary>

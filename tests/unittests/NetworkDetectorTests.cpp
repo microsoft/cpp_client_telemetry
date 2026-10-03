@@ -173,14 +173,25 @@ TEST(NetworkDetectorTests, NetworkChangeListenerCanStopDetector)
     EXPECT_EQ(LogManagerFactory::Destroy(logManager), STATUS_SUCCESS);
 }
 
-class NetworkDetectorBackendTests : public TestWithParam<bool>
+enum class NetworkDetectorBackend
+{
+    Native,
+    Legacy,
+    LegacyWithoutCost
+};
+
+class NetworkDetectorBackendTests : public TestWithParam<NetworkDetectorBackend>
 {
 protected:
     void SelectBackend(MATW::NetworkDetector& detector)
     {
-        if (GetParam())
+        if (GetParam() == NetworkDetectorBackend::Legacy)
         {
             MATW::NetworkDetectorTestAccess::UseLegacyBackend(detector);
+        }
+        else if (GetParam() == NetworkDetectorBackend::LegacyWithoutCost)
+        {
+            MATW::NetworkDetectorTestAccess::UseLegacyBackendWithoutCost(detector);
         }
     }
 };
@@ -285,8 +296,19 @@ TEST_P(NetworkDetectorBackendTests, RepeatedStartReadAndStop)
     for (unsigned iteration = 0; iteration < 10; ++iteration)
     {
         ASSERT_TRUE(detector.Start());
+        if (GetParam() != NetworkDetectorBackend::Native)
+        {
+            EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 3u);
+        }
+        if (GetParam() == NetworkDetectorBackend::LegacyWithoutCost)
+        {
+            EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasLegacyCost(detector));
+            EXPECT_EQ(detector.GetNetworkCost(), NetworkCost_Unknown);
+            EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 3u);
+        }
         EXPECT_EQ(detector.GetCurrentNetworkCost(), detector.GetNetworkCost());
         detector.Stop();
+        EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 0u);
         EXPECT_FALSE(detector.isUp());
         EXPECT_FALSE(detector.QueueNetworkCostRefresh());
     }
@@ -381,5 +403,59 @@ TEST_P(NetworkDetectorBackendTests, ListenerCanStopDetector)
     EXPECT_EQ(LogManagerFactory::Destroy(manager), STATUS_SUCCESS);
 }
 
-INSTANTIATE_TEST_SUITE_P(NativeAndLegacy, NetworkDetectorBackendTests, Values(false, true));
+TEST(NetworkDetectorTests, LegacyCostQueryFailurePreservesConnectivity)
+{
+    MATW::NetworkDetector detector;
+    MATW::NetworkDetectorTestAccess::FailLegacyCostQuery(detector);
+    for (unsigned iteration = 0; iteration < 3; ++iteration)
+    {
+        ASSERT_TRUE(detector.Start());
+        EXPECT_TRUE(detector.isUp());
+        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasLegacyCost(detector));
+        EXPECT_EQ(detector.GetCurrentNetworkCost(), NetworkCost_Unknown);
+        EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 3u);
+        detector.Stop();
+        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasLegacyManager(detector));
+    }
+    MATW::NetworkDetectorTestAccess::UseLegacyBackendWithoutCost(detector);
+    EXPECT_TRUE(detector.Start());
+    EXPECT_EQ(detector.GetCurrentNetworkCost(), NetworkCost_Unknown);
+    detector.Stop();
+}
+
+TEST(NetworkDetectorTests, PartialLegacySubscriptionFailureCleansUpAndCanRetry)
+{
+    MATW::NetworkDetector detector;
+    MATW::NetworkDetectorTestAccess::FailLegacySubscription(detector);
+    for (unsigned iteration = 0; iteration < 3; ++iteration)
+    {
+        EXPECT_FALSE(detector.Start());
+        EXPECT_FALSE(detector.isUp());
+        EXPECT_FALSE(detector.QueueNetworkCostRefresh());
+        EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 0u);
+        detector.Stop();
+    }
+    MATW::NetworkDetectorTestAccess::UseLegacyBackend(detector);
+    EXPECT_TRUE(detector.Start());
+    detector.Stop();
+}
+
+TEST(NetworkDetectorTests, DisconnectFailureStillCompletesApartmentShutdown)
+{
+    MATW::NetworkDetector detector;
+    MATW::NetworkDetectorTestAccess::FailLegacyDisconnect(detector);
+    for (unsigned iteration = 0; iteration < 3; ++iteration)
+    {
+        ASSERT_TRUE(detector.Start());
+        detector.Stop();
+        EXPECT_FALSE(detector.isUp());
+        EXPECT_FALSE(detector.QueueNetworkCostRefresh());
+        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasLegacyCost(detector));
+        EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 0u);
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(NativeAndLegacy, NetworkDetectorBackendTests,
+                        Values(NetworkDetectorBackend::Native, NetworkDetectorBackend::Legacy,
+                               NetworkDetectorBackend::LegacyWithoutCost));
 #endif

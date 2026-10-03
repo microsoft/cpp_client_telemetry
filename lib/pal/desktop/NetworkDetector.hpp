@@ -21,6 +21,7 @@
 #include <nldef.h>
 
 #include <atomic>
+#include <array>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -66,14 +67,23 @@ namespace MAT_NS_BEGIN
                     GetConnectivityHint getConnectivityHint = nullptr;
                     NotifyConnectivityHint notifyConnectivityHint = nullptr;
                     HANDLE networkStatusNotification = nullptr;
+                    ComPtr<INetworkListManager> networkListManager;
                     ComPtr<INetworkCostManager> networkCostManager;
-                    ComPtr<IConnectionPoint> costConnectionPoint;
-                    ComPtr<IConnectionPoint> connectivityConnectionPoint;
+                    struct LegacySubscription
+                    {
+                        ComPtr<IConnectionPoint> point;
+                        DWORD cookie = 0;
+                        bool subscribed = false;
+                    };
+                    std::array<LegacySubscription, 3> legacySubscriptions;
                     ComPtr<IUnknown> networkStatusChangedHandler;
-                    DWORD costCookie = 0;
-                    DWORD connectivityCookie = 0;
-                    bool costSubscribed = false;
-                    bool connectivitySubscribed = false;
+                    using QueryLegacyCost = HRESULT(WINAPI*)(INetworkListManager*, INetworkCostManager**);
+                    using FindLegacyPoint = HRESULT(WINAPI*)(IConnectionPointContainer*, REFIID, IConnectionPoint**);
+                    static HRESULT WINAPI QueryLegacyCostInterface(INetworkListManager*, INetworkCostManager**);
+                    static HRESULT WINAPI FindLegacyConnectionPoint(IConnectionPointContainer*, REFIID, IConnectionPoint**);
+                    QueryLegacyCost queryLegacyCost = QueryLegacyCostInterface;
+                    FindLegacyPoint findLegacyPoint = FindLegacyConnectionPoint;
+                    decltype(&CoDisconnectObject) disconnectLegacyHandler = CoDisconnectObject;
                     std::shared_ptr<CallbackState> networkStatusCallbackState;
                     std::shared_ptr<EventDispatchState> eventDispatchState;
 

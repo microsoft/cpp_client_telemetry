@@ -52,12 +52,31 @@ extern "C" __declspec(dllexport) bool HasNetworkDetector()
 }
 
 #ifdef HAVE_MAT_NETDETECT
-static bool ExerciseNetworkDetectorBackend(bool legacy)
+enum class NetworkBackend
+{
+    Native,
+    Legacy,
+    LegacyWithoutCost
+};
+
+static bool IsStopped(MATW::NetworkDetector& detector)
+{
+    return !detector.isUp() && !detector.QueueNetworkCostRefresh() &&
+           !MATW::NetworkDetectorTestAccess::HasLegacyManager(detector) &&
+           !MATW::NetworkDetectorTestAccess::HasLegacyCost(detector) &&
+           MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector) == 0;
+}
+
+static bool ExerciseNetworkDetectorBackend(NetworkBackend backend)
 {
     MATW::NetworkDetector detector;
-    if (legacy)
+    if (backend == NetworkBackend::Legacy)
     {
         MATW::NetworkDetectorTestAccess::UseLegacyBackend(detector);
+    }
+    else if (backend == NetworkBackend::LegacyWithoutCost)
+    {
+        MATW::NetworkDetectorTestAccess::UseLegacyBackendWithoutCost(detector);
     }
     if (!detector.Start())
     {
@@ -67,17 +86,63 @@ static bool ExerciseNetworkDetectorBackend(bool legacy)
     const auto cost = detector.GetCurrentNetworkCost();
     const bool readable = cost == MAT::NetworkCost_Unknown || cost == MAT::NetworkCost_Unmetered ||
                           cost == MAT::NetworkCost_Metered || cost == MAT::NetworkCost_Roaming;
+    const bool subscriptions = backend == NetworkBackend::Native ||
+                              MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector) == 3;
+    const bool optionalCost = backend != NetworkBackend::LegacyWithoutCost ||
+                              (cost == MAT::NetworkCost_Unknown &&
+                               !MATW::NetworkDetectorTestAccess::HasLegacyCost(detector));
     detector.Stop();
-    return running && readable && !detector.isUp() && !detector.QueueNetworkCostRefresh();
+    return running && readable && subscriptions && optionalCost && IsStopped(detector);
 }
 
 extern "C" __declspec(dllexport) bool ExerciseNetworkDetector()
 {
-    return ExerciseNetworkDetectorBackend(false);
+    return ExerciseNetworkDetectorBackend(NetworkBackend::Native);
 }
 
 extern "C" __declspec(dllexport) bool ExerciseLegacyNetworkDetector()
 {
-    return ExerciseNetworkDetectorBackend(true);
+    return ExerciseNetworkDetectorBackend(NetworkBackend::Legacy);
+}
+
+extern "C" __declspec(dllexport) bool ExerciseLegacyNetworkDetectorWithoutCost()
+{
+    return ExerciseNetworkDetectorBackend(NetworkBackend::LegacyWithoutCost);
+}
+
+extern "C" __declspec(dllexport) bool ExerciseLegacyNetworkDetectorFailures()
+{
+    MATW::NetworkDetector detector;
+    for (unsigned iteration = 0; iteration < 3; ++iteration)
+    {
+        MATW::NetworkDetectorTestAccess::FailLegacyCostQuery(detector);
+        if (!detector.Start() || detector.GetCurrentNetworkCost() != MAT::NetworkCost_Unknown ||
+            MATW::NetworkDetectorTestAccess::HasLegacyCost(detector))
+        {
+            return false;
+        }
+        detector.Stop();
+        if (!IsStopped(detector))
+        {
+            return false;
+        }
+        MATW::NetworkDetectorTestAccess::FailLegacySubscription(detector);
+        if (detector.Start() || !IsStopped(detector))
+        {
+            return false;
+        }
+        MATW::NetworkDetectorTestAccess::FailLegacyDisconnect(detector);
+        if (!detector.Start())
+        {
+            return false;
+        }
+        detector.GetCurrentNetworkCost();
+        detector.Stop();
+        if (!IsStopped(detector))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 #endif

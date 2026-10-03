@@ -11,9 +11,12 @@
 int main(int argc, char** argv)
 {
     if (argc != 3 || (std::strcmp(argv[2], "native") != 0 &&
-                     std::strcmp(argv[2], "legacy") != 0))
+                     std::strcmp(argv[2], "legacy") != 0 &&
+                     std::strcmp(argv[2], "legacy-no-cost") != 0 &&
+                     std::strcmp(argv[2], "legacy-failures") != 0))
     {
-        std::fprintf(stderr, "Usage: network-detector-reload-test <DLL> <native|legacy>\n");
+        std::fprintf(stderr, "Usage: network-detector-reload-test <DLL> "
+                             "<native|legacy|legacy-no-cost|legacy-failures>\n");
         return 1;
     }
     APTTYPE apartment;
@@ -43,9 +46,20 @@ int main(int argc, char** argv)
             std::printf("Network detection is disabled in this SDK SKU.\n");
             return FreeLibrary(module) ? 77 : 1;
         }
-        auto exercise = reinterpret_cast<bool (*)()>(
-            GetProcAddress(module, std::strcmp(argv[2], "native") == 0
-                                       ? "ExerciseNetworkDetector" : "ExerciseLegacyNetworkDetector"));
+        const char* entry = "ExerciseNetworkDetector";
+        if (std::strcmp(argv[2], "legacy") == 0)
+        {
+            entry = "ExerciseLegacyNetworkDetector";
+        }
+        else if (std::strcmp(argv[2], "legacy-no-cost") == 0)
+        {
+            entry = "ExerciseLegacyNetworkDetectorWithoutCost";
+        }
+        else if (std::strcmp(argv[2], "legacy-failures") == 0)
+        {
+            entry = "ExerciseLegacyNetworkDetectorFailures";
+        }
+        auto exercise = reinterpret_cast<bool (*)()>(GetProcAddress(module, entry));
         if (exercise == nullptr || !exercise())
         {
             std::fprintf(stderr, "Network detector exercise failed on iteration %u.\n", iteration);

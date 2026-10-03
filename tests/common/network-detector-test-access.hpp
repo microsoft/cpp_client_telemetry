@@ -23,6 +23,53 @@ namespace MAT_NS_BEGIN
             {
                 detector.getConnectivityHint = nullptr;
                 detector.notifyConnectivityHint = nullptr;
+                detector.queryLegacyCost = NetworkDetector::QueryLegacyCostInterface;
+                detector.findLegacyPoint = NetworkDetector::FindLegacyConnectionPoint;
+                detector.disconnectLegacyHandler = CoDisconnectObject;
+            }
+
+            static void UseLegacyBackendWithoutCost(NetworkDetector& detector)
+            {
+                UseLegacyBackend(detector);
+                detector.queryLegacyCost = UnsupportedCost;
+            }
+
+            static bool HasLegacyCost(const NetworkDetector& detector)
+            {
+                return detector.networkCostManager != nullptr;
+            }
+
+            static bool HasLegacyManager(const NetworkDetector& detector)
+            {
+                return detector.networkListManager != nullptr;
+            }
+
+            static size_t LegacySubscriptionCount(const NetworkDetector& detector)
+            {
+                size_t count = 0;
+                for (const auto& subscription : detector.legacySubscriptions)
+                {
+                    count += subscription.subscribed ? 1 : 0;
+                }
+                return count;
+            }
+
+            static void FailLegacyCostQuery(NetworkDetector& detector)
+            {
+                UseLegacyBackend(detector);
+                detector.queryLegacyCost = RejectCostQuery;
+            }
+
+            static void FailLegacySubscription(NetworkDetector& detector)
+            {
+                UseLegacyBackend(detector);
+                detector.findLegacyPoint = RejectConnectionEvents;
+            }
+
+            static void FailLegacyDisconnect(NetworkDetector& detector)
+            {
+                UseLegacyBackend(detector);
+                detector.disconnectLegacyHandler = RejectDisconnect;
             }
 
             static void FailNativeSubscription(NetworkDetector& detector)
@@ -32,6 +79,34 @@ namespace MAT_NS_BEGIN
             }
 
         private:
+            static HRESULT WINAPI UnsupportedCost(INetworkListManager*, INetworkCostManager** cost)
+            {
+                *cost = nullptr;
+                return E_NOINTERFACE;
+            }
+
+            static HRESULT WINAPI RejectCostQuery(INetworkListManager*, INetworkCostManager** cost)
+            {
+                *cost = nullptr;
+                return E_ACCESSDENIED;
+            }
+
+            static HRESULT WINAPI RejectConnectionEvents(
+                IConnectionPointContainer* container, REFIID iid, IConnectionPoint** point)
+            {
+                if (iid == __uuidof(INetworkConnectionEvents))
+                {
+                    *point = nullptr;
+                    return E_ACCESSDENIED;
+                }
+                return container->FindConnectionPoint(iid, point);
+            }
+
+            static HRESULT WINAPI RejectDisconnect(IUnknown*, DWORD)
+            {
+                return E_FAIL;
+            }
+
             static DWORD WINAPI GetUnknownHint(NL_NETWORK_CONNECTIVITY_HINT* hint)
             {
                 *hint = {};
