@@ -38,11 +38,13 @@ int main(int argc, char** argv)
     if (argc != 3 || (std::strcmp(argv[2], "idle") != 0 &&
                      std::strcmp(argv[2], "dispatch") != 0 &&
                      std::strcmp(argv[2], "network-native") != 0 &&
-                     std::strcmp(argv[2], "network-unavailable") != 0 &&
-                     std::strcmp(argv[2], "network-failures") != 0))
+                     std::strcmp(argv[2], "network-disabled") != 0 &&
+                     std::strcmp(argv[2], "network-legacy") != 0 &&
+                     std::strcmp(argv[2], "network-legacy-no-cost") != 0 &&
+                     std::strcmp(argv[2], "network-legacy-failures") != 0))
     {
         std::fprintf(stderr, "Usage: debug-listener-unload-test <DLL> "
-                             "<idle|dispatch|network-native|network-unavailable|network-failures>\n");
+                             "<idle|dispatch|network-native|network-disabled|network-legacy|network-legacy-no-cost|network-legacy-failures>\n");
         return 1;
     }
 #ifndef _DEBUG
@@ -66,13 +68,21 @@ int main(int argc, char** argv)
     {
         entry = "ExerciseNetworkDetector";
     }
-    else if (std::strcmp(argv[2], "network-unavailable") == 0)
+    else if (std::strcmp(argv[2], "network-legacy") == 0)
     {
-        entry = "ExerciseUnavailableNetworkDetector";
+        entry = "ExerciseLegacyNetworkDetector";
     }
-    else if (std::strcmp(argv[2], "network-failures") == 0)
+    else if (std::strcmp(argv[2], "network-disabled") == 0)
     {
-        entry = "ExerciseNetworkDetectorFailures";
+        entry = "ExerciseDisabledNetworkDetection";
+    }
+    else if (std::strcmp(argv[2], "network-legacy-no-cost") == 0)
+    {
+        entry = "ExerciseLegacyNetworkDetectorWithoutCost";
+    }
+    else if (std::strcmp(argv[2], "network-legacy-failures") == 0)
+    {
+        entry = "ExerciseLegacyNetworkDetectorFailures";
     }
     if (std::strncmp(argv[2], "network-", 8) == 0)
     {

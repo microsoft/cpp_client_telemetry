@@ -6,6 +6,8 @@
 #include "api/LogManagerFactory.hpp"
 #include "pal/desktop/NetworkDetector.hpp"
 #include "common/network-detector-test-access.hpp"
+#include "config/RuntimeConfig_Default.hpp"
+#include "pal/NetworkInformationImpl.hpp"
 
 #include <future>
 
@@ -55,6 +57,20 @@ TEST(NetworkDetectorTests, MapsRestrictiveConnectivityHints)
     EXPECT_EQ(MATW::MapNetworkCost(NetworkConnectivityCostHintUnrestricted, false, false, true), NetworkCost_Roaming);
 }
 
+TEST(NetworkDetectorTests, MapsLegacyCostFlagsIncludingCombinedRestrictions)
+{
+    EXPECT_EQ(MATW::MapLegacyNetworkCost(NLM_CONNECTION_COST_UNKNOWN), NetworkCost_Unknown);
+    EXPECT_EQ(MATW::MapLegacyNetworkCost(NLM_CONNECTION_COST_UNRESTRICTED), NetworkCost_Unmetered);
+    EXPECT_EQ(MATW::MapLegacyNetworkCost(NLM_CONNECTION_COST_FIXED), NetworkCost_Metered);
+    EXPECT_EQ(MATW::MapLegacyNetworkCost(NLM_CONNECTION_COST_VARIABLE), NetworkCost_Metered);
+    for (const DWORD flag : { NLM_CONNECTION_COST_ROAMING, NLM_CONNECTION_COST_OVERDATALIMIT,
+                             NLM_CONNECTION_COST_APPROACHINGDATALIMIT, NLM_CONNECTION_COST_CONGESTED })
+    {
+        EXPECT_EQ(MATW::MapLegacyNetworkCost(NLM_CONNECTION_COST_UNRESTRICTED | flag), NetworkCost_Roaming);
+        EXPECT_EQ(MATW::MapLegacyNetworkCost(NLM_CONNECTION_COST_FIXED | flag), NetworkCost_Roaming);
+    }
+}
+
 TEST(NetworkDetectorTests, StartsReadsCostAndStopsWithoutNetworkListManager)
 {
     const auto moduleBefore = GetModuleHandleW(L"netprofm.dll");
@@ -100,6 +116,21 @@ TEST(NetworkDetectorTests, QueuedNetworkCallbackRaceDoesNotOutliveStop)
     callbackThread.join();
 }
 
+TEST(NetworkDetectorTests, ConfigurationDisablesDetectionWithoutLoadingNetworkListManager)
+{
+    const auto moduleBefore = GetModuleHandleW(L"netprofm.dll");
+    ILogConfiguration configuration;
+    configuration[CFG_BOOL_ENABLE_NET_DETECT] = false;
+    RuntimeConfig_Default runtimeConfig(configuration);
+    for (unsigned iteration = 0; iteration < 10; ++iteration)
+    {
+        auto network = PAL::NetworkInformationImpl::Create(runtimeConfig);
+        ASSERT_NE(network, nullptr);
+        EXPECT_EQ(network->GetNetworkCost(), NetworkCost_Unmetered);
+        EXPECT_EQ(GetModuleHandleW(L"netprofm.dll"), moduleBefore);
+    }
+}
+
 TEST(NetworkDetectorTests, FailedSubscriptionCleansUpAndCanRetry)
 {
     MATW::NetworkDetector detector;
@@ -111,7 +142,7 @@ TEST(NetworkDetectorTests, FailedSubscriptionCleansUpAndCanRetry)
         EXPECT_FALSE(detector.QueueNetworkCostRefresh());
         detector.Stop();
     }
-    MATW::NetworkDetectorTestAccess::RestoreNativeBackend(detector);
+    MATW::NetworkDetectorTestAccess::UseLegacyBackend(detector);
     EXPECT_TRUE(detector.Start());
     detector.Stop();
     EXPECT_FALSE(detector.isUp());
@@ -159,6 +190,29 @@ TEST(NetworkDetectorTests, NetworkChangeListenerCanStopDetector)
     EXPECT_EQ(LogManagerFactory::Destroy(logManager), STATUS_SUCCESS);
 }
 
+enum class NetworkDetectorBackend
+{
+    Native,
+    Legacy,
+    LegacyWithoutCost
+};
+
+class NetworkDetectorBackendTests : public TestWithParam<NetworkDetectorBackend>
+{
+protected:
+    void SelectBackend(MATW::NetworkDetector& detector)
+    {
+        if (GetParam() == NetworkDetectorBackend::Legacy)
+        {
+            MATW::NetworkDetectorTestAccess::UseLegacyBackend(detector);
+        }
+        else if (GetParam() == NetworkDetectorBackend::LegacyWithoutCost)
+        {
+            MATW::NetworkDetectorTestAccess::UseLegacyBackendWithoutCost(detector);
+        }
+    }
+};
+
 class BlockingStopDetectorOnNetworkChange : public DebugEventListener
 {
 public:
@@ -197,13 +251,14 @@ private:
     std::future<void> released;
 };
 
-TEST(NetworkDetectorTests, ConcurrentExternalAndReentrantStopsDrainCallback)
+TEST_P(NetworkDetectorBackendTests, ConcurrentExternalAndReentrantStopsDrainCallback)
 {
     ILogConfiguration configuration;
     configuration[CFG_BOOL_ENABLE_NET_DETECT] = false;
     ILogManager* manager = LogManagerFactory::Create(configuration);
     ASSERT_NE(manager, nullptr);
     MATW::NetworkDetector detector;
+    SelectBackend(detector);
     BlockingStopDetectorOnNetworkChange listener(detector, false);
     auto entered = listener.GetEnteredFuture();
     manager->AddEventListener(EVT_NET_CHANGED, listener);
@@ -228,13 +283,14 @@ TEST(NetworkDetectorTests, ConcurrentExternalAndReentrantStopsDrainCallback)
     EXPECT_EQ(LogManagerFactory::Destroy(manager), STATUS_SUCCESS);
 }
 
-TEST(NetworkDetectorTests, ExternalStopDrainsCallbackAfterReentrantStop)
+TEST_P(NetworkDetectorBackendTests, ExternalStopDrainsCallbackAfterReentrantStop)
 {
     ILogConfiguration configuration;
     configuration[CFG_BOOL_ENABLE_NET_DETECT] = false;
     ILogManager* manager = LogManagerFactory::Create(configuration);
     ASSERT_NE(manager, nullptr);
     MATW::NetworkDetector detector;
+    SelectBackend(detector);
     BlockingStopDetectorOnNetworkChange listener(detector, true);
     auto entered = listener.GetEnteredFuture();
     manager->AddEventListener(EVT_NET_CHANGED, listener);
@@ -250,27 +306,39 @@ TEST(NetworkDetectorTests, ExternalStopDrainsCallbackAfterReentrantStop)
     EXPECT_EQ(LogManagerFactory::Destroy(manager), STATUS_SUCCESS);
 }
 
-TEST(NetworkDetectorTests, RepeatedStartReadAndStop)
+TEST_P(NetworkDetectorBackendTests, RepeatedStartReadAndStop)
 {
     MATW::NetworkDetector detector;
+    SelectBackend(detector);
     for (unsigned iteration = 0; iteration < 10; ++iteration)
     {
         ASSERT_TRUE(detector.Start());
+        if (GetParam() != NetworkDetectorBackend::Native)
+        {
+            EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 3u);
+        }
+        if (GetParam() == NetworkDetectorBackend::LegacyWithoutCost)
+        {
+            EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasLegacyCost(detector));
+            EXPECT_EQ(detector.GetNetworkCost(), NetworkCost_Unknown);
+            EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 3u);
+        }
         EXPECT_EQ(detector.GetCurrentNetworkCost(), detector.GetNetworkCost());
         detector.Stop();
-        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasListenerResources(detector));
+        EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 0u);
         EXPECT_FALSE(detector.isUp());
         EXPECT_FALSE(detector.QueueNetworkCostRefresh());
     }
 }
 
-TEST(NetworkDetectorTests, RestartDrainsPreviousCallback)
+TEST_P(NetworkDetectorBackendTests, RestartDrainsPreviousCallback)
 {
     ILogConfiguration configuration;
     configuration[CFG_BOOL_ENABLE_NET_DETECT] = false;
     ILogManager* manager = LogManagerFactory::Create(configuration);
     ASSERT_NE(manager, nullptr);
     MATW::NetworkDetector detector;
+    SelectBackend(detector);
     BlockingStopDetectorOnNetworkChange listener(detector, true);
     auto entered = listener.GetEnteredFuture();
     manager->AddEventListener(EVT_NET_CHANGED, listener);
@@ -287,9 +355,10 @@ TEST(NetworkDetectorTests, RestartDrainsPreviousCallback)
     EXPECT_EQ(LogManagerFactory::Destroy(manager), STATUS_SUCCESS);
 }
 
-TEST(NetworkDetectorTests, QueuedRefreshRaceDoesNotOutliveStop)
+TEST_P(NetworkDetectorBackendTests, QueuedRefreshRaceDoesNotOutliveStop)
 {
     MATW::NetworkDetector detector;
+    SelectBackend(detector);
     ASSERT_TRUE(detector.Start());
     std::atomic<bool> keepQueuing{true};
     std::thread callbacks([&] {
@@ -304,9 +373,10 @@ TEST(NetworkDetectorTests, QueuedRefreshRaceDoesNotOutliveStop)
     EXPECT_FALSE(detector.QueueNetworkCostRefresh());
 }
 
-TEST(NetworkDetectorTests, CostReadsDoNotWaitOnAnEarlierListenerAfterRestart)
+TEST_P(NetworkDetectorBackendTests, CostReadsDoNotWaitOnAnEarlierListenerAfterRestart)
 {
     MATW::NetworkDetector detector;
+    SelectBackend(detector);
     ASSERT_TRUE(detector.Start());
     std::atomic<bool> keepReading{true};
     std::promise<void> firstRead;
@@ -331,13 +401,14 @@ TEST(NetworkDetectorTests, CostReadsDoNotWaitOnAnEarlierListenerAfterRestart)
     EXPECT_FALSE(detector.isUp());
 }
 
-TEST(NetworkDetectorTests, ListenerCanStopDetector)
+TEST_P(NetworkDetectorBackendTests, ListenerCanStopDetector)
 {
     ILogConfiguration configuration;
     configuration[CFG_BOOL_ENABLE_NET_DETECT] = false;
     ILogManager* manager = LogManagerFactory::Create(configuration);
     ASSERT_NE(manager, nullptr);
     MATW::NetworkDetector detector;
+    SelectBackend(detector);
     StopDetectorOnNetworkChange listener(detector);
     auto stopped = listener.GetStoppedFuture();
     manager->AddEventListener(EVT_NET_CHANGED, listener);
@@ -349,56 +420,59 @@ TEST(NetworkDetectorTests, ListenerCanStopDetector)
     EXPECT_EQ(LogManagerFactory::Destroy(manager), STATUS_SUCCESS);
 }
 
-class UnavailableNetworkDetectorTests : public TestWithParam<unsigned>
+TEST(NetworkDetectorTests, LegacyCostQueryFailurePreservesConnectivity)
 {
-};
-
-TEST_P(UnavailableNetworkDetectorTests, MissingApisLeaveUnknownCostWithoutStartingResources)
-{
-    const auto moduleBefore = GetModuleHandleW(L"netprofm.dll");
     MATW::NetworkDetector detector;
-    MATW::NetworkDetectorTestAccess::DisableNativeBackend(
-        detector, GetParam() != 1, GetParam() != 0);
+    MATW::NetworkDetectorTestAccess::FailLegacyCostQuery(detector);
+    for (unsigned iteration = 0; iteration < 3; ++iteration)
+    {
+        ASSERT_TRUE(detector.Start());
+        EXPECT_TRUE(detector.isUp());
+        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasLegacyCost(detector));
+        EXPECT_EQ(detector.GetCurrentNetworkCost(), NetworkCost_Unknown);
+        EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 3u);
+        detector.Stop();
+        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasLegacyManager(detector));
+    }
+    MATW::NetworkDetectorTestAccess::UseLegacyBackendWithoutCost(detector);
+    EXPECT_TRUE(detector.Start());
+    EXPECT_EQ(detector.GetCurrentNetworkCost(), NetworkCost_Unknown);
+    detector.Stop();
+}
+
+TEST(NetworkDetectorTests, PartialLegacySubscriptionFailureCleansUpAndCanRetry)
+{
+    MATW::NetworkDetector detector;
+    MATW::NetworkDetectorTestAccess::FailLegacySubscription(detector);
     for (unsigned iteration = 0; iteration < 3; ++iteration)
     {
         EXPECT_FALSE(detector.Start());
         EXPECT_FALSE(detector.isUp());
-        EXPECT_EQ(detector.GetNetworkCost(), NetworkCost_Unknown);
-        EXPECT_EQ(detector.GetCurrentNetworkCost(), NetworkCost_Unknown);
         EXPECT_FALSE(detector.QueueNetworkCostRefresh());
-        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasListenerResources(detector));
-        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasDispatchState(detector));
+        EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 0u);
         detector.Stop();
-        EXPECT_EQ(GetModuleHandleW(L"netprofm.dll"), moduleBefore);
+    }
+    MATW::NetworkDetectorTestAccess::UseLegacyBackend(detector);
+    EXPECT_TRUE(detector.Start());
+    detector.Stop();
+}
+
+TEST(NetworkDetectorTests, DisconnectFailureStillCompletesApartmentShutdown)
+{
+    MATW::NetworkDetector detector;
+    MATW::NetworkDetectorTestAccess::FailLegacyDisconnect(detector);
+    for (unsigned iteration = 0; iteration < 3; ++iteration)
+    {
+        ASSERT_TRUE(detector.Start());
+        detector.Stop();
+        EXPECT_FALSE(detector.isUp());
+        EXPECT_FALSE(detector.QueueNetworkCostRefresh());
+        EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasLegacyCost(detector));
+        EXPECT_EQ(MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector), 0u);
     }
 }
 
-TEST(NetworkDetectorTests, UnavailableBackendCanRetryWhenApisAreRestored)
-{
-    MATW::NetworkDetector detector;
-    MATW::NetworkDetectorTestAccess::DisableNativeBackend(detector);
-    EXPECT_FALSE(detector.Start());
-    MATW::NetworkDetectorTestAccess::RestoreNativeBackend(detector);
-    EXPECT_TRUE(detector.Start());
-    EXPECT_TRUE(detector.isUp());
-    detector.Stop();
-    EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasListenerResources(detector));
-}
-
-TEST(NetworkDetectorTests, UnavailableBackendClearsPreviouslyCachedCost)
-{
-    MATW::NetworkDetector detector;
-    ASSERT_TRUE(detector.Start());
-    detector.GetCurrentNetworkCost();
-    detector.Stop();
-    MATW::NetworkDetectorTestAccess::SetCachedCost(detector, NetworkCost_Unmetered);
-    ASSERT_EQ(detector.GetNetworkCost(), NetworkCost_Unmetered);
-    MATW::NetworkDetectorTestAccess::DisableNativeBackend(detector);
-    EXPECT_FALSE(detector.Start());
-    EXPECT_EQ(detector.GetCurrentNetworkCost(), NetworkCost_Unknown);
-    EXPECT_FALSE(detector.isUp());
-    EXPECT_FALSE(MATW::NetworkDetectorTestAccess::HasListenerResources(detector));
-}
-
-INSTANTIATE_TEST_SUITE_P(MissingConnectivityApis, UnavailableNetworkDetectorTests, Values(0u, 1u, 2u));
+INSTANTIATE_TEST_SUITE_P(NativeAndLegacy, NetworkDetectorBackendTests,
+                        Values(NetworkDetectorBackend::Native, NetworkDetectorBackend::Legacy,
+                               NetworkDetectorBackend::LegacyWithoutCost));
 #endif
