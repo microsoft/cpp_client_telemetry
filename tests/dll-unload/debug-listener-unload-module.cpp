@@ -52,32 +52,15 @@ extern "C" __declspec(dllexport) bool HasNetworkDetector()
 }
 
 #ifdef HAVE_MAT_NETDETECT
-enum class NetworkBackend
-{
-    Native,
-    Legacy,
-    LegacyWithoutCost
-};
-
 static bool IsStopped(MATW::NetworkDetector& detector)
 {
     return !detector.isUp() && !detector.QueueNetworkCostRefresh() &&
-           !MATW::NetworkDetectorTestAccess::HasLegacyManager(detector) &&
-           !MATW::NetworkDetectorTestAccess::HasLegacyCost(detector) &&
-           MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector) == 0;
+           !MATW::NetworkDetectorTestAccess::HasListenerResources(detector);
 }
 
-static bool ExerciseNetworkDetectorBackend(NetworkBackend backend)
+extern "C" __declspec(dllexport) bool ExerciseNetworkDetector()
 {
     MATW::NetworkDetector detector;
-    if (backend == NetworkBackend::Legacy)
-    {
-        MATW::NetworkDetectorTestAccess::UseLegacyBackend(detector);
-    }
-    else if (backend == NetworkBackend::LegacyWithoutCost)
-    {
-        MATW::NetworkDetectorTestAccess::UseLegacyBackendWithoutCost(detector);
-    }
     if (!detector.Start())
     {
         return false;
@@ -86,52 +69,38 @@ static bool ExerciseNetworkDetectorBackend(NetworkBackend backend)
     const auto cost = detector.GetCurrentNetworkCost();
     const bool readable = cost == MAT::NetworkCost_Unknown || cost == MAT::NetworkCost_Unmetered ||
                           cost == MAT::NetworkCost_Metered || cost == MAT::NetworkCost_Roaming;
-    const bool subscriptions = backend == NetworkBackend::Native ||
-                              MATW::NetworkDetectorTestAccess::LegacySubscriptionCount(detector) == 3;
-    const bool optionalCost = backend != NetworkBackend::LegacyWithoutCost ||
-                              (cost == MAT::NetworkCost_Unknown &&
-                               !MATW::NetworkDetectorTestAccess::HasLegacyCost(detector));
     detector.Stop();
-    return running && readable && subscriptions && optionalCost && IsStopped(detector);
+    return running && readable && IsStopped(detector);
 }
 
-extern "C" __declspec(dllexport) bool ExerciseNetworkDetector()
-{
-    return ExerciseNetworkDetectorBackend(NetworkBackend::Native);
-}
-
-extern "C" __declspec(dllexport) bool ExerciseLegacyNetworkDetector()
-{
-    return ExerciseNetworkDetectorBackend(NetworkBackend::Legacy);
-}
-
-extern "C" __declspec(dllexport) bool ExerciseLegacyNetworkDetectorWithoutCost()
-{
-    return ExerciseNetworkDetectorBackend(NetworkBackend::LegacyWithoutCost);
-}
-
-extern "C" __declspec(dllexport) bool ExerciseLegacyNetworkDetectorFailures()
+extern "C" __declspec(dllexport) bool ExerciseUnavailableNetworkDetector()
 {
     MATW::NetworkDetector detector;
+    MATW::NetworkDetectorTestAccess::DisableNativeBackend(detector);
     for (unsigned iteration = 0; iteration < 3; ++iteration)
     {
-        MATW::NetworkDetectorTestAccess::FailLegacyCostQuery(detector);
-        if (!detector.Start() || detector.GetCurrentNetworkCost() != MAT::NetworkCost_Unknown ||
-            MATW::NetworkDetectorTestAccess::HasLegacyCost(detector))
+        if (detector.Start() || !IsStopped(detector) ||
+            MATW::NetworkDetectorTestAccess::HasDispatchState(detector) ||
+            detector.GetCurrentNetworkCost() != MAT::NetworkCost_Unknown)
         {
             return false;
         }
         detector.Stop();
-        if (!IsStopped(detector))
-        {
-            return false;
-        }
-        MATW::NetworkDetectorTestAccess::FailLegacySubscription(detector);
+    }
+    return true;
+}
+
+extern "C" __declspec(dllexport) bool ExerciseNetworkDetectorFailures()
+{
+    MATW::NetworkDetector detector;
+    for (unsigned iteration = 0; iteration < 3; ++iteration)
+    {
+        MATW::NetworkDetectorTestAccess::FailNativeSubscription(detector);
         if (detector.Start() || !IsStopped(detector))
         {
             return false;
         }
-        MATW::NetworkDetectorTestAccess::FailLegacyDisconnect(detector);
+        MATW::NetworkDetectorTestAccess::RestoreNativeBackend(detector);
         if (!detector.Start())
         {
             return false;

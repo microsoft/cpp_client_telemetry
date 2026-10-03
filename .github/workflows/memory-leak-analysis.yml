@@ -95,15 +95,21 @@ jobs:
         -BaselinePath .github/memory-leak-baseline.csv
         -TargetArguments "--gtest_filter=-OfflineStorageTests_SQLite.StoreThousandEventsTakesLessThanASecond"
 
-    - name: Inspect modern network backend modules
+    - name: Analyze COM-free network detector paths
       shell: pwsh
-      run: >-
-        ./.github/scripts/run-drmemory.ps1
-        -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Windows-$env:DRMEMORY_VERSION/bin64/drmemory.exe"
-        -LogDirectory drmemory-results
-        -Scenario network-native
-        -TargetPath Solutions/out/Debug/x64/UnitTests/UnitTests.exe
-        -TargetArguments "--gtest_filter=NetworkDetectorTests.StartsReadsCostAndStopsWithoutNetworkListManager"
+      run: |
+        ./.github/scripts/run-drmemory.ps1 `
+          -DrMemoryPath "$env:RUNNER_TEMP/DrMemory-Windows-$env:DRMEMORY_VERSION/bin64/drmemory.exe" `
+          -LogDirectory drmemory-results `
+          -Scenario network-native `
+          -TargetPath Solutions/out/Debug/x64/UnitTests/UnitTests.exe `
+          -TargetArguments "--gtest_filter=*NetworkDetector*"
+        $summary = @(Import-Csv drmemory-results/summary.csv | Where-Object Scenario -eq "network-native")
+        if ($summary.Count -ne 1 -or
+            [int64]$summary[0].TotalLeaks -ne 0 -or
+            [int64]$summary[0].TotalPossibleLeaks -ne 0) {
+          throw "The isolated network detector scan must have zero actual and possible leaks."
+        }
 
     - name: Analyze functional tests
       shell: pwsh
@@ -126,13 +132,11 @@ jobs:
         -BaselinePath .github/memory-leak-baseline.csv
         -TargetPath Solutions/out/Debug/x64/SampleCppMini/SampleCppMini.exe
 
-    - name: Verify modern production paths do not load Network List Manager
+    - name: Verify SDK paths do not load Network List Manager
       shell: pwsh
       run: |
         $moduleLogs = @()
-        # The full unit suite deliberately exercises the legacy COM fallback too.
-        # Keep its leak baseline unchanged; inspect the native backend separately.
-        foreach ($scenario in @("network-native", "functional-tests", "sample-cpp-mini")) {
+        foreach ($scenario in @("unit-tests", "network-native", "functional-tests", "sample-cpp-mini")) {
           $scenarioLogs = @(Get-ChildItem "drmemory-results/$scenario" -Filter global.*.log -File -Recurse)
           if ($scenarioLogs.Count -eq 0) {
             throw "Dr. Memory did not produce a module log for $scenario."

@@ -16,20 +16,15 @@
 
 #include <Windows.h>
 
-#include <wrl.h>
-#include <netlistmgr.h>
 #include <nldef.h>
 
 #include <atomic>
-#include <array>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <thread>
 
 #include "Enums.hpp"
-
-using namespace Microsoft::WRL;
 
 namespace MAT_NS_BEGIN
 {
@@ -41,14 +36,11 @@ namespace MAT_NS_BEGIN
                     bool overDataLimit,
                     bool approachingDataLimit);
 
-                NetworkCost MapLegacyNetworkCost(DWORD cost);
-
                 class NetworkDetector
                 {
                    private:
                     struct CallbackState;
                     struct EventDispatchState;
-                    struct NetworkStatusChangedSink;
                     friend class NetworkDetectorTestAccess;
                     enum class StartupState
                     {
@@ -67,23 +59,6 @@ namespace MAT_NS_BEGIN
                     GetConnectivityHint getConnectivityHint = nullptr;
                     NotifyConnectivityHint notifyConnectivityHint = nullptr;
                     HANDLE networkStatusNotification = nullptr;
-                    ComPtr<INetworkListManager> networkListManager;
-                    ComPtr<INetworkCostManager> networkCostManager;
-                    struct LegacySubscription
-                    {
-                        ComPtr<IConnectionPoint> point;
-                        DWORD cookie = 0;
-                        bool subscribed = false;
-                    };
-                    std::array<LegacySubscription, 3> legacySubscriptions;
-                    ComPtr<IUnknown> networkStatusChangedHandler;
-                    using QueryLegacyCost = HRESULT(WINAPI*)(INetworkListManager*, INetworkCostManager**);
-                    using FindLegacyPoint = HRESULT(WINAPI*)(IConnectionPointContainer*, REFIID, IConnectionPoint**);
-                    static HRESULT WINAPI QueryLegacyCostInterface(INetworkListManager*, INetworkCostManager**);
-                    static HRESULT WINAPI FindLegacyConnectionPoint(IConnectionPointContainer*, REFIID, IConnectionPoint**);
-                    QueryLegacyCost queryLegacyCost = QueryLegacyCostInterface;
-                    FindLegacyPoint findLegacyPoint = FindLegacyConnectionPoint;
-                    decltype(&CoDisconnectObject) disconnectLegacyHandler = CoDisconnectObject;
                     std::shared_ptr<CallbackState> networkStatusCallbackState;
                     std::shared_ptr<EventDispatchState> eventDispatchState;
 
@@ -91,7 +66,6 @@ namespace MAT_NS_BEGIN
                     /// Get instance of network info stats
                     /// </summary>
                     /// <returns></returns>
-                    bool InitializeNetworkCost();
                     NetworkCost QueryNetworkCost();
                     static void WINAPI NetworkHintChanged(void* context, NL_NETWORK_CONNECTIVITY_HINT hint);
 

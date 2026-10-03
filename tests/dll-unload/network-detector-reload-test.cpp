@@ -11,12 +11,11 @@
 int main(int argc, char** argv)
 {
     if (argc != 3 || (std::strcmp(argv[2], "native") != 0 &&
-                     std::strcmp(argv[2], "legacy") != 0 &&
-                     std::strcmp(argv[2], "legacy-no-cost") != 0 &&
-                     std::strcmp(argv[2], "legacy-failures") != 0))
+                     std::strcmp(argv[2], "unavailable") != 0 &&
+                     std::strcmp(argv[2], "failures") != 0))
     {
         std::fprintf(stderr, "Usage: network-detector-reload-test <DLL> "
-                             "<native|legacy|legacy-no-cost|legacy-failures>\n");
+                             "<native|unavailable|failures>\n");
         return 1;
     }
     APTTYPE apartment;
@@ -47,17 +46,13 @@ int main(int argc, char** argv)
             return FreeLibrary(module) ? 77 : 1;
         }
         const char* entry = "ExerciseNetworkDetector";
-        if (std::strcmp(argv[2], "legacy") == 0)
+        if (std::strcmp(argv[2], "unavailable") == 0)
         {
-            entry = "ExerciseLegacyNetworkDetector";
+            entry = "ExerciseUnavailableNetworkDetector";
         }
-        else if (std::strcmp(argv[2], "legacy-no-cost") == 0)
+        else if (std::strcmp(argv[2], "failures") == 0)
         {
-            entry = "ExerciseLegacyNetworkDetectorWithoutCost";
-        }
-        else if (std::strcmp(argv[2], "legacy-failures") == 0)
-        {
-            entry = "ExerciseLegacyNetworkDetectorFailures";
+            entry = "ExerciseNetworkDetectorFailures";
         }
         auto exercise = reinterpret_cast<bool (*)()>(GetProcAddress(module, entry));
         if (exercise == nullptr || !exercise())
