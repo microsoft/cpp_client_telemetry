@@ -35,4 +35,7 @@ if(MATSDK_BUILD_UNIT_TESTS)
   target_include_directories(matsdk_test_config INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/unittests)
   add_subdirectory(unittests)
+  if(MSVC AND NOT BUILD_SHARED_LIBS)
+    add_subdirectory(dll-unload)
+  endif()
 endif()

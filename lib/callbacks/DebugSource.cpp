@@ -15,7 +15,7 @@ namespace MAT_NS_BEGIN {
 
     namespace
     {
-        thread_local std::vector<DebugEventListener*> pendingListeners;
+        thread_local std::vector<DebugEventListener*>* pendingListeners = nullptr;
         std::atomic<DebugEventListenerPendingReleaseCallback>
             pendingReleaseCallback{nullptr};
 
@@ -23,13 +23,22 @@ namespace MAT_NS_BEGIN {
         {
         public:
             explicit PendingListenersScope(const std::vector<DebugEventListener*>& listeners) :
-                remaining(listeners)
+                remaining(listeners),
+                previous(pendingListeners)
             {
-                pendingListeners.insert(
-                    pendingListeners.end(),
+                if (previous != nullptr)
+                {
+                    pending = *previous;
+                }
+                pending.insert(
+                    pending.end(),
                     listeners.begin(),
                     listeners.end());
+                pendingListeners = &pending;
             }
+
+            PendingListenersScope(const PendingListenersScope&) = delete;
+            PendingListenersScope& operator=(const PendingListenersScope&) = delete;
 
             ~PendingListenersScope()
             {
@@ -42,6 +51,7 @@ namespace MAT_NS_BEGIN {
                         callback(listener);
                     }
                 }
+                pendingListeners = previous;
             }
 
             void BeginCallback(DebugEventListener* listener)
@@ -55,28 +65,31 @@ namespace MAT_NS_BEGIN {
             }
 
         private:
-            static void RemovePending(DebugEventListener* listener)
+            void RemovePending(DebugEventListener* listener)
             {
-                auto pending = std::find(
-                    pendingListeners.rbegin(),
-                    pendingListeners.rend(),
+                auto entry = std::find(
+                    pending.rbegin(),
+                    pending.rend(),
                     listener);
-                if (pending != pendingListeners.rend())
+                if (entry != pending.rend())
                 {
-                    pendingListeners.erase(std::next(pending).base());
+                    pending.erase(std::next(entry).base());
                 }
             }
 
             std::vector<DebugEventListener*> remaining;
+            std::vector<DebugEventListener*> pending;
+            std::vector<DebugEventListener*>* previous;
         };
     }
 
     bool IsDebugEventListenerPending(const DebugEventListener* listener) noexcept
     {
-        return std::find(
-                   pendingListeners.begin(),
-                   pendingListeners.end(),
-                   listener) != pendingListeners.end();
+        return pendingListeners != nullptr &&
+               std::find(
+                   pendingListeners->begin(),
+                   pendingListeners->end(),
+                   listener) != pendingListeners->end();
     }
 
     void SetDebugEventListenerPendingReleaseCallback(

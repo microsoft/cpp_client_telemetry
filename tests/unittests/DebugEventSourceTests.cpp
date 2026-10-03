@@ -4,8 +4,11 @@
 //
 
 #include "common/Common.hpp"
+#include "callbacks/DebugSourceInternal.hpp"
 #include <DebugEvents.hpp>
 #include <functional>
+#include <stdexcept>
+#include <thread>
 
 using namespace testing;
 using namespace MAT;
@@ -238,3 +241,192 @@ TEST(DebugEventSourceTests, DispatchEvent_OneEventToCascadedAndToSource_Listener
    ASSERT_EQ(sequenceNumberToCountMap[1], uint64_t { 2 });
 }
 
+TEST(DebugEventSourceTests, PendingListeners_NoDispatch_ReturnsFalse)
+{
+   TestDebugEventListener listener;
+   EXPECT_FALSE(IsDebugEventListenerPending(&listener));
+   EXPECT_FALSE(IsDebugEventListenerPending(nullptr));
+}
+
+TEST(DebugEventSourceTests, PendingListeners_NestedDispatchRemoval_RestoresOuterSnapshot)
+{
+   TestDebugEventSource source;
+   TestDebugEventListener first;
+   TestDebugEventListener second;
+   bool nested = false;
+   unsigned secondCalls = 0;
+   first.OnDebugEventOverride = [&](DebugEvent&) {
+       EXPECT_TRUE(IsDebugEventListenerPending(&second));
+       EXPECT_FALSE(IsDebugEventListenerPending(&first));
+       if (!nested)
+       {
+           nested = true;
+           source.RemoveEventListener(EVT_LOG_EVENT, second);
+           source.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+           EXPECT_TRUE(IsDebugEventListenerPending(&second));
+       }
+   };
+   second.OnDebugEventOverride = [&](DebugEvent&) {
+       EXPECT_FALSE(IsDebugEventListenerPending(&second));
+       ++secondCalls;
+   };
+   source.AddEventListener(EVT_LOG_EVENT, first);
+   source.AddEventListener(EVT_LOG_EVENT, second);
+
+   source.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+
+   EXPECT_EQ(secondCalls, 1u);
+   EXPECT_FALSE(IsDebugEventListenerPending(&second));
+}
+
+TEST(DebugEventSourceTests, PendingListeners_NestedDuplicateListeners_PreservesOuterOccurrences)
+{
+   TestDebugEventSource outer;
+   TestDebugEventSource inner;
+   TestDebugEventListener first;
+   TestDebugEventListener shared;
+   unsigned sharedCalls = 0;
+   first.OnDebugEventOverride = [&](DebugEvent&) {
+       inner.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+       EXPECT_TRUE(IsDebugEventListenerPending(&shared));
+   };
+   shared.OnDebugEventOverride = [&](DebugEvent&) {
+       ++sharedCalls;
+       EXPECT_EQ(IsDebugEventListenerPending(&shared), sharedCalls < 4);
+   };
+   outer.AddEventListener(EVT_LOG_EVENT, first);
+   outer.AddEventListener(EVT_LOG_EVENT, shared);
+   outer.AddEventListener(EVT_LOG_EVENT, shared);
+   inner.AddEventListener(EVT_LOG_EVENT, shared);
+   inner.AddEventListener(EVT_LOG_EVENT, shared);
+
+   outer.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+
+   EXPECT_EQ(sharedCalls, 4u);
+   EXPECT_FALSE(IsDebugEventListenerPending(&shared));
+}
+
+TEST(DebugEventSourceTests, PendingListeners_AnotherThread_DoesNotSeeActiveScope)
+{
+   TestDebugEventSource source;
+   TestDebugEventListener first;
+   TestDebugEventListener second;
+   first.OnDebugEventOverride = [&](DebugEvent&) {
+       EXPECT_TRUE(IsDebugEventListenerPending(&second));
+       std::thread other([&] {
+           EXPECT_FALSE(IsDebugEventListenerPending(&second));
+       });
+       other.join();
+       EXPECT_TRUE(IsDebugEventListenerPending(&second));
+   };
+   source.AddEventListener(EVT_LOG_EVENT, first);
+   source.AddEventListener(EVT_LOG_EVENT, second);
+
+   source.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+
+   EXPECT_FALSE(IsDebugEventListenerPending(&second));
+}
+
+namespace
+{
+   std::function<void(DebugEventListener*)> pendingReleaseOverride;
+
+   class PendingReleaseScope
+   {
+   public:
+       explicit PendingReleaseScope(std::function<void(DebugEventListener*)> callback)
+       {
+           pendingReleaseOverride = std::move(callback);
+           SetDebugEventListenerPendingReleaseCallback([](DebugEventListener* listener) {
+               pendingReleaseOverride(listener);
+           });
+       }
+
+       ~PendingReleaseScope()
+       {
+           SetDebugEventListenerPendingReleaseCallback(nullptr);
+           pendingReleaseOverride = nullptr;
+       }
+   };
+}
+
+TEST(DebugEventSourceTests, PendingListeners_ExceptionRelease_ReentrantDispatchRestoresPendingState)
+{
+   TestDebugEventSource outer;
+   TestDebugEventSource inner;
+   TestDebugEventSource reentrant;
+   TestDebugEventListener first;
+   TestDebugEventListener throwing;
+   TestDebugEventListener shared;
+   TestDebugEventListener last;
+   unsigned releases = 0;
+   bool reentered = false;
+   PendingReleaseScope release([&](DebugEventListener* listener) {
+       ++releases;
+       EXPECT_EQ(listener, &shared);
+       EXPECT_TRUE(IsDebugEventListenerPending(&shared));
+       EXPECT_TRUE(IsDebugEventListenerPending(&last));
+       reentrant.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+       EXPECT_TRUE(IsDebugEventListenerPending(&shared));
+       EXPECT_TRUE(IsDebugEventListenerPending(&last));
+   });
+   first.OnDebugEventOverride = [&](DebugEvent&) {
+       EXPECT_THROW(inner.DispatchEvent(DebugEvent { EVT_LOG_EVENT }), std::runtime_error);
+       EXPECT_TRUE(IsDebugEventListenerPending(&shared));
+       EXPECT_FALSE(IsDebugEventListenerPending(&throwing));
+   };
+   throwing.OnDebugEventOverride = [](DebugEvent&) {
+       throw std::runtime_error("listener failure");
+   };
+   shared.OnDebugEventOverride = [&](DebugEvent&) {
+       EXPECT_FALSE(IsDebugEventListenerPending(&shared));
+   };
+   last.OnDebugEventOverride = [&](DebugEvent&) {
+       EXPECT_FALSE(IsDebugEventListenerPending(&last));
+   };
+   TestDebugEventListener reentrantListener;
+   reentrantListener.OnDebugEventOverride = [&](DebugEvent&) {
+       reentered = true;
+       EXPECT_TRUE(IsDebugEventListenerPending(&shared));
+       EXPECT_TRUE(IsDebugEventListenerPending(&last));
+   };
+   outer.AddEventListener(EVT_LOG_EVENT, first);
+   outer.AddEventListener(EVT_LOG_EVENT, shared);
+   outer.AddEventListener(EVT_LOG_EVENT, last);
+   inner.AddEventListener(EVT_LOG_EVENT, throwing);
+   inner.AddEventListener(EVT_LOG_EVENT, shared);
+   inner.AddEventListener(EVT_LOG_EVENT, shared);
+   reentrant.AddEventListener(EVT_LOG_EVENT, reentrantListener);
+
+   outer.DispatchEvent(DebugEvent { EVT_LOG_EVENT });
+
+   EXPECT_EQ(releases, 2u);
+   EXPECT_TRUE(reentered);
+   EXPECT_FALSE(IsDebugEventListenerPending(&shared));
+   EXPECT_FALSE(IsDebugEventListenerPending(&last));
+}
+
+TEST(DebugEventSourceTests, PendingListeners_ExceptionRelease_RemovesDuplicatesBeforeRelease)
+{
+   TestDebugEventSource source;
+   TestDebugEventListener throwing;
+   TestDebugEventListener pending;
+   unsigned releases = 0;
+   PendingReleaseScope release([&](DebugEventListener* listener) {
+       EXPECT_EQ(listener, &pending);
+       ++releases;
+       EXPECT_EQ(IsDebugEventListenerPending(&pending), releases == 1);
+   });
+   throwing.OnDebugEventOverride = [](DebugEvent&) {
+       throw std::runtime_error("listener failure");
+   };
+   source.AddEventListener(EVT_LOG_EVENT, throwing);
+   source.AddEventListener(EVT_LOG_EVENT, pending);
+   source.AddEventListener(EVT_LOG_EVENT, pending);
+
+   EXPECT_THROW(source.DispatchEvent(DebugEvent { EVT_LOG_EVENT }), std::runtime_error);
+
+   EXPECT_EQ(releases, 2u);
+   EXPECT_FALSE(IsDebugEventListenerPending(&throwing));
+   EXPECT_FALSE(IsDebugEventListenerPending(&pending));
+}
