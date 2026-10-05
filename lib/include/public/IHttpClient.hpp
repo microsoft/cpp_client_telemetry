@@ -500,7 +500,9 @@ namespace MAT_NS_BEGIN
         ///
         /// </summary>
         /// <param name="state">HttpStateEvent - see diagram</param>
-        /// <param name="data">HTTP client implementation-specific data structure (optional)</param>
+        /// <param name="data">HTTP client implementation-specific data structure (optional).
+        /// On curl 7.80+ the OnSending event runs within a libcurl transfer and does not
+        /// expose its active handle; configure curl options from OnConnecting instead.</param>
         /// <param name="size">HTTP client implementation-specific data structure size (optional)</param>
         virtual void OnHttpStateEvent(HttpStateEvent state, void* data = nullptr, size_t size = 0)
         {

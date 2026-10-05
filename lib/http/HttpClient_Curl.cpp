@@ -283,7 +283,12 @@ namespace MAT_NS_BEGIN {
         m_state(std::make_shared<CurlClientState>())
     {
         TRACE("Initializing HttpClient_Curl...\n");
-        EnsureCurlGlobalInit();
+        const CURLcode initResult = EnsureCurlGlobalInit();
+        if (initResult != CURLE_OK)
+        {
+            LOG_ERROR("libcurl global initialization failed: %d", static_cast<int>(initResult));
+            return;
+        }
         TRACE("libcurl version = %s\n", curl_version_info(CURLVERSION_NOW)->version);
     }
 
