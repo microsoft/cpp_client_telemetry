@@ -38,9 +38,18 @@ requires those modules and your GitHub account has access:
 git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry.git
 ```
 
-The modules repo can be directly accessed [here](https://github.com/microsoft/cpp_client_telemetry_modules) with your GitHub account that is part of the Microsoft organization [here](https://github.com/orgs/microsoft/teams/everyone). The ref in GitHub workflows for the modules repo should periodically be updated to point to the HEAD of the `main` branch of this library so that tests run against the latest version of this library.
+The [modules repository](https://github.com/microsoft/cpp_client_telemetry_modules)
+requires a GitHub account with access to that repository. See the
+[Microsoft everyone team](https://github.com/orgs/microsoft/teams/everyone) for
+Microsoft organization membership; confirm repository permissions before
+cloning.
 
-Similarly, the link in `lib/modules` in this library should be updated to the HEAD of the modules library after new PRs are merged in there. 
+Keep the SDK checkout ref in the modules repository's CI workflows aligned with
+a tested commit on this SDK's `main` branch so module tests cover current SDK
+changes. In the other direction, after module PRs merge, update the pinned
+`lib/modules` submodule commit in this SDK through a reviewed PR and validate the
+combined build. A recursive clone checks out that pinned commit; it does not
+automatically follow the modules repository's latest HEAD.
 
 Do not make core behavior accidentally depend on a private module. Builds that
 do not fetch `lib/modules` must continue to compile and link.
@@ -84,7 +93,8 @@ instead of broadening a suppression.
 
 ## OneCollector
 
-For broader questions about OneCollector, please contact the [Collector team](https://teams.microsoft.com/l/channel/19%3A3b4fbc0eaff54e2aa6e373acfc46fe1f%40thread.skype/AEF%2C%20Collector%2C%20and%20Interchange?groupId=5658f840-c680-4882-93be-7cc69578f94e&tenantId=72f988bf-86f1-41af-91ab-2d7cd011db47).
+For questions about OneCollector, contact the
+[Collector team](https://teams.microsoft.com/l/channel/19%3A3b4fbc0eaff54e2aa6e373acfc46fe1f%40thread.skype/AEF%2C%20Collector%2C%20and%20Interchange?groupId=5658f840-c680-4882-93be-7cc69578f94e&tenantId=72f988bf-86f1-41af-91ab-2d7cd011db47).
 
 ## Building locally
 
@@ -157,8 +167,10 @@ C API or its implementation.
 
 ### vcpkg consumer tests
 
-The scripts under `tests/vcpkg` configure, build, link, and run a separate
-consumer against the package:
+The scripts under `tests/vcpkg` configure, build, and link a separate consumer
+against the working-tree overlay port. Host builds run the consumer; iOS
+Simulator builds run it in the simulator, while Android and iOS device builds
+are cross-compile checks that require separate device deployment for execution:
 
 ```powershell
 .\tests\vcpkg\test-vcpkg-windows.ps1 -VcpkgRoot C:\path\to\vcpkg
@@ -336,21 +348,26 @@ must reach SPM, choose a new `X.Y.Z` in `Solutions/version.txt` and regenerate
 `Version.hpp` before tagging: changing only `W` produces the same SPM tag, so
 the SPM workflow skips it and leaves consumers on the earlier package.
 
-### Verify downstream publication
+### Publish and verify downstream packages
 
 Publishing the GitHub Release triggers `.github/workflows/spm-release.yml`,
 which builds and validates `MATTelemetry.xcframework`, uploads it to the release,
-and publishes the parallel three-component Swift Package Manager tag. Please check the output of the workflow to ensure it has succeeded.
+and publishes the parallel three-component Swift Package Manager tag. Check the
+workflow output to ensure it has succeeded.
 
 The vcpkg port update is manual:
 
-1. Branch from current `microsoft/vcpkg` `master`.
+1. Start with a clean vcpkg checkout outside the SDK source tree and branch from
+   current `microsoft/vcpkg` `master`.
 2. From the released SDK checkout, use the
    [port preparation helper](building-with-vcpkg.md#promoting-features-on-release)
    to copy the complete overlay port and set the new release version and source
    archive SHA512. Include the manifest and feature wiring, not just the tag.
 3. Format the port manifest and build the production port from the published
-   archive with `MATSDK_VCPKG_SOURCE_DIR` unset, not from a local SDK override.
+   archive with `MATSDK_VCPKG_SOURCE_DIR` unset and without the SDK overlay.
+   Verify both the default graph and the release's advertised opt-in features.
+   Do not use the `tests/vcpkg` scripts for this step: they deliberately select
+   local SDK source rather than the pinned release archive.
 4. Commit the port changes.
 5. Run `vcpkg x-add-version cpp-client-telemetry --overwrite-version`.
 6. Commit the version-database changes and manually open a `microsoft/vcpkg` PR.
@@ -367,7 +384,8 @@ artifact exists.
 - Release notes describe compatibility or migration requirements.
 - SPM artifact, checksum, external consumer build, and three-component tag
   succeeded.
-- The vcpkg port PR is open or the existing port already matches the release.
+- The vcpkg port PR is open or the registry already packages the release and its
+  advertised features.
 - Other maintained package feeds have been updated or explicitly tracked.
 - A representative consumer can build against the released package.
 - Release-critical telemetry changes have an authorized end-to-end ingestion

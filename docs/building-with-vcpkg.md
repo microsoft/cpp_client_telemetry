@@ -455,19 +455,28 @@ After cutting an SDK release, maintainers manually prepare and submit the
 registry port update. There is no release-triggered workflow that creates a
 vcpkg PR, and no repository token is needed for port preparation.
 
-The preparation helper copies the **complete overlay port from the release
-tag**, not from the current development branch. It then replaces the archive
+The [preparation helper](../.github/scripts/prepare-vcpkg-release.py) copies the
+**complete overlay port from the release tag**, not from the current development
+branch. It then replaces the archive
 `REF`, `SHA512`, and manifest version and removes any old `port-version`. This
 carries feature declarations and their CMake wiring together, including
 `minimal-sqlite` and the explicit Android curl backends. Run it from the released
-SDK checkout against a local vcpkg checkout:
+SDK checkout against a separate vcpkg checkout outside the SDK source tree.
+Start with a clean vcpkg working tree: the helper replaces the destination port,
+including existing patches.
+The helper requires Python 3.10 or newer and uses only the standard library.
+Pass the four-component version **without** its `v` prefix and the SHA512 of the
+published GitHub source `.tar.gz` archive, not an xcframework, AAR, or ZIP:
 
 ```console
 python .github/scripts/prepare-vcpkg-release.py --source-port tools/ports/cpp-client-telemetry --destination-port <vcpkg>/ports/cpp-client-telemetry --version X.Y.Z.W --sha512 <release-archive-sha512>
 ```
 
 Run `vcpkg format-manifest` on the resulting manifest and validate the downloaded
-release with `MATSDK_VCPKG_SOURCE_DIR` unset before submitting the registry PR.
+release with `MATSDK_VCPKG_SOURCE_DIR` unset and without the SDK overlay before
+submitting the registry PR. Cover the default graph and the advertised opt-in
+features. Do not use the `tests/vcpkg` scripts for this release validation: they
+intentionally build the local SDK checkout instead of the pinned archive.
 The helper does not build, commit, push, or open a PR. After validating the port,
 commit its changes, update the vcpkg version database, and submit the registry PR
 using your normal local GitHub authentication.
