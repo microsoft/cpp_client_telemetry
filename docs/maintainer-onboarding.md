@@ -38,6 +38,10 @@ requires those modules and your GitHub account has access:
 git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry.git
 ```
 
+The modules repo can be directly accessed [here](https://github.com/microsoft/cpp_client_telemetry_modules) with your GitHub account that is part of the Microsoft organization [here](https://github.com/orgs/microsoft/teams/everyone). The ref in GitHub workflows for the modules repo should periodically be updated to point to the HEAD of the `main` branch of this library so that tests run against the latest version of this library.
+
+Similarly, the link in `lib/modules` in this library should be updated to the HEAD of the modules library after new PRs are merged in there. 
+
 Do not make core behavior accidentally depend on a private module. Builds that
 do not fetch `lib/modules` must continue to compile and link.
 
@@ -77,6 +81,10 @@ Treat a warning suppression, skipped test, conditional source exclusion, or
 `continue-on-error` as an unverified safety claim. Check why it exists and
 whether the changed code makes that claim invalid. Fix the underlying defect
 instead of broadening a suppression.
+
+## OneCollector
+
+For broader questions about OneCollector, please contact the [Collector team](https://teams.microsoft.com/l/channel/19%3A3b4fbc0eaff54e2aa6e373acfc46fe1f%40thread.skype/AEF%2C%20Collector%2C%20and%20Interchange?groupId=5658f840-c680-4882-93be-7cc69578f94e&tenantId=72f988bf-86f1-41af-91ab-2d7cd011db47).
 
 ## Building locally
 
@@ -332,11 +340,9 @@ the SPM workflow skips it and leaves consumers on the earlier package.
 
 Publishing the GitHub Release triggers `.github/workflows/spm-release.yml`,
 which builds and validates `MATTelemetry.xcframework`, uploads it to the release,
-and publishes the parallel three-component Swift Package Manager tag.
+and publishes the parallel three-component Swift Package Manager tag. Please check the output of the workflow to ensure it has succeeded.
 
-Check that workflow; do not assume that the release trigger completed all
-distribution work. The vcpkg port update is manual; there is no automated
-vcpkg PR workflow or repository token requirement for port preparation.
+The vcpkg port update is manual:
 
 1. Branch from current `microsoft/vcpkg` `master`.
 2. From the released SDK checkout, use the

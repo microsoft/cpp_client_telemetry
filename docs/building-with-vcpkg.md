@@ -29,12 +29,7 @@ That's it! The package should be compiled for the current OS.
 
 The overlay port shipped in this repository is for **development only** — use it
 to test local changes to the port, or a newer SDK revision, before they are
-published to the registry.
-
-Feature availability in the registry depends on the packaged SDK release.
-In particular, `minimal-sqlite` and `android-curl-openssl` are available in this
-overlay but are not yet exposed by the registry port. Until the next release
-and its registry update land, use the overlay for those features.
+published to the registry:
 
 ```console
 git clone https://github.com/microsoft/cpp_client_telemetry
