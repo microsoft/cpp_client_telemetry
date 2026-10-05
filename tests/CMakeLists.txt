@@ -1,8 +1,5 @@
 add_library(matsdk_test_config INTERFACE)
 target_link_libraries(matsdk_test_config INTERFACE matsdk_internal_config)
-if(MSVC)
-  target_compile_options(matsdk_test_config INTERFACE /bigobj)
-endif()
 target_include_directories(matsdk_test_config INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/../lib

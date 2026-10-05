@@ -52,6 +52,8 @@ jobs:
   device-id-optout:
     name: Device-ID opt-out (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
     strategy:
       fail-fast: false
       matrix:
@@ -61,37 +63,20 @@ jobs:
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Initialize googletest
       run: git submodule update --init --depth=1 third_party/googletest
-    - name: Install Linux development dependencies
-      if: runner.os == 'Linux'
-      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
-    - name: Configure without native device-ID collection
-      shell: pwsh
-      run: |
-        $options = @(
-          "-S", ".", "-B", "out-device-id-off",
-          "-DCMAKE_BUILD_TYPE=Debug",
-          "-DMATSDK_ENABLE_DEVICE_ID=OFF",
-          "-DMATSDK_BUILD_UNIT_TESTS=ON",
-          "-DMATSDK_BUILD_FUNC_TESTS=OFF",
-          "-DMATSDK_BUILD_TEST_TOOL=OFF",
-          "-DMATSDK_BUILD_PACKAGE=OFF"
-        )
-        if ($env:RUNNER_OS -eq "Windows") {
-          $options += "-DCMAKE_CXX_FLAGS_INIT=/EHsc"
-        }
-        cmake @options
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    - name: Build
-      run: cmake --build out-device-id-off --config Debug --target UnitTests --parallel 2
-    - name: Run affected and adjacent suites
-      shell: pwsh
-      run: |
-        $binary = "out-device-id-off/tests/unittests/UnitTests"
-        if ($env:RUNNER_OS -eq "Windows") {
-          $binary = "out-device-id-off\tests\unittests\Debug\UnitTests.exe"
-        }
-        & $binary "--gtest_filter=DeviceIdTests.*:ContextFieldsProviderTests.*:BoundedInputTests.*:PalTests.*:SysInfoUtilsTests.*"
-        exit $LASTEXITCODE
+    - name: Test Linux/macOS without native device-ID collection
+      if: runner.os != 'Windows'
+      env:
+        CMAKE_OPTS: -DMATSDK_ENABLE_DEVICE_ID=OFF
+      run: ./build-tests.sh debug
+    - name: setup-msbuild
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
+      with:
+        vs-version: '[17,)'
+    - name: Test Windows without native device-ID collection
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: build-tests.cmd x64 Debug "tests\device-id-optout.props" WinHTTP
     - name: Verify vcpkg feature mapping
       run: cmake -P tests/vcpkg/device-id-feature-tests.cmake
 
