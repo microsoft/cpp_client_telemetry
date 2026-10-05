@@ -59,6 +59,10 @@ std::string RemoveWhitespace(std::string& str)
     {
         trimmedString.erase(trimmedString.length() - 1);
     }
+    if (!trimmedString.empty() && trimmedString[trimmedString.length() - 1] == '\r')
+    {
+        trimmedString.erase(trimmedString.length() - 1);
+    }
     return trimmedString;
 }
 
