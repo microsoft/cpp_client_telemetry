@@ -87,6 +87,8 @@ namespace PAL_NS_BEGIN {
                         // Workaround for Windows OS bug VSO: 11314171 - sometimes NetworkInformation triggers exception
                         m_device_id = DEFAULT_DEVICE_ID;
                     }
+#else
+                    (void)configuration;
 #endif
 
 #ifdef _WIN32_WINNT_WIN10

@@ -73,7 +73,11 @@ placeholder. Applications can still supply their own ID through
 `ISemanticContext::SetDeviceId`; registration does not overwrite it with an
 empty automatically collected ID. Android's Java bridge consults the native
 build setting before accessing `ANDROID_ID`; use the matching Java bridge
-sources with the native SDK.
+sources with the native SDK. For Android Gradle builds, pass
+`-PMATSDK_ENABLE_DEVICE_ID=OFF` to apply the setting to both the SDK AAR and
+the test application. The Gradle property takes precedence over the
+`MATSDK_ENABLE_DEVICE_ID` environment variable; both default to `ON` when
+unspecified.
 
 This option does not disable session/SDK identifiers or control device IDs
 added independently by the operating system's UTC telemetry pipeline.
