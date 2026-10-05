@@ -21,6 +21,7 @@
 
 #include "pal/PAL.hpp"
 #include "utils/Utils.hpp"
+#include "utils/WindowsUtils.hpp"
 
 #include <Windows.h>
 
@@ -206,7 +207,7 @@ namespace PAL_NS_BEGIN {
         HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
         typedef HRESULT NTSTATUS;
         typedef NTSTATUS(__stdcall * RtlGetVersion_t)(PRTL_OSVERSIONINFOW);
-        RtlGetVersion_t pRtlGetVersion = hNtDll ? reinterpret_cast<RtlGetVersion_t>(::GetProcAddress(hNtDll, "RtlGetVersion")) : nullptr;
+        RtlGetVersion_t pRtlGetVersion = hNtDll ? GetWindowsProcAddress<RtlGetVersion_t>(hNtDll, "RtlGetVersion") : nullptr;
 
         RTL_OSVERSIONINFOW rtlOsvi = { sizeof(rtlOsvi), 0, 0, 0, 0, {0} };
         if (pRtlGetVersion && SUCCEEDED(pRtlGetVersion(&rtlOsvi)))
@@ -277,7 +278,7 @@ namespace PAL_NS_BEGIN {
         HMODULE hNtDll = ::GetModuleHandle(TEXT("ntdll.dll"));
         typedef HRESULT NTSTATUS;
         typedef NTSTATUS(__stdcall * RtlConvertDeviceFamilyInfoToString_t)(unsigned long*, unsigned long*, PWSTR, PWSTR);
-        RtlConvertDeviceFamilyInfoToString_t pRtlConvertDeviceFamilyInfoToString = hNtDll ? reinterpret_cast<RtlConvertDeviceFamilyInfoToString_t>(::GetProcAddress(hNtDll, "RtlConvertDeviceFamilyInfoToString")) : nullptr;
+        RtlConvertDeviceFamilyInfoToString_t pRtlConvertDeviceFamilyInfoToString = hNtDll ? GetWindowsProcAddress<RtlConvertDeviceFamilyInfoToString_t>(hNtDll, "RtlConvertDeviceFamilyInfoToString") : nullptr;
 
         if (pRtlConvertDeviceFamilyInfoToString)
         {
@@ -315,4 +316,3 @@ namespace PAL_NS_BEGIN {
     }
 
 } PAL_NS_END
-

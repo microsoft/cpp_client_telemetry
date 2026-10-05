@@ -50,6 +50,7 @@
 #pragma comment(lib, "Ole32.Lib")   /* CoCreateGuid */
 #include <oacr.h>
 #include <windows.h>
+#include "utils/WindowsUtils.hpp"
 #endif
 
 #if defined(ANDROID) && defined(HAVE_MAT_LOGGING)
@@ -73,8 +74,8 @@ namespace PAL_NS_BEGIN {
                 HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
                 if (kernel32 != nullptr)
                 {
-                    proc = reinterpret_cast<GetSystemTimeAsFileTimeProc>(
-                        ::GetProcAddress(kernel32, "GetSystemTimePreciseAsFileTime"));
+                    proc = MAT::GetWindowsProcAddress<GetSystemTimeAsFileTimeProc>(
+                        kernel32, "GetSystemTimePreciseAsFileTime");
                 }
             });
             return proc;
