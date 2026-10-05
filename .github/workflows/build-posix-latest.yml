@@ -61,6 +61,9 @@ jobs:
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Initialize googletest
       run: git submodule update --init --depth=1 third_party/googletest
+    - name: Install Linux development dependencies
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
     - name: Configure without native device-ID collection
       shell: pwsh
       run: |
