@@ -110,6 +110,8 @@ JNI and Objective-C wrappers. For Android, also pass
 disable the independent Swift build with `-DMATSDK_BUILD_SWIFT_WRAPPER=OFF`.
 With the Xcode generator, also set
 `-DCMAKE_XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS=NO`.
+Objective-C exception handling can remain enabled independently; the SDK detects
+C++ exception support separately, including in Objective-C++ translation units.
 
 For native Windows MSVC builds, configure a fresh directory with
 `"-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHs-c- /D_HAS_EXCEPTIONS=0"`.

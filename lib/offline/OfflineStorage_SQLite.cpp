@@ -227,6 +227,12 @@ namespace MAT_NS_BEGIN {
 
     void OfflineStorage_SQLite::checkStorageSizeLimits()
     {
+        if ((m_DbSizeLimit != 0) && m_config[CFG_BOOL_ENABLE_DB_DROP_IF_FULL])
+        {
+            // Payload estimates omit SQLite page and index overhead.
+            m_DbSizeEstimate = std::max(m_DbSizeEstimate.load(), GetSize());
+        }
+
         if ((m_DbSizeNotificationLimit != 0) && (m_DbSizeEstimate>m_DbSizeNotificationLimit))
         {
             auto now = PAL::getMonotonicTimeMs();

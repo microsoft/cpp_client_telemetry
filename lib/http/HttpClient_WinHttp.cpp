@@ -389,7 +389,8 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
 
         bool result = true;
         PCCERT_CHAIN_CONTEXT pChainCtx = nullptr;
-        CERT_CHAIN_PARA chainPara = { sizeof(chainPara) };
+        CERT_CHAIN_PARA chainPara = {};
+        chainPara.cbSize = sizeof(chainPara);
         if (::CertGetCertificateChain(NULL, pCertContext, NULL, pCertContext->hCertStore, &chainPara, 0, NULL, &pChainCtx))
         {
             CERT_CHAIN_POLICY_STATUS pps = { 0, 0, 0, 0, nullptr };

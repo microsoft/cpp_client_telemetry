@@ -100,3 +100,6 @@ jobs:
     - name: Compile full SDK
       run: >-
         cmake --build out-no-exceptions --target mat --parallel 2
+    - name: Public headers and exception macro regression
+      if: runner.os == 'macOS'
+      run: bash tests/headers/check_public_headers.sh

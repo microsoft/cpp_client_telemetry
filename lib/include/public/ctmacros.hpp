@@ -125,7 +125,14 @@
 #endif
 
 /* Exceptions support is optional */
-#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+#if defined(__clang__)
+// Objective-C exceptions can enable __EXCEPTIONS without C++ exceptions.
+#if __has_feature(cxx_exceptions)
+#define HAVE_EXCEPTIONS 1
+#else
+#define HAVE_EXCEPTIONS 0
+#endif
+#elif defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
 #define HAVE_EXCEPTIONS 1
 #else
 #define HAVE_EXCEPTIONS 0

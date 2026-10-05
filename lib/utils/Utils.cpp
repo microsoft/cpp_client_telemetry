@@ -10,6 +10,7 @@
 #endif
 
 #include <algorithm>
+#include <cstring>
 #include <string>
 
 #ifdef _WIN32
@@ -140,7 +141,10 @@ namespace MAT_NS_BEGIN {
     std::string GetTempDirectory()
     {
 #ifdef _WIN32
-        auto lpGetTempPathW = reinterpret_cast<decltype(&::GetTempPathW)>(GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetTempPath2W"));
+        const auto proc = GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetTempPath2W");
+        decltype(&::GetTempPathW) lpGetTempPathW = nullptr;
+        static_assert(sizeof(lpGetTempPathW) == sizeof(proc), "Windows function pointers must have the same size");
+        std::memcpy(&lpGetTempPathW, &proc, sizeof(lpGetTempPathW));
         if (lpGetTempPathW == NULL)
         {
             lpGetTempPathW = ::GetTempPathW;
