@@ -456,15 +456,15 @@ unchanged against the minimal build.
 
 ### Promoting features on release
 
-The release port update copies the **complete overlay port from the release
-tag**, not from the current development branch. It then replaces the archive
-`REF`, `SHA512`, and manifest version, removes any old `port-version`, and
-validates the pinned release build. This carries feature declarations and their
-CMake wiring together, including `minimal-sqlite` and the explicit Android curl
-backends. The release tag must contain the packaging helper and both features;
-older tags without them cannot use this promotion workflow.
+After cutting an SDK release, maintainers manually prepare and submit the
+registry port update. There is no release-triggered workflow that creates a
+vcpkg PR, and no repository token is needed for port preparation.
 
-For a manual registry update, the same preparation can be run from the released
+The preparation helper copies the **complete overlay port from the release
+tag**, not from the current development branch. It then replaces the archive
+`REF`, `SHA512`, and manifest version and removes any old `port-version`. This
+carries feature declarations and their CMake wiring together, including
+`minimal-sqlite` and the explicit Android curl backends. Run it from the released
 SDK checkout against a local vcpkg checkout:
 
 ```console
@@ -473,8 +473,9 @@ python .github/scripts/prepare-vcpkg-release.py --source-port tools/ports/cpp-cl
 
 Run `vcpkg format-manifest` on the resulting manifest and validate the downloaded
 release with `MATSDK_VCPKG_SOURCE_DIR` unset before submitting the registry PR.
-This preparation does not require a GitHub token; maintainers can submit the
-registry PR manually after cutting the SDK release.
+The helper does not build, commit, push, or open a PR. After validating the port,
+commit its changes, update the vcpkg version database, and submit the registry PR
+using your normal local GitHub authentication.
 
 ### Dependency and transport selection
 

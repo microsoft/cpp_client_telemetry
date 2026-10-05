@@ -330,31 +330,24 @@ the SPM workflow skips it and leaves consumers on the earlier package.
 
 ### Verify downstream publication
 
-Publishing the GitHub Release triggers:
+Publishing the GitHub Release triggers `.github/workflows/spm-release.yml`,
+which builds and validates `MATTelemetry.xcframework`, uploads it to the release,
+and publishes the parallel three-component Swift Package Manager tag.
 
-- `.github/workflows/spm-release.yml`, which builds and validates
-  `MATTelemetry.xcframework`, uploads it to the release, and publishes the
-  parallel three-component Swift Package Manager tag.
-- `.github/workflows/vcpkg-release-bump.yml`, which can prepare a
-  `microsoft/vcpkg` port update when its fork and credential settings are
-  configured.
-
-Check both workflows; do not assume that the release trigger completed all
-distribution work.
-
-The vcpkg workflow requires repository configuration and a token capable of
-pushing to a fork and opening the upstream PR. If those credentials are
-intentionally unavailable, manually:
+Check that workflow; do not assume that the release trigger completed all
+distribution work. The vcpkg port update is manual; there is no automated
+vcpkg PR workflow or repository token requirement for port preparation.
 
 1. Branch from current `microsoft/vcpkg` `master`.
-2. Update `ports/cpp-client-telemetry/portfile.cmake` to the new tag and source
-   archive SHA512.
-3. Update and format the port manifest.
-4. Run `vcpkg x-add-version cpp-client-telemetry --overwrite-version`.
-5. Build the production port from the published archive, not from a local SDK
-   source override.
-6. Commit the port and version-database changes and open a
-   `microsoft/vcpkg` PR.
+2. From the released SDK checkout, use the
+   [port preparation helper](building-with-vcpkg.md#promoting-features-on-release)
+   to copy the complete overlay port and set the new release version and source
+   archive SHA512. Include the manifest and feature wiring, not just the tag.
+3. Format the port manifest and build the production port from the published
+   archive with `MATSDK_VCPKG_SOURCE_DIR` unset, not from a local SDK override.
+4. Commit the port changes.
+5. Run `vcpkg x-add-version cpp-client-telemetry --overwrite-version`.
+6. Commit the version-database changes and manually open a `microsoft/vcpkg` PR.
 
 Coordinate updates to other maintained distribution channels, including
 CocoaPods, when the release is expected to be available there. Validate each
