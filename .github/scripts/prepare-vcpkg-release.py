@@ -11,7 +11,7 @@ def prepare_port(source_port, destination_port, version, sha512):
     if not re.fullmatch(r"\d+\.\d+\.\d+\.\d+", version):
         raise ValueError("Expected a four-component SDK release version")
     if not re.fullmatch(r"[0-9a-fA-F]{128}", sha512):
-        raise ValueError("Expected a 128-digit archive SHA512")
+        raise ValueError("Expected a 128-character hexadecimal SHA512")
     source_port = source_port.resolve()
     destination_port = destination_port.resolve()
     if destination_port.name != "cpp-client-telemetry" or destination_port.parent.name != "ports":

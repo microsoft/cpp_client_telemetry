@@ -105,6 +105,15 @@ class ReleasePortTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Destination"):
             PREPARE.prepare_port(self.source, self.destination.parent, "3.10.999.1", "a" * 128)
 
+    def test_describes_invalid_sha512_as_hexadecimal_characters(self):
+        for sha512 in ("a" * 127, "a" * 129, "g" * 128):
+            with self.subTest(sha512=sha512):
+                with self.assertRaisesRegex(
+                    ValueError, "^Expected a 128-character hexadecimal SHA512$"
+                ):
+                    PREPARE.prepare_port(self.source, self.destination, "3.10.999.1", sha512)
+                self.assertTrue((self.destination / "obsolete.patch").exists())
+
     def test_rejects_overlapping_ports(self):
         with self.assertRaisesRegex(ValueError, "overlap"):
             PREPARE.prepare_port(self.source, self.source, "3.10.999.1", "a" * 128)
