@@ -26,8 +26,6 @@ class CompactBinaryProtocolReader {
     size_t m_ofs;
 
   public:
-    static constexpr uint32_t MAX_CONTAINER_ELEMENTS = 64 * 1024;
-
     CompactBinaryProtocolReader(std::vector<uint8_t> const& input)
       : m_input(input),
         m_ofs(0)
@@ -221,7 +219,6 @@ class CompactBinaryProtocolReader {
 
         elementType = (raw & 31);
         return ReadUInt32(size) &&
-               size <= MAX_CONTAINER_ELEMENTS &&
                size <= m_input.size() - m_ofs;
     }
 
@@ -230,7 +227,6 @@ class CompactBinaryProtocolReader {
         return ReadUInt8(keyType) && (keyType >> 5 == 0) &&
                ReadUInt8(valueType) && (valueType >> 5 == 0) &&
                ReadUInt32(size) &&
-               size <= MAX_CONTAINER_ELEMENTS &&
                size <= (m_input.size() - m_ofs) / 2;
     }
 

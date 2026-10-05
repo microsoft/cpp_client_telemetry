@@ -4,7 +4,6 @@
 //
 
 #include "sysinfo_utils_apple.hpp"
-#include "utils/Utils.hpp"
 #import <Foundation/Foundation.h>
 #include <TargetConditionals.h>
 #import <sys/utsname.h>
@@ -35,13 +34,13 @@ std::string GetDeviceModel()
         NSString* modelId = NSProcessInfo.processInfo.environment[@"SIMULATOR_MODEL_IDENTIFIER"];
         if (modelId.length > 0)
         {
-            return MAT::boundedSystemInfo([modelId UTF8String]);
+            return std::string([modelId UTF8String]);
         }
 
         NSString* fallbackModel = [[UIDevice currentDevice] model];
         if (fallbackModel.length > 0)
         {
-            return MAT::boundedSystemInfo([fallbackModel UTF8String]);
+            return std::string([fallbackModel UTF8String]);
         }
 
         return {};
@@ -51,7 +50,7 @@ std::string GetDeviceModel()
         if (uname(&systemInfo) < 0)
         {
 		    // Fallback to UIDevice in case of error
-		    deviceModel = MAT::boundedSystemInfo([[[UIDevice currentDevice] model] UTF8String]);
+		    deviceModel = [[[UIDevice currentDevice] model] UTF8String];
         }
         else
         {
@@ -97,14 +96,14 @@ std::string GetDeviceOsVersion()
 {
     // Previous implementation pointed to "ProductVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
     // systemVersion returns string in this same format
-    return MAT::boundedSystemInfo([[[UIDevice currentDevice] systemVersion] UTF8String]);
+    return std::string { [[[UIDevice currentDevice] systemVersion] UTF8String] };
 }
 
 std::string GetDeviceOsRelease()
 {
     // Previous implementation pointed to "ProductUserVisibleVersion" on SystemVersion.plist, returning version string in format <major>.<minor>.<patch>
     // systemVersion returns string in this same format
-    return MAT::boundedSystemInfo([[[UIDevice currentDevice] systemVersion] UTF8String]);
+    return std::string { [[[UIDevice currentDevice] systemVersion] UTF8String] };
 }
 
 std::string GetDeviceClass() {

@@ -120,12 +120,6 @@ namespace PAL_NS_BEGIN {
         {
             return{};
         }
-        if (dwVersionInfoSize > MAX_SYSTEM_INFO_BLOB_SIZE)
-        {
-            LOG_WARN("Executable version resource exceeds %zu bytes; rejecting", MAX_SYSTEM_INFO_BLOB_SIZE);
-            return {};
-        }
-
         buffer.resize(dwVersionInfoSize);
 
         if (GetFileVersionInfo(applicationFullPath.data(), 0, dwVersionInfoSize, &buffer[0]) == 0)

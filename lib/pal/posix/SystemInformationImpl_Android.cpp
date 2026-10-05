@@ -6,7 +6,6 @@
 #include <jni.h>
 #include "pal/PAL.hpp"
 #include "pal/SystemInformationImpl.hpp"
-#include "utils/Utils.hpp"
 
 #include <string>
 
@@ -29,7 +28,8 @@ namespace PAL_NS_BEGIN {
         static void setValue(JNIEnv *env, std::string & s, jstring js)
         {
             const char *start = env->GetStringUTFChars(js, nullptr);
-            s = MAT::boundedSystemInfo(start);
+            auto end = start + env->GetStringUTFLength(js);
+            s = std::string(start, end);
             env->ReleaseStringUTFChars(js, start);
         }
 
@@ -102,7 +102,7 @@ namespace PAL_NS_BEGIN {
 
             jstring packageNameJstr = reinterpret_cast<jstring>(pEnv->CallObjectMethod(activity, getPackageNameMid));
             jStr = pEnv->GetStringUTFChars(packageNameJstr, &isCopy);
-            std::string packageName = MAT::boundedSystemInfo(jStr);
+            std::string packageName = jStr;
             pEnv->ReleaseStringUTFChars(packageNameJstr, jStr);
 
             std::string versionName;
@@ -114,7 +114,7 @@ namespace PAL_NS_BEGIN {
                     pEnv->GetObjectField(packageInfo, versionNameFid));
 
                 jStr = pEnv->GetStringUTFChars(versionNameJstr, &isCopy);
-                versionName = MAT::boundedSystemInfo(jStr);
+                versionName = jStr;
                 pEnv->ReleaseStringUTFChars(versionNameJstr, jStr);
             }
             pEnv->ExceptionClear();
@@ -122,7 +122,7 @@ namespace PAL_NS_BEGIN {
             jobject defaultLocale = pEnv->CallStaticObjectMethod(localeClass, getDefaultLocaleMid);
             jstring launguageTagJstr = reinterpret_cast<jstring>(pEnv->CallObjectMethod(defaultLocale, toLanguageTagMid));
             jStr = pEnv->GetStringUTFChars(launguageTagJstr, &isCopy);
-            std::string languageTag = MAT::boundedSystemInfo(jStr);
+            std::string languageTag = jStr;
             pEnv->ReleaseStringUTFChars(launguageTagJstr, jStr);
             if (SDK_INT < 21)
             {
@@ -131,19 +131,19 @@ namespace PAL_NS_BEGIN {
 
             jstring versionReleaseJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(buildVersionClass, releaseFid));
             jStr = pEnv->GetStringUTFChars(versionReleaseJstr, &isCopy);
-            std::string versionRelease = MAT::boundedSystemInfo(jStr);
+            std::string versionRelease = jStr;
             pEnv->ReleaseStringUTFChars(versionReleaseJstr, jStr);
 
             jstring versionIncrementalJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(buildVersionClass, incrementalFid));
             jStr = pEnv->GetStringUTFChars(versionIncrementalJstr, &isCopy);
-            std::string versionIncremental = MAT::boundedSystemInfo(jStr);
+            std::string versionIncremental = jStr;
             pEnv->ReleaseStringUTFChars(versionIncrementalJstr, jStr);
             std::string osVersion = versionRelease + " " + versionIncremental;
 
             AndroidSystemInformationConnector::s_app_id = std::move(packageName);
             AndroidSystemInformationConnector::s_app_language = std::move(languageTag);
             AndroidSystemInformationConnector::s_app_version = std::move(versionName);
-            AndroidSystemInformationConnector::s_os_full_version = MAT::boundedSystemInfo(osVersion.c_str());
+            AndroidSystemInformationConnector::s_os_full_version = std::move(osVersion);
             AndroidSystemInformationConnector::s_os_major_version = std::move(versionRelease);
             AndroidSystemInformationConnector::s_device_class = (std::move(device_class));
         }

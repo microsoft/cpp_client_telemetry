@@ -5,7 +5,6 @@
 
 #include "sysinfo_utils_apple.hpp"
 #include "pal/PAL.hpp"
-#include "utils/Utils.hpp"
 #include <sys/sysctl.h>
 #include <unistd.h>
 #ifndef MATSDK_DISABLE_DEVICE_ID
@@ -25,15 +24,15 @@ std::string GetDeviceModel()
     std::string deviceModel { };
     if (sysctlbyname(query, nullptr, &size, nullptr, 0) == 0)
     {
-        if (size == 0 || size > MAT::MAX_SYSTEM_INFO_SOURCE_SIZE)
+        if (size == 0)
         {
-            LOG_WARN("Device model exceeds system information source limit or is empty");
+            LOG_WARN("Device model length is empty");
             return {};
         }
         deviceModelBuffer.resize(size + 1, '\0');
         if (sysctlbyname(query, deviceModelBuffer.data(), &size, nullptr, 0) == 0)
         {
-            deviceModel = MAT::boundedSystemInfo(deviceModelBuffer.data());
+            deviceModel = deviceModelBuffer.data();
         }
     }
 

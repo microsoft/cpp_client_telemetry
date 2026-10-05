@@ -142,17 +142,12 @@ namespace MAT_NS_BEGIN
         uint64_t& sessionFirstTimeLaunch,
         std::string& sessionSDKUid)
     {
-        if (content.size() > MAX_FILE_CONTENTS_SIZE)
-        {
-            LOG_WARN("Session data exceeds %zu bytes; rejecting", MAX_FILE_CONTENTS_SIZE);
-            return false;
-        }
         if (content.empty()) {
             return false;
         }
         std::vector<std::string> v;
         StringUtils::SplitString(content, '\n', v);
-        if (v.size() != 3 || !v[2].empty()) {
+        if (v.size() != 3) {
            return false;
         }
         remove_eol(v[0]);

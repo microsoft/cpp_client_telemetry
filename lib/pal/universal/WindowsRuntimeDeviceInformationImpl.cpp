@@ -55,8 +55,8 @@ namespace PAL_NS_BEGIN {
                     m_os_architecture = WindowsEnvironmentInfo::GetProcessorArchitecture();
 
                     auto easClientDeviceInformation = ref new ::Windows::Security::ExchangeActiveSyncProvisioning::EasClientDeviceInformation();
-                    m_model = BoundedFromPlatformString(easClientDeviceInformation->SystemProductName);
-                    m_manufacturer = BoundedFromPlatformString(easClientDeviceInformation->SystemManufacturer);
+                    m_model = FromPlatformString(easClientDeviceInformation->SystemProductName);
+                    m_manufacturer = FromPlatformString(easClientDeviceInformation->SystemManufacturer);
 
 #ifndef MATSDK_DISABLE_DEVICE_ID
                     bool isNetDetectEnabled = configuration[CFG_BOOL_ENABLE_NET_DETECT];

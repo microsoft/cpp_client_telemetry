@@ -7,6 +7,9 @@
 
 #include <map>
 #include <string>
+#include <cstddef>
+
+static constexpr std::size_t MAX_COMMAND_LINE_SIZE = 4096;
 
 /**
  * System information source path and selector
@@ -43,7 +46,7 @@ protected:
     std::map<std::string, std::string> cache;
 
     /**
-     * Read a bounded node value, select it without regex and store it in cache
+     * Read a node value, select it without regex and store it in cache
      *
      * @param key       Field name
      * @return          true if field value is found and saved in cache

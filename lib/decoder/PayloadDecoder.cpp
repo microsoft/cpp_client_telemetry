@@ -71,11 +71,6 @@ namespace clienttelemetry {
                 size_t length = 0;
                 while (i < request.size())
                 {
-                    if (v.size() >= bond_lite::CompactBinaryProtocolReader::MAX_CONTAINER_ELEMENTS)
-                    {
-                        TEST_LOG_ERROR("Too many records in decoder input");
-                        return {};
-                    }
                     Record result;
                     length = request.size() - i;
                     size_t j = 3;

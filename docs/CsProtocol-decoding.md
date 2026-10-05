@@ -36,10 +36,10 @@ compressed input and the inflated output. Inflation uses a fixed-size work
 buffer and stops before growing the output beyond that limit; it does not
 estimate output size from a presumed compression ratio.
 
-Binary container counts are limited to 65,536 elements and must fit the
-remaining encoded input (at least one byte per sequence element or two bytes
-per map entry). Invalid counts are rejected before generated readers allocate
-their containers. Requests are also limited to 65,536 decoded records.
+Binary container counts must fit the remaining encoded input (at least one
+byte per sequence element or two bytes per map entry). Impossible counts are
+rejected before generated readers allocate their containers; no separate
+fixed element-count or record-count limit is imposed.
 Record-boundary scanning reads the request in place and copies only each
 individual record, so scanning and input copying are linear in request size.
 Decoding failure returns `false` rather than reporting a partial request as

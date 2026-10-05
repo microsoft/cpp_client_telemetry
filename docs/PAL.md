@@ -82,27 +82,24 @@ unspecified.
 This option does not disable session/SDK identifiers or control device IDs
 added independently by the operating system's UTC telemetry pipeline.
 
-## Input size limits
+## Targeted input safeguards
 
-Automatically collected system, device, application, and network-provider
-strings are limited to 4 KiB of UTF-8, without splitting a UTF-8 sequence.
-This does not limit values explicitly supplied by an application through
-event properties or semantic context.
+The SDK bounds the command-line input involved in initialization and buffered
+HTTP responses. It does not impose a blanket metadata limit on system,
+device, application, or network-provider strings, additional limits on
+OS-reported buffer sizes, or a size limit on persisted session files.
 
 | Input | Limit | Oversize behavior |
 | --- | --- | --- |
 | POSIX application identifier | 4 KiB, stopping at the first NUL in `/proc/self/cmdline` | Truncate the executable name; never collect arguments or run a regex |
-| POSIX OS release file and device-ID command output | 64 KiB | Bound the collected prefix and log a warning |
-| OS-sized executable path and device-model buffers | 64 KiB | Reject before allocating |
-| Windows version-resource and adapter-information buffers | 1 MiB | Reject before allocating; retain the existing missing-information fallback |
-| Session sidecar file read through `FileGetContents` | 4 KiB of physical file bytes | Reject the whole file, log a warning, and regenerate session data |
 | HTTP response body | 16 MiB | Fail the request rather than retain an oversized response |
 | HTTP response headers | 64 KiB | Fail the request rather than retain oversized headers |
 
 POSIX OS release values use exact line-key matching rather than recursive
 regular expressions. Curl response headers are also parsed without regex.
-Session files are read in binary mode so CRLF and Ctrl+Z cannot bypass the
-byte limit; session parsing accepts both LF and CRLF line endings.
+Command-line truncation preserves UTF-8 boundaries. Other metadata is not
+truncated by these safeguards. Session files retain the existing platform
+text-read behavior; session parsing accepts both LF and CRLF line endings.
 The header budget includes framing for native raw headers or a minimum
 four-byte allowance per name/value pair. Windows native queries measure raw
 UTF-16/ANSI buffer bytes; WinRT conservatively budgets up to three UTF-8 bytes
@@ -111,9 +108,6 @@ encoded strings, including two bytes for NUL and three per surrogate, before
 JNI additionally checks their encoded byte sizes. OS networking frameworks may
 have their own internal limits; the SDK limits its own copies and streaming
 body reads.
-
-Command output is drained after the stored prefix reaches its limit so closing
-the pipe cannot block behind a child waiting to write to a full pipe.
 
 Caller-provided events retain the existing configured serialized-event,
 upload, and offline-cache size policies; no new per-property limit is applied.

@@ -572,35 +572,35 @@ namespace PAL_NS_BEGIN {
 #ifdef MATSDK_DISABLE_DEVICE_ID
             if (!deviceId.empty())
 #endif
-                context->SetDeviceId(MAT::boundedSystemInfo(deviceId.c_str()));
-            context->SetDeviceModel(MAT::boundedSystemInfo(m_DeviceInformation->GetModel().c_str()));
-            context->SetDeviceMake(MAT::boundedSystemInfo(m_DeviceInformation->GetManufacturer().c_str()));
+                context->SetDeviceId(deviceId);
+            context->SetDeviceModel(m_DeviceInformation->GetModel());
+            context->SetDeviceMake(m_DeviceInformation->GetManufacturer());
         }
 
         if (m_SystemInformation != nullptr)
         {
             // Get SystemInfo common fields
-            context->SetOsVersion(MAT::boundedSystemInfo(m_SystemInformation->GetOsMajorVersion().c_str()));
-            context->SetOsName(MAT::boundedSystemInfo(m_SystemInformation->GetOsName().c_str()));
-            context->SetOsBuild(MAT::boundedSystemInfo(m_SystemInformation->GetOsFullVersion().c_str()));
-            context->SetDeviceClass(MAT::boundedSystemInfo(m_SystemInformation->GetDeviceClass().c_str()));
+            context->SetOsVersion(m_SystemInformation->GetOsMajorVersion());
+            context->SetOsName(m_SystemInformation->GetOsName());
+            context->SetOsBuild(m_SystemInformation->GetOsFullVersion());
+            context->SetDeviceClass(m_SystemInformation->GetDeviceClass());
 
             // AppInfo fields
-            context->SetAppId(MAT::boundedSystemInfo(m_SystemInformation->GetAppId().c_str()));
-            context->SetAppVersion(MAT::boundedSystemInfo(m_SystemInformation->GetAppVersion().c_str()));
-            context->SetAppLanguage(MAT::boundedSystemInfo(m_SystemInformation->GetAppLanguage().c_str()));
+            context->SetAppId(m_SystemInformation->GetAppId());
+            context->SetAppVersion(m_SystemInformation->GetAppVersion());
+            context->SetAppLanguage(m_SystemInformation->GetAppLanguage());
 
             // UserInfo fields.
-            context->SetUserLanguage(MAT::boundedSystemInfo(m_SystemInformation->GetUserLanguage().c_str()));
-            context->SetUserTimeZone(MAT::boundedSystemInfo(m_SystemInformation->GetUserTimeZone().c_str()));
+            context->SetUserLanguage(m_SystemInformation->GetUserLanguage());
+            context->SetUserTimeZone(m_SystemInformation->GetUserTimeZone());
             //context->SetUserAdvertisingId(m_SystemInformation->GetUserAdvertisingId());
 
-            context->SetCommercialId(MAT::boundedSystemInfo(m_SystemInformation->GetCommercialId().c_str()));
+            context->SetCommercialId(m_SystemInformation->GetCommercialId());
         }
         if (m_NetworkInformation != nullptr)
         {
             // Get NetworkInfo common fields
-            context->SetNetworkProvider(MAT::boundedSystemInfo(m_NetworkInformation->GetNetworkProvider().c_str()));
+            context->SetNetworkProvider(m_NetworkInformation->GetNetworkProvider());
             context->SetNetworkCost(m_NetworkInformation->GetNetworkCost());
             context->SetNetworkType(m_NetworkInformation->GetNetworkType());
         }

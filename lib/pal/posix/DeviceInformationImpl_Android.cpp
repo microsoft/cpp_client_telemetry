@@ -5,7 +5,6 @@
 #define LOG_MODULE DBG_API
 #include "pal/PAL.hpp"
 #include "pal/DeviceInformationImpl.hpp"
-#include "utils/Utils.hpp"
 
 #include <jni.h>
 #include <stdio.h>
@@ -204,18 +203,17 @@ namespace PAL_NS_BEGIN {
 
         jStr = pEnv->GetStringUTFChars(androidIdJstr, &isCopy);
         std::string deviceId("a:");
-        deviceId += MAT::boundedSystemInfo(jStr);
-        deviceId = MAT::boundedSystemInfo(deviceId.c_str());
+        deviceId += jStr;
         pEnv->ReleaseStringUTFChars(androidIdJstr, jStr);
         AndroidDeviceInformationConnector::setDeviceId(std::move(deviceId));
 #endif
 
         jStr = pEnv->GetStringUTFChars(manufacturerJstr, &isCopy);
-        std::string manufacturer = MAT::boundedSystemInfo(jStr);
+        std::string manufacturer = jStr;
         pEnv->ReleaseStringUTFChars(manufacturerJstr, jStr);
 
         jStr = pEnv->GetStringUTFChars(modelJstr, &isCopy);
-        std::string model = MAT::boundedSystemInfo(jStr);
+        std::string model = jStr;
         pEnv->ReleaseStringUTFChars(modelJstr, jStr);
 
         AndroidDeviceInformationConnector::setManufacturer(std::move(manufacturer));
@@ -267,14 +265,17 @@ Java_com_microsoft_applications_events_HttpClient_onPowerChange(JNIEnv* env,
     )
     {
         auto start = env->GetStringUTFChars(id, nullptr);
-        PAL::AndroidDeviceInformationConnector::setDeviceId(MAT::boundedSystemInfo(start));
+        auto end = start + env->GetStringUTFLength(id);
+        PAL::AndroidDeviceInformationConnector::setDeviceId(std::string(start, end));
         env->ReleaseStringUTFChars(id, start);
 
         start = env->GetStringUTFChars(manufacturer, nullptr);
-        PAL::AndroidDeviceInformationConnector::setManufacturer(MAT::boundedSystemInfo(start));
+        end = start + env->GetStringUTFLength(manufacturer);
+        PAL::AndroidDeviceInformationConnector::setManufacturer(std::string(start, end));
         env->ReleaseStringUTFChars(manufacturer, start);
 
         start = env->GetStringUTFChars(model, nullptr);
-        PAL::AndroidDeviceInformationConnector::setModel(MAT::boundedSystemInfo(start));
+        end = start + env->GetStringUTFLength(model);
+        PAL::AndroidDeviceInformationConnector::setModel(std::string(start, end));
         env->ReleaseStringUTFChars(model, start);
     }

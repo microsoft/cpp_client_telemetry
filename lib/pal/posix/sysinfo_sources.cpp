@@ -10,7 +10,6 @@
  */
 
 #include "sysinfo_sources_impl.hpp"
-#include "utils/Utils.hpp"
 #include "pal/PAL.hpp"
 
 #include <cstdio>
@@ -78,9 +77,9 @@ std::string get_app_name()
     uint32_t length = static_cast<uint32_t>(appId.size());
     if(_NSGetExecutablePath(&appId[0], &length))
     {
-        if (length == 0 || length > MAT::MAX_SYSTEM_INFO_SOURCE_SIZE)
+        if (length == 0)
         {
-            LOG_WARN("Executable path exceeds system information source limit");
+            LOG_WARN("Executable path length is empty");
             return {};
         }
         appId.resize(length, 0);
@@ -104,29 +103,30 @@ std::string get_app_name()
 inline std::string ReadFile(const char *filename, sysinfo_selector selector)
 {
     using PAL::getMATSDKLogComponent;
-    std::ifstream input(filename, std::ios::binary);
+    auto mode = std::ios::in;
+    if (selector == sysinfo_selector::first_null)
+        mode |= std::ios::binary;
+    std::ifstream input(filename, mode);
     std::string result;
-    const size_t limit = selector == sysinfo_selector::key_value
-        ? MAT::MAX_SYSTEM_INFO_SOURCE_SIZE : MAT::MAX_SYSTEM_INFO_VALUE_SIZE;
     char ch;
-    while (result.size() < limit && input.get(ch))
+    while (input.get(ch))
     {
         if ((selector == sysinfo_selector::first_null && ch == '\0') ||
             (selector == sysinfo_selector::first_line && ch == '\n'))
         {
             return result;
         }
-        result.push_back(ch);
-    }
-    if (input.get(ch))
-    {
-        if ((selector == sysinfo_selector::first_null && ch == '\0') ||
-            (selector == sysinfo_selector::first_line && ch == '\n'))
+        if (selector == sysinfo_selector::first_null && result.size() == MAX_COMMAND_LINE_SIZE)
         {
+            LOG_WARN("Command-line executable exceeds %zu bytes; truncating", MAX_COMMAND_LINE_SIZE);
+            result.push_back(ch);
+            size_t length = MAX_COMMAND_LINE_SIZE;
+            // Avoid cutting a UTF-8 sequence at the command-line boundary.
+            while (length > 0 && (static_cast<unsigned char>(result[length]) & 0xc0) == 0x80)
+                --length;
+            result.resize(length);
             return result;
         }
-        LOG_WARN("System information source exceeds %zu bytes; truncating", limit);
-        // The extra byte lets boundedSystemInfo preserve UTF-8 boundaries.
         result.push_back(ch);
     }
     if (input.bad())
@@ -156,26 +156,16 @@ static std::string Exec(const char* cmd)
         return result;
     }
 
-    bool truncated = false;
     while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr)
     {
         const size_t count = strlen(buffer.data());
-        const size_t remaining = MAT::MAX_SYSTEM_INFO_SOURCE_SIZE - result.size();
-        result.append(buffer.data(), std::min(count, remaining));
-        truncated = truncated || count > remaining;
-        // Drain the pipe even after reaching the cap so pclose cannot deadlock
-        // waiting for a child blocked on a full stdout pipe.
+        result.append(buffer.data(), count);
     }
     if (ferror(pipe.get()))
     {
         LOG_WARN("Unable to read system information command output");
         return {};
     }
-    if (truncated)
-    {
-        LOG_WARN("System information command output exceeds %zu bytes; truncating", MAT::MAX_SYSTEM_INFO_SOURCE_SIZE);
-    }
-
     // Remove EOL. In all use-cases below we don't need it.
     if (!result.empty() && result[result.length()-1]=='\n')
     {
@@ -187,7 +177,7 @@ static std::string Exec(const char* cmd)
 #endif
 
 /**
- * Read a bounded node value, select it without regex and store it in cache
+ * Read a node value, select it without regex and store it in cache
  *
  * @param key       Field name
  * @return          true if field value is found and saved in cache
@@ -208,7 +198,7 @@ bool sysinfo_sources::fetch(std::string key)
         std::string contents = ReadFile(kv.second.path, kv.second.selector);
         if (kv.second.selector != sysinfo_selector::key_value)
         {
-            cache[key] = MAT::boundedSystemInfo(contents.c_str());
+            cache[key] = std::move(contents);
             return true;
         }
         std::istringstream lines(contents);
@@ -227,7 +217,7 @@ bool sysinfo_sources::fetch(std::string key)
             {
                 value = value.substr(1, value.size() - 2);
             }
-            cache[key] = MAT::boundedSystemInfo(value.c_str());
+            cache[key] = std::move(value);
             return true;
         }
     }
@@ -264,8 +254,6 @@ const std::string& sysinfo_sources::get(std::string key)
 {
     if(cache.find(key) == cache.end())
         fetch(key);
-    if (cache[key].size() > MAT::MAX_SYSTEM_INFO_VALUE_SIZE)
-        cache[key] = MAT::boundedSystemInfo(cache[key].c_str());
     return cache[key];
 }
 

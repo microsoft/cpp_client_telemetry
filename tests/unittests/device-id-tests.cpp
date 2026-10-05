@@ -6,7 +6,6 @@
 #include "common/Common.hpp"
 
 #include "api/ContextFieldsProvider.hpp"
-#include "utils/Utils.hpp"
 
 #if !defined(_WIN32) && !defined(ANDROID)
 #include "pal/posix/sysinfo_sources_impl.hpp"
@@ -46,7 +45,7 @@ TEST(DeviceIdTests, SemanticRegistrationPreservesCallerIdWhenCollectionIsDisable
 #ifdef MATSDK_DISABLE_DEVICE_ID
     const std::string expected = callerId;
 #else
-    const std::string expected = boundedSystemInfo(PAL::GetDeviceInformation()->GetDeviceId().c_str());
+    const std::string expected = PAL::GetDeviceInformation()->GetDeviceId();
 #endif
     EXPECT_EQ(std::string(fields.at(COMMONFIELDS_DEVICE_ID).as_string), expected);
 #ifdef MATSDK_DISABLE_DEVICE_ID
@@ -70,7 +69,7 @@ TEST(DeviceIdTests, RegistrationRetainsOtherMetadataWithoutInventingAnId)
     ASSERT_EQ(fields.count(COMMONFIELDS_OS_NAME), 1u);
     ASSERT_EQ(fields.count(COMMONFIELDS_APP_ID), 1u);
     EXPECT_EQ(std::string(fields.at(COMMONFIELDS_OS_NAME).as_string),
-              boundedSystemInfo(PAL::GetSystemInformation()->GetOsName().c_str()));
+              PAL::GetSystemInformation()->GetOsName());
     EXPECT_EQ(std::string(fields.at(COMMONFIELDS_APP_ID).as_string),
-              boundedSystemInfo(PAL::GetSystemInformation()->GetAppId().c_str()));
+              PAL::GetSystemInformation()->GetAppId());
 }

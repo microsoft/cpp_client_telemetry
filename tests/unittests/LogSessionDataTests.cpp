@@ -76,19 +76,14 @@ TEST(LogSessionDataTests, parse_ValidCrlfInput_ReturnsTrue)
    EXPECT_EQ(sessionSDKUid, "bar");
 }
 
-TEST(LogSessionDataTests, parse_TrailingData_ReturnsFalse)
+TEST(LogSessionDataTests, parse_LargeIdentifier_PreservesExistingBehavior)
 {
    TestLogSessionDataProvider provider(PathToTestSesFile);
-   EXPECT_FALSE(provider.parse("1234567890\nbar\nextra", sessionFirstTimeLaunch, sessionSDKUid));
-   EXPECT_FALSE(provider.parse("1234567890\r\nbar\r\n\x1a" "hidden",
+   const std::string identifier(16 * 1024, 'x');
+   ASSERT_TRUE(provider.parse("1234567890\n" + identifier + "\n",
                               sessionFirstTimeLaunch, sessionSDKUid));
-}
-
-TEST(LogSessionDataTests, parse_OversizedInput_ReturnsFalse)
-{
-   TestLogSessionDataProvider provider(PathToTestSesFile);
-   const std::string content = "1234567890\n" + std::string(MAX_FILE_CONTENTS_SIZE, 'x') + "\n";
-   ASSERT_FALSE(provider.parse(content, sessionFirstTimeLaunch, sessionSDKUid));
+   EXPECT_EQ(sessionFirstTimeLaunch, uint64_t{1234567890});
+   EXPECT_EQ(sessionSDKUid, identifier);
 }
 
 TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
@@ -145,15 +140,13 @@ TEST_F(LogSessionFileTests, PreservesExistingCrlfSession)
    EXPECT_EQ(provider.GetLogSessionData()->getSessionSDKUid(), "original-id");
 }
 
-TEST_F(LogSessionFileTests, RegeneratesOversizedSessionWithControlZTail)
+TEST_F(LogSessionFileTests, PreservesLargeSessionIdentifier)
 {
-   write("1234567890\r\noriginal-id\r\n" + std::string(1, '\x1a') +
-         std::string(MAX_FILE_CONTENTS_SIZE, 'x'));
+   const std::string identifier(16 * 1024, 'x');
+   write("1234567890\n" + identifier + "\n");
    TestLogSessionDataProvider provider(cachePath);
    provider.CreateLogSessionData();
    ASSERT_NE(provider.GetLogSessionData(), nullptr);
-   EXPECT_NE(provider.GetLogSessionData()->getSessionFirstTime(), uint64_t{1234567890});
-   EXPECT_NE(provider.GetLogSessionData()->getSessionSDKUid(), "original-id");
-   EXPECT_FALSE(provider.GetLogSessionData()->getSessionSDKUid().empty());
-   EXPECT_LE(FileGetContents(sessionPath.c_str()).size(), MAX_FILE_CONTENTS_SIZE);
+   EXPECT_EQ(provider.GetLogSessionData()->getSessionFirstTime(), uint64_t{1234567890});
+   EXPECT_EQ(provider.GetLogSessionData()->getSessionSDKUid(), identifier);
 }

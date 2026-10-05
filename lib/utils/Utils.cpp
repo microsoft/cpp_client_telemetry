@@ -40,52 +40,6 @@ namespace MAT_NS_BEGIN {
 
 namespace MAT_NS_BEGIN {
 
-    std::string boundedSystemInfo(const char* value)
-    {
-        if (value == nullptr)
-        {
-            return {};
-        }
-        size_t length = 0;
-        while (length <= MAX_SYSTEM_INFO_VALUE_SIZE && value[length] != '\0')
-        {
-            ++length;
-        }
-        if (length > MAX_SYSTEM_INFO_VALUE_SIZE)
-        {
-            LOG_WARN("System information value exceeds %zu bytes; truncating", MAX_SYSTEM_INFO_VALUE_SIZE);
-            length = MAX_SYSTEM_INFO_VALUE_SIZE;
-            // Do not split a UTF-8 sequence at the truncation boundary.
-            while (length > 0 && (static_cast<unsigned char>(value[length]) & 0xc0) == 0x80)
-            {
-                --length;
-            }
-        }
-        return std::string(value, length);
-    }
-
-#ifdef _WIN32
-    std::string boundedSystemInfo(const wchar_t* value)
-    {
-        if (value == nullptr)
-        {
-            return {};
-        }
-        size_t length = 0;
-        while (length <= MAX_SYSTEM_INFO_VALUE_SIZE && value[length] != L'\0')
-            ++length;
-        if (length > MAX_SYSTEM_INFO_VALUE_SIZE)
-        {
-            LOG_WARN("System information value exceeds %zu UTF-16 units; truncating", MAX_SYSTEM_INFO_VALUE_SIZE);
-            length = MAX_SYSTEM_INFO_VALUE_SIZE;
-            if (value[length - 1] >= 0xd800 && value[length - 1] <= 0xdbff)
-                --length;
-        }
-        const std::string utf8 = to_utf8_string(std::wstring(value, length));
-        return boundedSystemInfo(utf8.c_str());
-    }
-#endif
-
     void sleep(unsigned delayMs)
     {
         PAL::sleep(delayMs);
