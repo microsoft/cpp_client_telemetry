@@ -73,6 +73,11 @@ make
 
 Package for your platform is going to be created and placed in ./out directory.
 
+When the optional Azure Monitor module is present and `MATSDK_BUILD_AZMON` and
+`MATSDK_BUILD_FUNC_TESTS` are enabled, CMake includes `AISendTests` in `FuncTests`.
+These loopback tests wait for server notifications and do not require host
+network discovery.
+
 ### Building without C++ exceptions
 
 GCC and Clang can compile the complete SDK with `-fno-exceptions`:
