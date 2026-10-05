@@ -6,6 +6,7 @@ set(SRCS
   AnnexKTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
+  bounded-input-tests.cpp
   ClockSkewManagerTests.cpp
   ContextFieldsProviderTests.cpp
   ControlPlaneProviderTests.cpp

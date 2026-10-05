@@ -97,28 +97,35 @@ namespace MAT_NS_BEGIN
      * Read file contents into std::string.
      *
      * @param       UTF-8 flename
-     * @return      File contents. Supports only UTF-8 or ASCII-encoded text files.
+     * @return      File contents up to MAX_FILE_CONTENTS_SIZE bytes, or empty on
+     *              read failure/oversize. Supports UTF-8 or ASCII text files.
      */
     std::string FileGetContents(const char *filename)
     {
-#ifdef _WIN32
-        char buff[256] = { 0 };
         std::string result;
         FILE* fp = FileOpen(filename, "r");
         if (fp != nullptr)
         {
-            while (fgets(buff, sizeof(buff), fp))
+            char buff[256];
+            size_t count;
+            while ((count = fread(buff, 1, sizeof(buff), fp)) != 0)
             {
-                result += buff;
+                if (count > MAX_FILE_CONTENTS_SIZE - result.size())
+                {
+                    LOG_WARN("File contents exceed %zu bytes; rejecting", MAX_FILE_CONTENTS_SIZE);
+                    FileClose(fp);
+                    return {};
+                }
+                result.append(buff, count);
+            }
+            if (ferror(fp))
+            {
+                LOG_WARN("Unable to read file contents");
+                result.clear();
             }
             FileClose(fp);
         }
         return result;
-#else
-        std::ifstream t(filename);
-        std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-        return str;
-#endif
     }
 
     /**
@@ -170,4 +177,3 @@ namespace MAT_NS_BEGIN
     }
 
 } MAT_NS_END
-

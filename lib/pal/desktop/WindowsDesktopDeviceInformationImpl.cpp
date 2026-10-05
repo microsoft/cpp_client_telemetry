@@ -9,6 +9,7 @@
 #include "pal/PAL.hpp"
 #include "pal/DeviceInformationImpl.hpp"
 #include "utils/StringUtils.hpp"
+#include "utils/Utils.hpp"
 #include "WindowsEnvironmentInfo.hpp"
 
 MATSDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
@@ -61,10 +62,15 @@ namespace PAL_NS_BEGIN {
                  * the ulOutBufLen parameter contains the required buffer size, so we retry with
                  * suggested value of ulOutBufLen, assuming it is bigger than the default.
                  */
-                if (ulOutBufLen > sizeof(IP_ADAPTER_INFO))
+                if (ulOutBufLen > sizeof(IP_ADAPTER_INFO) &&
+                    ulOutBufLen <= MAX_SYSTEM_INFO_BLOB_SIZE)
                 {
                     FREE(pAdapterInfo);
                     goto retry_bigger_buffer;
+                }
+                if (ulOutBufLen > MAX_SYSTEM_INFO_BLOB_SIZE)
+                {
+                    LOG_WARN("Adapter information exceeds %zu bytes; rejecting", MAX_SYSTEM_INFO_BLOB_SIZE);
                 }
             }
             if ((result == ERROR_SUCCESS) && (pAdapterInfo->AdapterName[0] != 0))

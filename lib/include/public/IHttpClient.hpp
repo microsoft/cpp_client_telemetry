@@ -31,6 +31,7 @@ namespace MAT_NS_BEGIN
     /// response and reports the request as a network failure so it is retried.
     /// </summary>
     static constexpr std::size_t MAX_HTTP_RESPONSE_SIZE = 16u * 1024u * 1024u; // 16 MB
+    static constexpr std::size_t MAX_HTTP_RESPONSE_HEADERS_SIZE = 64u * 1024u;
 
     /// <summary>
     /// The HttpHeaders class contains a set of HTTP headers.

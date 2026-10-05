@@ -350,11 +350,25 @@ public:
             simpleResponse->m_statusCode =
                 (httpResp != nil) ? static_cast<unsigned int>(httpResp.statusCode) : 0;
 
+            bool headersTooLarge = false;
+            size_t headerBytes = 0;
             if (httpResp != nil)
             {
                 NSDictionary *responseHeaders = [httpResp allHeaderFields];
                 for (id key in responseHeaders)
                 {
+                    const NSUInteger keyBytes = [key lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+                    const NSUInteger valueBytes = [responseHeaders[key] lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+                    if (4 > MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes ||
+                        keyBytes > MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes - 4 ||
+                        valueBytes > MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes - 4 - keyBytes)
+                    {
+                        LOG_WARN("HTTP response headers exceed %zu bytes; rejecting", MAX_HTTP_RESPONSE_HEADERS_SIZE);
+                        headersTooLarge = true;
+                        simpleResponse->m_headers.clear();
+                        break;
+                    }
+                    headerBytes += keyBytes + valueBytes + 4;
                     const char* keyString = [key UTF8String];
                     const char* valueString = [responseHeaders[key] UTF8String];
                     if (keyString != nullptr && valueString != nullptr)
@@ -367,6 +381,10 @@ public:
             if (cancelRequested)
             {
                 simpleResponse->m_result = HttpResult_Aborted;
+            }
+            else if (headersTooLarge)
+            {
+                simpleResponse->m_result = HttpResult_NetworkFailure;
             }
             else if (error)
             {

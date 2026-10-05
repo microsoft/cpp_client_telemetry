@@ -4,6 +4,8 @@
 //
 
 #include "sysinfo_utils_apple.hpp"
+#include "pal/PAL.hpp"
+#include "utils/Utils.hpp"
 #include <sys/sysctl.h>
 #include <unistd.h>
 #include <uuid/uuid.h>
@@ -14,16 +16,22 @@
 
 std::string GetDeviceModel()
 {
+    using PAL::getMATSDKLogComponent;
     static const char *query = "hw.model";
     size_t size = 0;
     std::vector<char> deviceModelBuffer;
     std::string deviceModel { };
     if (sysctlbyname(query, nullptr, &size, nullptr, 0) == 0)
     {
-        deviceModelBuffer.resize(size);
+        if (size == 0 || size > MAT::MAX_SYSTEM_INFO_SOURCE_SIZE)
+        {
+            LOG_WARN("Device model exceeds system information source limit or is empty");
+            return {};
+        }
+        deviceModelBuffer.resize(size + 1, '\0');
         if (sysctlbyname(query, deviceModelBuffer.data(), &size, nullptr, 0) == 0)
         {
-            deviceModel = deviceModelBuffer.data();
+            deviceModel = MAT::boundedSystemInfo(deviceModelBuffer.data());
         }
     }
 

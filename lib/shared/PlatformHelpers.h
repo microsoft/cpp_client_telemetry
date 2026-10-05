@@ -225,6 +225,13 @@ namespace Microsoft {
                     return std::string();
                 }
 
+#ifdef _WINRT_DLL
+                inline std::string BoundedFromPlatformString(String^ platformString)
+                {
+                    return MAT::boundedSystemInfo(platformString == nullptr ? nullptr : platformString->Data());
+                }
+#endif
+
                 inline String^ ToPlatformString(const std::string& string)
                 {
                     return platform_new String(UTF8ToWstring(string).c_str());

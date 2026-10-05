@@ -11,6 +11,8 @@
 
 namespace MAT_NS_BEGIN
 {
+    static constexpr size_t MAX_FILE_CONTENTS_SIZE = 4096;
+
     size_t      FileGetSize(const char* filename);
     int         FileDelete(const char* filename);
     std::FILE*  FileOpen(const char* filename, const char *mode);
@@ -22,4 +24,3 @@ namespace MAT_NS_BEGIN
 } MAT_NS_END
 
 #endif
-

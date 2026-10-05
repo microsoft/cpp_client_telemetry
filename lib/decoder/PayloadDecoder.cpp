@@ -71,6 +71,11 @@ namespace clienttelemetry {
                 size_t length = 0;
                 while (i < request.size())
                 {
+                    if (v.size() >= bond_lite::CompactBinaryProtocolReader::MAX_CONTAINER_ELEMENTS)
+                    {
+                        TEST_LOG_ERROR("Too many records in decoder input");
+                        return {};
+                    }
                     Record result;
                     length = request.size() - i;
                     std::vector<uint8_t> test(request.data() + i, request.data() + i + length);
@@ -97,7 +102,7 @@ namespace clienttelemetry {
                     }
                     if (!found)
                     {
-                        j += 1;
+                        j = length + 1;
                     }
                     std::vector<uint8_t> input(request.data() + i, request.data() + i + j - 1);
                     bond_lite::CompactBinaryProtocolReader reader(input);
@@ -105,12 +110,11 @@ namespace clienttelemetry {
                     if (!Deserialize(reader, result, false))
                     {
                         TEST_LOG_ERROR("Deserialization failed!");
-                        goto fail;
+                        return {};
                     }
                     i += j - 1;
                     v.push_back(result);
                 }
-            fail:
                 return v;
             }
 
@@ -542,6 +546,11 @@ namespace MAT_NS_BEGIN {
         bool DecodeRequest(const std::vector<uint8_t>& in, std::string& out, bool compressed)
         {
             out.clear();
+            if (in.size() > ZlibUtils::MAX_INFLATED_SIZE)
+            {
+                TEST_LOG_ERROR("Request exceeds decoder size limit");
+                return false;
+            }
 
             std::vector<uint8_t> buffer;
             if (compressed)

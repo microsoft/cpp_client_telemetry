@@ -11,10 +11,24 @@
 /**
  * System information source path and selector
  */
-typedef struct {
+enum class sysinfo_selector
+{
+    raw,
+    first_line,
+    first_null,
+    key_value
+};
+
+struct sysinfo_source_t {
     const char * path;
-    const char * selector;
-} sysinfo_source_t;
+    sysinfo_selector selector;
+    const char* name;
+
+    sysinfo_source_t(const char* path, sysinfo_selector selector, const char* name = nullptr)
+        : path(path), selector(selector), name(name)
+    {
+    }
+};
 
 /**
  * Helper class to retrieve various key-value pairs from system info sources.
@@ -29,7 +43,7 @@ protected:
     std::map<std::string, std::string> cache;
 
     /**
-     * Read node value, preprocess it using regexp and store result in cache
+     * Read a bounded node value, select it without regex and store it in cache
      *
      * @param key       Field name
      * @return          true if field value is found and saved in cache
@@ -60,4 +74,3 @@ public:
 };
 
 #endif /* LIB_PAL_POSIX_SYSINFO_SOURCES_HPP_ */
-

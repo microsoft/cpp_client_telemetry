@@ -4,9 +4,26 @@
 //
 #include "common/Common.hpp"
 #include "PayloadDecoder.hpp"
+#include "utils/ZlibUtils.hpp"
 
 using namespace testing;
 using namespace MAT;
+
+TEST(PayloadDecoderTests, RejectsOversizedRequestsBeforeCopying)
+{
+    std::vector<uint8_t> input(ZlibUtils::MAX_INFLATED_SIZE + 1, 0);
+    std::string output = "previous";
+    EXPECT_FALSE(exporters::DecodeRequest(input, output, false));
+    EXPECT_TRUE(output.empty());
+}
+
+TEST(PayloadDecoderTests, RejectsShortMalformedInputWithoutReadingPastTheEnd)
+{
+    const std::vector<uint8_t> input {0xff};
+    std::string output;
+    EXPECT_FALSE(exporters::DecodeRequest(input, output, false));
+    EXPECT_TRUE(output.empty());
+}
 
 namespace
 {

@@ -120,6 +120,11 @@ namespace PAL_NS_BEGIN {
         {
             return{};
         }
+        if (dwVersionInfoSize > MAX_SYSTEM_INFO_BLOB_SIZE)
+        {
+            LOG_WARN("Executable version resource exceeds %zu bytes; rejecting", MAX_SYSTEM_INFO_BLOB_SIZE);
+            return {};
+        }
 
         buffer.resize(dwVersionInfoSize);
 
@@ -190,10 +195,17 @@ namespace PAL_NS_BEGIN {
         const PCSTR c_dataCollection_Key = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection";
         const PCSTR c_commercialId = "CommercialId";
         DWORD size = sizeof(buff);
-        if (RegGetValueA(HKEY_LOCAL_MACHINE, c_groupPolicyDataCollection_Key, c_commercialId, RRF_RT_REG_SZ, NULL, static_cast<char*>(buff), &size) != ERROR_SUCCESS)
+        LSTATUS result = RegGetValueA(HKEY_LOCAL_MACHINE, c_groupPolicyDataCollection_Key, c_commercialId, RRF_RT_REG_SZ, NULL, static_cast<char*>(buff), &size);
+        if (result != ERROR_SUCCESS)
         {
             size = sizeof(buff);
-            RegGetValueA(HKEY_LOCAL_MACHINE, c_dataCollection_Key, c_commercialId, RRF_RT_REG_SZ, NULL, static_cast<char*>(buff), &size);
+            result = RegGetValueA(HKEY_LOCAL_MACHINE, c_dataCollection_Key, c_commercialId, RRF_RT_REG_SZ, NULL, static_cast<char*>(buff), &size);
+        }
+        if (result != ERROR_SUCCESS)
+        {
+            if (result == ERROR_MORE_DATA)
+                LOG_WARN("Commercial identifier exceeds system information buffer; rejecting");
+            return {};
         }
         return buff;
     }
@@ -242,9 +254,10 @@ namespace PAL_NS_BEGIN {
         HMODULE handle = nullptr;
         if (::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &handle) != FALSE)
         {
-            if (::GetModuleFileNameA(handle, &buff[0], MAX_PATH) > 0)
+            DWORD length = ::GetModuleFileNameA(handle, &buff[0], MAX_PATH);
+            if (length > 0 && length < MAX_PATH)
             {
-                std::string  app_name(buff);
+                std::string app_name(buff, length);
                 size_t pos_dot = app_name.rfind(".");
                 size_t pos_slash = app_name.rfind("\\");
                 if ((pos_dot != std::string::npos) && (pos_slash != std::string::npos) && (pos_dot > pos_slash))
@@ -252,6 +265,10 @@ namespace PAL_NS_BEGIN {
                     app_name = app_name.substr(pos_slash + 1, (pos_dot - pos_slash) - 1);
                 }
                 appId = app_name;
+            }
+            else if (length == MAX_PATH)
+            {
+                LOG_WARN("Executable name exceeds application information buffer; rejecting");
             }
         }
         else
@@ -315,4 +332,3 @@ namespace PAL_NS_BEGIN {
     }
 
 } PAL_NS_END
-

@@ -1309,7 +1309,13 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 DWORD headerErr = headersQueried ? ERROR_SUCCESS : ::GetLastError();
                 if (!headersQueried && headerErr == ERROR_INSUFFICIENT_BUFFER && headerBytes > 0)
                 {
-                    if (headerBytes % sizeof(wchar_t) != 0)
+                    if (headerBytes > MAX_HTTP_RESPONSE_HEADERS_SIZE)
+                    {
+                        LOG_WARN("HTTP response headers exceed %zu bytes; rejecting", MAX_HTTP_RESPONSE_HEADERS_SIZE);
+                        response->m_result = HttpResult_NetworkFailure;
+                        response->m_body.clear();
+                    }
+                    else if (headerBytes % sizeof(wchar_t) != 0)
                     {
                         LOG_WARN("WinHttpQueryHeaders(RAW_HEADERS_CRLF) returned an invalid byte count: %lu", headerBytes);
                     }
@@ -1368,6 +1374,7 @@ class WinHttpRequestWrapper : public std::enable_shared_from_this<WinHttpRequest
                 case ERROR_WINHTTP_REDIRECT_FAILED:
                 case ERROR_WINHTTP_INVALID_SERVER_RESPONSE:
                 case ERROR_WINHTTP_RESPONSE_DRAIN_OVERFLOW:
+                case ERROR_WINHTTP_HEADER_SIZE_OVERFLOW:
                     response->m_result = HttpResult_NetworkFailure;
                     break;
 

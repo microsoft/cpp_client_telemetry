@@ -38,7 +38,7 @@ namespace PAL_NS_BEGIN {
         {
             auto version = Package::Current->Id->Version;
 
-            m_app_id = FromPlatformString(Package::Current->Id->Name);
+            m_app_id = BoundedFromPlatformString(Package::Current->Id->Name);
             m_app_version = std::to_string(version.Major) + "." + std::to_string(version.Minor) + "." + std::to_string(version.Build) + "." + std::to_string(version.Revision);
         }
         else
@@ -49,7 +49,7 @@ namespace PAL_NS_BEGIN {
         m_user_language = "en";
         try {
             if (GlobalizationPreferences::Languages->Size)
-                m_user_language = FromPlatformString(GlobalizationPreferences::Languages->GetAt(0));
+                m_user_language = BoundedFromPlatformString(GlobalizationPreferences::Languages->GetAt(0));
             m_user_timezone = WindowsEnvironmentInfo::GetTimeZone();
         }
         catch (AccessDeniedException^)
@@ -62,7 +62,7 @@ namespace PAL_NS_BEGIN {
 
         try
         {
-            m_user_advertising_id = FromPlatformString(AdvertisingManager::AdvertisingId);
+            m_user_advertising_id = BoundedFromPlatformString(AdvertisingManager::AdvertisingId);
         }
         catch (Exception^)
         {
@@ -105,7 +105,7 @@ namespace PAL_NS_BEGIN {
             m_os_major_version = "10.0";
         }
 
-        if (FromPlatformString(AnalyticsInfo::VersionInfo->DeviceFamily) == DeviceFamily_Mobile)
+        if (BoundedFromPlatformString(AnalyticsInfo::VersionInfo->DeviceFamily) == DeviceFamily_Mobile)
         {
             m_os_name = WindowsPhoneOSName;
         }
@@ -123,7 +123,7 @@ namespace PAL_NS_BEGIN {
         catch (...) {
             //CTDEBUGLOG("Language detection may not be reliable!");
         }
-        m_app_language = FromPlatformString(primaryLanguage);
+        m_app_language = BoundedFromPlatformString(primaryLanguage);
         // CTDEBUGLOG("m_app_language=%s", m_app_language.c_str());
     }
 

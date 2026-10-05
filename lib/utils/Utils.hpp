@@ -55,6 +55,16 @@ namespace std
 
 namespace MAT_NS_BEGIN {
 
+    static constexpr size_t MAX_SYSTEM_INFO_VALUE_SIZE = 4096;
+    static constexpr size_t MAX_SYSTEM_INFO_SOURCE_SIZE = 64 * 1024;
+    static constexpr size_t MAX_SYSTEM_INFO_BLOB_SIZE = 1024 * 1024;
+
+    // Bounds SDK-collected UTF-8 metadata, not caller-supplied event properties.
+    std::string boundedSystemInfo(const char* value);
+#ifdef _WIN32
+    std::string boundedSystemInfo(const wchar_t* value);
+#endif
+
     const char* getMATSDKLogComponent();
 
     typedef std::chrono::milliseconds ms;
@@ -99,4 +109,3 @@ namespace MAT_NS_BEGIN {
 } MAT_NS_END
 
 #endif
-

@@ -28,3 +28,21 @@ Please refer to usage examples:
 
 * EventDecoderListener.cpp [EventDecoderListener::DecodeBuffer](../tests/functests/EventDecoderListener.cpp) for HTTP(s) request - Package of Records decoding
 * APITest.cpp [UTC_Callback_Test](../tests/functests/APITest.cpp) for Common Schema Record decoding
+
+## Decoder input limits
+
+Diagnostic request decoding rejects inputs larger than 64 MiB, including
+compressed input and the inflated output. Inflation uses a fixed-size work
+buffer and stops before growing the output beyond that limit; it does not
+estimate output size from a presumed compression ratio.
+
+Binary container counts are limited to 65,536 elements and must fit the
+remaining encoded input (at least one byte per sequence element or two bytes
+per map entry). Invalid counts are rejected before generated readers allocate
+their containers. Requests are also limited to 65,536 decoded records.
+Decoding failure returns `false` rather than reporting a partial request as
+success; partial inflation output
+must not be used after a failed call.
+
+These diagnostic limits do not change the event submission API or its
+configured serialized-event size policy.

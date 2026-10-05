@@ -6,6 +6,7 @@
 #include "common/Common.hpp"
 #include "offline/LogSessionDataProvider.hpp"
 #include <LogSessionData.hpp>
+#include "utils/FileUtils.hpp"
 
 using namespace testing;
 using namespace Microsoft::Applications::Events;
@@ -65,6 +66,13 @@ TEST(LogSessionDataTests, parse_ValidInput_ReturnsTrue)
    ASSERT_TRUE(logSessionDataProvider.parse(std::string { "1234567890\nbar\n" }, sessionFirstTimeLaunch, sessionSDKUid));
    ASSERT_EQ(sessionFirstTimeLaunch, (uint64_t)1234567890);
    ASSERT_EQ(sessionSDKUid, "bar");
+}
+
+TEST(LogSessionDataTests, parse_OversizedInput_ReturnsFalse)
+{
+   TestLogSessionDataProvider provider(PathToTestSesFile);
+   const std::string content = "1234567890\n" + std::string(MAX_FILE_CONTENTS_SIZE, 'x') + "\n";
+   ASSERT_FALSE(provider.parse(content, sessionFirstTimeLaunch, sessionSDKUid));
 }
 
 TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
