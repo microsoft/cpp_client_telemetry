@@ -2,6 +2,8 @@ name: Vcpkg release bump
 
 # Opens a version-bump pull request against microsoft/vcpkg for the
 # `cpp-client-telemetry` port whenever a new SDK release is published.
+# Promotes the complete overlay from that release tag so new features and
+# their build wiring reach the registry alongside the version bump.
 #
 # It runs ONLY when a new version is cut:
 #   * automatically on a published, non-draft, non-prerelease GitHub Release
@@ -107,6 +109,14 @@ jobs:
           echo "sha512=${SHA512}" >> "$GITHUB_OUTPUT"
           echo "SHA512=${SHA512}"
 
+      - name: Check out the released SDK packaging
+        if: ${{ steps.ver.outputs.skip != 'true' }}
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ steps.ver.outputs.tag }}
+          path: sdk-release
+          persist-credentials: false
+
       - name: Clone vcpkg fork and branch off upstream master
         if: ${{ steps.ver.outputs.skip != 'true' }}
         env:
@@ -130,22 +140,22 @@ jobs:
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics
 
-      - name: Update port REF, SHA512 and version
+      - name: Promote release port, REF, SHA512 and version
         if: ${{ steps.ver.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
-          cd vcpkg
-          PORTFILE="ports/${PORT}/portfile.cmake"
-          MANIFEST="ports/${PORT}/vcpkg.json"
-          if [ ! -f "${PORTFILE}" ] || [ ! -f "${MANIFEST}" ]; then
+          PORT_DIR="vcpkg/ports/${PORT}"
+          if [ ! -f "${PORT_DIR}/portfile.cmake" ] || [ ! -f "${PORT_DIR}/vcpkg.json" ]; then
             echo "::error::${PORT} port not found in ${VCPKG_UPSTREAM}. The port must already be in the registry before it can be bumped."
             exit 1
           fi
-          sed -i -E "s|^([[:space:]]*REF[[:space:]]+).*$|\1${{ steps.ver.outputs.tag }}|" "${PORTFILE}"
-          sed -i -E "s|^([[:space:]]*SHA512[[:space:]]+).*$|\1${{ steps.sha.outputs.sha512 }}|" "${PORTFILE}"
-          jq --arg v "${{ steps.ver.outputs.version }}" '.version = $v | del(."port-version")' "${MANIFEST}" > "${MANIFEST}.tmp"
-          mv "${MANIFEST}.tmp" "${MANIFEST}"
-          ./vcpkg format-manifest "${MANIFEST}"
+          python3 sdk-release/.github/scripts/prepare-vcpkg-release.py \
+            --source-port "sdk-release/tools/ports/${PORT}" \
+            --destination-port "${PORT_DIR}" \
+            --version "${{ steps.ver.outputs.version }}" \
+            --sha512 "${{ steps.sha.outputs.sha512 }}"
+          cd vcpkg
+          ./vcpkg format-manifest "ports/${PORT}/vcpkg.json"
 
       - name: Validate updated production port
         if: ${{ steps.ver.outputs.skip != 'true' }}

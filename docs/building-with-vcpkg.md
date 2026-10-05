@@ -29,7 +29,12 @@ That's it! The package should be compiled for the current OS.
 
 The overlay port shipped in this repository is for **development only** — use it
 to test local changes to the port, or a newer SDK revision, before they are
-published to the registry:
+published to the registry.
+
+Feature availability in the registry depends on the packaged SDK release.
+In particular, `minimal-sqlite` and `android-curl-openssl` are available in this
+overlay but are not yet exposed by the registry port. Until the next release
+and its registry update land, use the overlay for those features.
 
 ```console
 git clone https://github.com/microsoft/cpp_client_telemetry
@@ -448,6 +453,30 @@ unchanged against the minimal build.
 > single SQLite.
 
 ## How It Works
+
+### Promoting features on release
+
+The release port update copies the **complete overlay port from the release
+tag**, not from the current development branch. It then replaces the archive
+`REF`, `SHA512`, and manifest version, removes any old `port-version`, and
+validates the pinned release build. This carries feature declarations and their
+CMake wiring together, including `minimal-sqlite` and the explicit Android curl
+backends. The release tag must contain the packaging helper and both features;
+older tags without them cannot use this promotion workflow.
+
+For a manual registry update, the same preparation can be run from the released
+SDK checkout against a local vcpkg checkout:
+
+```console
+python .github/scripts/prepare-vcpkg-release.py --source-port tools/ports/cpp-client-telemetry --destination-port <vcpkg>/ports/cpp-client-telemetry --version X.Y.Z.W --sha512 <release-archive-sha512>
+```
+
+Run `vcpkg format-manifest` on the resulting manifest and validate the downloaded
+release with `MATSDK_VCPKG_SOURCE_DIR` unset before submitting the registry PR.
+This preparation does not require a GitHub token; maintainers can submit the
+registry PR manually after cutting the SDK release.
+
+### Dependency and transport selection
 
 The SDK consumes canonical CMake dependency targets. The vcpkg toolchain
 provides those targets through normal `find_package()` discovery; no separate
