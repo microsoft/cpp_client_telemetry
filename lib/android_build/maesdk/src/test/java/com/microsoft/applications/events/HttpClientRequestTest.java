@@ -22,6 +22,11 @@ import static org.junit.Assert.*;
 
 public class HttpClientRequestTest {
     @Test
+    public void disabledDeviceIdDoesNotAccessAndroidContext() {
+        Assert.assertEquals("", HttpClient.calculateID(null, false));
+    }
+
+    @Test
     public void acceptsExactlyFullResponseBody() throws IOException {
         byte[] body = new byte[Request.MAX_HTTP_RESPONSE_SIZE];
         Assert.assertArrayEquals(body, Request.readResponseBody(new ByteArrayInputStream(body)));

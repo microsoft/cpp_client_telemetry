@@ -126,7 +126,11 @@ TEST(ContextFieldsProviderTests, UsesPalValues)
     ::CsProtocol::Record record;
     ctx.writeToRecord(record);
 
+#ifdef MATSDK_DISABLE_DEVICE_ID
+    EXPECT_THAT(record.extDevice[0].localId, IsEmpty());
+#else
     EXPECT_THAT(record.extDevice[0].localId, Not(IsEmpty()));
+#endif
     //EXPECT_THAT(record.extDevice[0].authSecId,   Not(IsEmpty()));
     //EXPECT_THAT(record.data[0].properties["DeviceInfo.NetworkType"].stringValue, Not(IsEmpty()));
     EXPECT_THAT(record.extOs[0].name, Not(IsEmpty()));

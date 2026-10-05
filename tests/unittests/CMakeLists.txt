@@ -13,6 +13,7 @@ set(SRCS
   CorrelationVectorTests.cpp
   DebugEventSourceTests.cpp
   DeviceStateHandlerTests.cpp
+  device-id-tests.cpp
   DiskLocalStorageTests.cpp
   EventFilterCollectionTests.cpp
   EventPropertiesDecoratorTests.cpp

@@ -55,7 +55,7 @@
 #include "TargetConditionals.h"
 #include "sysinfo_utils_apple.hpp"
 
-#ifdef TARGET_MAC_OS 
+#if defined(TARGET_MAC_OS) && !defined(MATSDK_DISABLE_DEVICE_ID)
 
 #include <IOKit/IOKitLib.h>
 
@@ -142,13 +142,7 @@ inline std::string ReadFile(const char *filename, sysinfo_selector selector)
  * @param cmd Command to execute
  * @return output
  */
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"  // Used on non-Apple platforms. See sysinfo_sources_impl()
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-function"  // Used on non-Apple platforms. See sysinfo_sources_impl()
-#endif
+#if !defined(__APPLE__) && !defined(MATSDK_DISABLE_DEVICE_ID)
 static std::string Exec(const char* cmd)
 {
     using PAL::getMATSDKLogComponent;
@@ -190,10 +184,6 @@ static std::string Exec(const char* cmd)
 
     return result;
 }
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif
 
 /**
@@ -288,7 +278,9 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     uname(&buf);
 #if defined(__linux__)
     // Obtain Linux system information from filesystem
+#ifndef MATSDK_DISABLE_DEVICE_ID
     add("devId", { "/etc/machine-id", sysinfo_selector::raw});
+#endif
     add("osName", {"/etc/os-release", sysinfo_selector::key_value, "ID"});
     add("osVer", {"/etc/os-release", sysinfo_selector::key_value, "VERSION_ID"});
     add("osRel", {"/etc/os-release", sysinfo_selector::key_value, "VERSION"});
@@ -325,7 +317,9 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
 
 #if defined(__MINGW32__) || defined(__MSYS__)
     // Obtain MinGW Device ID from registry
+#ifndef MATSDK_DISABLE_DEVICE_ID
     add("devId",    { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/ComputerHardwareId", sysinfo_selector::raw});
+#endif
     add("devMake",  { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemManufacturer", sysinfo_selector::raw});
     add("devModel", { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemProductName", sysinfo_selector::raw});
 #endif
@@ -378,6 +372,7 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     cache["appId"] = get_app_name();
 #endif
 
+#ifndef MATSDK_DISABLE_DEVICE_ID
     if (!get("devId").compare(""))
     {
 #ifdef __APPLE__
@@ -405,5 +400,6 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
         }
 #endif
     }
+#endif
 
 }

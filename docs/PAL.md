@@ -59,6 +59,25 @@
 
 ## Remote configuration (ECS client)
 
+## Device-ID collection
+
+`MATSDK_ENABLE_DEVICE_ID` defaults to `ON`. Configure with
+`-DMATSDK_ENABLE_DEVICE_ID=OFF` to compile out the SDK's native device-ID
+collectors, including machine-ID reads, fallback shell commands, adapter
+queries, host UUIDs, and vendor/Android identifiers. Other system and device
+metadata remain enabled. The macOS build also stops linking the ID-specific
+IOKit framework; dependencies still used by other features remain.
+
+Without a supplied ID, `DeviceInfo.Id` is omitted rather than replaced with a
+placeholder. Applications can still supply their own ID through
+`ISemanticContext::SetDeviceId`; registration does not overwrite it with an
+empty automatically collected ID. Android's Java bridge consults the native
+build setting before accessing `ANDROID_ID`; use the matching Java bridge
+sources with the native SDK.
+
+This option does not disable session/SDK identifiers or control device IDs
+added independently by the operating system's UTC telemetry pipeline.
+
 ## Input size limits
 
 Automatically collected system, device, application, and network-provider

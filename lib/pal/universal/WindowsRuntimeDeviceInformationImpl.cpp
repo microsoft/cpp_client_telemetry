@@ -58,6 +58,7 @@ namespace PAL_NS_BEGIN {
                     m_model = BoundedFromPlatformString(easClientDeviceInformation->SystemProductName);
                     m_manufacturer = BoundedFromPlatformString(easClientDeviceInformation->SystemManufacturer);
 
+#ifndef MATSDK_DISABLE_DEVICE_ID
                     bool isNetDetectEnabled = configuration[CFG_BOOL_ENABLE_NET_DETECT];
                     m_device_id = DEFAULT_DEVICE_ID;
 
@@ -86,6 +87,7 @@ namespace PAL_NS_BEGIN {
                         // Workaround for Windows OS bug VSO: 11314171 - sometimes NetworkInformation triggers exception
                         m_device_id = DEFAULT_DEVICE_ID;
                     }
+#endif
 
 #ifdef _WIN32_WINNT_WIN10
 #else // Windows 8.1 SDK

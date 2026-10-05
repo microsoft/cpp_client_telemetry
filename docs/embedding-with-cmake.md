@@ -29,6 +29,12 @@ Set it explicitly to `ON` in consumer CI to test new toolchains strictly.
 Set `MATSDK_DISABLE_LOGGING=ON` to compile the SDK's internal diagnostic
 logging out. This does not disable telemetry event collection or upload.
 
+Set `MATSDK_ENABLE_DEVICE_ID=OFF` before adding the SDK to compile out native
+device-ID collection while retaining other metadata. It defaults to `ON`.
+Applications can still set their own ID through `ISemanticContext::SetDeviceId`;
+without one, `DeviceInfo.Id` is omitted. See [device-ID collection](PAL.md#device-id-collection)
+for platform details and the distinction from session/SDK identifiers.
+
 ## SQLite and zlib providers
 
 Source builds can select dependency modes without patching 1DS sources:

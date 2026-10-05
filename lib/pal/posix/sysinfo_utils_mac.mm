@@ -8,7 +8,9 @@
 #include "utils/Utils.hpp"
 #include <sys/sysctl.h>
 #include <unistd.h>
+#ifndef MATSDK_DISABLE_DEVICE_ID
 #include <uuid/uuid.h>
+#endif
 #include <vector>
 #import <Foundation/Foundation.h>
 
@@ -45,6 +47,7 @@ std::string GetDeviceOsName()
 
 std::string GetDeviceId()
 {
+#ifndef MATSDK_DISABLE_DEVICE_ID
     uuid_t uuidBytes;
     const struct timespec spec = {1, 0};
     int hostUUIDResult = gethostuuid(uuidBytes, &spec);
@@ -57,6 +60,9 @@ std::string GetDeviceId()
     }
 
     return {EMPTY_GUID};
+#else
+    return {};
+#endif
 }
 
 std::string GetDeviceOsVersion()

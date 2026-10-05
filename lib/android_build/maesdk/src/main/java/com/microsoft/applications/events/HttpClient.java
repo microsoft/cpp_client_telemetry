@@ -227,7 +227,7 @@ public class HttpClient {
     String path = System.getProperty("java.io.tmpdir");
     setCacheFilePath(path);
     if (configuration.isInitializeDeviceInfo()) {
-      setDeviceInfo(calculateID(context), Build.MANUFACTURER, Build.MODEL);
+      setDeviceInfo(calculateID(context, isDeviceIdCollectionEnabled()), Build.MANUFACTURER, Build.MODEL);
     }
     calculateAndSetSystemInfo(context);
     m_executor = createExecutor();
@@ -317,7 +317,10 @@ public class HttpClient {
         device_class);
   }
 
-  private String calculateID(android.content.Context context) {
+  static String calculateID(android.content.Context context, boolean collectDeviceId) {
+    if (!collectDeviceId) {
+      return "";
+    }
     // The definition of ANDROID_ID changed in API 26.
     // https://developer.android.com/reference/android/provider/Settings.Secure#ANDROID_ID
 
@@ -378,6 +381,8 @@ public class HttpClient {
   public native void onPowerChange(boolean isCharging, boolean isLow);
 
   public native void setDeviceInfo(String id, String manufacturer, String model);
+
+  public native boolean isDeviceIdCollectionEnabled();
 
   public native void setSystemInfo(
       String app_id,

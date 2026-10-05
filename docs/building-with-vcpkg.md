@@ -57,6 +57,46 @@ project's `vcpkg.json`:
 
 ## Platform-Specific Instructions
 
+### Disabling SDK device-ID collection
+
+The in-repo overlay port has a default-enabled `device-id` feature, mapped to
+the default-on CMake option `MATSDK_ENABLE_DEVICE_ID`. To supply your own
+`DeviceInfo.Id` without running the SDK's native collectors, omit that feature
+and explicitly retain the other features you need:
+
+```json
+{
+  "dependencies": [
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false,
+      "features": ["curl-openssl", "system-sqlite"]
+    }
+  ]
+}
+```
+
+For classic mode:
+
+```console
+vcpkg install "cpp-client-telemetry[core,curl-openssl,system-sqlite]" --overlay-ports=tools/ports
+```
+
+`curl-openssl` affects Linux only; Android still defaults to Java transport.
+`[core,...]` and `default-features: false` drop **all** defaults, including
+`device-id`. Add `device-id` explicitly when combining non-default features
+but wanting to retain native ID collection.
+
+vcpkg features are additive across the dependency graph: another dependency
+requesting `device-id` (or the default features) re-enables collection. Ensure
+all requests for this port agree when opting out.
+
+The official registry requires a port update pointing to an SDK release
+containing this option; existing registry versions do not expose the feature.
+Until then, use this repository's overlay port and source checkout. The port
+rejects an opt-out against an older SDK rather than silently collecting an ID.
+For direct CMake builds, use `-DMATSDK_ENABLE_DEVICE_ID=OFF`.
+
 ### Windows
 
 ```powershell

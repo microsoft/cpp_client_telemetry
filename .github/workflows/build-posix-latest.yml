@@ -49,6 +49,49 @@ jobs:
     - name: Test ${{ matrix.os }} ${{ matrix.config }}
       run: ./build-tests.sh ${{ matrix.config }}
 
+  device-id-optout:
+    name: Device-ID opt-out (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-2022]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Initialize googletest
+      run: git submodule update --init --depth=1 third_party/googletest
+    - name: Configure without native device-ID collection
+      shell: pwsh
+      run: |
+        $options = @(
+          "-S", ".", "-B", "out-device-id-off",
+          "-DCMAKE_BUILD_TYPE=Debug",
+          "-DMATSDK_ENABLE_DEVICE_ID=OFF",
+          "-DMATSDK_BUILD_UNIT_TESTS=ON",
+          "-DMATSDK_BUILD_FUNC_TESTS=OFF",
+          "-DMATSDK_BUILD_TEST_TOOL=OFF",
+          "-DMATSDK_BUILD_PACKAGE=OFF"
+        )
+        if ($env:RUNNER_OS -eq "Windows") {
+          $options += "-DCMAKE_CXX_FLAGS_INIT=/EHsc"
+        }
+        cmake @options
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    - name: Build
+      run: cmake --build out-device-id-off --config Debug --target UnitTests --parallel 2
+    - name: Run affected and adjacent suites
+      shell: pwsh
+      run: |
+        $binary = "out-device-id-off/tests/unittests/UnitTests"
+        if ($env:RUNNER_OS -eq "Windows") {
+          $binary = "out-device-id-off\tests\unittests\Debug\UnitTests.exe"
+        }
+        & $binary "--gtest_filter=DeviceIdTests.*:ContextFieldsProviderTests.*:BoundedInputTests.*:PalTests.*:SysInfoUtilsTests.*"
+        exit $LASTEXITCODE
+    - name: Verify vcpkg feature mapping
+      run: cmake -P tests/vcpkg/device-id-feature-tests.cmake
+
   public-headers:
     name: Public header gate (GCC/Clang)
     runs-on: ubuntu-latest
