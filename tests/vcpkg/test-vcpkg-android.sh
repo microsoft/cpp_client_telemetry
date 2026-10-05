@@ -1,8 +1,9 @@
 #!/bin/bash
 # Test script: Verify cpp-client-telemetry vcpkg port for Android (cross-compile only)
-# Usage: ./tests/vcpkg/test-vcpkg-android.sh [ABI] [API_LEVEL]
+# Usage: ./tests/vcpkg/test-vcpkg-android.sh [ABI] [API_LEVEL] [FEATURES]
 #   ABI: arm64-v8a (default), armeabi-v7a, x86_64, x86
 #   API_LEVEL: 23 (default), 28, or another level with a matching overlay triplet
+#   FEATURES: default, minimal-sqlite, or minimal-sqlite;android-curl-{openssl,mbedtls}
 # Prerequisites: VCPKG_ROOT set, ANDROID_NDK_HOME set, cmake, ninja
 set -e
 
@@ -17,6 +18,18 @@ export MATSDK_VCPKG_SOURCE_DIR="${REPO_ROOT}"
 # Android ABI/API (defaults match the repo's Android minSdk)
 ANDROID_ABI="${1:-arm64-v8a}"
 ANDROID_API="${2:-23}"
+MANIFEST_ARGS=()
+case "${3:-default}" in
+  default) ;;
+  minimal-sqlite|"minimal-sqlite;android-curl-openssl"|"minimal-sqlite;android-curl-mbedtls")
+    MANIFEST_ARGS=(-DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON "-DVCPKG_MANIFEST_FEATURES=${3}")
+    ;;
+  *)
+    echo "ERROR: Unsupported feature set '${3}'. Use default, minimal-sqlite,"
+    echo "       minimal-sqlite;android-curl-openssl, or minimal-sqlite;android-curl-mbedtls."
+    exit 1
+    ;;
+esac
 
 # Map ABI to vcpkg triplet
 case "${ANDROID_ABI}" in
@@ -97,6 +110,7 @@ cmake -G Ninja -S "${SCRIPT_DIR}" -B "${BUILD_DIR}/consumer" \
   -DCMAKE_TOOLCHAIN_FILE="${VCPKG_TOOLCHAIN}" \
   -DVCPKG_TARGET_TRIPLET="${TRIPLET}" \
   -DVCPKG_OVERLAY_PORTS="${OVERLAY_PORTS}" \
+  "${MANIFEST_ARGS[@]}" \
   "${OVERLAY_TRIPLETS_ARGS[@]}" \
   -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake" \
   -DANDROID_ABI="${ANDROID_ABI}" \
