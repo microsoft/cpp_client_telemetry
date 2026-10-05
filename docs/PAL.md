@@ -102,9 +102,11 @@ byte limit; session parsing accepts both LF and CRLF line endings.
 The header budget includes framing for native raw headers or a minimum
 four-byte allowance per name/value pair. Windows native queries measure raw
 UTF-16/ANSI buffer bytes; WinRT conservatively budgets up to three UTF-8 bytes
-per UTF-16 unit. Android bounds Java strings before JNI additionally checks
-their encoded byte sizes. OS networking frameworks may have their own
-internal limits; the SDK limits its own copies and streaming body reads.
+per UTF-16 unit. Android counts JNI modified UTF-8 bytes without allocating
+encoded strings, including two bytes for NUL and three per surrogate, before
+JNI additionally checks their encoded byte sizes. OS networking frameworks may
+have their own internal limits; the SDK limits its own copies and streaming
+body reads.
 
 Command output is drained after the stored prefix reaches its limit so closing
 the pipe cannot block behind a child waiting to write to a full pipe.

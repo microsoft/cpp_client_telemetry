@@ -108,22 +108,36 @@ class Request implements HttpClientRequest {
 
   static String[] readResponseHeaders(Map<String, List<String>> headers) throws IOException {
     Vector<String> result = new Vector<>();
-    int size = 0;
+    int remaining = MAX_HTTP_RESPONSE_HEADERS_SIZE;
     for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
       if (entry.getKey() != null) {
         for (String value : entry.getValue()) {
-          // Pre-bound Java strings before JNI checks their encoded byte sizes.
-          long count = (long) entry.getKey().length() + value.length() + 4;
-          if (count > MAX_HTTP_RESPONSE_HEADERS_SIZE - size) {
+          if (remaining < 4) {
             throw new IOException("HTTP response headers exceed buffered size limit");
           }
-          size += (int) count;
+          remaining = remainingHeaderBytes(entry.getKey(), remaining - 4);
+          remaining = remainingHeaderBytes(value, remaining);
           result.add(entry.getKey());
           result.add(value);
         }
       }
     }
     return result.toArray(new String[0]);
+  }
+
+  private static int remainingHeaderBytes(String value, int remaining) throws IOException {
+    if (value.length() > remaining) {
+      throw new IOException("HTTP response headers exceed buffered size limit");
+    }
+    for (int i = 0; i < value.length(); ++i) {
+      // Match JNI modified UTF-8: NUL uses two bytes and each surrogate uses three.
+      char c = value.charAt(i);
+      remaining -= c != 0 && c <= 0x7f ? 1 : c <= 0x7ff ? 2 : 3;
+      if (remaining < 0) {
+        throw new IOException("HTTP response headers exceed buffered size limit");
+      }
+    }
+    return remaining;
   }
 
   Request(
