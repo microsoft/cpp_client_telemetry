@@ -12,16 +12,25 @@ def prepare_port(source_port, destination_port, version, sha512):
         raise ValueError("Expected a four-component SDK release version")
     if not re.fullmatch(r"[0-9a-fA-F]{128}", sha512):
         raise ValueError("Expected a 128-digit archive SHA512")
+    source_port = source_port.resolve()
+    destination_port = destination_port.resolve()
     if destination_port.name != "cpp-client-telemetry" or destination_port.parent.name != "ports":
         raise ValueError("Destination must be a ports/cpp-client-telemetry directory")
-    source_path = source_port.resolve()
-    destination_path = destination_port.resolve()
     if (
-        source_path == destination_path
-        or source_path in destination_path.parents
-        or destination_path in source_path.parents
+        source_port == destination_port
+        or source_port in destination_port.parents
+        or destination_port in source_port.parents
     ):
         raise ValueError("Source and destination ports must not overlap")
+    vcpkg_root = destination_port.parent.parent
+    if (
+        not (vcpkg_root / ".vcpkg-root").is_file()
+        or not (vcpkg_root / "scripts" / "buildsystems" / "vcpkg.cmake").is_file()
+    ):
+        raise ValueError(
+            "Destination must belong to a vcpkg checkout containing "
+            ".vcpkg-root and scripts/buildsystems/vcpkg.cmake"
+        )
 
     manifest = json.loads((source_port / "vcpkg.json").read_text(encoding="utf-8"))
     if manifest["name"] != "cpp-client-telemetry":

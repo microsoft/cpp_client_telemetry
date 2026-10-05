@@ -463,7 +463,9 @@ carries feature declarations and their CMake wiring together, including
 `minimal-sqlite` and the explicit Android curl backends. Run it from the released
 SDK checkout against a separate vcpkg checkout outside the SDK source tree.
 Start with a clean vcpkg working tree: the helper replaces the destination port,
-including existing patches.
+including existing patches. Before replacing it, the helper resolves the
+destination and requires both `.vcpkg-root` and
+`scripts/buildsystems/vcpkg.cmake` in the inferred vcpkg checkout.
 The helper requires Python 3.10 or newer and uses only the standard library.
 Pass the four-component version **without** its `v` prefix and the SHA512 of the
 published GitHub source `.tar.gz` archive, not an xcframework, AAR, or ZIP:

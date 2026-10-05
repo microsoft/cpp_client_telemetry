@@ -25,6 +25,14 @@ class ReleasePortTests(unittest.TestCase):
         self.source.mkdir(parents=True)
         self.destination = root / "vcpkg" / "ports" / "cpp-client-telemetry"
         self.destination.mkdir(parents=True)
+        vcpkg_root = self.destination.parent.parent
+        self.checkout_markers = (
+            vcpkg_root / ".vcpkg-root",
+            vcpkg_root / "scripts" / "buildsystems" / "vcpkg.cmake",
+        )
+        for marker in self.checkout_markers:
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.touch()
         (self.destination / "obsolete.patch").write_text("old patch", encoding="utf-8")
         self.manifest = json.loads(
             (REPO_ROOT / "tools" / "ports" / "cpp-client-telemetry" / "vcpkg.json").read_text(
@@ -101,6 +109,36 @@ class ReleasePortTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "overlap"):
             PREPARE.prepare_port(self.source, self.source, "3.10.999.1", "a" * 128)
         self.assertTrue((self.source / "portfile.cmake").exists())
+
+    def test_rejects_lookalike_non_vcpkg_destination_without_deleting_files(self):
+        lookalike = Path(self.temporary.name) / "other-project" / "ports" / "cpp-client-telemetry"
+        lookalike.mkdir(parents=True)
+        sentinel = lookalike / "keep.txt"
+        sentinel.write_text("unrelated project", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "vcpkg checkout"):
+            PREPARE.prepare_port(self.source, lookalike, "3.10.999.1", "a" * 128)
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "unrelated project")
+        self.assertEqual(list(lookalike.iterdir()), [sentinel])
+
+    def test_requires_both_checkout_markers_before_replacing_port(self):
+        for marker in self.checkout_markers:
+            with self.subTest(marker=marker.name):
+                marker.unlink()
+                with self.assertRaisesRegex(ValueError, "vcpkg checkout"):
+                    self.prepare()
+                self.assertEqual(
+                    (self.destination / "obsolete.patch").read_text(encoding="utf-8"), "old patch"
+                )
+                marker.touch()
+
+    def test_validates_and_replaces_the_resolved_destination(self):
+        alias = self.destination / ".." / "cpp-client-telemetry"
+        PREPARE.prepare_port(self.source, alias, "3.10.999.1", "a" * 128)
+        self.assertFalse((self.destination / "obsolete.patch").exists())
+        self.assertEqual(
+            json.loads((self.destination / "vcpkg.json").read_text(encoding="utf-8"))["version"],
+            "3.10.999.1",
+        )
 
 
 if __name__ == "__main__":
