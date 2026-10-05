@@ -78,12 +78,11 @@ namespace clienttelemetry {
                     }
                     Record result;
                     length = request.size() - i;
-                    std::vector<uint8_t> test(request.data() + i, request.data() + i + length);
                     size_t j = 3;
                     bool found = false;
                     while (j < length)
                     {
-                        while (j < length && test[j] != '\x3')
+                        while (j < length && request[i + j] != '\x3')
                         {
                             j++;
                         }
@@ -91,7 +90,7 @@ namespace clienttelemetry {
                         {
                             if (j + 2 < length)
                             {
-                                if (test[j + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && test[j + 2] == '.')
+                                if (request[i + j + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && request[i + j + 2] == '.')
                                 {
                                     found = true;
                                     break;

@@ -40,6 +40,8 @@ Binary container counts are limited to 65,536 elements and must fit the
 remaining encoded input (at least one byte per sequence element or two bytes
 per map entry). Invalid counts are rejected before generated readers allocate
 their containers. Requests are also limited to 65,536 decoded records.
+Record-boundary scanning reads the request in place and copies only each
+individual record, so scanning and input copying are linear in request size.
 Decoding failure returns `false` rather than reporting a partial request as
 success; partial inflation output
 must not be used after a failed call.

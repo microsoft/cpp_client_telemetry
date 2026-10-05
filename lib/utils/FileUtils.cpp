@@ -103,7 +103,7 @@ namespace MAT_NS_BEGIN
     std::string FileGetContents(const char *filename)
     {
         std::string result;
-        FILE* fp = FileOpen(filename, "r");
+        FILE* fp = FileOpen(filename, "rb");
         if (fp != nullptr)
         {
             char buff[256];

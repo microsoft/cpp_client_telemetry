@@ -91,12 +91,14 @@ event properties or semantic context.
 | POSIX OS release file and device-ID command output | 64 KiB | Bound the collected prefix and log a warning |
 | OS-sized executable path and device-model buffers | 64 KiB | Reject before allocating |
 | Windows version-resource and adapter-information buffers | 1 MiB | Reject before allocating; retain the existing missing-information fallback |
-| Session sidecar file read through `FileGetContents` | 4 KiB | Reject the whole file, log a warning, and regenerate session data |
+| Session sidecar file read through `FileGetContents` | 4 KiB of physical file bytes | Reject the whole file, log a warning, and regenerate session data |
 | HTTP response body | 16 MiB | Fail the request rather than retain an oversized response |
 | HTTP response headers | 64 KiB | Fail the request rather than retain oversized headers |
 
 POSIX OS release values use exact line-key matching rather than recursive
 regular expressions. Curl response headers are also parsed without regex.
+Session files are read in binary mode so CRLF and Ctrl+Z cannot bypass the
+byte limit; session parsing accepts both LF and CRLF line endings.
 The header budget includes framing for native raw headers or a minimum
 four-byte allowance per name/value pair. Windows native queries measure raw
 UTF-16/ANSI buffer bytes; WinRT conservatively budgets up to three UTF-8 bytes

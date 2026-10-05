@@ -80,6 +80,30 @@ TEST_F(BoundedInputTests, RejectsOversizedFilesInsteadOfParsingAPrefix)
     EXPECT_TRUE(FileGetContents(path.c_str()).empty());
 }
 
+TEST_F(BoundedInputTests, CountsPhysicalCrlfBytesAtTheFileLimit)
+{
+    std::string exact;
+    for (size_t i = 0; i < MAX_FILE_CONTENTS_SIZE / 2; ++i)
+    {
+        exact += "\r\n";
+    }
+    write(exact);
+    EXPECT_EQ(FileGetContents(path.c_str()), exact);
+    write(exact + "x");
+    EXPECT_TRUE(FileGetContents(path.c_str()).empty());
+}
+
+TEST_F(BoundedInputTests, DoesNotTreatControlZAsEndOfFile)
+{
+    const std::string prefix = "1234567890\r\noriginal-id\r\n";
+    const std::string exact = prefix + '\x1a' +
+                              std::string(MAX_FILE_CONTENTS_SIZE - prefix.size() - 1, 'x');
+    write(exact);
+    EXPECT_EQ(FileGetContents(path.c_str()), exact);
+    write(exact + "x");
+    EXPECT_TRUE(FileGetContents(path.c_str()).empty());
+}
+
 TEST_F(BoundedInputTests, RejectsImpossibleContainerCountsBeforeAllocation)
 {
     const std::vector<uint8_t> input = {bond_lite::BT_STRING, 0xff, 0xff, 0xff, 0xff, 0x0f};

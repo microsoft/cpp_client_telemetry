@@ -152,7 +152,7 @@ namespace MAT_NS_BEGIN
         }
         std::vector<std::string> v;
         StringUtils::SplitString(content, '\n', v);
-        if (v.size() != 3) {
+        if (v.size() != 3 || !v[2].empty()) {
            return false;
         }
         remove_eol(v[0]);
@@ -215,6 +215,10 @@ namespace MAT_NS_BEGIN
     void LogSessionDataProvider::remove_eol(std::string& result) noexcept
     {
         if (!result.empty() && result[result.length() - 1] == '\n')
+        {
+            result.erase(result.length() - 1);
+        }
+        if (!result.empty() && result[result.length() - 1] == '\r')
         {
             result.erase(result.length() - 1);
         }
