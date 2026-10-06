@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "HttpClient_Android.hpp"
+#include "pal/PAL.hpp"
 #include <algorithm>
 #include <cstdio>
 #include <jni.h>
@@ -545,6 +546,8 @@ extern "C" JNIEXPORT void
         jobjectArray headers,
         jbyteArray body)
 {
+    using PAL::getMATSDKLogComponent;
+
     size_t id_length = env->GetStringUTFLength(id);
     auto id_utf = env->GetStringUTFChars(id, nullptr);
     std::string id_string(id_utf, id_utf + id_length);
@@ -560,23 +563,48 @@ extern "C" JNIEXPORT void
     auto response = new Microsoft::Applications::Events::HttpClient_Android::HttpResponse(request->GetId());
     response->SetResponse(statusCode);
 
+    size_t headerBytes = 0;
+    bool oversized = false;
     size_t n_headers = env->GetArrayLength(headers);
     for (size_t i = 0; (i + 1u) < n_headers; i += 2)
     {
         auto k = static_cast<jstring>(env->GetObjectArrayElement(headers, i));
         auto v = static_cast<jstring>(env->GetObjectArrayElement(headers, i + 1));
+        const size_t keyBytes = env->GetStringUTFLength(k);
+        const size_t valueBytes = env->GetStringUTFLength(v);
+        if (4 > MAT::MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes ||
+            keyBytes > MAT::MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes - 4 ||
+            valueBytes > MAT::MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes - 4 - keyBytes)
+        {
+            LOG_WARN("HTTP response headers exceed %zu bytes; rejecting", MAT::MAX_HTTP_RESPONSE_HEADERS_SIZE);
+            env->DeleteLocalRef(k);
+            env->DeleteLocalRef(v);
+            oversized = true;
+            break;
+        }
+        headerBytes += keyBytes + valueBytes + 4;
         const char* k_utf = env->GetStringUTFChars(k, nullptr);
-        std::string key(k_utf, env->GetStringUTFLength(k));
+        std::string key(k_utf, keyBytes);
         env->ReleaseStringUTFChars(k, k_utf);
         const char* v_utf = env->GetStringUTFChars(v, nullptr);
-        std::string value(v_utf, env->GetStringUTFLength(v));
+        std::string value(v_utf, valueBytes);
         env->ReleaseStringUTFChars(v, v_utf);
+        env->DeleteLocalRef(k);
+        env->DeleteLocalRef(v);
         response->AddHeader(std::move(key), std::move(value));
     }
-    auto body_pointer = env->GetByteArrayElements(body, nullptr);
-    response->SetBody(env->GetArrayLength(body),
-                      reinterpret_cast<uint8_t*>(body_pointer));
-    env->ReleaseByteArrayElements(body, body_pointer, JNI_ABORT);
+    const size_t bodyBytes = env->GetArrayLength(body);
+    if (oversized || bodyBytes > MAT::MAX_HTTP_RESPONSE_SIZE)
+    {
+        LOG_WARN("HTTP response exceeds buffered size limits; rejecting");
+        response->SetResult(MAT::HttpResult_NetworkFailure);
+    }
+    else if (bodyBytes != 0)
+    {
+        auto body_pointer = env->GetByteArrayElements(body, nullptr);
+        response->SetBody(bodyBytes, reinterpret_cast<uint8_t*>(body_pointer));
+        env->ReleaseByteArrayElements(body, body_pointer, JNI_ABORT);
+    }
     // callback will own response
     callback->OnHttpResponse(response);
 }

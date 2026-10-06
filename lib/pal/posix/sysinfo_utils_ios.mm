@@ -73,6 +73,7 @@ std::string GetDeviceOsName()
 
 std::string GetDeviceId()
 {
+#ifndef MATSDK_DISABLE_DEVICE_ID
     @autoreleasepool {
         NSUUID *nsuuid = [[UIDevice currentDevice] identifierForVendor];
         if (nsuuid)
@@ -86,6 +87,9 @@ std::string GetDeviceId()
             return emptyString;
         }
     }
+#else
+    return {};
+#endif
 }
 
 std::string GetDeviceOsVersion()

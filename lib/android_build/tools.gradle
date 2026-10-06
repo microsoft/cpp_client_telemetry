@@ -6,6 +6,13 @@ android {
     defaultConfig {
       minSdk 23
       targetSdk 34
+      externalNativeBuild {
+        cmake {
+          arguments "-DMATSDK_ENABLE_DEVICE_ID=" +
+              (project.findProperty("MATSDK_ENABLE_DEVICE_ID") ?:
+                  System.getenv("MATSDK_ENABLE_DEVICE_ID") ?: "ON")
+        }
+      }
     }
 }
 

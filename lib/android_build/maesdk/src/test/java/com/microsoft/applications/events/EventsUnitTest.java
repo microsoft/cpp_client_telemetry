@@ -15,10 +15,12 @@ import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.os.BatteryManager;
+import android.util.Log;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -49,6 +51,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -151,6 +154,7 @@ public class EventsUnitTest {
             else {
                 byte[] emptiness = {};
                 assertArrayEquals(emptiness, body);
+                assertEquals(0, headers.length);
             }
         }
 
@@ -163,6 +167,11 @@ public class EventsUnitTest {
         protected ExecutorService createExecutor()
         {
             return mockExecutor;
+        }
+
+        @Override
+        public boolean isDeviceIdCollectionEnabled() {
+            return true;
         }
 
         @Override
@@ -363,7 +372,8 @@ public class EventsUnitTest {
 
         when(mockUrl.openConnection()).thenReturn(mockConnection);
         when(mockConnection.getOutputStream()).thenReturn(mockBodyStream);
-        when(mockConnection.getResponseCode()).thenThrow(new IOException("Space Aliens"));
+        IOException failure = new IOException("Space Aliens");
+        when(mockConnection.getResponseCode()).thenThrow(failure);
         connectMocks();
         int previousDispatch = dispatchCount.get();
         Stubby stubs = new Stubby(mockContext);
@@ -378,8 +388,11 @@ public class EventsUnitTest {
         );
         assertNotNull(task);
         assertEquals(previousDispatch, dispatchCount.get());
-        expectedResponse = 0;
-        task.run();
+        expectedResponse = -1;
+        try (MockedStatic<Log> log = mockStatic(Log.class)) {
+            task.run();
+            log.verify(() -> Log.e("MAE", "HTTP response failed", failure));
+        }
         assertEquals(previousDispatch + 1, dispatchCount.get());
         assertFalse(task.isCancelled());
         assertTrue(task.isDone());
@@ -388,6 +401,32 @@ public class EventsUnitTest {
         } catch (Exception e) {
             fail(e.toString());
         }
+    }
+
+    @Test
+    public void responseReadExceptionDoesNotRetainSuccessfulStatus() throws java.io.IOException, PackageManager.NameNotFoundException {
+        when(mockUrl.openConnection()).thenReturn(mockConnection);
+        when(mockConnection.getOutputStream()).thenReturn(mockBodyStream);
+        when(mockConnection.getResponseCode()).thenReturn(200);
+        Map<String, List<String>> headerMap = new TreeMap<>();
+        headerMap.put("foo", java.util.Collections.singletonList("bar"));
+        when(mockConnection.getHeaderFields()).thenReturn(headerMap);
+        IOException failure = new IOException("Response read failed");
+        when(mockConnection.getInputStream()).thenThrow(failure);
+        connectMocks();
+        int previousDispatch = dispatchCount.get();
+        Stubby stubs = new Stubby(mockContext);
+        FutureTask<Boolean> task = stubs.createTask(
+                "https://www.contoso.com", "POST", new byte[] {0, 1, 2},
+                "failed-response", new int[] {4, 3}, new byte[] {0, 1, 2, 3, 7, 8, 9}
+        );
+        expectedResponse = -1;
+        try (MockedStatic<Log> log = mockStatic(Log.class)) {
+            task.run();
+            log.verify(() -> Log.e("MAE", "HTTP response failed", failure));
+        }
+        assertEquals(previousDispatch + 1, dispatchCount.get());
+        assertTrue(task.isDone());
     }
 
     @Test

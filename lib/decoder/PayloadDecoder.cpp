@@ -73,12 +73,11 @@ namespace clienttelemetry {
                 {
                     Record result;
                     length = request.size() - i;
-                    std::vector<uint8_t> test(request.data() + i, request.data() + i + length);
                     size_t j = 3;
                     bool found = false;
                     while (j < length)
                     {
-                        while (j < length && test[j] != '\x3')
+                        while (j < length && request[i + j] != '\x3')
                         {
                             j++;
                         }
@@ -86,7 +85,7 @@ namespace clienttelemetry {
                         {
                             if (j + 2 < length)
                             {
-                                if (test[j + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && test[j + 2] == '.')
+                                if (request[i + j + 1] == ('0'+::CsProtocol::CS_VER_MAJOR) && request[i + j + 2] == '.')
                                 {
                                     found = true;
                                     break;
@@ -97,7 +96,7 @@ namespace clienttelemetry {
                     }
                     if (!found)
                     {
-                        j += 1;
+                        j = length + 1;
                     }
                     std::vector<uint8_t> input(request.data() + i, request.data() + i + j - 1);
                     bond_lite::CompactBinaryProtocolReader reader(input);
@@ -105,12 +104,11 @@ namespace clienttelemetry {
                     if (!Deserialize(reader, result, false))
                     {
                         TEST_LOG_ERROR("Deserialization failed!");
-                        goto fail;
+                        return {};
                     }
                     i += j - 1;
                     v.push_back(result);
                 }
-            fail:
                 return v;
             }
 
@@ -542,6 +540,11 @@ namespace MAT_NS_BEGIN {
         bool DecodeRequest(const std::vector<uint8_t>& in, std::string& out, bool compressed)
         {
             out.clear();
+            if (in.size() > ZlibUtils::MAX_INFLATED_SIZE)
+            {
+                TEST_LOG_ERROR("Request exceeds decoder size limit");
+                return false;
+            }
 
             std::vector<uint8_t> buffer;
             if (compressed)

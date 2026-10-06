@@ -27,6 +27,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -87,6 +90,56 @@ class ConnectivityCallback extends android.net.ConnectivityManager.NetworkCallba
 
 class Request implements HttpClientRequest {
 
+  static final int MAX_HTTP_RESPONSE_SIZE = 16 * 1024 * 1024;
+  static final int MAX_HTTP_RESPONSE_HEADERS_SIZE = 64 * 1024;
+
+  static byte[] readResponseBody(InputStream input) throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    byte[] buffer = new byte[1024];
+    int count;
+    while ((count = input.read(buffer)) != -1) {
+      if (count > MAX_HTTP_RESPONSE_SIZE - output.size()) {
+        throw new IOException("HTTP response body exceeds buffered size limit");
+      }
+      output.write(buffer, 0, count);
+    }
+    return output.toByteArray();
+  }
+
+  static String[] readResponseHeaders(Map<String, List<String>> headers) throws IOException {
+    Vector<String> result = new Vector<>();
+    int remaining = MAX_HTTP_RESPONSE_HEADERS_SIZE;
+    for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+      if (entry.getKey() != null) {
+        for (String value : entry.getValue()) {
+          if (remaining < 4) {
+            throw new IOException("HTTP response headers exceed buffered size limit");
+          }
+          remaining = remainingHeaderBytes(entry.getKey(), remaining - 4);
+          remaining = remainingHeaderBytes(value, remaining);
+          result.add(entry.getKey());
+          result.add(value);
+        }
+      }
+    }
+    return result.toArray(new String[0]);
+  }
+
+  private static int remainingHeaderBytes(String value, int remaining) throws IOException {
+    if (value.length() > remaining) {
+      throw new IOException("HTTP response headers exceed buffered size limit");
+    }
+    for (int i = 0; i < value.length(); ++i) {
+      // Match JNI modified UTF-8: NUL uses two bytes and each surrogate uses three.
+      char c = value.charAt(i);
+      remaining -= c != 0 && c <= 0x7f ? 1 : c <= 0x7ff ? 2 : 3;
+      if (remaining < 0) {
+        throw new IOException("HTTP response headers exceed buffered size limit");
+      }
+    }
+    return remaining;
+  }
+
   Request(
           @NonNull HttpClient parent,
           String url,
@@ -111,8 +164,6 @@ class Request implements HttpClientRequest {
   }
 
   public void run() {
-    final boolean logExceptions = false;
-
     String[] headerArray = {};
     byte[] body = {};
     int response = 0;
@@ -122,49 +173,19 @@ class Request implements HttpClientRequest {
         body_stream.write(m_body);
       }
       response = m_connection.getResponseCode(); // may throw
-      Map<String, List<String>> headers = m_connection.getHeaderFields();
-      Vector<String> headerList = new Vector<>();
-      for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-        if (entry.getKey() != null) {
-          for (String v : entry.getValue()) {
-            headerList.add(entry.getKey());
-            headerList.add(v);
-          }
-        }
-      }
-      headerArray = headerList.toArray(headerArray);
-      BufferedInputStream in;
-      if (response >= 300) {
-        in = new BufferedInputStream(m_connection.getErrorStream());
-      } else {
-        in = new BufferedInputStream(m_connection.getInputStream());
-      }
-      byte[] buffer = new byte[1024];
-      Vector<byte[]> buffers = new Vector<>();
-      int size = 0;
-      while (true) {
-        int n = in.read(buffer, 0, 1024);
-        if (n < 0) {
-          break;
-        }
-        if (n > 0) {
-          buffers.add(java.util.Arrays.copyOfRange(buffer, 0, n));
-          size += n;
-        }
-      }
-      body = new byte[size];
-      int index = 0;
-      for (byte[] chunk : buffers) {
-        for (byte b : chunk) {
-          body[index] = b;
-          index += 1;
+      headerArray = readResponseHeaders(m_connection.getHeaderFields());
+      InputStream stream = response >= 300
+          ? m_connection.getErrorStream() : m_connection.getInputStream();
+      if (stream != null) {
+        try (BufferedInputStream in = new BufferedInputStream(stream)) {
+          body = readResponseBody(in);
         }
       }
     } catch (Exception e) {
-      /* pass this on as a response of 0 */
-      if (logExceptions) {
-        Log.e("MAE", "Exception in callback", e);
-      }
+      Log.e("MAE", "HTTP response failed", e);
+      response = -1;
+      headerArray = new String[0];
+      body = new byte[0];
     } finally {
       m_connection.disconnect();
     }
@@ -220,7 +241,7 @@ public class HttpClient {
     String path = System.getProperty("java.io.tmpdir");
     setCacheFilePath(path);
     if (configuration.isInitializeDeviceInfo()) {
-      setDeviceInfo(calculateID(context), Build.MANUFACTURER, Build.MODEL);
+      setDeviceInfo(calculateID(context, isDeviceIdCollectionEnabled()), Build.MANUFACTURER, Build.MODEL);
     }
     calculateAndSetSystemInfo(context);
     m_executor = createExecutor();
@@ -310,7 +331,10 @@ public class HttpClient {
         device_class);
   }
 
-  private String calculateID(android.content.Context context) {
+  static String calculateID(android.content.Context context, boolean collectDeviceId) {
+    if (!collectDeviceId) {
+      return "";
+    }
     // The definition of ANDROID_ID changed in API 26.
     // https://developer.android.com/reference/android/provider/Settings.Secure#ANDROID_ID
 
@@ -371,6 +395,8 @@ public class HttpClient {
   public native void onPowerChange(boolean isCharging, boolean isLow);
 
   public native void setDeviceInfo(String id, String manufacturer, String model);
+
+  public native boolean isDeviceIdCollectionEnabled();
 
   public native void setSystemInfo(
       String app_id,

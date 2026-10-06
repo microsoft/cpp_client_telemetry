@@ -432,12 +432,14 @@
     <ClCompile Include="$(ProjectDir)..\common\Mocks.cpp" />
     <ClCompile Include="$(ProjectDir)\BackoffTests_ExponentialWithJitter.cpp" />
     <ClCompile Include="$(ProjectDir)\BondSplicerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\bounded-input-tests.cpp" />
     <ClCompile Include="$(ProjectDir)\ClockSkewManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ContextFieldsProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\ControlPlaneProviderTests.cpp" />
     <ClCompile Include="$(ProjectDir)\CorrelationVectorTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DebugEventSourceTests.cpp" />
     <ClCompile Include="$(ProjectDir)\DeviceStateHandlerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\device-id-tests.cpp" />
     <ClCompile Include="$(ProjectDir)\DiskLocalStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventFilterCollectionTests.cpp" />
     <ClCompile Include="$(ProjectDir)\EventPropertiesStorageTests.cpp" />

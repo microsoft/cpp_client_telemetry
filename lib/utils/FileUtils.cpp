@@ -111,13 +111,23 @@ namespace MAT_NS_BEGIN
             {
                 result += buff;
             }
+            if (ferror(fp))
+            {
+                LOG_WARN("Unable to read file contents");
+                result.clear();
+            }
             FileClose(fp);
         }
         return result;
 #else
-        std::ifstream t(filename);
-        std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-        return str;
+        std::ifstream input(filename);
+        std::string result((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+        if (input.bad())
+        {
+            LOG_WARN("Unable to read file contents");
+            return {};
+        }
+        return result;
 #endif
     }
 
@@ -170,4 +180,3 @@ namespace MAT_NS_BEGIN
     }
 
 } MAT_NS_END
-

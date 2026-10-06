@@ -11,7 +11,6 @@
 #include <cstdlib>
 #include <cstdint>
 #include <string.h>
-#include <regex>
 
 #include <string>
 #include <sstream>
@@ -45,8 +44,6 @@
 #endif
 
 #define HTTP_CONN_TIMEOUT       5L
-#define HTTP_STATUS_REGEXP		"HTTP\\/\\d\\.\\d (\\d+)\\ .*"
-#define HTTP_HEADER_REGEXP      "(.*)\\: (.*)\\n*"
 
 #undef TRACE
 #define TRACE(...)	// printf
@@ -506,6 +503,8 @@ public:
         if (rawResponse)
         {
             if (!SetOption(CURLOPT_HEADER, 1L) ||
+                !SetOption(CURLOPT_HEADERFUNCTION, &WriteHeaderCallback) ||
+                !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders)) ||
                 !SetOption(CURLOPT_WRITEFUNCTION, &WriteMemoryCallback) ||
                 !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&response)))
             {
@@ -513,7 +512,7 @@ public:
                 goto cleanup;
             }
         } else {
-            if (!SetOption(CURLOPT_HEADERFUNCTION, &WriteVectorCallback) ||
+            if (!SetOption(CURLOPT_HEADERFUNCTION, &WriteHeaderCallback) ||
                 !SetOption(CURLOPT_HEADERDATA, static_cast<void*>(&respHeaders)) ||
                 !SetOption(CURLOPT_WRITEFUNCTION, &WriteVectorCallback) ||
                 !SetOption(CURLOPT_WRITEDATA, static_cast<void*>(&respBody)))
@@ -559,17 +558,6 @@ public:
             TRACE("Error: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
-
-        /* Code snippet to parse raw HTTP response. This might come in handy
-         * if we ever consider to handle the raw upload instead of curl_easy_perform
-       ...
-       std::string resp((const char *)response);
-       std::regex http_status_regex(HTTP_STATUS_REGEXP);
-       std::smatch match;
-       if(std::regex_search(resp, match, http_status_regex))
-         http_code = std::stol(match[1]);
-       ...
-         */
 
         /* libcurl is nice enough to parse the response code itself: */
         infoResult = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpStatusCode);
@@ -701,10 +689,14 @@ cleanup:
 
         std::string header;
         while (std::getline(ss, header, '\n')) {
-            std::smatch match;
-            std::regex http_headers_regex(HTTP_HEADER_REGEXP);
-            if (std::regex_search(header, match, http_headers_regex))
-                result[match[1]] = match[2];    // Key: value
+            if (!header.empty() && header.back() == '\r')
+                header.pop_back();
+            const size_t colon = header.find(':');
+            if (colon == std::string::npos || colon == 0)
+                continue;
+            const size_t value = header.find_first_not_of(" \t", colon + 1);
+            result[header.substr(0, colon)] = value == std::string::npos
+                ? std::string() : header.substr(value);
         }
         return result;
     }
@@ -1044,7 +1036,7 @@ protected:
     // stops a hostile or MITM'd collector from driving unbounded memory growth by
     // returning an oversized body (a memory-amplification DoS of the embedding process).
     // Exceeding it aborts the transfer, so the upload is treated as failed and retried.
-    static constexpr size_t kMaxResponseBytes = 16 * 1024 * 1024; // 16 MB
+    static constexpr size_t kMaxResponseBytes = MAX_HTTP_RESPONSE_SIZE;
 
     // Raw response buffer
     struct MemoryStruct {
@@ -1107,6 +1099,16 @@ protected:
      */
     static size_t WriteVectorCallback(char* ptr, size_t size, size_t nmemb, void* userp) noexcept
     {
+        return WriteBoundedVector(ptr, size, nmemb, userp, MAX_HTTP_RESPONSE_SIZE);
+    }
+
+    static size_t WriteHeaderCallback(char* ptr, size_t size, size_t nmemb, void* userp)
+    {
+        return WriteBoundedVector(ptr, size, nmemb, userp, MAX_HTTP_RESPONSE_HEADERS_SIZE);
+    }
+
+    static size_t WriteBoundedVector(char* ptr, size_t size, size_t nmemb, void* userp, size_t limit)
+    {
         // Guard the size * nmemb product against size_t overflow before using it.
         if (nmemb != 0 && size > static_cast<size_t>(-1) / nmemb) {
             return 0;
@@ -1114,11 +1116,10 @@ protected:
         size_t realsize = size * nmemb;
         auto* data = static_cast<std::vector<uint8_t>*>(userp);
         if (data != nullptr) {
-            // SECURITY: bound the buffered response (see kMaxResponseBytes). Compare
-            // overflow-safely (data->size() is always <= kMaxResponseBytes here).
+            // Bound headers and bodies with their respective budgets.
             // Returning a short count aborts the transfer with CURLE_WRITE_ERROR.
-            if (realsize > kMaxResponseBytes - data->size()) {
-                TRACE("Response exceeds max buffered size (%zu bytes); aborting transfer\n", kMaxResponseBytes);
+            if (data->size() > limit || realsize > limit - data->size()) {
+                LOG_WARN("HTTP response exceeds %zu buffered bytes; aborting transfer", limit);
                 return 0;
             }
             const auto* begin = reinterpret_cast<const uint8_t*>(ptr);

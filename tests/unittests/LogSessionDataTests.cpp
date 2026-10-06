@@ -6,6 +6,7 @@
 #include "common/Common.hpp"
 #include "offline/LogSessionDataProvider.hpp"
 #include <LogSessionData.hpp>
+#include "utils/FileUtils.hpp"
 
 using namespace testing;
 using namespace Microsoft::Applications::Events;
@@ -67,6 +68,24 @@ TEST(LogSessionDataTests, parse_ValidInput_ReturnsTrue)
    ASSERT_EQ(sessionSDKUid, "bar");
 }
 
+TEST(LogSessionDataTests, parse_ValidCrlfInput_ReturnsTrue)
+{
+   TestLogSessionDataProvider provider(PathToTestSesFile);
+   ASSERT_TRUE(provider.parse("1234567890\r\nbar\r\n", sessionFirstTimeLaunch, sessionSDKUid));
+   EXPECT_EQ(sessionFirstTimeLaunch, uint64_t{1234567890});
+   EXPECT_EQ(sessionSDKUid, "bar");
+}
+
+TEST(LogSessionDataTests, parse_LargeIdentifier_PreservesExistingBehavior)
+{
+   TestLogSessionDataProvider provider(PathToTestSesFile);
+   const std::string identifier(16 * 1024, 'x');
+   ASSERT_TRUE(provider.parse("1234567890\n" + identifier + "\n",
+                              sessionFirstTimeLaunch, sessionSDKUid));
+   EXPECT_EQ(sessionFirstTimeLaunch, uint64_t{1234567890});
+   EXPECT_EQ(sessionSDKUid, identifier);
+}
+
 TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
 {
    const std::string sessionFile =
@@ -87,4 +106,47 @@ TEST(LogSessionDataTests, getLogSessionData_ValidInput_SessionDataPersists)
 
    logSessionDataProvider1.DeleteLogSessionData();
    logSessionDataProvider2.DeleteLogSessionData();
+}
+
+class LogSessionFileTests : public Test
+{
+protected:
+   std::string cachePath = GetTempDirectory() + "session-file-" + PAL::generateUuidString();
+   std::string sessionPath = cachePath + ".ses";
+
+   ~LogSessionFileTests() override
+   {
+       FileDelete(sessionPath.c_str());
+   }
+
+   void write(const std::string& content)
+   {
+       FILE* file = FileOpen(sessionPath.c_str(), "wb");
+       ASSERT_NE(file, nullptr);
+       const size_t written = fwrite(content.data(), 1, content.size(), file);
+       const int closed = FileClose(file);
+       ASSERT_EQ(written, content.size());
+       ASSERT_EQ(closed, 0);
+   }
+};
+
+TEST_F(LogSessionFileTests, PreservesExistingCrlfSession)
+{
+   write("1234567890\r\noriginal-id\r\n");
+   TestLogSessionDataProvider provider(cachePath);
+   provider.CreateLogSessionData();
+   ASSERT_NE(provider.GetLogSessionData(), nullptr);
+   EXPECT_EQ(provider.GetLogSessionData()->getSessionFirstTime(), uint64_t{1234567890});
+   EXPECT_EQ(provider.GetLogSessionData()->getSessionSDKUid(), "original-id");
+}
+
+TEST_F(LogSessionFileTests, PreservesLargeSessionIdentifier)
+{
+   const std::string identifier(16 * 1024, 'x');
+   write("1234567890\n" + identifier + "\n");
+   TestLogSessionDataProvider provider(cachePath);
+   provider.CreateLogSessionData();
+   ASSERT_NE(provider.GetLogSessionData(), nullptr);
+   EXPECT_EQ(provider.GetLogSessionData()->getSessionFirstTime(), uint64_t{1234567890});
+   EXPECT_EQ(provider.GetLogSessionData()->getSessionSDKUid(), identifier);
 }

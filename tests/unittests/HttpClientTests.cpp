@@ -108,6 +108,7 @@ class HttpClientTests : public ::testing::Test,
         _server.addHandler("/count/",  *this);
         _server.addHandler("/block/",  *this);
         _server.addHandler("/large/",  *this);
+        _server.addHandler("/large-headers/", *this);
         _server.addHandler("/redirect/", *this);
         _server.addHandler("/cookie/", *this);
         _server.addHandler("/query", *this);
@@ -192,6 +193,13 @@ class HttpClientTests : public ::testing::Test,
             size_t size = static_cast<size_t>(atoi(request.uri.substr(7).c_str()));
             inResponse.headers["Content-Type"] = "application/octet-stream";
             inResponse.content = LargePayload(size);
+            return 200;
+        }
+
+        if (request.uri == "/large-headers/") {
+            for (int i = 0; i < 5; ++i) {
+                inResponse.headers["X-Long-" + std::to_string(i)] = std::string(16 * 1024, 'x');
+            }
             return 200;
         }
 
@@ -1112,6 +1120,19 @@ TEST_F(HttpClientTests, HandlesResponseLargerThanReadBuffer)
     EXPECT_THAT(response->GetStatusCode(), 200u);
     ASSERT_THAT(response->GetBody().size(), responseSize);
     EXPECT_THAT(response->GetBody(), Eq(Binary(LargePayload(responseSize))));
+}
+
+TEST_F(HttpClientTests, RejectsOversizedResponseHeaders)
+{
+    std::unique_ptr<IHttpRequest> request(_client->CreateRequest());
+    request->SetUrl("http://" + _hostname + "/large-headers/");
+    _client->SendRequestAsync(request.release(), this);
+    std::unique_lock<std::mutex> lock(_lock);
+    ASSERT_TRUE(_responseCv.wait_for(lock, std::chrono::seconds(30),
+        [this]() { return !_responses.empty(); }));
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_EQ(_responses[0]->GetResult(), HttpResult_NetworkFailure);
+    EXPECT_TRUE(_responses[0]->GetBody().empty());
 }
 
 TEST_F(HttpClientTests, HandlesRequestAndResponseLargerThanReadBuffer)

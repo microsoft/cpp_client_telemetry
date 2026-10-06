@@ -1,0 +1,73 @@
+cmake_minimum_required(VERSION 3.19)
+
+get_filename_component(REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+set(ENV{MATSDK_VCPKG_SOURCE_DIR} "${REPO_ROOT}")
+
+# Exercise the real port's feature mapping without downloading its dependencies.
+function(vcpkg_cmake_configure)
+  cmake_parse_arguments(CONFIG "" "SOURCE_PATH" "OPTIONS" ${ARGN})
+  if(NOT "-DMATSDK_ENABLE_DEVICE_ID=${EXPECTED_DEVICE_ID}" IN_LIST CONFIG_OPTIONS)
+    message(FATAL_ERROR "Incorrect device-ID CMake option: ${CONFIG_OPTIONS}")
+  endif()
+endfunction()
+
+function(vcpkg_cmake_install)
+endfunction()
+function(vcpkg_cmake_config_fixup)
+endfunction()
+function(vcpkg_install_copyright)
+endfunction()
+
+function(check_feature_mapping platform expected)
+  set(FEATURES ${ARGN})
+  set(EXPECTED_DEVICE_ID "${expected}")
+  set(CURRENT_PORT_DIR "${REPO_ROOT}/tools/ports/cpp-client-telemetry")
+  set(CURRENT_PACKAGES_DIR "${REPO_ROOT}/out/device-id-feature-tests")
+  set(VCPKG_LIBRARY_LINKAGE static)
+  foreach(target LINUX WINDOWS OSX IOS ANDROID)
+    set(VCPKG_TARGET_IS_${target} OFF)
+  endforeach()
+  set(VCPKG_TARGET_IS_${platform} ON)
+  include("${CURRENT_PORT_DIR}/portfile.cmake")
+endfunction()
+
+if(DEFINED OLD_SOURCE)
+  set(ENV{MATSDK_VCPKG_SOURCE_DIR} "${OLD_SOURCE}")
+  check_feature_mapping(LINUX OFF curl-openssl system-sqlite)
+  return()
+endif()
+
+file(READ "${REPO_ROOT}/tools/ports/cpp-client-telemetry/vcpkg.json" MANIFEST)
+string(JSON DEFAULT_COUNT LENGTH "${MANIFEST}" default-features)
+math(EXPR DEFAULT_LAST "${DEFAULT_COUNT} - 1")
+set(DEFAULT_FEATURES)
+foreach(index RANGE ${DEFAULT_LAST})
+  string(JSON FEATURE GET "${MANIFEST}" default-features ${index})
+  list(APPEND DEFAULT_FEATURES "${FEATURE}")
+endforeach()
+if(NOT "device-id" IN_LIST DEFAULT_FEATURES)
+  message(FATAL_ERROR "Native device-ID collection must remain a default feature")
+endif()
+string(JSON DESCRIPTION GET "${MANIFEST}" features device-id description)
+set(OPT_OUT_FEATURES ${DEFAULT_FEATURES})
+list(REMOVE_ITEM OPT_OUT_FEATURES device-id)
+
+foreach(platform LINUX WINDOWS OSX IOS ANDROID)
+  check_feature_mapping("${platform}" ON ${DEFAULT_FEATURES})
+  check_feature_mapping("${platform}" OFF ${OPT_OUT_FEATURES})
+endforeach()
+check_feature_mapping(LINUX OFF curl-mbedtls minimal-sqlite)
+
+set(OLD_SOURCE "${REPO_ROOT}/out/device-id-feature-tests/older-source")
+file(MAKE_DIRECTORY "${OLD_SOURCE}")
+file(WRITE "${OLD_SOURCE}/CMakeLists.txt" "cmake_minimum_required(VERSION 3.19)\n")
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" "-DOLD_SOURCE=${OLD_SOURCE}" -P "${CMAKE_CURRENT_LIST_FILE}"
+  RESULT_VARIABLE OLD_RESULT
+  OUTPUT_QUIET
+  ERROR_VARIABLE OLD_ERROR)
+file(REMOVE "${OLD_SOURCE}/CMakeLists.txt")
+if(OLD_RESULT EQUAL 0 OR NOT OLD_ERROR MATCHES "Disabling device-ID collection requires")
+  message(FATAL_ERROR "The port must reject an opt-out against an unsupported SDK: ${OLD_ERROR}")
+endif()
+message(STATUS "Device-ID vcpkg feature mapping passed")

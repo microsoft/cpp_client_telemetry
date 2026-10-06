@@ -22,6 +22,7 @@
   ],
   "default-features": [
     "curl-openssl",
+    "device-id",
     "system-sqlite"
   ],
   "features": {
@@ -78,6 +79,9 @@
           "platform": "linux"
         }
       ]
+    },
+    "device-id": {
+      "description": "Collect a device ID using the SDK's platform-specific implementation (default). Omit this feature with default-features=false to supply your own DeviceInfo.Id without native device-ID collection."
     },
     "minimal-sqlite": {
       "description": "Build a private, feature-stripped SQLite compiled from the SDK's vendored amalgamation instead of linking the external sqlite3 package. Smaller footprint; combine with [core,minimal-sqlite] to also drop the sqlite3 dependency."

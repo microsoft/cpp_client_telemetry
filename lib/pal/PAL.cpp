@@ -568,7 +568,11 @@ namespace PAL_NS_BEGIN {
     {
         if (m_DeviceInformation != nullptr)
         {
-            context->SetDeviceId(m_DeviceInformation->GetDeviceId());
+            const auto& deviceId = m_DeviceInformation->GetDeviceId();
+#ifdef MATSDK_DISABLE_DEVICE_ID
+            if (!deviceId.empty())
+#endif
+                context->SetDeviceId(deviceId);
             context->SetDeviceModel(m_DeviceInformation->GetModel());
             context->SetDeviceMake(m_DeviceInformation->GetManufacturer());
         }
