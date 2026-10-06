@@ -12,6 +12,9 @@ function(vcpkg_cmake_configure)
   endforeach()
   set(LEGACY_OPTIONS)
   foreach(option IN LISTS CONFIG_OPTIONS)
+    if(option MATCHES "^-D(MATSDK_USE_VCPKG_DEPS|MATSDK_MINIMAL_SQLITE)=")
+      message(FATAL_ERROR "Obsolete dependency option was forwarded: ${option}")
+    endif()
     if(option MATCHES "^-DBUILD_(HEADERS|LIBRARY|TEST_TOOL|UNIT_TESTS|FUNC_TESTS|JNI_WRAPPER|OBJC_WRAPPER|SWIFT_WRAPPER|PACKAGE|APPLE_HTTP)=")
       list(APPEND LEGACY_OPTIONS "${option}")
     endif()
@@ -19,11 +22,6 @@ function(vcpkg_cmake_configure)
   if(NOT "${LEGACY_OPTIONS}" STREQUAL "${EXPECTED_LEGACY_OPTIONS}")
     message(FATAL_ERROR "Incorrect legacy build options: ${LEGACY_OPTIONS}")
   endif()
-  foreach(option IN LISTS EXPECTED_COMPATIBILITY_OPTIONS)
-    if(NOT "${option}" IN_LIST CONFIG_OPTIONS)
-      message(FATAL_ERROR "Missing compatibility option ${option}")
-    endif()
-  endforeach()
   set(CONFIGURED ON PARENT_SCOPE)
 endfunction()
 
@@ -94,7 +92,11 @@ endfunction()
 
 if(DEFINED UNSUPPORTED_FEATURE)
   set(ENV{MATSDK_VCPKG_SOURCE_DIR} "${OLD_SOURCE}")
-  check_feature_mapping(ANDROID static device-id system-sqlite "${UNSUPPORTED_FEATURE}")
+  if(UNSUPPORTED_FEATURE STREQUAL "minimal-sqlite")
+    check_feature_mapping(ANDROID static device-id minimal-sqlite)
+  else()
+    check_feature_mapping(ANDROID static device-id system-sqlite "${UNSUPPORTED_FEATURE}")
+  endif()
   return()
 endif()
 
@@ -138,7 +140,7 @@ set(OLD_SOURCE "${REPO_ROOT}/out/native-feature-tests/older-source")
 file(MAKE_DIRECTORY "${OLD_SOURCE}")
 file(WRITE "${OLD_SOURCE}/CMakeLists.txt"
   "# MATSDK_ANDROID_HTTP_CLIENT MATSDK_USE_WININET MATSDK_ENABLE_DEVICE_ID\n")
-foreach(feature no-exceptions no-logging android-capi-http-client)
+foreach(feature no-exceptions no-logging android-capi-http-client minimal-sqlite)
   execute_process(
     COMMAND "${CMAKE_COMMAND}" "-DUNSUPPORTED_FEATURE=${feature}"
       "-DOLD_SOURCE=${OLD_SOURCE}" -P "${CMAKE_CURRENT_LIST_FILE}"
@@ -149,15 +151,13 @@ foreach(feature no-exceptions no-logging android-capi-http-client)
 endforeach()
 
 file(APPEND "${OLD_SOURCE}/CMakeLists.txt"
-  "# MATSDK_USE_VCPKG_DEPS MATSDK_MINIMAL_SQLITE\n")
+  "# MATSDK_USE_VCPKG_DEPS MATSDK_MINIMAL_SQLITE MATSDK_SQLITE_PROVIDER\n")
 set(ENV{MATSDK_VCPKG_SOURCE_DIR} "${OLD_SOURCE}")
 set(EXPECTED_LEGACY_OPTIONS
   -DBUILD_HEADERS=ON -DBUILD_LIBRARY=ON -DBUILD_TEST_TOOL=OFF
   -DBUILD_UNIT_TESTS=OFF -DBUILD_FUNC_TESTS=OFF -DBUILD_JNI_WRAPPER=OFF
   -DBUILD_OBJC_WRAPPER=OFF -DBUILD_SWIFT_WRAPPER=OFF -DBUILD_PACKAGE=OFF
   -DBUILD_APPLE_HTTP=OFF)
-set(EXPECTED_COMPATIBILITY_OPTIONS
-  -DMATSDK_USE_VCPKG_DEPS=ON -DMATSDK_MINIMAL_SQLITE=ON)
 check_feature_mapping(LINUX static device-id curl-openssl minimal-sqlite)
 list(REMOVE_ITEM EXPECTED_LEGACY_OPTIONS -DBUILD_APPLE_HTTP=OFF)
 list(APPEND EXPECTED_LEGACY_OPTIONS -DBUILD_APPLE_HTTP=ON)
@@ -167,7 +167,6 @@ file(APPEND "${OLD_SOURCE}/CMakeLists.txt"
   "option(MATSDK_BUILD_HEADERS \"Build API headers\" ON)\n")
 list(REMOVE_ITEM EXPECTED_LEGACY_OPTIONS -DBUILD_HEADERS=ON -DBUILD_APPLE_HTTP=ON)
 list(APPEND EXPECTED_LEGACY_OPTIONS -DBUILD_APPLE_HTTP=OFF)
-set(EXPECTED_COMPATIBILITY_OPTIONS -DMATSDK_USE_VCPKG_DEPS=ON)
 check_feature_mapping(ANDROID static device-id system-sqlite)
 file(REMOVE "${OLD_SOURCE}/CMakeLists.txt")
 message(STATUS "Native vcpkg feature mappings passed")

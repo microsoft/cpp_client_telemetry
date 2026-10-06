@@ -32,8 +32,7 @@ if(NOT DEFINED SOURCE_PATH)
     )
 endif()
 
-file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_ROOT_CMAKE)
-set(MATSDK_OPTION_SOURCE "${MATSDK_ROOT_CMAKE}")
+file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_OPTION_SOURCE)
 if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
   file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake" MATSDK_OPTIONS_CMAKE)
   string(APPEND MATSDK_OPTION_SOURCE "\n${MATSDK_OPTIONS_CMAKE}")
@@ -114,6 +113,10 @@ endif()
 
 set(MATSDK_VCPKG_SQLITE_PROVIDER SYSTEM)
 if("minimal-sqlite" IN_LIST FEATURES)
+  if(NOT MATSDK_OPTION_SOURCE MATCHES "MATSDK_SQLITE_PROVIDER")
+    message(FATAL_ERROR
+      "The minimal-sqlite feature requires an SDK revision supporting MATSDK_SQLITE_PROVIDER.")
+  endif()
   set(MATSDK_VCPKG_SQLITE_PROVIDER MINIMAL)
 endif()
 
@@ -131,13 +134,13 @@ if(VCPKG_TARGET_IS_WINDOWS
     "Update this port's REF/SHA512 to a newer SDK release, or set "
     "MATSDK_VCPKG_SOURCE_DIR to a local checkout containing that option.")
 endif()
-set(MATSDK_PINNED_SOURCE_OPTIONS)
+set(MATSDK_DEVICE_ID_OPTIONS)
 if(MATSDK_OPTION_SOURCE MATCHES "MATSDK_ENABLE_DEVICE_ID")
   set(MATSDK_ENABLE_DEVICE_ID OFF)
   if("device-id" IN_LIST FEATURES)
     set(MATSDK_ENABLE_DEVICE_ID ON)
   endif()
-  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS
+  list(APPEND MATSDK_DEVICE_ID_OPTIONS
     -DMATSDK_ENABLE_DEVICE_ID=${MATSDK_ENABLE_DEVICE_ID})
 elseif(NOT "device-id" IN_LIST FEATURES)
   message(FATAL_ERROR
@@ -145,13 +148,6 @@ elseif(NOT "device-id" IN_LIST FEATURES)
     "revision that supports MATSDK_ENABLE_DEVICE_ID. Update this port's "
     "REF/SHA512 to a newer SDK release, or set MATSDK_VCPKG_SOURCE_DIR "
     "to a local checkout containing that option.")
-endif()
-if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_USE_VCPKG_DEPS")
-  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_USE_VCPKG_DEPS=ON)
-endif()
-if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_MINIMAL_SQLITE"
-   AND "minimal-sqlite" IN_LIST FEATURES)
-  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_MINIMAL_SQLITE=ON)
 endif()
 
 set(MATSDK_USE_WININET OFF)
@@ -201,7 +197,7 @@ endforeach()
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        ${MATSDK_PINNED_SOURCE_OPTIONS}
+        ${MATSDK_DEVICE_ID_OPTIONS}
         ${MATSDK_NATIVE_FEATURE_OPTIONS}
         ${MATSDK_BUILD_OPTIONS}
         ${MATSDK_LEGACY_BUILD_OPTIONS}
