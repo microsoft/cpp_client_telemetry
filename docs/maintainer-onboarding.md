@@ -161,9 +161,9 @@ prerequisites installed:
 ./tests/vcpkg/test-vcpkg-linux.sh
 ```
 
-`build-tests.sh` currently excludes `APITest.C_API_Test`. Do not describe that
-run as complete C API coverage, and re-evaluate the exclusion when changing the
-C API or its implementation.
+`build-tests.sh` runs the registered unit and functional suites through CTest,
+including the C API test, then waits for both concurrent multi-process checks.
+Build failures and failures from either concurrent process fail the runner.
 
 ### vcpkg consumer tests
 

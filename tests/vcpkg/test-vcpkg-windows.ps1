@@ -154,13 +154,7 @@ if (-not $clExe) {
 
 Write-Host ""
 Write-Host "--- Step 3: Run test ---" -ForegroundColor Yellow
-$TestExe = Get-ChildItem -Path $ConsumerBuild -Recurse -Filter "vcpkg_test.exe" | Select-Object -First 1
-if ($null -eq $TestExe) {
-    Write-Error "Test executable not found"
-    exit 1
-}
-
-& $TestExe.FullName
+ctest --test-dir $ConsumerBuild -C Release --output-on-failure
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Test execution failed"
     exit 1

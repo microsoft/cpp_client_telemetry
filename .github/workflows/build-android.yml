@@ -49,7 +49,7 @@ jobs:
         -DANDROID_ABI=${{ matrix.abi }}
         -DANDROID_PLATFORM=android-24
         -DCMAKE_BUILD_TYPE=Debug
-        -DCMAKE_CXX_FLAGS=-fno-exceptions
+        -DMATSDK_DISABLE_EXCEPTIONS=ON
         -DMATSDK_BUILD_JNI_WRAPPER=ON
         -DMATSDK_ANDROID_USE_ROOM=${{ matrix.room }}
         -DMATSDK_DISABLE_LOGGING=${{ matrix.room }}

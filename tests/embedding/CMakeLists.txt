@@ -78,3 +78,6 @@ if(MSVC)
 else()
   target_compile_options(embedding_test PRIVATE -Wall -Wextra -Werror)
 endif()
+
+enable_testing()
+add_test(NAME embedding_test COMMAND embedding_test)

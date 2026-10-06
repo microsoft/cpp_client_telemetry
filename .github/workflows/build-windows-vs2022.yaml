@@ -36,19 +36,14 @@ jobs:
       shell: pwsh
       run: |
         $options = @(
-          '-S', 'tests/no-exceptions', '-B', 'out-no-exceptions', '-A', 'x64',
-          '-DMATSDK_BUILD_UNIT_TESTS=OFF',
-          '-DMATSDK_BUILD_FUNC_TESTS=OFF',
-          '-DMATSDK_BUILD_TEST_TOOL=OFF',
-          '-DMATSDK_BUILD_PACKAGE=OFF',
+          '-S', 'tests/no-exceptions', '-B', 'out-no-exceptions',
+          '-G', 'Visual Studio 17 2022', '-A', 'x64',
           '-DMATSDK_USE_WININET=${{ matrix.wininet }}'
         )
-        $flags = '/DWIN32 /D_WINDOWS /EHs-c- /D_HAS_EXCEPTIONS=0'
         if ('${{ matrix.compiler }}' -eq 'clang-cl') {
           $options += @('-T', 'ClangCL')
-          $flags += ' /clang:-fno-exceptions'
         }
-        cmake @options "-DCMAKE_CXX_FLAGS=$flags"
+        cmake @options
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     - name: Compile full SDK
       run: cmake --build out-no-exceptions --config Debug --target no-exceptions-smoke --parallel 2

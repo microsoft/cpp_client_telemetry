@@ -151,4 +151,6 @@ if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(UnitTests PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
-add_test(UnitTests UnitTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/UnitTests.xml")
+add_test(NAME UnitTests COMMAND UnitTests
+  "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/UnitTests.xml")
+set_tests_properties(UnitTests PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")

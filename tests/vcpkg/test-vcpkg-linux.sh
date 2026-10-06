@@ -73,7 +73,7 @@ cmake --build "${BUILD_DIR}/consumer" --config Release
 
 echo ""
 echo "--- Step 3: Run test ---"
-"${BUILD_DIR}/consumer/vcpkg_test"
+ctest --test-dir "${BUILD_DIR}/consumer" -C Release --output-on-failure
 
 echo ""
 echo "=== Linux vcpkg port test PASSED ==="
