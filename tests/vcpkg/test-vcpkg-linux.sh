@@ -1,6 +1,6 @@
 #!/bin/bash
 # Test script: Verify cpp-client-telemetry vcpkg port on Linux
-# Usage: ./tests/vcpkg/test-vcpkg-linux.sh
+# Usage: ./tests/vcpkg/test-vcpkg-linux.sh [default|minimal-sqlite]
 # Prerequisites: VCPKG_ROOT set, gcc/g++, cmake
 set -e
 
@@ -8,6 +8,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${SCRIPT_DIR}/build-linux"
 OVERLAY_PORTS="${REPO_ROOT}/tools/ports"
+MANIFEST_ARGS=()
+case "${1:-default}" in
+  default) ;;
+  minimal-sqlite)
+    MANIFEST_ARGS=(-DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON -DVCPKG_MANIFEST_FEATURES=minimal-sqlite)
+    ;;
+  *)
+    echo "ERROR: Unsupported feature set '${1}'. Use default or minimal-sqlite."
+    exit 1
+    ;;
+esac
 
 # Build the working tree under review (not a pinned release) so this test
 # validates the actual SDK source together with the port manifest/portfile.
@@ -48,6 +59,7 @@ cmake -S "${SCRIPT_DIR}" -B "${BUILD_DIR}/consumer" \
   -DCMAKE_TOOLCHAIN_FILE="${VCPKG_TOOLCHAIN}" \
   -DVCPKG_TARGET_TRIPLET="${TRIPLET}" \
   -DVCPKG_OVERLAY_PORTS="${OVERLAY_PORTS}" \
+  "${MANIFEST_ARGS[@]}" \
   -DCMAKE_BUILD_TYPE=Release
 
 echo ""

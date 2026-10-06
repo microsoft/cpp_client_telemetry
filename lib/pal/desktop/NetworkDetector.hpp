@@ -17,10 +17,11 @@
 #include <Windows.h>
 
 #include <wrl.h>
-#include <windows.foundation.h>
-#include <windows.networking.connectivity.h>
+#include <netlistmgr.h>
+#include <nldef.h>
 
 #include <atomic>
+#include <array>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -29,26 +30,26 @@
 #include "Enums.hpp"
 
 using namespace Microsoft::WRL;
-using namespace Microsoft::WRL::Wrappers;
-using namespace ABI::Windows::Foundation;
-using namespace ABI::Windows::Networking::Connectivity;
 
 namespace MAT_NS_BEGIN
 {
             namespace Windows {
 
                 NetworkCost MapNetworkCost(
-                    NetworkCostType costType,
-                    boolean roaming,
-                    boolean overDataLimit,
-                    boolean approachingDataLimit,
-                    boolean backgroundDataUsageRestricted);
+                    NL_NETWORK_CONNECTIVITY_COST_HINT costType,
+                    bool roaming,
+                    bool overDataLimit,
+                    bool approachingDataLimit);
+
+                NetworkCost MapLegacyNetworkCost(DWORD cost);
 
                 class NetworkDetector
                 {
                    private:
                     struct CallbackState;
                     struct EventDispatchState;
+                    struct NetworkStatusChangedSink;
+                    friend class NetworkDetectorTestAccess;
                     enum class StartupState
                     {
                         Stopped,
@@ -60,9 +61,29 @@ namespace MAT_NS_BEGIN
                     /// <summary>
                     /// Current network info stats
                     /// </summary>
-                    ComPtr<INetworkInformationStatics> networkInfoStats;
-                    ComPtr<INetworkStatusChangedEventHandler> networkStatusChangedHandler;
-                    EventRegistrationToken networkStatusChangedToken{};
+                    using GetConnectivityHint = DWORD(WINAPI*)(NL_NETWORK_CONNECTIVITY_HINT*);
+                    using HintChangedCallback = void(WINAPI*)(void*, NL_NETWORK_CONNECTIVITY_HINT);
+                    using NotifyConnectivityHint = DWORD(WINAPI*)(HintChangedCallback, void*, BOOLEAN, HANDLE*);
+                    GetConnectivityHint getConnectivityHint = nullptr;
+                    NotifyConnectivityHint notifyConnectivityHint = nullptr;
+                    HANDLE networkStatusNotification = nullptr;
+                    ComPtr<INetworkListManager> networkListManager;
+                    ComPtr<INetworkCostManager> networkCostManager;
+                    struct LegacySubscription
+                    {
+                        ComPtr<IConnectionPoint> point;
+                        DWORD cookie = 0;
+                        bool subscribed = false;
+                    };
+                    std::array<LegacySubscription, 3> legacySubscriptions;
+                    ComPtr<IUnknown> networkStatusChangedHandler;
+                    using QueryLegacyCost = HRESULT(WINAPI*)(INetworkListManager*, INetworkCostManager**);
+                    using FindLegacyPoint = HRESULT(WINAPI*)(IConnectionPointContainer*, REFIID, IConnectionPoint**);
+                    static HRESULT WINAPI QueryLegacyCostInterface(INetworkListManager*, INetworkCostManager**);
+                    static HRESULT WINAPI FindLegacyConnectionPoint(IConnectionPointContainer*, REFIID, IConnectionPoint**);
+                    QueryLegacyCost queryLegacyCost = QueryLegacyCostInterface;
+                    FindLegacyPoint findLegacyPoint = FindLegacyConnectionPoint;
+                    decltype(&CoDisconnectObject) disconnectLegacyHandler = CoDisconnectObject;
                     std::shared_ptr<CallbackState> networkStatusCallbackState;
                     std::shared_ptr<EventDispatchState> eventDispatchState;
 
@@ -70,7 +91,9 @@ namespace MAT_NS_BEGIN
                     /// Get instance of network info stats
                     /// </summary>
                     /// <returns></returns>
-                    bool GetNetworkInfoStats();
+                    bool InitializeNetworkCost();
+                    NetworkCost QueryNetworkCost();
+                    static void WINAPI NetworkHintChanged(void* context, NL_NETWORK_CONNECTIVITY_HINT hint);
 
                     std::mutex m_lifecycleLock;
                     std::mutex m_lock;
@@ -79,6 +102,7 @@ namespace MAT_NS_BEGIN
                     std::thread netDetectThread;
                     StartupState startupState = StartupState::Stopped;
                     bool stopRequested = false;
+                    uint64_t refreshSequence = 0;
                     HANDLE stopEvent = nullptr;
 
                     /// <summary>
@@ -113,7 +137,7 @@ namespace MAT_NS_BEGIN
                     /// <summary>
                     /// Createa network status listener
                     /// </summary>
-                    NetworkDetector() = default;
+                    NetworkDetector();
 
                     /// <summary>
                     /// 
@@ -144,7 +168,7 @@ namespace MAT_NS_BEGIN
                     NetworkCost GetNetworkCost();
 
                     /// <summary>
-                    /// Queue the same refresh performed by a WinRT network status callback.
+                    /// Queue the same refresh performed by a network status callback.
                     /// </summary>
                     bool QueueNetworkCostRefresh();
                 };

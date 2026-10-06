@@ -22,6 +22,18 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  release-packaging:
+    runs-on: ${{ matrix.os }}
+    name: Release packaging (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Test release port promotion
+      run: python tests/vcpkg/test-release-port.py
+
   windows:
     runs-on: windows-latest
     name: Windows (x64-windows-static, ${{ matrix.transport }})
@@ -49,7 +61,11 @@ jobs:
 
   linux:
     runs-on: ubuntu-latest
-    name: Linux (x64-linux)
+    name: Linux (x64-linux, ${{ matrix.features }})
+    strategy:
+      fail-fast: false
+      matrix:
+        features: [default, minimal-sqlite]
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
@@ -63,7 +79,7 @@ jobs:
         VCPKG_ROOT: ${{ runner.temp }}/vcpkg
       run: |
         chmod +x tests/vcpkg/test-vcpkg-linux.sh
-        ./tests/vcpkg/test-vcpkg-linux.sh
+        ./tests/vcpkg/test-vcpkg-linux.sh "${{ matrix.features }}"
 
   macos:
     runs-on: macos-latest
@@ -103,7 +119,11 @@ jobs:
 
   android:
     runs-on: ubuntu-latest
-    name: Android (arm64-v8a API 23 cross-compile)
+    name: Android (arm64-v8a API 23, ${{ matrix.features }})
+    strategy:
+      fail-fast: false
+      matrix:
+        features: [default, minimal-sqlite, "minimal-sqlite;android-curl-openssl", "minimal-sqlite;android-curl-mbedtls"]
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
@@ -120,4 +140,4 @@ jobs:
         VCPKG_ROOT: ${{ runner.temp }}/vcpkg
       run: |
         chmod +x tests/vcpkg/test-vcpkg-android.sh
-        ./tests/vcpkg/test-vcpkg-android.sh arm64-v8a 23
+        ./tests/vcpkg/test-vcpkg-android.sh arm64-v8a 23 "${{ matrix.features }}"

@@ -89,26 +89,28 @@ Other resources to learn how to setup the build system:
 
 ## Target Platforms
   
-  | Target Platform                | Supported          | Covered by CI      |
-  | ------------------------------ | ------------------ | ------------------ |
-  | Android (API 23+)              | :white_check_mark: | :white_check_mark: |
-  | iOS 12+ (simulator)            | :white_check_mark: | :white_check_mark: |
-  | iOS 12+ (arm64, arm64e)        | :white_check_mark: |                    |
-  | Linux (x86, x64, arm, aarch64) | :white_check_mark: |                    |
-  | macOS 10.15+                   | :white_check_mark: |                    |
-  | macOS (latest)                 | :white_check_mark: | :white_check_mark: |
-  | Ubuntu 20.04.x LTS             | :white_check_mark: | :white_check_mark: |
-  | Ubuntu 22.04.x LTS             | :white_check_mark: | :white_check_mark: |
-  | Ubuntu (latest)                | :white_check_mark: | :white_check_mark: |
-  | Windows 10.x                   | :white_check_mark: |                    |
-  | Windows 11                     | :white_check_mark: |                    |
-  | Windows Server 2016            | :white_check_mark: |                    |
-  | Windows Server 2019            | :white_check_mark: |                    |
-  | Windows Server 2022            | :white_check_mark: | :white_check_mark: |
+  | Target Platform                | Supported          | Covered by CI |
+  | ------------------------------ | ------------------ | ------------- |
+  | Android (API 23+)              | :white_check_mark: | [Native builds](.github/workflows/test-embedding.yml), [Gradle build and Java unit tests](.github/workflows/build-android.yml); no device runtime tests |
+  | iOS 12+ (simulator)            | :white_check_mark: | [Debug/Release simulator tests](.github/workflows/build-ios-mac.yml) on current runtimes |
+  | iOS 12+ (arm64, arm64e)        | :white_check_mark: | [arm64 cross-builds](.github/workflows/test-embedding.yml) with deployment target 13.0; no arm64e or device runtime tests |
+  | Linux (x86, x64, arm, aarch64) | :white_check_mark: | [x64 build and tests](.github/workflows/build-posix-latest.yml); no x86/arm/aarch64 jobs |
+  | macOS 10.15+                   | :white_check_mark: | No macOS 10.15 runner |
+  | macOS (latest)                 | :white_check_mark: | [Debug/Release tests](.github/workflows/build-posix-latest.yml), [arm64/universal builds](.github/workflows/test-embedding.yml) |
+  | Ubuntu 20.04.x LTS             | :white_check_mark: | No current runner |
+  | Ubuntu 22.04.x LTS             | :white_check_mark: | [Debug/Release tests](.github/workflows/build-ubuntu-2204.yml), [Dr. Memory](.github/workflows/memory-leak-analysis.yml) |
+  | Ubuntu (latest)                | :white_check_mark: | [Debug/Release tests](.github/workflows/build-posix-latest.yml), [embedding/package tests](.github/workflows/test-embedding.yml) |
+  | Windows 10.x                   | :white_check_mark: | [API-floor compile checks](.github/workflows/test-win-latest.yml) on Server 2022; no Windows 10 runner |
+  | Windows 11                     | :white_check_mark: | No Windows 11 runner |
+  | Windows Server 2016            | :white_check_mark: | No Server 2016 runner |
+  | Windows Server 2019            | :white_check_mark: | No Server 2019 runner |
+  | Windows Server 2022            | :white_check_mark: | [Win32/x64 Debug/Release tests](.github/workflows/test-win-latest.yml), [Dr. Memory](.github/workflows/memory-leak-analysis.yml) |
   
 * **Supported** - these platforms are known to work well with the SDK in
     production.
-* **Covered by CI** - these platforms are tested as part of CI.
+* **Covered by CI** - current GitHub Actions coverage, distinguishing builds,
+    runtime tests, and specific runner OS versions. Cross-builds and API-floor
+    checks do not establish runtime coverage on every supported OS version.
 * Windows 7, Windows 8, and Windows 8.1 are not supported. Windows desktop
   builds target the Windows 10 API floor in CI.
 * For iOS simulator, CI covers representative supported simulator
