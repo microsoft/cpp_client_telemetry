@@ -3,7 +3,8 @@
 This dependency-free smoke executable links the full SDK and compiles both the
 SDK and driver with C++ exceptions disabled. It checks malformed configuration
 and response JSON, configuration and timer numeric limits, partial profile
-loading, correlation-vector overflow, and unrepresentable expansion sizes.
+loading, correlation-vector overflow, unrepresentable expansion sizes, and
+deterministic allocation failure for a representable expansion.
 It requires neither Google Test nor the private optional modules.
 
 For GCC or Clang:
@@ -20,6 +21,11 @@ For clang-cl, add `/clang:-fno-exceptions` and select the `ClangCL` toolset.
 Use a fresh build directory when changing compilers or exception modes.
 Expansion requests larger than `PTRDIFF_MAX` fail before calling an allocator;
 representable allocations still use `std::nothrow` and report failure normally.
+The internal expansion overload accepts a per-call allocator. Regression tests
+return null for a 32-byte request and verify the allocator was called, a
+previously non-null output was cleared, and the output length became zero.
+Production calls retain the normal `std::nothrow` allocator; there is no global
+failure-injection state.
 
 `FromJSON` preserves throwing syntax errors in exception-enabled builds. When
 exceptions are disabled it logs malformed syntax and returns an empty

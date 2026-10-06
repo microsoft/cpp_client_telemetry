@@ -23,6 +23,7 @@ namespace clienttelemetry {
     namespace data {
         namespace v3 {
             bool Expand(const char*, size_t, char**, size_t&, bool);
+            bool Expand(const char*, size_t, char**, size_t&, bool, char* (*)(size_t));
         }
     }
 }
@@ -149,6 +150,17 @@ int main()
     check(!clienttelemetry::data::v3::Expand(invalidCompressed, sizeof(invalidCompressed), &output, outputSize, false),
           "oversized expansion must fail");
     check(output == nullptr && outputSize == 0, "failed expansion must clear outputs");
+    char previousOutput = 0;
+    output = &previousOutput;
+    outputSize = 32;
+    static size_t requestedSize = 0;
+    check(!clienttelemetry::data::v3::Expand(invalidCompressed, sizeof(invalidCompressed), &output, outputSize, false,
+        [](size_t size) -> char* {
+            requestedSize = size;
+            return nullptr;
+        }), "representable allocation failure must return false");
+    check(requestedSize == 32, "failure injection must reach the allocator");
+    check(output == nullptr && outputSize == 0, "allocation failure must clear an existing output and its length");
     std::puts("Passed no-exceptions configuration, response, profile, numeric-limit, and expansion smoke checks.");
     return EXIT_SUCCESS;
 }

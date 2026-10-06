@@ -16,6 +16,8 @@ namespace clienttelemetry {
     namespace data {
         namespace v3 {
             bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex);
+            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex,
+                        char* (*allocate)(size_t));
         }
     }
 }
@@ -151,6 +153,24 @@ TEST(PayloadDecoderTests, Expand_UnrepresentableSizeClearsOutput)
     char* output = nullptr;
     size_t outputSize = std::numeric_limits<size_t>::max();
     EXPECT_FALSE(clienttelemetry::data::v3::Expand(source, sizeof(source), &output, outputSize, false));
+    EXPECT_EQ(output, nullptr);
+    EXPECT_EQ(outputSize, 0u);
+}
+
+TEST(PayloadDecoderTests, Expand_AllocationFailureClearsExistingOutput)
+{
+    const char source[] = "invalid";
+    char previousOutput = 0;
+    char* output = &previousOutput;
+    size_t outputSize = 32;
+    static size_t requestedSize = 0;
+    requestedSize = 0;
+    EXPECT_FALSE(clienttelemetry::data::v3::Expand(source, sizeof(source), &output, outputSize, false,
+        [](size_t size) -> char* {
+            requestedSize = size;
+            return nullptr;
+        }));
+    EXPECT_EQ(requestedSize, 32u);
     EXPECT_EQ(output, nullptr);
     EXPECT_EQ(outputSize, 0u);
 }

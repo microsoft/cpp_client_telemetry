@@ -444,7 +444,9 @@ namespace clienttelemetry {
             /// <param name="destLen"></param>
             /// <param name="sizeAtZeroIndex"></param>
             /// <returns></returns>
-            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex)
+            // Successful custom allocations must be compatible with delete[].
+            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex,
+                        char* (*allocate)(size_t))
             {
                 if (!(source) || !(sourceLen))
                 {
@@ -479,7 +481,7 @@ namespace clienttelemetry {
                 // Allocate memory for the new uncompressed buffer
                 if (destLen > 0)
                 {
-                    char* decompBody = new (std::nothrow) char[destLen];
+                    char* decompBody = allocate(destLen);
                     if (decompBody == nullptr)
                     {
                         TEST_LOG_ERROR("Decompression failed (out of memory): destLen=%zu", destLen);
@@ -506,6 +508,11 @@ namespace clienttelemetry {
                 return false;
             }
 
+            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex)
+            {
+                return Expand(source, sourceLen, dest, destLen, sizeAtZeroIndex,
+                              [](size_t size) { return new (std::nothrow) char[size]; });
+            }
 
             bool ExpandVector(std::vector<uint8_t>& in, std::vector<uint8_t>& out)
             {
