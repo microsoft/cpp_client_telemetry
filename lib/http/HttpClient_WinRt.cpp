@@ -187,6 +187,26 @@ namespace MAT_NS_BEGIN {
                 response->m_result = HttpResult_OK;
                 IMapView<String^, String^>^ mapView = httpResponse->Headers->GetView();
 
+                size_t headerBytes = 0;
+                auto addHeader = [&](String^ key, String^ value)
+                {
+                    // Bound UTF-16 inputs before conversion; UTF-8 needs at most
+                    // three bytes per UTF-16 code unit.
+                    const uint64_t keyBytes = static_cast<uint64_t>(key->Length()) * 3;
+                    const uint64_t valueBytes = static_cast<uint64_t>(value->Length()) * 3;
+                    if (4 > MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes ||
+                        keyBytes > MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes - 4 ||
+                        valueBytes > MAX_HTTP_RESPONSE_HEADERS_SIZE - headerBytes - 4 - keyBytes)
+                    {
+                        LOG_WARN("HTTP response headers exceed %zu bytes; rejecting", MAX_HTTP_RESPONSE_HEADERS_SIZE);
+                        response->m_result = HttpResult_NetworkFailure;
+                        response->m_headers.clear();
+                        return false;
+                    }
+                    headerBytes += static_cast<size_t>(keyBytes + valueBytes) + 4;
+                    response->m_headers.add(from_platform_string(key), from_platform_string(value));
+                    return true;
+                };
                 auto iterator = mapView->First();
                 unsigned int  index = 0;
                 while (index < mapView->Size)
@@ -194,7 +214,8 @@ namespace MAT_NS_BEGIN {
                     String^ Key = iterator->Current->Key;
                     String^ Value = iterator->Current->Value;
 
-                    response->m_headers.add(from_platform_string(Key), from_platform_string(Value));
+                    if (!addHeader(Key, Value))
+                        break;
                     iterator->MoveNext();
                     index++;
                 }
@@ -203,12 +224,13 @@ namespace MAT_NS_BEGIN {
                 IMapView<String^, String^>^ contentHeadersView = m_httpResponseMessage->Content->Headers->GetView();
                 auto contentHeadersiterator = contentHeadersView->First();
                 unsigned int  contentHeadersIndex = 0;
-                while (contentHeadersIndex < contentHeadersView->Size)
+                while (response->m_result == HttpResult_OK && contentHeadersIndex < contentHeadersView->Size)
                 {
                     String^ Key = contentHeadersiterator->Current->Key;
                     String^ Value = contentHeadersiterator->Current->Value;
 
-                    response->m_headers.add(from_platform_string(Key), from_platform_string(Value));
+                    if (!addHeader(Key, Value))
+                        break;
                     contentHeadersiterator->MoveNext();
                     contentHeadersIndex++;
                 }
@@ -222,6 +244,7 @@ namespace MAT_NS_BEGIN {
                 try
                 {
                     IInputStream^ inputStream = nullptr;
+                    if (response->m_result == HttpResult_OK)
                     {
                         auto streamOp = m_httpResponseMessage->Content->ReadAsInputStreamAsync();
                         auto streamTask = create_task(streamOp, m_cancellationTokenSource.get_token());

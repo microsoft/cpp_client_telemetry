@@ -5,6 +5,7 @@
 #include "mat/config.h"
 #include "ZlibUtils.hpp"
 #include "pal/PAL.hpp"
+#include <array>
 
 #ifdef HAVE_MAT_ZLIB
 #define ZLIB_CONST
@@ -13,10 +14,17 @@
 
 namespace MAT_NS_BEGIN
 {
+    constexpr std::size_t ZlibUtils::MAX_INFLATED_SIZE;
+
     bool ZlibUtils::InflateVector(const std::vector<uint8_t>& in, std::vector<uint8_t>& out, bool isGzip)
     {
 #ifdef HAVE_MAT_ZLIB
         bool result = true;
+        if (in.size() > MAX_INFLATED_SIZE || out.size() > MAX_INFLATED_SIZE)
+        {
+            LOG_WARN("Compressed payload exceeds decoder size limit");
+            return false;
+        }
 
         z_stream zs;
         memset(&zs, 0, sizeof(zs));
@@ -32,19 +40,20 @@ namespace MAT_NS_BEGIN
         zs.next_in = (Bytef *)in.data();
         zs.avail_in = (uInt)in.size();
         int ret;
-        // The problem with 32K is that it's too small and causes corruption
-        // in zlib inflate. 128KB seems to be fine.
-        // Allocate a buffer enough to hold an output with Zlib max compression
-        // ratio 5:1 in case it is larger than 128KB.
-        uInt outbufferSize = std::max((uInt)131072, zs.avail_in * 5);
-
-        char* outbuffer = new char[outbufferSize];
+        std::array<uint8_t, 16 * 1024> outbuffer;
         do
         {
-            zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
-            zs.avail_out = outbufferSize;
+            zs.next_out = outbuffer.data();
+            zs.avail_out = static_cast<uInt>(outbuffer.size());
             ret = inflate(&zs, Z_NO_FLUSH);
-            out.insert(out.end(), outbuffer, outbuffer + (outbufferSize - zs.avail_out));
+            const size_t count = outbuffer.size() - zs.avail_out;
+            if (count > MAX_INFLATED_SIZE - out.size())
+            {
+                LOG_WARN("Inflated payload exceeds %zu bytes; rejecting", MAX_INFLATED_SIZE);
+                result = false;
+                break;
+            }
+            out.insert(out.end(), outbuffer.data(), outbuffer.data() + count);
         } while (ret == Z_OK);
         if (ret != Z_STREAM_END)
         {
@@ -52,7 +61,6 @@ namespace MAT_NS_BEGIN
             result = false;
         }
         inflateEnd(&zs);
-        delete[] outbuffer;
         return result;
 #else
         UNREFERENCED_PARAMETER(in);

@@ -186,6 +186,10 @@ class CompactBinaryProtocolReader {
         if (length > m_input.size() - m_ofs) {
             return false;
         }
+        if (length == 0) {
+            value.clear();
+            return true;
+        }
         value.assign(reinterpret_cast<char const*>(&m_input[m_ofs]), length);
         m_ofs += length;
         return true;
@@ -214,14 +218,16 @@ class CompactBinaryProtocolReader {
         }
 
         elementType = (raw & 31);
-        return ReadUInt32(size);
+        return ReadUInt32(size) &&
+               size <= m_input.size() - m_ofs;
     }
 
     bool ReadMapContainerBegin(uint32_t& size, uint8_t& keyType, uint8_t& valueType)
     {
         return ReadUInt8(keyType) && (keyType >> 5 == 0) &&
                ReadUInt8(valueType) && (valueType >> 5 == 0) &&
-               ReadUInt32(size);
+               ReadUInt32(size) &&
+               size <= (m_input.size() - m_ofs) / 2;
     }
 
     bool ReadContainerEnd()
@@ -277,4 +283,3 @@ class CompactBinaryProtocolReader {
 };
 
 } // namespace bond_lite
-

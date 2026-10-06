@@ -120,6 +120,10 @@ if(MATSDK_DISABLE_LOGGING)
   target_compile_definitions(matsdk_internal_config INTERFACE
     MATSDK_DISABLE_LOGGING)
 endif()
+if(NOT MATSDK_ENABLE_DEVICE_ID)
+  target_compile_definitions(matsdk_internal_config INTERFACE
+    MATSDK_DISABLE_DEVICE_ID)
+endif()
 
 option(GCC5_CXX11_ABI_WORKAROUND "Workaround: Use legacy C++11 ABI (for GCC 5 compatibility)" OFF)
 if(GCC5_CXX11_ABI_WORKAROUND)

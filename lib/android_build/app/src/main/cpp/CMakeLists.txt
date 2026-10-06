@@ -31,6 +31,7 @@ set(TESTS_SRCS
         ${SDK_ROOT}/tests/unittests/DataViewerCollectionTests.cpp
         ${SDK_ROOT}/tests/unittests/DebugEventSourceTests.cpp
         ${SDK_ROOT}/tests/unittests/DeviceStateHandlerTests.cpp
+        ${SDK_ROOT}/tests/unittests/device-id-tests.cpp
         ${SDK_ROOT}/tests/unittests/DiskLocalStorageTests.cpp
         ${SDK_ROOT}/tests/unittests/EventFilterCollectionTests.cpp
         ${SDK_ROOT}/tests/unittests/EventPropertiesStorageTests.cpp

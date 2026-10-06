@@ -213,6 +213,10 @@ namespace MAT_NS_BEGIN
         {
             result.erase(result.length() - 1);
         }
+        if (!result.empty() && result[result.length() - 1] == '\r')
+        {
+            result.erase(result.length() - 1);
+        }
     }
 }
 MAT_NS_END

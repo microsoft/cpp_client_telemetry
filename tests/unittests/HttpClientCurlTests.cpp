@@ -100,6 +100,27 @@ TEST(HttpClientCurlOperationTests, ClampsConnectionTimeoutBeforeMillisecondsConv
         std::numeric_limits<long>::max() / 1000L);
 }
 
+class CurlResponseBufferCallbacks : public CurlHttpOperation
+{
+public:
+    using CurlHttpOperation::WriteHeaderCallback;
+};
+
+TEST(HttpClientCurlOperationTests, EnforcesExactHeaderBufferLimitWithoutPartialWrites)
+{
+    std::vector<char> input(MAX_HTTP_RESPONSE_HEADERS_SIZE, 'x');
+    std::vector<uint8_t> output;
+    EXPECT_EQ(CurlResponseBufferCallbacks::WriteHeaderCallback(
+        input.data(), 1, input.size(), &output), input.size());
+    EXPECT_EQ(output.size(), MAX_HTTP_RESPONSE_HEADERS_SIZE);
+    EXPECT_EQ(CurlResponseBufferCallbacks::WriteHeaderCallback(
+        input.data(), 1, 1, &output), 0u);
+    EXPECT_EQ(output.size(), MAX_HTTP_RESPONSE_HEADERS_SIZE);
+    EXPECT_EQ(CurlResponseBufferCallbacks::WriteHeaderCallback(
+        input.data(), 2, std::numeric_limits<size_t>::max(), &output), 0u);
+    EXPECT_EQ(output.size(), MAX_HTTP_RESPONSE_HEADERS_SIZE);
+}
+
 class CountingHttpServer : public HttpServer
 {
 public:
@@ -152,6 +173,7 @@ class HttpClientCurlHeaderTests : public ::testing::Test,
 protected:
     CountingHttpServer m_server;
     std::string m_url;
+    std::map<std::string, std::string> m_responseHeaders {{"X-MAT-Test", "header-value"}};
     std::mutex m_requestMutex;
     std::string m_requestMethod;
     std::string m_requestContent;
@@ -177,7 +199,7 @@ protected:
         std::lock_guard<std::mutex> lock(m_requestMutex);
         m_requestMethod = request.method;
         m_requestContent = request.content;
-        response.headers["X-MAT-Test"] = "header-value";
+        response.headers = m_responseHeaders;
         response.content = "body-value";
         return 200;
     }
@@ -218,6 +240,34 @@ TEST_F(HttpClientCurlHeaderTests, CapturesResponseHeadersAndBody)
     EXPECT_EQ(callback.handles[1], operation.GetHandle());
     EXPECT_EQ(callback.handles[2], UsesPrereqCallback() ? nullptr : operation.GetHandle());
     EXPECT_EQ(m_server.acceptedConnections(), UsesPrereqCallback() ? 1u : 2u);
+}
+
+TEST_F(HttpClientCurlHeaderTests, ParsesLongHeaderValuesLinearlyAndPreservesColons)
+{
+    const std::string value = std::string(16 * 1024, 'x') + ": keep: value";
+    m_responseHeaders["X-Long"] = value;
+    CurlHttpOperation operation("GET", m_url, nullptr, {}, {});
+    operation.Send();
+    ASSERT_EQ(operation.GetTransportError(), CURLE_OK);
+    EXPECT_EQ(operation.GetResponseHeaders().at("X-Long"), value);
+}
+
+TEST_F(HttpClientCurlHeaderTests, RejectsOversizedAggregateHeaders)
+{
+    for (int i = 0; i < 5; ++i)
+        m_responseHeaders["X-Long-" + std::to_string(i)] = std::string(16 * 1024, 'x');
+    CurlHttpOperation operation("GET", m_url, nullptr, {}, {});
+    operation.Send();
+    EXPECT_EQ(operation.GetTransportError(), CURLE_WRITE_ERROR);
+}
+
+TEST_F(HttpClientCurlHeaderTests, RejectsOversizedHeadersInRawResponseMode)
+{
+    for (int i = 0; i < 5; ++i)
+        m_responseHeaders["X-Long-" + std::to_string(i)] = std::string(16 * 1024, 'x');
+    CurlHttpOperation operation("GET", m_url, nullptr, {}, {}, true);
+    operation.Send();
+    EXPECT_EQ(operation.GetTransportError(), CURLE_WRITE_ERROR);
 }
 
 TEST_F(HttpClientCurlHeaderTests, SendsBinaryPostWithoutRedundantConnection)

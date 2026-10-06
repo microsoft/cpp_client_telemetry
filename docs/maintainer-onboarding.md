@@ -261,6 +261,13 @@ Leak-count increases produce warnings, not failures: a green job does not mean
 the change introduced no leaks. Instrumentation or target failures fail the
 job, and Windows also fails if `netprofm.dll` is loaded again.
 
+Forked tests can produce multiple completed process reports. The runner sums
+their counts and bytes into one scenario summary (unique counts are summed
+per process, not deduplicated across processes). Header-only reports are
+ignored, but missing completed reports or malformed summaries fail the job.
+Run `pwsh -File tests/memory-leak-analysis/run-drmemory-tests.ps1` to check
+the parser without installing Dr. Memory.
+
 Two tests remain in normal CI but are excluded under instrumentation:
 `BasicFuncTests.killSwitchWorks` because Dr. Memory changes its asynchronous
 drop count, and

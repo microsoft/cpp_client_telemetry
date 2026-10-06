@@ -13,13 +13,15 @@
 
 MATSDK_LOG_INST_COMPONENT_NS("DeviceInfo", "Win32 Desktop Device Information")
 
+#ifndef MATSDK_DISABLE_DEVICE_ID
 #include <iphlpapi.h>
+#pragma comment(lib, "iphlpapi.lib")
+#endif
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "AdvAPI32.Lib")
 
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
@@ -34,11 +36,14 @@ using namespace MAT;
 
 namespace PAL_NS_BEGIN {
 
+#ifndef MATSDK_DISABLE_DEVICE_ID
     /* Value returned on computers with no network adapter available */
     static const char *devIdDefault = "{deadbeef-fade-dead-c0de-cafebabefeed}";
+#endif
     static const char *manufacturer = "Unknown Manufacturer";
     static const char *model = "Unknown Model";
 
+#ifndef MATSDK_DISABLE_DEVICE_ID
     /**
      * Returns the GUID of the 1st network adapter.
      */
@@ -76,6 +81,7 @@ namespace PAL_NS_BEGIN {
         }
         return devId;
     }
+#endif
 
     // Helper functions.
     PowerSource GetCurrentPowerSource()
@@ -110,7 +116,9 @@ namespace PAL_NS_BEGIN {
     {
         m_os_architecture = WindowsEnvironmentInfo::GetProcessorArchitecture();
 
+#ifndef MATSDK_DISABLE_DEVICE_ID
         m_device_id = getDeviceId();
+#endif
 
         char buff[256] = { 0 };
         DWORD size = sizeof(buff);

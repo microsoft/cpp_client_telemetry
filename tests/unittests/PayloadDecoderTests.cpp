@@ -4,9 +4,14 @@
 //
 #include "common/Common.hpp"
 #include "PayloadDecoder.hpp"
+#include "utils/ZlibUtils.hpp"
 #include <limits>
 
 #if defined(HAVE_MAT_ZLIB) && defined(HAVE_MAT_JSONHPP)
+#include "bond/All.hpp"
+#include "bond/generated/CsProtocol_writers.hpp"
+#include <nlohmann/json.hpp>
+
 namespace clienttelemetry {
     namespace data {
         namespace v3 {
@@ -18,6 +23,22 @@ namespace clienttelemetry {
 
 using namespace testing;
 using namespace MAT;
+
+TEST(PayloadDecoderTests, RejectsOversizedRequestsBeforeCopying)
+{
+    std::vector<uint8_t> input(ZlibUtils::MAX_INFLATED_SIZE + 1, 0);
+    std::string output = "previous";
+    EXPECT_FALSE(exporters::DecodeRequest(input, output, false));
+    EXPECT_TRUE(output.empty());
+}
+
+TEST(PayloadDecoderTests, RejectsShortMalformedInputWithoutReadingPastTheEnd)
+{
+    const std::vector<uint8_t> input {0xff};
+    std::string output;
+    EXPECT_FALSE(exporters::DecodeRequest(input, output, false));
+    EXPECT_TRUE(output.empty());
+}
 
 namespace
 {
@@ -43,6 +64,33 @@ namespace
         return record;
     }
 }
+
+#if defined(HAVE_MAT_ZLIB) && defined(HAVE_MAT_JSONHPP)
+TEST(PayloadDecoderTests, DecodeRequest_ManyRecordsPreservesOrderAndContents)
+{
+    constexpr size_t count = 4096;
+    std::vector<uint8_t> input;
+    for (size_t i = 0; i < count; ++i)
+    {
+        auto record = MakeMinimalRecord();
+        record.name = "Event." + std::to_string(i) + std::string(512, 'x');
+        std::vector<uint8_t> encoded;
+        bond_lite::CompactBinaryProtocolWriter writer(encoded);
+        bond_lite::Serialize(writer, record);
+        input.insert(input.end(), encoded.begin(), encoded.end());
+    }
+
+    std::string output;
+    ASSERT_TRUE(exporters::DecodeRequest(input, output, false));
+    const auto records = nlohmann::json::parse(output);
+    ASSERT_EQ(records.size(), count);
+    for (size_t i = 0; i < count; ++i)
+    {
+        EXPECT_EQ(records[i]["name"].get<std::string>(),
+                  "Event." + std::to_string(i) + std::string(512, 'x'));
+    }
+}
+#endif
 
 // A telemetry event field can legitimately contain bytes that are not valid
 // UTF-8. nlohmann::json::dump() defaults to error_handler_t::strict, which

@@ -27,7 +27,7 @@ $ErrorActionPreference = "Stop"
 function Get-LeakCount {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$Results,
+        [string[]]$Results,
 
         [Parameter(Mandatory = $true)]
         [string]$Category
@@ -35,16 +35,17 @@ function Get-LeakCount {
 
     $escapedCategory = [regex]::Escape($Category)
     $pattern = "(?m)^\s*(?:~~Dr\.M~~\s+)?([\d,]+) unique,\s+([\d,]+) total,\s+([\d,]+) byte\(s\) of $escapedCategory\r?$"
-    $match = [regex]::Match($Results, $pattern)
-    if (-not $match.Success) {
-        throw "Dr. Memory results do not contain the '$Category' summary."
+    $counts = @{ Unique = [int64]0; Total = [int64]0; Bytes = [int64]0 }
+    foreach ($result in $Results) {
+        $match = [regex]::Match($result, $pattern)
+        if (-not $match.Success) {
+            throw "Dr. Memory results do not contain the '$Category' summary."
+        }
+        $counts.Unique += [int64]($match.Groups[1].Value -replace ",", "")
+        $counts.Total += [int64]($match.Groups[2].Value -replace ",", "")
+        $counts.Bytes += [int64]($match.Groups[3].Value -replace ",", "")
     }
-
-    return @{
-        Unique = [int64]($match.Groups[1].Value -replace ",", "")
-        Total  = [int64]($match.Groups[2].Value -replace ",", "")
-        Bytes  = [int64]($match.Groups[3].Value -replace ",", "")
-    }
+    return $counts
 }
 
 $resolvedDrMemoryPath = (Resolve-Path -LiteralPath $DrMemoryPath).Path
@@ -70,11 +71,12 @@ $resultFiles = @(Get-ChildItem -LiteralPath $scenarioDirectory -Filter results.t
 $resultFiles = @($resultFiles | Where-Object {
     Select-String -LiteralPath $_.FullName -Pattern '^(?:NO )?ERRORS FOUND:\r?$' -Quiet
 })
-if ($resultFiles.Count -ne 1) {
-    throw "Expected one completed Dr. Memory results.txt for $Scenario, found $($resultFiles.Count)."
+if ($resultFiles.Count -eq 0) {
+    throw "Expected at least one completed Dr. Memory results.txt for $Scenario, found none."
 }
 
-$results = Get-Content -LiteralPath $resultFiles[0].FullName -Raw
+# Forked tests produce separate reports; include every completed process.
+$results = @($resultFiles | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw })
 $leaks = Get-LeakCount -Results $results -Category "leak(s)"
 $possibleLeaks = Get-LeakCount -Results $results -Category "possible leak(s)"
 $reachable = Get-LeakCount -Results $results -Category "still-reachable allocation(s)"

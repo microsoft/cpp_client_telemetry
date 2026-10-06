@@ -10,6 +10,7 @@
  */
 
 #include "sysinfo_sources_impl.hpp"
+#include "pal/PAL.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -24,8 +25,6 @@
 
 #include <unistd.h>
 #include <sys/utsname.h>
-
-#include <regex>
 
 #include <iostream>
 #include <iomanip>
@@ -55,7 +54,7 @@
 #include "TargetConditionals.h"
 #include "sysinfo_utils_apple.hpp"
 
-#ifdef TARGET_MAC_OS 
+#if defined(TARGET_MAC_OS) && !defined(MATSDK_DISABLE_DEVICE_ID)
 
 #include <IOKit/IOKitLib.h>
 
@@ -73,12 +72,22 @@ void get_platform_uuid(char * buf, int bufSize)
 
 std::string get_app_name()
 {
+    using PAL::getMATSDKLogComponent;
     std::vector<char> appId(PATH_MAX+1, 0);
-    uint32_t length = 0;
+    uint32_t length = static_cast<uint32_t>(appId.size());
     if(_NSGetExecutablePath(&appId[0], &length))
     {
+        if (length == 0)
+        {
+            LOG_WARN("Executable path length is empty");
+            return {};
+        }
         appId.resize(length, 0);
-        _NSGetExecutablePath(&appId[0], &length);
+        if (_NSGetExecutablePath(&appId[0], &length) != 0)
+        {
+            LOG_WARN("Unable to read executable path");
+            return {};
+        }
     }
     std::string result = basename(appId.data());
     return result;
@@ -91,11 +100,41 @@ std::string get_app_name()
  * @param filename
  * @return
  */
-inline std::string ReadFile(const char *filename)
+inline std::string ReadFile(const char *filename, sysinfo_selector selector)
 {
-    std::ifstream t(filename);
-    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-    return str;
+    using PAL::getMATSDKLogComponent;
+    auto mode = std::ios::in;
+    if (selector == sysinfo_selector::first_null)
+        mode |= std::ios::binary;
+    std::ifstream input(filename, mode);
+    std::string result;
+    char ch;
+    while (input.get(ch))
+    {
+        if ((selector == sysinfo_selector::first_null && ch == '\0') ||
+            (selector == sysinfo_selector::first_line && ch == '\n'))
+        {
+            return result;
+        }
+        if (selector == sysinfo_selector::first_null && result.size() == MAX_COMMAND_LINE_SIZE)
+        {
+            LOG_WARN("Command-line executable exceeds %zu bytes; truncating", MAX_COMMAND_LINE_SIZE);
+            result.push_back(ch);
+            size_t length = MAX_COMMAND_LINE_SIZE;
+            // Avoid cutting a UTF-8 sequence at the command-line boundary.
+            while (length > 0 && (static_cast<unsigned char>(result[length]) & 0xc0) == 0x80)
+                --length;
+            result.resize(length);
+            return result;
+        }
+        result.push_back(ch);
+    }
+    if (input.bad())
+    {
+        LOG_WARN("Unable to read system information source");
+        return {};
+    }
+    return result;
 }
 
 /**
@@ -103,31 +142,30 @@ inline std::string ReadFile(const char *filename)
  * @param cmd Command to execute
  * @return output
  */
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"  // Used on non-Apple platforms. See sysinfo_sources_impl()
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-function"  // Used on non-Apple platforms. See sysinfo_sources_impl()
-#endif
+#if !defined(__APPLE__) && !defined(MATSDK_DISABLE_DEVICE_ID)
 static std::string Exec(const char* cmd)
 {
+    using PAL::getMATSDKLogComponent;
     std::array<char, 128> buffer;
     std::string result;
     auto close_pipe = [](FILE* file) { pclose(file); };
     std::unique_ptr<FILE, decltype(close_pipe)> pipe(popen(cmd, "r"), close_pipe);
     if (!pipe)
     {
-        // throw std::runtime_error("popen() failed!");
+        LOG_WARN("Unable to execute system information command");
         return result;
     }
 
-    while (!feof(pipe.get()))
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr)
     {
-        if (fgets(buffer.data(), buffer.size(), pipe.get())!=NULL)
-            result += buffer.data();
+        const size_t count = strlen(buffer.data());
+        result.append(buffer.data(), count);
     }
-
+    if (ferror(pipe.get()))
+    {
+        LOG_WARN("Unable to read system information command output");
+        return {};
+    }
     // Remove EOL. In all use-cases below we don't need it.
     if (!result.empty() && result[result.length()-1]=='\n')
     {
@@ -136,44 +174,54 @@ static std::string Exec(const char* cmd)
 
     return result;
 }
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif
 
 /**
- * Read node value, preprocess it using regexp and store result in cache
+ * Read a node value, select it without regex and store it in cache
  *
  * @param key       Field name
  * @return          true if field value is found and saved in cache
  */
 bool sysinfo_sources::fetch(std::string key)
 {
-	for(auto &kv : (*this))
-	{
-		if(kv.first == key)
-		{
-			const std::string star("*");
-			const std::string empty("");
+    using PAL::getMATSDKLogComponent;
 
-			std::string contents = ReadFile(kv.second.path);
-			if((kv.second.selector == star) || (kv.second.selector == empty))
-			{
-				cache[key] = contents;
-				return true;
-			}
-			// Run regexp
-			std::regex selector_regex(kv.second.selector);
-			std::smatch match;
-			if(std::regex_search(contents, match, selector_regex))
-			{
-				cache[key] = match[1];
-				return true;
-			}
-		}
-	}
-	return false;
+    for (auto& kv : (*this))
+    {
+        if (kv.first != key)
+            continue;
+        if (kv.second.selector == sysinfo_selector::key_value && kv.second.name == nullptr)
+        {
+            LOG_WARN("System information key-value selector is missing its name");
+            continue;
+        }
+        std::string contents = ReadFile(kv.second.path, kv.second.selector);
+        if (kv.second.selector != sysinfo_selector::key_value)
+        {
+            cache[key] = std::move(contents);
+            return true;
+        }
+        std::istringstream lines(contents);
+        std::string line;
+        const std::string prefix = std::string(kv.second.name) + "=";
+        while (std::getline(lines, line))
+        {
+            if (line.compare(0, prefix.size(), prefix) != 0)
+                continue;
+            std::string value = line.substr(prefix.size());
+            if (!value.empty() && value.back() == '\r')
+                value.pop_back();
+            if (value.size() >= 2 &&
+                ((value.front() == '"' && value.back() == '"') ||
+                 (value.front() == '\'' && value.back() == '\'')))
+            {
+                value = value.substr(1, value.size() - 2);
+            }
+            cache[key] = std::move(value);
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -218,24 +266,13 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     uname(&buf);
 #if defined(__linux__)
     // Obtain Linux system information from filesystem
-    add("devId", { "/etc/machine-id", "*"});
-    add("osName", {"/etc/os-release", ".*ID=(.*)[\n]+"});
-    add("osVer", {"/etc/os-release", ".*VERSION_ID=\"(.*)\".*"});
-    add("osRel", {"/etc/os-release", ".*VERSION=\"(.*)\".*"});
-    add("osBuild", {"/proc/version", "(.*)[\n]+"});
-    // add("proc_loadavg", {"/proc/loadavg", "(.*)[\n]*"});
-    // add("proc_uptime", {"/proc/uptime", "(.*)[\n]*"});
-
-    // osName may contain quotes on openSUSE
-    if (get("osName").find('"') == 0)
-    {
-        std::string contents = get("osName");
-        size_t pos_end_quote = contents.rfind('"');
-        if (pos_end_quote != std::string::npos && pos_end_quote > 0)
-        {
-            cache["osName"] = contents.substr(1, pos_end_quote - 1);
-        }
-    }
+#ifndef MATSDK_DISABLE_DEVICE_ID
+    add("devId", { "/etc/machine-id", sysinfo_selector::raw});
+#endif
+    add("osName", {"/etc/os-release", sysinfo_selector::key_value, "ID"});
+    add("osVer", {"/etc/os-release", sysinfo_selector::key_value, "VERSION_ID"});
+    add("osRel", {"/etc/os-release", sysinfo_selector::key_value, "VERSION"});
+    add("osBuild", {"/proc/version", sysinfo_selector::first_line});
 
     time_t t = time(NULL);
 
@@ -268,9 +305,11 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
 
 #if defined(__MINGW32__) || defined(__MSYS__)
     // Obtain MinGW Device ID from registry
-    add("devId",    { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/ComputerHardwareId", "*"});
-    add("devMake",  { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemManufacturer", "*"});
-    add("devModel", { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemProductName",  "*"});
+#ifndef MATSDK_DISABLE_DEVICE_ID
+    add("devId",    { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/ComputerHardwareId", sysinfo_selector::raw});
+#endif
+    add("devMake",  { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemManufacturer", sysinfo_selector::raw});
+    add("devModel", { "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/SystemInformation/SystemProductName", sysinfo_selector::raw});
 #endif
 
 #if defined(__APPLE__)
@@ -316,11 +355,12 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
     }
 
 #ifndef __APPLE__
-    add("appId", {"/proc/self/cmdline", "(.*)[ ]*.*[\n]*"});
+    add("appId", {"/proc/self/cmdline", sysinfo_selector::first_null});
 #else
     cache["appId"] = get_app_name();
 #endif
 
+#ifndef MATSDK_DISABLE_DEVICE_ID
     if (!get("devId").compare(""))
     {
 #ifdef __APPLE__
@@ -348,5 +388,6 @@ sysinfo_sources_impl::sysinfo_sources_impl() : sysinfo_sources()
         }
 #endif
     }
+#endif
 
 }

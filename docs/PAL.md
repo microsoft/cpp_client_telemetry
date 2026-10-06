@@ -59,6 +59,61 @@
 
 ## Remote configuration (ECS client)
 
+## Device-ID collection
+
+`MATSDK_ENABLE_DEVICE_ID` defaults to `ON`. Configure with
+`-DMATSDK_ENABLE_DEVICE_ID=OFF` to compile out the SDK's native device-ID
+collectors, including machine-ID reads, fallback shell commands, adapter
+queries, host UUIDs, and vendor/Android identifiers. Other system and device
+metadata remain enabled. The macOS build also stops linking the ID-specific
+IOKit framework; dependencies still used by other features remain.
+
+Without a supplied ID, `DeviceInfo.Id` is omitted rather than replaced with a
+placeholder. Applications can still supply their own ID through
+`ISemanticContext::SetDeviceId`; registration does not overwrite it with an
+empty automatically collected ID. Android's Java bridge consults the native
+build setting before accessing `ANDROID_ID`; use the matching Java bridge
+sources with the native SDK. For Android Gradle builds, pass
+`-PMATSDK_ENABLE_DEVICE_ID=OFF` to apply the setting to both the SDK AAR and
+the test application. The Gradle property takes precedence over the
+`MATSDK_ENABLE_DEVICE_ID` environment variable; both default to `ON` when
+unspecified.
+
+This option does not disable session/SDK identifiers or control device IDs
+added independently by the operating system's UTC telemetry pipeline.
+
+## Targeted input safeguards
+
+The SDK bounds the command-line input involved in initialization and buffered
+HTTP responses. It does not impose a blanket metadata limit on system,
+device, application, or network-provider strings, additional limits on
+OS-reported buffer sizes, or a size limit on persisted session files.
+
+| Input | Limit | Oversize behavior |
+| --- | --- | --- |
+| POSIX application identifier | 4 KiB, stopping at the first NUL in `/proc/self/cmdline` | Truncate the executable name; never collect arguments or run a regex |
+| HTTP response body | 16 MiB | Fail the request rather than retain an oversized response |
+| HTTP response headers | 64 KiB | Fail the request rather than retain oversized headers |
+
+POSIX OS release values use exact line-key matching rather than recursive
+regular expressions. Curl response headers are also parsed without regex.
+Command-line truncation preserves UTF-8 boundaries. Other metadata is not
+truncated by these safeguards. Session files retain the existing platform
+text-read behavior; session parsing accepts both LF and CRLF line endings.
+The header budget includes framing for native raw headers or a minimum
+four-byte allowance per name/value pair. Windows native queries measure raw
+UTF-16/ANSI buffer bytes; WinRT conservatively budgets up to three UTF-8 bytes
+per UTF-16 unit. Android counts JNI modified UTF-8 bytes without allocating
+encoded strings, including two bytes for NUL and three per surrogate, before
+JNI additionally checks their encoded byte sizes. OS networking frameworks may
+have their own internal limits; the SDK limits its own copies and streaming
+body reads.
+
+Caller-provided events retain the existing configured serialized-event,
+upload, and offline-cache size policies; no new per-property limit is applied.
+See [decoder limits](CsProtocol-decoding.md#decoder-input-limits) for the
+separate diagnostic decoding budget.
+
 ## Bandwidth manager (Resource manager)
 
 - Get available bandwidth

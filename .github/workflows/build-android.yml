@@ -109,6 +109,10 @@ jobs:
       run: |
         .\gradlew.bat maesdk:test
       working-directory: lib\android_build
+    - name: Gradle Build without native device-ID collection
+      run: |
+        .\gradlew.bat maesdk:assembleDebug app:assembleDebug -PMATSDK_ENABLE_DEVICE_ID=OFF
+      working-directory: lib\android_build
     - name: Upload Reports
       if: failure()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

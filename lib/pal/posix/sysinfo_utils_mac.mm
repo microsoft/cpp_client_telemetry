@@ -4,9 +4,12 @@
 //
 
 #include "sysinfo_utils_apple.hpp"
+#include "pal/PAL.hpp"
 #include <sys/sysctl.h>
 #include <unistd.h>
+#ifndef MATSDK_DISABLE_DEVICE_ID
 #include <uuid/uuid.h>
+#endif
 #include <vector>
 #import <Foundation/Foundation.h>
 
@@ -14,13 +17,19 @@
 
 std::string GetDeviceModel()
 {
+    using PAL::getMATSDKLogComponent;
     static const char *query = "hw.model";
     size_t size = 0;
     std::vector<char> deviceModelBuffer;
     std::string deviceModel { };
     if (sysctlbyname(query, nullptr, &size, nullptr, 0) == 0)
     {
-        deviceModelBuffer.resize(size);
+        if (size == 0)
+        {
+            LOG_WARN("Device model length is empty");
+            return {};
+        }
+        deviceModelBuffer.resize(size + 1, '\0');
         if (sysctlbyname(query, deviceModelBuffer.data(), &size, nullptr, 0) == 0)
         {
             deviceModel = deviceModelBuffer.data();
@@ -37,6 +46,7 @@ std::string GetDeviceOsName()
 
 std::string GetDeviceId()
 {
+#ifndef MATSDK_DISABLE_DEVICE_ID
     uuid_t uuidBytes;
     const struct timespec spec = {1, 0};
     int hostUUIDResult = gethostuuid(uuidBytes, &spec);
@@ -49,6 +59,9 @@ std::string GetDeviceId()
     }
 
     return {EMPTY_GUID};
+#else
+    return {};
+#endif
 }
 
 std::string GetDeviceOsVersion()

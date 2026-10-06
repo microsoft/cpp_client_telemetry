@@ -40,8 +40,10 @@ namespace PAL_NS_BEGIN {
 #endif
 
         auto sysInfo = sysinfo_sources_impl::GetSysInfo();
+#ifndef MATSDK_DISABLE_DEVICE_ID
         std::string devId = sysInfo.get("devId");
         m_device_id = (devId.empty()) ? DEFAULT_DEVICE_ID : devId;
+#endif
 
         m_manufacturer = sysInfo.get("devMake");
 
@@ -71,4 +73,3 @@ namespace PAL_NS_BEGIN {
     DeviceInformationImpl::~DeviceInformationImpl() {}
 
 } PAL_NS_END
-

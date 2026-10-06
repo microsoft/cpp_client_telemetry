@@ -139,6 +139,20 @@ if(VCPKG_TARGET_IS_WINDOWS
     "MATSDK_VCPKG_SOURCE_DIR to a local checkout containing that option.")
 endif()
 set(MATSDK_PINNED_SOURCE_OPTIONS)
+if(MATSDK_OPTION_SOURCE MATCHES "MATSDK_ENABLE_DEVICE_ID")
+  set(MATSDK_ENABLE_DEVICE_ID OFF)
+  if("device-id" IN_LIST FEATURES)
+    set(MATSDK_ENABLE_DEVICE_ID ON)
+  endif()
+  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS
+    -DMATSDK_ENABLE_DEVICE_ID=${MATSDK_ENABLE_DEVICE_ID})
+elseif(NOT "device-id" IN_LIST FEATURES)
+  message(FATAL_ERROR
+    "Disabling device-ID collection requires a cpp-client-telemetry source "
+    "revision that supports MATSDK_ENABLE_DEVICE_ID. Update this port's "
+    "REF/SHA512 to a newer SDK release, or set MATSDK_VCPKG_SOURCE_DIR "
+    "to a local checkout containing that option.")
+endif()
 if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_USE_VCPKG_DEPS")
   list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_USE_VCPKG_DEPS=ON)
 endif()

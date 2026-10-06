@@ -6,12 +6,14 @@ set(SRCS
   AnnexKTests.cpp
   BackoffTests_ExponentialWithJitter.cpp
   BondSplicerTests.cpp
+  bounded-input-tests.cpp
   ClockSkewManagerTests.cpp
   ContextFieldsProviderTests.cpp
   ControlPlaneProviderTests.cpp
   CorrelationVectorTests.cpp
   DebugEventSourceTests.cpp
   DeviceStateHandlerTests.cpp
+  device-id-tests.cpp
   DiskLocalStorageTests.cpp
   EventFilterCollectionTests.cpp
   EventPropertiesDecoratorTests.cpp

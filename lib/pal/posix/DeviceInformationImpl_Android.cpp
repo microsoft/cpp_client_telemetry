@@ -44,7 +44,11 @@ namespace PAL_NS_BEGIN {
     };
 
     PowerSource AndroidDeviceInformationConnector::s_power_source = PowerSource_Unknown;
+#ifndef MATSDK_DISABLE_DEVICE_ID
     std::string AndroidDeviceInformationConnector::s_device_id = DEFAULT_DEVICE_ID;
+#else
+    std::string AndroidDeviceInformationConnector::s_device_id;
+#endif
     std::string AndroidDeviceInformationConnector::s_manufacturer;
     std::string AndroidDeviceInformationConnector::s_model;
     std::mutex AndroidDeviceInformationConnector::s_registered_mutex;
@@ -170,6 +174,15 @@ namespace PAL_NS_BEGIN {
         }
 
         jclass buildClass = pEnv->FindClass("android/os/Build");
+        jfieldID manufacturerFid = pEnv->GetStaticFieldID(buildClass, "MANUFACTURER", "Ljava/lang/String;");
+        jfieldID modelFid = pEnv->GetStaticFieldID(buildClass, "MODEL", "Ljava/lang/String;");
+        jstring manufacturerJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(buildClass, manufacturerFid));
+        jstring modelJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(buildClass, modelFid));
+
+        const char* jStr;
+        jboolean isCopy;
+
+#ifndef MATSDK_DISABLE_DEVICE_ID
         jclass contextClass = pEnv->FindClass("android/content/Context");
         jclass secureSettingsClass = pEnv->FindClass("android/provider/Settings$Secure");
 
@@ -181,25 +194,19 @@ namespace PAL_NS_BEGIN {
         jmethodID getContentResolverMid = pEnv->GetMethodID(contextClass, "getContentResolver",
             "()Landroid/content/ContentResolver;");
 
-        jfieldID manufacturerFid = pEnv->GetStaticFieldID(buildClass, "MANUFACTURER", "Ljava/lang/String;");
-        jfieldID modelFid = pEnv->GetStaticFieldID(buildClass, "MODEL", "Ljava/lang/String;");
         jfieldID androidIdSettingFid = pEnv->GetStaticFieldID(secureSettingsClass, "ANDROID_ID", "Ljava/lang/String;");
-        
-        jstring manufacturerJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(buildClass, manufacturerFid));
-        jstring modelJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(buildClass, modelFid));
         jstring androidIdSettingJstr = reinterpret_cast<jstring>(pEnv->GetStaticObjectField(secureSettingsClass, androidIdSettingFid));
 
         jobject contentResolver = pEnv->CallObjectMethod(activity, getContentResolverMid);
         jstring androidIdJstr = reinterpret_cast<jstring>(
             pEnv->CallStaticObjectMethod(secureSettingsClass, getStringMid, contentResolver, androidIdSettingJstr));
 
-        const char* jStr;
-        jboolean isCopy;
-
         jStr = pEnv->GetStringUTFChars(androidIdJstr, &isCopy);
         std::string deviceId("a:");
         deviceId += jStr;
         pEnv->ReleaseStringUTFChars(androidIdJstr, jStr);
+        AndroidDeviceInformationConnector::setDeviceId(std::move(deviceId));
+#endif
 
         jStr = pEnv->GetStringUTFChars(manufacturerJstr, &isCopy);
         std::string manufacturer = jStr;
@@ -209,11 +216,21 @@ namespace PAL_NS_BEGIN {
         std::string model = jStr;
         pEnv->ReleaseStringUTFChars(modelJstr, jStr);
 
-        AndroidDeviceInformationConnector::setDeviceId(std::move(deviceId));
         AndroidDeviceInformationConnector::setManufacturer(std::move(manufacturer));
         AndroidDeviceInformationConnector::setModel(std::move(model));
     }
 } PAL_NS_END
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_microsoft_applications_events_HttpClient_isDeviceIdCollectionEnabled(
+    JNIEnv*, jobject)
+{
+#ifdef MATSDK_DISABLE_DEVICE_ID
+    return JNI_FALSE;
+#else
+    return JNI_TRUE;
+#endif
+}
 
 extern "C"
 JNIEXPORT void
