@@ -72,10 +72,10 @@ namespace MAT_NS_BEGIN {
  * for the life of the process is the only correct choice for an embedded
  * library; the host may still call curl_global_cleanup() itself at exit.
  */
-inline void EnsureCurlGlobalInit() noexcept
+inline CURLcode EnsureCurlGlobalInit() noexcept
 {
     static const CURLcode initResult = curl_global_init(CURL_GLOBAL_ALL);
-    (void)initResult;
+    return initResult;
 }
 
 // Private per-client shared state. Defined in HttpClient_Curl.cpp: it owns the
@@ -167,7 +167,10 @@ public:
         if (m_callback != nullptr)
         {
             HookScope callbackScope(m_callbackHooks);
-            m_callback->OnHttpStateEvent(type, static_cast<void*>(curl), 0);
+            // OnSending runs inside curl_easy_perform with the prereq callback.
+            // Do not expose a handle observers could mutate during that transfer.
+            void* handle = (m_usePrereqCallback && type == OnSending) ? nullptr : static_cast<void*>(curl);
+            m_callback->OnHttpStateEvent(type, handle, 0);
         }
     }
 
@@ -269,7 +272,15 @@ public:
         // A directly constructed operation may be the process's first libcurl
         // user, so it shares the client's init-once rather than assuming an
         // HttpClient_Curl was built first.
-        EnsureCurlGlobalInit();
+        const CURLcode initResult = EnsureCurlGlobalInit();
+        if (initResult != CURLE_OK)
+        {
+            LOG_ERROR("libcurl global initialization failed: %d", static_cast<int>(initResult));
+            m_transportError = initResult;
+            m_setupError = initResult;
+            EmitCreationEvent(OnCreateFailed);
+            return;
+        }
 
         /* get a curl handle */
         curl = curl_easy_init();
@@ -281,6 +292,19 @@ public:
             EmitCreationEvent(OnCreateFailed);
             return;
         }
+
+#if LIBCURL_VERSION_NUM >= 0x075000
+        const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+        if (versionInfo == nullptr)
+        {
+            LOG_ERROR("libcurl version query failed");
+            m_transportError = CURLE_FAILED_INIT;
+            m_setupError = CURLE_FAILED_INIT;
+            EmitCreationEvent(OnCreateFailed);
+            return;
+        }
+        m_usePrereqCallback = versionInfo->version_num >= 0x075000;
+#endif
 
         if (!SetOption(CURLOPT_VERBOSE, 0L) ||
             !SetOption(CURLOPT_URL, m_url.c_str()) ||
@@ -299,6 +323,10 @@ public:
             // inside libcurl, and aborts the transfer in an orderly way.
             !SetOption(CURLOPT_NOPROGRESS, 0L) ||
             !SetAbortProgressOption() ||
+#if LIBCURL_VERSION_NUM >= 0x075000 // libcurl 7.80.0
+            (m_usePrereqCallback && (!SetOption(CURLOPT_PREREQFUNCTION, &OnConnectionReady) ||
+                                     !SetOption(CURLOPT_PREREQDATA, static_cast<void*>(this)))) ||
+#endif
             // HTTP/2 when the linked libcurl supports it, otherwise HTTP/1.1
             !SetOption(CURLOPT_HTTP_VERSION, GetPreferredHttpVersion()))
         {
@@ -376,6 +404,7 @@ public:
     {
         TRACE("method=%s\n", this->m_method.c_str());
 
+        m_connectionReady = false;
         ReleaseResponse();
         // Request buffer
         const void *request  = m_requestBody.empty() ? nullptr : m_requestBody.data();
@@ -405,68 +434,69 @@ public:
         // TODO: should we control what local source port we use?
         // curl_easy_setopt(curl, CURLOPT_LOCALPORT, dcf_port);
 
-        // Perform initial connect, handling the timeout if needed
-        if (!SetOption(CURLOPT_CONNECT_ONLY, 1L))
+        if (!m_usePrereqCallback)
         {
-            DispatchEvent(OnConnectFailed);
-            goto cleanup;
-        }
-        DispatchEvent(OnConnecting);
-        m_transportError = curl_easy_perform(curl);
-        if(CURLE_OK != m_transportError)
-        {
-            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 1
-            TRACE("Error #1: %s\n", curl_easy_strerror(m_transportError));
-            goto cleanup;
-        }
+            if (!SetOption(CURLOPT_CONNECT_ONLY, 1L))
+            {
+                DispatchEvent(OnConnectFailed);
+                goto cleanup;
+            }
+            DispatchEvent(OnConnecting);
+            m_transportError = curl_easy_perform(curl);
+            if (CURLE_OK != m_transportError)
+            {
+                DispatchEvent(OnConnectFailed);  // couldn't connect - stage 1
+                TRACE("Error #1: %s\n", curl_easy_strerror(m_transportError));
+                goto cleanup;
+            }
 
-        /* Extract the socket from the curl handle - we'll need it for waiting.
-         * Note that this API takes a pointer to a 'long' while we use
-         * curl_socket_t for sockets otherwise.
-         */
+            /* Extract the socket from the curl handle - we'll need it for waiting.
+             * Note that this API takes a pointer to a 'long' while we use
+             * curl_socket_t for sockets otherwise.
+             */
 
 #if LIBCURL_VERSION_NUM >= 0x072D00 // Version 7.45.00
-        m_transportError = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
+            m_transportError = curl_easy_getinfo(curl, CURLINFO_ACTIVESOCKET, &sockextr);
 #else
-        {
-            long lastSocket = -1;
-            m_transportError = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
-            if (m_transportError == CURLE_OK)
             {
-                sockextr = static_cast<curl_socket_t>(lastSocket);
+                long lastSocket = -1;
+                m_transportError = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &lastSocket);
+                if (m_transportError == CURLE_OK)
+                {
+                    sockextr = static_cast<curl_socket_t>(lastSocket);
+                }
             }
-        }
 #endif
+            if (CURLE_OK != m_transportError)
+            {
+                DispatchEvent(OnConnectFailed);  // couldn't connect - stage 2
+                TRACE("Error #2: %s\n", curl_easy_strerror(m_transportError));
+                goto cleanup;
+            }
+            if (sockextr == CURL_SOCKET_BAD)
+            {
+                m_transportError = CURLE_FAILED_INIT;
+                DispatchEvent(OnConnectFailed);  // couldn't connect - no socket
+                TRACE("Error #2: curl returned an invalid socket\n");
+                goto cleanup;
+            }
 
-        if(CURLE_OK != m_transportError)
-        {
-            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 2
-            TRACE("Error #2: %s\n", curl_easy_strerror(m_transportError));
-            goto cleanup;
-        }
-        if (sockextr == CURL_SOCKET_BAD)
-        {
-            m_transportError = CURLE_FAILED_INIT;
-            DispatchEvent(OnConnectFailed);     // couldn't connect - no socket
-            TRACE("Error #2: curl returned an invalid socket\n");
-            goto cleanup;
-        }
+            /* wait for the socket to become ready for sending */
+            sockfd = sockextr;
+            if (WaitOnSocket(sockfd, 0, static_cast<long>(httpConnTimeout) * 1000L) <= 0 || isAborted)
+            {
+                TRACE("Error #3: timeout, aborted=%u\n", isAborted.load());
+                m_transportError = CURLE_OPERATION_TIMEDOUT;
+                DispatchEvent(OnConnectFailed);  // couldn't connect - stage 3
+                goto cleanup;
+            }
 
-        /* wait for the socket to become ready for sending */
-        sockfd = sockextr;
-        if (WaitOnSocket(sockfd, 0, static_cast<long>(httpConnTimeout) * 1000L) <= 0 || isAborted)
-        {
-            TRACE("Error #3: timeout, aborted=%u\n", isAborted.load() );
-            m_transportError = CURLE_OPERATION_TIMEDOUT;
-            DispatchEvent(OnConnectFailed);     // couldn't connect - stage 3
-            goto cleanup;
-        }
-
-        // once connection is there - switch back to easy perform for HTTP post
-        if (!SetOption(CURLOPT_CONNECT_ONLY, 0L))
-        {
-            DispatchEvent(OnSendFailed);
-            goto cleanup;
+            // once connection is there - switch back to easy perform for HTTP post
+            if (!SetOption(CURLOPT_CONNECT_ONLY, 0L))
+            {
+                DispatchEvent(OnSendFailed);
+                goto cleanup;
+            }
         }
 
         // send all data to our callback function
@@ -520,11 +550,11 @@ public:
             DispatchEvent(OnSendFailed);
             goto cleanup;
         }
-        DispatchEvent(OnSending);
+        DispatchEvent(m_usePrereqCallback ? OnConnecting : OnSending);
         m_transportError = curl_easy_perform(curl);
         if(CURLE_OK != m_transportError)
         {
-            DispatchEvent(OnSendFailed);
+            DispatchEvent(!m_usePrereqCallback || m_connectionReady ? OnSendFailed : OnConnectFailed);
             TRACE("Error: %s\n", curl_easy_strerror(m_transportError));
             goto cleanup;
         }
@@ -738,7 +768,7 @@ protected:
     const bool   rawResponse;       // Do not split response headers from response body
     const long   httpConnTimeout;   // Timeout for connect.  Default: 5s
 
-    CURL *curl;                     // Local curl instance
+    CURL *curl = nullptr;           // Local curl instance
     CURLcode m_transportError = CURLE_OK;
     CURLcode m_setupError = CURLE_OK;
     long m_httpStatusCode = 0;
@@ -771,6 +801,9 @@ protected:
     curl_socket_t sockfd = CURL_SOCKET_BAD;
 
     curl_socket_t sockextr = CURL_SOCKET_BAD;
+
+    bool m_usePrereqCallback{false};  // Chosen once from the loaded libcurl version.
+    bool m_connectionReady{false};    // Only accessed by the transfer's worker thread.
 
     curl_off_t nread = 0;
     size_t sendlen   = 0;        // # bytes sent by client
@@ -945,6 +978,41 @@ protected:
 #endif
     }
 
+#if LIBCURL_VERSION_NUM >= 0x075000
+    static int OnConnectionReady(void* clientp, char*, char*, int, int) noexcept
+    {
+        auto* operation = static_cast<CurlHttpOperation*>(clientp);
+        if (operation->isAborted.load(std::memory_order_acquire))
+        {
+            return CURL_PREREQFUNC_ABORT;
+        }
+
+        operation->m_connectionReady = true;
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
+            operation->DispatchEvent(OnSending);
+#if HAVE_EXCEPTIONS
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("HTTP sending state callback failed: %s", ex.what());
+            operation->m_setupError = CURLE_FAILED_INIT;
+            return CURL_PREREQFUNC_ABORT;
+        }
+        catch (...)
+        {
+            LOG_ERROR("HTTP sending state callback failed with a non-standard exception");
+            operation->m_setupError = CURLE_FAILED_INIT;
+            return CURL_PREREQFUNC_ABORT;
+        }
+#endif
+        return operation->isAborted.load(std::memory_order_acquire)
+            ? CURL_PREREQFUNC_ABORT : CURL_PREREQFUNC_OK;
+    }
+#endif
+
 #if LIBCURL_VERSION_NUM >= 0x072000 // Version 7.32.0
     static int XferInfoAbortCallback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_off_t) noexcept
     {
@@ -1029,7 +1097,7 @@ protected:
      * @param data
      * @return
      */
-    static size_t WriteVectorCallback(char* ptr, size_t size, size_t nmemb, void* userp)
+    static size_t WriteVectorCallback(char* ptr, size_t size, size_t nmemb, void* userp) noexcept
     {
         return WriteBoundedVector(ptr, size, nmemb, userp, MAX_HTTP_RESPONSE_SIZE);
     }
@@ -1056,7 +1124,19 @@ protected:
             }
             const auto* begin = reinterpret_cast<const uint8_t*>(ptr);
             const auto* end   = begin + realsize;
-            data->insert( data->end(), begin, end);
+#if HAVE_EXCEPTIONS
+            try
+            {
+#endif
+                data->insert(data->end(), begin, end);
+#if HAVE_EXCEPTIONS
+            }
+            catch (...)
+            {
+                // A short write reports CURLE_WRITE_ERROR without unwinding through libcurl.
+                return 0;
+            }
+#endif
         }
         return realsize;
     }

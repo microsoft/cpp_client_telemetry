@@ -3,9 +3,60 @@
   "version-string": "0.0.1",
   "description": "Integration test for cpp-client-telemetry vcpkg port",
   "dependencies": [
-    "cpp-client-telemetry"
+    {
+      "name": "cpp-client-telemetry",
+      "default-features": false
+    }
+  ],
+  "default-features": [
+    "sdk-defaults"
   ],
   "features": {
+    "android-curl-mbedtls": {
+      "description": "Exercise the native Android curl transport with mbedTLS.",
+      "supports": "android",
+      "dependencies": [
+        {
+          "name": "cpp-client-telemetry",
+          "default-features": false,
+          "features": [
+            "android-curl-mbedtls"
+          ]
+        }
+      ]
+    },
+    "android-curl-openssl": {
+      "description": "Exercise the native Android curl transport with OpenSSL.",
+      "supports": "android",
+      "dependencies": [
+        {
+          "name": "cpp-client-telemetry",
+          "default-features": false,
+          "features": [
+            "android-curl-openssl"
+          ]
+        }
+      ]
+    },
+    "minimal-sqlite": {
+      "description": "Exercise private SQLite without the external sqlite3 dependency.",
+      "dependencies": [
+        {
+          "name": "cpp-client-telemetry",
+          "default-features": false,
+          "features": [
+            "curl-openssl",
+            "minimal-sqlite"
+          ]
+        }
+      ]
+    },
+    "sdk-defaults": {
+      "description": "Exercise the default SDK dependency graph.",
+      "dependencies": [
+        "cpp-client-telemetry"
+      ]
+    },
     "wininet": {
       "description": "Exercise the cpp-client-telemetry WinInet feature on Windows.",
       "supports": "windows & !mingw",
