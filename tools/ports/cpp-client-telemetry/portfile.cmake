@@ -32,6 +32,13 @@ if(NOT DEFINED SOURCE_PATH)
     )
 endif()
 
+file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_ROOT_CMAKE)
+set(MATSDK_OPTION_SOURCE "${MATSDK_ROOT_CMAKE}")
+if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
+  file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake" MATSDK_OPTIONS_CMAKE)
+  string(APPEND MATSDK_OPTION_SOURCE "\n${MATSDK_OPTIONS_CMAKE}")
+endif()
+
 # Determine if Apple HTTP should be used (no curl needed).
 # Note: MATSDK_BUILD_APPLE_HTTP must remain ON for macOS/iOS because the vcpkg.json
 # curl dependency is excluded on these platforms.
@@ -48,15 +55,7 @@ endif()
 
 set(MATSDK_ANDROID_HTTP_CLIENT AUTO)
 if(VCPKG_TARGET_IS_ANDROID)
-  file(READ "${SOURCE_PATH}/CMakeLists.txt" _matsdk_root_cmake)
-  set(_matsdk_android_option_source "${_matsdk_root_cmake}")
-  if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
-    file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake"
-      _matsdk_options_cmake)
-    string(APPEND _matsdk_android_option_source
-      "\n${_matsdk_options_cmake}")
-  endif()
-  if(NOT _matsdk_android_option_source MATCHES "MATSDK_ANDROID_HTTP_CLIENT")
+  if(NOT MATSDK_OPTION_SOURCE MATCHES "MATSDK_ANDROID_HTTP_CLIENT")
     message(FATAL_ERROR
       "Android vcpkg builds require a cpp-client-telemetry source revision that "
       "supports MATSDK_ANDROID_HTTP_CLIENT. Update this port's REF/SHA512 to a "
@@ -124,12 +123,6 @@ else()
   set(MATSDK_VCPKG_BUILD_SHARED_LIBS OFF)
 endif()
 
-file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_ROOT_CMAKE)
-set(MATSDK_OPTION_SOURCE "${MATSDK_ROOT_CMAKE}")
-if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
-  file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake" MATSDK_OPTIONS_CMAKE)
-  string(APPEND MATSDK_OPTION_SOURCE "\n${MATSDK_OPTIONS_CMAKE}")
-endif()
 if(VCPKG_TARGET_IS_WINDOWS
    AND NOT MATSDK_OPTION_SOURCE MATCHES "MATSDK_USE_WININET")
   message(FATAL_ERROR
@@ -185,38 +178,38 @@ foreach(_matsdk_feature_option IN ITEMS
   list(APPEND MATSDK_NATIVE_FEATURE_OPTIONS "-D${_matsdk_option}=${_matsdk_enabled}")
 endforeach()
 
+set(MATSDK_BUILD_OPTIONS
+  -DMATSDK_BUILD_HEADERS=ON
+  -DMATSDK_BUILD_LIBRARY=ON
+  -DMATSDK_BUILD_TEST_TOOL=OFF
+  -DMATSDK_BUILD_UNIT_TESTS=OFF
+  -DMATSDK_BUILD_FUNC_TESTS=OFF
+  -DMATSDK_BUILD_JNI_WRAPPER=OFF
+  -DMATSDK_BUILD_OBJC_WRAPPER=OFF
+  -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
+  -DMATSDK_BUILD_PACKAGE=OFF
+  -DMATSDK_BUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP})
+set(MATSDK_LEGACY_BUILD_OPTIONS)
+foreach(_matsdk_build_option IN LISTS MATSDK_BUILD_OPTIONS)
+  string(REGEX REPLACE "^-D([^=]+)=.*$" "\\1" _matsdk_option_name "${_matsdk_build_option}")
+  if(NOT MATSDK_OPTION_SOURCE MATCHES "${_matsdk_option_name}")
+    string(REPLACE "-DMATSDK_BUILD_" "-DBUILD_" _matsdk_legacy_option "${_matsdk_build_option}")
+    list(APPEND MATSDK_LEGACY_BUILD_OPTIONS "${_matsdk_legacy_option}")
+  endif()
+endforeach()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         ${MATSDK_PINNED_SOURCE_OPTIONS}
         ${MATSDK_NATIVE_FEATURE_OPTIONS}
+        ${MATSDK_BUILD_OPTIONS}
+        ${MATSDK_LEGACY_BUILD_OPTIONS}
         -DMATSDK_SQLITE_PROVIDER=${MATSDK_VCPKG_SQLITE_PROVIDER}
         -DBUILD_SHARED_LIBS=${MATSDK_VCPKG_BUILD_SHARED_LIBS}
         -DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}
         -DMATSDK_USE_WININET=${MATSDK_USE_WININET}
-        -DMATSDK_BUILD_HEADERS=ON
-        -DMATSDK_BUILD_LIBRARY=ON
-        -DMATSDK_BUILD_TEST_TOOL=OFF
-        -DMATSDK_BUILD_UNIT_TESTS=OFF
-        -DMATSDK_BUILD_FUNC_TESTS=OFF
-        -DMATSDK_BUILD_JNI_WRAPPER=OFF
-        -DMATSDK_BUILD_OBJC_WRAPPER=OFF
-        -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
-        -DMATSDK_BUILD_PACKAGE=OFF
         -DBUILD_VERSION=${VERSION}
-        -DMATSDK_BUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
-        # Legacy aliases keep the pinned release fallback buildable until the
-        # next release contains the canonical MATSDK_* options.
-        -DBUILD_HEADERS=ON
-        -DBUILD_LIBRARY=ON
-        -DBUILD_TEST_TOOL=OFF
-        -DBUILD_UNIT_TESTS=OFF
-        -DBUILD_FUNC_TESTS=OFF
-        -DBUILD_JNI_WRAPPER=OFF
-        -DBUILD_OBJC_WRAPPER=OFF
-        -DBUILD_SWIFT_WRAPPER=OFF
-        -DBUILD_PACKAGE=OFF
-        -DBUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
         ${MATSDK_APPLE_DEPLOYMENT_OPTIONS}
 )
 

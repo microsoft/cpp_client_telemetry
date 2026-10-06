@@ -10,6 +10,20 @@ function(vcpkg_cmake_configure)
       message(FATAL_ERROR "Missing ${option}: ${CONFIG_OPTIONS}")
     endif()
   endforeach()
+  set(LEGACY_OPTIONS)
+  foreach(option IN LISTS CONFIG_OPTIONS)
+    if(option MATCHES "^-DBUILD_(HEADERS|LIBRARY|TEST_TOOL|UNIT_TESTS|FUNC_TESTS|JNI_WRAPPER|OBJC_WRAPPER|SWIFT_WRAPPER|PACKAGE|APPLE_HTTP)=")
+      list(APPEND LEGACY_OPTIONS "${option}")
+    endif()
+  endforeach()
+  if(NOT "${LEGACY_OPTIONS}" STREQUAL "${EXPECTED_LEGACY_OPTIONS}")
+    message(FATAL_ERROR "Incorrect legacy build options: ${LEGACY_OPTIONS}")
+  endif()
+  foreach(option IN LISTS EXPECTED_COMPATIBILITY_OPTIONS)
+    if(NOT "${option}" IN_LIST CONFIG_OPTIONS)
+      message(FATAL_ERROR "Missing compatibility option ${option}")
+    endif()
+  endforeach()
   set(CONFIGURED ON PARENT_SCOPE)
 endfunction()
 
@@ -133,5 +147,27 @@ foreach(feature no-exceptions no-logging android-capi-http-client)
     message(FATAL_ERROR "Unsupported ${feature} must fail explicitly: ${ERROR}")
   endif()
 endforeach()
+
+file(APPEND "${OLD_SOURCE}/CMakeLists.txt"
+  "# MATSDK_USE_VCPKG_DEPS MATSDK_MINIMAL_SQLITE\n")
+set(ENV{MATSDK_VCPKG_SOURCE_DIR} "${OLD_SOURCE}")
+set(EXPECTED_LEGACY_OPTIONS
+  -DBUILD_HEADERS=ON -DBUILD_LIBRARY=ON -DBUILD_TEST_TOOL=OFF
+  -DBUILD_UNIT_TESTS=OFF -DBUILD_FUNC_TESTS=OFF -DBUILD_JNI_WRAPPER=OFF
+  -DBUILD_OBJC_WRAPPER=OFF -DBUILD_SWIFT_WRAPPER=OFF -DBUILD_PACKAGE=OFF
+  -DBUILD_APPLE_HTTP=OFF)
+set(EXPECTED_COMPATIBILITY_OPTIONS
+  -DMATSDK_USE_VCPKG_DEPS=ON -DMATSDK_MINIMAL_SQLITE=ON)
+check_feature_mapping(LINUX static device-id curl-openssl minimal-sqlite)
+list(REMOVE_ITEM EXPECTED_LEGACY_OPTIONS -DBUILD_APPLE_HTTP=OFF)
+list(APPEND EXPECTED_LEGACY_OPTIONS -DBUILD_APPLE_HTTP=ON)
+check_feature_mapping(IOS static device-id minimal-sqlite)
+
+file(APPEND "${OLD_SOURCE}/CMakeLists.txt"
+  "option(MATSDK_BUILD_HEADERS \"Build API headers\" ON)\n")
+list(REMOVE_ITEM EXPECTED_LEGACY_OPTIONS -DBUILD_HEADERS=ON -DBUILD_APPLE_HTTP=ON)
+list(APPEND EXPECTED_LEGACY_OPTIONS -DBUILD_APPLE_HTTP=OFF)
+set(EXPECTED_COMPATIBILITY_OPTIONS -DMATSDK_USE_VCPKG_DEPS=ON)
+check_feature_mapping(ANDROID static device-id system-sqlite)
 file(REMOVE "${OLD_SOURCE}/CMakeLists.txt")
 message(STATUS "Native vcpkg feature mappings passed")
