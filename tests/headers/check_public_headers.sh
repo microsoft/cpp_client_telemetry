@@ -116,14 +116,53 @@ run_c_compiler() {
 }
 
 cxx_ran=0
+run_exception_macros() {
+  local cc="$1" mode="$2"
+  shift 2
+  local exe="$tmp/exception-macros" out
+  if out="$("$cc" -std=c++11 -Wall -Wextra -Werror "$@" \
+      "-DMATSDK_TEST_EXCEPTIONS=$mode" -I"$PUB" \
+      "$REPO_ROOT/tests/headers/exception-macros.cpp" -o "$exe" 2>&1)" &&
+      "$exe"; then
+    echo "  $cc exception macros (exceptions=$mode): passed"
+  else
+    echo "  FAIL: $cc exception macros (exceptions=$mode)"
+    echo "$out"
+    fail=1
+  fi
+}
+
+check_objcxx_exception_macros() {
+  local mode="$1" out
+  shift
+  if out="$(clang++ -x objective-c++ -std=c++11 -Wall -Wextra -Werror \
+      -fobjc-exceptions "$@" "-DMATSDK_TEST_EXCEPTIONS=$mode" -I"$PUB" \
+      -fsyntax-only "$REPO_ROOT/tests/headers/exception-macros.cpp" 2>&1)"; then
+    echo "  clang++ Objective-C++ exception macros (C++ exceptions=$mode): passed"
+  else
+    echo "  FAIL: clang++ Objective-C++ exception macros (C++ exceptions=$mode)"
+    echo "$out"
+    fail=1
+  fi
+}
+
 if command -v g++ >/dev/null 2>&1; then
   run_cxx_compiler g++ c++11 "g++  (c++11, -Wall -Wextra -Werror)"
   run_cxx_compiler g++ c++17 "g++  (c++17, -Wall -Wextra -Werror)"
+  run_cxx_compiler g++ c++11 "g++  (c++11, -fno-exceptions)" -fno-exceptions
+  run_exception_macros g++ 1 -fexceptions
+  run_exception_macros g++ 0 -fno-exceptions
   cxx_ran=1
 fi
 if command -v clang++ >/dev/null 2>&1; then
   run_cxx_compiler clang++ c++11 "clang++ (c++11, + -Wshorten-64-to-32)" -Wshorten-64-to-32
   run_cxx_compiler clang++ c++17 "clang++ (c++17, + -Wshorten-64-to-32)" -Wshorten-64-to-32
+  run_cxx_compiler clang++ c++11 "clang++ (c++11, -fno-exceptions)" -fno-exceptions -Wshorten-64-to-32
+  run_exception_macros clang++ 1 -fexceptions
+  run_exception_macros clang++ 0 -fno-exceptions
+  check_objcxx_exception_macros 1 -fexceptions
+  check_objcxx_exception_macros 0 -fno-exceptions
+  check_objcxx_exception_macros 0 -fno-exceptions -D__EXCEPTIONS=1
   cxx_ran=1
 fi
 

@@ -6,6 +6,9 @@
 #include "common/Common.hpp"
 #include <utils/Utils.hpp>
 #include "CorrelationVector.hpp"
+#ifdef _WIN32
+#include "utils/WindowsUtils.hpp"
+#endif
 
 using namespace testing;
 using namespace MAT;
@@ -69,3 +72,22 @@ TEST(UtilsTests, TestValidatePropertyName)
 	EXPECT_TRUE(validatePropertyName(CorrelationVector::PropertyName));
 }
 
+#ifdef _WIN32
+TEST(UtilsTests, WindowsProcedureLookupPreservesSignatures)
+{
+    const auto kernel32 = ::GetModuleHandleW(L"kernel32.dll");
+    ASSERT_NE(kernel32, nullptr);
+    const auto getTempPath = GetWindowsProcAddress<decltype(&::GetTempPathW)>(kernel32, "GetTempPathW");
+    ASSERT_NE(getTempPath, nullptr);
+    wchar_t path[MAX_PATH + 1] = {};
+    EXPECT_GT(getTempPath(MAX_PATH + 1, path), DWORD { 0 });
+
+    const auto getTime = GetWindowsProcAddress<decltype(&::GetSystemTimePreciseAsFileTime)>(
+        kernel32, "GetSystemTimePreciseAsFileTime");
+    ASSERT_NE(getTime, nullptr);
+    FILETIME time = {};
+    getTime(&time);
+    EXPECT_NE(time.dwHighDateTime, DWORD { 0 });
+    EXPECT_EQ(GetWindowsProcAddress<decltype(&::GetTempPathW)>(kernel32, "MatSdkMissingProcedure"), nullptr);
+}
+#endif

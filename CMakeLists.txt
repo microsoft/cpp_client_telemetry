@@ -58,42 +58,7 @@ message(STATUS "CMAKE_CXX_COMPILER_ID:  ${CMAKE_CXX_COMPILER_ID}")
 
 include(tools/ParseOsRelease.cmake)
 
-# SDK-owned compiler policy. This interface target is linked PRIVATE by SDK
-# targets, so add_subdirectory()/FetchContent consumers and vendored dependency
-# targets never inherit the SDK's warning-as-error or optimization policy.
-add_library(matsdk_build_options INTERFACE)
-if(MSVC)
-  target_compile_options(matsdk_build_options INTERFACE
-    /W4
-    $<$<BOOL:${MATSDK_WARNINGS_AS_ERRORS}>:/WX>
-    /Gy
-    $<$<CXX_COMPILER_ID:MSVC>:/Gw>)
-else()
-  target_compile_options(matsdk_build_options INTERFACE
-    -Wall
-    -Wextra
-    -Wno-unused-parameter
-    -Wno-unused-but-set-variable
-    $<$<BOOL:${MATSDK_WARNINGS_AS_ERRORS}>:-Werror>
-    $<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:-Wno-unknown-warning-option>
-    $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:-Wno-unknown-warning-option>
-    $<$<CONFIG:Debug>:-ggdb>
-    $<$<CONFIG:Debug>:-gdwarf-2>
-    $<$<CONFIG:Debug>:-O0>
-    $<$<CONFIG:Debug>:-fno-builtin-malloc>
-    $<$<CONFIG:Debug>:-fno-builtin-calloc>
-    $<$<CONFIG:Debug>:-fno-builtin-realloc>
-    $<$<CONFIG:Debug>:-fno-builtin-free>
-    $<$<NOT:$<CONFIG:Debug>>:-Os>
-    $<$<NOT:$<CONFIG:Debug>>:-fmerge-all-constants>
-    -ffunction-sections
-    $<$<CXX_COMPILER_ID:GNU,Clang>:-fdata-sections>)
-  if(NOT WIN32)
-    target_compile_options(matsdk_build_options INTERFACE
-      -fvisibility=hidden
-      $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
-  endif()
-endif()
+include(cmake/MatsdkCompilerOptions.cmake)
 
 include(tools/Utils.cmake)
 include(GNUInstallDirs)

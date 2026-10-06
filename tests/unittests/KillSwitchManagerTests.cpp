@@ -257,6 +257,26 @@ TEST(KillSwitchManagerTests, handleResponse_OutOfRangeKillDuration_DoesNotThrowA
     ASSERT_FALSE(manager.isTokenBlocked("tenant-token-1"));
 }
 
+TEST(KillSwitchManagerTests, handleResponse_RetryAfterSigned64BitBoundary)
+{
+    for (const char* valid : {"9223372036854775807", "00000000000000000000000000001"})
+    {
+        KillSwitchManager manager;
+        HttpHeaders headers;
+        headers.add("Retry-After", valid);
+        manager.handleResponse(headers);
+        EXPECT_TRUE(manager.isRetryAfterActive()) << valid;
+    }
+    for (const char* invalid : {"9223372036854775808", "18446744073709551615"})
+    {
+        KillSwitchManager manager;
+        HttpHeaders headers;
+        headers.add("Retry-After", invalid);
+        manager.handleResponse(headers);
+        EXPECT_FALSE(manager.isRetryAfterActive()) << invalid;
+    }
+}
+
 TEST(KillSwitchManagerTests, handleResponse_KillTokenWithAllSuffix_BlocksBaseToken)
 {
     // The collector may send "<tenant>:all" to mean all events of that tenant are

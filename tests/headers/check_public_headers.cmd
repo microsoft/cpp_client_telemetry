@@ -60,6 +60,10 @@ set "TOTAL=0"
 REM MSVC does not expose a /std:c++11 switch; /std:c++14 is its lowest selectable mode.
 call :RunCxxHeaders c++14 /std:c++14 "cl (c++14, /W4 /WX)"
 call :RunCxxHeaders c++17 /std:c++17 "cl (c++17, /W4 /WX)"
+call :RunExceptionMacros 1 "/EHsc"
+set "CXX_COMMON=%CXX_COMMON:/EHsc=/EHs-c- /D_HAS_EXCEPTIONS=0%"
+call :RunCxxHeaders c++14 /std:c++14 "cl (c++14, exceptions disabled, /W4 /WX)"
+call :RunExceptionMacros 0 "/EHs-c- /D_HAS_EXCEPTIONS=0"
 call :RunCHeader
 
 rmdir /s /q "%WORK%" 2>nul
@@ -69,6 +73,23 @@ if "%FAIL%"=="1" (
   exit /b 1
 )
 echo Public header gate passed. ^(!TOTAL! checks^)
+exit /b 0
+
+:RunExceptionMacros
+cl /nologo /std:c++14 /W4 /WX %~2 /DMATSDK_TEST_EXCEPTIONS=%1 /I "%PUB%" "%SCRIPT_DIR%exception-macros.cpp" /Fo"%WORK%\exception-macros.obj" /Fe"%WORK%\exception-macros.exe" > "%WORK%\err.txt" 2>&1
+if errorlevel 1 (
+  type "%WORK%\err.txt"
+  set "FAIL=1"
+  exit /b 0
+)
+"%WORK%\exception-macros.exe"
+if errorlevel 1 (
+  echo FAIL: exception macros ^(exceptions=%1^)
+  set "FAIL=1"
+) else (
+  set /a TOTAL+=1
+  echo Exception macros ^(exceptions=%1^): passed
+)
 exit /b 0
 
 :RunCxxHeaders

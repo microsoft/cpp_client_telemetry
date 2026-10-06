@@ -9,6 +9,7 @@ on:
     - main
     paths:
     - .github/scripts/run-drmemory.ps1
+    - tests/memory-leak-analysis/**
     - .github/memory-leak-baseline.csv
     - .github/workflows/memory-leak-analysis.yml
     - CMakeLists.txt
@@ -28,6 +29,7 @@ on:
     - main
     paths:
     - .github/scripts/run-drmemory.ps1
+    - tests/memory-leak-analysis/**
     - .github/memory-leak-baseline.csv
     - .github/workflows/memory-leak-analysis.yml
 
@@ -50,6 +52,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+    - name: Test Dr. Memory report parsing
+      shell: pwsh
+      run: ./tests/memory-leak-analysis/run-drmemory-tests.ps1
 
     - name: Initialize googletest
       run: git submodule update --init --depth=1 third_party/googletest
@@ -169,6 +175,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+    - name: Test Dr. Memory report parsing
+      shell: pwsh
+      run: ./tests/memory-leak-analysis/run-drmemory-tests.ps1
 
     - name: Initialize googletest
       run: git submodule update --init --depth=1 third_party/googletest

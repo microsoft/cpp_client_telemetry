@@ -14,6 +14,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include "WindowsUtils.hpp"
 
 #ifdef _WINRT_DLL
 // Win 10-specific APIs
@@ -77,10 +78,10 @@ namespace MAT_NS_BEGIN {
     bool IsRunningInApp() noexcept
     {
 #ifdef _WINRT_DLL  // Win 10 UWP
-        typedef LONG (*LPFN_GPFN)(UINT32*, PWSTR);
+        typedef LONG (WINAPI *LPFN_GPFN)(UINT32*, PWSTR);
         bool isRunningInApp = true;
 
-        LPFN_GPFN lpGetPackageFamilyName = (LPFN_GPFN)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetCurrentPackageFamilyName");
+        LPFN_GPFN lpGetPackageFamilyName = GetWindowsProcAddress<LPFN_GPFN>(GetModuleHandle(TEXT("kernel32")), "GetCurrentPackageFamilyName");
         if (lpGetPackageFamilyName)
         {
             UINT32 size = 0;
@@ -140,7 +141,7 @@ namespace MAT_NS_BEGIN {
     std::string GetTempDirectory()
     {
 #ifdef _WIN32
-        auto lpGetTempPathW = reinterpret_cast<decltype(&::GetTempPathW)>(GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetTempPath2W"));
+        auto lpGetTempPathW = GetWindowsProcAddress<decltype(&::GetTempPathW)>(GetModuleHandle(TEXT("kernel32")), "GetTempPath2W");
         if (lpGetTempPathW == NULL)
         {
             lpGetTempPathW = ::GetTempPathW;

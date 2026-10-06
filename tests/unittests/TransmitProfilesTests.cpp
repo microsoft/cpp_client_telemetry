@@ -4,6 +4,7 @@
 //
 #include "common/Common.hpp"
 #include <TransmitProfiles.hpp>
+#include <limits>
 
 using namespace testing;
 using namespace MAT;
@@ -458,6 +459,46 @@ R"([{
 }])";
 
     ASSERT_TRUE(TransmitProfiles::load(badRule));
+}
+
+TEST_F(TransmitProfilesTests, load_Json_MalformedSyntaxOrSchema_ReturnsFalse)
+{
+    for (const char* profile : {
+        "not-json", "[", "null", "{}", "[null]", "[1]",
+        R"([{"name":null}])", R"([{"name":1}])", R"([{"name":[]}])",
+        R"([{"name":"Invalid","rules":null}])",
+        R"([{"name":"Invalid","rules":{}}])",
+        R"([{"name":"Invalid","rules":[null]}])",
+        R"([{"name":"Invalid","rules":[{"netCost":1}]}])",
+        R"([{"name":"Invalid","rules":[{"powerState":null}]}])",
+        R"([{"name":"Invalid","rules":[{"timers":1}]}])",
+        R"([{"name":"Invalid","rules":[{"timers":{}}]}])",
+        R"([{"name":"Invalid","rules":[{"timers":[2147483648]}]}])",
+        R"([{"name":"Invalid","rules":[{"timers":[-2147483649]}]}])",
+        R"([{"name":"Invalid","rules":[{"timers":[18446744073709551615]}]}])",
+        R"([{"name":"Invalid","rules":[{"timers":[1e100]}]}])",
+        R"([{"name":"Invalid","rules":[{"timers":[-1e100]}]}])",
+        R"([{"name":"Invalid","rules":[{"timers":[1e999]}]}])"})
+    {
+        EXPECT_FALSE(TransmitProfiles::load(profile)) << profile;
+        EXPECT_EQ(TransmitProfiles::profiles.count("Invalid"), 0u) << profile;
+    }
+}
+
+TEST_F(TransmitProfilesTests, load_Json_TimerLimitsAndFractionalValuesPreserveConversions)
+{
+    ASSERT_TRUE(TransmitProfiles::load(
+        R"([{"name":"Boundary","rules":[{"timers":[-2147483648,2147483647,1.5]}]}])"));
+    const auto& timers = TransmitProfiles::profiles["Boundary"].rules[0].timers;
+    EXPECT_EQ(timers, (std::vector<int>{std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), 1}));
+}
+
+TEST_F(TransmitProfilesTests, load_Json_InvalidProfilePreservesValidPrefix)
+{
+    ASSERT_TRUE(TransmitProfiles::load(
+        R"([{"name":"Valid","rules":[{"timers":[1,2,3]}]},{"name":"Invalid","rules":false}])"));
+    EXPECT_EQ(TransmitProfiles::profiles.count("Valid"), 1u);
+    EXPECT_EQ(TransmitProfiles::profiles.count("Invalid"), 0u);
 }
 #else
 TEST_F(TransmitProfilesTests, load_Json_JsonNotEnabled_ReturnsFalse)

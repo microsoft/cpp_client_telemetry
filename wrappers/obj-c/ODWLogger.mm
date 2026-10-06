@@ -410,10 +410,11 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
     if (!canUseSDK) {
         return;
     }
-    try
+    MATSDK_TRY
     {
         block();
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
@@ -422,6 +423,7 @@ void PerformActionWithCppExceptionsCatch(void (^block)())
         }
         [ODWLogger traceException: e.what()];
     }
+#endif
 }
 
 -(void)initializePrivacyGuardWithODWPrivacyGuardInitConfig:(ODWPrivacyGuardInitConfig *)initConfigObject

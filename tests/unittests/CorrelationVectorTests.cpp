@@ -111,3 +111,21 @@ TEST(CorrelationVectorTests, TestCorrelationVector_Version2)
 {
    TestCorrelationVectorVersion(2, 22, 127, "01234567890123456789ab.4294967295.4294967294");
 }
+
+TEST(CorrelationVectorTests, SetValue_DecimalBoundariesAndLeadingZeros)
+{
+    CorrelationVector cv;
+    const string base = "0123456789abcdef";
+    ASSERT_TRUE(cv.SetValue(base + ".4294967295"));
+    EXPECT_EQ(cv.GetValue(), base + ".4294967295");
+    EXPECT_FALSE(cv.CanIncrement());
+
+    ASSERT_TRUE(cv.SetValue(base + ".0000000001"));
+    EXPECT_EQ(cv.GetValue(), base + ".1");
+    const string savedValue = cv.GetValue();
+    for (const char* invalid : {"4294967296", "9999999999", "00000000001", "+1", "1x", " 1"})
+    {
+        EXPECT_FALSE(cv.SetValue(base + "." + invalid)) << invalid;
+        EXPECT_EQ(cv.GetValue(), savedValue);
+    }
+}

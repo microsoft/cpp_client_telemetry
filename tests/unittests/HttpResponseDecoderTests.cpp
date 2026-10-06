@@ -114,3 +114,26 @@ TEST_F(HttpResponseDecoderTests, SkipsAbortedRequests)
     }));
     decoder.decode(ctx);
 }
+
+#ifdef HAVE_MAT_JSONHPP
+TEST_F(HttpResponseDecoderTests, MalformedJsonSchemaDoesNotChangeSuccessfulOutcome)
+{
+    for (const char* body : {
+        "not-json", "[", "null", "1", "[]",
+        R"({"efi":null})", R"({"efi":1})", R"({"efi":"all"})", R"({"efi":["all"]})",
+        R"({"acc":1e100,"efi":{"tenant":"all"}})",
+        R"({"rej":18446744073709551615,"efi":{"tenant":"all"}})"})
+    {
+        auto ctx = createContextWith(HttpResult_OK, 200, body);
+        EXPECT_CALL(*this, resultEventsAccepted(ctx)).WillOnce(Return());
+        decoder.decode(ctx);
+    }
+}
+
+TEST_F(HttpResponseDecoderTests, ObjectFailureInformationStillRejectsEvents)
+{
+    auto ctx = createContextWith(HttpResult_OK, 200, R"({"efi":{"tenant":"all"}})");
+    EXPECT_CALL(*this, resultEventsRejected(ctx)).WillOnce(Return());
+    decoder.decode(ctx);
+}
+#endif

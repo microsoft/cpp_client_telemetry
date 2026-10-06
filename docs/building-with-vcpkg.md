@@ -311,6 +311,31 @@ will automatically use the optimized zlib-ng build.
 > zlib. When using `ZLIB_COMPAT=ON`, ensure all dependencies resolve to
 > zlib-ng rather than mixing stock zlib and zlib-ng.
 
+## Native build options
+
+| vcpkg feature | SDK CMake option | Behavior |
+| ------------- | ---------------- | -------- |
+| `no-exceptions` | `MATSDK_DISABLE_EXCEPTIONS=ON` | Disable C++ exceptions in SDK-owned targets only. Consumer and dependency exception policies are unchanged. |
+| `no-logging` | `MATSDK_DISABLE_LOGGING=ON` | Remove internal diagnostics, not telemetry event collection. |
+| `device-id` (default) | `MATSDK_ENABLE_DEVICE_ID=ON` | Enable native device-ID collection; omit with `default-features=false` to disable it. |
+| `android-capi-http-client` | `MATSDK_ENABLE_CAPI_HTTP_CLIENT=ON` | Allow custom HTTP send/cancel callbacks through the Android C API. |
+
+These features compose with the SQLite and HTTP transport features. For example,
+select `["minimal-sqlite", "curl-mbedtls", "no-exceptions", "no-logging"]`
+with `default-features=false` for a Linux build without native device-ID
+collection. Exception-free builds can still terminate on unrecoverable allocation
+failure; they do not turn every standard-library allocation into a recoverable
+operation.
+
+Static/shared linkage, architecture, CRT selection, optimization, and additional
+compiler/linker flags belong to the vcpkg triplet/toolchain, not SDK features.
+The port builds the native core and disables tests, sample tools, language
+wrappers, and SDK packaging. Room storage and JNI/Objective-C/Swift wrappers
+remain source-build integrations; proprietary modules require a source checkout.
+Dependency download URLs and vendored zlib are source-build settings, since
+vcpkg manages those dependencies.
+RTTI remains required by the SDK's HTTP cancellation implementation.
+
 ## Reducing binary footprint
 
 This section applies when the SDK is linked **statically** into your binary

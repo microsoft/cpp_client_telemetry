@@ -9,6 +9,7 @@ on:
     - dev/*
     - release/*
     - buildme/*
+    - fix/*
 
   pull_request:
     branches:
@@ -31,6 +32,17 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  build-runner:
+    name: Build runner contracts (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Verify test-runner failure propagation
+      run: python3 tests/build-runner-tests.py
+
   build:
 
     runs-on: ${{ matrix.os }}
@@ -92,23 +104,42 @@ jobs:
       run: bash tests/headers/check_public_headers.sh
 
   no-exceptions:
-    name: Linux Curl without C++ exceptions
-    runs-on: ubuntu-latest
+    name: Full SDK without C++ exceptions (${{ matrix.os }}, ${{ matrix.compiler }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-latest
+          compiler: gcc
+          cc: gcc
+          cxx: g++
+        - os: ubuntu-latest
+          compiler: clang
+          cc: clang
+          cxx: clang++
+        - os: macos-latest
+          compiler: appleclang
+          cc: clang
+          cxx: clang++
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-    - name: Install Curl development package
-      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+    - name: Install build dependencies
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install -y clang libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
     - name: Configure
       run: >-
-        cmake -S . -B out-no-exceptions
+        cmake -S tests/no-exceptions -B out-no-exceptions
         -DCMAKE_BUILD_TYPE=Debug
-        -DCMAKE_CXX_FLAGS=-fno-exceptions
-        -DMATSDK_BUILD_UNIT_TESTS=OFF
-        -DMATSDK_BUILD_FUNC_TESTS=OFF
-        -DMATSDK_BUILD_TEST_TOOL=OFF
-    - name: Compile Curl transport
+    - name: Compile full SDK
       run: >-
-        make -C out-no-exceptions
-        -f lib/CMakeFiles/mat.dir/build.make
-        lib/CMakeFiles/mat.dir/http/HttpClient_Curl.cpp.o
+        cmake --build out-no-exceptions --target no-exceptions-smoke --parallel 2
+    - name: Exercise no-exceptions runtime failure paths
+      run: ctest --test-dir out-no-exceptions --output-on-failure
+    - name: Public headers and exception macro regression
+      if: runner.os == 'macOS'
+      run: bash tests/headers/check_public_headers.sh

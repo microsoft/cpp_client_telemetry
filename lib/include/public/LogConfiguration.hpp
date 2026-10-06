@@ -104,9 +104,11 @@ namespace MAT_NS_BEGIN {
 
     MATSDK_LIBABI ILogConfiguration FromLogConfiguration(MAT_v1::LogConfiguration &src);
 
+    /// Parses a JSON configuration object. Null input or a non-object root
+    /// returns an empty configuration and logs an error. Invalid JSON syntax
+    /// throws when exceptions are enabled; otherwise it logs and returns empty.
     MATSDK_LIBABI ILogConfiguration FromJSON(const char* json);
 
 } MAT_NS_END
 
 #endif
-

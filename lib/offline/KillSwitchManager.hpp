@@ -7,12 +7,12 @@
 
 #include "pal/PAL.hpp"
 
+#include <algorithm>
 #include <functional>
 #include <limits>
 #include <list>
 #include <map>
 #include <mutex>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -211,9 +211,7 @@ namespace MAT_NS_BEGIN {
 
         // Parse a count of seconds from a response-header value (Retry-After /
         // kill-duration). Returns false when the value is malformed or out of
-        // range instead of letting std::stoll throw: the worker thread that drives
-        // handleResponse has no exception guard, so a throw here would crash the
-        // process.
+        // range using checked arithmetic, without exceptions or allocations.
         //
         // RFC 7231 allows Retry-After to be either delay-seconds or an HTTP-date.
         // We deliberately accept only delay-seconds and ignore the HTTP-date form:
@@ -251,32 +249,24 @@ namespace MAT_NS_BEGIN {
             {
                 return false;
             }
+            int64_t parsed = 0;
             for (size_t i = begin; i < end; ++i)
             {
                 if (value[i] < '0' || value[i] > '9')
                 {
                     return false;
                 }
+                const int64_t digit = value[i] - '0';
+                if (parsed > (std::numeric_limits<int64_t>::max() - digit) / 10)
+                {
+                    return false;
+                }
+                parsed = parsed * 10 + digit;
             }
-            try
-            {
-                // The substring is all digits, so std::stoll itself can only throw
-                // std::out_of_range; substr() may also throw (e.g. std::bad_alloc).
-                // Either way the std::exception catch below ignores the value rather
-                // than crashing.
-                const long long parsed = std::stoll(value.substr(begin, end - begin));
-                // Clamp to a value that cannot overflow when later converted to
-                // milliseconds to compute an expiry time. No legitimate
-                // Retry-After / kill-duration approaches this; an absurd value is
-                // capped instead of wrapping the expiry into the past.
-                const int64_t kMaxSeconds = 100LL * 365 * 24 * 60 * 60; // ~100 years
-                outSeconds = (parsed > kMaxSeconds) ? kMaxSeconds : static_cast<int64_t>(parsed);
-                return true;
-            }
-            catch (const std::exception&)
-            {
-                return false;
-            }
+            // Cap valid durations before converting them to milliseconds.
+            const int64_t kMaxSeconds = 100LL * 365 * 24 * 60 * 60; // ~100 years
+            outSeconds = std::min(parsed, kMaxSeconds);
+            return true;
         }
 
         // Tenant tokens are opaque (they may legitimately contain spaces, quotes,

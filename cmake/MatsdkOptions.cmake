@@ -46,6 +46,8 @@ option(MATSDK_USE_WININET
   "Use WinInet instead of WinHTTP as the Win32 desktop HTTP client" OFF)
 option(MATSDK_DISABLE_LOGGING
   "Compile internal SDK logging out" OFF)
+option(MATSDK_DISABLE_EXCEPTIONS
+  "Compile SDK-owned C++ targets without exception support" OFF)
 option(MATSDK_ENABLE_DEVICE_ID
   "Collect a device ID using the SDK's platform-specific implementation" ON)
 

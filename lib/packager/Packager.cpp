@@ -22,7 +22,9 @@ namespace MAT_NS_BEGIN {
 
     void Packager::handleAddEventToPackage(EventsUploadContextPtr const& ctx, StorageRecord const& record, bool& wantMore)
     {
+#if HAVE_EXCEPTIONS
         try {
+#endif
             if (ctx->maxUploadSize == 0) {
                 ctx->maxUploadSize = m_config.GetMaximumUploadSizeBytes();
             }
@@ -64,11 +66,13 @@ namespace MAT_NS_BEGIN {
             ctx->recordIdsAndTenantIds[record.id] = record.tenantToken;
             ctx->recordTimestamps.push_back(record.timestamp);
             ctx->maxRetryCountSeen = std::max<int>(ctx->maxRetryCountSeen, record.retryCount);
+#if HAVE_EXCEPTIONS
         }
         catch (const std::bad_alloc&) {
             wantMore = false;
             LOG_ERROR("Failed to add new record to package: record.blob.size=%zu", record.blob.size());
         }
+#endif
     }
 
     void Packager::handleFinalizePackage(EventsUploadContextPtr const& ctx)
@@ -86,4 +90,3 @@ namespace MAT_NS_BEGIN {
 
 
 } MAT_NS_END
-

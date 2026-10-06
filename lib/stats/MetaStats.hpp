@@ -264,9 +264,11 @@ namespace MAT_NS_BEGIN {
 
         ~RecordStats()
         {
+#ifndef MATSDK_DISABLE_LOGGING
             static size_t count = 0;
             count++;
             LOG_TRACE("RecordStats destroyed: %u", count);
+#endif
         }
 
     protected:
@@ -614,4 +616,3 @@ namespace MAT_NS_BEGIN {
 } MAT_NS_END
 
 #endif
-

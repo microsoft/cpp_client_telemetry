@@ -5,6 +5,10 @@
 #ifndef CTMACROS_HPP
 #define CTMACROS_HPP
 
+#ifdef __cplusplus
+#include <cstdlib>
+#endif
+
 #ifdef  HAVE_MAT_SHORT_NS
 #define MAT_NS_BEGIN  MAT
 #define MAT_NS_END
@@ -121,7 +125,14 @@
 #endif
 
 /* Exceptions support is optional */
-#if (__cpp_exceptions) || defined(__EXCEPTIONS)
+#if defined(__clang__)
+// Objective-C exceptions can enable __EXCEPTIONS without C++ exceptions.
+#if __has_feature(cxx_exceptions)
+#define HAVE_EXCEPTIONS 1
+#else
+#define HAVE_EXCEPTIONS 0
+#endif
+#elif defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
 #define HAVE_EXCEPTIONS 1
 #else
 #define HAVE_EXCEPTIONS 0

@@ -64,6 +64,14 @@ class ReleasePortTests(unittest.TestCase):
         self.assertIn(f"SHA512 {'a' * 128}\n", portfile)
         self.assertIn("-DMATSDK_SQLITE_PROVIDER=${MATSDK_VCPKG_SQLITE_PROVIDER}", portfile)
         self.assertIn("-DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}", portfile)
+        self.assertIn("${MATSDK_NATIVE_FEATURE_OPTIONS}", portfile)
+        for feature, option in (
+            ("no-exceptions", "MATSDK_DISABLE_EXCEPTIONS"),
+            ("no-logging", "MATSDK_DISABLE_LOGGING"),
+            ("android-capi-http-client", "MATSDK_ENABLE_CAPI_HTTP_CLIENT"),
+        ):
+            self.assertIn(feature, actual["features"])
+            self.assertIn(f"{feature}|{option}", portfile)
         self.assertEqual((self.destination / "release.patch").read_text(), "new patch")
         self.assertFalse((self.destination / "obsolete.patch").exists())
         self.assertEqual(

@@ -9,6 +9,11 @@ set(SRCS
 )
 set(MATSDK_FUNC_TEST_DEFINITIONS)
 
+if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/azmon/" AND MATSDK_BUILD_AZMON)
+  list(APPEND MATSDK_FUNC_TEST_DEFINITIONS HAVE_MAT_AI)
+  list(APPEND SRCS AISendTests.cpp)
+endif()
+
 if(EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/privacyguard/" AND MATSDK_BUILD_PRIVACYGUARD)
   list(APPEND MATSDK_FUNC_TEST_DEFINITIONS HAVE_MAT_PRIVACYGUARD)
   list(APPEND SRCS
@@ -71,4 +76,6 @@ if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(FuncTests PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
-add_test(FuncTests FuncTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/FuncTests.xml")
+add_test(NAME FuncTests COMMAND FuncTests
+  "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/FuncTests.xml")
+set_tests_properties(FuncTests PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")

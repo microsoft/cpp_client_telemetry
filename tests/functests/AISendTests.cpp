@@ -103,7 +103,6 @@ class AISendTests : public ::testing::Test,
     std::atomic<bool> isRunning;
 
     std::condition_variable cv_gotEvents;
-    std::mutex cv_m;
 
    public:
     AISendTests() :
@@ -154,6 +153,8 @@ class AISendTests : public ::testing::Test,
         configuration[CFG_INT_SDK_MODE] = SdkModeTypes_AI;
         configuration[CFG_STR_COLLECTOR_URL] = (serverAddress + path).c_str();
         configuration[CFG_MAP_HTTP][CFG_BOOL_HTTP_COMPRESSION] = compression;
+        // Loopback HTTP tests do not require host network discovery.
+        configuration[CFG_BOOL_ENABLE_NET_DETECT] = false;
 
         configuration[CFG_INT_TRACE_LEVEL_MASK] = 0xFFFFFFFF;
 #ifdef NDEBUG
@@ -205,6 +206,7 @@ class AISendTests : public ::testing::Test,
             LOCKGUARD(mtx_requests);
             receivedRequests.push_back(request);
         }
+        cv_gotEvents.notify_all();
 
         if (request.uri.compare("/v2/track/400/") == 0)
         {
@@ -255,48 +257,45 @@ class AISendTests : public ::testing::Test,
 
     bool waitForRequests(unsigned timeOutSec, unsigned expected_count = 1)
     {
-        std::unique_lock<std::mutex> lk(cv_m);
-        if (cv_gotEvents.wait_for(lk, std::chrono::milliseconds(1000 * timeOutSec), [&] { return receivedRequests.size() >= expected_count; }))
-        {
-            return true;
-        }
-        return false;
+        std::unique_lock<std::mutex> lk(mtx_requests);
+        return cv_gotEvents.wait_for(lk, std::chrono::seconds(timeOutSec),
+            [&] { return receivedRequests.size() >= expected_count; });
     }
 
     void waitForEvents(unsigned timeOutSec, unsigned expectedRequests, bool compression)
     {
         size_t receivedEvents = 0;
-        unsigned timeoutMs = 1000 * timeOutSec;
-        auto start = PAL::getUtcSystemTimeMs();
-        while (((PAL::getUtcSystemTimeMs() - start) < timeoutMs) 
-            && (receivedEvents != expectedRequests))
+        size_t nextRequest = 0;
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(timeOutSec);
+        while (receivedEvents < expectedRequests)
         {
-            /* Give time for our friendly HTTP server thread to process incoming request */
-            std::this_thread::yield();
+            HttpServer::Request request;
             {
-                LOCKGUARD(mtx_requests);
-                if (receivedRequests.size())
+                std::unique_lock<std::mutex> lock(mtx_requests);
+                if (!cv_gotEvents.wait_until(lock, deadline,
+                    [&] { return nextRequest < receivedRequests.size(); }))
                 {
-                    auto request = receivedRequests.at(0);
-                    nlohmann::json body;
-                    auto it = request.headers.find("Content-Encoding");
-                    if (it != request.headers.end())
-                    {
-                        EXPECT_TRUE(compression);
-                        std::vector<uint8_t> content(request.content.begin(), request.content.end());
-                        std::vector<uint8_t> inflated;
-                        ZlibUtils::InflateVector(content, inflated, true);
-                        body = nlohmann::json::parse(inflated.begin(), inflated.end());
-                    }
-                    else
-                    {
-                        EXPECT_FALSE(compression);
-                        body = nlohmann::json::parse(request.content.begin(), request.content.end());
-                    }
-                    EXPECT_TRUE(body.is_array());
-                    receivedEvents += body.size();
+                    break;
                 }
+                request = receivedRequests.at(nextRequest++);
             }
+            nlohmann::json body;
+            const auto encoding = request.headers.find("Content-Encoding");
+            if (encoding != request.headers.end())
+            {
+                EXPECT_TRUE(compression);
+                std::vector<uint8_t> content(request.content.begin(), request.content.end());
+                std::vector<uint8_t> inflated;
+                ASSERT_TRUE(ZlibUtils::InflateVector(content, inflated, true));
+                body = nlohmann::json::parse(inflated.begin(), inflated.end());
+            }
+            else
+            {
+                EXPECT_FALSE(compression);
+                body = nlohmann::json::parse(request.content.begin(), request.content.end());
+            }
+            ASSERT_TRUE(body.is_array());
+            receivedEvents += body.size();
         }
         ASSERT_EQ(receivedEvents, expectedRequests);
     }
@@ -376,6 +375,28 @@ class AISendTests : public ::testing::Test,
         }
     }
 };
+
+TEST_F(AISendTests, waitForEventsCountsEachRequestOnce)
+{
+    HttpServer::Request request;
+    request.uri = "/v2/track/";
+    request.content = "[{}]";
+    HttpServer::Response response;
+    onHttpRequest(request, response);
+    std::thread producer([this, request]() mutable
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        request.content = "[{},{}]";
+        HttpServer::Response nextResponse;
+        onHttpRequest(request, nextResponse);
+    });
+    waitForEvents(5, 3, false);
+    {
+        LOCKGUARD(mtx_requests);
+        EXPECT_EQ(receivedRequests.size(), 2u);
+    }
+    producer.join();
+}
 
 TEST_F(AISendTests, sendOneEvent)
 {

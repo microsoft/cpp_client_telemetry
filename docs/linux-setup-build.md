@@ -72,3 +72,59 @@ make
 ```
 
 Package for your platform is going to be created and placed in ./out directory.
+
+When the optional Azure Monitor module is present and `MATSDK_BUILD_AZMON` and
+`MATSDK_BUILD_FUNC_TESTS` are enabled, CMake includes `AISendTests` in `FuncTests`.
+These loopback tests wait for server notifications and do not require host
+network discovery.
+
+### Building without C++ exceptions
+
+Set `MATSDK_DISABLE_EXCEPTIONS=ON` to compile SDK-owned C++ targets without
+exceptions using GCC, Clang, Apple Clang, MSVC, or clang-cl:
+
+```console
+cmake -S . -B out-no-exceptions \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DMATSDK_DISABLE_EXCEPTIONS=ON \
+  -DMATSDK_BUILD_UNIT_TESTS=OFF \
+  -DMATSDK_BUILD_FUNC_TESTS=OFF \
+  -DMATSDK_BUILD_TEST_TOOL=OFF
+cmake --build out-no-exceptions --target mat --parallel 2
+```
+
+Select Clang with `CC=clang CXX=clang++` when configuring a fresh build
+directory. CI builds the full public SDK `mat` target with both compilers,
+rather than compiling only the Curl transport object. It does not clone the
+private optional-modules repository. Exception handlers are retained in
+exception-enabled builds and omitted when exceptions are disabled. Numeric
+validation does not rely on throwing conversions, and payload expansion
+reports buffer-allocation failure through its existing `false` result.
+Disabling exceptions does not make every standard-library allocation
+recoverable; operations without an explicit non-throwing failure path can
+still terminate on allocation failure.
+
+The same option applies to Android NDK and Apple Clang builds, including the
+JNI and Objective-C wrappers. For Android, also pass
+`-DMATSDK_BUILD_JNI_WRAPPER=ON`; both SQLite and
+`-DMATSDK_ANDROID_USE_ROOM=ON` storage builds are covered. For Apple builds,
+disable the independent Swift build with `-DMATSDK_BUILD_SWIFT_WRAPPER=OFF`.
+With the Xcode generator, also set
+`-DCMAKE_XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS=NO`.
+Objective-C exception handling can remain enabled independently; the SDK detects
+C++ exception support separately, including in Objective-C++ translation units.
+
+The option selects `/EHs-c-` and `_HAS_EXCEPTIONS=0` for MSVC, and additionally
+`/clang:-fno-exceptions` for clang-cl. It does not change compiler flags on
+consumer or dependency targets. Explicit compiler flags remain supported.
+CI covers both
+WinHTTP and WinInet transports, macOS, iOS device/simulator, and all four
+Android ABIs with both storage backends. Managed C++/CLI and C++/CX wrappers
+require their platform exception machinery and are not exception-free native
+build targets.
+
+The existing `MATSDK_THROW` policy is unchanged: when C++ exceptions are
+disabled, paths that would explicitly throw terminate via `std::abort()`,
+including unrecoverable JNI/Room errors. Room record-ID validation instead
+uses a non-throwing conversion and reports invalid or overflowing IDs through
+the storage observer.

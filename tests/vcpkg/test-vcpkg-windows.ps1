@@ -5,7 +5,9 @@
 param(
     [string]$VcpkgRoot = "",
     [string]$Triplet = "",
-    [switch]$WinInet
+    [switch]$WinInet,
+    [ValidateSet("minimal-sqlite", "no-exceptions", "no-logging")]
+    [string[]]$Features = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -87,8 +89,15 @@ $CmakeArgs = @(
     "-DVCPKG_OVERLAY_PORTS=$OverlayPorts",
     "-DCMAKE_BUILD_TYPE=Release"
 )
+$ManifestFeatures = @($Features)
 if ($WinInet) {
-    $CmakeArgs += "-DVCPKG_MANIFEST_FEATURES=wininet"
+    $ManifestFeatures += "wininet"
+}
+if ($ManifestFeatures.Count -gt 0) {
+    $CmakeArgs += "-DVCPKG_MANIFEST_FEATURES=$($ManifestFeatures -join ';')"
+}
+if ("minimal-sqlite" -in $ManifestFeatures) {
+    $CmakeArgs += "-DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON"
 }
 
 # Detect whether cl.exe is on PATH (i.e., running from VS Developer Command Prompt)
@@ -145,13 +154,7 @@ if (-not $clExe) {
 
 Write-Host ""
 Write-Host "--- Step 3: Run test ---" -ForegroundColor Yellow
-$TestExe = Get-ChildItem -Path $ConsumerBuild -Recurse -Filter "vcpkg_test.exe" | Select-Object -First 1
-if ($null -eq $TestExe) {
-    Write-Error "Test executable not found"
-    exit 1
-}
-
-& $TestExe.FullName
+ctest --test-dir $ConsumerBuild -C Release --output-on-failure
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Test execution failed"
     exit 1

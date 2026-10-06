@@ -457,6 +457,7 @@
     <ClCompile Include="$(ProjectDir)\LogSessionDataDBTests.cpp" />
     <ClCompile Include="$(ProjectDir)\KillSwitchManagerTests.cpp" />
     <ClCompile Include="$(ProjectDir)\LoggerTests.cpp" />
+    <ClCompile Include="$(ProjectDir)\LogConfigurationTests.cpp" />
     <ClCompile Include="$(ProjectDir)\Main.cpp" />
     <ClCompile Include="$(ProjectDir)\MemoryStorageTests.cpp" />
     <ClCompile Include="$(ProjectDir)\MetaStatsTests.cpp" />

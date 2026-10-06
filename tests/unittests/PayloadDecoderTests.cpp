@@ -5,11 +5,22 @@
 #include "common/Common.hpp"
 #include "PayloadDecoder.hpp"
 #include "utils/ZlibUtils.hpp"
+#include <limits>
 
 #if defined(HAVE_MAT_ZLIB) && defined(HAVE_MAT_JSONHPP)
 #include "bond/All.hpp"
 #include "bond/generated/CsProtocol_writers.hpp"
 #include <nlohmann/json.hpp>
+
+namespace clienttelemetry {
+    namespace data {
+        namespace v3 {
+            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex);
+            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex,
+                        char* (*allocate)(size_t));
+        }
+    }
+}
 #endif
 
 using namespace testing;
@@ -134,3 +145,33 @@ TEST(PayloadDecoderTests, DecodeRecord_ValidUtf8_IsPreserved)
             << "Valid UTF-8 must not be altered";
     }
 }
+
+#if defined(HAVE_MAT_ZLIB) && defined(HAVE_MAT_JSONHPP)
+TEST(PayloadDecoderTests, Expand_UnrepresentableSizeClearsOutput)
+{
+    const char source[] = "invalid";
+    char* output = nullptr;
+    size_t outputSize = std::numeric_limits<size_t>::max();
+    EXPECT_FALSE(clienttelemetry::data::v3::Expand(source, sizeof(source), &output, outputSize, false));
+    EXPECT_EQ(output, nullptr);
+    EXPECT_EQ(outputSize, 0u);
+}
+
+TEST(PayloadDecoderTests, Expand_AllocationFailureClearsExistingOutput)
+{
+    const char source[] = "invalid";
+    char previousOutput = 0;
+    char* output = &previousOutput;
+    size_t outputSize = 32;
+    static size_t requestedSize = 0;
+    requestedSize = 0;
+    EXPECT_FALSE(clienttelemetry::data::v3::Expand(source, sizeof(source), &output, outputSize, false,
+        [](size_t size) -> char* {
+            requestedSize = size;
+            return nullptr;
+        }));
+    EXPECT_EQ(requestedSize, 32u);
+    EXPECT_EQ(output, nullptr);
+    EXPECT_EQ(outputSize, 0u);
+}
+#endif
