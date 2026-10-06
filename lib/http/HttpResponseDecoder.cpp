@@ -9,6 +9,8 @@
 #include "utils/Utils.hpp"
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <limits>
 
 #ifdef HAVE_MAT_JSONHPP
 #include <nlohmann/json.hpp>
@@ -190,33 +192,45 @@ namespace MAT_NS_BEGIN {
             LOG_ERROR("HTTP response: body is not valid JSON, skipping processing");
             return;
         }
-
-        int accepted = 0;
-        auto acc = responseBody.find("acc");
-        if (responseBody.end() != acc)
+        if (!responseBody.is_object())
         {
-            if (acc.value().is_number())
-            {
-                accepted = acc.value().get<int>();
-            }
+            LOG_ERROR("HTTP response: body is not a JSON object, skipping processing");
+            return;
         }
 
-        int rejected = 0;
-        auto rej = responseBody.find("rej");
-        if (responseBody.end() != rej)
+        const auto readCount = [&responseBody](const char* name, int& count)
         {
-            if (rej.value().is_number())
+            const auto value = responseBody.find(name);
+            if (value == responseBody.end() || !value->is_number())
             {
-                rejected = rej.value().get<int>();
+                return true;
             }
+            const auto number = value->get<double>();
+            if (!std::isfinite(number) || number < 0 || number > std::numeric_limits<int>::max())
+            {
+                return false;
+            }
+            count = static_cast<int>(number);
+            return true;
+        };
+        int accepted = 0;
+        int rejected = 0;
+        if (!readCount("acc", accepted) || !readCount("rej", rejected))
+        {
+            LOG_ERROR("HTTP response: event count is out of range, skipping processing");
+            return;
         }
 
         auto efi = responseBody.find("efi");
         if (responseBody.end() != efi)
         {
-            for (auto it = responseBody["efi"].begin(); it != responseBody["efi"].end(); ++it)
+            if (!efi->is_object())
             {
-                std::string efiKey(it.key());
+                LOG_ERROR("HTTP response: efi is not a JSON object, skipping processing");
+                return;
+            }
+            for (auto it = efi->begin(); it != efi->end(); ++it)
+            {
                 nlohmann::json val = it.value();
                 if (val.is_array())
                 {

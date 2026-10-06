@@ -145,7 +145,7 @@ TEST(PayloadDecoderTests, DecodeRecord_ValidUtf8_IsPreserved)
 }
 
 #if defined(HAVE_MAT_ZLIB) && defined(HAVE_MAT_JSONHPP)
-TEST(PayloadDecoderTests, Expand_AllocationFailureClearsOutput)
+TEST(PayloadDecoderTests, Expand_UnrepresentableSizeClearsOutput)
 {
     const char source[] = "invalid";
     char* output = nullptr;

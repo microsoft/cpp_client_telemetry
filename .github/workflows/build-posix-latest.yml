@@ -96,6 +96,7 @@ jobs:
     name: Full SDK without C++ exceptions (${{ matrix.os }}, ${{ matrix.compiler }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
         - os: ubuntu-latest
@@ -121,7 +122,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y clang libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
     - name: Configure
       run: >-
-        cmake -S . -B out-no-exceptions
+        cmake -S tests/no-exceptions -B out-no-exceptions
         -DCMAKE_BUILD_TYPE=Debug
         -DCMAKE_CXX_FLAGS=-fno-exceptions
         -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
@@ -130,7 +131,9 @@ jobs:
         -DMATSDK_BUILD_TEST_TOOL=OFF
     - name: Compile full SDK
       run: >-
-        cmake --build out-no-exceptions --target mat --parallel 2
+        cmake --build out-no-exceptions --target no-exceptions-smoke --parallel 2
+    - name: Exercise no-exceptions runtime failure paths
+      run: ctest --test-dir out-no-exceptions --output-on-failure
     - name: Public headers and exception macro regression
       if: runner.os == 'macOS'
       run: bash tests/headers/check_public_headers.sh

@@ -34,6 +34,7 @@ MAT_NS_END
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <limits>
 #include <new>
 
 #ifdef _WIN32
@@ -466,6 +467,13 @@ namespace clienttelemetry {
                         reserved += sizeof(uint32_t);
                     }
                     destLen = s32;
+                }
+
+                if (destLen > static_cast<size_t>(std::numeric_limits<ptrdiff_t>::max()))
+                {
+                    TEST_LOG_ERROR("Decompression size is not representable: destLen=%zu", destLen);
+                    destLen = 0;
+                    return false;
                 }
 
                 // Allocate memory for the new uncompressed buffer

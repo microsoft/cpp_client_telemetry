@@ -31,6 +31,7 @@ set(SRCS
   InformationProviderImplTests.cpp
   KillSwitchManagerTests.cpp
   LoggerTests.cpp
+  LogConfigurationTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp
   LogSessionDataDBTests.cpp

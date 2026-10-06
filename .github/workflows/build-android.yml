@@ -35,6 +35,7 @@ jobs:
     name: Android without C++ exceptions (${{ matrix.abi }}, Room=${{ matrix.room }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         abi: [armeabi-v7a, arm64-v8a, x86, x86_64]
         room: [OFF, ON]

@@ -19,6 +19,7 @@
 #include "DebugEvents.hpp"
 #include "ILogManager.hpp"
 #include "pal/PAL.hpp"
+#include "utils/WindowsUtils.hpp"
 
 #define NETDETECTOR_REFRESH WM_USER + 1
 
@@ -216,10 +217,10 @@ namespace MAT_NS_BEGIN
         NetworkDetector::NetworkDetector()
         {
             const auto module = GetModuleHandleW(L"iphlpapi.dll");
-            getConnectivityHint = reinterpret_cast<GetConnectivityHint>(
-                GetProcAddress(module, "GetNetworkConnectivityHint"));
-            notifyConnectivityHint = reinterpret_cast<NotifyConnectivityHint>(
-                GetProcAddress(module, "NotifyNetworkConnectivityHintChange"));
+            getConnectivityHint = GetWindowsProcAddress<GetConnectivityHint>(
+                module, "GetNetworkConnectivityHint");
+            notifyConnectivityHint = GetWindowsProcAddress<NotifyConnectivityHint>(
+                module, "NotifyNetworkConnectivityHintChange");
             if (getConnectivityHint == nullptr || notifyConnectivityHint == nullptr)
             {
                 getConnectivityHint = nullptr;

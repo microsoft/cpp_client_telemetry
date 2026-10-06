@@ -25,6 +25,7 @@ jobs:
     name: Windows without C++ exceptions (${{ matrix.compiler }}, WinInet=${{ matrix.wininet }})
     runs-on: windows-2022
     strategy:
+      fail-fast: false
       matrix:
         compiler: [msvc, clang-cl]
         wininet: [OFF, ON]
@@ -35,7 +36,7 @@ jobs:
       shell: pwsh
       run: |
         $options = @(
-          '-S', '.', '-B', 'out-no-exceptions', '-A', 'x64',
+          '-S', 'tests/no-exceptions', '-B', 'out-no-exceptions', '-A', 'x64',
           '-DMATSDK_BUILD_UNIT_TESTS=OFF',
           '-DMATSDK_BUILD_FUNC_TESTS=OFF',
           '-DMATSDK_BUILD_TEST_TOOL=OFF',
@@ -50,7 +51,9 @@ jobs:
         cmake @options "-DCMAKE_CXX_FLAGS=$flags"
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     - name: Compile full SDK
-      run: cmake --build out-no-exceptions --config Debug --target mat --parallel 2
+      run: cmake --build out-no-exceptions --config Debug --target no-exceptions-smoke --parallel 2
+    - name: Exercise no-exceptions runtime failure paths
+      run: ctest --test-dir out-no-exceptions -C Debug --output-on-failure
     - name: Public headers and exception macro regression
       if: matrix.compiler == 'msvc' && matrix.wininet == 'OFF'
       shell: cmd

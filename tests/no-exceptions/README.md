@@ -1,0 +1,32 @@
+# No-exceptions runtime regression
+
+This dependency-free smoke executable links the full SDK and compiles both the
+SDK and driver with C++ exceptions disabled. It checks malformed configuration
+and response JSON, configuration and timer numeric limits, partial profile
+loading, correlation-vector overflow, and unrepresentable expansion sizes.
+It requires neither Google Test nor the private optional modules.
+
+For GCC or Clang:
+
+```sh
+cmake -S tests/no-exceptions -B out-no-exceptions \
+  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS=-fno-exceptions
+cmake --build out-no-exceptions --target no-exceptions-smoke --parallel 2
+ctest --test-dir out-no-exceptions --output-on-failure
+```
+
+For MSVC, configure with `/EHs-c- /D_HAS_EXCEPTIONS=0` in `CMAKE_CXX_FLAGS`.
+For clang-cl, add `/clang:-fno-exceptions` and select the `ClangCL` toolset.
+Use a fresh build directory when changing compilers or exception modes.
+Expansion requests larger than `PTRDIFF_MAX` fail before calling an allocator;
+representable allocations still use `std::nothrow` and report failure normally.
+
+`FromJSON` preserves throwing syntax errors in exception-enabled builds. When
+exceptions are disabled it logs malformed syntax and returns an empty
+configuration. Null input and a non-object root log an error and return empty.
+
+`TransmitProfiles::load(string)` retains its historical partial-load contract:
+a schema error stops parsing, replaces existing custom profiles with the valid
+prefix, and returns true if that prefix is nonempty. Default profiles remain
+available. Entries after the first invalid profile are not loaded. The vector
+overload validates every candidate before replacing existing custom profiles.
