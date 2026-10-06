@@ -12,6 +12,13 @@ endif()
 
 find_package(MSTelemetry CONFIG REQUIRED)
 
+get_target_property(SDK_COMPILE_OPTIONS MSTelemetry::mat INTERFACE_COMPILE_OPTIONS)
+get_target_property(SDK_COMPILE_DEFINITIONS MSTelemetry::mat INTERFACE_COMPILE_DEFINITIONS)
+if(SDK_COMPILE_OPTIONS MATCHES "fno-exceptions|/EHs-c-"
+    OR SDK_COMPILE_DEFINITIONS MATCHES "_HAS_EXCEPTIONS|MATSDK_DISABLE_LOGGING|MATSDK_DISABLE_DEVICE_ID")
+  message(FATAL_ERROR "SDK-private compiler policy leaked to consumers.")
+endif()
+
 add_executable(vcpkg_test main.cpp)
 target_link_libraries(vcpkg_test PRIVATE MSTelemetry::mat)
 

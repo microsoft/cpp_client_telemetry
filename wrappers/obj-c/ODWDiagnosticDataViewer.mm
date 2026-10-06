@@ -19,11 +19,12 @@ std::shared_ptr<DefaultDataViewer> _viewer;
 +(void)initializeViewerWithMachineIdentifier:(NSString *)machineIdentifier
 {
     const std::string identifier = { [machineIdentifier UTF8String] };
-    try
+    MATSDK_TRY
     {
         _viewer = std::make_shared<DefaultDataViewer> (nullptr, identifier);
         LogManager::GetDataViewerCollection().RegisterViewer(_viewer);
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
@@ -32,6 +33,7 @@ std::shared_ptr<DefaultDataViewer> _viewer;
         }
         [ODWLogger traceException: e.what()];
     }
+#endif
 }
 
 +(void)enableRemoteViewer:(NSString *)endpoint completionWithResult:(void(^)(bool result))completion
@@ -48,7 +50,7 @@ std::shared_ptr<DefaultDataViewer> _viewer;
 +(bool)enableRemoteViewer:(NSString *)endpoint
 {
     bool result = false;
-    try
+    MATSDK_TRY
     {
         result = _viewer->EnableRemoteViewer(std::string([endpoint UTF8String]));
         if ([ODWLogConfiguration enableConsoleLogging])
@@ -56,6 +58,7 @@ std::shared_ptr<DefaultDataViewer> _viewer;
             NSLog(@"RemoteDataViewer enabled on endpoint: %@ and result: %@", endpoint, result ? @"success" : @"failure");
         }
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
@@ -64,6 +67,7 @@ std::shared_ptr<DefaultDataViewer> _viewer;
         }
         [ODWLogger traceException: e.what()];
     }
+#endif
 
     return result;
 }
@@ -93,10 +97,11 @@ std::shared_ptr<DefaultDataViewer> _viewer;
 +(bool)viewerEnabled
 {
     bool result = false;
-    try
+    MATSDK_TRY
     {
         result = LogManager::GetDataViewerCollection().IsViewerEnabled(_viewer->GetName());
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception &e)
     {
         if ([ODWLogConfiguration surfaceCppExceptions])
@@ -105,6 +110,7 @@ std::shared_ptr<DefaultDataViewer> _viewer;
         }
         [ODWLogger traceException: e.what()];
     }
+#endif
 
     return result;
 }

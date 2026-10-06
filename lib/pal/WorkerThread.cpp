@@ -314,7 +314,9 @@ namespace PAL_NS_BEGIN {
     protected:
         static void threadFunc(void* lpThreadParameter)
         {
+#ifndef MATSDK_DISABLE_LOGGING
             uint64_t wakeupCount = 0;
+#endif
 
             WorkerThread* self = reinterpret_cast<WorkerThread*>(lpThreadParameter);
             {
@@ -325,7 +327,9 @@ namespace PAL_NS_BEGIN {
 
             for (;;) {
                 std::unique_ptr<MAT::Task> item = nullptr;
+#ifndef MATSDK_DISABLE_LOGGING
                 wakeupCount++;
+#endif
                 unsigned nextTimerInMs = MAX_FUTURE_DELTA_MS;
                 {
                     LOCKGUARD(self->m_lock);

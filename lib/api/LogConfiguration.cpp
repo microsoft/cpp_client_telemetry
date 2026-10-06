@@ -4,6 +4,7 @@
 //
 #include "mat/config.h"
 #include "LogConfiguration.hpp"
+#include "pal/PAL.hpp"
 
 #ifdef HAVE_MAT_JSONHPP
 #include <nlohmann/json.hpp>
@@ -74,7 +75,17 @@ namespace MAT_NS_BEGIN {
     {
         ILogConfiguration result;
 #ifdef HAVE_MAT_JSONHPP
-        auto src = json::parse(configuration);
+        if (configuration == nullptr)
+        {
+            LOG_ERROR("JSON configuration is null");
+            return result;
+        }
+        auto src = json::parse(configuration, nullptr, HAVE_EXCEPTIONS != 0);
+        if (!src.is_object())
+        {
+            LOG_ERROR("JSON configuration must be a valid object");
+            return result;
+        }
         std::function<void(json &src, VariantMap &dst)> parse;
         parse = [&parse](json &src, VariantMap &dst)->void {
             for (json::iterator it = src.begin(); it != src.end(); ++it) {

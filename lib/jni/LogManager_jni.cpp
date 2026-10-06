@@ -402,7 +402,7 @@ namespace
         if (env->ExceptionCheck())
         {
             env->Throw(env->ExceptionOccurred());
-            throw std::runtime_error("JNI exception");
+            MATSDK_THROW(std::runtime_error("JNI exception"));
         }
     }
 
@@ -604,7 +604,7 @@ namespace
                 if (!TryJStringToStdString(env, key, stringKey))
                 {
                     rethrow(env);
-                    throw std::runtime_error("Unable to convert configuration key");
+                    MATSDK_THROW(std::runtime_error("Unable to convert configuration key"));
                 }
                 auto value = env->CallObjectMethod(configuration, getMethod, key);
                 rethrow(env);
@@ -664,7 +664,7 @@ namespace
                         if (!TryJStringToStdString(env, s, cppString))
                         {
                             rethrow(env);
-                            throw std::runtime_error("Unable to convert string value");
+                            MATSDK_THROW(std::runtime_error("Unable to convert string value"));
                         }
                         return Variant(std::move(cppString));
                     }
@@ -682,7 +682,7 @@ namespace
                         return Variant(std::move(subArray));
                     }
                     default:
-                        throw std::logic_error("Unknown enum value");
+                        MATSDK_THROW(std::logic_error("Unknown enum value"));
                     }
                 }  // if class matches
             }      // for (... classCache){
@@ -703,7 +703,7 @@ namespace
                 if (!TryJStringToStdString(env, jName, className))
                 {
                     rethrow(env);
-                    throw std::runtime_error("Unable to convert class name");
+                    MATSDK_THROW(std::runtime_error("Unable to convert class name"));
                 }
                 __android_log_print(ANDROID_LOG_ERROR,
                                     "MAE",
@@ -942,10 +942,11 @@ namespace
         }
         for (const auto& dataViewer : dataViewers)
         {
-            try
+            MATSDK_TRY
             {
                 manager->GetDataViewerCollection().UnregisterViewer(dataViewer.first.c_str());
             }
+#if HAVE_EXCEPTIONS
             catch (const std::exception& exception)
             {
 #ifdef HAVE_MAT_LOGGING
@@ -959,6 +960,7 @@ namespace
                 (void)exception;
 #endif
             }
+#endif
         }
     }
 }
@@ -1658,14 +1660,19 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return false;
     }
 
+#if HAVE_EXCEPTIONS
     bool collectionRegistered = false;
-    try
+#endif
+    MATSDK_TRY
     {
         manager->GetDataViewerCollection().RegisterViewer(proxy);
+#if HAVE_EXCEPTIONS
         collectionRegistered = true;
+#endif
         manager_and_config->javaDataViewers.emplace(proxy->GetName(), proxy);
         return true;
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception& exception)
     {
         if (collectionRegistered)
@@ -1701,6 +1708,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #endif
         return false;
     }
+#endif
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
@@ -1737,11 +1745,12 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         manager_and_config->javaDataViewers.erase(viewer);
     }
 
-    try
+    MATSDK_TRY
     {
         manager->GetDataViewerCollection().UnregisterViewer(name.c_str());
         return true;
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception& exception)
     {
 #ifdef HAVE_MAT_LOGGING
@@ -1756,6 +1765,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
 #endif
         return false;
     }
+#endif
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -1877,7 +1887,7 @@ namespace
                 env->DeleteGlobalRef(eventClass);
                 eventClass = nullptr;
                 rethrow(env);
-                throw std::runtime_error("Unable to retain debug event listener");
+                MATSDK_THROW(std::runtime_error("Unable to retain debug event listener"));
             }
 
             env->DeleteLocalRef(localListenerClass);
@@ -2066,7 +2076,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         return -1;
     }
 
-    try
+    MATSDK_TRY
     {
         EnsurePendingReleaseCallbackRegistered();
 
@@ -2130,10 +2140,11 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
             }
         }
 
-        try
+        MATSDK_TRY
         {
             logManager->AddEventListener(eventType, *callback);
         }
+#if HAVE_EXCEPTIONS
         catch (...)
         {
             std::lock_guard<std::mutex> lock(listeners_mutex);
@@ -2158,6 +2169,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
             }
             throw;
         }
+#endif
 
         bool removeCancelledRegistration = false;
         {
@@ -2201,6 +2213,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         std::lock_guard<std::mutex> lock(listeners_mutex);
         return callback->HasLiveRegistrations() ? identity : -1;
     }
+#if HAVE_EXCEPTIONS
     catch (const std::exception& e)
     {
         if (!env->ExceptionCheck())
@@ -2214,6 +2227,7 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
         }
         return -1;
     }
+#endif
 }
 
 extern "C"

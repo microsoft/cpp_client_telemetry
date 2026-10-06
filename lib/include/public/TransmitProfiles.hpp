@@ -192,13 +192,19 @@ namespace MAT_NS_BEGIN
 
         /// <summary>
         /// Parses transmit profiles from JSON.
+        /// Schema errors stop parsing at the first invalid profile. The valid
+        /// prefix replaces existing custom profiles; defaults remain available.
+        /// Entries after the first invalid profile are not loaded.
         /// </summary>
         /// <param name="profiles_json">A string that contains the the transmit profiles in JSON.</param>
-        /// <returns>The size (in bytes) of the resulting TransmitProfiles object.</returns>
+        /// <returns>The number of profiles loaded, including a valid partial prefix.</returns>
         static size_t parse(const std::string& profiles_json);
 
         /// <summary>
         /// Loads customer-supplied transmit profiles.
+        /// Returns true when at least one profile is loaded, even if a later
+        /// profile has a schema error. This is not an atomic validation API.
+        /// Use the vector overload to validate all profiles before replacement.
         /// </summary>
         /// <param name="profiles_json">A string that contains the the transmit profiles in JSON.</param>
         /// <returns>A boolean value that indicates success (true) or failure (false) if at least one transmit profile parses correctly.</returns>
@@ -276,4 +282,3 @@ namespace MAT_NS_BEGIN
 
 /// @endcond
 #endif
-

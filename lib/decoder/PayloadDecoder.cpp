@@ -34,6 +34,8 @@ MAT_NS_END
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <limits>
+#include <new>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -442,7 +444,9 @@ namespace clienttelemetry {
             /// <param name="destLen"></param>
             /// <param name="sizeAtZeroIndex"></param>
             /// <returns></returns>
-            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex)
+            // Successful custom allocations must be compatible with delete[].
+            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex,
+                        char* (*allocate)(size_t))
             {
                 if (!(source) || !(sourceLen))
                 {
@@ -467,34 +471,36 @@ namespace clienttelemetry {
                     destLen = s32;
                 }
 
+                if (destLen > static_cast<size_t>(std::numeric_limits<ptrdiff_t>::max()))
+                {
+                    TEST_LOG_ERROR("Decompression size is not representable: destLen=%zu", destLen);
+                    destLen = 0;
+                    return false;
+                }
+
                 // Allocate memory for the new uncompressed buffer
                 if (destLen > 0)
                 {
-                    try
-                    {
-                        char* decompBody = new char[destLen];
-                        if (source != NULL)
-                        {
-                            // Inflate
-                            uLongf len = (uLongf)destLen;
-                            int res = uncompress((Bytef *)decompBody, &len, (const Bytef *)(source + reserved), (uLong)(sourceLen - reserved));
-                            if ((res != Z_OK) || (len != destLen))
-                            {
-                                TEST_LOG_ERROR("Decompression failed, error=%d, len=%u, destLen=%u", res, static_cast<unsigned int>(len), static_cast<unsigned int>(destLen));
-                                delete[] decompBody;
-                                return false;
-                            }
-                            *dest = decompBody;
-                            destLen = len;
-                            return true;
-                        }
-                    }
-                    catch (std::bad_alloc&)
+                    char* decompBody = allocate(destLen);
+                    if (decompBody == nullptr)
                     {
                         TEST_LOG_ERROR("Decompression failed (out of memory): destLen=%zu", destLen);
-                        dest = NULL;
                         destLen = 0;
+                        return false;
                     }
+
+                    // Inflate
+                    uLongf len = (uLongf)destLen;
+                    int res = uncompress((Bytef *)decompBody, &len, (const Bytef *)(source + reserved), (uLong)(sourceLen - reserved));
+                    if ((res != Z_OK) || (len != destLen))
+                    {
+                        TEST_LOG_ERROR("Decompression failed, error=%d, len=%u, destLen=%u", res, static_cast<unsigned int>(len), static_cast<unsigned int>(destLen));
+                        delete[] decompBody;
+                        return false;
+                    }
+                    *dest = decompBody;
+                    destLen = len;
+                    return true;
                 }
 
                 // OOM
@@ -502,6 +508,11 @@ namespace clienttelemetry {
                 return false;
             }
 
+            bool Expand(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool sizeAtZeroIndex)
+            {
+                return Expand(source, sourceLen, dest, destLen, sizeAtZeroIndex,
+                              [](size_t size) { return new (std::nothrow) char[size]; });
+            }
 
             bool ExpandVector(std::vector<uint8_t>& in, std::vector<uint8_t>& out)
             {

@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <random>
-#include <stdexcept>
+#include <cstdint>
 #include <limits>
 
 using std::string;
@@ -275,41 +275,27 @@ namespace MAT_NS_BEGIN
         else
         {
             size_t lastDot = cv.find_last_of(".");
-            bool parsingFailed = false;
             string vectorString = cv.substr(lastDot + 1, string::npos);
-            // note: unsigned long is 32-bit on 32-bit arm devices
-            unsigned long currentVector = 0;
-            
-            try
+            if (vectorString.empty() ||
+                vectorString.length() > s_maxVectorElementValue.length() ||
+                (vectorString.length() == s_maxVectorElementValue.length() && vectorString > s_maxVectorElementValue))
             {
-                // do a manual string comparison before trying to parse the value to avoid throwing an exception
-                if (vectorString.length() == 0 ||
-                    vectorString.length() > s_maxVectorElementValue.length() ||
-                    (vectorString.length() == s_maxVectorElementValue.length() && vectorString > s_maxVectorElementValue))
-                {
-                    parsingFailed = true;
-                }
-                else
-                {
-                    currentVector = std::stoul(vectorString);
-                }
+                return false;
             }
-            catch (std::invalid_argument&)
+
+            // Digits and the 32-bit upper bound have already been validated.
+            uint64_t currentVector = 0;
+            for (char digit : vectorString)
             {
-                parsingFailed = true;
+                currentVector = currentVector * 10 + static_cast<unsigned int>(digit - '0');
             }
-            catch (std::out_of_range&)
-            {
-                parsingFailed = true;
-            }
-            
-            if (parsingFailed || currentVector > std::numeric_limits<unsigned int>::max())
+            if (currentVector > std::numeric_limits<unsigned int>::max())
             {
                 return false;
             }
             
             m_baseVector = cv.substr(0, lastDot);
-            m_currentVector = currentVector;
+            m_currentVector = static_cast<unsigned int>(currentVector);
         }
         
         m_maxLength = maxLength;
@@ -319,4 +305,3 @@ namespace MAT_NS_BEGIN
     }
 
 } MAT_NS_END
-

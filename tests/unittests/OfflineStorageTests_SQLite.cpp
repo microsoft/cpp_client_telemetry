@@ -533,7 +533,13 @@ TEST_F(OfflineStorageTests_SQLite, DeleteRecordsInvalidNumericFilterDeletesNothi
     // be rejected as an invalid filter, not coerced to 0 and used to match rows.
     // Both stored records have retry_count = 0, so a coerced "0" would wrongly
     // delete them; fail-closed behavior leaves both intact.
-    offlineStorage->DeleteRecords({{"retry_count", "0 OR 1=1"}});
+    for (const std::string& invalid : {
+        std::string("0 OR 1=1"), std::string("9223372036854775808"),
+        std::string("-9223372036854775809"), std::string(" "),
+        std::string(""), std::string("0\0trailing", 10)})
+    {
+        offlineStorage->DeleteRecords({{"retry_count", invalid}});
+    }
 
     TestRecordConsumer consumer;
     EXPECT_THAT(offlineStorage->GetAndReserveRecords(consumer, 100000), true);
@@ -1127,6 +1133,40 @@ TEST_F(OfflineStorageTests_SQLite, ResizeDbCompactsThePhysicalDatabase)
 
     ASSERT_THAT(offlineStorage->StoreRecords(records), records.size());
     EXPECT_LE(offlineStorage->GetSize(), maximumSize);
+}
+
+TEST_F(OfflineStorageTests_SQLite, StorageLimitIncludesLargePageOverhead)
+{
+    sqlite3* db = nullptr;
+    ASSERT_EQ(sqlite3_open(storageFilename.c_str(), &db), SQLITE_OK);
+    const int result = sqlite3_exec(db, "PRAGMA page_size=65536; PRAGMA auto_vacuum=FULL; VACUUM;", nullptr, nullptr, nullptr);
+    const int closeResult = sqlite3_close(db);
+    ASSERT_EQ(result, SQLITE_OK);
+    ASSERT_EQ(closeResult, SQLITE_OK);
+
+    constexpr size_t maximumSize = 1024 * 1024 - 1;
+    EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes())
+        .WillRepeatedly(Return(maximumSize));
+    configMock[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = true;
+    configMock[CFG_INT_STORAGE_FULL_PCT] = 75;
+    configMock[CFG_INT_STORAGE_FULL_CHECK_TIME] = 5000;
+    initializeStorage(false);
+
+    const size_t initialSize = offlineStorage->GetSize();
+    ASSERT_LT(initialSize, maximumSize);
+    for (int i = 0; i < 5; ++i)
+    {
+        const std::string id = "record-" + std::to_string(i);
+        const std::string token = "token";
+        ASSERT_TRUE(offlineStorage->StoreRecord({
+            id,
+            token,
+            EventLatency_Normal,
+            EventPersistence_Normal,
+            i + 1,
+            StorageBlob(maximumSize - initialSize - id.size() - token.size()) }));
+        ASSERT_LE(offlineStorage->GetSize(), maximumSize) << "record " << i;
+    }
 }
 
 TEST_F(OfflineStorageTests_SQLite, TrimmingAlwaysDropsAtLeastOneEvent)

@@ -82,7 +82,7 @@ jobs:
     - name: Build and run
       run: |
         cmake --build build-embedding --target embedding_test --parallel 4
-        ./build-embedding/embedding_test
+        ctest --test-dir build-embedding --output-on-failure
 
   windows:
     runs-on: windows-2022
@@ -98,7 +98,7 @@ jobs:
       shell: pwsh
       run: |
         cmake --build build-embedding --config Release --target embedding_test -- /m
-        & .\build-embedding\Release\embedding_test.exe
+        ctest --test-dir build-embedding -C Release --output-on-failure
 
   installed-package-linux:
     runs-on: ubuntu-latest
@@ -146,7 +146,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_PREFIX_PATH="${RUNNER_TEMP}/matsdk"
         cmake --build build-consumer --parallel 4
-        ./build-consumer/vcpkg_test
+        ctest --test-dir build-consumer --output-on-failure
 
   installed-package-macos:
     runs-on: macos-latest
@@ -171,7 +171,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_PREFIX_PATH="${RUNNER_TEMP}/matsdk"
         cmake --build build-consumer --parallel 4
-        ./build-consumer/vcpkg_test
+        ctest --test-dir build-consumer --output-on-failure
 
   macos:
     runs-on: macos-latest

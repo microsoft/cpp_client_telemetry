@@ -31,6 +31,7 @@ set(SRCS
   InformationProviderImplTests.cpp
   KillSwitchManagerTests.cpp
   LoggerTests.cpp
+  LogConfigurationTests.cpp
   LogManagerImplTests.cpp
   LogSessionDataTests.cpp
   LogSessionDataDBTests.cpp
@@ -68,6 +69,11 @@ endif()
 # The AIJsonSerializer test sources are guarded by HAVE_MAT_AI.
 if (EXISTS "${PROJECT_SOURCE_DIR}/lib/modules/azmon/AIJsonSerializer.hpp")
   list(APPEND MATSDK_UNIT_TEST_DEFINITIONS HAVE_MAT_AI)
+  if(MATSDK_BUILD_AZMON AND EXISTS
+      "${PROJECT_SOURCE_DIR}/lib/modules/azmon/tests/AIHttpPartialResponseHandlerTests.cpp")
+    list(APPEND SRCS
+      "${PROJECT_SOURCE_DIR}/lib/modules/azmon/tests/AIHttpPartialResponseHandlerTests.cpp")
+  endif()
 endif()
 
 if (APPLE)
@@ -145,4 +151,6 @@ if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(UnitTests PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
-add_test(UnitTests UnitTests "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/UnitTests.xml")
+add_test(NAME UnitTests COMMAND UnitTests
+  "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/UnitTests.xml")
+set_tests_properties(UnitTests PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")

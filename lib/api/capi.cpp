@@ -144,12 +144,15 @@ static evt_status_t mat_open_core(
     // Create custom HttpClient
     if (httpSendFn != nullptr && httpCancelFn != nullptr)
     {
+#if HAVE_EXCEPTIONS
         try
+#endif
         {
             auto http = std::make_shared<HttpClient_CAPI>(httpSendFn, httpCancelFn);
             clients[code].http = http;
             clients[code].config.AddModule(CFG_MODULE_HTTP_CLIENT, http);
         }
+#if HAVE_EXCEPTIONS
         catch (...)
         {
             // Roll back the partially-populated client so a later open with the
@@ -159,17 +162,21 @@ static evt_status_t mat_open_core(
             ctx->handle = 0;
             return EFAULT;
         }
+#endif
     }
 #endif
     // Create custom worker thread
     if (taskDispatcherQueueFn != nullptr && taskDispatcherCancelFn != nullptr && taskDispatcherJoinFn != nullptr)
     {
+#if HAVE_EXCEPTIONS
         try
+#endif
         {
             auto taskDispatcher = std::make_shared<PAL::TaskDispatcher_CAPI>(taskDispatcherQueueFn, taskDispatcherCancelFn, taskDispatcherJoinFn);
             clients[code].taskDispatcher = taskDispatcher;
             clients[code].config.AddModule(CFG_MODULE_TASK_DISPATCHER, taskDispatcher);
         }
+#if HAVE_EXCEPTIONS
         catch (...)
         {
             // Roll back the partially-populated client so a later open with the
@@ -179,6 +186,7 @@ static evt_status_t mat_open_core(
             ctx->handle = 0;
             return EFAULT;
         }
+#endif
     }
 
     status_t status = static_cast<status_t>(EFAULT);

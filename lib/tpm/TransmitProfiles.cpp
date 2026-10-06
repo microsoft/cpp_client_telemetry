@@ -14,6 +14,10 @@
 
 #include <mutex>
 #include <set>
+#include <cmath>
+#include <cstdint>
+#include <limits>
+#include <utility>
 
 using namespace MAT;
 using namespace std;
@@ -191,12 +195,118 @@ namespace MAT_NS_BEGIN {
         std::vector<TransmitProfileRules> newProfiles;
 
         using nlohmann::json;
-        try
+        const auto parseProfile = [](const json& input, TransmitProfileRules& profile)
         {
-            json temp = json::parse(profiles_json.c_str());
+            if (!input.is_object())
+            {
+                return false;
+            }
+            const auto name = input.find(attributeName);
+            if (name == input.end() || !name->is_string())
+            {
+                return false;
+            }
+            profile.name = name->get<std::string>();
+            const auto rules = input.find(attributeRules);
+            if (rules == input.end())
+            {
+                return true;
+            }
+            if (!rules->is_array())
+            {
+                return false;
+            }
+            for (const auto& inputRule : *rules)
+            {
+                if (!inputRule.is_object())
+                {
+                    return false;
+                }
+                TransmitProfileRule rule;
+                const auto netCost = inputRule.find("netCost");
+                if (netCost != inputRule.end())
+                {
+                    if (!netCost->is_string())
+                    {
+                        return false;
+                    }
+                    const auto value = transmitProfileNetCost.find(netCost->get<std::string>());
+                    if (value != transmitProfileNetCost.end())
+                    {
+                        rule.netCost = static_cast<NetworkCost>(value->second);
+                    }
+                }
+                const auto powerState = inputRule.find("powerState");
+                if (powerState != inputRule.end())
+                {
+                    if (!powerState->is_string())
+                    {
+                        return false;
+                    }
+                    const auto value = transmitProfilePowerState.find(powerState->get<std::string>());
+                    if (value != transmitProfilePowerState.end())
+                    {
+                        rule.powerState = static_cast<PowerSource>(value->second);
+                    }
+                }
+                const auto timers = inputRule.find("timers");
+                if (timers != inputRule.end())
+                {
+                    if (!timers->is_array())
+                    {
+                        return false;
+                    }
+                    for (const auto& timer : *timers)
+                    {
+                        int value = 0;
+                        if (timer.is_number_unsigned())
+                        {
+                            const auto number = timer.get<uint64_t>();
+                            if (number > static_cast<uint64_t>(std::numeric_limits<int>::max()))
+                            {
+                                return false;
+                            }
+                            value = static_cast<int>(number);
+                        }
+                        else if (timer.is_number_integer())
+                        {
+                            const auto number = timer.get<int64_t>();
+                            if (number < std::numeric_limits<int>::min() || number > std::numeric_limits<int>::max())
+                            {
+                                return false;
+                            }
+                            value = static_cast<int>(number);
+                        }
+                        else if (timer.is_number_float())
+                        {
+                            const auto number = timer.get<double>();
+                            if (!std::isfinite(number) ||
+                                number < std::numeric_limits<int>::min() || number > std::numeric_limits<int>::max())
+                            {
+                                return false;
+                            }
+                            value = static_cast<int>(number);
+                        }
+                        else
+                        {
+                            LOG_WARN("Ignoring non-numeric transmit timer");
+                            continue;
+                        }
+                        rule.timers.push_back(value);
+                    }
+                }
+                profile.rules.push_back(std::move(rule));
+            }
+            return true;
+        };
+#if HAVE_EXCEPTIONS
+        try
+#endif
+        {
+            json temp = json::parse(profiles_json, nullptr, false);
 
             // Try to parse the JSON string into result variant
-            if (temp.is_array())
+            if (!temp.is_discarded() && temp.is_array())
             {
                 size_t numProfiles = temp.size();
                 if (numProfiles > MAX_TRANSMIT_PROFILES) {
@@ -204,78 +314,33 @@ namespace MAT_NS_BEGIN {
 
                 }
                 LOG_TRACE("got %u profiles", numProfiles);
-                for (auto it = temp.begin(); it != temp.end(); ++it)
+                for (const auto& input : temp)
                 {
                     TransmitProfileRules profile;
-                    json rulesObj = it.value();
-                    if (rulesObj.is_object())
+                    if (input.is_object())
                     {
-                        std::string name = rulesObj[attributeName];
-
-                        profile.name = name;
-                        json rules = rulesObj[attributeRules];
-
-                        if (rules.is_array())
+                        const auto rules = input.find(attributeRules);
+                        if (rules != input.end() && rules->is_array() && rules->size() > MAX_TRANSMIT_RULES)
                         {
-                            size_t numRules = rules.size();
-                            if (numRules > MAX_TRANSMIT_RULES)
-                            {
-                                LOG_ERROR("Exceeded max transmit rules %d>%d for profile",
-                                    numRules, MAX_TRANSMIT_RULES);
-                                goto parsing_failed;
-                            }
-
-                            profile.rules.clear();
-                            for (auto itRule = rules.begin(); itRule != rules.end(); ++itRule)
-                            {
-                                if (itRule.value().is_object())
-                                {
-                                    TransmitProfileRule rule;
-                                    auto itnetCost = itRule.value().find("netCost");
-                                    if (itRule.value().end() != itnetCost)
-                                    {
-                                        std::string netCost = itRule.value()["netCost"];
-                                        std::map<std::string, int>::const_iterator iter = transmitProfileNetCost.find(netCost);
-                                        if (iter != transmitProfileNetCost.end())
-                                        {
-                                            rule.netCost = static_cast<NetworkCost>(iter->second);
-                                        }
-                                    }
-
-                                    auto itpowerState = itRule.value().find("powerState");
-                                    if (itRule.value().end() != itpowerState)
-                                    {
-                                        std::string powerState = itRule.value()["powerState"];
-                                        std::map<std::string, int>::const_iterator iter = transmitProfilePowerState.find(powerState);
-                                        if (iter != transmitProfilePowerState.end())
-                                        {
-                                            rule.powerState = static_cast<PowerSource>(iter->second);
-                                        }
-                                    }
-
-                                    auto timers = itRule.value()["timers"];
-
-                                    for (const auto& timer : timers)
-                                    {
-                                        if (timer.is_number())
-                                        {
-                                            rule.timers.push_back(timer);
-                                        }
-                                    }
-                                    profile.rules.push_back(rule);
-                                }
-
-                            }
+                            LOG_ERROR("Exceeded max transmit rules %d>%d for profile", rules->size(), MAX_TRANSMIT_RULES);
+                            goto parsing_failed;
                         }
                     }
-                    newProfiles.push_back(profile);
+                    if (!parseProfile(input, profile))
+                    {
+                        LOG_ERROR("Invalid transmit profile schema");
+                        break;
+                    }
+                    newProfiles.push_back(std::move(profile));
                 }
             }
         }
+#if HAVE_EXCEPTIONS
         catch (...)
         {
             LOG_ERROR("JSON parsing failed miserably! Please check your config to fix above errors.");
         }
+#endif
 
         numProfilesParsed = newProfiles.size();
         UpdateProfiles(newProfiles);

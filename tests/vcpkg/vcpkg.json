@@ -12,6 +12,19 @@
     "sdk-defaults"
   ],
   "features": {
+    "android-capi-http-client": {
+      "description": "Exercise custom Android C API HTTP callbacks.",
+      "supports": "android",
+      "dependencies": [
+        {
+          "name": "cpp-client-telemetry",
+          "default-features": false,
+          "features": [
+            "android-capi-http-client"
+          ]
+        }
+      ]
+    },
     "android-curl-mbedtls": {
       "description": "Exercise the native Android curl transport with mbedTLS.",
       "supports": "android",
@@ -51,6 +64,30 @@
         }
       ]
     },
+    "no-exceptions": {
+      "description": "Exercise an exception-free SDK with an exception-enabled consumer.",
+      "dependencies": [
+        {
+          "name": "cpp-client-telemetry",
+          "default-features": false,
+          "features": [
+            "no-exceptions"
+          ]
+        }
+      ]
+    },
+    "no-logging": {
+      "description": "Exercise the SDK with internal diagnostics compiled out.",
+      "dependencies": [
+        {
+          "name": "cpp-client-telemetry",
+          "default-features": false,
+          "features": [
+            "no-logging"
+          ]
+        }
+      ]
+    },
     "sdk-defaults": {
       "description": "Exercise the default SDK dependency graph.",
       "dependencies": [
@@ -63,6 +100,7 @@
       "dependencies": [
         {
           "name": "cpp-client-telemetry",
+          "default-features": false,
           "features": [
             "wininet"
           ]

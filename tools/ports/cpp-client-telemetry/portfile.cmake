@@ -32,6 +32,12 @@ if(NOT DEFINED SOURCE_PATH)
     )
 endif()
 
+file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_OPTION_SOURCE)
+if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
+  file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake" MATSDK_OPTIONS_CMAKE)
+  string(APPEND MATSDK_OPTION_SOURCE "\n${MATSDK_OPTIONS_CMAKE}")
+endif()
+
 # Determine if Apple HTTP should be used (no curl needed).
 # Note: MATSDK_BUILD_APPLE_HTTP must remain ON for macOS/iOS because the vcpkg.json
 # curl dependency is excluded on these platforms.
@@ -48,15 +54,7 @@ endif()
 
 set(MATSDK_ANDROID_HTTP_CLIENT AUTO)
 if(VCPKG_TARGET_IS_ANDROID)
-  file(READ "${SOURCE_PATH}/CMakeLists.txt" _matsdk_root_cmake)
-  set(_matsdk_android_option_source "${_matsdk_root_cmake}")
-  if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
-    file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake"
-      _matsdk_options_cmake)
-    string(APPEND _matsdk_android_option_source
-      "\n${_matsdk_options_cmake}")
-  endif()
-  if(NOT _matsdk_android_option_source MATCHES "MATSDK_ANDROID_HTTP_CLIENT")
+  if(NOT MATSDK_OPTION_SOURCE MATCHES "MATSDK_ANDROID_HTTP_CLIENT")
     message(FATAL_ERROR
       "Android vcpkg builds require a cpp-client-telemetry source revision that "
       "supports MATSDK_ANDROID_HTTP_CLIENT. Update this port's REF/SHA512 to a "
@@ -115,6 +113,10 @@ endif()
 
 set(MATSDK_VCPKG_SQLITE_PROVIDER SYSTEM)
 if("minimal-sqlite" IN_LIST FEATURES)
+  if(NOT MATSDK_OPTION_SOURCE MATCHES "MATSDK_SQLITE_PROVIDER")
+    message(FATAL_ERROR
+      "The minimal-sqlite feature requires an SDK revision supporting MATSDK_SQLITE_PROVIDER.")
+  endif()
   set(MATSDK_VCPKG_SQLITE_PROVIDER MINIMAL)
 endif()
 
@@ -124,12 +126,6 @@ else()
   set(MATSDK_VCPKG_BUILD_SHARED_LIBS OFF)
 endif()
 
-file(READ "${SOURCE_PATH}/CMakeLists.txt" MATSDK_ROOT_CMAKE)
-set(MATSDK_OPTION_SOURCE "${MATSDK_ROOT_CMAKE}")
-if(EXISTS "${SOURCE_PATH}/cmake/MatsdkOptions.cmake")
-  file(READ "${SOURCE_PATH}/cmake/MatsdkOptions.cmake" MATSDK_OPTIONS_CMAKE)
-  string(APPEND MATSDK_OPTION_SOURCE "\n${MATSDK_OPTIONS_CMAKE}")
-endif()
 if(VCPKG_TARGET_IS_WINDOWS
    AND NOT MATSDK_OPTION_SOURCE MATCHES "MATSDK_USE_WININET")
   message(FATAL_ERROR
@@ -138,13 +134,13 @@ if(VCPKG_TARGET_IS_WINDOWS
     "Update this port's REF/SHA512 to a newer SDK release, or set "
     "MATSDK_VCPKG_SOURCE_DIR to a local checkout containing that option.")
 endif()
-set(MATSDK_PINNED_SOURCE_OPTIONS)
+set(MATSDK_DEVICE_ID_OPTIONS)
 if(MATSDK_OPTION_SOURCE MATCHES "MATSDK_ENABLE_DEVICE_ID")
   set(MATSDK_ENABLE_DEVICE_ID OFF)
   if("device-id" IN_LIST FEATURES)
     set(MATSDK_ENABLE_DEVICE_ID ON)
   endif()
-  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS
+  list(APPEND MATSDK_DEVICE_ID_OPTIONS
     -DMATSDK_ENABLE_DEVICE_ID=${MATSDK_ENABLE_DEVICE_ID})
 elseif(NOT "device-id" IN_LIST FEATURES)
   message(FATAL_ERROR
@@ -153,50 +149,63 @@ elseif(NOT "device-id" IN_LIST FEATURES)
     "REF/SHA512 to a newer SDK release, or set MATSDK_VCPKG_SOURCE_DIR "
     "to a local checkout containing that option.")
 endif()
-if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_USE_VCPKG_DEPS")
-  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_USE_VCPKG_DEPS=ON)
-endif()
-if(MATSDK_ROOT_CMAKE MATCHES "MATSDK_MINIMAL_SQLITE"
-   AND "minimal-sqlite" IN_LIST FEATURES)
-  list(APPEND MATSDK_PINNED_SOURCE_OPTIONS -DMATSDK_MINIMAL_SQLITE=ON)
-endif()
 
 set(MATSDK_USE_WININET OFF)
 if("wininet" IN_LIST FEATURES)
   set(MATSDK_USE_WININET ON)
 endif()
 
+set(MATSDK_NATIVE_FEATURE_OPTIONS)
+foreach(_matsdk_feature_option IN ITEMS
+    "no-exceptions|MATSDK_DISABLE_EXCEPTIONS"
+    "no-logging|MATSDK_DISABLE_LOGGING"
+    "android-capi-http-client|MATSDK_ENABLE_CAPI_HTTP_CLIENT")
+  string(REPLACE "|" ";" _matsdk_feature_option "${_matsdk_feature_option}")
+  list(GET _matsdk_feature_option 0 _matsdk_feature)
+  list(GET _matsdk_feature_option 1 _matsdk_option)
+  set(_matsdk_enabled OFF)
+  if(_matsdk_feature IN_LIST FEATURES)
+    if(NOT MATSDK_OPTION_SOURCE MATCHES "${_matsdk_option}")
+      message(FATAL_ERROR
+        "The ${_matsdk_feature} feature requires an SDK revision supporting ${_matsdk_option}.")
+    endif()
+    set(_matsdk_enabled ON)
+  endif()
+  list(APPEND MATSDK_NATIVE_FEATURE_OPTIONS "-D${_matsdk_option}=${_matsdk_enabled}")
+endforeach()
+
+set(MATSDK_BUILD_OPTIONS
+  -DMATSDK_BUILD_HEADERS=ON
+  -DMATSDK_BUILD_LIBRARY=ON
+  -DMATSDK_BUILD_TEST_TOOL=OFF
+  -DMATSDK_BUILD_UNIT_TESTS=OFF
+  -DMATSDK_BUILD_FUNC_TESTS=OFF
+  -DMATSDK_BUILD_JNI_WRAPPER=OFF
+  -DMATSDK_BUILD_OBJC_WRAPPER=OFF
+  -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
+  -DMATSDK_BUILD_PACKAGE=OFF
+  -DMATSDK_BUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP})
+set(MATSDK_LEGACY_BUILD_OPTIONS)
+foreach(_matsdk_build_option IN LISTS MATSDK_BUILD_OPTIONS)
+  string(REGEX REPLACE "^-D([^=]+)=.*$" "\\1" _matsdk_option_name "${_matsdk_build_option}")
+  if(NOT MATSDK_OPTION_SOURCE MATCHES "${_matsdk_option_name}")
+    string(REPLACE "-DMATSDK_BUILD_" "-DBUILD_" _matsdk_legacy_option "${_matsdk_build_option}")
+    list(APPEND MATSDK_LEGACY_BUILD_OPTIONS "${_matsdk_legacy_option}")
+  endif()
+endforeach()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        ${MATSDK_PINNED_SOURCE_OPTIONS}
+        ${MATSDK_DEVICE_ID_OPTIONS}
+        ${MATSDK_NATIVE_FEATURE_OPTIONS}
+        ${MATSDK_BUILD_OPTIONS}
+        ${MATSDK_LEGACY_BUILD_OPTIONS}
         -DMATSDK_SQLITE_PROVIDER=${MATSDK_VCPKG_SQLITE_PROVIDER}
         -DBUILD_SHARED_LIBS=${MATSDK_VCPKG_BUILD_SHARED_LIBS}
         -DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}
         -DMATSDK_USE_WININET=${MATSDK_USE_WININET}
-        -DMATSDK_BUILD_HEADERS=ON
-        -DMATSDK_BUILD_LIBRARY=ON
-        -DMATSDK_BUILD_TEST_TOOL=OFF
-        -DMATSDK_BUILD_UNIT_TESTS=OFF
-        -DMATSDK_BUILD_FUNC_TESTS=OFF
-        -DMATSDK_BUILD_JNI_WRAPPER=OFF
-        -DMATSDK_BUILD_OBJC_WRAPPER=OFF
-        -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
-        -DMATSDK_BUILD_PACKAGE=OFF
         -DBUILD_VERSION=${VERSION}
-        -DMATSDK_BUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
-        # Legacy aliases keep the pinned release fallback buildable until the
-        # next release contains the canonical MATSDK_* options.
-        -DBUILD_HEADERS=ON
-        -DBUILD_LIBRARY=ON
-        -DBUILD_TEST_TOOL=OFF
-        -DBUILD_UNIT_TESTS=OFF
-        -DBUILD_FUNC_TESTS=OFF
-        -DBUILD_JNI_WRAPPER=OFF
-        -DBUILD_OBJC_WRAPPER=OFF
-        -DBUILD_SWIFT_WRAPPER=OFF
-        -DBUILD_PACKAGE=OFF
-        -DBUILD_APPLE_HTTP=${MATSDK_BUILD_APPLE_HTTP}
         ${MATSDK_APPLE_DEPLOYMENT_OPTIONS}
 )
 
