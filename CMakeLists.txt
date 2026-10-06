@@ -95,6 +95,22 @@ else()
   endif()
 endif()
 
+if(MATSDK_DISABLE_EXCEPTIONS)
+  if(MSVC)
+    target_compile_options(matsdk_build_options INTERFACE
+      $<$<COMPILE_LANGUAGE:CXX>:/EHs-c->
+      $<$<COMPILE_LANG_AND_ID:CXX,Clang>:/clang:-fno-exceptions>)
+    target_compile_definitions(matsdk_build_options INTERFACE
+      $<$<COMPILE_LANGUAGE:CXX>:_HAS_EXCEPTIONS=0>)
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+    target_compile_options(matsdk_build_options INTERFACE
+      $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fno-exceptions>)
+  else()
+    message(FATAL_ERROR
+      "MATSDK_DISABLE_EXCEPTIONS is unsupported with ${CMAKE_CXX_COMPILER_ID}.")
+  endif()
+endif()
+
 include(tools/Utils.cmake)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

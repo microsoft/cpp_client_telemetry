@@ -124,7 +124,7 @@ jobs:
       run: >-
         cmake -S tests/no-exceptions -B out-no-exceptions
         -DCMAKE_BUILD_TYPE=Debug
-        -DCMAKE_CXX_FLAGS=-fno-exceptions
+        -DMATSDK_DISABLE_EXCEPTIONS=ON
         -DMATSDK_BUILD_SWIFT_WRAPPER=OFF
         -DMATSDK_BUILD_UNIT_TESTS=OFF
         -DMATSDK_BUILD_FUNC_TESTS=OFF

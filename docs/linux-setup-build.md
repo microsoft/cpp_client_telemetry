@@ -80,12 +80,13 @@ network discovery.
 
 ### Building without C++ exceptions
 
-GCC and Clang can compile the complete SDK with `-fno-exceptions`:
+Set `MATSDK_DISABLE_EXCEPTIONS=ON` to compile SDK-owned C++ targets without
+exceptions using GCC, Clang, Apple Clang, MSVC, or clang-cl:
 
 ```console
 cmake -S . -B out-no-exceptions \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_CXX_FLAGS=-fno-exceptions \
+  -DMATSDK_DISABLE_EXCEPTIONS=ON \
   -DMATSDK_BUILD_UNIT_TESTS=OFF \
   -DMATSDK_BUILD_FUNC_TESTS=OFF \
   -DMATSDK_BUILD_TEST_TOOL=OFF
@@ -103,7 +104,7 @@ Disabling exceptions does not make every standard-library allocation
 recoverable; operations without an explicit non-throwing failure path can
 still terminate on allocation failure.
 
-The same flag applies to Android NDK and Apple Clang builds, including the
+The same option applies to Android NDK and Apple Clang builds, including the
 JNI and Objective-C wrappers. For Android, also pass
 `-DMATSDK_BUILD_JNI_WRAPPER=ON`; both SQLite and
 `-DMATSDK_ANDROID_USE_ROOM=ON` storage builds are covered. For Apple builds,
@@ -113,9 +114,10 @@ With the Xcode generator, also set
 Objective-C exception handling can remain enabled independently; the SDK detects
 C++ exception support separately, including in Objective-C++ translation units.
 
-For native Windows MSVC builds, configure a fresh directory with
-`"-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHs-c- /D_HAS_EXCEPTIONS=0"`.
-For clang-cl, append `/clang:-fno-exceptions` to those flags. CI covers both
+The option selects `/EHs-c-` and `_HAS_EXCEPTIONS=0` for MSVC, and additionally
+`/clang:-fno-exceptions` for clang-cl. It does not change compiler flags on
+consumer or dependency targets. Explicit compiler flags remain supported.
+CI covers both
 WinHTTP and WinInet transports, macOS, iOS device/simulator, and all four
 Android ABIs with both storage backends. Managed C++/CLI and C++/CX wrappers
 require their platform exception machinery and are not exception-free native

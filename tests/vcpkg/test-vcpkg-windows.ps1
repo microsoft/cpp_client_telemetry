@@ -5,7 +5,9 @@
 param(
     [string]$VcpkgRoot = "",
     [string]$Triplet = "",
-    [switch]$WinInet
+    [switch]$WinInet,
+    [ValidateSet("minimal-sqlite", "no-exceptions", "no-logging")]
+    [string[]]$Features = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -87,8 +89,15 @@ $CmakeArgs = @(
     "-DVCPKG_OVERLAY_PORTS=$OverlayPorts",
     "-DCMAKE_BUILD_TYPE=Release"
 )
+$ManifestFeatures = @($Features)
 if ($WinInet) {
-    $CmakeArgs += "-DVCPKG_MANIFEST_FEATURES=wininet"
+    $ManifestFeatures += "wininet"
+}
+if ($ManifestFeatures.Count -gt 0) {
+    $CmakeArgs += "-DVCPKG_MANIFEST_FEATURES=$($ManifestFeatures -join ';')"
+}
+if ("minimal-sqlite" -in $ManifestFeatures) {
+    $CmakeArgs += "-DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON"
 }
 
 # Detect whether cl.exe is on PATH (i.e., running from VS Developer Command Prompt)

@@ -557,7 +557,7 @@ namespace MAT_NS_BEGIN {
         }
 
         bool lock() {
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(MATSDK_DISABLE_LOGGING)
             unsigned count = 0;
 #endif
             unsigned waitTime = 0;
@@ -571,7 +571,7 @@ namespace MAT_NS_BEGIN {
                     return false;
                 }
                 waitTime += MAX_DB_LOCKWAIT_DELAY;  // 500ms, 1000ms
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(MATSDK_DISABLE_LOGGING)
                 count++;
                 LOG_DEBUG("Lock: waiting to acquire the lock: count=%u, waitTime=%u", count, waitTime);
 #endif

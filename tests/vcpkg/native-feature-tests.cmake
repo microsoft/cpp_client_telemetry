@@ -1,0 +1,137 @@
+cmake_minimum_required(VERSION 3.19)
+
+get_filename_component(REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+set(ENV{MATSDK_VCPKG_SOURCE_DIR} "${REPO_ROOT}")
+
+function(vcpkg_cmake_configure)
+  cmake_parse_arguments(CONFIG "" "SOURCE_PATH" "OPTIONS" ${ARGN})
+  foreach(option IN LISTS EXPECTED_OPTIONS)
+    if(NOT "${option}" IN_LIST CONFIG_OPTIONS)
+      message(FATAL_ERROR "Missing ${option}: ${CONFIG_OPTIONS}")
+    endif()
+  endforeach()
+  set(CONFIGURED ON PARENT_SCOPE)
+endfunction()
+
+function(vcpkg_cmake_install)
+endfunction()
+function(vcpkg_cmake_config_fixup)
+endfunction()
+function(vcpkg_install_copyright)
+endfunction()
+
+function(check_feature_mapping platform linkage)
+  set(FEATURES ${ARGN})
+  set(CURRENT_PORT_DIR "${REPO_ROOT}/tools/ports/cpp-client-telemetry")
+  set(CURRENT_PACKAGES_DIR "${REPO_ROOT}/out/native-feature-tests")
+  set(VCPKG_LIBRARY_LINKAGE "${linkage}")
+  foreach(target LINUX WINDOWS OSX IOS ANDROID)
+    set(VCPKG_TARGET_IS_${target} OFF)
+  endforeach()
+  set(VCPKG_TARGET_IS_${platform} ON)
+  set(EXPECTED_OPTIONS
+    -DMATSDK_BUILD_HEADERS=ON -DMATSDK_BUILD_LIBRARY=ON
+    -DMATSDK_BUILD_TEST_TOOL=OFF -DMATSDK_BUILD_UNIT_TESTS=OFF
+    -DMATSDK_BUILD_FUNC_TESTS=OFF -DMATSDK_BUILD_PACKAGE=OFF
+    -DMATSDK_BUILD_JNI_WRAPPER=OFF -DMATSDK_BUILD_OBJC_WRAPPER=OFF
+    -DMATSDK_BUILD_SWIFT_WRAPPER=OFF)
+  foreach(pair IN ITEMS
+      "no-exceptions|MATSDK_DISABLE_EXCEPTIONS"
+      "no-logging|MATSDK_DISABLE_LOGGING"
+      "android-capi-http-client|MATSDK_ENABLE_CAPI_HTTP_CLIENT"
+      "device-id|MATSDK_ENABLE_DEVICE_ID"
+      "wininet|MATSDK_USE_WININET")
+    string(REPLACE "|" ";" pair "${pair}")
+    list(GET pair 0 feature)
+    list(GET pair 1 option)
+    set(enabled OFF)
+    if(feature IN_LIST FEATURES)
+      set(enabled ON)
+    endif()
+    list(APPEND EXPECTED_OPTIONS "-D${option}=${enabled}")
+  endforeach()
+  set(shared OFF)
+  if(linkage STREQUAL "dynamic")
+    set(shared ON)
+  endif()
+  list(APPEND EXPECTED_OPTIONS "-DBUILD_SHARED_LIBS=${shared}")
+  set(sqlite SYSTEM)
+  if("minimal-sqlite" IN_LIST FEATURES)
+    set(sqlite MINIMAL)
+  endif()
+  list(APPEND EXPECTED_OPTIONS "-DMATSDK_SQLITE_PROVIDER=${sqlite}")
+  set(apple_http OFF)
+  if(platform STREQUAL "OSX" OR platform STREQUAL "IOS")
+    set(apple_http ON)
+  endif()
+  list(APPEND EXPECTED_OPTIONS "-DMATSDK_BUILD_APPLE_HTTP=${apple_http}")
+  set(android_http AUTO)
+  if(platform STREQUAL "ANDROID"
+      AND ("android-curl-openssl" IN_LIST FEATURES OR "android-curl-mbedtls" IN_LIST FEATURES))
+    set(android_http CURL)
+  endif()
+  list(APPEND EXPECTED_OPTIONS "-DMATSDK_ANDROID_HTTP_CLIENT=${android_http}")
+  set(CONFIGURED OFF)
+  include("${CURRENT_PORT_DIR}/portfile.cmake")
+  if(NOT CONFIGURED)
+    message(FATAL_ERROR "The feature mapping did not configure the SDK.")
+  endif()
+endfunction()
+
+if(DEFINED UNSUPPORTED_FEATURE)
+  set(ENV{MATSDK_VCPKG_SOURCE_DIR} "${OLD_SOURCE}")
+  check_feature_mapping(ANDROID static device-id system-sqlite "${UNSUPPORTED_FEATURE}")
+  return()
+endif()
+
+file(READ "${REPO_ROOT}/tools/ports/cpp-client-telemetry/vcpkg.json" MANIFEST)
+foreach(feature no-exceptions no-logging android-capi-http-client)
+  string(JSON DESCRIPTION GET "${MANIFEST}" features "${feature}" description)
+endforeach()
+string(JSON CAPI_PLATFORMS GET "${MANIFEST}" features android-capi-http-client supports)
+if(NOT CAPI_PLATFORMS STREQUAL "android")
+  message(FATAL_ERROR "Custom Android C API HTTP callbacks must be Android-only.")
+endif()
+string(JSON DEFAULT_COUNT LENGTH "${MANIFEST}" default-features)
+math(EXPR DEFAULT_LAST "${DEFAULT_COUNT} - 1")
+set(DEFAULT_FEATURES)
+foreach(index RANGE ${DEFAULT_LAST})
+  string(JSON FEATURE GET "${MANIFEST}" default-features ${index})
+  if(FEATURE MATCHES "^(no-exceptions|no-logging|android-capi-http-client)$")
+    message(FATAL_ERROR "${FEATURE} must remain opt-in.")
+  endif()
+  list(APPEND DEFAULT_FEATURES "${FEATURE}")
+endforeach()
+check_feature_mapping(LINUX static ${DEFAULT_FEATURES})
+
+foreach(platform LINUX WINDOWS OSX IOS ANDROID)
+  foreach(linkage static dynamic)
+    foreach(options IN ITEMS "" "no-exceptions" "no-logging" "no-exceptions;no-logging")
+      check_feature_mapping("${platform}" "${linkage}"
+        device-id curl-openssl system-sqlite ${options})
+      check_feature_mapping("${platform}" "${linkage}"
+        curl-mbedtls minimal-sqlite ${options})
+    endforeach()
+  endforeach()
+endforeach()
+check_feature_mapping(WINDOWS static wininet minimal-sqlite no-exceptions no-logging)
+foreach(transport "" android-curl-openssl android-curl-mbedtls)
+  check_feature_mapping(ANDROID static
+    minimal-sqlite android-capi-http-client no-exceptions no-logging ${transport})
+endforeach()
+
+set(OLD_SOURCE "${REPO_ROOT}/out/native-feature-tests/older-source")
+file(MAKE_DIRECTORY "${OLD_SOURCE}")
+file(WRITE "${OLD_SOURCE}/CMakeLists.txt"
+  "# MATSDK_ANDROID_HTTP_CLIENT MATSDK_USE_WININET MATSDK_ENABLE_DEVICE_ID\n")
+foreach(feature no-exceptions no-logging android-capi-http-client)
+  execute_process(
+    COMMAND "${CMAKE_COMMAND}" "-DUNSUPPORTED_FEATURE=${feature}"
+      "-DOLD_SOURCE=${OLD_SOURCE}" -P "${CMAKE_CURRENT_LIST_FILE}"
+    RESULT_VARIABLE RESULT OUTPUT_QUIET ERROR_VARIABLE ERROR)
+  if(RESULT EQUAL 0 OR NOT ERROR MATCHES "The ${feature} feature requires")
+    message(FATAL_ERROR "Unsupported ${feature} must fail explicitly: ${ERROR}")
+  endif()
+endforeach()
+file(REMOVE "${OLD_SOURCE}/CMakeLists.txt")
+message(STATUS "Native vcpkg feature mappings passed")

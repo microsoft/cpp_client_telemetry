@@ -1,6 +1,7 @@
 #!/bin/bash
 # Test script: Verify cpp-client-telemetry vcpkg port on Linux
-# Usage: ./tests/vcpkg/test-vcpkg-linux.sh [default|minimal-sqlite]
+# Usage: ./tests/vcpkg/test-vcpkg-linux.sh [default|FEATURES]
+#   FEATURES: semicolon-separated minimal-sqlite, no-exceptions, no-logging
 # Prerequisites: VCPKG_ROOT set, gcc/g++, cmake
 set -e
 
@@ -9,16 +10,20 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${SCRIPT_DIR}/build-linux"
 OVERLAY_PORTS="${REPO_ROOT}/tools/ports"
 MANIFEST_ARGS=()
-case "${1:-default}" in
-  default) ;;
-  minimal-sqlite)
-    MANIFEST_ARGS=(-DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON -DVCPKG_MANIFEST_FEATURES=minimal-sqlite)
-    ;;
-  *)
-    echo "ERROR: Unsupported feature set '${1}'. Use default or minimal-sqlite."
-    exit 1
-    ;;
-esac
+FEATURES="${1:-default}"
+if [ "${FEATURES}" != "default" ]; then
+  IFS=';' read -ra REQUESTED_FEATURES <<< "${FEATURES}"
+  for FEATURE in "${REQUESTED_FEATURES[@]}"; do
+    case "${FEATURE}" in
+      minimal-sqlite|no-exceptions|no-logging) ;;
+      *) echo "ERROR: Unsupported feature '${FEATURE}'."; exit 1 ;;
+    esac
+  done
+  MANIFEST_ARGS=("-DVCPKG_MANIFEST_FEATURES=${FEATURES}")
+  if [[ ";${FEATURES};" == *";minimal-sqlite;"* ]]; then
+    MANIFEST_ARGS+=(-DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON)
+  fi
+fi
 
 # Build the working tree under review (not a pinned release) so this test
 # validates the actual SDK source together with the port manifest/portfile.

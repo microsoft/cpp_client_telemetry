@@ -1047,6 +1047,7 @@ class WinInetRequestWrapper : public std::enable_shared_from_this<WinInetRequest
     static void CALLBACK winInetCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
     {
         OACR_USE_PTR(hInternet);
+        UNREFERENCED_PARAMETER(hInternet);
 
         WinInetCallbackContext* context = reinterpret_cast<WinInetCallbackContext*>(dwContext);
         if (context == nullptr)

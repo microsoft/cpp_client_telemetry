@@ -7,17 +7,16 @@ loading, correlation-vector overflow, unrepresentable expansion sizes, and
 deterministic allocation failure for a representable expansion.
 It requires neither Google Test nor the private optional modules.
 
-For GCC or Clang:
+For GCC, Clang, Apple Clang, MSVC, or clang-cl:
 
 ```sh
 cmake -S tests/no-exceptions -B out-no-exceptions \
-  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS=-fno-exceptions
+  -DCMAKE_BUILD_TYPE=Debug -DMATSDK_DISABLE_EXCEPTIONS=ON
 cmake --build out-no-exceptions --target no-exceptions-smoke --parallel 2
 ctest --test-dir out-no-exceptions --output-on-failure
 ```
 
-For MSVC, configure with `/EHs-c- /D_HAS_EXCEPTIONS=0` in `CMAKE_CXX_FLAGS`.
-For clang-cl, add `/clang:-fno-exceptions` and select the `ClangCL` toolset.
+For clang-cl, select the `ClangCL` toolset.
 Use a fresh build directory when changing compilers or exception modes.
 Expansion requests larger than `PTRDIFF_MAX` fail before calling an allocator;
 representable allocations still use `std::nothrow` and report failure normally.

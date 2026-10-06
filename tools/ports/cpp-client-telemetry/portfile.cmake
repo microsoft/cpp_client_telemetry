@@ -166,10 +166,30 @@ if("wininet" IN_LIST FEATURES)
   set(MATSDK_USE_WININET ON)
 endif()
 
+set(MATSDK_NATIVE_FEATURE_OPTIONS)
+foreach(_matsdk_feature_option IN ITEMS
+    "no-exceptions|MATSDK_DISABLE_EXCEPTIONS"
+    "no-logging|MATSDK_DISABLE_LOGGING"
+    "android-capi-http-client|MATSDK_ENABLE_CAPI_HTTP_CLIENT")
+  string(REPLACE "|" ";" _matsdk_feature_option "${_matsdk_feature_option}")
+  list(GET _matsdk_feature_option 0 _matsdk_feature)
+  list(GET _matsdk_feature_option 1 _matsdk_option)
+  set(_matsdk_enabled OFF)
+  if(_matsdk_feature IN_LIST FEATURES)
+    if(NOT MATSDK_OPTION_SOURCE MATCHES "${_matsdk_option}")
+      message(FATAL_ERROR
+        "The ${_matsdk_feature} feature requires an SDK revision supporting ${_matsdk_option}.")
+    endif()
+    set(_matsdk_enabled ON)
+  endif()
+  list(APPEND MATSDK_NATIVE_FEATURE_OPTIONS "-D${_matsdk_option}=${_matsdk_enabled}")
+endforeach()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         ${MATSDK_PINNED_SOURCE_OPTIONS}
+        ${MATSDK_NATIVE_FEATURE_OPTIONS}
         -DMATSDK_SQLITE_PROVIDER=${MATSDK_VCPKG_SQLITE_PROVIDER}
         -DBUILD_SHARED_LIBS=${MATSDK_VCPKG_BUILD_SHARED_LIBS}
         -DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}

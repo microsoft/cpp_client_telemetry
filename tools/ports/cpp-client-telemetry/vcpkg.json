@@ -26,6 +26,10 @@
     "system-sqlite"
   ],
   "features": {
+    "android-capi-http-client": {
+      "description": "Allow Android C API consumers to provide custom HTTP send/cancel callbacks.",
+      "supports": "android"
+    },
     "android-curl-mbedtls": {
       "description": "On Android, explicitly build the native libcurl HTTP client with the mbedTLS backend instead of the default Java/JNI HttpClient_Android bridge.",
       "supports": "android",
@@ -85,6 +89,12 @@
     },
     "minimal-sqlite": {
       "description": "Build a private, feature-stripped SQLite compiled from the SDK's vendored amalgamation instead of linking the external sqlite3 package. Smaller footprint; combine with [core,minimal-sqlite] to also drop the sqlite3 dependency."
+    },
+    "no-exceptions": {
+      "description": "Compile the native SDK without C++ exception support. Does not change consumer or dependency compiler flags."
+    },
+    "no-logging": {
+      "description": "Compile out internal SDK diagnostics without disabling telemetry event collection."
     },
     "system-sqlite": {
       "description": "Link the external vcpkg sqlite3 package for the offline storage cache (default). On macOS/iOS the SDK links the system libsqlite3 instead, so this dependency is not pulled there.",
