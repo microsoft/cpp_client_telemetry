@@ -37,6 +37,18 @@ cd cpp_client_telemetry
 vcpkg install --overlay-ports=tools/ports cpp-client-telemetry
 ```
 
+The two recipes deliberately have different dependency policies:
+
+| Recipe | Source and dependency policy |
+| --- | --- |
+| `tools/ports` development overlay | Local checkout support and private `minimal-sqlite`; Linux TLS selection requires exactly one backend. |
+| `tools/registry-ports` release recipe | Pinned archive only; external SQLite/zlib in core on every platform and Linux curl/OpenSSL in core. TLS feature unions are supported; `minimal-sqlite` is not a registry feature. |
+
+The feature examples below describe the development overlay unless explicitly
+marked otherwise. In the release recipe, `[core]` still includes the required
+external dependencies. `system-sqlite` and `curl-openssl` remain compatibility
+features; they are not required to make a core-only install work.
+
 ### Using in your CMake project
 
 After installing, add the SDK to your CMake project:
@@ -501,16 +513,14 @@ autovacuum, `VACUUM`, PRAGMAs, the custom UTF-8 function, blobs, 64-bit integers
 transactions) are retained, and the SDK's offline-storage unit tests pass
 unchanged against the minimal build.
 
-> **Caveat — symbol visibility when linking statically.** The private SQLite keeps
-> SQLite's default `sqlite3_*` symbol names. For a **shared** `mat`
-> (`mat.dll` / `libmat.so` / `libmat.dylib`), those symbols are hidden by the
-> SDK's `-fvisibility=hidden`, so there is no conflict. For a **static** `mat`,
-> the minimal SQLite is installed and exported as a separate
-> `MSTelemetry::sqlite3_bundled` archive that links into your binary; if **any**
-> part of the final static link — your own code *or another dependency* — also
-> pulls in SQLite, the duplicate `sqlite3_*` symbols will collide at link time. In
-> that case, prefer the default `system-sqlite` feature so the whole graph shares a
-> single SQLite.
+Both `MINIMAL` and `VENDORED` SQLite use SDK-private `matsdk_sqlite3*` names
+for functions and data, including platform-specific APIs. Static and shared SDKs
+can therefore coexist with an application's full SQLite without duplicate
+symbols or cross-instance interposition. The renaming header is private to
+SDK-owned targets; consumers retain the normal SQLite API. Static packages
+install the private archive as `MSTelemetry::sqlite3_bundled`.
+Do not pass database handles, callbacks, or allocated buffers between the two
+SQLite instances. Use `SYSTEM` when the whole graph should share one SQLite.
 
 ## How It Works
 
@@ -521,15 +531,14 @@ registry port update. There is no release-triggered workflow that creates a
 vcpkg PR, and no repository token is needed for port preparation.
 
 The [preparation helper](../.github/scripts/prepare-vcpkg-release.py) copies the
-**complete overlay port from the release tag**, not from the current development
-branch. It then replaces the archive
+**complete registry recipe from `tools/registry-ports` in the release tag**,
+not the development overlay or current development branch. It replaces the archive
 `REF`, `SHA512`, and manifest version and removes any old `port-version`. This
-carries overlay feature declarations and their CMake wiring together, including
-`minimal-sqlite` and the explicit Android curl backends. The result is a starting
-point, not a registry-ready port: remove development source overrides and bundled
-SQLite, put required external dependencies in core, and allow TLS features to
-compose. Registry builds must use vcpkg SQLite/zlib on Apple as well as other
-platforms, with installed package dependencies matching the build. Run it from
+carries registry feature declarations and their CMake wiring together, including
+the explicit Android curl backends, opt-in logging/exception controls, and
+composable TLS features. The helper rejects private minimal SQLite and local
+source overrides. The recipe uses external SQLite/zlib on every platform,
+including Apple, with required dependencies in core. Run it from
 the released SDK checkout against a separate vcpkg checkout outside the SDK
 source tree.
 Start with a clean vcpkg working tree: the helper replaces the destination port,
@@ -542,7 +551,7 @@ Pass the four-component version **without** its `v` prefix and the SHA512 of the
 published GitHub source `.tar.gz` archive, not an xcframework, AAR, or ZIP:
 
 ```console
-python .github/scripts/prepare-vcpkg-release.py --source-port tools/ports/cpp-client-telemetry --destination-port <vcpkg>/ports/cpp-client-telemetry --version X.Y.Z.W --sha512 <release-archive-sha512>
+python .github/scripts/prepare-vcpkg-release.py --source-port tools/registry-ports/cpp-client-telemetry --destination-port <vcpkg>/ports/cpp-client-telemetry --version X.Y.Z.W --sha512 <release-archive-sha512>
 ```
 
 Run `vcpkg format-manifest` on the resulting manifest and validate the downloaded
@@ -562,6 +571,16 @@ provides those targets through normal `find_package()` discovery; no separate
 SDK-specific dependency-mode switch is required. Android transport selection is
 separate: `MATSDK_ANDROID_HTTP_CLIENT=AUTO` resolves to the Java/JNI transport,
 while the explicit Android curl features select the native curl transport.
+
+Installed packages record each dependency's actual provider rather than
+inferring it from the consumer's platform. Static packages reconstruct discovered
+packages, Apple system libraries, or bundled archives as appropriate; shared
+packages do not rediscover private SQLite, zlib, or curl dependencies. If a source
+embedding build supplied canonical dependency targets itself, its installed
+static package requires the consuming project to define those same targets
+(`SQLite3::SQLite3`, `ZLIB::ZLIB`, or `CURL::libcurl`, as applicable) before
+`find_package(MSTelemetry)`. Missing caller-provided targets fail explicitly
+instead of silently selecting a different dependency.
 
 ## Migrating from the older overlay port
 

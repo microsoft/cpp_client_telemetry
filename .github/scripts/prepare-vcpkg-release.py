@@ -1,4 +1,4 @@
-"""Copy the release's complete overlay port into a vcpkg checkout."""
+"""Copy the release's registry recipe into a vcpkg checkout."""
 
 import argparse
 import json
@@ -34,14 +34,18 @@ def prepare_port(source_port, destination_port, version, sha512):
 
     manifest = json.loads((source_port / "vcpkg.json").read_text(encoding="utf-8"))
     if manifest["name"] != "cpp-client-telemetry":
-        raise ValueError("Release overlay is not the cpp-client-telemetry port")
-    for feature in ("minimal-sqlite", "android-curl-openssl"):
+        raise ValueError("Release recipe is not the cpp-client-telemetry port")
+    if "minimal-sqlite" in manifest.get("features", {}):
+        raise ValueError("Use the registry recipe, not the development overlay with minimal-sqlite")
+    for feature in ("android-curl-openssl", "android-curl-mbedtls", "no-logging"):
         if feature not in manifest.get("features", {}):
-            raise ValueError(f"Release overlay is missing the {feature} feature")
+            raise ValueError(f"Release recipe is missing the {feature} feature")
     manifest["version"] = version
     manifest.pop("port-version", None)
 
     portfile = (source_port / "portfile.cmake").read_text(encoding="utf-8")
+    if "MATSDK_VCPKG_SOURCE_DIR" in portfile:
+        raise ValueError("Registry recipes must not allow development source overrides")
     for field, value in (("REF", f"v{version}"), ("SHA512", sha512)):
         portfile, count = re.subn(
             rf"(?m)^([ \t]*{field}[ \t]+)[^\r\n]+",

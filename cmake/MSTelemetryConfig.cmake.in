@@ -5,26 +5,21 @@ include("${CMAKE_CURRENT_LIST_DIR}/MatsdkDependencyTargets.cmake")
 
 # Recreate dependencies only when a static package needs them at the final link.
 if(@MATSDK_CONFIG_STATIC_PACKAGE@)
-  if(@MATSDK_BUILD_PLATFORM_APPLE@ AND NOT @MATSDK_USING_VCPKG@)
-    set(_matsdk_package_sqlite_args APPLE_SYSTEM APPLE_LIBRARY sqlite3)
-    set(_matsdk_package_zlib_args APPLE_SYSTEM APPLE_LIBRARY z)
-  else()
-    set(_matsdk_package_sqlite_args)
-    set(_matsdk_package_zlib_args)
-  endif()
   matsdk_add_package_system_dependency(
     MSTelemetry::sqlite_dependency
     SQLite3::SQLite3
     "@MATSDK_SQLITE_PROVIDER_RESOLVED@"
-    SQLite3
-    LEGACY_TARGET SQLite::SQLite3
-    ${_matsdk_package_sqlite_args})
+    "@MATSDK_SQLITE_PACKAGE_NAME@"
+    KIND "@MATSDK_SQLITE_DEPENDENCY_KIND@"
+    LEGACY_TARGET "@MATSDK_SQLITE_PACKAGE_TARGET@"
+    APPLE_LIBRARY sqlite3)
   matsdk_add_package_system_dependency(
     MSTelemetry::zlib_dependency
     ZLIB::ZLIB
     "@MATSDK_ZLIB_PROVIDER_RESOLVED@"
     ZLIB
-    ${_matsdk_package_zlib_args})
+    KIND "@MATSDK_ZLIB_DEPENDENCY_KIND@"
+    APPLE_LIBRARY z)
 endif()
 
 if("@MATSDK_ANDROID_HTTP_CLIENT_RESOLVED@" STREQUAL "")
@@ -88,17 +83,14 @@ if(@MATSDK_CONFIG_STATIC_PACKAGE@ AND @MATSDK_NEEDS_CURL@)
     set_property(TARGET MSTelemetry::curl_archive PROPERTY
       INTERFACE_LINK_LIBRARIES "${_matsdk_curl_tls_targets}")
   else()
-    if(NOT TARGET CURL::libcurl)
-      find_dependency(CURL)
-    endif()
+    matsdk_add_package_system_dependency(
+      MSTelemetry::curl_dependency CURL::libcurl SYSTEM CURL
+      KIND "@MATSDK_CURL_DEPENDENCY_KIND@")
   endif()
   if(@MATSDK_CURL_FETCHED@)
-    set(_matsdk_curl_dependency_target MSTelemetry::curl_archive)
-  else()
-    set(_matsdk_curl_dependency_target CURL::libcurl)
+    matsdk_add_interface_dependency(
+      MSTelemetry::curl_dependency MSTelemetry::curl_archive)
   endif()
-  matsdk_add_interface_dependency(
-    MSTelemetry::curl_dependency "${_matsdk_curl_dependency_target}")
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/MSTelemetryTargets.cmake")
