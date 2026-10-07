@@ -368,11 +368,17 @@ The vcpkg port update is manual:
    current `microsoft/vcpkg` `master`.
 2. From the released SDK checkout, use the
    [port preparation helper](building-with-vcpkg.md#promoting-features-on-release)
-   to copy the complete overlay port and set the new release version and source
-   archive SHA512. Include the manifest and feature wiring, not just the tag.
+   to copy the overlay port as a starting point and set the new release version
+   and source archive SHA512. Adapt the result for the registry: always use the
+   pinned archive, keep required dependencies in core, use external SQLite/zlib
+   on all supported platforms, and make TLS features composable. Development
+   source overrides and bundled `minimal-sqlite` belong only in the SDK overlay.
+   Include compatible feature wiring, not just the tag, and preserve any
+   registry-specific patches still needed by the released source.
 3. Format the port manifest and build the production port from the published
    archive with `MATSDK_VCPKG_SOURCE_DIR` unset and without the SDK overlay.
-   Verify both the default graph and the release's advertised opt-in features.
+   Verify core-only, default, and advertised opt-in feature graphs, including
+   combined TLS features and external consumers of static and shared packages.
    Do not use the `tests/vcpkg` scripts for this step: they deliberately select
    local SDK source rather than the pinned release archive.
 4. Commit the port changes.

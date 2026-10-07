@@ -524,11 +524,17 @@ The [preparation helper](../.github/scripts/prepare-vcpkg-release.py) copies the
 **complete overlay port from the release tag**, not from the current development
 branch. It then replaces the archive
 `REF`, `SHA512`, and manifest version and removes any old `port-version`. This
-carries feature declarations and their CMake wiring together, including
-`minimal-sqlite` and the explicit Android curl backends. Run it from the released
-SDK checkout against a separate vcpkg checkout outside the SDK source tree.
+carries overlay feature declarations and their CMake wiring together, including
+`minimal-sqlite` and the explicit Android curl backends. The result is a starting
+point, not a registry-ready port: remove development source overrides and bundled
+SQLite, put required external dependencies in core, and allow TLS features to
+compose. Registry builds must use vcpkg SQLite/zlib on Apple as well as other
+platforms, with installed package dependencies matching the build. Run it from
+the released SDK checkout against a separate vcpkg checkout outside the SDK
+source tree.
 Start with a clean vcpkg working tree: the helper replaces the destination port,
-including existing patches. Before replacing it, the helper resolves the
+including existing patches; retain or restore registry patches still required
+by the released source. Before replacing it, the helper resolves the
 destination and requires both `.vcpkg-root` and
 `scripts/buildsystems/vcpkg.cmake` in the inferred vcpkg checkout.
 The helper requires Python 3.10 or newer and uses only the standard library.
@@ -541,8 +547,9 @@ python .github/scripts/prepare-vcpkg-release.py --source-port tools/ports/cpp-cl
 
 Run `vcpkg format-manifest` on the resulting manifest and validate the downloaded
 release with `MATSDK_VCPKG_SOURCE_DIR` unset and without the SDK overlay before
-submitting the registry PR. Cover the default graph and the advertised opt-in
-features. Do not use the `tests/vcpkg` scripts for this release validation: they
+submitting the registry PR. Cover core-only, default, and advertised opt-in
+graphs, combined TLS features, and static/shared external consumers.
+Do not use the `tests/vcpkg` scripts for this release validation: they
 intentionally build the local SDK checkout instead of the pinned archive.
 The helper does not build, commit, push, or open a PR. After validating the port,
 commit its changes, update the vcpkg version database, and submit the registry PR

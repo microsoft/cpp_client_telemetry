@@ -35,6 +35,8 @@ jobs:
       run: python tests/vcpkg/test-release-port.py
     - name: Verify native feature mappings
       run: cmake -P tests/vcpkg/native-feature-tests.cmake
+    - name: Verify installed package dependency selection
+      run: cmake -P tests/vcpkg/package-dependency-tests.cmake
 
   windows:
     runs-on: windows-latest
