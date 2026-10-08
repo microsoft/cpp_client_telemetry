@@ -37,75 +37,8 @@
       "description": "Allow Android C API consumers to provide custom HTTP send/cancel callbacks.",
       "supports": "android"
     },
-    "android-curl-mbedtls": {
-      "description": "Enable Android native libcurl HTTP with mbedTLS. Can be combined with android-curl-openssl.",
-      "supports": "android",
-      "dependencies": [
-        {
-          "name": "curl",
-          "default-features": false,
-          "features": [
-            "mbedtls"
-          ],
-          "platform": "android"
-        }
-      ]
-    },
-    "android-curl-openssl": {
-      "description": "Enable Android native libcurl HTTP with OpenSSL. Can be combined with android-curl-mbedtls.",
-      "supports": "android",
-      "dependencies": [
-        {
-          "name": "curl",
-          "default-features": false,
-          "features": [
-            "openssl"
-          ],
-          "platform": "android"
-        }
-      ]
-    },
-    "curl-mbedtls": {
-      "description": "Add mbedTLS to the Linux libcurl HTTP client alongside its required OpenSSL backend.",
-      "dependencies": [
-        {
-          "name": "curl",
-          "default-features": false,
-          "features": [
-            "mbedtls"
-          ],
-          "platform": "linux"
-        }
-      ]
-    },
-    "curl-openssl": {
-      "description": "Compatibility feature for Linux OpenSSL, which is always included in core.",
-      "dependencies": [
-        {
-          "name": "curl",
-          "default-features": false,
-          "features": [
-            "openssl"
-          ],
-          "platform": "linux"
-        }
-      ]
-    },
     "device-id": {
       "description": "Collect a native device ID (default). Omit with default-features=false to provide your own DeviceInfo.Id."
-    },
-    "no-exceptions": {
-      "description": "Disable exceptions in SDK-owned targets without changing consumer or dependency flags."
-    },
-    "no-logging": {
-      "description": "Compile out internal diagnostics without disabling telemetry collection."
-    },
-    "system-sqlite": {
-      "description": "Compatibility feature for external SQLite, which is always included in core."
-    },
-    "wininet": {
-      "description": "Use Windows WinInet instead of the default WinHTTP transport.",
-      "supports": "windows & !mingw"
     }
   }
 }

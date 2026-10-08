@@ -35,7 +35,7 @@ jobs:
       run: python tests/vcpkg/test-release-port.py
     - name: Verify native feature mappings
       run: cmake -P tests/vcpkg/native-feature-tests.cmake
-    - name: Verify registry core graphs and feature unions
+    - name: Verify registry additive features and platform transports
       run: cmake -DREGISTRY_MODE=ON -P tests/vcpkg/native-feature-tests.cmake
     - name: Verify installed package dependency selection
       run: cmake -P tests/vcpkg/package-dependency-tests.cmake

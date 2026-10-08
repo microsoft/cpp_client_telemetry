@@ -65,10 +65,14 @@ class ReleasePortTests(unittest.TestCase):
         self.assertIn("-DMATSDK_SQLITE_PROVIDER=SYSTEM", portfile)
         self.assertIn("-DMATSDK_ZLIB_PROVIDER=SYSTEM", portfile)
         self.assertIn("-DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}", portfile)
+        self.assertIn("set(MATSDK_ANDROID_HTTP_CLIENT JAVA)", portfile)
+        self.assertIn("-DMATSDK_USE_WININET=OFF", portfile)
+        self.assertNotIn("MATSDK_DISABLE_EXCEPTIONS", portfile)
+        self.assertNotIn("MATSDK_DISABLE_LOGGING", portfile)
+        self.assertNotIn("MATSDK_CURL_TLS_BACKEND", portfile)
         self.assertIn("${FEATURE_OPTIONS}", portfile)
         for feature, option in (
-            ("no-exceptions", "MATSDK_DISABLE_EXCEPTIONS"),
-            ("no-logging", "MATSDK_DISABLE_LOGGING"),
+            ("device-id", "MATSDK_ENABLE_DEVICE_ID"),
             ("android-capi-http-client", "MATSDK_ENABLE_CAPI_HTTP_CLIENT"),
         ):
             self.assertIn(feature, actual["features"])
@@ -82,7 +86,7 @@ class ReleasePortTests(unittest.TestCase):
         self.assertEqual((self.destination / "portfile.cmake").read_text(), portfile)
 
     def test_rejects_release_missing_required_features_before_replacing_port(self):
-        for feature in ("android-curl-openssl", "android-curl-mbedtls", "no-logging"):
+        for feature in ("device-id", "android-capi-http-client"):
             with self.subTest(feature=feature):
                 definition = self.manifest["features"].pop(feature)
                 self.write_manifest()
@@ -92,11 +96,18 @@ class ReleasePortTests(unittest.TestCase):
                 self.manifest["features"][feature] = definition
 
     def test_rejects_development_overlay_without_replacing_port(self):
-        self.manifest["features"]["minimal-sqlite"] = {"description": "Private SQLite"}
-        self.write_manifest()
-        with self.assertRaisesRegex(ValueError, "registry recipe"):
-            self.prepare()
-        self.assertTrue((self.destination / "obsolete.patch").exists())
+        for feature in (
+            "minimal-sqlite", "no-exceptions", "no-logging", "system-sqlite",
+            "curl-openssl", "curl-mbedtls", "android-curl-openssl",
+            "android-curl-mbedtls", "wininet",
+        ):
+            with self.subTest(feature=feature):
+                self.manifest["features"][feature] = {"description": "Unsupported feature"}
+                self.write_manifest()
+                with self.assertRaisesRegex(ValueError, feature):
+                    self.prepare()
+                self.assertTrue((self.destination / "obsolete.patch").exists())
+                del self.manifest["features"][feature]
 
     def test_rejects_development_source_override_without_replacing_port(self):
         (self.source / "portfile.cmake").write_text(
@@ -118,7 +129,13 @@ class ReleasePortTests(unittest.TestCase):
                 self.assertNotIn("platform", dependencies[package])
         self.assertEqual(dependencies["curl"]["platform"], "linux")
         self.assertIn("openssl", dependencies["curl"]["features"])
-        self.assertNotIn("minimal-sqlite", self.manifest["features"])
+        self.assertEqual(
+            set(self.manifest["features"]), {"device-id", "android-capi-http-client"}
+        )
+        self.assertEqual(self.manifest["default-features"], ["device-id"])
+        self.assertEqual(
+            self.manifest["features"]["android-capi-http-client"]["supports"], "android"
+        )
 
     def test_rejects_missing_or_duplicate_archive_fields(self):
         for field in ("REF", "SHA512"):

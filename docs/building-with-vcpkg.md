@@ -42,12 +42,22 @@ The two recipes deliberately have different dependency policies:
 | Recipe | Source and dependency policy |
 | --- | --- |
 | `tools/ports` development overlay | Local checkout support and private `minimal-sqlite`; Linux TLS selection requires exactly one backend. |
-| `tools/registry-ports` release recipe | Pinned archive only; external SQLite/zlib in core on every platform and Linux curl/OpenSSL in core. TLS feature unions are supported; `minimal-sqlite` is not a registry feature. |
+| `tools/registry-ports` release recipe | Pinned archive only; external SQLite/zlib in core on every platform and Linux curl/OpenSSL in core. Fixed native platform transports; only additive `device-id` and Android C API callback features. |
 
 The feature examples below describe the development overlay unless explicitly
 marked otherwise. In the release recipe, `[core]` still includes the required
-external dependencies. `system-sqlite` and `curl-openssl` remain compatibility
-features; they are not required to make a core-only install work.
+external dependencies. The registry recipe does not offer `minimal-sqlite`,
+`system-sqlite`, TLS-backend features, `wininet`, `no-exceptions`, or `no-logging`.
+Required dependencies are not optional feature labels, and enabling a feature
+must not remove functionality or replace another consumer's transport.
+
+The registry selects WinHTTP on Windows, Java/JNI HTTP on Android, Apple-native
+HTTP on macOS/iOS, and curl with OpenSSL on Linux. The optional Android C API
+callback feature adds runtime custom-client support without removing Java/JNI
+HTTP; calls without custom callbacks retain the native transport. Alternative
+transports and logging controls remain available in source builds or private
+overlays. Exception policy belongs in toolchain/custom-triplet configuration,
+not a dependency feature; SDK-specific configuration can use a private overlay.
 
 ### Using in your CMake project
 
@@ -534,10 +544,10 @@ The [preparation helper](../.github/scripts/prepare-vcpkg-release.py) copies the
 **complete registry recipe from `tools/registry-ports` in the release tag**,
 not the development overlay or current development branch. It replaces the archive
 `REF`, `SHA512`, and manifest version and removes any old `port-version`. This
-carries registry feature declarations and their CMake wiring together, including
-the explicit Android curl backends, opt-in logging/exception controls, and
-composable TLS features. The helper rejects private minimal SQLite and local
-source overrides. The recipe uses external SQLite/zlib on every platform,
+carries the additive device-ID and Android C API callback features and their
+CMake wiring together. The helper rejects subtractive, replacement-transport,
+redundant dependency, and private minimal SQLite features, plus local source
+overrides. The recipe uses external SQLite/zlib on every platform,
 including Apple, with required dependencies in core. Run it from
 the released SDK checkout against a separate vcpkg checkout outside the SDK
 source tree.
@@ -557,7 +567,8 @@ python .github/scripts/prepare-vcpkg-release.py --source-port tools/registry-por
 Run `vcpkg format-manifest` on the resulting manifest and validate the downloaded
 release with `MATSDK_VCPKG_SOURCE_DIR` unset and without the SDK overlay before
 submitting the registry PR. Cover core-only, default, and advertised opt-in
-graphs, combined TLS features, and static/shared external consumers.
+graphs and static/shared external consumers. Verify that enabling either
+advertised feature retains the port's fixed platform transport.
 Do not use the `tests/vcpkg` scripts for this release validation: they
 intentionally build the local SDK checkout instead of the pinned archive.
 The helper does not build, commit, push, or open a PR. After validating the port,
@@ -569,8 +580,9 @@ using your normal local GitHub authentication.
 The SDK consumes canonical CMake dependency targets. The vcpkg toolchain
 provides those targets through normal `find_package()` discovery; no separate
 SDK-specific dependency-mode switch is required. Android transport selection is
-separate: `MATSDK_ANDROID_HTTP_CLIENT=AUTO` resolves to the Java/JNI transport,
-while the explicit Android curl features select the native curl transport.
+separate: the registry fixes `MATSDK_ANDROID_HTTP_CLIENT=JAVA` on Android;
+the development overlay's explicit Android curl features select the native curl
+transport instead.
 
 Installed packages record each dependency's actual provider rather than
 inferring it from the consumer's platform. Static packages reconstruct discovered

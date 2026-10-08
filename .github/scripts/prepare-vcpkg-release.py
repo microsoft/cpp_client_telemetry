@@ -35,9 +35,16 @@ def prepare_port(source_port, destination_port, version, sha512):
     manifest = json.loads((source_port / "vcpkg.json").read_text(encoding="utf-8"))
     if manifest["name"] != "cpp-client-telemetry":
         raise ValueError("Release recipe is not the cpp-client-telemetry port")
-    if "minimal-sqlite" in manifest.get("features", {}):
-        raise ValueError("Use the registry recipe, not the development overlay with minimal-sqlite")
-    for feature in ("android-curl-openssl", "android-curl-mbedtls", "no-logging"):
+    for feature in (
+        "minimal-sqlite", "no-exceptions", "no-logging", "system-sqlite",
+        "curl-openssl", "curl-mbedtls", "android-curl-openssl",
+        "android-curl-mbedtls", "wininet",
+    ):
+        if feature in manifest.get("features", {}):
+            raise ValueError(
+                f"Use the registry recipe without the unsupported {feature} feature"
+            )
+    for feature in ("device-id", "android-capi-http-client"):
         if feature not in manifest.get("features", {}):
             raise ValueError(f"Release recipe is missing the {feature} feature")
     manifest["version"] = version
