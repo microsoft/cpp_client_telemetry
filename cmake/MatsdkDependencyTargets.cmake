@@ -14,23 +14,14 @@ function(matsdk_add_interface_dependency target_name)
     INTERFACE_LINK_LIBRARIES "${ARGN}")
 endfunction()
 
-function(matsdk_add_package_system_dependency dependency_target canonical_target provider_value package_name)
-  if(NOT "${provider_value}" STREQUAL "SYSTEM")
-    return()
-  endif()
-
-  set(options APPLE_SYSTEM)
+function(matsdk_add_package_dependency dependency_target canonical_target package_name)
   set(one_value_args APPLE_LIBRARY LEGACY_TARGET KIND)
-  cmake_parse_arguments(MATSDK_PACKAGE_DEP "${options}" "${one_value_args}" "" ${ARGN})
-
-  if(NOT MATSDK_PACKAGE_DEP_KIND)
-    set(MATSDK_PACKAGE_DEP_KIND PACKAGE)
-    if(MATSDK_PACKAGE_DEP_APPLE_SYSTEM)
-      set(MATSDK_PACKAGE_DEP_KIND APPLE_SYSTEM)
-    endif()
-  endif()
-  if(NOT MATSDK_PACKAGE_DEP_KIND MATCHES "^(PACKAGE|PROVIDED|APPLE_SYSTEM)$")
+  cmake_parse_arguments(MATSDK_PACKAGE_DEP "" "${one_value_args}" "" ${ARGN})
+  if(NOT MATSDK_PACKAGE_DEP_KIND MATCHES "^(PACKAGE|PROVIDED|APPLE_SYSTEM|BUNDLED|NONE)$")
     message(FATAL_ERROR "Invalid dependency kind: ${MATSDK_PACKAGE_DEP_KIND}")
+  endif()
+  if(MATSDK_PACKAGE_DEP_KIND MATCHES "^(BUNDLED|NONE)$")
+    return()
   endif()
   if(NOT TARGET "${canonical_target}"
      AND DEFINED MATSDK_PACKAGE_DEP_LEGACY_TARGET
@@ -48,19 +39,11 @@ function(matsdk_add_package_system_dependency dependency_target canonical_target
       include("${_MATSDK_DEPENDENCY_TARGETS_DIR}/MatsdkAppleSystemDeps.cmake")
       matsdk_add_apple_system_library(
         "${canonical_target}" "${MATSDK_PACKAGE_DEP_APPLE_LIBRARY}")
-    elseif(MATSDK_PACKAGE_DEP_KIND STREQUAL "PACKAGE")
-      find_dependency(${package_name})
-    else()
+    elseif(MATSDK_PACKAGE_DEP_KIND STREQUAL "PROVIDED")
       message(FATAL_ERROR
         "MSTelemetry was built with a caller-provided ${canonical_target}. "
         "Define that target before find_package(MSTelemetry).")
     endif()
-  endif()
-  if(NOT TARGET "${canonical_target}"
-     AND DEFINED MATSDK_PACKAGE_DEP_LEGACY_TARGET
-     AND TARGET "${MATSDK_PACKAGE_DEP_LEGACY_TARGET}")
-    matsdk_add_interface_dependency(
-      "${canonical_target}" "${MATSDK_PACKAGE_DEP_LEGACY_TARGET}")
   endif()
   if(NOT TARGET "${canonical_target}")
     message(FATAL_ERROR

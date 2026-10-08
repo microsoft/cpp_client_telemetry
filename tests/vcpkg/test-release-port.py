@@ -95,11 +95,12 @@ class ReleasePortTests(unittest.TestCase):
                 self.assertTrue((self.destination / "obsolete.patch").exists())
                 self.manifest["features"][feature] = definition
 
-    def test_rejects_development_overlay_without_replacing_port(self):
+    def test_rejects_unsupported_features_without_replacing_port(self):
         for feature in (
             "minimal-sqlite", "no-exceptions", "no-logging", "system-sqlite",
             "curl-openssl", "curl-mbedtls", "android-curl-openssl",
             "android-curl-mbedtls", "wininet",
+            "unknown-feature",
         ):
             with self.subTest(feature=feature):
                 self.manifest["features"][feature] = {"description": "Unsupported feature"}

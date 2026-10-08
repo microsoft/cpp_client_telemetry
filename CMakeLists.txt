@@ -183,7 +183,6 @@ endif()
 
 # Only use custom curl if compiling with CPP11 PAL
 set(MATSDK_NEEDS_CURL OFF)
-set(MATSDK_CURL_FETCHED OFF)
 set(MATSDK_CURL_LINK_TARGET "")
 set(MATSDK_CURL_DEPENDENCY_KIND NONE)
 if(PAL_IMPLEMENTATION STREQUAL "CPP11"
@@ -200,7 +199,6 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
     include(cmake/MatsdkFetchCurl.cmake)
     matsdk_fetch_curl(_matsdk_curl_target)
     set(MATSDK_CURL_LINK_TARGET "${_matsdk_curl_target}")
-    set(MATSDK_CURL_FETCHED ON)
     set(MATSDK_CURL_DEPENDENCY_KIND BUNDLED)
   else()
     find_package(CURL REQUIRED)

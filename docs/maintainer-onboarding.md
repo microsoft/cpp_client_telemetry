@@ -369,21 +369,13 @@ The vcpkg port update is manual:
 2. From the released SDK checkout, use the
    [port preparation helper](building-with-vcpkg.md#promoting-features-on-release)
    to copy `tools/registry-ports/cpp-client-telemetry` and set the new release
-   version and source archive SHA512. This separate registry recipe always uses
-   the pinned archive, keeps required external dependencies in core on all
-   supported platforms, and exposes only additive device-ID and Android C API
-   callback features. Native transports are fixed per platform. Development
-   source overrides, bundled `minimal-sqlite`, alternative transports, and
-   subtractive compile-policy switches remain source/private-overlay settings.
-   Promote the complete recipe, not just the tag, and preserve any
+   version and source archive SHA512. Promote the complete recipe and preserve any
    registry-specific patches still needed by the released source.
 3. Format the port manifest and build the production port from the published
    archive with `MATSDK_VCPKG_SOURCE_DIR` unset and without the SDK overlay.
    Verify core-only, default, and advertised opt-in feature graphs, including
    the union of retained additive features and external consumers of static and
    shared packages. Confirm that feature unions retain the native transport.
-   Do not use the `tests/vcpkg` scripts for this step: they deliberately select
-   local SDK source rather than the pinned release archive.
 4. Commit the port changes.
 5. Run `vcpkg x-add-version cpp-client-telemetry --overwrite-version`.
 6. Commit the version-database changes and manually open a `microsoft/vcpkg` PR.

@@ -46,18 +46,13 @@ The two recipes deliberately have different dependency policies:
 
 The feature examples below describe the development overlay unless explicitly
 marked otherwise. In the release recipe, `[core]` still includes the required
-external dependencies. The registry recipe does not offer `minimal-sqlite`,
-`system-sqlite`, TLS-backend features, `wininet`, `no-exceptions`, or `no-logging`.
-Required dependencies are not optional feature labels, and enabling a feature
-must not remove functionality or replace another consumer's transport.
+external dependencies.
 
 The registry selects WinHTTP on Windows, Java/JNI HTTP on Android, Apple-native
 HTTP on macOS/iOS, and curl with OpenSSL on Linux. The optional Android C API
-callback feature adds runtime custom-client support without removing Java/JNI
-HTTP; calls without custom callbacks retain the native transport. Alternative
-transports and logging controls remain available in source builds or private
-overlays. Exception policy belongs in toolchain/custom-triplet configuration,
-not a dependency feature; SDK-specific configuration can use a private overlay.
+callback feature uses the caller's send/cancel callbacks when supplied and
+retains Java/JNI HTTP otherwise. Configure exception policy in the toolchain or
+custom triplet.
 
 ### Using in your CMake project
 
@@ -537,28 +532,19 @@ SQLite instances. Use `SYSTEM` when the whole graph should share one SQLite.
 ### Promoting features on release
 
 After cutting an SDK release, maintainers manually prepare and submit the
-registry port update. There is no release-triggered workflow that creates a
-vcpkg PR, and no repository token is needed for port preparation.
+registry port update.
 
 The [preparation helper](../.github/scripts/prepare-vcpkg-release.py) copies the
 **complete registry recipe from `tools/registry-ports` in the release tag**,
-not the development overlay or current development branch. It replaces the archive
-`REF`, `SHA512`, and manifest version and removes any old `port-version`. This
-carries the additive device-ID and Android C API callback features and their
-CMake wiring together. The helper rejects subtractive, replacement-transport,
-redundant dependency, and private minimal SQLite features, plus local source
-overrides. The recipe uses external SQLite/zlib on every platform,
-including Apple, with required dependencies in core. Run it from
-the released SDK checkout against a separate vcpkg checkout outside the SDK
-source tree.
+validates its two additive features and pinned-source policy, and replaces the
+archive `REF`, `SHA512`, and manifest version while removing any old
+`port-version`. Run it with Python 3.10 or newer from the released SDK checkout
+against a separate vcpkg checkout outside the SDK source tree.
 Start with a clean vcpkg working tree: the helper replaces the destination port,
 including existing patches; retain or restore registry patches still required
-by the released source. Before replacing it, the helper resolves the
-destination and requires both `.vcpkg-root` and
-`scripts/buildsystems/vcpkg.cmake` in the inferred vcpkg checkout.
-The helper requires Python 3.10 or newer and uses only the standard library.
+by the released source.
 Pass the four-component version **without** its `v` prefix and the SHA512 of the
-published GitHub source `.tar.gz` archive, not an xcframework, AAR, or ZIP:
+published GitHub source `.tar.gz` archive:
 
 ```console
 python .github/scripts/prepare-vcpkg-release.py --source-port tools/registry-ports/cpp-client-telemetry --destination-port <vcpkg>/ports/cpp-client-telemetry --version X.Y.Z.W --sha512 <release-archive-sha512>
@@ -569,30 +555,27 @@ release with `MATSDK_VCPKG_SOURCE_DIR` unset and without the SDK overlay before
 submitting the registry PR. Cover core-only, default, and advertised opt-in
 graphs and static/shared external consumers. Verify that enabling either
 advertised feature retains the port's fixed platform transport.
-Do not use the `tests/vcpkg` scripts for this release validation: they
-intentionally build the local SDK checkout instead of the pinned archive.
-The helper does not build, commit, push, or open a PR. After validating the port,
+The `tests/vcpkg` scripts cover local-source builds; release validation must use
+the published archive. After validating the port,
 commit its changes, update the vcpkg version database, and submit the registry PR
 using your normal local GitHub authentication.
 
-### Dependency and transport selection
+### Dependency selection
 
 The SDK consumes canonical CMake dependency targets. The vcpkg toolchain
-provides those targets through normal `find_package()` discovery; no separate
-SDK-specific dependency-mode switch is required. Android transport selection is
-separate: the registry fixes `MATSDK_ANDROID_HTTP_CLIENT=JAVA` on Android;
-the development overlay's explicit Android curl features select the native curl
-transport instead.
+provides those targets through normal `find_package()` discovery.
 
-Installed packages record each dependency's actual provider rather than
-inferring it from the consumer's platform. Static packages reconstruct discovered
-packages, Apple system libraries, or bundled archives as appropriate; shared
-packages do not rediscover private SQLite, zlib, or curl dependencies. If a source
+Installed static packages reconstruct their recorded dependency providers:
+discovered packages, Apple system libraries, or bundled archives. Shared
+packages keep SQLite, zlib, and curl private. If a source
 embedding build supplied canonical dependency targets itself, its installed
 static package requires the consuming project to define those same targets
 (`SQLite3::SQLite3`, `ZLIB::ZLIB`, or `CURL::libcurl`, as applicable) before
-`find_package(MSTelemetry)`. Missing caller-provided targets fail explicitly
-instead of silently selecting a different dependency.
+`find_package(MSTelemetry)`. Missing caller-provided targets produce an explicit
+configuration error.
+If a discovered dependency package is unavailable, an optional
+`find_package(MSTelemetry)` reports the SDK as not found; a required lookup fails
+before importing the SDK target.
 
 ## Migrating from the older overlay port
 

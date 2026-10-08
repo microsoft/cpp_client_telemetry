@@ -5,18 +5,25 @@ include("${CMAKE_CURRENT_LIST_DIR}/MatsdkDependencyTargets.cmake")
 
 # Recreate dependencies only when a static package needs them at the final link.
 if(@MATSDK_CONFIG_STATIC_PACKAGE@)
-  matsdk_add_package_system_dependency(
+  # find_dependency must run at config scope so failure stops package loading.
+  if("@MATSDK_SQLITE_DEPENDENCY_KIND@" STREQUAL "PACKAGE"
+     AND NOT TARGET SQLite3::SQLite3
+     AND NOT TARGET "@MATSDK_SQLITE_PACKAGE_TARGET@")
+    find_dependency(@MATSDK_SQLITE_PACKAGE_NAME@)
+  endif()
+  if("@MATSDK_ZLIB_DEPENDENCY_KIND@" STREQUAL "PACKAGE" AND NOT TARGET ZLIB::ZLIB)
+    find_dependency(ZLIB)
+  endif()
+  matsdk_add_package_dependency(
     MSTelemetry::sqlite_dependency
     SQLite3::SQLite3
-    "@MATSDK_SQLITE_PROVIDER_RESOLVED@"
     "@MATSDK_SQLITE_PACKAGE_NAME@"
     KIND "@MATSDK_SQLITE_DEPENDENCY_KIND@"
     LEGACY_TARGET "@MATSDK_SQLITE_PACKAGE_TARGET@"
     APPLE_LIBRARY sqlite3)
-  matsdk_add_package_system_dependency(
+  matsdk_add_package_dependency(
     MSTelemetry::zlib_dependency
     ZLIB::ZLIB
-    "@MATSDK_ZLIB_PROVIDER_RESOLVED@"
     ZLIB
     KIND "@MATSDK_ZLIB_DEPENDENCY_KIND@"
     APPLE_LIBRARY z)
@@ -40,7 +47,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
 endif()
 
 if(@MATSDK_CONFIG_STATIC_PACKAGE@ AND @MATSDK_NEEDS_CURL@)
-  if(@MATSDK_CURL_FETCHED@)
+  if("@MATSDK_CURL_DEPENDENCY_KIND@" STREQUAL "BUNDLED")
     function(_matsdk_import_static target_name archive_name)
       if(NOT TARGET "${target_name}")
         add_library("${target_name}" STATIC IMPORTED GLOBAL)
@@ -82,14 +89,15 @@ if(@MATSDK_CONFIG_STATIC_PACKAGE@ AND @MATSDK_NEEDS_CURL@)
     _matsdk_import_static(MSTelemetry::curl_archive libcurl.a)
     set_property(TARGET MSTelemetry::curl_archive PROPERTY
       INTERFACE_LINK_LIBRARIES "${_matsdk_curl_tls_targets}")
-  else()
-    matsdk_add_package_system_dependency(
-      MSTelemetry::curl_dependency CURL::libcurl SYSTEM CURL
-      KIND "@MATSDK_CURL_DEPENDENCY_KIND@")
-  endif()
-  if(@MATSDK_CURL_FETCHED@)
     matsdk_add_interface_dependency(
       MSTelemetry::curl_dependency MSTelemetry::curl_archive)
+  else()
+    if("@MATSDK_CURL_DEPENDENCY_KIND@" STREQUAL "PACKAGE" AND NOT TARGET CURL::libcurl)
+      find_dependency(CURL)
+    endif()
+    matsdk_add_package_dependency(
+      MSTelemetry::curl_dependency CURL::libcurl CURL
+      KIND "@MATSDK_CURL_DEPENDENCY_KIND@")
   endif()
 endif()
 
