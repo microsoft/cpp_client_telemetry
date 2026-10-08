@@ -106,7 +106,8 @@ let package = Package(
         //       checksum: "<output of swift package compute-checksum>"),
         .binaryTarget(
             name: "MATTelemetry",
-            path: "build/apple/MATTelemetry.xcframework"),
+            url: "https://github.com/microsoft/cpp_client_telemetry/releases/download/v3.10.281.1/MATTelemetry.xcframework.zip",
+            checksum: "799b956dde6c6dccdc46b762b14eca55f677608f81b12879031fbd9c91470812"),
 
         // Thin Swift API layer (source). Depends on the Obj-C module from the
         // xcframework. The conditional source exclusions above must stay in sync
