@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
 project(MSTelemetry LANGUAGES C CXX)
-if(APPLE)
-  set(MATSDK_BUILD_PLATFORM_APPLE TRUE)
-else()
-  set(MATSDK_BUILD_PLATFORM_APPLE FALSE)
+
+# Snapshot caller targets before curl discovery can import storage dependencies.
+set(MATSDK_SQLITE_DEPENDENCY_KIND PACKAGE)
+if(TARGET SQLite3::SQLite3 OR TARGET SQLite::SQLite3)
+  set(MATSDK_SQLITE_DEPENDENCY_KIND PROVIDED)
+endif()
+set(MATSDK_ZLIB_DEPENDENCY_KIND PACKAGE)
+if(TARGET ZLIB::ZLIB)
+  set(MATSDK_ZLIB_DEPENDENCY_KIND PROVIDED)
 endif()
 
 ################################################################################################
@@ -178,8 +183,8 @@ endif()
 
 # Only use custom curl if compiling with CPP11 PAL
 set(MATSDK_NEEDS_CURL OFF)
-set(MATSDK_CURL_FETCHED OFF)
 set(MATSDK_CURL_LINK_TARGET "")
+set(MATSDK_CURL_DEPENDENCY_KIND NONE)
 if(PAL_IMPLEMENTATION STREQUAL "CPP11"
    AND NOT MATSDK_PLATFORM_IOS
    AND (NOT CMAKE_SYSTEM_NAME STREQUAL "Android" OR MATSDK_ANDROID_USES_CURL)
@@ -189,11 +194,12 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
     HAVE_MAT_CURL_HTTP_CLIENT)
   if(TARGET CURL::libcurl)
     set(MATSDK_CURL_LINK_TARGET CURL::libcurl)
+    set(MATSDK_CURL_DEPENDENCY_KIND PROVIDED)
   elseif(MATSDK_CURL_PROVIDER_UPPER STREQUAL "FETCH")
     include(cmake/MatsdkFetchCurl.cmake)
     matsdk_fetch_curl(_matsdk_curl_target)
     set(MATSDK_CURL_LINK_TARGET "${_matsdk_curl_target}")
-    set(MATSDK_CURL_FETCHED ON)
+    set(MATSDK_CURL_DEPENDENCY_KIND BUNDLED)
   else()
     find_package(CURL REQUIRED)
     if(NOT TARGET CURL::libcurl)
@@ -201,19 +207,32 @@ if(PAL_IMPLEMENTATION STREQUAL "CPP11"
         "find_package(CURL) did not create the required CURL::libcurl target.")
     endif()
     set(MATSDK_CURL_LINK_TARGET CURL::libcurl)
+    set(MATSDK_CURL_DEPENDENCY_KIND PACKAGE)
   endif()
 endif()
 
 ################################################################################################
 # Canonical dependency targets
 ################################################################################################
+set(MATSDK_SQLITE_PACKAGE_NAME SQLite3)
+set(MATSDK_SQLITE_PACKAGE_TARGET SQLite::SQLite3)
+if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
+  set(MATSDK_SQLITE_DEPENDENCY_KIND NONE)
+elseif(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM")
+  set(MATSDK_SQLITE_DEPENDENCY_KIND BUNDLED)
+endif()
+if(NOT MATSDK_ZLIB_PROVIDER_RESOLVED STREQUAL "SYSTEM")
+  set(MATSDK_ZLIB_DEPENDENCY_KIND BUNDLED)
+endif()
 if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
   matsdk_add_interface_dependency(SQLite3::SQLite3 SQLite::SQLite3)
 endif()
 if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite3::SQLite3)
   if(APPLE AND NOT MATSDK_USING_VCPKG)
     matsdk_add_apple_system_library(SQLite3::SQLite3 sqlite3)
+    set(MATSDK_SQLITE_DEPENDENCY_KIND APPLE_SYSTEM)
   else()
+    set(MATSDK_SQLITE_DEPENDENCY_KIND PACKAGE)
     find_package(SQLite3 QUIET)
     if(TARGET SQLite::SQLite3 AND NOT TARGET SQLite3::SQLite3)
       matsdk_add_interface_dependency(SQLite3::SQLite3 SQLite::SQLite3)
@@ -222,6 +241,8 @@ if(MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET SQLite3::SQL
       find_package(unofficial-sqlite3 CONFIG REQUIRED)
       matsdk_add_interface_dependency(
         SQLite3::SQLite3 unofficial::sqlite3::sqlite3)
+      set(MATSDK_SQLITE_PACKAGE_NAME unofficial-sqlite3)
+      set(MATSDK_SQLITE_PACKAGE_TARGET unofficial::sqlite3::sqlite3)
     endif()
     if(NOT TARGET SQLite3::SQLite3)
       message(FATAL_ERROR
@@ -234,8 +255,10 @@ endif()
 if(MATSDK_ZLIB_PROVIDER_RESOLVED STREQUAL "SYSTEM" AND NOT TARGET ZLIB::ZLIB)
   if(APPLE AND NOT MATSDK_USING_VCPKG)
     matsdk_add_apple_system_library(ZLIB::ZLIB z)
+    set(MATSDK_ZLIB_DEPENDENCY_KIND APPLE_SYSTEM)
   else()
     find_package(ZLIB REQUIRED)
+    set(MATSDK_ZLIB_DEPENDENCY_KIND PACKAGE)
   endif()
 endif()
 

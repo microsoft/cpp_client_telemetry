@@ -10,6 +10,18 @@ if(MSVC AND VCPKG_TARGET_TRIPLET MATCHES "-static$")
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
+option(MATSDK_TEST_PRELOAD_DEPENDENCIES
+  "Supply canonical targets required by a caller-provided static SDK package" OFF)
+if(MATSDK_TEST_PRELOAD_DEPENDENCIES)
+  find_package(CURL REQUIRED)
+  find_package(SQLite3 REQUIRED)
+  if(NOT TARGET SQLite3::SQLite3)
+    add_library(SQLite3::SQLite3 INTERFACE IMPORTED)
+    set_property(TARGET SQLite3::SQLite3 PROPERTY INTERFACE_LINK_LIBRARIES SQLite::SQLite3)
+  endif()
+  find_package(ZLIB REQUIRED)
+endif()
+
 find_package(MSTelemetry CONFIG REQUIRED)
 
 get_target_property(SDK_COMPILE_OPTIONS MSTelemetry::mat INTERFACE_COMPILE_OPTIONS)

@@ -532,7 +532,17 @@ set(MATSDK_SQLITE_MINIMAL_DEFS
 )
 
 if(MATSDK_BUNDLE_SQLITE AND NOT TARGET sqlite3_bundled)
+  include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MatsdkSqliteNamespace.cmake")
+  add_library(matsdk_sqlite_namespace INTERFACE)
+  matsdk_namespace_sqlite(matsdk_sqlite_namespace
+    "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/matsdk-sqlite-symbols.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3_retail.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3_debug.c")
+  target_link_libraries(matsdk_internal_config INTERFACE matsdk_sqlite_namespace)
   add_library(sqlite3_bundled STATIC "${CMAKE_CURRENT_SOURCE_DIR}/../sqlite/sqlite3.c")
+  target_link_libraries(sqlite3_bundled PRIVATE
+    "$<BUILD_INTERFACE:matsdk_sqlite_namespace>")
   # Consumers of MSTelemetry::mat never include sqlite3.h (it is an internal
   # implementation detail), so the header path is only needed while building the
   # SDK itself -- wrap it in BUILD_INTERFACE so install(EXPORT) stays valid.

@@ -1,4 +1,4 @@
-"""Regression tests for promoting the release overlay into the registry."""
+"""Regression tests for promoting the release registry recipe."""
 
 import importlib.util
 import json
@@ -21,7 +21,7 @@ class ReleasePortTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         root = Path(self.temporary.name)
-        self.source = root / "release" / "tools" / "ports" / "cpp-client-telemetry"
+        self.source = root / "release" / "tools" / "registry-ports" / "cpp-client-telemetry"
         self.source.mkdir(parents=True)
         self.destination = root / "vcpkg" / "ports" / "cpp-client-telemetry"
         self.destination.mkdir(parents=True)
@@ -35,14 +35,14 @@ class ReleasePortTests(unittest.TestCase):
             marker.touch()
         (self.destination / "obsolete.patch").write_text("old patch", encoding="utf-8")
         self.manifest = json.loads(
-            (REPO_ROOT / "tools" / "ports" / "cpp-client-telemetry" / "vcpkg.json").read_text(
+            (REPO_ROOT / "tools" / "registry-ports" / "cpp-client-telemetry" / "vcpkg.json").read_text(
                 encoding="utf-8"
             )
         )
         self.manifest["port-version"] = 7
         self.write_manifest()
         self.portfile = (
-            REPO_ROOT / "tools" / "ports" / "cpp-client-telemetry" / "portfile.cmake"
+            REPO_ROOT / "tools" / "registry-ports" / "cpp-client-telemetry" / "portfile.cmake"
         ).read_text(encoding="utf-8")
         (self.source / "portfile.cmake").write_text(self.portfile, encoding="utf-8")
 
@@ -62,16 +62,21 @@ class ReleasePortTests(unittest.TestCase):
         portfile = (self.destination / "portfile.cmake").read_text(encoding="utf-8")
         self.assertIn("REF v3.10.999.1\n", portfile)
         self.assertIn(f"SHA512 {'a' * 128}\n", portfile)
-        self.assertIn("-DMATSDK_SQLITE_PROVIDER=${MATSDK_VCPKG_SQLITE_PROVIDER}", portfile)
+        self.assertIn("-DMATSDK_SQLITE_PROVIDER=SYSTEM", portfile)
+        self.assertIn("-DMATSDK_ZLIB_PROVIDER=SYSTEM", portfile)
         self.assertIn("-DMATSDK_ANDROID_HTTP_CLIENT=${MATSDK_ANDROID_HTTP_CLIENT}", portfile)
-        self.assertIn("${MATSDK_NATIVE_FEATURE_OPTIONS}", portfile)
+        self.assertIn("set(MATSDK_ANDROID_HTTP_CLIENT JAVA)", portfile)
+        self.assertIn("-DMATSDK_USE_WININET=OFF", portfile)
+        self.assertNotIn("MATSDK_DISABLE_EXCEPTIONS", portfile)
+        self.assertNotIn("MATSDK_DISABLE_LOGGING", portfile)
+        self.assertNotIn("MATSDK_CURL_TLS_BACKEND", portfile)
+        self.assertIn("${FEATURE_OPTIONS}", portfile)
         for feature, option in (
-            ("no-exceptions", "MATSDK_DISABLE_EXCEPTIONS"),
-            ("no-logging", "MATSDK_DISABLE_LOGGING"),
+            ("device-id", "MATSDK_ENABLE_DEVICE_ID"),
             ("android-capi-http-client", "MATSDK_ENABLE_CAPI_HTTP_CLIENT"),
         ):
             self.assertIn(feature, actual["features"])
-            self.assertIn(f"{feature}|{option}", portfile)
+            self.assertIn(f"{feature} {option}", portfile)
         self.assertEqual((self.destination / "release.patch").read_text(), "new patch")
         self.assertFalse((self.destination / "obsolete.patch").exists())
         self.assertEqual(
@@ -81,7 +86,7 @@ class ReleasePortTests(unittest.TestCase):
         self.assertEqual((self.destination / "portfile.cmake").read_text(), portfile)
 
     def test_rejects_release_missing_required_features_before_replacing_port(self):
-        for feature in ("minimal-sqlite", "android-curl-openssl"):
+        for feature in ("device-id", "android-capi-http-client"):
             with self.subTest(feature=feature):
                 definition = self.manifest["features"].pop(feature)
                 self.write_manifest()
@@ -89,6 +94,49 @@ class ReleasePortTests(unittest.TestCase):
                     self.prepare()
                 self.assertTrue((self.destination / "obsolete.patch").exists())
                 self.manifest["features"][feature] = definition
+
+    def test_rejects_unsupported_features_without_replacing_port(self):
+        for feature in (
+            "minimal-sqlite", "no-exceptions", "no-logging", "system-sqlite",
+            "curl-openssl", "curl-mbedtls", "android-curl-openssl",
+            "android-curl-mbedtls", "wininet",
+            "unknown-feature",
+        ):
+            with self.subTest(feature=feature):
+                self.manifest["features"][feature] = {"description": "Unsupported feature"}
+                self.write_manifest()
+                with self.assertRaisesRegex(ValueError, feature):
+                    self.prepare()
+                self.assertTrue((self.destination / "obsolete.patch").exists())
+                del self.manifest["features"][feature]
+
+    def test_rejects_development_source_override_without_replacing_port(self):
+        (self.source / "portfile.cmake").write_text(
+            self.portfile + "\nset(SOURCE_PATH \"$ENV{MATSDK_VCPKG_SOURCE_DIR}\")\n",
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(ValueError, "source overrides"):
+            self.prepare()
+        self.assertTrue((self.destination / "obsolete.patch").exists())
+
+    def test_registry_core_contains_required_dependencies(self):
+        dependencies = {
+            item if isinstance(item, str) else item["name"]: item
+            for item in self.manifest["dependencies"]
+        }
+        for package in ("sqlite3", "zlib"):
+            self.assertIn(package, dependencies)
+            if isinstance(dependencies[package], dict):
+                self.assertNotIn("platform", dependencies[package])
+        self.assertEqual(dependencies["curl"]["platform"], "linux")
+        self.assertIn("openssl", dependencies["curl"]["features"])
+        self.assertEqual(
+            set(self.manifest["features"]), {"device-id", "android-capi-http-client"}
+        )
+        self.assertEqual(self.manifest["default-features"], ["device-id"])
+        self.assertEqual(
+            self.manifest["features"]["android-capi-http-client"]["supports"], "android"
+        )
 
     def test_rejects_missing_or_duplicate_archive_fields(self):
         for field in ("REF", "SHA512"):
@@ -124,7 +172,7 @@ class ReleasePortTests(unittest.TestCase):
 
     def test_rejects_overlapping_ports(self):
         with self.assertRaisesRegex(ValueError, "overlap"):
-            PREPARE.prepare_port(self.source, self.source, "3.10.999.1", "a" * 128)
+            PREPARE.prepare_port(self.destination, self.destination, "3.10.999.1", "a" * 128)
         self.assertTrue((self.source / "portfile.cmake").exists())
 
     def test_rejects_lookalike_non_vcpkg_destination_without_deleting_files(self):

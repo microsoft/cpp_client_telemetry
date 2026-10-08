@@ -368,13 +368,14 @@ The vcpkg port update is manual:
    current `microsoft/vcpkg` `master`.
 2. From the released SDK checkout, use the
    [port preparation helper](building-with-vcpkg.md#promoting-features-on-release)
-   to copy the complete overlay port and set the new release version and source
-   archive SHA512. Include the manifest and feature wiring, not just the tag.
+   to copy `tools/registry-ports/cpp-client-telemetry` and set the new release
+   version and source archive SHA512. Promote the complete recipe and preserve any
+   registry-specific patches still needed by the released source.
 3. Format the port manifest and build the production port from the published
    archive with `MATSDK_VCPKG_SOURCE_DIR` unset and without the SDK overlay.
-   Verify both the default graph and the release's advertised opt-in features.
-   Do not use the `tests/vcpkg` scripts for this step: they deliberately select
-   local SDK source rather than the pinned release archive.
+   Verify core-only, default, and advertised opt-in feature graphs, including
+   the union of retained additive features and external consumers of static and
+   shared packages. Confirm that feature unions retain the native transport.
 4. Commit the port changes.
 5. Run `vcpkg x-add-version cpp-client-telemetry --overwrite-version`.
 6. Commit the version-database changes and manually open a `microsoft/vcpkg` PR.

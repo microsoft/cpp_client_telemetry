@@ -83,6 +83,16 @@ jobs:
       run: |
         cmake --build build-embedding --target embedding_test --parallel 4
         ctest --test-dir build-embedding --output-on-failure
+    - name: Consume installed caller-provided package
+      if: matrix.preload-storage == 'ON'
+      run: |
+        cmake --install build-embedding --prefix "${RUNNER_TEMP}/matsdk"
+        cmake -G Ninja -S tests/vcpkg -B build-provided-consumer \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH="${RUNNER_TEMP}/matsdk" \
+          -DMATSDK_TEST_PRELOAD_DEPENDENCIES=ON
+        cmake --build build-provided-consumer --parallel 4
+        ctest --test-dir build-provided-consumer --output-on-failure
 
   windows:
     runs-on: windows-2022
@@ -99,6 +109,39 @@ jobs:
       run: |
         cmake --build build-embedding --config Release --target embedding_test -- /m
         ctest --test-dir build-embedding -C Release --output-on-failure
+
+  sqlite-coexistence:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-2022, macos-latest]
+        shared: ["OFF", "ON"]
+        sqlite: [MINIMAL, VENDORED]
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Install Linux HTTP dependencies
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+    - name: Configure source consumer
+      run: >
+        cmake -S tests/package-coexistence -B build-coexistence
+        -DCMAKE_BUILD_TYPE=Release
+        -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+        -DMATSDK_SQLITE_PROVIDER=${{ matrix.sqlite }}
+        -DMATSDK_ZLIB_PROVIDER=VENDORED
+    - name: Build, install, and test both consumers
+      shell: bash
+      run: |
+        cmake --build build-coexistence --config Release --parallel 4
+        ctest --test-dir build-coexistence -C Release --output-on-failure
+        cmake --install build-coexistence --config Release --prefix "${RUNNER_TEMP}/matsdk"
+        cmake -S tests/package-coexistence -B build-installed-coexistence \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DMATSDK_SQLITE_PROVIDER=${{ matrix.sqlite }} \
+          -DMATSDK_INSTALLED_PREFIX="${RUNNER_TEMP}/matsdk"
+        cmake --build build-installed-coexistence --config Release --parallel 4
+        ctest --test-dir build-installed-coexistence -C Release --output-on-failure
 
   installed-package-linux:
     runs-on: ubuntu-latest
