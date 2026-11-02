@@ -158,6 +158,7 @@ namespace MAT_NS_BEGIN
 
         virtual status_t Flush() final;
         virtual status_t UploadNow() final;
+        virtual status_t UploadMaxNow() final;
         virtual status_t PauseTransmission() final;
         virtual status_t ResumeTransmission() final;
         virtual status_t SetTransmitProfile(TransmitProfile profile) final;

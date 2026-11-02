@@ -1,4 +1,4 @@
-FROM centos:centos8
+FROM mipsdkcontainer.azurecr.io/centos8
 
 USER 0
 

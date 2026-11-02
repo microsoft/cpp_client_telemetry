@@ -6,7 +6,7 @@ This tutorial guides you through the process of integrating the 1DS SDK (Beta) i
 
 Prerequisites:
 
-* Mac OS X 10.10+
+* Mac OS X 11+
 * XCode 8+
 
 Dependencies:

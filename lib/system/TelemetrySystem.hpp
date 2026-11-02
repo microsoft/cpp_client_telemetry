@@ -55,6 +55,7 @@ namespace MAT_NS_BEGIN {
         ~TelemetrySystem();
 
         virtual bool upload() override;
+        virtual bool uploadMax() override;
         virtual void handleIncomingEventPrepared(IncomingEventContextPtr const& event) override;
 
     protected:

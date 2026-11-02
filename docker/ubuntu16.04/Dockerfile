@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM mipsdkcontainer.azurecr.io/ubuntu1604
 
 ENV DEBIAN_FRONTEND noninteractive
 

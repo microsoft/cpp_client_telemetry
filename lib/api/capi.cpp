@@ -348,6 +348,14 @@ static evt_status_t mat_upload(evt_context_t *ctx)
     return result;
 }
 
+static evt_status_t mat_uploadMax(evt_context_t *ctx)
+{
+    VERIFY_CLIENT_HANDLE(client, ctx);
+    const auto result = static_cast<evt_status_t>(client->logmanager->UploadMaxNow());
+    ctx->result = result;
+    return result;
+}
+
 static evt_status_t mat_flushAndTeardown(evt_context_t *ctx)
 {
     VERIFY_CLIENT_HANDLE(client, ctx);
@@ -441,6 +449,11 @@ extern "C" {
             case EVT_OP_FLUSHANDTEARDOWN:
                 result = mat_flushAndTeardown(ctx);
                 break;
+
+            case EVT_OP_UPLOADMAX:
+                result = mat_uploadMax(ctx);
+                break;
+
                 // Add more OPs here
 
             default:
