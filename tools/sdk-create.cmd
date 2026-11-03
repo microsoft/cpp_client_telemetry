@@ -16,9 +16,13 @@ set ProjectName=Microsoft.Applications.Telemetry.Windows
 mkdir %OUTDIR%\include
 mkdir %OUTDIR%\lib
 
-echo Copy codesign configs...
-copy /Y %ROOT%\tools\*.xml %OUTDIR%\
-if errorlevel 1 exit /b
+if exist "%ROOT%\tools\*.xml" (
+  echo Copy codesign configs...
+  copy /Y %ROOT%\tools\*.xml %OUTDIR%\
+  if errorlevel 1 exit /b
+) else (
+  echo No legacy codesign XML configs found; skipping config copy.
+)
 
 echo Copy header files...
 robocopy %ROOT%\lib\include\public %OUTDIR%\include
