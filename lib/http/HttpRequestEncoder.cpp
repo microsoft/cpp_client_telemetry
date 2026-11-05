@@ -4,8 +4,9 @@
 //
 
 #include "HttpRequestEncoder.hpp"
-#include "utils/StringUtils.hpp"
+#include "api/AuthTokensController.hpp"
 #include "pal/PAL.hpp"
+#include "utils/StringUtils.hpp"
 
 #include <memory>
 #include <string>
@@ -55,7 +56,7 @@ namespace MAT_NS_BEGIN {
         ctx->httpRequest->GetHeaders().set("Content-Type", "application/bond-compact-binary");
         ctx->httpRequest->GetHeaders().set("Upload-Time", toString(PAL::getUtcSystemTimeMs()));
 
-
+        std::unique_lock<std::mutex> tokensLock(AuthTokensController::GetMutex());
         if (GetAuthTokensController() != nullptr && GetAuthTokensController()->GetDeviceTokens().size() > 0)
         {
             std::map<TicketType, std::string>& map = GetAuthTokensController()->GetDeviceTokens();
@@ -134,6 +135,8 @@ namespace MAT_NS_BEGIN {
                 ctx->httpRequest->GetHeaders().set("Tickets", ticketHeader);
             }
         }
+        tokensLock.unlock();
+
         //strict mode
         if (GetAuthTokensController() != nullptr && true == GetAuthTokensController()->GetStrictMode())
         {

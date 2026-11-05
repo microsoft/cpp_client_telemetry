@@ -22,10 +22,17 @@ namespace MAT_NS_BEGIN {
         LOG_TRACE("destructor");
     }
 
+    std::mutex& AuthTokensController::GetMutex()
+    {
+        static std::mutex mutex;
+        return mutex;
+    }
+
     status_t  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)
     {
         if (nullptr != tokenValue)
         {
+            std::lock_guard<std::mutex> lock(GetMutex());
             if (type == TicketType::TicketType_MSA_Device ||
                 type == TicketType::TicketType_AAD ||
                 type == TicketType::TicketType_XAuth_Device ||
@@ -35,7 +42,10 @@ namespace MAT_NS_BEGIN {
             }
             else
             {
-                m_tickets.push_back(TICKETS_PREPEND_STRING + std::to_string(type));
+                if (m_userTokens.find(type) == m_userTokens.end())
+                {
+                    m_tickets.push_back(TICKETS_PREPEND_STRING + std::to_string(type));
+                }
                 m_userTokens[type] = std::string(tokenValue);
             }
             return STATUS_SUCCESS;
@@ -45,6 +55,7 @@ namespace MAT_NS_BEGIN {
 
     status_t  AuthTokensController::Clear()
     {
+        std::lock_guard<std::mutex> lock(GetMutex());
         m_deviceTokens.clear();
         m_userTokens.clear();
         m_tickets.clear();
@@ -53,12 +64,14 @@ namespace MAT_NS_BEGIN {
 
     status_t  AuthTokensController::SetStrictMode(bool value)
     {
+        std::lock_guard<std::mutex> lock(GetMutex());
         m_IsStrictModeEnabled = value;
         return STATUS_EFAIL;
     }
 
     bool  AuthTokensController::GetStrictMode()
     {
+        std::lock_guard<std::mutex> lock(GetMutex());
         return m_IsStrictModeEnabled;
     }
 
