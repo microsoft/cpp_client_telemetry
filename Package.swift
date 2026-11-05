@@ -6,7 +6,7 @@
 // Swift Package Manager manifest for the 1DS C++ SDK (Microsoft Applications
 // Telemetry) on Apple platforms.
 //
-// PROTOTYPE — distribution model:
+// Distribution model:
 //   * The compiled C++ core + Obj-C wrappers ship as a prebuilt binary
 //     xcframework (built by tools/apple/build-xcframework.sh). This avoids
 //     compiling the CMake/Bond/sqlite/zlib C++ tree through SPM, which is not
@@ -14,17 +14,20 @@
 //   * The thin Swift wrapper (wrappers/swift/Sources/OneDSSwift) is compiled
 //     from source on top of the Obj-C module vended by the xcframework.
 //
-// Local development:
+// Uses the official release xcframework by default; no local C++ build is needed.
+//
+// Local development (opt-in):
 //   1. Run `tools/apple/build-xcframework.sh release` on macOS with Xcode.
 //      It produces ./build/apple/MATTelemetry.xcframework.
-//   2. `swift build` validates macOS consumption; for iOS / Mac Catalyst /
+//   2. `MATSDK_SPM_USE_LOCAL_XCFRAMEWORK=1 swift build` validates macOS
+//      consumption; for iOS / Mac Catalyst /
 //      visionOS, add this package as a local dependency or build the package
 //      with the desired Xcode destination.
 //
 // Release distribution (so consumers can add the repo by URL in Xcode):
 //   .github/workflows/spm-release.yml builds, validates, and uploads the
-//   xcframework, rewrites the local `.binaryTarget(... path:)` below to
-//   `url:`+`checksum:`, removes repository submodules from the tag-only commit,
+//   xcframework, updates the hosted binary target's URL and checksum below,
+//   removes repository submodules from the tag-only commit,
 //   validates that commit through a clean consumer, and pushes the
 //   3-component SemVer tag that SPM can resolve. Because vX.Y.Z.W release tags
 //   map to one X.Y.Z SPM tag, only one build per three-component version can
@@ -35,12 +38,12 @@ import PackageDescription
 import Foundation
 
 let packageDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+let useLocalXCFramework = ProcessInfo.processInfo.environment["MATSDK_SPM_USE_LOCAL_XCFRAMEWORK"] == "1"
 
 func readAvailability() -> [String: Bool] {
-    let candidates = [
-        "build/apple/MATTelemetryAvailability.json",
-        "tools/apple/MATTelemetryAvailability.json",
-    ]
+    let candidates = useLocalXCFramework
+        ? ["build/apple/MATTelemetryAvailability.json", "tools/apple/MATTelemetryAvailability.json"]
+        : ["tools/apple/MATTelemetryAvailability.json"]
 
     for relativePath in candidates {
         let url = packageDirectory.appendingPathComponent(relativePath).standardizedFileURL
@@ -97,16 +100,12 @@ let package = Package(
         // Prebuilt C++ core + Obj-C wrappers. The xcframework's bundled
         // module map vends the Clang module `MATTelemetryObjC` (see
         // tools/apple/module.modulemap), which the Swift layer imports.
-        //
-        // For a tagged release, swap the local path for the hosted artifact:
-        //
-        //   .binaryTarget(
-        //       name: "MATTelemetry",
-        //       url: "https://github.com/microsoft/cpp_client_telemetry/releases/download/v3.10.161.1/MATTelemetry.xcframework.zip",
-        //       checksum: "<output of swift package compute-checksum>"),
-        .binaryTarget(
+        useLocalXCFramework ? .binaryTarget(
             name: "MATTelemetry",
-            path: "build/apple/MATTelemetry.xcframework"),
+            path: "build/apple/MATTelemetry.xcframework") : .binaryTarget(
+            name: "MATTelemetry",
+            url: "https://github.com/microsoft/cpp_client_telemetry/releases/download/v3.10.281.1/MATTelemetry.xcframework.zip",
+            checksum: "799b956dde6c6dccdc46b762b14eca55f677608f81b12879031fbd9c91470812"),
 
         // Thin Swift API layer (source). Depends on the Obj-C module from the
         // xcframework. The conditional source exclusions above must stay in sync
