@@ -581,6 +581,67 @@ TEST_F(HttpClientTests, HandlesLocalErrors)
 }
 
 #if defined(MAT_TEST_APPLE_TRANSPORT)
+namespace MAT_NS_BEGIN
+{
+    void CompleteAppleResponseForTest(IHttpResponseCallback* callback,
+                                      bool cancelRequested,
+                                      unsigned statusCode,
+                                      int errorCode,
+                                      size_t headerSize);
+}
+MAT_NS_END
+
+TEST_F(HttpClientTests, CompletedAppleResponseSurvivesPendingCancellation)
+{
+    CompleteAppleResponseForTest(this, true, 200, 0, 4);
+
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_EQ(_responses[0]->GetResult(), HttpResult_OK);
+    EXPECT_EQ(_responses[0]->GetStatusCode(), 200u);
+    EXPECT_EQ(_responses[0]->GetHeaders().get("X-Test"), "xxxx");
+    const auto& body = _responses[0]->GetBody();
+    EXPECT_EQ(std::string(body.begin(), body.end()), "{\"acc\":1}");
+}
+
+TEST_F(HttpClientTests, PendingAppleCancellationDoesNotAcceptUnconfirmedResponses)
+{
+    struct ResponseCase
+    {
+        unsigned status;
+        int error;
+        size_t headerSize;
+    };
+    const ResponseCase cases[] = {
+        {200, -999, 4},   // NSURLErrorCancelled
+        {200, -1005, 4},  // NSURLErrorNetworkConnectionLost
+        {0, 0, 4},
+        {200, 0, MAX_HTTP_RESPONSE_HEADERS_SIZE},
+        {201, 0, 4},
+        {500, 0, 4},
+    };
+    for (const auto& test : cases)
+    {
+        SCOPED_TRACE(::testing::Message() << test.status << ", " << test.error << ", " << test.headerSize);
+        Clear();
+        CompleteAppleResponseForTest(this, true, test.status, test.error, test.headerSize);
+        ASSERT_EQ(_responses.size(), 1u);
+        EXPECT_EQ(_responses[0]->GetResult(), HttpResult_Aborted);
+        EXPECT_TRUE(_responses[0]->GetBody().empty());
+    }
+}
+
+TEST_F(HttpClientTests, AppleResponseValidationWithoutCancellationIsUnchanged)
+{
+    CompleteAppleResponseForTest(this, false, 200, 0, 4);
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_EQ(_responses[0]->GetResult(), HttpResult_OK);
+
+    Clear();
+    CompleteAppleResponseForTest(this, false, 200, 0, MAX_HTTP_RESPONSE_HEADERS_SIZE);
+    ASSERT_EQ(_responses.size(), 1u);
+    EXPECT_EQ(_responses[0]->GetResult(), HttpResult_NetworkFailure);
+}
+
 TEST_F(HttpClientTests, InvalidUtf8UrlCompletesExactlyOnce)
 {
     // The request must outlive the whole exchange: keep ownership here (the Apple
