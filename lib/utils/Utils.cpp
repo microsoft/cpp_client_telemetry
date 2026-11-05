@@ -27,6 +27,10 @@
 #include <unistd.h>
 #endif
 
+#if defined(USE_BACKTRACE) && defined(__unix__)
+#include <execinfo.h>
+#endif
+
 #include <string>
 
 #include <thread>
