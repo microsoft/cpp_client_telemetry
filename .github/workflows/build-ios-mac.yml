@@ -63,18 +63,18 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-14, macos-15]
+        os: [macos-26, macos-15]
         config: [release, debug]
-        simulator: ["'iPhone 15'", "'iPad Pro (11-inch) (4th generation)'", "'iPhone 16'", "'iPad Air 11-inch (M2)'"]
+        simulator: ["'iPhone 17'", "'iPad Pro 11-inch (M5)'", "'iPhone 16'", "'iPad Air 11-inch (M2)'"]
         exclude:
-          - os: macos-14
+          - os: macos-26
             simulator: "'iPhone 16'"
-          - os: macos-14
+          - os: macos-26
             simulator: "'iPad Air 11-inch (M2)'"
           - os: macos-15
-            simulator: "'iPhone 15'"
+            simulator: "'iPhone 17'"
           - os: macos-15
-            simulator: "'iPad Pro (11-inch) (4th generation)'"
+            simulator: "'iPad Pro 11-inch (M5)'"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     env:
@@ -88,7 +88,7 @@ jobs:
       run: git submodule update --init --depth=1 third_party/googletest
     - name: build
       run: |
-        if [[ "${{ matrix.os }}" == "macos-14" ]]; then
+        if [[ "${{ matrix.os }}" == "macos-26" ]]; then
           export CMAKE_OSX_DEPLOYMENT_TARGET=13.0;
         elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
           export CMAKE_OSX_DEPLOYMENT_TARGET=15.0;
