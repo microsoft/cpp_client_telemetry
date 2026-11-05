@@ -73,15 +73,18 @@ tools/apple/build-xcframework.sh release
 # -> prints the SwiftPM checksum
 ```
 
-For local development, `Package.swift` points at
-`build/apple/MATTelemetry.xcframework`. `swift build` validates macOS
+By default, `Package.swift` downloads the official release xcframework with its
+pinned checksum; no local C++ build is needed. To use
+`build/apple/MATTelemetry.xcframework` for local development, run
+`MATSDK_SPM_USE_LOCAL_XCFRAMEWORK=1 swift build`. This validates macOS
 consumption; use Xcode destinations for iOS Simulator, Mac Catalyst, and
-visionOS Simulator.
+visionOS Simulator with the same environment variable. Local availability
+metadata is used only in this opt-in mode.
 
 ## Consumption
 
-- **Local:** add this repository as a local package dependency after building
-  `build/apple/MATTelemetry.xcframework`.
+- **Checkout:** run `swift build` or add this repository as a local package
+  dependency to use the official prebuilt binary without building the C++ SDK.
 - **Released:** add the repository URL in Xcode and pin the parallel
   3-component SemVer tag published by the release workflow:
 
@@ -101,7 +104,7 @@ dispatch. It:
 2. Validates package consumption for macOS, iOS Simulator, Mac Catalyst, and
    visionOS Simulator.
 3. Uploads the zip to the GitHub Release.
-4. Rewrites `Package.swift` from local `path:` to hosted `url:` + `checksum:`.
+4. Updates the hosted `url:` + `checksum:` in `Package.swift` for the new release.
 5. Creates a self-contained tag commit without the repository's submodules.
 6. Resolves and builds that tag from a clean external Swift package.
 7. Pushes the 3-component SPM tag.
