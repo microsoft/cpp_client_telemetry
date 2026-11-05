@@ -2,8 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 //
-#include "mat/config.h"
 #include "BaseDecorator.hpp"
+#include "api/AuthTokensController.hpp"
+#include "mat/config.h"
 
 namespace MAT_NS_BEGIN {
 
@@ -54,6 +55,7 @@ namespace MAT_NS_BEGIN {
         }
 
         //set Tickets
+        std::lock_guard<std::mutex> lock(AuthTokensController::GetMutex());
         if ((m_owner.GetAuthTokensController()) &&
             (m_owner.GetAuthTokensController()->GetTickets().size() > 0))
         {

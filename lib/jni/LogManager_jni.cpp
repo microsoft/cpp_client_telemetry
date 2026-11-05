@@ -1242,6 +1242,36 @@ Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_na
     }
     return logManager->ResumeTransmission();
 }
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetIntTicketToken(
+    JNIEnv* env,
+    jobject /* thiz */,
+    jlong nativeLogManager,
+    jint type,
+    jstring tokenValue)
+{
+    auto logManager = getLogManager(nativeLogManager);
+    if (!logManager)
+    {
+        return STATUS_EFAIL;
+    }
+
+    auto ticketValue = JStringToStdString(env, tokenValue);
+    if (env->ExceptionCheck())
+    {
+        return STATUS_EFAIL;
+    }
+
+    auto controller = logManager->GetAuthTokensController();
+    if (!controller)
+    {
+        return STATUS_EFAIL;
+    }
+    return static_cast<jint>(controller->SetTicketToken(
+        static_cast<TicketType>(type), ticketValue.c_str()));
+}
+
 extern "C" JNIEXPORT jint JNICALL
 Java_com_microsoft_applications_events_LogManagerProvider_00024LogManagerImpl_nativeSetTransmitProfileTP(
     JNIEnv* env,
