@@ -15,6 +15,10 @@ namespace MAT_NS_BEGIN
     /// <summary>
     /// This class is used to manage the Events  logging system
     /// </summary>
+    /// <remarks>
+    /// The reference-returning getters expose live state. Application code must not
+    /// access these references concurrently with token updates or Clear().
+    /// </remarks>
     class MATSDK_LIBABI IAuthTokensController
     {
     public:

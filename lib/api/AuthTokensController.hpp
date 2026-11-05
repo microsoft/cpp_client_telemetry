@@ -11,6 +11,7 @@
 #include "IAuthTokensController.hpp"
 
 #include <map>
+#include <mutex>
 #include <vector>
 
 // *INDENT-OFF*
@@ -24,6 +25,11 @@ namespace MAT_NS_BEGIN
     public:
 
         AuthTokensController();
+
+        // Hold this lock throughout SDK reads of the reference-returning public getters.
+        // Sharing it across controllers preserves the public interface and object layout.
+        static std::mutex& GetMutex();
+
         /// <summary>
         /// Destroy the telemetry logging system instance. Calls `FlushAndTeardown()` implicitly.
         /// </summary>
