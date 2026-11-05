@@ -378,7 +378,11 @@ public:
                 }
             }
 
-            if (cancelRequested)
+            // A late cancellation must not discard an acknowledgement from a
+            // completed transfer. Status 200 alone is insufficient if it failed.
+            const bool completedSuccess = error == nil && httpResp != nil &&
+                                          simpleResponse->m_statusCode == 200 && !headersTooLarge;
+            if (cancelRequested && !completedSuccess)
             {
                 simpleResponse->m_result = HttpResult_Aborted;
             }
@@ -463,7 +467,11 @@ public:
         return m_callback == nullptr && m_dataTask == nil;
     }
 
-private:
+   private:
+#if defined(MATSDK_APPLE_HTTP_TESTS)
+    friend MATSDK_LIBABI void CompleteAppleResponseForTest(IHttpResponseCallback*, bool, unsigned, int, size_t);
+#endif
+
     void Complete(HttpResult result)
     {
         IHttpResponseCallback* callback = nullptr;
@@ -516,6 +524,35 @@ private:
     bool m_cancelRequested = false;
     bool m_terminal = false;
 };
+
+#if defined(MATSDK_APPLE_HTTP_TESTS)
+MATSDK_LIBABI void CompleteAppleResponseForTest(IHttpResponseCallback* callback,
+                                                bool cancelRequested,
+                                                unsigned statusCode,
+                                                int errorCode,
+                                                size_t headerSize)
+{
+    @autoreleasepool
+    {
+        HttpClient_Apple parent;
+        HttpRequestApple request(&parent);
+        request.m_callback = callback;
+        if (cancelRequested)
+        {
+            request.Cancel();
+        }
+        NSString* value = [@"" stringByPaddingToLength:headerSize withString:@"x" startingAtIndex:0];
+        NSURL* url = [NSURL URLWithString:@"https://localhost/"];
+        NSHTTPURLResponse* response = statusCode == 0 ? nil : [[NSHTTPURLResponse alloc] initWithURL:url
+                                                                                          statusCode:statusCode
+                                                                                         HTTPVersion:@"HTTP/1.1"
+                                                                                        headerFields:@{@"X-Test" : value}];
+        NSError* error = errorCode == 0 ? nil : [NSError errorWithDomain:NSURLErrorDomain code:errorCode userInfo:nil];
+        NSData* body = [@"{\"acc\":1}" dataUsingEncoding:NSUTF8StringEncoding];
+        request.HandleResponse(body, response, error);
+    }
+}
+#endif
 
 HttpClient_Apple::HttpClient_Apple()
 {
