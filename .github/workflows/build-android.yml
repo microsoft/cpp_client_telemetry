@@ -31,6 +31,36 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  jni-lifetimes:
+    name: Android HTTP JNI lifetime regressions
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Setup Java
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - name: Build production client and regression harness
+      run: >-
+        cmake -S tests/android-http-client -B out-http-jni -G Ninja
+        -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"
+        -DANDROID_ABI=x86_64 -DANDROID_PLATFORM=android-30
+        -DANDROID_STL=c++_static -DCMAKE_BUILD_TYPE=Debug
+    - name: Compile JNI tests
+      run: cmake --build out-http-jni --target android-http-client-tests --parallel 2
+    - name: Enable KVM
+      run: sudo chmod a+rw /dev/kvm
+    - name: Run ART reference lifetime tests with CheckJNI
+      uses: reactivecircus/android-emulator-runner@324029e2f414c084d8b15ba075288885e74aef9c # v2.34.0
+      with:
+        api-level: 30
+        arch: x86_64
+        target: google_apis
+        disable-animations: true
+        script: python3 tests/android-http-client/run-tests.py --sdk "$ANDROID_HOME" --library out-http-jni/libandroid-http-client-tests.so
+
   no-exceptions:
     name: Android without C++ exceptions (${{ matrix.abi }}, Room=${{ matrix.room }})
     runs-on: ubuntu-latest
@@ -44,7 +74,8 @@ jobs:
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
     - name: Configure full JNI SDK
       run: >-
-        cmake -S . -B out-no-exceptions -G Ninja
+        cmake -S tests/android-storage -B out-no-exceptions -G Ninja
+        -DEXPECT_ROOM=${{ matrix.room }}
         -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"
         -DANDROID_ABI=${{ matrix.abi }}
         -DANDROID_PLATFORM=android-24
@@ -59,6 +90,8 @@ jobs:
         -DMATSDK_BUILD_PACKAGE=OFF
     - name: Compile full SDK
       run: cmake --build out-no-exceptions --target mat --parallel 2
+    - name: Verify storage option compatibility
+      run: cmake -P tests/android-storage/options-tests.cmake
 
   build:
     runs-on: windows-latest

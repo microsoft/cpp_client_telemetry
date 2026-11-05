@@ -18,6 +18,15 @@ option(MATSDK_BUILD_FUNC_TESTS
   "Build functional tests" "${MATSDK_PROJECT_IS_TOP_LEVEL}")
 option(MATSDK_BUILD_JNI_WRAPPER
   "Build the JNI wrapper" OFF)
+if(DEFINED USE_ROOM)
+  if(NOT DEFINED MATSDK_ANDROID_USE_ROOM)
+    set(MATSDK_ANDROID_USE_ROOM "${USE_ROOM}" CACHE BOOL
+      "Use Android Room for offline storage")
+  endif()
+  message(DEPRECATION
+    "USE_ROOM is deprecated; use MATSDK_ANDROID_USE_ROOM instead. "
+    "MATSDK_ANDROID_USE_ROOM=${MATSDK_ANDROID_USE_ROOM} takes precedence.")
+endif()
 option(MATSDK_ANDROID_USE_ROOM
   "Use Android Room for offline storage" OFF)
 option(MATSDK_ENABLE_CAPI_HTTP_CLIENT

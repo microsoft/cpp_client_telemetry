@@ -159,6 +159,8 @@ namespace MAT_NS_BEGIN
                 m_parent.EraseRequest(this);
             }
 
+            void ReleaseJavaRequest(JNIEnv* env);
+
            protected:
             HttpClient_Android& m_parent;
             HttpHeaders m_headers;
@@ -199,7 +201,6 @@ namespace MAT_NS_BEGIN
         std::vector<HttpRequest*> m_requests;
 
         jobject m_client = nullptr;
-        jclass m_client_class = nullptr;
         jmethodID m_send_id = nullptr;
         jmethodID m_create_id = nullptr;
         jmethodID m_execute_id = nullptr;
@@ -209,7 +210,7 @@ namespace MAT_NS_BEGIN
         static std::shared_ptr<HttpClient_Android> s_client;
         static std::string s_cache_file_path;
 
-        bool CheckException(JNIEnv* env, HttpRequest* request);
+        bool CheckException(JNIEnv* env, std::string const& id);
     };
 
 }

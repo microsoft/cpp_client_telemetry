@@ -10,6 +10,35 @@
 #include <sstream>
 #include <vector>
 
+namespace
+{
+    class LocalFrame
+    {
+       public:
+        explicit LocalFrame(JNIEnv* env) :
+            m_env(env), m_pushed(env->PushLocalFrame(16) == JNI_OK)
+        {
+        }
+
+        ~LocalFrame()
+        {
+            if (m_pushed)
+            {
+                m_env->PopLocalFrame(nullptr);
+            }
+        }
+
+        bool IsValid() const
+        {
+            return m_pushed;
+        }
+
+       private:
+        JNIEnv* m_env;
+        bool m_pushed;
+    };
+}
+
 namespace MAT_NS_BEGIN
 {
     HttpClient_Android::HttpRequest::~HttpRequest() noexcept
@@ -22,7 +51,16 @@ namespace MAT_NS_BEGIN
             {
                 return;
             }
+            ReleaseJavaRequest(env);
+        }
+    }
+
+    void HttpClient_Android::HttpRequest::ReleaseJavaRequest(JNIEnv* env)
+    {
+        if (m_java_request)
+        {
             env->DeleteGlobalRef(m_java_request);
+            m_java_request = nullptr;
         }
     }
 
@@ -88,7 +126,7 @@ namespace MAT_NS_BEGIN
                                               IHttpResponseCallback* callback)
     {
         JNIEnv* env = nullptr;
-        std::string const& target_id(request->GetId());
+        std::string const target_id(request->GetId());
 
         if (s_java_vm->AttachCurrentThread(&env, nullptr) != JNI_OK)
         {
@@ -134,14 +172,22 @@ namespace MAT_NS_BEGIN
             total_size += u.first.length() + u.second.length();
         }
 
-        static constexpr int FrameSize = 16;  // at most 16 local refs in the frame
-        auto pushed = env->PushLocalFrame(FrameSize);
-        if (CheckException(env, r))
+        LocalFrame frame(env);
+        if (CheckException(env, target_id))
         {
             return;
         }
+        if (!frame.IsValid())
+        {
+            auto failed = GetAndRemoveRequest(target_id);
+            if (failed)
+            {
+                CallbackForCancel(env, failed);
+            }
+            return;
+        }
         auto header_buffer = env->NewByteArray(static_cast<jsize>(total_size));
-        if (CheckException(env, r))
+        if (CheckException(env, target_id))
         {
             return;
         }
@@ -156,7 +202,7 @@ namespace MAT_NS_BEGIN
             {
                 env->SetByteArrayRegion(header_buffer, offset, key_len,
                                         reinterpret_cast<jbyte const*>(u.first.data()));
-                if (CheckException(env, r))
+                if (CheckException(env, target_id))
                 {
                     return;
                 }
@@ -168,7 +214,7 @@ namespace MAT_NS_BEGIN
             {
                 env->SetByteArrayRegion(header_buffer, offset, value_len,
                                         reinterpret_cast<jbyte const*>(u.second.data()));
-                if (CheckException(env, r))
+                if (CheckException(env, target_id))
                 {
                     return;
                 }
@@ -176,39 +222,39 @@ namespace MAT_NS_BEGIN
             offset += value_len;
         }
         auto header_lengths = env->NewIntArray(static_cast<jsize>(index_buffer.size()));
-        if (CheckException(env, r))
+        if (CheckException(env, target_id))
         {
             return;
         }
         env->SetIntArrayRegion(header_lengths, 0, index_buffer.size(), index_buffer.data());
-        if (CheckException(env, r))
+        if (CheckException(env, target_id))
         {
             return;
         }
 
         auto body = env->NewByteArray(r->m_body.size());
-        if (CheckException(env, r))
+        if (CheckException(env, target_id))
         {
             return;
         }
         env->SetByteArrayRegion(body, 0, r->m_body.size(),
                                 reinterpret_cast<const jbyte*>(r->m_body.data()));
-        if (CheckException(env, r))
+        if (CheckException(env, target_id))
         {
             return;
         }
         auto java_id = env->NewStringUTF(request->GetId().c_str());
-        if (CheckException(env, r))
+        if (CheckException(env, target_id))
         {
             return;
         }
         auto url_id = env->NewStringUTF(r->m_url.c_str());
-        if (CheckException(env, r))
+        if (CheckException(env, target_id))
         {
             return;
         }
         auto method_id = env->NewStringUTF(r->m_method.c_str());
-        if (CheckException(env, r))
+        if (CheckException(env, target_id))
         {
             return;
         }
@@ -231,10 +277,9 @@ namespace MAT_NS_BEGIN
                 header_lengths,
                 header_buffer);
         }
-        if (pushed == JNI_OK)
+        if (CheckException(env, target_id))
         {
-            // pass the return value "result" through the local frame pop
-            result = env->PopLocalFrame(result);
+            return;
         }
 
         HttpRequest* cancel_me = nullptr;
@@ -263,6 +308,10 @@ namespace MAT_NS_BEGIN
                 }
             }
         }
+        if (CheckException(env, target_id))
+        {
+            return;
+        }
         if (cancel_me)
         {
             CallbackForCancel(env, cancel_me);
@@ -270,6 +319,7 @@ namespace MAT_NS_BEGIN
         else
         {
             env->CallVoidMethod(m_client, m_execute_id, result);
+            CheckException(env, target_id);
         }
     }
 
@@ -278,8 +328,18 @@ namespace MAT_NS_BEGIN
         if (request->m_java_request && env)
         {
             auto request_class = env->GetObjectClass(request->m_java_request);
-            auto cancel_method = env->GetMethodID(request_class, "cancel", "(Z)Z");
-            env->CallBooleanMethod(request->m_java_request, cancel_method, static_cast<jboolean>(JNI_TRUE));
+            auto cancel_method = request_class ? env->GetMethodID(request_class, "cancel", "(Z)Z") : nullptr;
+            if (cancel_method)
+            {
+                env->CallBooleanMethod(request->m_java_request, cancel_method, static_cast<jboolean>(JNI_TRUE));
+            }
+            env->DeleteLocalRef(request_class);
+            request->ReleaseJavaRequest(env);
+            if (env->ExceptionCheck())
+            {
+                env->ExceptionDescribe();
+                env->ExceptionClear();
+            }
         }
         if (request->m_callback)
         {
@@ -379,11 +439,12 @@ namespace MAT_NS_BEGIN
             env->DeleteGlobalRef(m_client);
         }
         m_client = env->NewGlobalRef(client_);
-        m_client_class = env->GetObjectClass(m_client);
-        m_create_id = env->GetMethodID(m_client_class, "createTask",
+        auto client_class = env->GetObjectClass(m_client);
+        m_create_id = env->GetMethodID(client_class, "createTask",
                                        "(Ljava/lang/String;Ljava/lang/String;[BLjava/lang/String;[I[B)Ljava/util/concurrent/FutureTask;");
-        m_execute_id = env->GetMethodID(m_client_class, "executeTask",
+        m_execute_id = env->GetMethodID(client_class, "executeTask",
                                         "(Ljava/util/concurrent/FutureTask;)V");
+        env->DeleteLocalRef(client_class);
 
         env->GetJavaVM(&s_java_vm);
     }
@@ -485,7 +546,7 @@ namespace MAT_NS_BEGIN
         return s_client;
     }
 
-    bool HttpClient_Android::CheckException(JNIEnv* env, HttpRequest* request)
+    bool HttpClient_Android::CheckException(JNIEnv* env, std::string const& id)
     {
         if (env->ExceptionCheck() == JNI_FALSE)
         {
@@ -493,7 +554,11 @@ namespace MAT_NS_BEGIN
         }
         env->ExceptionDescribe();
         env->ExceptionClear();
-        CallbackForCancel(env, request);
+        auto request = GetAndRemoveRequest(id);
+        if (request)
+        {
+            CallbackForCancel(env, request);
+        }
         return true;
     }
 
@@ -559,6 +624,7 @@ extern "C" JNIEXPORT void
     {
         return;
     }
+    request->ReleaseJavaRequest(env);
     auto callback = request->GetCallback();
     auto response = new Microsoft::Applications::Events::HttpClient_Android::HttpResponse(request->GetId());
     response->SetResponse(statusCode);
