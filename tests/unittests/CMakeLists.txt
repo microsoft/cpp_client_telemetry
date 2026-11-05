@@ -1,5 +1,10 @@
 message(STATUS "Building unittests")
 
+if(APPLE AND PAL_IMPLEMENTATION STREQUAL "CPP11"
+    AND (MATSDK_BUILD_APPLE_HTTP OR MATSDK_PLATFORM_IOS))
+  target_compile_definitions(mat PRIVATE MATSDK_APPLE_HTTP_TESTS)
+endif()
+
 set(SRCS
   AIJsonSerializerTests.cpp
   AITelemetrySystemTests.cpp
