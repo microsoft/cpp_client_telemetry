@@ -665,12 +665,17 @@ namespace MAT_NS_BEGIN {
 
         if (m_offlineStorageDisk)
         {
+            const bool previousReadFromMemory = m_readFromMemory;
             m_readFromMemory = false;
             returnValue |= m_offlineStorageDisk->GetAndReserveRecords(consumer, leaseTimeMs, minLatency, maxCount);
             auto lastOfflineReadCount = m_offlineStorageDisk->LastReadRecordCount();
             if (lastOfflineReadCount)
             {
                 m_lastReadCount += lastOfflineReadCount;
+            }
+            else
+            {
+                m_readFromMemory = previousReadFromMemory;
             }
         }
 

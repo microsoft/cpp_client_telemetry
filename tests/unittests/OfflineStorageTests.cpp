@@ -259,6 +259,46 @@ namespace MAT_NS_BEGIN {
 
 } MAT_NS_END
 
+TEST_F(OfflineStorageTests, EmptyDiskReadPreservesFirstRamEventProvenance)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    NiceMock<MockIOfflineStorageObserver> observer;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;
+    auto memory = std::make_shared<MemoryStorage>(logManager, config);
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*disk, Initialize(Ref(handler)));
+    handler.Initialize(observer);
+    StorageObserver storage(testing::getSystem(), handler);
+    storage.retrievedEvent >> retrievedEvent;
+    storage.retrievalFinished >> retrievalFinished;
+
+    StorageRecord record("oversized", "tenant-token", EventLatency_Normal,
+                         EventPersistence_Normal, 1, std::vector<uint8_t>{'x'});
+    ASSERT_TRUE(memory->StoreRecord(record));
+    auto ctx = std::make_shared<EventsUploadContext>();
+    EXPECT_CALL(*this, resultRetrievedEvent(ctx, _, _))
+        .WillOnce(Invoke([](EventsUploadContextPtr const& upload, StorageRecord const& event, bool& wantMore)
+                         {
+                             // Packager includes an oversized first event but refuses subsequent events.
+                             upload->recordIdsAndTenantIds.emplace(event.id, event.tenantToken);
+                             wantMore = false; }));
+    EXPECT_CALL(*disk, GetAndReserveRecords(_, _, _, _)).WillOnce(Return(true));
+    EXPECT_CALL(*disk, LastReadRecordCount()).WillOnce(Return(0));
+    EXPECT_CALL(*this, resultRetrievalFinished(ctx));
+
+    storage.retrieveEvents(ctx);
+    EXPECT_TRUE(ctx->fromMemory);
+    EXPECT_TRUE(handler.IsLastReadFromMemory());
+    EXPECT_EQ(memory->LastReadRecordCount(), 0u);
+    EXPECT_EQ(memory->GetRecordCount(), size_t{1});
+    EXPECT_TRUE(storage.deleteRecords(ctx));
+    EXPECT_EQ(memory->GetRecordCount(), size_t{0});
+}
+
 #if HAVE_EXCEPTIONS
 class OfflineStorageRetrievalExceptionTests : public OfflineStorageTests,
                                               public WithParamInterface<std::tuple<bool, bool>>
