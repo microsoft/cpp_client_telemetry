@@ -95,15 +95,16 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
     int err;
     int len = (int)strlen(hello)+1;
     gzFile file;
-    z_off_t pos;
+    z_off_t pos, max;
+    z_off64_t max64;
 
     file = gzopen(fname, "wb");
     if (file == NULL) {
         fprintf(stderr, "gzopen error\n");
         exit(1);
     }
-    pos = ((((z_off_t)1 << (sizeof(z_off_t) * CHAR_BIT - 2)) - 1) * 2 + 1);
-    if (gzdirect(file) != 0 || gzseek(file, pos, SEEK_SET) != pos ||
+    pos = max = ((((z_off_t)1 << (sizeof(z_off_t) * CHAR_BIT - 2)) - 1) * 2 + 1);
+    if (gzseek(file, pos, SEEK_SET) != pos ||
         gzseek(file, 1, SEEK_CUR) != -1 || gztell(file) != pos ||
         gzseek(file, 0, SEEK_SET) != 0) {
         fprintf(stderr, "gzseek offset limit error\n");
@@ -127,7 +128,7 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
             fprintf(stderr, "gzopen error\n");
             exit(1);
         }
-        if (gzseek(file, pos, SEEK_SET) != pos ||
+        if (gzdirect(file) != 0 || gzseek(file, pos, SEEK_SET) != pos ||
             gzgetc(file) != hello[pos] || gzclose(file) != Z_OK) {
             fprintf(stderr, "gzseek on fresh reader error\n");
             exit(1);
@@ -139,7 +140,11 @@ static void test_gzio(const char *fname, Byte *uncompr, uLong uncomprLen) {
         fprintf(stderr, "gzopen error\n");
         exit(1);
     }
+    max64 = ((((z_off64_t)1 << (sizeof(z_off64_t) * CHAR_BIT - 2)) - 1) * 2 + 1);
     if (gzungetc('x', file) != 'x' ||
+        gzseek64(file, max64, SEEK_SET) != -1 || gztell64(file) != -1 ||
+        (sizeof(z_off_t) == sizeof(z_off64_t) &&
+         (gzseek(file, max, SEEK_SET) != -1 || gztell(file) != -1)) ||
         gzseek(file, 1, SEEK_CUR) != 0 || gztell(file) != 0) {
         fprintf(stderr, "gzseek after gzungetc error\n");
         exit(1);

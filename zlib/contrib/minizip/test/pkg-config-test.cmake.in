@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.15...3.31)
 project(minizip_pkg_config LANGUAGES C)
 
 set(prefix "@WORK_DIR@/test_install")
-set(package "${prefix}/@CMAKE_INSTALL_LIBDIR@/pkgconfig/minizip.pc")
+if(IS_ABSOLUTE "@CMAKE_INSTALL_LIBDIR@")
+    set(package "@CMAKE_INSTALL_LIBDIR@/pkgconfig/minizip.pc")
+else()
+    set(package "${prefix}/@CMAKE_INSTALL_LIBDIR@/pkgconfig/minizip.pc")
+endif()
 
 foreach(kind IN ITEMS cflags libs)
     execute_process(

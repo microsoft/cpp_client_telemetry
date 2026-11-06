@@ -400,6 +400,8 @@ local z_off64_t gz_seek(gzFile file, z_off64_t offset, int whence, int wide) {
     pos += offset;
     if (!wide && pos != (z_off_t)pos)
         return -1;                          /* would overflow z_off_t */
+    if (state->x.pos < 0 && pos > GZ_OFF_MAX + state->x.pos)
+        return -1;                          /* skip distance would overflow */
 
     /* if within raw area while reading, just go there */
     if (state->mode == GZ_READ && state->how == COPY) {

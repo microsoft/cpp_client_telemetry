@@ -385,6 +385,13 @@ if(MINIZIP_BUILD_SHARED OR MINIZIP_BUILD_STATIC)
         string(APPEND MINIZIP_PC_LIBS_PRIVATE
             " -L\"$<TARGET_LINKER_FILE_DIR:BZip2::BZip2>\" -l${MINIZIP_PC_BZIP2_LIBRARY}")
     endif(MINIZIP_ENABLE_BZIP2)
+    foreach(dir IN ITEMS LIBDIR INCLUDEDIR)
+        if(IS_ABSOLUTE "${CMAKE_INSTALL_${dir}}")
+            set(MINIZIP_PC_${dir} "${CMAKE_INSTALL_${dir}}")
+        else()
+            set(MINIZIP_PC_${dir} "\${exec_prefix}/${CMAKE_INSTALL_${dir}}")
+        endif()
+    endforeach()
     set(LIBMINIZIP_PC ${minizip_BINARY_DIR}/$<CONFIG>/minizip.pc)
     configure_file(${minizip_SOURCE_DIR}/minizip.pc.txt
                    ${minizip_BINARY_DIR}/minizip.pc.in @ONLY)
