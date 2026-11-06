@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <condition_variable>
 #include <future>
+#include <stdexcept>
+#include <tuple>
 #include <vector>
 
 using namespace testing;
@@ -452,6 +454,112 @@ TEST_F(TransmissionPolicyManagerTests, ImmediateIncomingEventStartsUploadImmedia
     ASSERT_THAT(upload, NotNull());
     EXPECT_THAT(upload->requestedMinLatency, EventLatency_Max);
 }
+
+#if HAVE_EXCEPTIONS
+enum class UploadFailure
+{
+    Standard,
+    Nonstandard,
+    CleanupStandard,
+    CleanupNonstandard,
+    Registered,
+    Completed,
+    CompletedThenThrow
+};
+
+class UploadExceptionTests : public TransmissionPolicyManagerTests,
+                             public WithParamInterface<std::tuple<bool, UploadFailure>>
+{
+   protected:
+    RouteSink<UploadExceptionTests, EventsUploadContextPtr const&> release{
+        this, &UploadExceptionTests::releaseRecords};
+
+    MOCK_METHOD1(releaseRecords, void(EventsUploadContextPtr const&));
+};
+
+TEST_P(UploadExceptionTests, ReleasesOnlyUnregisteredUploadsAndAllowsStop)
+{
+    const bool immediate = std::get<0>(GetParam());
+    const UploadFailure failure = std::get<1>(GetParam());
+    const bool httpOwned = failure == UploadFailure::Registered ||
+                           failure == UploadFailure::Completed || failure == UploadFailure::CompletedThenThrow;
+    std::weak_ptr<EventsUploadContext> context;
+    EventsUploadContextPtr pending;
+
+    tpm.paused(false);
+    tpm.releaseFailedUpload >> release;
+    EXPECT_CALL(*this, resultInitiateUpload(_))
+        .WillOnce(Invoke([&](EventsUploadContextPtr const& ctx)
+                         {
+            context = ctx;
+            if (httpOwned)
+            {
+                ctx->httpRequestRegistered = true;
+                if (failure == UploadFailure::Registered)
+                {
+                    pending = ctx;
+                }
+                else
+                {
+                    tpm.eventsUploadAborted(ctx);
+                    if (failure == UploadFailure::Completed)
+                    {
+                        return;
+                    }
+                }
+            }
+            if (failure == UploadFailure::Nonstandard)
+            {
+                throw 7;
+            }
+            throw std::runtime_error("injected upload preparation failure"); }));
+    if (httpOwned)
+    {
+        EXPECT_CALL(*this, releaseRecords(_)).Times(0);
+    }
+    else
+    {
+        EXPECT_CALL(*this, releaseRecords(_))
+            .WillOnce(Invoke([&](EventsUploadContextPtr const& ctx)
+                             {
+            EXPECT_THAT(tpm.activeUploads(), Contains(ctx));
+            if (failure == UploadFailure::CleanupStandard)
+            {
+                throw std::runtime_error("injected record cleanup failure");
+            }
+            if (failure == UploadFailure::CleanupNonstandard)
+            {
+                throw 9;
+            } }));
+    }
+
+    if (immediate)
+    {
+        IncomingEventContext event;
+        event.record.latency = EventLatency_Max;
+        EXPECT_NO_THROW(tpm.eventArrived(&event));
+    }
+    else
+    {
+        EXPECT_NO_THROW(tpm.uploadAsyncParent(EventLatency_Normal));
+    }
+
+    if (failure == UploadFailure::Registered)
+    {
+        EXPECT_THAT(tpm.activeUploads(), Contains(pending));
+        EXPECT_FALSE(context.expired());
+        tpm.eventsUploadAborted(pending);
+        tpm.eventsUploadAborted(pending);
+        pending.reset();
+    }
+    ASSERT_THAT(tpm.activeUploads(), IsEmpty());
+    EXPECT_TRUE(context.expired());
+    EXPECT_CALL(*this, resultAllUploadsFinished());
+    EXPECT_TRUE(tpm.stop());
+}
+
+INSTANTIATE_TEST_SUITE_P(ScheduledAndImmediate, UploadExceptionTests, Combine(Bool(), Values(UploadFailure::Standard, UploadFailure::Nonstandard, UploadFailure::CleanupStandard, UploadFailure::CleanupNonstandard, UploadFailure::Registered, UploadFailure::Completed, UploadFailure::CompletedThenThrow)));
+#endif
 
 TEST_F(TransmissionPolicyManagerTests, UploadDoesNothingWhenPaused)
 {

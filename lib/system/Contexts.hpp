@@ -111,6 +111,7 @@ namespace MAT_NS_BEGIN {
         // Sending
         IHttpRequest*                        httpRequest = nullptr;
         std::string                          httpRequestId;
+        bool                                 httpRequestRegistered = false;
 
         // Receiving
         IHttpResponse*                       httpResponse = nullptr;
@@ -151,4 +152,3 @@ namespace MAT_NS_BEGIN {
 
 
 } MAT_NS_END
-
