@@ -79,3 +79,20 @@ endif()
 add_test(NAME FuncTests COMMAND FuncTests
   "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/FuncTests.xml")
 set_tests_properties(FuncTests PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+if(NOT MATSDK_DISABLE_EXCEPTIONS AND NOT MATSDK_PLATFORM_IOS
+    AND (WIN32 OR MATSDK_NEEDS_CURL OR MATSDK_BUILD_APPLE_HTTP))
+  add_executable(UploadExceptionTests upload-exception-tests.cpp ${TESTS_COMMON_SRCS})
+  target_link_libraries(UploadExceptionTests PRIVATE matsdk_test_config mat ZLIB::ZLIB gtest gmock)
+  if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
+    target_link_libraries(UploadExceptionTests PRIVATE SQLite3::SQLite3)
+  endif()
+  if(TARGET nlohmann_json::nlohmann_json)
+    target_link_libraries(UploadExceptionTests PRIVATE nlohmann_json::nlohmann_json)
+  endif()
+  foreach(mode IN ITEMS exception exception-nonstandard exception-exit
+      exception-exit-nonstandard send-exception complete-then-throw)
+    add_test(NAME upload-${mode} COMMAND UploadExceptionTests ${mode})
+    set_tests_properties(upload-${mode} PROPERTIES TIMEOUT 30)
+  endforeach()
+endif()

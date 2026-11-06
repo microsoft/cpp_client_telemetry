@@ -174,6 +174,7 @@ namespace MAT_NS_BEGIN {
         storage.storeRecordFailed >> stats.onIncomingEventFailed;
 
         tpm.initiateUpload >> storage.retrieveEvents;
+        tpm.releaseFailedUpload >> storage.releaseRecords;
 
         storage.retrievedEvent >> packager.addEventToPackage;
         storage.retrievalFinished >> packager.finalizePackage;
