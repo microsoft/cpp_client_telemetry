@@ -219,9 +219,8 @@ int main(int argc, char** argv)
         auto drained = std::make_shared<std::promise<void>>();
         auto done = drained->get_future();
         auto dispatcher = PAL::getDefaultTaskDispatcher();
-        auto barrier = PAL::scheduleTask(dispatcher.get(), 0, [drained]()
-                                         { drained->set_value(); });
-        Check(barrier.GetTask() != nullptr, "could not queue upload failure barrier");
+        PAL::scheduleTask(dispatcher.get(), 0, [drained]()
+                          { drained->set_value(); });
         Check(done.wait_for(std::chrono::seconds(10)) == std::future_status::ready, "failed upload task did not finish");
         Check(client->forwarded == 0, "preparation failure reached HTTP handoff");
         if (!exitWithoutRetry)
