@@ -61,7 +61,8 @@ Recommended packaged-library policy:
 | Android | `MINIMAL`, or `NONE` with Room | `VENDORED` | Java/JNI by default |
 
 Apple's SQLite and zlib entries are system libraries: consumers link them but
-do not ship private copies. A Linux host such as Foundry Local that already
+do not ship private copies, including when a vcpkg toolchain is active. Existing
+caller-provided canonical targets still take precedence. A Linux host such as Foundry Local that already
 standardizes on libcurl/OpenSSL should provide `CURL::libcurl` and select
 `MATSDK_CURL_PROVIDER=SYSTEM`; other self-contained Linux consumers can use the
 SDK's pinned curl/mbedTLS build.
@@ -70,6 +71,19 @@ When multiple embedded SDK copies use the same system SQLite runtime, each
 consumer must set `skipSqliteInitAndShutdown` to `"true"` and leave SQLite's
 process-wide lifetime to the host. This is the required configuration for
 coexisting Apple libraries that all link the system `libsqlite3`.
+
+When independently embedded SDK copies coexist in an Apple process, choose a
+different private HTTP delegate class name for each copy before adding the SDK:
+
+```cmake
+set(MATSDK_APPLE_HTTP_DELEGATE_CLASS MyProductMATStreamingSessionDelegate
+    CACHE STRING "" FORCE)
+```
+
+The default remains `MATStreamingSessionDelegate`. Objective-C class names are
+process-global even when C++ symbols are hidden. This setting affects only the
+Apple HTTP implementation and does not propagate to consumers or rename public
+Objective-C wrapper classes.
 
 ## Non-vcpkg dependency selection
 

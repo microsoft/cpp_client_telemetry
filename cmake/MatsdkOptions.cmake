@@ -51,6 +51,11 @@ option(MATSDK_BUILD_AZMON
   "Build Azure Monitor / Application Insights support" ON)
 option(MATSDK_BUILD_APPLE_HTTP
   "Build the Apple-native HTTP client" "${APPLE}")
+set(MATSDK_APPLE_HTTP_DELEGATE_CLASS "MATStreamingSessionDelegate" CACHE STRING
+  "Private Objective-C class name for the Apple HTTP session delegate")
+if(NOT MATSDK_APPLE_HTTP_DELEGATE_CLASS MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
+  message(FATAL_ERROR "MATSDK_APPLE_HTTP_DELEGATE_CLASS must be a C identifier.")
+endif()
 option(MATSDK_USE_WININET
   "Use WinInet instead of WinHTTP as the Win32 desktop HTTP client" OFF)
 option(MATSDK_DISABLE_LOGGING

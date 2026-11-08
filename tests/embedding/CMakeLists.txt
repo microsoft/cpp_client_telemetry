@@ -114,3 +114,10 @@ endif()
 
 enable_testing()
 add_test(NAME embedding_test COMMAND embedding_test)
+include("${CMAKE_CURRENT_LIST_DIR}/lifetime-tests.cmake")
+add_test(NAME apple_embedding_options
+  COMMAND "${CMAKE_COMMAND}"
+    "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/apple-options"
+    "-DTEST_GENERATOR=${CMAKE_GENERATOR}"
+    "-DTEST_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
+    -P "${CMAKE_CURRENT_LIST_DIR}/../apple/embedding-options-tests.cmake")

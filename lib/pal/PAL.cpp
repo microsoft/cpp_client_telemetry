@@ -631,8 +631,12 @@ namespace PAL_NS_BEGIN {
 
     const std::string& PlatformAbstractionLayer::getSdkVersion() const
     {
-        static const std::string sdkVersion(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-" BUILD_VERSION_STR);
-        return sdkVersion;
+        // Like GetPAL(), this immutable value must survive late upload workers.
+        using SdkVersion = std::string;
+        alignas(SdkVersion) static unsigned char storage[sizeof(SdkVersion)];
+        static const SdkVersion* sdkVersion = ::new (storage)
+            SdkVersion(EVTSDK_VERSION_PREFIX "-" OS_NAME "-C++-" ECS_SUPP "-" BUILD_VERSION_STR);
+        return *sdkVersion;
     }
 
     void PlatformAbstractionLayer::initialize(IRuntimeConfig& configuration)
