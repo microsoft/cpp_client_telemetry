@@ -255,9 +255,14 @@ namespace MAT_NS_BEGIN {
             {
                 LOCKGUARD(m_resizeLock); //Serialize resize operations
                 m_resizing = true;
-                if (m_DbSizeEstimate > m_DbSizeLimit)
+                // A batch can exceed the limit by more than one 25% trim.
+                while (m_DbSizeEstimate > m_DbSizeLimit)
                 {
-                    ResizeDb();
+                    const size_t previousSize = GetSize();
+                    if (!ResizeDb() || m_DbSizeEstimate >= previousSize)
+                    {
+                        break;
+                    }
                 }
                 m_resizing = false;
             }

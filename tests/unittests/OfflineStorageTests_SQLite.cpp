@@ -1135,6 +1135,31 @@ TEST_F(OfflineStorageTests_SQLite, ResizeDbCompactsThePhysicalDatabase)
     EXPECT_LE(offlineStorage->GetSize(), maximumSize);
 }
 
+TEST_F(OfflineStorageTests_SQLite, BatchStorageLimitRequiresMultipleTrims)
+{
+    constexpr size_t maximumSize = 5 * 1024 * 1024;
+    EXPECT_CALL(configMock, GetOfflineStorageMaximumSizeBytes())
+        .WillRepeatedly(Return(maximumSize));
+    configMock[CFG_BOOL_ENABLE_DB_DROP_IF_FULL] = true;
+    initializeStorage(false);
+
+    std::vector<StorageRecord> records;
+    for (int i = 0; i < 15; ++i)
+    {
+        records.push_back({
+            "record-" + std::to_string(i),
+            "token",
+            EventLatency_Normal,
+            EventPersistence_Normal,
+            i + 1,
+            StorageBlob(512 * 1024) });
+    }
+
+    ASSERT_THAT(offlineStorage->StoreRecords(records), records.size());
+    EXPECT_LE(offlineStorage->GetSize(), maximumSize);
+    EXPECT_GT(offlineStorage->GetRecordCount(EventLatency_Unspecified), size_t { 0 });
+}
+
 TEST_F(OfflineStorageTests_SQLite, StorageLimitIncludesLargePageOverhead)
 {
     sqlite3* db = nullptr;
