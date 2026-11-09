@@ -53,6 +53,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -239,7 +240,7 @@ public class EventsUnitTest {
         /* Stubby should not attempt to access the CONNECTIVITY_SERVICE */
         verify(mockContext, times(0)).getSystemService(Context.CONNECTIVITY_SERVICE);
         verify(mockContext, times(1)).registerReceiver(isA(BroadcastReceiver.class), isA(IntentFilter.class));
-        verify(mockIntent, times(1)).getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        verify(mockIntent, timeout(5000).times(1)).getIntExtra(BatteryManager.EXTRA_STATUS, -1);
         verify(mockManager, times(0)).registerDefaultNetworkCallback(any(ConnectivityManager.NetworkCallback.class));
         assertNull(callback);
         assertEquals(previousDispatch, dispatchCount.get());
