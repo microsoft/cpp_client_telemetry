@@ -14,6 +14,14 @@ foreach(source pal/PAL.cpp api/AuthTokensController.cpp)
       instrumented "${instrumented}")
     string(REPLACE "using SdkVersion = std::string;" "using SdkVersion = LifetimeString;"
       instrumented "${instrumented}")
+    # Hook entry, not a local variable: the allocation-free implementation has none.
+    string(REGEX REPLACE "(PlatformAbstractionLayer::getSdkVersion\\(\\) const[ \r\n]*\\{)"
+      "\\1\n        LifetimeVersionAccessed();" instrumented "${instrumented}")
+    if(NOT instrumented MATCHES "LifetimeVersionAccessed\\(\\);")
+      message(FATAL_ERROR "Update version accessor lifetime instrumentation")
+    endif()
+    string(PREPEND instrumented
+      "extern \"C\" void LifetimeVersionAccessed();\n")
     set(hook "LifetimeVersionDestroyed")
     set(type String)
     set(base string)
@@ -26,7 +34,7 @@ foreach(source pal/PAL.cpp api/AuthTokensController.cpp)
     set(type Mutex)
     set(base mutex)
   endif()
-  if(NOT instrumented MATCHES "(static const LifetimeString sdkVersion|using SdkVersion = LifetimeString|static LifetimeMutex mutex|using AuthMutex = LifetimeMutex)")
+  if(NOT instrumented MATCHES "(LifetimeVersionAccessed\\(\\);|static LifetimeMutex mutex|using AuthMutex = LifetimeMutex)")
     message(FATAL_ERROR "Update lifetime instrumentation for ${source}")
   endif()
   string(PREPEND instrumented
@@ -43,6 +51,7 @@ endforeach()
 add_executable(sdk_lifetime_tests "${CMAKE_CURRENT_LIST_DIR}/lifetime-tests.cpp"
   "${lifetime_dir}/PAL.cpp" "${lifetime_dir}/AuthTokensController.cpp")
 target_link_libraries(sdk_lifetime_tests PRIVATE MSTelemetry::mat matsdk_internal_config matsdk_build_options)
+target_compile_features(sdk_lifetime_tests PRIVATE cxx_std_17)
 target_include_directories(sdk_lifetime_tests PRIVATE "$<TARGET_PROPERTY:mat,INCLUDE_DIRECTORIES>"
   "${sdk_source}/lib/api")
 add_dependencies(embedding_test sdk_lifetime_tests)
@@ -50,3 +59,27 @@ foreach(mode version mutex both)
   add_test(NAME sdk_lifetime_${mode} COMMAND sdk_lifetime_tests "${mode}")
   set_tests_properties(sdk_lifetime_${mode} PROPERTIES TIMEOUT 30)
 endforeach()
+
+# Embed the actual archive, not the instrumented copies, to catch unload-time leaks.
+add_library(sdk_version_reload_fixture SHARED version-reload-fixture.cpp)
+target_link_libraries(sdk_version_reload_fixture PRIVATE MSTelemetry::mat
+  matsdk_internal_config matsdk_build_options)
+target_compile_features(sdk_version_reload_fixture PRIVATE cxx_std_17)
+target_include_directories(sdk_version_reload_fixture PRIVATE
+  "$<TARGET_PROPERTY:mat,INCLUDE_DIRECTORIES>")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # GNU-unique symbols pin DSOs; symbol interposition can bind to another SDK copy.
+  target_compile_options(mat PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>)
+  target_link_options(sdk_version_reload_fixture PRIVATE
+    "-Wl,--exclude-libs,ALL" "-Wl,-Bsymbolic")
+endif()
+
+add_executable(sdk_version_reload_test version-reload-test.cpp)
+target_link_libraries(sdk_version_reload_test PRIVATE ${CMAKE_DL_LIBS}
+  matsdk_internal_config matsdk_build_options)
+target_include_directories(sdk_version_reload_test PRIVATE
+  "$<TARGET_PROPERTY:mat,INCLUDE_DIRECTORIES>")
+add_dependencies(embedding_test sdk_version_reload_fixture sdk_version_reload_test)
+add_test(NAME sdk_version_reload
+  COMMAND sdk_version_reload_test "$<TARGET_FILE:sdk_version_reload_fixture>")
+set_tests_properties(sdk_version_reload PROPERTIES TIMEOUT 30)
