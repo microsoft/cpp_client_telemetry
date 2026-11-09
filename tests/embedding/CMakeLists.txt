@@ -5,7 +5,22 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(MATSDK_EMBEDDING_ADDRESS_SANITIZER
+  "Run embedding regressions with AddressSanitizer and leak detection" OFF)
+if(MATSDK_EMBEDDING_ADDRESS_SANITIZER)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" OR
+     NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(FATAL_ERROR "Embedding ASan/LSan coverage requires Linux with GCC or Clang")
+  endif()
+  add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=address)
+endif()
+
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "")
+if(MATSDK_EMBEDDING_ADDRESS_SANITIZER AND BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "Embedding ASan/LSan coverage requires static SDK embedding")
+endif()
+
 set(MATSDK_BUILD_HEADERS ON CACHE BOOL "" FORCE)
 set(MATSDK_BUILD_LIBRARY ON CACHE BOOL "" FORCE)
 set(MATSDK_BUILD_TEST_TOOL OFF CACHE BOOL "" FORCE)
@@ -114,3 +129,14 @@ endif()
 
 enable_testing()
 add_test(NAME embedding_test COMMAND embedding_test)
+include("${CMAKE_CURRENT_LIST_DIR}/lifetime-tests.cmake")
+if(MATSDK_EMBEDDING_ADDRESS_SANITIZER)
+  set_tests_properties(sdk_version_reload PROPERTIES
+    ENVIRONMENT "ASAN_OPTIONS=detect_leaks=1;LSAN_OPTIONS=exitcode=23")
+endif()
+add_test(NAME apple_embedding_options
+  COMMAND "${CMAKE_COMMAND}"
+    "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/apple-options"
+    "-DTEST_GENERATOR=${CMAKE_GENERATOR}"
+    "-DTEST_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
+    -P "${CMAKE_CURRENT_LIST_DIR}/../apple/embedding-options-tests.cmake")

@@ -6,6 +6,7 @@
 #include "AuthTokensController.hpp"
 #include "ILogManager.hpp"
 #include "utils/Utils.hpp"
+#include <new>
 
 namespace MAT_NS_BEGIN {
 
@@ -24,8 +25,11 @@ namespace MAT_NS_BEGIN {
 
     std::mutex& AuthTokensController::GetMutex()
     {
-        static std::mutex mutex;
-        return mutex;
+        // Like GetPAL(), this lock must survive late upload workers.
+        using AuthMutex = std::mutex;
+        alignas(AuthMutex) static unsigned char storage[sizeof(AuthMutex)];
+        static AuthMutex* mutex = ::new (storage) AuthMutex;
+        return *mutex;
     }
 
     status_t  AuthTokensController::SetTicketToken(TicketType type, char const* tokenValue)

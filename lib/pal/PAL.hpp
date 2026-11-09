@@ -78,7 +78,7 @@ namespace PAL_NS_BEGIN
     public:
         void sleep(unsigned delayMs) const noexcept;
 
-        const std::string& getSdkVersion() const;
+        const char* getSdkVersion() const;
 
         std::string generateUuidString() const;
 
@@ -136,7 +136,7 @@ namespace PAL_NS_BEGIN
     /**
      * Return SDK version in format "<Prefix>-<Platform>-<SKU>-<Projection>-<BuildVersion>".
      */
-    inline const std::string& getSdkVersion()
+    inline const char* getSdkVersion()
     {
         return GetPAL().getSdkVersion();
     }

@@ -376,6 +376,11 @@ else()
   message(STATUS "Building static SDK library")
   add_library(mat STATIC ${SRCS})
 endif()
+if(APPLE AND MATSDK_BUILD_APPLE_HTTP)
+  # Objective-C class names are process-global, even with hidden symbol visibility.
+  target_compile_definitions(mat PRIVATE
+    "MATStreamingSessionDelegate=${MATSDK_APPLE_HTTP_DELEGATE_CLASS}")
+endif()
 target_link_libraries(mat PRIVATE
   $<BUILD_INTERFACE:matsdk_build_options>
   $<BUILD_INTERFACE:matsdk_internal_config>)

@@ -94,6 +94,24 @@ jobs:
         cmake --build build-provided-consumer --parallel 4
         ctest --test-dir build-provided-consumer --output-on-failure
 
+  linux-lifetime-sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - name: Install system dependencies
+      run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libsqlite3-dev ninja-build zlib1g-dev
+    - name: Configure ASan and LSan embedding regressions
+      run: >
+        cmake -G Ninja -S tests/embedding -B build-lifetimes
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DMATSDK_EMBEDDING_ADDRESS_SANITIZER=ON
+        -DMATSDK_SQLITE_PROVIDER=SYSTEM
+        -DMATSDK_ZLIB_PROVIDER=SYSTEM
+    - name: Build and run
+      run: |
+        cmake --build build-lifetimes --target embedding_test --parallel 4
+        ctest --test-dir build-lifetimes --output-on-failure
+
   windows:
     runs-on: windows-2022
     steps:
