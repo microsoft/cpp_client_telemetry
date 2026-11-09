@@ -244,6 +244,70 @@ namespace MAT_NS_BEGIN
                     record.extDevice[0].deviceClass = iter->second.as_string;
                 }
 
+                /* Distributed tracing fields.
+                 * 
+                 * Part A extension:
+                 * - ext.dt.traceId    -> env_dt_traceId
+                 * - ext.dt.spanId     -> env_dt_spanId
+                 * - ext.dt.traceFlags -> env_dt_traceFlags
+                 *
+                 * Part B mapping:
+                 * - parentId          -> parentId
+                 */
+                iter = m_commonContextFields.find(COMMONFIELDS_DT_TRACEID);
+
+                /* Only run the context mapping if TraceId field is set */
+                if (iter != m_commonContextFields.end())
+                {
+                    /* Collector does not natively support ext.dt extension in CS4.0.
+                     * When it does, fields could eventually be moved to ext.dt in
+                     * CS4.1 or CS5.0. Currently we map fields to corresponding Geneva
+                     * naming convention in order to enable the Distributed Trace View
+                     * experience. This approach is future-proof, since it avoids the
+                     * unnecessary remapping at 1DS Interchange.
+                     */
+                    CsProtocol::Value strValue;
+                    strValue.stringValue = iter->second.as_string;
+                    // Map to Geneva Part A extension field name.
+                    ext[COMMONFIELDS_DT_TRACEID] = strValue;
+
+                    iter = m_commonContextFields.find(COMMONFIELDS_DT_SPANID);
+                    if (iter != m_commonContextFields.end())
+                    {
+                        strValue.stringValue = iter->second.as_string;
+                        // Map to Geneva Part A extension field name.
+                        ext[COMMONFIELDS_DT_SPANID] = strValue;
+                    }
+
+                    iter = m_commonContextFields.find(COMMONFIELDS_DT_PARENTID);
+                    if (iter != m_commonContextFields.end())
+                    {
+                        strValue.stringValue = iter->second.as_string;
+                        // 1DS pipeline on export to Aria-Kusto does not differentiate
+                        // between Part B and Part C properties. Since Part B (baseData)
+                        // remains hidden below the radar - we populate the field in
+                        // 'data' (Part C). That way the field can be consumed in Aria-Kusto,
+                        // custom Kusto, and in Geneva.
+                        //
+                        // 1DS Interchange maps the field to the same 'parentId' column
+                        // as populated by OpenTelemetry Geneva exporters. That allows us
+                        // to stitch the client and service telemetry in one view.
+                        ext[COMMONFIELDS_DT_PARENTID] = strValue;
+                    }
+
+                    iter = m_commonContextFields.find(COMMONFIELDS_DT_TRACEFLAGS);
+                    if (iter != m_commonContextFields.end())
+                    {
+                        if (iter->second.type == EventProperty::TYPE_INT64)
+                        {
+                            CsProtocol::Value numValue;
+                            numValue.type = CsProtocol::ValueKind::ValueInt64;
+                            numValue.longValue = iter->second.as_int64;
+                            ext[COMMONFIELDS_DT_TRACEFLAGS] = numValue;
+                        }
+                    }
+                }
+
                 iter = m_commonContextFields.find(COMMONFIELDS_COMMERCIAL_ID);
                 if (iter != m_commonContextFields.end())
                 {
