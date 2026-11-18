@@ -83,6 +83,8 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         std::chrono::milliseconds increaseBackoff();
 
         void uploadAsync(EventLatency priority);
+        void startUpload(EventsUploadContextPtr const& ctx);
+        void abandonUpload(EventsUploadContextPtr const& ctx);
         void finishUpload(EventsUploadContextPtr const& ctx, const std::chrono::milliseconds& nextUpload);
         bool updateTimersIfNecessary();
 
@@ -179,6 +181,7 @@ constexpr const char* const DefaultBackoffConfig = "E,3000,300000,2,1";
         RouteSink<TransmissionPolicyManager, IncomingEventContextPtr const&> eventArrived{ this, &TransmissionPolicyManager::handleEventArrived };
 
         RouteSource<EventsUploadContextPtr const&>                           initiateUpload;
+        RouteSource<EventsUploadContextPtr const&>                           releaseFailedUpload;
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  nothingToUpload{ this, &TransmissionPolicyManager::handleNothingToUpload };
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  packagingFailed{ this, &TransmissionPolicyManager::handlePackagingFailed };
         RouteSink<TransmissionPolicyManager, EventsUploadContextPtr const&>  eventsUploadSuccessful{ this, &TransmissionPolicyManager::handleEventsUploadSuccessful };

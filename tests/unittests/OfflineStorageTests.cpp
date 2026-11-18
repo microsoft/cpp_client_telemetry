@@ -7,12 +7,15 @@
 #include "offline/OfflineStorageHandler.hpp"
 #include "offline/IOfflineStorageProvider.hpp"
 #include "offline/StorageObserver.hpp"
+#include "offline/MemoryStorage.hpp"
 #include "NullObjects.hpp"
 
 #include <algorithm>
 #include <cstdio>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
+#include <tuple>
 #include <vector>
 
 using namespace testing;
@@ -255,6 +258,138 @@ namespace MAT_NS_BEGIN {
     };
 
 } MAT_NS_END
+
+TEST_F(OfflineStorageTests, EmptyDiskReadPreservesFirstRamEventProvenance)
+{
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    NiceMock<MockIOfflineStorageObserver> observer;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;
+    auto memory = std::make_shared<MemoryStorage>(logManager, config);
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*disk, Initialize(Ref(handler)));
+    handler.Initialize(observer);
+    StorageObserver storage(testing::getSystem(), handler);
+    storage.retrievedEvent >> retrievedEvent;
+    storage.retrievalFinished >> retrievalFinished;
+
+    StorageRecord record("oversized", "tenant-token", EventLatency_Normal,
+                         EventPersistence_Normal, 1, std::vector<uint8_t>{'x'});
+    ASSERT_TRUE(memory->StoreRecord(record));
+    auto ctx = std::make_shared<EventsUploadContext>();
+    EXPECT_CALL(*this, resultRetrievedEvent(ctx, _, _))
+        .WillOnce(Invoke([](EventsUploadContextPtr const& upload, StorageRecord const& event, bool& wantMore)
+                         {
+                             // Packager includes an oversized first event but refuses subsequent events.
+                             upload->recordIdsAndTenantIds.emplace(event.id, event.tenantToken);
+                             wantMore = false; }));
+    EXPECT_CALL(*disk, GetAndReserveRecords(_, _, _, _)).WillOnce(Return(true));
+    EXPECT_CALL(*disk, LastReadRecordCount()).WillOnce(Return(0));
+    EXPECT_CALL(*this, resultRetrievalFinished(ctx));
+
+    storage.retrieveEvents(ctx);
+    EXPECT_TRUE(ctx->fromMemory);
+    EXPECT_TRUE(handler.IsLastReadFromMemory());
+    EXPECT_EQ(memory->LastReadRecordCount(), 0u);
+    EXPECT_EQ(memory->GetRecordCount(), size_t{1});
+    EXPECT_TRUE(storage.deleteRecords(ctx));
+    EXPECT_EQ(memory->GetRecordCount(), size_t{0});
+}
+
+#if HAVE_EXCEPTIONS
+class OfflineStorageRetrievalExceptionTests : public OfflineStorageTests,
+                                              public WithParamInterface<std::tuple<bool, bool>>
+{
+};
+
+TEST_P(OfflineStorageRetrievalExceptionTests, PartialRetrievalReleasesRecordsToTheirOriginalStorage)
+{
+    const bool fromMemory = std::get<0>(GetParam());
+    const bool nonstandard = std::get<1>(GetParam());
+    NullLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    NoopTaskDispatcher dispatcher;
+    NiceMock<MockIOfflineStorageObserver> observer;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;
+    auto memory = std::make_shared<MemoryStorage>(logManager, config);
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*disk, Initialize(Ref(handler)));
+    handler.Initialize(observer);
+    StorageObserver storage(testing::getSystem(), handler);
+    storage.retrievedEvent >> retrievedEvent;
+    storage.retrievalFinished >> retrievalFinished;
+    storage.retrievalFailed >> retrievalFailed;
+
+    StorageRecord first("first", "tenant-token", EventLatency_Normal,
+                        EventPersistence_Normal, 1, std::vector<uint8_t>{'x'});
+    StorageRecord second("second", "tenant-token", EventLatency_Normal,
+                         EventPersistence_Normal, 1, std::vector<uint8_t>{'y'});
+    if (fromMemory)
+    {
+        ASSERT_TRUE(memory->StoreRecord(first));
+        ASSERT_TRUE(memory->StoreRecord(second));
+    }
+    else
+    {
+        EXPECT_CALL(*disk, GetAndReserveRecords(_, _, _, _))
+            .WillOnce(Invoke([&](std::function<bool(StorageRecord&&)> const& consumer, unsigned, EventLatency, unsigned)
+                             {
+                                 EXPECT_TRUE(consumer(std::move(first)));
+                                 return consumer(std::move(second)); }));
+    }
+
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->fromMemory = !fromMemory;
+    EXPECT_CALL(*this, resultRetrievedEvent(ctx, _, _))
+        .WillOnce(Invoke([](EventsUploadContextPtr const& upload, StorageRecord const& record, bool&)
+                         { upload->recordIdsAndTenantIds.emplace(record.id, record.tenantToken); }))
+        .WillOnce(Invoke([&](EventsUploadContextPtr const&, StorageRecord const&, bool&)
+                         {
+                             if (nonstandard)
+                             {
+                                 throw 7;
+                             }
+                             throw std::runtime_error("mid-retrieval failure"); }));
+    if (nonstandard)
+    {
+        EXPECT_THROW(storage.retrieveEvents(ctx), int);
+    }
+    else
+    {
+        EXPECT_THROW(storage.retrieveEvents(ctx), std::runtime_error);
+    }
+    ASSERT_EQ(ctx->recordIdsAndTenantIds.size(), size_t{1});
+    EXPECT_EQ(ctx->fromMemory, fromMemory);
+    EXPECT_EQ(handler.IsLastReadFromMemory(), fromMemory);
+    if (fromMemory)
+    {
+        ASSERT_EQ(memory->GetReservedCount(), size_t{1});
+    }
+    else
+    {
+        EXPECT_CALL(*disk, ReleaseRecords(ElementsAre(ctx->recordIdsAndTenantIds.begin()->first), false, _, Eq(false)));
+    }
+    EXPECT_TRUE(storage.releaseRecords(ctx));
+    if (fromMemory)
+    {
+        EXPECT_EQ(memory->GetReservedCount(), size_t{0});
+        std::vector<std::string> retriedIds;
+        EXPECT_TRUE(handler.GetAndReserveRecords([&](StorageRecord&& record)
+                                                 {
+                                                    retriedIds.push_back(record.id);
+                                                    return true; }, 120000));
+        EXPECT_THAT(retriedIds, UnorderedElementsAre("first", "second"));
+        EXPECT_TRUE(handler.IsLastReadFromMemory());
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(MemoryAndDisk, OfflineStorageRetrievalExceptionTests, Combine(Bool(), Bool()));
+#endif
 
 TEST(OfflineStorageHandlerFlushTests, FailedMemoryRequeueIsReportedAndDropped)
 {

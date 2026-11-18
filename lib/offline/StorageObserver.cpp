@@ -43,21 +43,35 @@ namespace MAT_NS_BEGIN {
 
     void StorageObserver::handleRetrieveEvents(EventsUploadContextPtr const& ctx)
     {
-        auto consumer = [&ctx, this](StorageRecord&& record) -> bool {
+        auto consumer = [&ctx, this](StorageRecord&& record) -> bool
+        {
             bool wantMore = true;
             retrievedEvent(ctx, std::move(record), wantMore);
             return wantMore;
         };
 
-        // TODO: [MG] - expose 120000 as a configuration parameter
-        if (!m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount))
+        bool retrieved;
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
+            // TODO: [MG] - expose 120000 as a configuration parameter
+            retrieved = m_offlineStorage.GetAndReserveRecords(consumer, 120000, ctx->requestedMinLatency, ctx->requestedMaxCount);
+#if HAVE_EXCEPTIONS
+        }
+        catch (...)
         {
             ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
+            throw;
+        }
+#endif
+        ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
+        if (!retrieved)
+        {
             retrievalFailed(ctx);
         }
         else
         {
-            ctx->fromMemory = m_offlineStorage.IsLastReadFromMemory();
             retrievalFinished(ctx);
         }
     }
@@ -217,4 +231,3 @@ namespace MAT_NS_BEGIN {
     }
 
 } MAT_NS_END
-

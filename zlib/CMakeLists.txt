@@ -3,7 +3,8 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
 
-set(VERSION "1.3.2")
+set(VERSION "1.4")
+set(zlib_VERSION "${VERSION}")
 
 option(ASM686 "Enable building i686 assembly implementation")
 option(AMD64 "Enable building amd64 assembly implementation")
@@ -13,6 +14,9 @@ set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation direc
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
 set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
 set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+
+set(pc_libdir "${INSTALL_LIB_DIR}")
+set(pc_includedir "${INSTALL_INC_DIR}")
 
 include(CheckTypeSize)
 include(CheckFunctionExists)
@@ -221,16 +225,16 @@ endif()
 
 add_executable(example test/example.c)
 target_link_libraries(example zlib)
-add_test(example example)
+add_test(NAME example COMMAND example example.gz)
 
 add_executable(minigzip test/minigzip.c)
 target_link_libraries(minigzip zlib)
 
-if(HAVE_OFF64_T)
+if(HAVE_OFF64_T OR WIN32)
     add_executable(example64 test/example.c)
     target_link_libraries(example64 zlib)
     set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-    add_test(example64 example64)
+    add_test(NAME example64 COMMAND example64 example64.gz)
 
     add_executable(minigzip64 test/minigzip.c)
     target_link_libraries(minigzip64 zlib)

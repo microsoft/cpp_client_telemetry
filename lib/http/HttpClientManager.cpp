@@ -367,16 +367,20 @@ namespace MAT_NS_BEGIN {
     void HttpClientManager::handleSendRequest(EventsUploadContextPtr const& ctx)
     {
         auto registry = m_callbackRegistry;
-        HttpCallback *callback = new HttpCallback(ctx, registry);
+        auto pendingCallback = std::unique_ptr<HttpCallback>(new HttpCallback(ctx, registry));
+        HttpCallback* callback = pendingCallback.get();
         auto completion = callback->m_completion;
-        {
-            LOCKGUARD(registry->mutex);
-            registry->callbacks.push_back(callback);
-        }
 
         LOG_INFO("Uploading %u event(s) of priority %d (%s) for %u tenant(s) in HTTP request %s (approx. %u bytes)...",
             static_cast<unsigned>(ctx->recordIdsAndTenantIds.size()), ctx->latency, latencyToStr(ctx->latency), static_cast<unsigned>(ctx->packageIds.size()),
             ctx->httpRequest->GetId().c_str(), static_cast<unsigned>(ctx->httpRequest->GetSizeEstimate()));
+
+        {
+            LOCKGUARD(registry->mutex);
+            registry->callbacks.push_back(callback);
+            ctx->httpRequestRegistered = true;
+            pendingCallback.release();
+        }
 
 #if HAVE_EXCEPTIONS
         try

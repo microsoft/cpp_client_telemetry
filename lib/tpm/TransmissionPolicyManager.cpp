@@ -7,6 +7,7 @@
 #include "TransmitProfiles.hpp"
 #include "utils/Utils.hpp"
 
+#include <exception>
 #include <limits>
 
 namespace MAT_NS_BEGIN {
@@ -256,8 +257,68 @@ namespace MAT_NS_BEGIN {
 
         auto ctx = m_system.createEventsUploadContext();
         ctx->requestedMinLatency = requestedLatency;
+        startUpload(ctx);
+    }
+
+    void TransmissionPolicyManager::startUpload(EventsUploadContextPtr const& ctx)
+    {
         addUpload(ctx);
-        initiateUpload(ctx);
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
+            initiateUpload(ctx);
+#if HAVE_EXCEPTIONS
+        }
+        catch (const std::exception& ex)
+        {
+            (void)ex;
+            LOG_ERROR("Upload preparation failed: %s", ex.what());
+            abandonUpload(ctx);
+        }
+        catch (...)
+        {
+            LOG_ERROR("Upload preparation failed with a non-standard exception");
+            abandonUpload(ctx);
+        }
+#endif
+    }
+
+    void TransmissionPolicyManager::abandonUpload(EventsUploadContextPtr const& ctx)
+    {
+        // Once registered, the HTTP callback owns terminal completion, even if
+        // SendRequestAsync completes synchronously or throws after completion.
+        if (ctx->httpRequestRegistered)
+        {
+            return;
+        }
+        {
+            LOCKGUARD(m_activeUploads_lock);
+            if (m_activeUploads.find(ctx) == m_activeUploads.end())
+            {
+                return;
+            }
+        }
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
+            releaseFailedUpload(ctx);
+#if HAVE_EXCEPTIONS
+        }
+        catch (const std::exception& ex)
+        {
+            (void)ex;
+            LOG_ERROR("Failed to release records after upload preparation failed: %s", ex.what());
+        }
+        catch (...)
+        {
+            LOG_ERROR("Failed to release records after upload preparation failed with a non-standard exception");
+        }
+#endif
+        // Cleanup is best effort, but retiring the upload must not depend on it.
+        // Keep it active until cleanup finishes so teardown cannot race storage.
+        removeUpload(ctx);
     }
 
     void TransmissionPolicyManager::finishUpload(EventsUploadContextPtr const& ctx, const std::chrono::milliseconds& nextUpload)
@@ -382,8 +443,7 @@ namespace MAT_NS_BEGIN {
         if (event->record.latency > EventLatency_RealTime) {
             auto ctx = m_system.createEventsUploadContext();
             ctx->requestedMinLatency = event->record.latency;
-            addUpload(ctx);
-            initiateUpload(ctx);
+            startUpload(ctx);
             return;
         }
 

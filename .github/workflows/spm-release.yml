@@ -17,6 +17,14 @@ name: SPM release (xcframework)
 #   * Uses the default GITHUB_TOKEN (needs contents: write). No extra secrets.
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - Package.swift
+      - wrappers/swift/**
+      - tools/apple/**
+      - tests/apple/**
+      - .github/workflows/spm-release.yml
   release:
     types: [published]
   workflow_dispatch:
@@ -32,16 +40,30 @@ permissions:
 concurrency:
   # Serialize all SPM publications because different vX.Y.Z.W releases can map
   # to the same X.Y.Z tag and release asset.
-  group: spm-release
-  cancel-in-progress: false
+  group: spm-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'release' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  package-consumption:
+    name: Validate released SwiftPM binary
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: macos-15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Test hosted and local manifest selection
+        run: python3 tests/apple/test-spm-package.py
+      - name: Build Swift wrapper against the official release
+        run: swift build
+
   spm:
     name: Publish SPM xcframework + tag
     # Skip drafts/pre-releases; always allow manual dispatch.
     if: >-
       ${{ github.event_name == 'workflow_dispatch' ||
-          (github.event.release.draft == false && github.event.release.prerelease == false) }}
+          (github.event_name == 'release' &&
+           github.event.release.draft == false && github.event.release.prerelease == false) }}
     runs-on: macos-15   # provides Xcode with Apple platform SDKs (xcodebuild, swift)
     env:
       ARTIFACT: MATTelemetry.xcframework.zip
@@ -115,6 +137,8 @@ jobs:
 
       - name: Validate local SwiftPM package consumption
         if: ${{ steps.ver.outputs.skip != 'true' && steps.pub.outputs.published != 'true' }}
+        env:
+          MATSDK_SPM_USE_LOCAL_XCFRAMEWORK: "1"
         run: |
           set -euo pipefail
           swift package dump-package > package.json
@@ -171,10 +195,10 @@ jobs:
               f'            url: "{url}",\n'
               f'            checksum: "{checksum}")'
           )
-          out = re.sub(
-              r'\.binaryTarget\(\s*name:\s*"MATTelemetry",\s*path:\s*"[^"]*"\s*\)',
-              repl, src, count=1)
-          assert out != src, "binaryTarget(path:) block not found in Package.swift"
+          out, count = re.subn(
+              r'\.binaryTarget\(\s*name:\s*"MATTelemetry",\s*url:\s*"[^"]*",\s*checksum:\s*"[^"]*"\s*\)',
+              repl, src)
+          assert count == 1, "Expected exactly one hosted MATTelemetry binary target"
           open(path, "w").write(out)
           PY
 

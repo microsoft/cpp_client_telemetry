@@ -344,6 +344,7 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
         .WillOnce(SaveArg<1>(&callback));
     hcm.sendRequest(ctx);
     ASSERT_THAT(callback, NotNull());
+    EXPECT_TRUE(ctx->httpRequestRegistered);
 
     PAL::sleep(200);
 
@@ -359,6 +360,41 @@ TEST_F(HttpClientManagerTests, HandlesRequestFlow)
     EXPECT_THAT(ctx->httpResponse, rspRef);
     EXPECT_THAT(ctx->durationMs, Gt(199));
 }
+
+#if HAVE_EXCEPTIONS && defined(HAVE_MAT_LOGGING)
+TEST_F(HttpClientManagerTests, ThrowingRequestLogFormattingLeavesNoCallback)
+{
+    class ThrowingRequest : public SimpleHttpRequest
+    {
+       public:
+        ThrowingRequest() :
+            SimpleHttpRequest("throwing-request-log")
+        {
+        }
+
+        size_t GetSizeEstimate() const override
+        {
+            throw std::runtime_error("request log formatting failed");
+        }
+    };
+
+    auto ctx = std::make_shared<EventsUploadContext>();
+    ctx->httpRequest = new ThrowingRequest();
+    ctx->httpRequestId = "throwing-request-log";
+    std::weak_ptr<EventsUploadContext> context = ctx;
+    EXPECT_CALL(httpClientMock, SendRequestAsync(_, _)).Times(0);
+
+    const auto previousLogLevel = PAL::detail::g_logLevel;
+    MATSDK_SET_LOG_LEVEL_(PAL::Info);
+    EXPECT_THROW(hcm.sendRequest(ctx), std::runtime_error);
+    MATSDK_SET_LOG_LEVEL_(previousLogLevel);
+
+    EXPECT_FALSE(ctx->httpRequestRegistered);
+    EXPECT_THAT(hcm.requestCount(), 0u);
+    ctx.reset();
+    EXPECT_TRUE(context.expired());
+}
+#endif
 
 TEST_F(HttpClientManagerTests, ThrowingRequestDoneSettlesFailureAndDrainsCallback)
 {
@@ -432,6 +468,7 @@ TEST_F(HttpClientManagerTests, ThrowingSendProducesOneTerminalFailure)
         }));
 
     EXPECT_NO_THROW(hcm.sendRequest(ctx));
+    EXPECT_TRUE(ctx->httpRequestRegistered);
     EXPECT_THAT(hcm.requestCount(), 0u);
 }
 
@@ -459,6 +496,7 @@ TEST_F(HttpClientManagerTests, CallbackThenThrowDoesNotCompleteTwice)
         }));
 
     EXPECT_NO_THROW(hcm.sendRequest(ctx));
+    EXPECT_TRUE(ctx->httpRequestRegistered);
     EXPECT_THAT(hcm.requestCount(), 0u);
 }
 

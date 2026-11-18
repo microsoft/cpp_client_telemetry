@@ -4,6 +4,8 @@ ext {
 buildscript {
     repositories {
         google() // to fetch com.android.tools.build:gradle
+        // Avoid Maven Central rate limits on shared CI runner addresses.
+        maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }
         mavenCentral()
     }
     dependencies {
@@ -16,6 +18,7 @@ buildscript {
 allprojects {
     repositories {
         google() // to fetch com.android.tools.build:gradle
+        maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }
         mavenCentral()
     }
 }
