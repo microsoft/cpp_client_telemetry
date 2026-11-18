@@ -7,6 +7,7 @@
 
 #include "ctmacros.hpp"
 
+#include <stdint.h>
 #include <functional>
 #include <map>
 #include <memory>
