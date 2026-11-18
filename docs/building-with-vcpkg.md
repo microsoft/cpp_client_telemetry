@@ -5,10 +5,13 @@
 The port provides the core SDK — the `MSTelemetry::mat` target and its public
 C++ headers. The optional Microsoft-proprietary modules (Privacy Guard,
 Sanitizer, ECS/EXP, Compliant-by-Default, AFD, CDS) are not part of the public
-package; to use those, build from a source checkout with submodules:
+package; to use those, build from a source checkout with the private
+`lib/modules` submodule (requires access to that repository):
 
 ```console
 git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry
+cd cpp_client_telemetry
+git submodule update --init --checkout lib/modules
 # then build with the repo's own CMake/build scripts
 ```
 
@@ -583,8 +586,8 @@ Older revisions of this overlay port could build the SDK with the private
 `lib/modules` submodules from a local `--recurse-submodules` checkout. The port
 now builds the core SDK from a pinned upstream commit, and the
 `response_file_*.txt` shortcuts have been removed (use a standard triplet). If
-you relied on the old flow for the proprietary modules, build from a
-`--recurse-submodules` source checkout instead.
+you relied on the old flow for the proprietary modules, build from a source
+checkout with `lib/modules` fetched as shown at the top of this page instead.
 
 ## Troubleshooting
 

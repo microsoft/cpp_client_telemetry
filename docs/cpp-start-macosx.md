@@ -23,7 +23,7 @@ _**Note:** Preferably use Homebrew to install missing packages._
 
 ### 1. Run `git clone https://github.com/microsoft/cpp_client_telemetry.git` to clone the repo
 
-If your project requires UTC to send telemetry, you need to add `--recurse-submodules` when cloning to tell git to add `lib/modules` repo.
+If your project requires UTC to send telemetry, you need to fetch the private `lib/modules` submodule. The `lib/modules` submodule is skipped by default (`update = none` in `.gitmodules`); after cloning, run `git submodule update --init --checkout lib/modules` from the repo root to fetch it.
 
 ### 2. You will be asked your credentials to clone the repo, use your username and password as entered on Github
 

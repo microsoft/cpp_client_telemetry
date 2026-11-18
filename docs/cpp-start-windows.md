@@ -10,7 +10,7 @@ This tutorial guides you through the process of integrating the 1DS C++ SDK into
 
 to clone the repo.
 
-If your project requires the Universal Telemetry Client (a.k.a. UTC) to send telemetry, you need to add `--recurse-submodules` while cloning to tell git to add `lib/modules` repo that contains various **proprietary** Microsoft modules, including UTC support. The access to proprietary modules can be obtained by Microsoft-authorized contributors [here](https://aka.ms/1ds.sdk.cpp).
+If your project requires the Universal Telemetry Client (a.k.a. UTC) to send telemetry, you need to fetch the private `lib/modules` submodule, which contains various **proprietary** Microsoft modules, including UTC support. The `lib/modules` submodule is skipped by default (`update = none` in `.gitmodules`); after cloning, run `git submodule update --init --checkout lib/modules` from the repo root to fetch it. The access to proprietary modules can be obtained by Microsoft-authorized contributors [here](https://aka.ms/1ds.sdk.cpp).
 
 ### 2. You will be asked for your credentials to clone the repo. Generate a PAT token using GitHub UI, use your username and PAT token to clone the repo. See [Generating PAT token for command line clone](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
 

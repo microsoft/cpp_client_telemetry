@@ -2,6 +2,10 @@
 	path = lib/modules
 	url = ../cpp_client_telemetry_modules.git
 	branch = master
+	# Private: skipped by default so recursive clones (and Dependabot) that lack
+	# access still check out the public submodules. Authorized users fetch it with
+	# `git submodule update --init --checkout lib/modules`.
+	update = none
 
 [submodule "third_party/googletest"]
 	path = third_party/googletest
