@@ -4,12 +4,16 @@
 //
 
 #include "common/Common.hpp"
+#include "config/RuntimeConfig_Default.hpp"
+#include "pal/PAL.hpp"
 #include "pal/PseudoRandomGenerator.hpp"
 #include "pal/TaskDispatcher.hpp"
 #include "pal/WorkerThread.hpp"
+#include "NullObjects.hpp"
 #include "Version.hpp"
 
 #include <atomic>
+#include <array>
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
@@ -22,13 +26,12 @@
 #include <string>
 #include <set>
 #include <thread>
+#include <utility>
+#include <vector>
 
 #ifdef HAVE_MAT_LOGGING
-#include "pal/PAL.hpp"
 #include <gtest/gtest.h>
 #include <fstream>
-#include <memory>
-#include <string>
 #include <cstdio>
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -39,6 +42,35 @@ using namespace PAL::detail;
 #endif
 
 using namespace testing;
+
+namespace PAL_NS_BEGIN {
+#ifdef HAVE_MAT_LOGGING
+    namespace detail
+    {
+        extern std::recursive_mutex debugLogMutex;
+        extern std::string debugLogPath;
+        extern std::unique_ptr<std::fstream> debugLogStream;
+        extern bool isLoggingInited;
+        extern uint64_t debugLogEpoch;
+    }
+#endif
+
+    class PALTest
+    {
+    public:
+        static bool HasDispatcher(const PlatformAbstractionLayer& pal)
+        {
+            std::lock_guard<std::mutex> lock(pal.m_stateLock);
+            return static_cast<bool>(pal.m_taskDispatcher);
+        }
+
+        static bool IsInitializing(const PlatformAbstractionLayer& pal)
+        {
+            std::lock_guard<std::mutex> lock(pal.m_stateLock);
+            return pal.m_initializing;
+        }
+    };
+} PAL_NS_END
 
 #if defined(_WIN32) || defined(_WIN64)
 namespace PAL_NS_BEGIN {
@@ -51,7 +83,384 @@ namespace PAL_NS_BEGIN {
 } PAL_NS_END
 #endif
 
-class PalTests : public Test {};
+namespace
+{
+#ifdef HAVE_MAT_LOGGING
+    class ScopedLogState
+    {
+    public:
+        ScopedLogState()
+        {
+            std::lock_guard<std::recursive_mutex> lock(PAL::detail::debugLogMutex);
+            m_path = std::move(PAL::detail::debugLogPath);
+            m_stream = std::move(PAL::detail::debugLogStream);
+            m_enabled = PAL::detail::isLoggingInited;
+            m_epoch = PAL::detail::debugLogEpoch;
+            PAL::detail::isLoggingInited = false;
+        }
+
+        ~ScopedLogState()
+        {
+            std::lock_guard<std::recursive_mutex> lock(PAL::detail::debugLogMutex);
+            PAL::detail::debugLogStream = std::move(m_stream);
+            PAL::detail::debugLogPath = std::move(m_path);
+            PAL::detail::debugLogEpoch = m_epoch;
+            PAL::detail::isLoggingInited = m_enabled;
+        }
+
+    private:
+        std::string m_path;
+        std::unique_ptr<std::fstream> m_stream;
+        uint64_t m_epoch = 0;
+        bool m_enabled = false;
+    };
+#endif
+
+    class BlockingRuntimeConfig : public MAT::RuntimeConfig_Default
+    {
+    public:
+        BlockingRuntimeConfig(
+            MAT::ILogConfiguration& configuration,
+            std::promise<void>& entered,
+            std::shared_future<void> release)
+            : RuntimeConfig_Default(configuration), m_entered(entered), m_release(std::move(release))
+        {
+        }
+
+        bool HasConfig(const char* key) override
+        {
+            if (!m_blocked.exchange(true))
+            {
+                m_entered.set_value();
+                m_release.wait();
+            }
+            return RuntimeConfig_Default::HasConfig(key);
+        }
+
+    private:
+        std::promise<void>& m_entered;
+        std::shared_future<void> m_release;
+        std::atomic<bool> m_blocked { false };
+    };
+
+#if HAVE_EXCEPTIONS
+    class ThrowOnceRuntimeConfig : public MAT::RuntimeConfig_Default
+    {
+    public:
+        explicit ThrowOnceRuntimeConfig(MAT::ILogConfiguration& configuration)
+            : RuntimeConfig_Default(configuration)
+        {
+        }
+
+        MAT::Variant& operator[](const char* key) override
+        {
+            if (m_throw && std::string(key) == CFG_BOOL_ENABLE_NET_DETECT)
+            {
+                m_throw = false;
+                throw std::runtime_error("PAL initialization failed");
+            }
+            return RuntimeConfig_Default::operator[](key);
+        }
+
+    private:
+        bool m_throw = true;
+    };
+#endif
+
+    class ReinitializePalTask
+    {
+    public:
+        ReinitializePalTask(
+            PAL::PlatformAbstractionLayer& pal,
+            MAT::IRuntimeConfig& configuration,
+            std::shared_future<void> release,
+            std::atomic<bool>& shouldInitialize,
+            std::promise<void>& started,
+            std::promise<void>& finished,
+            std::shared_ptr<MAT::ITaskDispatcher>& replacement)
+            : m_pal(pal),
+              m_configuration(configuration),
+              m_release(std::move(release)),
+              m_shouldInitialize(shouldInitialize),
+              m_started(started),
+              m_finished(finished),
+              m_replacement(replacement)
+        {
+        }
+
+        void Run()
+        {
+            m_started.set_value();
+            m_release.wait();
+            if (m_shouldInitialize.load())
+            {
+                m_pal.initialize(m_configuration);
+                m_replacement = m_pal.getDefaultTaskDispatcher();
+                m_pal.shutdown();
+            }
+            m_finished.set_value();
+        }
+
+    private:
+        PAL::PlatformAbstractionLayer& m_pal;
+        MAT::IRuntimeConfig& m_configuration;
+        std::shared_future<void> m_release;
+        std::atomic<bool>& m_shouldInitialize;
+        std::promise<void>& m_started;
+        std::promise<void>& m_finished;
+        std::shared_ptr<MAT::ITaskDispatcher>& m_replacement;
+    };
+
+    class SignalTask
+    {
+    public:
+        explicit SignalTask(std::promise<void>& signal) : m_signal(signal) {}
+        void Run() { m_signal.set_value(); }
+
+    private:
+        std::promise<void>& m_signal;
+    };
+
+    class BlockingTask
+    {
+    public:
+        BlockingTask(std::promise<void>& started, std::shared_future<void> release)
+            : m_started(started), m_release(std::move(release))
+        {
+        }
+
+        void Run()
+        {
+            m_started.set_value();
+            m_release.wait();
+        }
+
+    private:
+        std::promise<void>& m_started;
+        std::shared_future<void> m_release;
+    };
+
+    class BlockingSemanticContext : public MAT::NullContext
+    {
+    public:
+        BlockingSemanticContext(std::promise<void>& entered, std::shared_future<void> release)
+            : m_entered(entered), m_release(std::move(release))
+        {
+        }
+
+        void SetDeviceId(const std::string& value) override
+        {
+            deviceId = value;
+            sawDeviceId = true;
+        }
+
+        void SetDeviceModel(const std::string& value) override
+        {
+            m_entered.set_value();
+            m_release.wait();
+            deviceModel = value;
+            sawDeviceModel = true;
+        }
+
+        void SetOsName(const std::string& value) override
+        {
+            osName = value;
+            sawOsName = true;
+        }
+
+        void SetNetworkProvider(const std::string&) override
+        {
+            sawNetworkProvider = true;
+        }
+
+        std::string deviceId;
+        std::string deviceModel;
+        std::string osName;
+        bool sawDeviceId = false;
+        bool sawDeviceModel = false;
+        bool sawOsName = false;
+        bool sawNetworkProvider = false;
+
+    private:
+        std::promise<void>& m_entered;
+        std::shared_future<void> m_release;
+    };
+}
+
+class PalTests : public Test
+{
+#ifdef HAVE_MAT_LOGGING
+    ScopedLogState m_logState;
+#endif
+};
+
+TEST_F(PalTests, ConcurrentInitializationPublishesCompleteState)
+{
+    MAT::ILogConfiguration logConfiguration;
+    logConfiguration[CFG_BOOL_ENABLE_TRACE] = false;
+    std::promise<void> firstEntered;
+    std::promise<void> releaseFirst;
+    auto firstEnteredFuture = firstEntered.get_future();
+    BlockingRuntimeConfig configuration(logConfiguration, firstEntered, releaseFirst.get_future().share());
+    PAL::PlatformAbstractionLayer pal;
+
+    struct Observation
+    {
+        std::shared_ptr<PAL::ISystemInformation> system;
+        std::shared_ptr<PAL::IDeviceInformation> device;
+        std::shared_ptr<PAL::INetworkInformation> network;
+        std::shared_ptr<MAT::ITaskDispatcher> dispatcher;
+    };
+    std::array<Observation, 2> observations;
+    auto initialize = [&](size_t index) {
+        pal.initialize(configuration);
+        observations[index].system = pal.GetSystemInformation();
+        observations[index].device = pal.GetDeviceInformation();
+        observations[index].network = pal.GetNetworkInformation();
+        observations[index].dispatcher = pal.getDefaultTaskDispatcher();
+    };
+
+    std::thread first([&] { initialize(0); });
+    if (firstEnteredFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        releaseFirst.set_value();
+        first.join();
+        pal.shutdown();
+        FAIL() << "The first initializer did not enter the configuration";
+    }
+
+    std::promise<void> secondStarted;
+    std::promise<void> secondFinished;
+    auto secondStartedFuture = secondStarted.get_future();
+    auto secondFinishedFuture = secondFinished.get_future();
+    std::thread second([&] {
+        secondStarted.set_value();
+        initialize(1);
+        secondFinished.set_value();
+    });
+    secondStartedFuture.wait();
+
+    auto getter = std::async(std::launch::async, [&] { return pal.GetSystemInformation(); });
+    const auto getterStatus = getter.wait_for(std::chrono::seconds(2));
+    const auto secondStatus = secondFinishedFuture.wait_for(std::chrono::milliseconds(250));
+    releaseFirst.set_value();
+    first.join();
+    second.join();
+
+    EXPECT_EQ(getterStatus, std::future_status::ready);
+    EXPECT_EQ(getter.get(), nullptr);
+    EXPECT_EQ(secondStatus, std::future_status::timeout);
+    EXPECT_THAT(observations[0].system, NotNull());
+    EXPECT_THAT(observations[0].device, NotNull());
+    EXPECT_THAT(observations[0].network, NotNull());
+    EXPECT_THAT(observations[0].dispatcher, NotNull());
+    EXPECT_EQ(observations[0].system, observations[1].system);
+    EXPECT_EQ(observations[0].device, observations[1].device);
+    EXPECT_EQ(observations[0].network, observations[1].network);
+    EXPECT_EQ(observations[0].dispatcher, observations[1].dispatcher);
+
+    std::promise<void> releaseShutdown;
+    auto shutdownGate = releaseShutdown.get_future().share();
+    std::thread shutdown1([&] { shutdownGate.wait(); pal.shutdown(); });
+    std::thread shutdown2([&] { shutdownGate.wait(); pal.shutdown(); });
+    releaseShutdown.set_value();
+    shutdown1.join();
+    shutdown2.join();
+    EXPECT_EQ(pal.GetSystemInformation(), nullptr);
+    EXPECT_EQ(pal.GetDeviceInformation(), nullptr);
+    EXPECT_EQ(pal.GetNetworkInformation(), nullptr);
+    EXPECT_FALSE(PAL::PALTest::HasDispatcher(pal));
+}
+
+#if HAVE_EXCEPTIONS
+TEST_F(PalTests, FailedInitializationCanBeRetried)
+{
+    MAT::ILogConfiguration logConfiguration;
+    logConfiguration[CFG_BOOL_ENABLE_TRACE] = false;
+    ThrowOnceRuntimeConfig configuration(logConfiguration);
+    PAL::PlatformAbstractionLayer pal;
+
+    EXPECT_THROW(pal.initialize(configuration), std::runtime_error);
+    ASSERT_FALSE(PAL::PALTest::IsInitializing(pal));
+    EXPECT_FALSE(pal.GetSystemInformation());
+    EXPECT_FALSE(pal.GetDeviceInformation());
+    EXPECT_FALSE(pal.GetNetworkInformation());
+    pal.initialize(configuration);
+    EXPECT_THAT(pal.GetSystemInformation(), NotNull());
+    pal.shutdown();
+}
+#endif
+
+TEST_F(PalTests, RetainedDispatcherSurvivesFinalShutdown)
+{
+    MAT::ILogConfiguration logConfiguration;
+    logConfiguration[CFG_BOOL_ENABLE_TRACE] = false;
+    MAT::RuntimeConfig_Default configuration(logConfiguration);
+    PAL::PlatformAbstractionLayer pal;
+    pal.initialize(configuration);
+    auto dispatcher = pal.getDefaultTaskDispatcher();
+    pal.shutdown();
+
+    std::promise<void> ran;
+    auto ranFuture = ran.get_future();
+    SignalTask task(ran);
+    PAL::dispatchTask(dispatcher.get(), &task, &SignalTask::Run);
+    EXPECT_EQ(ranFuture.wait_for(std::chrono::seconds(5)), std::future_status::ready);
+    dispatcher.reset();
+}
+
+TEST_F(PalTests, WorkerCanReinitializeWhileFinalShutdownReleasesDispatcher)
+{
+    MAT::ILogConfiguration logConfiguration;
+    logConfiguration[CFG_BOOL_ENABLE_TRACE] = false;
+    MAT::RuntimeConfig_Default configuration(logConfiguration);
+    PAL::PlatformAbstractionLayer pal;
+    pal.initialize(configuration);
+    auto dispatcher = pal.getDefaultTaskDispatcher();
+
+    std::promise<void> workerStarted;
+    std::promise<void> releaseWorker;
+    std::promise<void> workerFinished;
+    auto startedFuture = workerStarted.get_future();
+    auto finishedFuture = workerFinished.get_future();
+    std::atomic<bool> shouldInitialize { false };
+    std::shared_ptr<MAT::ITaskDispatcher> replacement;
+    ReinitializePalTask task(
+        pal, configuration, releaseWorker.get_future().share(), shouldInitialize,
+        workerStarted, workerFinished, replacement);
+    PAL::dispatchTask(dispatcher.get(), &task, &ReinitializePalTask::Run);
+    if (startedFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        releaseWorker.set_value();
+        dispatcher.reset();
+        pal.shutdown();
+        FAIL() << "The worker did not start";
+    }
+    dispatcher.reset();
+
+    std::thread shutdown([&] { pal.shutdown(); });
+    std::promise<bool> dispatcherRetired;
+    auto retiredFuture = dispatcherRetired.get_future();
+    std::thread observer([&] {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        while (PAL::PALTest::HasDispatcher(pal) && std::chrono::steady_clock::now() < deadline)
+        {
+            std::this_thread::yield();
+        }
+        dispatcherRetired.set_value(!PAL::PALTest::HasDispatcher(pal));
+    });
+    const bool retired =
+        retiredFuture.wait_for(std::chrono::seconds(5)) == std::future_status::ready && retiredFuture.get();
+    shouldInitialize.store(retired);
+    releaseWorker.set_value();
+    observer.join();
+    const auto finished = finishedFuture.wait_for(std::chrono::seconds(5));
+    shutdown.join();
+
+    EXPECT_TRUE(retired);
+    EXPECT_EQ(finished, std::future_status::ready);
+    EXPECT_THAT(replacement, NotNull());
+}
 
 TEST_F(PalTests, UuidGeneration)
 {
@@ -189,24 +598,50 @@ TEST_F(PalTests, MonotonicTime)
 
 TEST_F(PalTests, SemanticContextPopulation)
 {
- /*   MockISemanticContext context;
+    MAT::ILogConfiguration logConfiguration;
+    logConfiguration[CFG_BOOL_ENABLE_TRACE] = false;
+    MAT::RuntimeConfig_Default configuration(logConfiguration);
+    PAL::PlatformAbstractionLayer pal;
+    pal.initialize(configuration);
 
+    ASSERT_TRUE(pal.GetDeviceInformation());
+    ASSERT_TRUE(pal.GetSystemInformation());
+    ASSERT_TRUE(pal.GetNetworkInformation());
+    const auto expectedDeviceId = pal.GetDeviceInformation()->GetDeviceId();
+    const auto expectedDeviceModel = pal.GetDeviceInformation()->GetModel();
+    const auto expectedOsName = pal.GetSystemInformation()->GetOsName();
 
-    EXPECT_CALL(context, SetAppId(Not(IsEmpty()))).WillOnce(DoDefault());
-    EXPECT_CALL(context, SetAppVersion(_)).WillOnce(DoDefault());
-    EXPECT_CALL(context, SetAppLanguage(_)).WillOnce(DoDefault());
+    std::promise<void> entered;
+    std::promise<void> release;
+    auto enteredFuture = entered.get_future();
+    BlockingSemanticContext context(entered, release.get_future().share());
+    std::thread populate([&] { pal.registerSemanticContext(&context); });
+    if (enteredFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        release.set_value();
+        populate.join();
+        pal.shutdown();
+        FAIL() << "Semantic-context population did not reach the device callback";
+    }
 
-    EXPECT_CALL(context, SetUserLanguage(_)).WillOnce(DoDefault());
-    EXPECT_CALL(context, SetUserTimeZone(Not(IsEmpty()))).WillOnce(DoDefault());
-    //EXPECT_CALL(context, SetUserAdvertisingId(_)).WillOnce(DoDefault());
+    auto shutdown = std::async(std::launch::async, [&] { pal.shutdown(); });
+    const auto shutdownStatus = shutdown.wait_for(std::chrono::seconds(2));
+    release.set_value();
+    populate.join();
+    shutdown.get();
 
-   
-    PAL::registerSemanticContext(&context);
-
-    PAL::sleep(500);
-
-    PAL::unregisterSemanticContext(&context);
-    */
+    EXPECT_EQ(shutdownStatus, std::future_status::ready);
+#ifdef MATSDK_DISABLE_DEVICE_ID
+    EXPECT_EQ(context.sawDeviceId, !expectedDeviceId.empty());
+#else
+    EXPECT_TRUE(context.sawDeviceId);
+#endif
+    EXPECT_EQ(context.deviceId, expectedDeviceId);
+    EXPECT_TRUE(context.sawDeviceModel);
+    EXPECT_EQ(context.deviceModel, expectedDeviceModel);
+    EXPECT_TRUE(context.sawOsName);
+    EXPECT_EQ(context.osName, expectedOsName);
+    EXPECT_TRUE(context.sawNetworkProvider);
 }
 
 TEST_F(PalTests, SdkVersion)
@@ -840,6 +1275,7 @@ TEST_F(PalTests, WorkerThreadSelfJoinSurvivesConcurrentFinalRelease)
 class LogInitTest : public Test
 {
     protected:
+        ScopedLogState m_logState;
         std::string validPath = "valid/path/";
 
         void SetUp() override
@@ -935,6 +1371,127 @@ TEST_F(LogInitTest, LogInitPathWithoutTrailingBackslash)
 #endif
     EXPECT_TRUE(PAL::detail::log_init(true, pathWithoutBackslash));
     EXPECT_TRUE(PAL::detail::getDebugLogStream()->is_open());
+}
+
+TEST_F(LogInitTest, OlderEpochCannotCloseCurrentLog)
+{
+    uint64_t oldEpoch = 0;
+    uint64_t currentEpoch = 0;
+    ASSERT_TRUE(log_init(true, validPath, oldEpoch));
+    ASSERT_TRUE(log_init(true, validPath, currentEpoch));
+    EXPECT_NE(oldEpoch, currentEpoch);
+
+    log_done(oldEpoch);
+    ASSERT_TRUE(getDebugLogStream());
+    EXPECT_TRUE(getDebugLogStream()->is_open());
+    log_done(currentEpoch);
+    EXPECT_FALSE(getDebugLogStream());
+}
+
+TEST_F(LogInitTest, PalGenerationSurvivesOlderShutdown)
+{
+    MAT::ILogConfiguration firstLogConfiguration;
+    firstLogConfiguration[CFG_BOOL_ENABLE_TRACE] = true;
+    firstLogConfiguration[CFG_STR_TRACE_FOLDER_PATH] = validPath;
+    MAT::RuntimeConfig_Default firstConfiguration(firstLogConfiguration);
+    PAL::PlatformAbstractionLayer pal;
+    pal.initialize(firstConfiguration);
+    ASSERT_TRUE(getDebugLogStream());
+    const std::string oldPath = getDebugLogPath();
+
+    auto dispatcher = pal.getDefaultTaskDispatcher();
+    std::promise<void> started;
+    std::promise<void> release;
+    auto startedFuture = started.get_future();
+    BlockingTask task(started, release.get_future().share());
+    PAL::dispatchTask(dispatcher.get(), &task, &BlockingTask::Run);
+    if (startedFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        release.set_value();
+        dispatcher.reset();
+        pal.shutdown();
+        FAIL() << "The worker did not start";
+    }
+    dispatcher.reset();
+
+    std::thread shutdown([&] { pal.shutdown(); });
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (PAL::PALTest::HasDispatcher(pal) && std::chrono::steady_clock::now() < deadline)
+    {
+        std::this_thread::yield();
+    }
+    if (PAL::PALTest::HasDispatcher(pal))
+    {
+        release.set_value();
+        shutdown.join();
+        FAIL() << "The old dispatcher was not retired";
+    }
+
+    const auto separator = validPath.find_last_of("/\\", validPath.size() - 2);
+    const std::string otherDirectory = validPath.substr(0, separator + 1);
+    MAT::ILogConfiguration secondLogConfiguration;
+    secondLogConfiguration[CFG_BOOL_ENABLE_TRACE] = true;
+    secondLogConfiguration[CFG_STR_TRACE_FOLDER_PATH] = otherDirectory;
+    MAT::RuntimeConfig_Default secondConfiguration(secondLogConfiguration);
+    pal.initialize(secondConfiguration);
+    const std::string newPath = getDebugLogPath();
+    release.set_value();
+    shutdown.join();
+
+    EXPECT_NE(newPath, oldPath);
+    ASSERT_TRUE(getDebugLogStream());
+    EXPECT_TRUE(getDebugLogStream()->is_open());
+    EXPECT_EQ(getDebugLogPath(), newPath);
+    pal.shutdown();
+    std::remove(oldPath.c_str());
+}
+
+TEST_F(LogInitTest, NewEpochUsesItsConfiguredPath)
+{
+    uint64_t oldEpoch = 0;
+    uint64_t currentEpoch = 0;
+    ASSERT_TRUE(log_init(true, validPath, oldEpoch));
+    const std::string oldPath = getDebugLogPath();
+    const auto separator = validPath.find_last_of("/\\", validPath.size() - 2);
+    ASSERT_NE(separator, std::string::npos);
+    const std::string otherDirectory = validPath.substr(0, separator + 1);
+
+    const bool opened = log_init(true, otherDirectory, currentEpoch);
+    EXPECT_TRUE(opened);
+    if (opened)
+    {
+        EXPECT_NE(getDebugLogPath(), oldPath);
+        log_done(oldEpoch);
+        EXPECT_TRUE(getDebugLogStream());
+    }
+    std::remove(oldPath.c_str());
+}
+
+TEST_F(LogInitTest, FailedOpenIsNotReusedAsSuccessfulLogging)
+{
+    uint64_t epoch = 0;
+    ASSERT_TRUE(log_init(true, validPath, epoch));
+    const std::string blockedPath = getDebugLogPath();
+    log_done(epoch);
+    ASSERT_EQ(std::remove(blockedPath.c_str()), 0);
+#if defined(_WIN32) || defined(_WIN64)
+    ASSERT_TRUE(CreateDirectoryA(blockedPath.c_str(), nullptr));
+#else
+    ASSERT_EQ(mkdir(blockedPath.c_str(), 0777), 0);
+#endif
+
+    uint64_t firstEpoch = 0;
+    uint64_t secondEpoch = 0;
+    EXPECT_FALSE(log_init(true, validPath, firstEpoch));
+    EXPECT_FALSE(log_init(true, validPath, secondEpoch));
+    EXPECT_EQ(firstEpoch, 0u);
+    EXPECT_EQ(secondEpoch, 0u);
+    log_done();
+#if defined(_WIN32) || defined(_WIN64)
+    EXPECT_TRUE(RemoveDirectoryA(blockedPath.c_str()));
+#else
+    EXPECT_EQ(rmdir(blockedPath.c_str()), 0);
+#endif
 }
 
 #endif
