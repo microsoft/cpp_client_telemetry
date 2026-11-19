@@ -8,13 +8,20 @@
 #include "offline/IOfflineStorageProvider.hpp"
 #include "offline/StorageObserver.hpp"
 #include "offline/MemoryStorage.hpp"
+#include "pal/TaskDispatcher_CAPI.hpp"
 #include "NullObjects.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdio>
+#include <functional>
+#include <future>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <stdexcept>
+#include <thread>
 #include <tuple>
 #include <vector>
 
@@ -186,6 +193,28 @@ namespace
         ILogConfiguration& GetLogConfiguration() override { return config; }
     };
 
+    class CountingLogManager : public ConfigurableLogManager
+    {
+    public:
+        bool StartActivity() override
+        {
+            ++activityCount;
+            ++activeActivities;
+            return true;
+        }
+
+        void EndActivity() override { --activeActivities; }
+
+        std::atomic<unsigned> activityCount{0};
+        std::atomic<int> activeActivities{0};
+    };
+
+    class PausedLogManager : public ConfigurableLogManager
+    {
+    public:
+        bool StartActivity() override { return false; }
+    };
+
     // Remove a SQLite db file along with its WAL-mode companion files
     // (-wal/-shm/-journal), which would otherwise accumulate in the temp dir.
     void RemoveDbFiles(const std::string& path)
@@ -226,6 +255,89 @@ namespace
         }
         std::vector<Task*> m_tasks;
     };
+
+    class ManualTaskDispatcher : public ITaskDispatcher
+    {
+    public:
+        enum class Behavior { Hold, Inline, Drop, ThrowOnce };
+
+        void Join() override
+        {
+            Take();
+        }
+
+        void Queue(Task* task) override
+        {
+            std::unique_ptr<Task> owned(task);
+            EXPECT_EQ(static_cast<int>(task->Type), static_cast<int>(Task::Call));
+            const unsigned call = ++queueCalls;
+            if (beforeQueue)
+            {
+                beforeQueue();
+            }
+            if (behavior == Behavior::Inline)
+            {
+                (*owned)();
+                return;
+            }
+            if (behavior == Behavior::Drop)
+            {
+                return;
+            }
+#if HAVE_EXCEPTIONS
+            if (behavior == Behavior::ThrowOnce && call == 1)
+            {
+                throw std::runtime_error("queue failed");
+            }
+#else
+            UNREFERENCED_PARAMETER(call);
+#endif
+            std::lock_guard<std::mutex> lock(m_mutex);
+            EXPECT_EQ(m_task, nullptr);
+            m_task = std::move(owned);
+        }
+
+        bool Cancel(Task* task, uint64_t = 0) override
+        {
+            std::unique_ptr<Task> cancelled;
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                if (m_task.get() != task)
+                {
+                    return false;
+                }
+                cancelled = std::move(m_task);
+            }
+            return true;
+        }
+
+        std::unique_ptr<Task> Take()
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            return std::move(m_task);
+        }
+
+        Behavior behavior = Behavior::Hold;
+        std::atomic<unsigned> queueCalls{0};
+        std::function<void()> beforeQueue;
+
+    private:
+        std::mutex m_mutex;
+        std::unique_ptr<Task> m_task;
+    };
+
+    void EVTSDK_LIBABI_CDECL QueueInlineCapiTask(evt_task_t* task, task_callback_fn_t callback)
+    {
+        EXPECT_EQ(task->delayMs, 0u);
+        callback(task->id);
+    }
+
+    bool EVTSDK_LIBABI_CDECL CancelCapiTask(const char*)
+    {
+        return true;
+    }
+
+    void EVTSDK_LIBABI_CDECL JoinCapiTasks() {}
 }
 
 namespace MAT_NS_BEGIN {
@@ -391,6 +503,667 @@ TEST_P(OfflineStorageRetrievalExceptionTests, PartialRetrievalReleasesRecordsToT
 INSTANTIATE_TEST_SUITE_P(MemoryAndDisk, OfflineStorageRetrievalExceptionTests, Combine(Bool(), Bool()));
 #endif
 
+class OfflineStorageLifecycleTests : public Test
+{
+protected:
+    void SetUp() override
+    {
+        config[CFG_INT_RAM_QUEUE_SIZE] = 1;
+        config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+        memory = std::make_shared<MemoryStorage>(logManager, config);
+        disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+        auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+        handler.reset(new OfflineStorageHandler(logManager, config, dispatcher, provider));
+        EXPECT_CALL(*disk, Initialize(Ref(*handler)));
+        handler->Initialize(observer);
+    }
+
+    StorageRecord Record(const char* id)
+    {
+        return StorageRecord(id, "tenant-token", EventLatency_Normal,
+                             EventPersistence_Normal, 1, std::vector<uint8_t>{'x'});
+    }
+
+    bool StoreTwo()
+    {
+        return handler->StoreRecord(Record("first")) && handler->StoreRecord(Record("second"));
+    }
+
+    void ExpectSaved(size_t count)
+    {
+        EXPECT_CALL(*disk, StoreRecords(_))
+            .WillOnce(Invoke([count](std::vector<StorageRecord>& records)
+            {
+                EXPECT_EQ(records.size(), count);
+                return records.size();
+            }));
+        EXPECT_CALL(observer, OnStorageRecordsSaved(count));
+    }
+
+    CountingLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    ManualTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+    std::shared_ptr<MemoryStorage> memory;
+    std::shared_ptr<StrictMock<MockIOfflineStorage>> disk;
+    std::unique_ptr<OfflineStorageHandler> handler;
+};
+
+TEST_F(OfflineStorageLifecycleTests, ShutdownCancelsQueuedFlushAndPersistsRecords)
+{
+    ASSERT_TRUE(StoreTwo());
+    ExpectSaved(2);
+    EXPECT_CALL(*disk, Shutdown());
+
+    std::promise<void> finished;
+    auto done = finished.get_future();
+    std::thread shutdown([&] {
+        handler->Shutdown();
+        finished.set_value();
+    });
+    const auto status = done.wait_for(std::chrono::seconds(5));
+    if (status != std::future_status::ready)
+    {
+        auto task = dispatcher.Take();
+        if (task)
+        {
+            (*task)();
+        }
+    }
+    shutdown.join();
+    EXPECT_EQ(status, std::future_status::ready);
+    EXPECT_EQ(dispatcher.Take(), nullptr);
+    EXPECT_FALSE(handler->StoreRecord(Record("after-shutdown")));
+    const unsigned activitiesAfterShutdown = logManager.activityCount.load();
+    handler->Flush();
+    EXPECT_EQ(logManager.activityCount.load(), activitiesAfterShutdown);
+}
+
+TEST_F(OfflineStorageLifecycleTests, ShutdownWaitsForDirectFlushObserver)
+{
+    ASSERT_TRUE(StoreTwo());
+    auto task = dispatcher.Take();
+    ASSERT_NE(task, nullptr);
+    std::promise<void> entered;
+    auto enteredFuture = entered.get_future();
+    std::promise<void> release;
+    auto releaseFuture = release.get_future().share();
+    std::atomic<unsigned> shutdownCalls{0};
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) { return records.size(); }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2))
+        .WillOnce(Invoke([&](size_t) {
+            entered.set_value();
+            releaseFuture.wait();
+        }));
+    EXPECT_CALL(*disk, Shutdown()).WillOnce(Invoke([&] { ++shutdownCalls; }));
+
+    std::thread flush([&] { handler->Flush(); });
+    if (enteredFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        release.set_value();
+        flush.join();
+        FAIL() << "Direct flush did not notify its observer";
+    }
+    std::promise<void> started;
+    auto startedFuture = started.get_future();
+    std::promise<void> finished;
+    auto done = finished.get_future();
+    std::thread shutdown([&] {
+        started.set_value();
+        handler->Shutdown();
+        finished.set_value();
+    });
+    startedFuture.wait();
+    EXPECT_EQ(done.wait_for(std::chrono::milliseconds(200)), std::future_status::timeout);
+    EXPECT_EQ(shutdownCalls.load(), 0u);
+    release.set_value();
+    flush.join();
+    shutdown.join();
+    EXPECT_EQ(done.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+    const unsigned activitiesAfterShutdown = logManager.activityCount.load();
+    (*task)();
+    EXPECT_EQ(logManager.activityCount.load(), activitiesAfterShutdown);
+}
+
+TEST_F(OfflineStorageLifecycleTests, ConcurrentShutdownRunsStorageShutdownOnce)
+{
+    std::promise<void> entered;
+    auto enteredFuture = entered.get_future();
+    std::promise<void> release;
+    auto releaseFuture = release.get_future().share();
+    EXPECT_CALL(*disk, Shutdown()).WillOnce(Invoke([&] {
+        entered.set_value();
+        releaseFuture.wait();
+    }));
+
+    std::thread first([&] { handler->Shutdown(); });
+    if (enteredFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        release.set_value();
+        first.join();
+        FAIL() << "First shutdown did not reach storage";
+    }
+    std::promise<void> started;
+    auto startedFuture = started.get_future();
+    std::promise<void> finished;
+    auto done = finished.get_future();
+    std::thread second([&] {
+        started.set_value();
+        handler->Shutdown();
+        finished.set_value();
+    });
+    startedFuture.wait();
+    EXPECT_EQ(done.wait_for(std::chrono::milliseconds(200)), std::future_status::timeout);
+    release.set_value();
+    first.join();
+    second.join();
+    EXPECT_EQ(done.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, ShutdownWaitsForRunningFlush)
+{
+    ASSERT_TRUE(StoreTwo());
+    auto task = dispatcher.Take();
+    ASSERT_NE(task, nullptr);
+    std::promise<void> entered;
+    auto enteredFuture = entered.get_future();
+    std::promise<void> release;
+    auto releaseFuture = release.get_future().share();
+    std::atomic<unsigned> batchCalls{0};
+    std::atomic<unsigned> directlyStored{0};
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillRepeatedly(Invoke([&](std::vector<StorageRecord>& records) {
+            if (++batchCalls == 1)
+            {
+                entered.set_value();
+                releaseFuture.wait();
+            }
+            return records.size();
+        }));
+    EXPECT_CALL(*disk, StoreRecord(_))
+        .WillRepeatedly(Invoke([&](StorageRecord const&) {
+            ++directlyStored;
+            return true;
+        }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(_)).Times(AtLeast(1));
+    EXPECT_CALL(*disk, Shutdown());
+
+    std::thread worker([task = std::move(task)] { (*task)(); });
+    if (enteredFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        release.set_value();
+        worker.join();
+        FAIL() << "Scheduled flush did not enter storage";
+    }
+    std::promise<void> started;
+    auto startedFuture = started.get_future();
+    std::promise<void> finished;
+    auto done = finished.get_future();
+    std::thread shutdown([&] {
+        started.set_value();
+        handler->Shutdown();
+        finished.set_value();
+    });
+    startedFuture.wait();
+    for (unsigned i = 0; i < 500 && directlyStored.load() == 0; ++i)
+    {
+        auto id = "probe-" + std::to_string(i);
+        handler->StoreRecord(Record(id.c_str()));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    EXPECT_EQ(directlyStored.load(), 1u);
+    EXPECT_EQ(done.wait_for(std::chrono::seconds(0)), std::future_status::timeout);
+    release.set_value();
+    worker.join();
+    shutdown.join();
+    EXPECT_EQ(done.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+}
+
+TEST_F(OfflineStorageLifecycleTests, StoresDuringDrainReachDiskBeforeShutdown)
+{
+    ASSERT_TRUE(handler->StoreRecord(Record("first")));
+    std::promise<void> entered;
+    auto enteredFuture = entered.get_future();
+    std::promise<void> release;
+    auto releaseFuture = release.get_future().share();
+    dispatcher.beforeQueue = [&] {
+        entered.set_value();
+        releaseFuture.wait();
+    };
+    std::atomic<size_t> directlyStored{0};
+    size_t batched = 0;
+    EXPECT_CALL(*disk, StoreRecord(_))
+        .WillRepeatedly(Invoke([&](StorageRecord const&) {
+            ++directlyStored;
+            return true;
+        }));
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([&](std::vector<StorageRecord>& records) {
+            batched = records.size();
+            return records.size();
+        }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(_));
+    EXPECT_CALL(*disk, Shutdown());
+
+    std::thread producer([&] { EXPECT_TRUE(handler->StoreRecord(Record("second"))); });
+    if (enteredFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        release.set_value();
+        producer.join();
+        FAIL() << "Store did not reach task submission";
+    }
+    std::promise<void> started;
+    auto startedFuture = started.get_future();
+    std::promise<void> finished;
+    auto done = finished.get_future();
+    std::thread shutdown([&] {
+        started.set_value();
+        handler->Shutdown();
+        finished.set_value();
+    });
+    startedFuture.wait();
+    size_t accepted = 2;
+    for (unsigned i = 0; i < 500 && directlyStored.load() == 0; ++i)
+    {
+        auto id = "during-drain-" + std::to_string(i);
+        if (handler->StoreRecord(Record(id.c_str())))
+        {
+            ++accepted;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    EXPECT_EQ(directlyStored.load(), 1u);
+    EXPECT_EQ(done.wait_for(std::chrono::seconds(0)), std::future_status::timeout);
+    release.set_value();
+    producer.join();
+    shutdown.join();
+    EXPECT_EQ(batched + directlyStored.load(), accepted);
+    EXPECT_EQ(dispatcher.Take(), nullptr);
+}
+
+TEST_F(OfflineStorageLifecycleTests, DroppedTaskAllowsAnotherFlushToBeScheduled)
+{
+    dispatcher.behavior = ManualTaskDispatcher::Behavior::Drop;
+    ASSERT_TRUE(StoreTwo());
+    ASSERT_TRUE(handler->StoreRecord(Record("third")));
+    EXPECT_EQ(dispatcher.queueCalls.load(), 2u);
+    ExpectSaved(3);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, InlineDispatcherRunsFlushWithoutDeadlock)
+{
+    dispatcher.behavior = ManualTaskDispatcher::Behavior::Inline;
+    ExpectSaved(2);
+    ASSERT_TRUE(StoreTwo());
+    EXPECT_EQ(dispatcher.queueCalls.load(), 1u);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+#if HAVE_EXCEPTIONS
+TEST_F(OfflineStorageLifecycleTests, FailedQueueDoesNotBlockLaterScheduling)
+{
+    dispatcher.behavior = ManualTaskDispatcher::Behavior::ThrowOnce;
+    ASSERT_TRUE(handler->StoreRecord(Record("first")));
+    EXPECT_THROW(handler->StoreRecord(Record("second")), std::runtime_error);
+    ASSERT_TRUE(handler->StoreRecord(Record("third")));
+    EXPECT_EQ(dispatcher.queueCalls.load(), 2u);
+    ExpectSaved(3);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, FailedDirectFlushReleasesActivityAndCanBeRetried)
+{
+    ASSERT_TRUE(StoreTwo());
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) -> size_t {
+            records.clear();
+            throw std::runtime_error("disk write failed");
+        }))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) { return records.size(); }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2));
+    EXPECT_THROW(handler->Flush(), std::runtime_error);
+    EXPECT_EQ(logManager.activeActivities.load(), 0);
+    EXPECT_EQ(memory->GetRecordCount(), 2u);
+    handler->Flush();
+    EXPECT_EQ(logManager.activeActivities.load(), 0);
+    EXPECT_EQ(memory->GetRecordCount(), 0u);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, ConcurrentShutdownRetriesFailedAttempt)
+{
+    std::promise<void> entered;
+    auto enteredFuture = entered.get_future();
+    std::promise<void> release;
+    auto releaseFuture = release.get_future().share();
+    EXPECT_CALL(*disk, Shutdown())
+        .WillOnce(Invoke([&] {
+            entered.set_value();
+            releaseFuture.wait();
+            throw std::runtime_error("shutdown failed");
+        }))
+        .WillOnce(Return());
+
+    std::thread first([&] { EXPECT_THROW(handler->Shutdown(), std::runtime_error); });
+    if (enteredFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        release.set_value();
+        first.join();
+        FAIL() << "First shutdown did not reach storage";
+    }
+    std::promise<void> started;
+    auto startedFuture = started.get_future();
+    std::promise<void> finished;
+    auto done = finished.get_future();
+    std::thread second([&] {
+        started.set_value();
+        EXPECT_NO_THROW(handler->Shutdown());
+        finished.set_value();
+    });
+    startedFuture.wait();
+    EXPECT_EQ(done.wait_for(std::chrono::milliseconds(200)), std::future_status::timeout);
+    release.set_value();
+    first.join();
+    second.join();
+    EXPECT_EQ(done.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, FailedShutdownFlushCanBeRetried)
+{
+    ASSERT_TRUE(StoreTwo());
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Throw(std::runtime_error("disk write failed")))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) { return records.size(); }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2));
+    EXPECT_CALL(*disk, Shutdown());
+    EXPECT_THROW(handler->Shutdown(), std::runtime_error);
+    EXPECT_EQ(memory->GetRecordCount(), 2u);
+    handler->Shutdown();
+    EXPECT_EQ(memory->GetRecordCount(), 0u);
+}
+
+TEST_F(OfflineStorageLifecycleTests, ReinitializeRetriesFailedShutdownBeforeReplacingStorage)
+{
+    ASSERT_TRUE(StoreTwo());
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Throw(std::runtime_error("disk write failed")))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) { return records.size(); }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2));
+    EXPECT_CALL(*disk, Shutdown()).Times(2);
+    EXPECT_THROW(handler->Shutdown(), std::runtime_error);
+    EXPECT_CALL(*disk, Initialize(Ref(*handler)));
+    handler->Initialize(observer);
+    EXPECT_EQ(memory->GetRecordCount(), 0u);
+    handler->Shutdown();
+}
+
+TEST(OfflineStorageHandlerFlushTests, RetryingDiskShutdownDoesNotRepeatMemoryShutdown)
+{
+    ConfigurableLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    ManualTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    auto memory = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*disk, Initialize(Ref(handler)));
+    EXPECT_CALL(*memory, Initialize(Ref(handler)));
+    handler.Initialize(observer);
+    EXPECT_CALL(*memory, GetSize()).WillOnce(Return(0));
+    EXPECT_CALL(*memory, Shutdown()).Times(1);
+    EXPECT_CALL(*disk, Shutdown())
+        .WillOnce(Throw(std::runtime_error("shutdown failed")))
+        .WillOnce(Return());
+    EXPECT_THROW(handler.Shutdown(), std::runtime_error);
+    handler.Shutdown();
+}
+#endif
+
+TEST_F(OfflineStorageLifecycleTests, PartialBatchMutationRetainsRecordsForRetry)
+{
+    ASSERT_TRUE(StoreTwo());
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) -> size_t {
+            records.clear();
+            return 1;
+        }))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) {
+            EXPECT_EQ(records.size(), 2u);
+            return records.size();
+        }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(1));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2));
+    handler->Flush();
+    EXPECT_EQ(memory->GetRecordCount(), 2u);
+    handler->Flush();
+    EXPECT_EQ(memory->GetRecordCount(), 0u);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, SavedObserverCanWaitForAnotherFlush)
+{
+    ASSERT_TRUE(StoreTwo());
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) { return records.size(); }));
+    std::promise<void> finished;
+    auto done = finished.get_future();
+    std::thread nested;
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2))
+        .WillOnce(Invoke([&](size_t) {
+            nested = std::thread([&] {
+                handler->Flush();
+                finished.set_value();
+            });
+            EXPECT_EQ(done.wait_for(std::chrono::seconds(5)), std::future_status::ready);
+        }));
+    handler->Flush();
+    if (nested.joinable())
+    {
+        nested.join();
+    }
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, ReinitializeWithoutMemoryCacheStoresDirectlyToDisk)
+{
+    config[CFG_INT_RAM_QUEUE_SIZE] = 0;
+    EXPECT_CALL(*disk, Shutdown());
+    EXPECT_CALL(*disk, Initialize(Ref(*handler)));
+    handler->Initialize(observer);
+
+    EXPECT_CALL(*disk, StoreRecord(_)).WillOnce(Return(true));
+    EXPECT_TRUE(handler->StoreRecord(Record("direct")));
+    EXPECT_EQ(memory->GetRecordCount(), 0u);
+
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, OldDequeuedTaskStaysInertAfterReinitialize)
+{
+    ASSERT_TRUE(StoreTwo());
+    auto oldTask = dispatcher.Take();
+    ASSERT_NE(oldTask, nullptr);
+    ExpectSaved(2);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+
+    EXPECT_CALL(*disk, Initialize(Ref(*handler)));
+    handler->Initialize(observer);
+    ASSERT_TRUE(StoreTwo());
+    const unsigned activitiesBeforeTask = logManager.activityCount.load();
+    (*oldTask)();
+    oldTask.reset();
+    EXPECT_EQ(logManager.activityCount.load(), activitiesBeforeTask);
+    auto currentTask = dispatcher.Take();
+    ASSERT_NE(currentTask, nullptr);
+    ExpectSaved(2);
+    (*currentTask)();
+    EXPECT_GT(logManager.activityCount.load(), activitiesBeforeTask);
+    EXPECT_EQ(memory->GetRecordCount(), 0u);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, ReinitializeWhileAcceptingClosesOldGeneration)
+{
+    ASSERT_TRUE(StoreTwo());
+    auto oldTask = dispatcher.Take();
+    ASSERT_NE(oldTask, nullptr);
+    ExpectSaved(2);
+    EXPECT_CALL(*disk, Shutdown());
+    EXPECT_CALL(*disk, Initialize(Ref(*handler)));
+    handler->Initialize(observer);
+
+    ASSERT_TRUE(StoreTwo());
+    const unsigned activitiesBeforeTask = logManager.activityCount.load();
+    (*oldTask)();
+    oldTask.reset();
+    EXPECT_EQ(logManager.activityCount.load(), activitiesBeforeTask);
+    auto currentTask = dispatcher.Take();
+    ASSERT_NE(currentTask, nullptr);
+    ExpectSaved(2);
+    (*currentTask)();
+    EXPECT_EQ(memory->GetRecordCount(), 0u);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST_F(OfflineStorageLifecycleTests, OldCompletionDoesNotClearNewerQueuedFlush)
+{
+    ASSERT_TRUE(StoreTwo());
+    auto oldTask = dispatcher.Take();
+    ASSERT_NE(oldTask, nullptr);
+    std::promise<void> entered;
+    auto enteredFuture = entered.get_future();
+    std::promise<void> release;
+    auto releaseFuture = release.get_future().share();
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([&](std::vector<StorageRecord>& records) {
+            entered.set_value();
+            releaseFuture.wait();
+            return records.size();
+        }))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) { return records.size(); }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2)).Times(2);
+    std::thread worker([task = std::move(oldTask)] { (*task)(); });
+    if (enteredFuture.wait_for(std::chrono::seconds(5)) != std::future_status::ready)
+    {
+        release.set_value();
+        worker.join();
+        FAIL() << "Scheduled flush did not enter storage";
+    }
+    EXPECT_TRUE(handler->StoreRecord(Record("third")));
+    EXPECT_TRUE(handler->StoreRecord(Record("fourth")));
+    release.set_value();
+    worker.join();
+    auto newTask = dispatcher.Take();
+    ASSERT_NE(newTask, nullptr);
+    (*newTask)();
+    EXPECT_EQ(memory->GetRecordCount(), 0u);
+    EXPECT_CALL(*disk, Shutdown());
+    handler->Shutdown();
+}
+
+TEST(OfflineStorageHandlerFlushTests, ShutdownFlushesWhenActivitiesArePaused)
+{
+    PausedLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    ManualTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1024 * 1024;
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    auto memory = std::make_shared<MemoryStorage>(logManager, config);
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*disk, Initialize(Ref(handler)));
+    handler.Initialize(observer);
+    StorageRecord record("event", "tenant-token", EventLatency_Normal,
+                         EventPersistence_Normal, 1, std::vector<uint8_t>{'x'});
+    ASSERT_TRUE(handler.StoreRecord(record));
+    handler.Flush();
+    EXPECT_CALL(*disk, StoreRecords(_)).WillOnce(Return(1));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(1));
+    EXPECT_CALL(*disk, Shutdown());
+    handler.Shutdown();
+}
+
+TEST(OfflineStorageHandlerFlushTests, CapiDispatcherReceivesImmediateFlush)
+{
+    ConfigurableLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    PAL::TaskDispatcher_CAPI dispatcher(&QueueInlineCapiTask, &CancelCapiTask, &JoinCapiTasks);
+    StrictMock<MockIOfflineStorageObserver> observer;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1;
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    auto memory = std::make_shared<MemoryStorage>(logManager, config);
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*disk, Initialize(Ref(handler)));
+    handler.Initialize(observer);
+    EXPECT_CALL(*disk, StoreRecords(_)).WillOnce(Return(2));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2));
+    StorageRecord first("first", "tenant-token", EventLatency_Normal,
+                        EventPersistence_Normal, 1, std::vector<uint8_t>{'x'});
+    StorageRecord second("second", "tenant-token", EventLatency_Normal,
+                         EventPersistence_Normal, 1, std::vector<uint8_t>{'y'});
+    ASSERT_TRUE(handler.StoreRecord(first));
+    ASSERT_TRUE(handler.StoreRecord(second));
+    EXPECT_CALL(*disk, Shutdown());
+    handler.Shutdown();
+}
+
+TEST(OfflineStorageHandlerFlushTests, DequeuedFlushCannotRunAfterShutdown)
+{
+    CountingLogManager logManager;
+    NiceMock<MockIRuntimeConfig> config;
+    ManualTaskDispatcher dispatcher;
+    StrictMock<MockIOfflineStorageObserver> observer;
+    config[CFG_INT_RAM_QUEUE_SIZE] = 1;
+    config[CFG_BOOL_ENABLE_BATCHED_STORAGE_FLUSH] = true;
+    auto memory = std::make_shared<MemoryStorage>(logManager, config);
+    auto disk = std::make_shared<StrictMock<MockIOfflineStorage>>();
+    auto provider = std::make_shared<MockOfflineStorageProvider>(memory, disk);
+    OfflineStorageHandler handler(logManager, config, dispatcher, provider);
+    EXPECT_CALL(*disk, Initialize(Ref(handler)));
+    handler.Initialize(observer);
+
+    StorageRecord first("first", "tenant-token", EventLatency_Normal,
+                        EventPersistence_Normal, 1, std::vector<uint8_t>{'x'});
+    StorageRecord second("second", "tenant-token", EventLatency_Normal,
+                         EventPersistence_Normal, 1, std::vector<uint8_t>{'y'});
+    ASSERT_TRUE(handler.StoreRecord(first));
+    ASSERT_TRUE(handler.StoreRecord(second));
+    auto task = dispatcher.Take();
+    ASSERT_NE(task, nullptr);
+
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& records) { return records.size(); }));
+    EXPECT_CALL(observer, OnStorageRecordsSaved(2));
+    handler.Flush();
+
+    EXPECT_CALL(*disk, Shutdown());
+    handler.Shutdown();
+    const unsigned activitiesBeforeTask = logManager.activityCount.load();
+    (*task)();
+    EXPECT_EQ(logManager.activityCount.load(), activitiesBeforeTask);
+}
+
 TEST(OfflineStorageHandlerFlushTests, FailedMemoryRequeueIsReportedAndDropped)
 {
     NullLogManager logManager;
@@ -512,7 +1285,12 @@ TEST(OfflineStorageHandlerFlushTests, BatchedFlushKeepsMemoryOnlyRecordsOffDisk)
     EXPECT_CALL(*memory, StoreRecord(Field(&StorageRecord::id, "memory-only")))
         .WillOnce(Return(true));
     EXPECT_CALL(*disk, StoreRecord(_)).Times(0);
-    EXPECT_CALL(*disk, StoreRecords(_)).WillOnce(Return(1));
+    EXPECT_CALL(*disk, StoreRecords(_))
+        .WillOnce(Invoke([](std::vector<StorageRecord>& batch) -> size_t {
+            EXPECT_THAT(batch, ElementsAre(Field(&StorageRecord::id, "persisted")));
+            batch.clear();
+            return 1;
+        }));
     EXPECT_CALL(observer, OnStorageRecordsSaved(1));
 
     handler.Flush();

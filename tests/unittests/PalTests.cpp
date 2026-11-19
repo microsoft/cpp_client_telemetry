@@ -592,6 +592,25 @@ namespace
         bool m_successorRan = false;
     };
 
+    class TrackedImmediateTask final : public MAT::Task
+    {
+    public:
+        TrackedImmediateTask(std::atomic<bool>& ran, std::atomic<bool>& destroyed) :
+            m_ran(ran), m_destroyed(destroyed)
+        {
+            Type = MAT::Task::Call;
+            TargetTime = 0;
+            TypeName = "TrackedImmediateTask";
+        }
+
+        ~TrackedImmediateTask() noexcept override { m_destroyed.store(true); }
+        void operator()() override { m_ran.store(true); }
+
+    private:
+        std::atomic<bool>& m_ran;
+        std::atomic<bool>& m_destroyed;
+    };
+
     class SelfDisposeHelper
     {
     public:
@@ -680,6 +699,33 @@ TEST_F(PalTests, ScheduleTaskAfterWorkerThreadJoinReturnsNoOpHandle)
 
     EXPECT_EQ(handle.GetTask(), nullptr);
     EXPECT_TRUE(handle.Cancel());
+}
+
+TEST_F(PalTests, CancelRemovesQueuedImmediateTask)
+{
+    auto dispatcher = PAL::WorkerThreadFactory::Create();
+    BlockingCancellationTarget blocker;
+    auto running = PAL::scheduleTask(
+        dispatcher.get(), 0, &blocker, &BlockingCancellationTarget::Block);
+    (void)running;
+    if (!blocker.WaitUntilEntered())
+    {
+        blocker.Release();
+        dispatcher->Join();
+        FAIL() << "Worker did not start the blocking task";
+    }
+
+    std::atomic<bool> ran{false};
+    std::atomic<bool> destroyed{false};
+    auto task = std::make_unique<TrackedImmediateTask>(ran, destroyed);
+    auto* identity = task.get();
+    dispatcher->Queue(task.release());
+    EXPECT_TRUE(dispatcher->Cancel(identity));
+    EXPECT_TRUE(destroyed.load());
+    blocker.Release();
+    dispatcher->Join();
+    EXPECT_FALSE(ran.load());
+    EXPECT_TRUE(destroyed.load());
 }
 
 TEST_F(PalTests, ScheduleTaskHandleClearsAfterWorkerThreadCallbackCompletes)
