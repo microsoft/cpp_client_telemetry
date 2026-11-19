@@ -13,6 +13,7 @@
 
 #include "api/LogManagerFactory.hpp"
 #include "api/LogManagerImpl.hpp"
+#include "utils/ZlibUtils.hpp"
 
 #include "CsProtocol_types.hpp"
 #include "bond/All.hpp"
@@ -49,6 +50,8 @@ using namespace MAT;
 // iOS xctest gtest wrapper, so the exclusion must be at compile time.)
 #if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
 
+constexpr static char final_event_name[] = "multi_manager_final_event";
+
 class RequestHandler : public HttpServer::Callback 
 {
    public:
@@ -58,6 +61,25 @@ class RequestHandler : public HttpServer::Callback
     {
         std::string expected_url = "/" + std::to_string(m_id) + "/";
         EXPECT_EQ(request.uri, expected_url);
+        std::string body = request.content;
+        auto encoding = request.headers.find("Content-Encoding");
+        if (encoding != request.headers.end())
+        {
+            std::vector<uint8_t> compressed(body.begin(), body.end());
+            std::vector<uint8_t> inflated;
+            if (ZlibUtils::InflateVector(compressed, inflated, encoding->second == "gzip"))
+            {
+                body.assign(inflated.begin(), inflated.end());
+            }
+            else
+            {
+                body.clear();
+            }
+        }
+        if (body.find(final_event_name) != std::string::npos)
+        {
+            m_receivedFinalEvent = true;
+        }
         m_count++;
         return 200;
     }
@@ -66,8 +88,13 @@ class RequestHandler : public HttpServer::Callback
         return m_count;
     }
 
+    bool HasFinalEvent() const noexcept {
+        return m_receivedFinalEvent;
+    }
+
    private:
     std::atomic<size_t> m_count {};
+    std::atomic<bool> m_receivedFinalEvent {};
     int m_id ;
 };
 
@@ -147,18 +174,26 @@ class MultipleLogManagersTests : public ::testing::Test
         }
     }
 
-    void waitForRequestsSingleLogManager(unsigned timeout, unsigned expectedCount = 1)
+    bool waitForRequestsAndFinalEvent(unsigned timeout, size_t expectedCount)
     {
-        auto sz = callback1.GetRequestCount();
         auto start = PAL::getUtcSystemTimeMs();
-        while (callback1.GetRequestCount()  - sz < expectedCount)
+        while (callback1.GetRequestCount() < expectedCount || !callback1.HasFinalEvent())
         {
             if (PAL::getUtcSystemTimeMs() - start >= timeout)
             {
-                GTEST_FATAL_FAILURE_("Didn't receive request within given timeout");
+                return false;
             }
             PAL::sleep(100);
         }
+        return true;
+    }
+
+    template <typename Action>
+    bool startAndWaitForRequests(unsigned timeout, Action action)
+    {
+        auto expectedCount = callback1.GetRequestCount() + 2;
+        action();
+        return waitForRequestsAndFinalEvent(timeout, expectedCount);
     }
 
     /*    CsProtocol::ClientToCollectorRequest decodeRequest(HttpServer::Request const& request)
@@ -212,6 +247,42 @@ TEST_F(MultipleLogManagersTests, ThreeInstancesCoexist)
 
 constexpr static unsigned max_iterations = 2000;
 
+TEST_F(MultipleLogManagersTests, WaitIncludesRequestsReceivedBeforeWaiting)
+{
+    HttpServer::Request request {};
+    HttpServer::Response response {};
+    request.uri = "/1/";
+    EXPECT_TRUE(startAndWaitForRequests(0, [&] {
+        request.content = final_event_name;
+        callback1.onHttpRequest(request, response);
+        request.content.clear();
+        callback1.onHttpRequest(request, response);
+    }));
+}
+
+TEST_F(MultipleLogManagersTests, WaitIgnoresRequestsBeforeStarting)
+{
+    HttpServer::Request request {};
+    HttpServer::Response response {};
+    request.uri = "/1/";
+    callback1.onHttpRequest(request, response);
+    EXPECT_FALSE(startAndWaitForRequests(0, [&] {
+        request.content = final_event_name;
+        callback1.onHttpRequest(request, response);
+    }));
+}
+
+TEST_F(MultipleLogManagersTests, WaitRequiresFinalEvent)
+{
+    HttpServer::Request request {};
+    HttpServer::Response response {};
+    request.uri = "/1/";
+    EXPECT_FALSE(startAndWaitForRequests(0, [&] {
+        callback1.onHttpRequest(request, response);
+        callback1.onHttpRequest(request, response);
+    }));
+}
+
 TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
 {
     CAPTURE_PERF_STATS("start");
@@ -222,16 +293,17 @@ TEST_F(MultipleLogManagersTests, MultiProcessesLogManager)
     CAPTURE_PERF_STATS("LogManager created");
     ILogger* logger = lm->GetLogger("aaa");
     CAPTURE_PERF_STATS("Logger created");
-    size_t numIterations = max_iterations;
-    while (numIterations--)
-    {
-        EventProperties props = CreateSampleEvent("event_name", EventPriority_Normal);
-        logger->LogEvent(props);
-    }
-    CAPTURE_PERF_STATS("Events Sent");
-    lm->GetLogController()->UploadNow();
-    CAPTURE_PERF_STATS("Events Uploaded");
-    waitForRequestsSingleLogManager(20000, 2);
+    ASSERT_TRUE(startAndWaitForRequests(20000, [&] {
+        size_t numIterations = max_iterations;
+        while (numIterations--)
+        {
+            EventProperties props = CreateSampleEvent(numIterations == 0 ? final_event_name : "event_name", EventPriority_Normal);
+            logger->LogEvent(props);
+        }
+        CAPTURE_PERF_STATS("Events Sent");
+        lm->GetLogController()->UploadNow();
+        CAPTURE_PERF_STATS("Events Uploaded");
+    })) << "Didn't receive two requests and the final event within the given timeout";
     lm.reset();
     CAPTURE_PERF_STATS("Log Manager deleted");
 }
