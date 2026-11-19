@@ -5,7 +5,9 @@
 #include "LogConfiguration.hpp"
 #include "CorrelationVector.hpp"
 #include "TransmitProfiles.hpp"
+#include "config/RuntimeConfig_Default.hpp"
 #include "http/HttpResponseDecoder.hpp"
+#include "pal/PAL.hpp"
 #include "utils/ZlibUtils.hpp"
 
 #include <cstdio>
@@ -91,6 +93,22 @@ namespace
 
 int main()
 {
+    ILogConfiguration logConfiguration;
+    RuntimeConfig_Default runtimeConfiguration(logConfiguration);
+    PAL::PlatformAbstractionLayer pal;
+    pal.initialize(runtimeConfiguration);
+    pal.initialize(runtimeConfiguration);
+    check(pal.GetSystemInformation() && pal.GetDeviceInformation() && pal.GetNetworkInformation(),
+          "PAL initialization must publish all providers");
+#ifdef MATSDK_DISABLE_DEVICE_ID
+    check(pal.GetDeviceInformation()->GetDeviceId().empty(), "native device ID must remain disabled");
+#endif
+    pal.shutdown();
+    check(pal.GetSystemInformation() != nullptr, "PAL must retain providers until its final shutdown");
+    pal.shutdown();
+    check(!pal.GetSystemInformation() && !pal.GetDeviceInformation() && !pal.GetNetworkInformation(),
+          "PAL final shutdown must release its providers");
+
     const char* invalidConfigurations[] = {nullptr, "", "[", "not-json", "null", "1", "\"text\"", "[]", "[{}]"};
     for (const char* input : invalidConfigurations)
     {

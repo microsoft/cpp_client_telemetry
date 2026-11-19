@@ -111,7 +111,11 @@ namespace PAL_NS_BEGIN
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
-        volatile std::atomic<long> m_palStarted { 0 };
+        mutable std::mutex m_stateLock;
+        std::condition_variable m_stateChanged;
+        bool m_initializing = false;
+        size_t m_palStarted = 0;
+        uint64_t m_logEpoch = 0;
         std::shared_ptr<ITaskDispatcher> m_taskDispatcher;
         std::shared_ptr<ISystemInformation> m_SystemInformation;
         std::shared_ptr<INetworkInformation> m_NetworkInformation;
@@ -243,9 +247,11 @@ namespace PAL_NS_BEGIN
     namespace detail
     {
         bool log_init(bool isTraceEnabled, const std::string& traceFolderPath);
+        bool log_init(bool isTraceEnabled, const std::string& traceFolderPath, uint64_t& epoch);
         const std::unique_ptr<std::fstream>& getDebugLogStream() noexcept;
         const std::string& getDebugLogPath() noexcept;
         void log_done();
+        void log_done(uint64_t epoch);
     }
 #endif
 

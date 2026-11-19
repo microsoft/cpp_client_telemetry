@@ -16,6 +16,7 @@
 #include <chrono>
 #include <mutex>
 #include <thread>
+#include <utility>
 
 #include <iostream>
 #include <sstream>
@@ -137,30 +138,21 @@ namespace PAL_NS_BEGIN {
 
 #define DBG_BUFFER_LEN      2048
 
-#ifndef _WIN32
-#define DEBUG_LOG_NULL      "/dev/null"
-#else
-#define DEBUG_LOG_NULL      "NUL"
-#endif
-
-        bool isLoggingInited = false;
-
 #ifdef HAVE_MAT_LOGGING
         std::recursive_mutex          debugLogMutex;
         std::string                   debugLogPath;
         std::unique_ptr<std::fstream> debugLogStream;
+        bool                          isLoggingInited = false;
+        uint64_t                      debugLogEpoch = 0;
 
-        bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
+        bool log_init(bool isTraceEnabled, const std::string& traceFolderPath, uint64_t& epoch)
         {
+            std::lock_guard<std::recursive_mutex> lock(debugLogMutex);
+            epoch = 0;
             if (!isTraceEnabled)
             {
+                isLoggingInited = false;
                 return false;
-            }
-
-            bool result = true;
-            if (debugLogStream != nullptr)
-            {
-                return result;
             }
 
             // Check if the path exists
@@ -175,29 +167,46 @@ namespace PAL_NS_BEGIN {
 
             if (!pathExists || containsParentDirectory)
             {
+                isLoggingInited = false;
                 return false;
             }
 
-            debugLogMutex.lock();
-            debugLogPath = traceFolderPath;
-            if (debugLogPath.back() != '/' && debugLogPath.back() != '\\')
+            std::string requestedPath = traceFolderPath;
+            if (requestedPath.back() != '/' && requestedPath.back() != '\\')
             {
-                debugLogPath += "/";
+                requestedPath += "/";
             }
-            debugLogPath += "mat-debug-";
-            debugLogPath += std::to_string(MAT::GetCurrentProcessId());
-            debugLogPath += ".log";
+            requestedPath += "mat-debug-";
+            requestedPath += std::to_string(MAT::GetCurrentProcessId());
+            requestedPath += ".log";
 
-            debugLogStream = std::unique_ptr<std::fstream>(new std::fstream());
-            debugLogStream->open(debugLogPath, std::fstream::out);
-            if (!debugLogStream->is_open())
+            if (!debugLogStream || debugLogPath != requestedPath)
             {
-                // If file cannot be created, log to /dev/null
-                debugLogStream->open(DEBUG_LOG_NULL);
-                result = false;
+                isLoggingInited = false;
+                debugLogStream.reset();
+                debugLogPath = std::move(requestedPath);
+                auto stream = std::unique_ptr<std::fstream>(new std::fstream());
+                stream->open(debugLogPath, std::fstream::out);
+                if (!stream->is_open())
+                {
+                    return false;
+                }
+                debugLogStream = std::move(stream);
             }
-            debugLogMutex.unlock();
-            return result;
+
+            if (++debugLogEpoch == 0)
+            {
+                ++debugLogEpoch;
+            }
+            epoch = debugLogEpoch;
+            isLoggingInited = true;
+            return true;
+        }
+
+        bool log_init(bool isTraceEnabled, const std::string& traceFolderPath)
+        {
+            uint64_t epoch;
+            return log_init(isTraceEnabled, traceFolderPath, epoch);
         }
 
         const std::unique_ptr<std::fstream>& getDebugLogStream() noexcept
@@ -212,21 +221,28 @@ namespace PAL_NS_BEGIN {
 
         void log_done()
         {
-            debugLogMutex.lock();
-            if (debugLogStream)
+            std::lock_guard<std::recursive_mutex> lock(debugLogMutex);
+            debugLogStream.reset();
+            isLoggingInited = false;
+        }
+
+        void log_done(uint64_t epoch)
+        {
+            std::lock_guard<std::recursive_mutex> lock(debugLogMutex);
+            if (epoch != 0 && epoch == debugLogEpoch)
             {
-                debugLogStream = nullptr;
+                debugLogStream.reset();
                 isLoggingInited = false;
             }
-            debugLogMutex.unlock();
         }
 #else
-        bool log_init(bool /*isTraceEnabled*/, const std::string& /*traceFolderPath*/)
+        bool log_init(bool /*isTraceEnabled*/, const std::string& /*traceFolderPath*/, uint64_t& epoch)
         {
+            epoch = 0;
             return false;
         }
 
-        void log_done()
+        void log_done(uint64_t /*epoch*/)
         {
         }
 #endif
@@ -362,6 +378,7 @@ namespace PAL_NS_BEGIN {
 
     std::shared_ptr<ITaskDispatcher> PlatformAbstractionLayer::getDefaultTaskDispatcher()
     {
+        std::lock_guard<std::mutex> lock(m_stateLock);
         if (!m_taskDispatcher)
         {
             // Default implementation of task dispatcher is a single-threaded worker thread task queue
@@ -567,43 +584,53 @@ namespace PAL_NS_BEGIN {
 
     void PlatformAbstractionLayer::registerSemanticContext(ISemanticContext* context)
     {
-        if (m_DeviceInformation != nullptr)
+        std::shared_ptr<IDeviceInformation> deviceInformation;
+        std::shared_ptr<ISystemInformation> systemInformation;
+        std::shared_ptr<INetworkInformation> networkInformation;
         {
-            const auto& deviceId = m_DeviceInformation->GetDeviceId();
+            std::lock_guard<std::mutex> lock(m_stateLock);
+            deviceInformation = m_DeviceInformation;
+            systemInformation = m_SystemInformation;
+            networkInformation = m_NetworkInformation;
+        }
+
+        if (deviceInformation != nullptr)
+        {
+            const auto& deviceId = deviceInformation->GetDeviceId();
 #ifdef MATSDK_DISABLE_DEVICE_ID
             if (!deviceId.empty())
 #endif
                 context->SetDeviceId(deviceId);
-            context->SetDeviceModel(m_DeviceInformation->GetModel());
-            context->SetDeviceMake(m_DeviceInformation->GetManufacturer());
+            context->SetDeviceModel(deviceInformation->GetModel());
+            context->SetDeviceMake(deviceInformation->GetManufacturer());
         }
 
-        if (m_SystemInformation != nullptr)
+        if (systemInformation != nullptr)
         {
             // Get SystemInfo common fields
-            context->SetOsVersion(m_SystemInformation->GetOsMajorVersion());
-            context->SetOsName(m_SystemInformation->GetOsName());
-            context->SetOsBuild(m_SystemInformation->GetOsFullVersion());
-            context->SetDeviceClass(m_SystemInformation->GetDeviceClass());
+            context->SetOsVersion(systemInformation->GetOsMajorVersion());
+            context->SetOsName(systemInformation->GetOsName());
+            context->SetOsBuild(systemInformation->GetOsFullVersion());
+            context->SetDeviceClass(systemInformation->GetDeviceClass());
 
             // AppInfo fields
-            context->SetAppId(m_SystemInformation->GetAppId());
-            context->SetAppVersion(m_SystemInformation->GetAppVersion());
-            context->SetAppLanguage(m_SystemInformation->GetAppLanguage());
+            context->SetAppId(systemInformation->GetAppId());
+            context->SetAppVersion(systemInformation->GetAppVersion());
+            context->SetAppLanguage(systemInformation->GetAppLanguage());
 
             // UserInfo fields.
-            context->SetUserLanguage(m_SystemInformation->GetUserLanguage());
-            context->SetUserTimeZone(m_SystemInformation->GetUserTimeZone());
-            //context->SetUserAdvertisingId(m_SystemInformation->GetUserAdvertisingId());
+            context->SetUserLanguage(systemInformation->GetUserLanguage());
+            context->SetUserTimeZone(systemInformation->GetUserTimeZone());
+            //context->SetUserAdvertisingId(systemInformation->GetUserAdvertisingId());
 
-            context->SetCommercialId(m_SystemInformation->GetCommercialId());
+            context->SetCommercialId(systemInformation->GetCommercialId());
         }
-        if (m_NetworkInformation != nullptr)
+        if (networkInformation != nullptr)
         {
             // Get NetworkInfo common fields
-            context->SetNetworkProvider(m_NetworkInformation->GetNetworkProvider());
-            context->SetNetworkCost(m_NetworkInformation->GetNetworkCost());
-            context->SetNetworkType(m_NetworkInformation->GetNetworkType());
+            context->SetNetworkProvider(networkInformation->GetNetworkProvider());
+            context->SetNetworkCost(networkInformation->GetNetworkCost());
+            context->SetNetworkType(networkInformation->GetNetworkType());
         }
     }
 
@@ -637,53 +664,129 @@ namespace PAL_NS_BEGIN {
 
     void PlatformAbstractionLayer::initialize(IRuntimeConfig& configuration)
     {
-        if (m_palStarted.fetch_add(1) == 0)
         {
+            std::unique_lock<std::mutex> lock(m_stateLock);
+            m_stateChanged.wait(lock, [this] { return !m_initializing; });
+            if (m_palStarted > 0)
+            {
+                const size_t count = ++m_palStarted;
+                lock.unlock();
+                LOG_INFO("Already initialized: %zu", count);
+                (void)count;
+                return;
+            }
+            m_initializing = true;
+        }
+
+        // Platform provider factories can invoke callbacks that access PAL.
+        uint64_t logEpoch = 0;
+        std::shared_ptr<ISystemInformation> systemInformation;
+        std::shared_ptr<IDeviceInformation> deviceInformation;
+        std::shared_ptr<INetworkInformation> networkInformation;
+#if HAVE_EXCEPTIONS
+        try
+        {
+#endif
             std::string traceFolderPath = MAT::GetTempDirectory();
             if (configuration.HasConfig(CFG_STR_TRACE_FOLDER_PATH))
             {
                 traceFolderPath = static_cast<std::string&>(configuration[CFG_STR_TRACE_FOLDER_PATH]);
             }
 
-            detail::isLoggingInited = detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath);
+            detail::log_init(configuration[CFG_BOOL_ENABLE_TRACE], traceFolderPath, logEpoch);
             LOG_TRACE("Initializing...");
-            m_SystemInformation = SystemInformationImpl::Create(configuration);
-            m_DeviceInformation = DeviceInformationImpl::Create(configuration);
-            m_NetworkInformation = NetworkInformationImpl::Create(configuration);
-            LOG_INFO("Initialized");
+            systemInformation = SystemInformationImpl::Create(configuration);
+            deviceInformation = DeviceInformationImpl::Create(configuration);
+            networkInformation = NetworkInformationImpl::Create(configuration);
+#if HAVE_EXCEPTIONS
         }
-        else
+        catch (...)
         {
-            LOG_INFO("Already initialized: %d", m_palStarted.load());
+            networkInformation.reset();
+            deviceInformation.reset();
+            systemInformation.reset();
+            detail::log_done(logEpoch);
+            {
+                std::lock_guard<std::mutex> lock(m_stateLock);
+                m_initializing = false;
+            }
+            m_stateChanged.notify_all();
+            throw;
         }
+#endif
+
+        {
+            std::lock_guard<std::mutex> lock(m_stateLock);
+            m_SystemInformation = std::move(systemInformation);
+            m_DeviceInformation = std::move(deviceInformation);
+            m_NetworkInformation = std::move(networkInformation);
+            m_logEpoch = logEpoch;
+            m_palStarted = 1;
+            m_initializing = false;
+        }
+        m_stateChanged.notify_all();
+        LOG_INFO("Initialized");
     }
 
-    std::shared_ptr<INetworkInformation> PlatformAbstractionLayer::GetNetworkInformation() const noexcept { return m_NetworkInformation; }
-    std::shared_ptr<IDeviceInformation> PlatformAbstractionLayer::GetDeviceInformation() const noexcept   { return m_DeviceInformation; }
-    std::shared_ptr<ISystemInformation> PlatformAbstractionLayer::GetSystemInformation() const noexcept   { return m_SystemInformation; }
+    std::shared_ptr<INetworkInformation> PlatformAbstractionLayer::GetNetworkInformation() const noexcept
+    {
+        std::lock_guard<std::mutex> lock(m_stateLock);
+        return m_NetworkInformation;
+    }
+
+    std::shared_ptr<IDeviceInformation> PlatformAbstractionLayer::GetDeviceInformation() const noexcept
+    {
+        std::lock_guard<std::mutex> lock(m_stateLock);
+        return m_DeviceInformation;
+    }
+
+    std::shared_ptr<ISystemInformation> PlatformAbstractionLayer::GetSystemInformation() const noexcept
+    {
+        std::lock_guard<std::mutex> lock(m_stateLock);
+        return m_SystemInformation;
+    }
 
     void PlatformAbstractionLayer::shutdown()
     {
-        if (m_palStarted == 0)
+        std::shared_ptr<ITaskDispatcher> taskDispatcher;
+        std::shared_ptr<ISystemInformation> systemInformation;
+        std::shared_ptr<IDeviceInformation> deviceInformation;
+        std::shared_ptr<INetworkInformation> networkInformation;
+        uint64_t logEpoch = 0;
         {
-            LOG_ERROR("PAL is already shutdown!");
-            return;
+            std::unique_lock<std::mutex> lock(m_stateLock);
+            m_stateChanged.wait(lock, [this] { return !m_initializing; });
+            if (m_palStarted == 0)
+            {
+                lock.unlock();
+                LOG_ERROR("PAL is already shutdown!");
+                return;
+            }
+            if (--m_palStarted > 0)
+            {
+                const size_t count = m_palStarted;
+                lock.unlock();
+                LOG_INFO("Shutting down: %zu", count);
+                (void)count;
+                return;
+            }
+
+            taskDispatcher = std::move(m_taskDispatcher);
+            systemInformation = std::move(m_SystemInformation);
+            deviceInformation = std::move(m_DeviceInformation);
+            networkInformation = std::move(m_NetworkInformation);
+            logEpoch = m_logEpoch;
+            m_logEpoch = 0;
         }
 
-        if (m_palStarted.fetch_sub(1) == 1)
-        {
-            LOG_TRACE("Shutting down...");
-            if (m_taskDispatcher) { m_taskDispatcher = nullptr; }
-            if (m_SystemInformation) { m_SystemInformation = nullptr; }
-            if (m_DeviceInformation) { m_DeviceInformation = nullptr; }
-            if (m_NetworkInformation) { m_NetworkInformation = nullptr; }
-            LOG_INFO("Shut down");
-            detail::log_done();
-        }
-        else
-        {
-            LOG_INFO("Shutting down: %d", m_palStarted.load());
-        }
+        LOG_TRACE("Shutting down...");
+        // Releasing the last dispatcher reference can join a worker that re-enters PAL.
+        taskDispatcher.reset();
+        systemInformation.reset();
+        deviceInformation.reset();
+        networkInformation.reset();
+        LOG_INFO("Shut down");
+        detail::log_done(logEpoch);
     }
 
 #ifndef HAVE_MAT_UTC

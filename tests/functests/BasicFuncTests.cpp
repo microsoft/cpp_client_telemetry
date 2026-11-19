@@ -44,27 +44,31 @@ namespace PAL_NS_BEGIN
 
         static long GetPalRefCount()
         {
-            return PAL::GetPAL().m_palStarted.load();
+            auto& pal = PAL::GetPAL();
+            std::lock_guard<std::mutex> lock(pal.m_stateLock);
+            return static_cast<long>(pal.m_palStarted);
         };
 
         static std::shared_ptr<ITaskDispatcher> GetTaskDispatcher()
         {
-            return PAL::GetPAL().m_taskDispatcher;
+            auto& pal = PAL::GetPAL();
+            std::lock_guard<std::mutex> lock(pal.m_stateLock);
+            return pal.m_taskDispatcher;
         };
 
         static std::shared_ptr<ISystemInformation> GetSystemInformation()
         {
-            return PAL::GetPAL().m_SystemInformation;
+            return PAL::GetPAL().GetSystemInformation();
         }
 
         static std::shared_ptr<INetworkInformation> GetNetworkInformation()
         {
-            return PAL::GetPAL().m_NetworkInformation;
+            return PAL::GetPAL().GetNetworkInformation();
         }
 
         static std::shared_ptr<IDeviceInformation> GetDeviceInformation()
         {
-            return PAL::GetPAL().m_DeviceInformation;
+            return PAL::GetPAL().GetDeviceInformation();
         }
     };
 }
