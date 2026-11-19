@@ -8,9 +8,11 @@
 #include "http/HttpResponseDecoder.hpp"
 #include "utils/ZlibUtils.hpp"
 
+#include <atomic>
 #include <cstdio>
 #include <cstdlib>
 #include <limits>
+#include <new>
 
 #if HAVE_EXCEPTIONS
 #error This regression executable must be compiled without C++ exceptions.
@@ -19,9 +21,25 @@
 #error This regression executable requires JSON and zlib support.
 #endif
 
+namespace
+{
+    std::atomic<bool> failNextNothrowArrayAllocation {false};
+}
+
+void* operator new[](std::size_t size, const std::nothrow_t&) noexcept
+{
+    if (failNextNothrowArrayAllocation.exchange(false))
+    {
+        return nullptr;
+    }
+    return ::operator new[](size);
+}
+
 namespace clienttelemetry {
     namespace data {
         namespace v3 {
+            bool Compress(const char*, size_t, char**, size_t&, bool);
+            bool Compress(const char*, size_t, char**, size_t&, bool, char* (*)(size_t));
             bool Expand(const char*, size_t, char**, size_t&, bool);
             bool Expand(const char*, size_t, char**, size_t&, bool, char* (*)(size_t));
         }
@@ -151,6 +169,14 @@ int main()
           "oversized expansion must fail");
     check(output == nullptr && outputSize == 0, "failed expansion must clear outputs");
     char previousOutput = 0;
+    for (size_t length = 1; length < sizeof(uint32_t); ++length)
+    {
+        output = &previousOutput;
+        outputSize = 32;
+        check(!clienttelemetry::data::v3::Expand(invalidCompressed, length, &output, outputSize, true),
+              "short size prefix must fail");
+        check(output == nullptr && outputSize == 0, "short size prefix must clear outputs");
+    }
     output = &previousOutput;
     outputSize = 32;
     static size_t requestedSize = 0;
@@ -161,6 +187,30 @@ int main()
         }), "representable allocation failure must return false");
     check(requestedSize == 32, "failure injection must reach the allocator");
     check(output == nullptr && outputSize == 0, "allocation failure must clear an existing output and its length");
-    std::puts("Passed no-exceptions configuration, response, profile, numeric-limit, and expansion smoke checks.");
+    output = &previousOutput;
+    outputSize = 32;
+    requestedSize = 0;
+    check(!clienttelemetry::data::v3::Compress(invalidCompressed, sizeof(invalidCompressed), &output, outputSize, false,
+        [](size_t size) -> char* {
+            requestedSize = size;
+            return nullptr;
+        }), "compression allocation failure must return false");
+    check(requestedSize > sizeof(invalidCompressed), "compression failure injection must reach the allocator");
+    check(output == nullptr && outputSize == 0, "failed compression must clear output and its length");
+    output = &previousOutput;
+    outputSize = 32;
+    failNextNothrowArrayAllocation = true;
+    const bool compressed = clienttelemetry::data::v3::Compress(
+        invalidCompressed, sizeof(invalidCompressed), &output, outputSize, false);
+    check(!failNextNothrowArrayAllocation, "default compression must use the nothrow array allocator");
+    check(!compressed && output == nullptr && outputSize == 0,
+          "default compression must report allocation failure without exceptions");
+    output = &previousOutput;
+    outputSize = 32;
+    check(!clienttelemetry::data::v3::Compress(invalidCompressed, std::numeric_limits<size_t>::max(),
+                                               &output, outputSize, true),
+          "unrepresentable compression size must fail");
+    check(output == nullptr && outputSize == 0, "oversized compression must clear output and its length");
+    std::puts("Passed no-exceptions configuration, response, profile, numeric-limit, and compression smoke checks.");
     return EXIT_SUCCESS;
 }

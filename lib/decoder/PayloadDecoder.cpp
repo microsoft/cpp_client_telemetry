@@ -33,6 +33,8 @@ MAT_NS_END
 #else
 #include <algorithm>
 #include <chrono>
+#include <cstdint>
+#include <cstring>
 #include <fstream>
 #include <limits>
 #include <new>
@@ -391,7 +393,9 @@ namespace clienttelemetry {
             /// <param name="destLen"></param>
             /// <param name="prependSize"></param>
             /// <returns></returns>
-            bool Compress(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool prependSize)
+            // Successful custom allocations must be compatible with delete[].
+            bool Compress(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool prependSize,
+                          char* (*allocate)(size_t))
             {
                 if ((!source) || (!sourceLen))
                 {
@@ -401,38 +405,48 @@ namespace clienttelemetry {
                 *dest = NULL;
                 destLen = 0;
 
-                // Compressing variables
-                uLong compSize = compressBound((uLong)sourceLen);
-
-                // Allocate memory for the new compressed buffer
-                size_t reserved = ((unsigned)prependSize * sizeof(uint32_t));
-                char* compBody = new char[std::max(compSize, ((uLong)sourceLen)) + reserved];
-                if (compBody != NULL)
+                const auto inputSize = static_cast<std::uintmax_t>(sourceLen);
+                if (inputSize > static_cast<std::uintmax_t>(std::numeric_limits<uLong>::max()) ||
+                    (prependSize && inputSize > static_cast<std::uintmax_t>(std::numeric_limits<uint32_t>::max())))
                 {
-                    if (prependSize)
-                    {
-                        // Remember source uncompressed size if requested
-                        uint32_t *s = (uint32_t*)(compBody);
-                        (*s) = (uint32_t)sourceLen; // truncate this to 32-bit, we do not support 3+ TB blobs
-                    }
-                    // Deflate
-                    int res = compress2((Bytef *)(compBody + reserved), &compSize, (Bytef *)source, (uLong)sourceLen, Z_BEST_SPEED);
-                    if (res != Z_OK)
-                    {
-                        TEST_LOG_ERROR("Compression failed, error=%u", res);
-                        delete[] compBody;
-                        compBody = NULL;
-                        return false;
-                    }
-                    else
-                    {
-                        *dest = compBody;
-                        destLen = compSize + reserved;
-                        return true;
-                    }
+                    return false;
                 }
-                // OOM
-                return false;
+
+                uLong compSize = compressBound(static_cast<uLong>(sourceLen));
+                const size_t reserved = prependSize ? sizeof(uint32_t) : 0;
+                const size_t maxAllocation = static_cast<size_t>(std::numeric_limits<ptrdiff_t>::max());
+                if (compSize == std::numeric_limits<uLong>::max() || compSize < sourceLen ||
+                    sourceLen > maxAllocation - reserved || compSize > maxAllocation - reserved)
+                {
+                    return false;
+                }
+
+                char* compBody = allocate(std::max(static_cast<size_t>(compSize), sourceLen) + reserved);
+                if (compBody == nullptr)
+                {
+                    return false;
+                }
+                if (prependSize)
+                {
+                    const uint32_t originalSize = static_cast<uint32_t>(sourceLen);
+                    std::memcpy(compBody, &originalSize, sizeof(originalSize));
+                }
+                int res = compress2((Bytef *)(compBody + reserved), &compSize, (Bytef *)source, (uLong)sourceLen, Z_BEST_SPEED);
+                if (res != Z_OK)
+                {
+                    TEST_LOG_ERROR("Compression failed, error=%u", res);
+                    delete[] compBody;
+                    return false;
+                }
+                *dest = compBody;
+                destLen = compSize + reserved;
+                return true;
+            }
+
+            bool Compress(const char* source, size_t sourceLen, char** dest, size_t& destLen, bool prependSize)
+            {
+                return Compress(source, sourceLen, dest, destLen, prependSize,
+                                [](size_t size) { return new (std::nothrow) char[size]; });
             }
 
             /// <summary>
@@ -460,13 +474,23 @@ namespace clienttelemetry {
                 // Get uncompressed size at zero offset.
                 if (sizeAtZeroIndex)
                 {
-                    uint32_t s32 = *((uint32_t*)(source));
-                    uint64_t s64 = (sourceLen >= sizeof(uint64_t)) ? *((uint64_t*)(source)) : 0;
+                    if (sourceLen < sizeof(uint32_t))
+                    {
+                        destLen = 0;
+                        return false;
+                    }
+                    uint32_t s32 = 0;
+                    std::memcpy(&s32, source, sizeof(s32));
                     // If we are reading 64-bit generated legacy DB, step 32-bit forward to
                     // skip zero-padding in most-significant DWORD on Intel architecture
-                    if ((s64 - s32) == 0)
+                    if (sourceLen >= sizeof(uint64_t))
                     {
-                        reserved += sizeof(uint32_t);
+                        uint64_t s64 = 0;
+                        std::memcpy(&s64, source, sizeof(s64));
+                        if (s64 == s32)
+                        {
+                            reserved += sizeof(uint32_t);
+                        }
                     }
                     destLen = s32;
                 }
