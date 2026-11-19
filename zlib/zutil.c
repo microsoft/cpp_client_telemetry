@@ -301,8 +301,16 @@ extern void free(voidpf ptr);
 #endif
 
 voidpf ZLIB_INTERNAL zcalloc(voidpf opaque, unsigned items, unsigned size) {
+#ifdef STDC
+    typedef size_t alloc_size_t;
+#else
+    typedef uInt alloc_size_t;
+#endif
     (void)opaque;
-    return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
+    /* Modified for the SDK: reject sizes that malloc cannot represent. */
+    if (size != 0 && sizeof(uInt) > 2 && items > (alloc_size_t)-1 / size)
+        return Z_NULL;
+    return sizeof(uInt) > 2 ? (voidpf)malloc((alloc_size_t)items * size) :
                               (voidpf)calloc(items, size);
 }
 

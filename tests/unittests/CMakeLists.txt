@@ -159,3 +159,8 @@ endif()
 add_test(NAME UnitTests COMMAND UnitTests
   "--gtest_output=xml:${PROJECT_BINARY_DIR}/test-reports/UnitTests.xml")
 set_tests_properties(UnitTests PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+if(NOT MATSDK_PLATFORM_IOS)
+  add_executable(zlib-allocation-test ../zlib-allocation-test.c)
+  add_test(NAME zlib-allocation-test COMMAND zlib-allocation-test)
+endif()
