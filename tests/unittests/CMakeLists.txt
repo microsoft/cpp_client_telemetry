@@ -68,6 +68,9 @@ set(MATSDK_UNIT_TEST_DEFINITIONS)
 if(NOT MSVC)
   set_source_files_properties(${SRCS}
     PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+else()
+  # The storage regression tests exceed the default COFF section limit.
+  set_source_files_properties(OfflineStorageTests.cpp PROPERTIES COMPILE_OPTIONS /bigobj)
 endif()
 
 # Enable Azure Monitor unit tests when the module is present.

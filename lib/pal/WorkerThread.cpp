@@ -295,19 +295,15 @@ namespace PAL_NS_BEGIN {
                 queuedItem = *it;
                 m_timerQueue.erase(it);
             }
+            else {
+                auto immediate = std::find(m_queue.begin(), m_queue.end(), item);
+                if (immediate != m_queue.end()) {
+                    queuedItem = *immediate;
+                    m_queue.erase(immediate);
+                }
+            }
             lock.unlock();
             delete queuedItem;
-#if 0
-            for (;;) {
-                {
-                    LOCKGUARD(m_lock);
-                    if (item->Type == MAT::Task::Done) {
-                        return;
-                    }
-                }
-                Sleep(10);
-            }
-#endif
             return true;
         }
 

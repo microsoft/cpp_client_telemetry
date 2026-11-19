@@ -14,9 +14,10 @@
 #include "ILogManager.hpp"
 #include "pal/TaskDispatcher.hpp"
 
-#include <memory>
 #include <atomic>
 #include <list>
+#include <memory>
+#include <mutex>
 #include <string>
 
 #include "KillSwitchManager.hpp"
@@ -82,9 +83,11 @@ namespace MAT_NS_BEGIN {
         bool isKilled(StorageRecord const& record);
 
         std::mutex                             m_flushLock;
-        bool                                   m_flushPending;
-        PAL::DeferredCallbackHandle            m_flushHandle;
-        PAL::Event                             m_flushComplete;
+        class FlushState;
+        class OperationGuard;
+        class ScheduledFlushTask;
+        class TeardownGuard;
+        std::shared_ptr<FlushState>            m_flushState;
 
         std::shared_ptr<IOfflineStorage>       m_offlineStorageMemory;
         std::shared_ptr<IOfflineStorage>       m_offlineStorageDisk;
@@ -92,7 +95,7 @@ namespace MAT_NS_BEGIN {
         std::atomic<bool>                      m_readFromMemory;
         std::atomic<unsigned>                  m_lastReadCount;
 
-        bool                                   m_shutdownStarted;
+        std::atomic<bool>                      m_shutdownStarted;
         unsigned                               m_memoryDbSize;
         unsigned                               m_memoryDbSizeNotificationLimit;
         unsigned                               m_queryDbSize;
@@ -103,7 +106,9 @@ namespace MAT_NS_BEGIN {
         MATSDK_LOG_DECL_COMPONENT_CLASS();
 
     private:
-        void WaitForFlush();
+        bool BeginTeardown();
+        void QueueScheduledFlush();
+        void FlushImpl();
         bool IsBatchedStorageFlushEnabled();
         void ReportInvalidDiskRecord(StorageRecord const& record);
         size_t StoreRecordsIndividually(std::vector<StorageRecord>& records);
