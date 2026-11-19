@@ -31,6 +31,8 @@
 #include <vector>
 
 #include <arpa/inet.h>
+#include <dlfcn.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -1238,5 +1240,117 @@ TEST_F(HttpClientCurlLifetimeTests, OverlappingClientsWithActiveRequestsDestroyI
         EXPECT_EQ(callbacks[i]->responsesWithResult(HttpResult_Aborted), 1u) << "client " << i;
     }
 }
+
+#if defined(__linux__)
+
+// An unreachable DNS server keeps getaddrinfo() blocked for the system resolver
+// timeout. Interpose it for one reserved host so the stall is deterministic and
+// needs no network; every other lookup goes to the real resolver.
+namespace
+{
+constexpr char kStalledHost[] = "dns-stall.invalid";
+
+// Each test run is one generation, so a resolver thread detached by an earlier
+// run (for example under --gtest_repeat) keeps waiting on its own release.
+struct DnsStall
+{
+    std::mutex mutex;
+    std::condition_variable cv;
+    uint64_t generation {0};
+    uint64_t entered {0};
+    uint64_t released {0};
+};
+
+DnsStall& GetDnsStall()
+{
+    static DnsStall* stall = new DnsStall();  // Leaked: a detached resolver may still use it at exit.
+    return *stall;
+}
+
+uint64_t BeginDnsStall()
+{
+    DnsStall& stall = GetDnsStall();
+    std::lock_guard<std::mutex> lock(stall.mutex);
+    return ++stall.generation;
+}
+
+void ReleaseDnsStall(uint64_t generation)
+{
+    DnsStall& stall = GetDnsStall();
+    {
+        std::lock_guard<std::mutex> lock(stall.mutex);
+        stall.released = generation;
+    }
+    stall.cv.notify_all();
+}
+} // namespace
+
+extern "C" int getaddrinfo(const char* node, const char* service, const struct addrinfo* hints,
+                           struct addrinfo** res)
+{
+    if (node != nullptr && std::strcmp(node, kStalledHost) == 0)
+    {
+        DnsStall& stall = GetDnsStall();
+        std::unique_lock<std::mutex> lock(stall.mutex);
+        const uint64_t generation = stall.generation;
+        stall.entered = generation;
+        stall.cv.notify_all();
+        stall.cv.wait_for(lock, std::chrono::seconds(60), [&]() { return stall.released >= generation; });
+        return EAI_AGAIN;
+    }
+    using GetAddrInfoFn = int (*)(const char*, const char*, const struct addrinfo*, struct addrinfo**);
+    static const auto real = reinterpret_cast<GetAddrInfoFn>(dlsym(RTLD_NEXT, "getaddrinfo"));
+    return (real != nullptr) ? real(node, service, hints, res) : EAI_SYSTEM;
+}
+
+// Destroying the client while name resolution is stalled must abort and drain
+// promptly: neither the abort nor curl_easy_cleanup() may wait for the resolver.
+TEST(HttpClientCurlDnsStallTests, DestroyingClientDuringStalledResolutionDoesNotHang)
+{
+    const curl_version_info_data* versionInfo = curl_version_info(CURLVERSION_NOW);
+    if (!UsesPrereqCallback() || versionInfo == nullptr || versionInfo->version_num < 0x075700)
+    {
+        GTEST_SKIP() << "runtime libcurl predates CURLOPT_QUICK_EXIT (7.87.0)";
+    }
+    if ((versionInfo->features & CURL_VERSION_ASYNCHDNS) == 0)
+    {
+        // A synchronous resolver blocks the worker itself; nothing can abort it.
+        GTEST_SKIP() << "runtime libcurl resolves names synchronously";
+    }
+
+    const uint64_t generation = BeginDnsStall();
+    RecordingCallback callback;
+    std::unique_ptr<HttpClient_Curl> client(new HttpClient_Curl());
+    std::unique_ptr<IHttpRequest> request(client->CreateRequest());
+    request->SetUrl(std::string("http://") + kStalledHost + "/stall");
+    client->SendRequestAsync(request.get(), &callback);
+
+    bool entered = false;
+    {
+        DnsStall& stall = GetDnsStall();
+        std::unique_lock<std::mutex> lock(stall.mutex);
+        entered = stall.cv.wait_for(lock, std::chrono::seconds(10), [&]() { return stall.entered == generation; });
+    }
+    if (!entered)
+    {
+        client.reset();
+        ReleaseDnsStall(generation);
+        GTEST_SKIP() << "libcurl does not resolve through getaddrinfo() (for example, c-ares)";
+    }
+
+    const auto start = std::chrono::steady_clock::now();
+    client.reset();
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start);
+    ReleaseDnsStall(generation);
+
+    // The connect timeout is 5s; finishing well inside it proves the abort did
+    // not wait for it, and no resolver join extended it to the 60s stall.
+    EXPECT_LT(elapsed.count(), 3000) << "client teardown waited on the stalled resolver";
+    EXPECT_EQ(callback.responses(), 1u);
+    EXPECT_EQ(callback.responsesWithResult(HttpResult_Aborted), 1u);
+}
+
+#endif // __linux__
 
 #endif // MATSDK_PAL_CPP11 && !_MSC_VER && HAVE_MAT_DEFAULT_HTTP_CLIENT

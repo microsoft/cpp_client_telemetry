@@ -45,6 +45,18 @@
 
 #define HTTP_CONN_TIMEOUT       5L
 
+// libcurl option ids are ABI-stable and never reused. Pass these by number so
+// a runtime libcurl newer than the build headers still receives them; an
+// older runtime rejects an unknown id without side effects.
+#define MATSDK_CURLOPT_QUICK_EXIT   static_cast<CURLoption>(CURLOPTTYPE_LONG + 322)   // libcurl 7.87.0
+#define MATSDK_CURLMOPT_QUICK_EXIT  static_cast<CURLMoption>(CURLOPTTYPE_LONG + 21)   // libcurl 8.20.0
+#if LIBCURL_VERSION_NUM >= 0x075700
+static_assert(MATSDK_CURLOPT_QUICK_EXIT == CURLOPT_QUICK_EXIT, "CURLOPT_QUICK_EXIT id changed");
+#endif
+#if LIBCURL_VERSION_NUM >= 0x081400
+static_assert(MATSDK_CURLMOPT_QUICK_EXIT == CURLMOPT_QUICK_EXIT, "CURLMOPT_QUICK_EXIT id changed");
+#endif
+
 #undef TRACE
 #define TRACE(...)	// printf
 
@@ -337,6 +349,14 @@ public:
         // With NOSIGNAL, a synchronous resolver may still prevent libcurl from
         // enforcing a strict deadline until the resolver call returns.
 
+        // Teardown drains every operation, and curl_easy_cleanup() otherwise
+        // joins a resolver thread that can stay blocked in getaddrinfo() for the
+        // system DNS timeout when the collector is unreachable, stalling host
+        // process exit. Best effort: an older runtime libcurl rejects it.
+        // Trade-off: a resolver thread abandoned this way runs until
+        // getaddrinfo() returns, and must not outlive an unloaded libcurl.
+        (void)curl_easy_setopt(curl, MATSDK_CURLOPT_QUICK_EXIT, 1L);
+
         // Headers are copied into m_headersChunk during construction and the
         // curl_slist is kept alive until destruction, so the original map does
         // not need operation-lifetime storage.
@@ -551,7 +571,8 @@ public:
             goto cleanup;
         }
         DispatchEvent(m_usePrereqCallback ? OnConnecting : OnSending);
-        m_transportError = curl_easy_perform(curl);
+        // The legacy CONNECT_ONLY path must reuse the easy handle's connection.
+        m_transportError = m_usePrereqCallback ? PerformAbortable() : curl_easy_perform(curl);
         if(CURLE_OK != m_transportError)
         {
             DispatchEvent(!m_usePrereqCallback || m_connectionReady ? OnSendFailed : OnConnectFailed);
@@ -959,6 +980,69 @@ protected:
             }
             remaining -= slice;
         }
+    }
+
+    /**
+     * Run the transfer on a private multi handle so cancellation is observed
+     * within one poll slice. curl_easy_perform() does not invoke the progress
+     * callback while a name is resolving, so an abort during a stalled DNS
+     * lookup would otherwise wait for the full connect timeout.
+     */
+    CURLcode PerformAbortable()
+    {
+#if LIBCURL_VERSION_NUM >= 0x074200 // libcurl 7.66.0: curl_multi_poll
+        CURLM* multi = curl_multi_init();
+        if (multi == nullptr)
+        {
+            return CURLE_OUT_OF_MEMORY;
+        }
+        // From libcurl 8.20.0 resolver threads belong to the multi handle; do
+        // not join them.
+        (void)curl_multi_setopt(multi, MATSDK_CURLMOPT_QUICK_EXIT, 1L);
+        if (curl_multi_add_handle(multi, curl) != CURLM_OK)
+        {
+            curl_multi_cleanup(multi);
+            return CURLE_FAILED_INIT;
+        }
+
+        CURLcode result = CURLE_FAILED_INIT;
+        constexpr int sliceMs = 100;
+        for (;;)
+        {
+            int running = 0;
+            if (curl_multi_perform(multi, &running) != CURLM_OK)
+            {
+                break;
+            }
+            if (running == 0)
+            {
+                int queued = 0;
+                while (CURLMsg* msg = curl_multi_info_read(multi, &queued))
+                {
+                    if (msg->msg == CURLMSG_DONE && msg->easy_handle == curl)
+                    {
+                        result = msg->data.result;
+                    }
+                }
+                break;
+            }
+            if (isAborted.load(std::memory_order_acquire))
+            {
+                result = CURLE_ABORTED_BY_CALLBACK;
+                break;
+            }
+            if (curl_multi_poll(multi, nullptr, 0, sliceMs, nullptr) != CURLM_OK)
+            {
+                break;
+            }
+        }
+
+        curl_multi_remove_handle(multi, curl);
+        curl_multi_cleanup(multi);
+        return result;
+#else
+        return curl_easy_perform(curl);
+#endif
     }
 
     /**

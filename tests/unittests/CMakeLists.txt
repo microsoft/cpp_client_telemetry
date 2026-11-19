@@ -149,6 +149,10 @@ target_link_libraries(UnitTests PRIVATE
   ZLIB::ZLIB
   gtest
   gmock)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # HttpClientCurlTests interposes getaddrinfo() and forwards via dlsym().
+  target_link_libraries(UnitTests PRIVATE ${CMAKE_DL_LIBS})
+endif()
 if(NOT MATSDK_SQLITE_PROVIDER_RESOLVED STREQUAL "NONE")
   target_link_libraries(UnitTests PRIVATE SQLite3::SQLite3)
 endif()
