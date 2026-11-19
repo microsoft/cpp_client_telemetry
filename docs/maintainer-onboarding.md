@@ -31,11 +31,15 @@ select materially different code.
 ## Access and repository layout
 
 The public repository contains the core SDK. Some Microsoft-only modules are
-maintained separately under `lib/modules`. Clone recursively only when work
-requires those modules and your GitHub account has access:
+maintained separately under `lib/modules`. `.gitmodules` sets
+`update = none` for that submodule so recursive clones without access (including
+Dependabot) still succeed. Fetch it explicitly only when work requires those
+modules and your GitHub account has access:
 
 ```powershell
 git clone --recurse-submodules https://github.com/microsoft/cpp_client_telemetry.git
+cd cpp_client_telemetry
+git submodule update --init --checkout lib/modules
 ```
 
 The [modules repository](https://github.com/microsoft/cpp_client_telemetry_modules)
@@ -48,7 +52,8 @@ Keep the SDK checkout ref in the modules repository's CI workflows aligned with
 a tested commit on this SDK's `main` branch so module tests cover current SDK
 changes. In the other direction, after module PRs merge, update the pinned
 `lib/modules` submodule commit in this SDK through a reviewed PR and validate the
-combined build. A recursive clone checks out that pinned commit; it does not
+combined build. `git submodule update --checkout lib/modules` checks out that
+pinned commit; it does not
 automatically follow the modules repository's latest HEAD.
 
 Do not make core behavior accidentally depend on a private module. Builds that

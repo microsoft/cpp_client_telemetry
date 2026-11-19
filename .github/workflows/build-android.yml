@@ -37,6 +37,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      with:
+        persist-credentials: false
     - name: Setup Java
       uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
       with:
@@ -72,6 +74,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      with:
+        persist-credentials: false
     - name: Configure full JNI SDK
       run: >-
         cmake -S tests/android-storage -B out-no-exceptions -G Ninja
@@ -100,6 +104,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
+        persist-credentials: false
         submodules: false
     - name: Update submodules
       run: |
@@ -118,7 +123,6 @@ jobs:
     - name: Install NDK
       run: |
         java -version
-        gci env:* | sort-object name
         new-item "$Env:USERPROFILE\.android\repositories.cfg" -ItemType "file"
         echo yes | sdkmanager "ndk-bundle" "cmake;3.22.1" "ndk;27.0.12077973" --sdk_root=$Env:ANDROID_SDK_ROOT
     - name: Chocolatey

@@ -40,7 +40,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      continue-on-error: true
+      with:
+        persist-credentials: false
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -88,6 +89,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      with:
+        persist-credentials: false
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
@@ -112,7 +115,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      continue-on-error: true
+      with:
+        persist-credentials: false
 
     - name: Update submodules
       run: |
@@ -137,7 +141,6 @@ jobs:
     - name: Install NDK
       run: |
         java -version
-        gci env:* | sort-object name
         new-item "$Env:USERPROFILE\.android\repositories.cfg" -ItemType "file"
         echo yes | sdkmanager "ndk-bundle" "cmake;3.22.1" "ndk;27.0.12077973" --sdk_root=$Env:ANDROID_SDK_ROOT
     - name: Chocolatey
