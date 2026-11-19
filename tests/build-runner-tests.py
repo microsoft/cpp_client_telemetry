@@ -33,7 +33,8 @@ class BuildRunnerTests(unittest.TestCase):
         self.write_script(
             "out/tests/functests/FuncTests",
             'printf "concurrent %s\\n" "$*" >> "$CALLS"\n'
-            'if mkdir "$CASE_ROOT/first-child" 2>/dev/null; then\n'
+            # Some mkdir implementations can report success to both contenders.
+            'if (set -C; : > "$CASE_ROOT/first-child") 2>/dev/null; then\n'
             '  sleep 0.05\n'
             '  echo first-finished >> "$CALLS"\n'
             '  exit "${FIRST_RESULT:-0}"\n'
