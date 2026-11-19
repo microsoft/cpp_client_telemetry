@@ -43,9 +43,12 @@ static void test_free(void *ptr) {
 
 int main(void) {
     voidpf result;
+    size_t size_t_width = sizeof(size_t);
+    size_t uint_width = sizeof(uInt);
+    size_t max_size = (size_t)-1;
 
 #ifdef ZLIB_TEST_REQUIRE_32_BIT
-    CHECK(sizeof(size_t) == 4 && sizeof(uInt) == 4);
+    CHECK(size_t_width == 4 && uint_width == 4);
 #endif
 
     allocation_calls = 0;
@@ -62,10 +65,10 @@ int main(void) {
     CHECK(result == NULL);
     allocation_succeeds = 1;
 
-    if (sizeof(size_t) > sizeof(unsigned)) {
+    if (size_t_width > sizeof(unsigned)) {
         result = zcalloc(NULL, UINT_MAX, 2);
         CHECK(result == &allocation && allocated_size == (size_t)UINT_MAX * 2);
-        if (UINT_MAX <= (size_t)-1 / UINT_MAX) {
+        if (UINT_MAX <= max_size / UINT_MAX) {
             result = zcalloc(NULL, UINT_MAX, UINT_MAX);
             CHECK(result == &allocation &&
                   allocated_size == (size_t)UINT_MAX * UINT_MAX);
@@ -76,7 +79,7 @@ int main(void) {
         allocation_calls = 0;
         result = zcalloc(NULL, UINT_MAX, 2);
         CHECK(result == NULL);
-        if (sizeof(uInt) > 2)
+        if (uint_width > 2)
             CHECK(allocation_calls == 0);
     }
 
