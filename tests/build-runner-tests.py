@@ -33,7 +33,7 @@ class BuildRunnerTests(unittest.TestCase):
         self.write_script(
             "out/tests/functests/FuncTests",
             'printf "concurrent %s\\n" "$*" >> "$CALLS"\n'
-            'if mkdir "$CASE_ROOT/first-child" 2>/dev/null; then\n'
+            'if (set -C; : > "$CASE_ROOT/first-child") 2>/dev/null; then\n'
             '  sleep 0.05\n'
             '  echo first-finished >> "$CALLS"\n'
             '  exit "${FIRST_RESULT:-0}"\n'
@@ -120,6 +120,13 @@ class BuildRunnerTests(unittest.TestCase):
     def test_second_child_failure_is_not_lost(self):
         result, calls = self.run_runner(SECOND_RESULT="26")
         self.assertEqual(result.returncode, 26)
+        self.assertIn("first-finished", calls)
+        self.assertIn("second-finished", calls)
+
+    def test_child_selection_does_not_depend_on_mkdir(self):
+        self.write_script("bin/mkdir", "exit 0\n")
+        result, calls = self.run_runner(SECOND_RESULT="26")
+        self.assertEqual(result.returncode, 26, result.stdout + result.stderr)
         self.assertIn("first-finished", calls)
         self.assertIn("second-finished", calls)
 
